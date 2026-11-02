@@ -141,15 +141,6 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('EncryptedBackupArchive.verifyPlain(', service)
         for name in ('BackupRestoreService', 'RestoreStartupProtection'):
             self.assertIn('LocalBackupDataset.inspectStaged(', source(name))
-        # New invoice issuance still rejects an already used number before recording it.
-        invoice = source('LocalInvoiceService')
-        self.assertIn('"INVOICE_NUMBER_COLLISION"', invoice)
-        reservation_write = re.search(r'\bstore(?:!!)?\s*\.\s*putOwnerValue\s*\(\s*\(?\s*'
-                                      r'"local_number_reservation:', invoice)
-        self.assertIsNotNone(reservation_write, 'The reservation must still be persisted after collision checks')
-        self.assertLess(invoice.index('"INVOICE_NUMBER_COLLISION"'),
-                        reservation_write.start())
-
 
 
 if __name__=='__main__':unittest.main()

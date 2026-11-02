@@ -12,8 +12,6 @@ internal class PixelMcpEntityWriteTools {
                 "update_customer",
                 "create_order",
                 "update_order",
-                "create_invoice_draft",
-                "update_invoice_draft",
             )
         @JvmField val CUSTOMER_FIELDS: Array<String> = EntityContract.CUSTOMER_FIELDS
         @JvmField val ORDER_FIELDS: Array<String> = EntityContract.ORDER_FIELDS

@@ -55,18 +55,6 @@ internal class LocalWorkflowTools {
                 "save_equipment_maintenance_plan",
                 "record_equipment_maintenance",
             )
-        @JvmField
-        val FINANCIAL_READS: Array<String> =
-            arrayOf("get_payment_ledger", "get_invoice_document_job", "preview_local_authority")
-        @JvmField
-        val FINANCIAL_WRITES: Array<String> =
-            arrayOf(
-                "record_payment",
-                "correct_payment",
-                "retry_invoice_document_job",
-                "activate_local_authority",
-                "reconcile_local_invoice_authority",
-            )
         @JvmField val OFFER_DECISION_READS: Array<String> = arrayOf("get_offer_decision_history")
         @JvmField
         val OFFER_DECISION_WRITES: Array<String> =
@@ -74,13 +62,13 @@ internal class LocalWorkflowTools {
         @JvmField
         val READS: Array<String> =
             concat(
-                concat(concat(BACKUP_READS, REVIER_READS), FINANCIAL_READS),
+                concat(BACKUP_READS, REVIER_READS),
                 OFFER_DECISION_READS,
             )
         @JvmField
         val WRITES: Array<String> =
             concat(
-                concat(concat(BACKUP_WRITES, REVIER_WRITES), FINANCIAL_WRITES),
+                concat(BACKUP_WRITES, REVIER_WRITES),
                 OFFER_DECISION_WRITES,
             )
 
@@ -105,25 +93,7 @@ internal class LocalWorkflowTools {
         }
 
         @JvmStatic
-        fun financial(name: String): Boolean {
-
-            return (FINANCIAL_READS.asList().contains(name) ||
-                FINANCIAL_WRITES.asList().contains(name))
-        }
-
-        @JvmStatic
-        fun authorityMutation(name: String): Boolean {
-
-            return ((name == "activate_local_authority") ||
-                (name == "reconcile_local_invoice_authority"))
-        }
-
-        @JvmStatic
-        fun critical(name: String): Boolean {
-
-            return (((authorityMutation(name) || (name == "purge_revier_entity")) ||
-                (name == "record_payment")) || (name == "correct_payment"))
-        }
+        fun critical(name: String): Boolean = name == "purge_revier_entity"
 
         @JvmStatic
         fun offerDecision(name: String): Boolean {
@@ -135,7 +105,7 @@ internal class LocalWorkflowTools {
         @JvmStatic
         fun handles(name: String): Boolean {
 
-            return (((backup(name) || revier(name)) || financial(name)) || offerDecision(name))
+            return backup(name) || revier(name) || offerDecision(name)
         }
 
         @JvmStatic

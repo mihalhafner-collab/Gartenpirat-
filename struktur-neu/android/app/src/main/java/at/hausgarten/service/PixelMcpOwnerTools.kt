@@ -23,8 +23,7 @@ internal class PixelMcpOwnerTools {
                     "preview_archive_work_records",
                     "preview_purge",
                     "preview_delete",
-                    "preview_legacy_conflict_resolution",
-                    "get_sync_conflicts",
+
                     "get_photo",
                     "get_settings",
                     "get_business_settings",
@@ -45,8 +44,7 @@ internal class PixelMcpOwnerTools {
                     "save_reviewed_order",
                     "empty_trash",
                     "archive_work_records",
-                    "prepare_legacy_conflict_backup",
-                    "close_legacy_conflicts",
+
                     "set_work_record_billed",
                     "reassign_work_record",
                     "update_photo",
@@ -57,17 +55,13 @@ internal class PixelMcpOwnerTools {
                     "delete_entity",
                     "archive_entity",
                     "restore_entity",
-                    "resolve_sync_conflict",
-                    "request_sync",
+
                     "update_settings",
                     "update_business_settings",
                     "set_personal_paid",
                     "create_backup",
                     "restore_backup",
-                    "request_invoice_issue",
-                    "prepare_invoice_share",
-                    "create_invoice_correction",
-                    "update_invoice_payment",
+
                 ),
                 LocalWorkflowTools.WRITES,
             )

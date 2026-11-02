@@ -16,13 +16,6 @@ class LocalWorkflowApplicationService : OwnerCommand {
         if ((LocalWorkflowTools.revier(name))) {
             return repository.revierAction(name, args)
         }
-        if ((LocalWorkflowTools.financial(name))) {
-            var result: JSONObject? = repository.localInvoiceAction(name, args, request)
-            if (((result == null))) {
-                throw PixelMcpWriteTools.Rejected("LOCAL_AUTHORITY_REQUIRED", "Diesen Vorgang erst nach kontrollierter lokaler Autoritätsumstellung verwenden.")
-            }
-            return result
-        }
         if ((LocalWorkflowTools.offerDecision(name))) {
             return OfferApplicationService(repository).perform(name, args, request)
         }

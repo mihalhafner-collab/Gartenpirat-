@@ -35,42 +35,8 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                 PixelMcpOwnerTools.validate(name, args)
             }
         }
-        if (
-            (((((name == "request_sync") || (name == "prepare_legacy_conflict_backup")) ||
-                (name == "close_legacy_conflicts"))) && !(DriveRolePolicy.businessSyncAllowed()))
-        ) {
-            return JSONObject()
-                .put("ok", true)
-                .put("data", DriveRolePolicy.retiredResponse())
-                .put("cloud_confirmed", false)
-        }
-        if (
-            (((name == "request_invoice_issue") && !(DriveRolePolicy.businessSyncAllowed())) &&
-                !(LocalAuthorityGuard.local(context)))
-        ) {
-            throw PixelMcpWriteTools.Rejected(
-                "LOCAL_AUTHORITY_REQUIRED",
-                "Die Rechnungsausgabe ist bis zur kontrollierten lokalen Umstellung und zum aktuellen Beleg- und Nummernabgleich gesperrt. Es wurde kein Onlineabschluss angefordert.",
-            )
-        }
-        if ((name == "prepare_legacy_conflict_backup")) {
-            return JSONObject()
-                .put("ok", true)
-                .put(
-                    "data",
-                    repository.prepareLegacyBackup(
-                        args.getString("request_id"),
-                        args.optString("expected_preview_hash"),
-                    ),
-                )
-        }
         var request = ("mcp_owner_" + PixelMcpWriteTools.hash(args.getString("request_id")))
         var fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", name).put("args", args))
-        if (LocalWorkflowTools.authorityMutation(name)) {
-            var changed = repository.localInvoiceAction(name, args, request)
-            MainActivity.refreshBusinessView()
-            return JSONObject().put("ok", true).put("data", changed).put("cloud_confirmed", false)
-        }
         var result =
             (if (LocalWorkflowTools.backup(name))
                 application.perform(name, JSONObject(args.toString()), request)
@@ -118,17 +84,6 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
             } catch (deferred: Exception) {
                 result.put("external_scheduling_pending", true)
             }
-        }
-        if (((name == "request_invoice_issue") || (name == "retry_invoice_document_job"))) {
-            try {
-
-                LocalInvoiceJobs.schedule(context)
-            } catch (deferred: Exception) {
-                result.put("document_scheduling_pending", true)
-            }
-        }
-        if ((name == "request_sync")) {
-            result = DriveSyncCoordinator.requestExplicit(context, request)
         }
         return JSONObject().put("ok", true).put("data", result).put("cloud_confirmed", false)
     }

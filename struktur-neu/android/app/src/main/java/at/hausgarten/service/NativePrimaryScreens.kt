@@ -41,7 +41,7 @@ import java.util.UUID
 private val nativeSections = linkedMapOf(
     "today" to "Heute", "worklogs" to "Arbeitsaufzeichnungen", "timer" to "Zeiterfassung", "customers" to "Kunden", "properties" to "Objekte",
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
-    "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote", "invoices" to "Rechnungen", "payments" to "Zahlungen",
+    "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote",
     "billing" to "Abrechnung", "drafts" to "Entwürfe", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
     "planning" to "Planung", "trash" to "Papierkorb", "local_actions" to "Lokale Vorgänge", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung"
 )
@@ -99,7 +99,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                 }
                 "timer", "work" -> NativeTimer(controller)
                 "properties", "inquiries", "care_plans", "visits", "tour", "materials", "equipment", "revier_search", "revier_archive" -> NativeRevierScreen(route.section, route.id, controller)
-                "offers", "invoices", "catalog", "payments" -> NativeFinanceScreen(route.section, route.id, controller)
+                "offers", "catalog" -> NativeFinanceScreen(route.section, route.id, controller)
                 "photos", "plants" -> NativeMediaScreen(route.section, route.id, controller)
                 "appointments", "weather", "planning" -> NativePlanningScreen(route.section, route.id, controller)
                 "action" -> NativeActionForm(controller, route.id, route.mode, route.args)
@@ -178,7 +178,7 @@ private fun NativeOffice(controller: NativeAppController) {
         "Weitere Verwaltung" to listOf("drafts", "revier_search", "revier_archive", "trash", "local_actions")
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(listOf(Triple("billing", "Abrechnung", "Offene Arbeiten, Belege, Zahlungen und Guthaben"),
+        items(listOf(Triple("billing", "Offene Arbeitsstunden", "Arbeitsaufzeichnungen für die Rechnungserstellung in sevDesk"),
             Triple("planning", "Planung", "Termine, Einsätze, Tagestour und Wetter"),
             Triple("equipment", "Maschinenpark und Gerätewartung", "Geräte, Zubehör, aktuelle Kette, Fotos und Wartung"),
             Triple("settings", "Einstellungen", "Verbindungen, Sicherung und Diagnose"))) { (section,title,subtitle) ->
@@ -275,23 +275,14 @@ private fun NativeOpenHours(controller: NativeAppController, customer: String) {
 
 @Composable
 private fun NativeBillingOverview(controller: NativeAppController) {
-    val context = controller.route.args
-    val customer = context.optString("work_customer_id")
-    val recipient = context.optString("billing_customer_id")
-    val invoices = JSONObject(context.toString()).apply { if (recipient.isNotEmpty()) put("customer_id", recipient) else remove("customer_id") }
-    Column(Modifier.fillMaxSize()) {
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            item { NativeContext(controller, JSONObject().put("customer_id", customer)); NativeContext(controller, invoices, "Rechnungsempfänger") }
-            item { NativeOpenHours(controller, customer) }
-            item { OutlinedButton({ controller.navigate("worklogs", args = JSONObject().apply { if (customer.isNotEmpty()) put("customer_id", customer) }) }, Modifier.fillMaxWidth()) { Text("Arbeitsaufzeichnungen prüfen") } }
-            item { NativeRelatedList(controller, "invoices", "Rechnungsentwürfe", JSONObject(invoices.toString()).put("status", "Entwurf")) }
-            item { OutlinedButton({ controller.navigate("invoices", args = invoices) }, Modifier.fillMaxWidth()) { Text("Rechnungen") } }
-            if (recipient.isEmpty()) item { OutlinedButton({ controller.navigate("payments") }, Modifier.fillMaxWidth()) { Text("Zahlungen und Guthaben") } }
-            else item { Text("Zahlungen und Guthaben zum Empfänger: Rechnung öffnen und „Zahlungen und belegten Rest prüfen“ wählen. Nicht zugeordnete Zahlungen gehören noch zu keinem Kunden.") }
-            item { OutlinedButton({ controller.navigate("drafts", args = JSONObject().put("scope", "billing")) }, Modifier.fillMaxWidth()) { Text("Abrechnungsentwürfe fortsetzen") } }
-            item { TextButton({ controller.navigate("offers", args = JSONObject().apply { if (customer.isNotEmpty()) put("customer_id", customer) }) }) { Text("Angebote") } }
-        }
-        NativeActions { Button({ controller.navigate("invoices", mode = "new", args = invoices) }) { Text("Arbeiten abrechnen") } }
+    val customer = controller.route.args.optString("work_customer_id")
+    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        NativeOpenHours(controller, customer)
+        OutlinedButton({
+            controller.navigate("worklogs", args = JSONObject().apply {
+                if (customer.isNotEmpty()) put("customer_id", customer)
+            })
+        }, Modifier.fillMaxWidth()) { Text("Arbeitsaufzeichnungen für sevDesk prüfen") }
     }
 }
 

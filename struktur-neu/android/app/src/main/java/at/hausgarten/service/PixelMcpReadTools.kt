@@ -656,15 +656,11 @@ class PixelMcpReadTools {
                 "list_work_records",
                 "get_work_record",
                 "get_open_orders",
-                "list_invoices",
-                "get_invoice",
                 "list_photos",
                 "get_business_summary",
                 "search_business_data",
-                "get_sync_status",
                 "get_customer_work_records",
                 "get_work_record_summary",
-                "get_sync_overview",
                 "get_active_work_session",
             )
 

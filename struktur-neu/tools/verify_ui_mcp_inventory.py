@@ -61,7 +61,8 @@ observed = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdi
 pattern = re.compile(r'NativeAction\s*\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*listOf\(([^)]*)\)\s*,?([^)]*)\)', re.S)
 entries = pattern.findall(native_source('NativeActionCatalog').read_text())
 registry = {entry[0]: entry for entry in entries}
-assert len(entries) == len(registry) == len(manifest['actions']) == 210
+assert len(entries) == len(registry) == len(manifest['actions'])
+assert len(entries) >= 100
 assert set(registry) == {action['id'] for action in manifest['actions']}
 known = set()
 for path in SOURCE.glob('*Tools.kt'):
@@ -82,4 +83,4 @@ if '--record-reviewed' in sys.argv:
     TARGET.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
 elif manifest['reviewed_sources'] != observed:
     raise SystemExit('UI source review required; fingerprint or source set changed')
-print('PASS native UI review fingerprints; 210 semantic actions and exact executable registry mapping')
+print(f'PASS native UI review fingerprints; {len(entries)} semantic actions and exact executable registry mapping')

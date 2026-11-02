@@ -15,23 +15,11 @@ this.context = context
 this.store = store
 this.repository = repository
 }
-private @Throws(Exception::class) fun storageContract(): JSONObject {
+private fun storageContract(): JSONObject =
+    JSONObject().put("storage_contract_version", 3)
+        .put("business_sync_allowed", false)
+        .put("invoice_finalization", "DISABLED_SEVDESK_ONLY")
 
-var guard = LocalAuthorityGuard(context).current()
-var local: Boolean = !((guard.optString("mode") == "LEGACY_DRIVE"))
-var ready: Boolean = false
-if (local) {
-try {
-
-LocalAuthorityGuard(context).requireInvoiceAuthority()
-ready = true
-
-} catch (locked: Exception) {
-
-}
-}
-return JSONObject().put("drive_role", DriveRolePolicy.role()).put("storage_contract_version", DriveRolePolicy.contractVersion()).put("business_sync_allowed", false).put("processing_engine", LocalAuthorityRules.ENGINE).put("invoice_finalization", (if (!(local)) "pixel_local_migration_required" else (if (ready) "pixel_local_atomic_after_reconciliation" else "pixel_local_reconciliation_required"))).put("local_authority", JSONObject().put("mode", guard.optString("mode")).put("invoice_authority", guard.optString("invoice_authority")).put("migration_required", !(local)).put("invoice_issue_ready", ready))
-}
 private @Throws(Exception::class) fun withStorageContract(result: JSONObject): JSONObject {
 
 var contract = storageContract()
@@ -51,9 +39,6 @@ return result
 }
 override @Throws(Exception::class) fun query(name: String, args: JSONObject): JSONObject? {
 
-if ((name == "get_invoice_issue_review")) {
-return (if (LocalAuthorityGuard.local(context)) InvoiceIssueReviewSnapshot.capture(store, args.getString("invoice_id")).put("last_drive_sync", context.getSharedPreferences("haus_garten", 0).getString("last_drive_sync", "")) else null)
-}
 if (AppointmentTools.read(name)) {
 return AppointmentRuntime.query(context, store, name, args)
 }
@@ -65,9 +50,6 @@ return repository.fullBackupStatus(args)
 }
 if (LocalWorkflowTools.revier(name)) {
 return repository.revierQuery(name, args)
-}
-if (LocalWorkflowTools.financial(name)) {
-return repository.localFinancialQuery(name, args)
 }
 if (LocalWorkflowTools.offerDecision(name)) {
 return OfferDecisionService(repository).query(name, args)
@@ -114,14 +96,12 @@ var data = JSONObject().put("build_fingerprint", BuildProvenance.describe()).put
 var current = repository.effective()
 var caps = current.optJSONObject("capabilities")
 withStorageContract(data)
-var authority = data.getJSONObject("local_authority")
-var local: Boolean = !(authority.getBoolean("migration_required"))
 data.put("inventory_processing_engine", current.optString("processing_engine")).put("primary_device_id", current.optString("drive_publisher_id")).put("historical_drive_publisher_id", current.optString("drive_publisher_id")).put("offers_sync_ready", false).put("service_catalog_sync_ready", false).put("offers_local_ready", caps != null && caps.optBoolean("offers_v1")).put("service_catalog_local_ready", caps != null && caps.optBoolean("service_catalog_v1"))
-data.put("capabilities", ((if (caps == null) JSONObject() else JSONObject(caps.toString()))).put("local_payment_ledger_v1", local).put("native_editor_storage_v1", true).put("business_drive_sync", false).put("encrypted_drive_backup", false).put("local_plaintext_backup", true))
+data.put("capabilities", ((if (caps == null) JSONObject() else JSONObject(caps.toString()))).put("local_payment_ledger_v1", false).put("native_editor_storage_v1", true).put("business_drive_sync", false).put("encrypted_drive_backup", false).put("local_plaintext_backup", true))
 var backup = JSONObject()
 var target: Boolean = true
 data.put("local_workflows_contract", 1).put("backup_contract", JSONObject().put("format_version", 3).put("inventory_issues_block_backup", false).put("encrypted_streaming", false).put("daily_deferrable", false).put("setup_requires_device", true).put("remote_readback_sha256", false).put("mode", "PIXEL_PLAINTEXT_ZIP").put("automatic_enabled", false).put("key_required", false))
-data.put("planning", AppointmentRuntime.integration(context, store)).put("legacy_drive_connection_present", (!(context.getSharedPreferences("haus_garten", 0).getString("drive_account", "")!!.isEmpty()) || !(context.getSharedPreferences("haus_garten", 0).getString("drive_tree_uri", "")!!.isEmpty()))).put("drive_configured", false).put("drive_configuration_scope", "retired").put("backup_storage", "PIXEL_LOCAL").put("platform_limits", JSONArray().put("tunnel_account_and_organization_grants").put("backup_android_local_file_permission").put("foreground_and_battery_limits").put("local_invoice_migration_reconciliation_and_restore_lock").put("sharing_requires_device_interaction").put("camera_location_and_os_settings_require_device"))
+data.put("planning", AppointmentRuntime.integration(context, store)).put("legacy_drive_connection_present", (!(context.getSharedPreferences("haus_garten", 0).getString("drive_account", "")!!.isEmpty()) || !(context.getSharedPreferences("haus_garten", 0).getString("drive_tree_uri", "")!!.isEmpty()))).put("drive_configured", false).put("drive_configuration_scope", "retired").put("backup_storage", "PIXEL_LOCAL").put("platform_limits", JSONArray().put("tunnel_account_and_organization_grants").put("backup_android_local_file_permission").put("foreground_and_battery_limits").put("sharing_requires_device_interaction").put("camera_location_and_os_settings_require_device"))
 return data
 }
 }

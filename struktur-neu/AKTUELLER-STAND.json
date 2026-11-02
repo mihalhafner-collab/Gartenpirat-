@@ -24,16 +24,16 @@
   ],
   "current_task": {
     "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
-    "status": "PARTIAL_PRUNING_IMPLEMENTED; RETIRED_WEB_UI_REMOVED; DEEP_CODE_CLEANUP_PENDING; QA_PENDING",
+    "status": "INVOICE_AND_LEGACY_SYNC_API_REMOVED; DEEP_CODE_CLEANUP_PENDING; QA_PENDING",
     "remaining": [
-      "Frühere Weboberfläche samt erzeugten Bildkopien und vier alte Kotlin-Klassen gelöscht; tiefe Rechnungs-, Autoritäts-, Journal- und Sync-Bereinigung noch offen.",
-      "Alle Rechnungs- und Zahlungs-APIs, native UI-Einstiege, überholte Tests und Migrationsevidenz entfernen. Historische Datensätze und lokale Backup-/Restore-Funktion erhalten.",
+      "MCP-/Native-Aktionskatalog und direkte UI-Einstiege für Rechnungen, Zahlungen und Alt-Synchronisierung entfernt; übrige tote Implementierungen (LocalInvoiceService/LocalAuthorityMigration/DriveJournalRules) noch zu löschen.",
+      "Transitive Klassen/Methoden und Tests der stillgelegten Funktionen entfernen, ohne die lokalen Betriebsdatenschreiber, Angebote und ZIP-Backup/Restore zu unterbrechen.",
       "Nach dem vollständigen Refactoring Kotlin-/Android-Bau, Quellprüfung und betroffene Regressionen ausführen. Der aktuelle Commit ist noch nicht abgenommen.",
       "Pixel weiter Build 121, keine Installation, kein Geschäftsdaten-Löschen."
     ]
   },
   "open_checks": [
-    "Frühere Weboberfläche und ein Teil der Migrations-/Rechnungsklassen entfernt; verbliebene Invoice-, Authority-, Journal- und Sync-Quellpfade müssen weiter bereinigt werden.",
+    "Veraltete MCP-Werkzeuge und UI-Einstiege entfernt; tote interne Implementierungen bestehen teilweise noch.",
     "GitHub-Actions-Quell-/Build-/Regressionen zum neuen Stand prüfen.",
     "Produktives Pixel auf Version 1.57.2 / Build 121 unverändert."
   ],
