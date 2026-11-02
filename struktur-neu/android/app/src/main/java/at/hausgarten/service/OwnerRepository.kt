@@ -54,8 +54,3 @@ throw UnsupportedOperationException("Native Revier store required")
 }
 
 }
-@Throws(Exception::class) fun localFinancialQuery(name: String, args: JSONObject): JSONObject {
-
-throw UnsupportedOperationException("Native local financial store required")
-}
-}
