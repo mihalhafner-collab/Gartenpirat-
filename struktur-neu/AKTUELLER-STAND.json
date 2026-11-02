@@ -24,12 +24,12 @@
   ],
   "current_task": {
     "name": "Entfernung der externen Backup-Pflicht und veralteter Drive-Schnittstellen",
-    "status": "GITHUB_SOURCE_CHECK_PASS; ANDROID_BUILD_AND_DEVICE_TESTS_PENDING",
+    "status": "SOURCE_CLEANUP_COMPLETE; CURRENT_ANDROID_QA_RUNNING",
     "remaining": [
-      "GitHub Actions Lauf 41469014072 auf Kotlin-Kompilierung, JVM- und Emulatorprüfungen auswerten.",
-      "Nur den geprüften aktuellen Kotlin-Quellstand verwenden; eine neue APK ist nicht verteilt oder installiert.",
-      "Verbleibende Drive*-Klassen nur nach Abhängigkeits-/DB-Kompatibilitätsprüfung bereinigen; produktive Daten nicht löschen.",
-      "Bestehende externe Beleg-/Schreibernachweise bleiben von der gelöschten Backup-Pflicht getrennt."
+      "Quellprüfung bestanden; finalen GitHub-Actions-Lauf 41478715720 (Commit d4e5299) für Android-Bau, JVM- und native Emulatortests auswerten. Ein laufender Test ist noch kein PASS.",
+      "Keine produktiven Pixel-Daten verändert. Installiert bleibt Version 1.57.2 / Build 121. Quellkandidat 1.57.3 / Build 122 ist noch nicht originalsigniert, verteilt oder installiert.",
+      "Der externe Backup-Pflichtnachweis und FULL_EXTERNAL_BACKUP_REQUIRED sind entfernt. Drive-Geschäftstransport ist stillgelegt; Google Drive ist ausschließlich für ausdrücklich beauftragte APK-Paketbereitstellung vorgesehen.",
+      "Historische Drive*-Fach- und DB-Lesepfade nur mit Migrations- und Abwärtskompatibilitätsnachweis entfernen; externe Schreiber-, Rechnungsnummern- und Originalbelegprüfungen bleiben erhalten."
     ]
   },
   "open_checks": [
