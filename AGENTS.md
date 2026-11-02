@@ -44,8 +44,9 @@ Die Verteilung benötigt jeweils einen eigenen ausdrücklichen Auftrag.
 
 ## Vereinfachter Rechnungsumfang (Eigentümerentscheidung 02.11.2026)
 
-sevDesk erstellt und versendet sämtliche Rechnungen. Die Gartenpirat-Rechnungsfunktionen
-werden derzeit nicht erweitert oder produktiv freigegeben. Historische aus
+sevDesk erstellt und versendet sämtliche Rechnungen. Die Gartenpirat-Rechnungsfunktion ist vollständig stillgelegt; es gibt keine
+Rechnungserstellung, Nummernvergabe, Rechnungsfreigabe, Zahlungsverwaltung
+oder Rechnungsversendung in der App. Veraltete Implementierung wird entfernt. Historische aus
 sevDesk übernommene Rechnungen sind unverbindliche Versuchsdaten; ihre Übernahme,
 Wiederherstellung, Nummernabstimmung oder Fremdschreiber-Nachweise sind keine
 Voraussetzung für die übrige App. Alte Cloud-Geschäftsverbindungen und

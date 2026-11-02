@@ -147,7 +147,6 @@ class MainActivity : ComponentActivity(), McpSyncHost {
                     PixelLocalStore(this@MainActivity).also { local ->
                         openingStore = local
                         if (!BuildConfig.UI_PREVIEW) {
-                            try { DriveSyncJob.install(this@MainActivity) } catch (_: RuntimeException) { backgroundState(local, true, "BACKGROUND_SCHEDULING_FAILED") }
                             try { if (PlanningAccount.connected(this@MainActivity) || PlanningAccount.prefs(this@MainActivity).getBoolean("weather_enabled", false)) PlanningJob.install(this@MainActivity) }
                             catch (_: RuntimeException) { backgroundState(local, true, "BACKGROUND_SCHEDULING_FAILED") }
                         }

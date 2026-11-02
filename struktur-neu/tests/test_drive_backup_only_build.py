@@ -84,12 +84,9 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn('.DriveSyncJob', services)
         self.assertNotIn('.FullBackupJob', services)
         self.assertIn('cancelRetiredJobs',source('PixelBackupService'))
-        code = source('DriveSyncJob')
-        self.assertNotIn('JobService', code)
-        self.assertNotIn('new JobInfo', code)
-        self.assertIn('jobs.cancel(0x484701)', code)
-        self.assertIn('jobs.cancel(0x484702)', code)
-        self.assertIn('DriveSyncJob.install(this)', source('RevierApplication'))
+        self.assertFalse((MAIN / "DriveSyncJob.kt").exists())
+        self.assertNotIn("DriveSyncJob", source("RevierApplication"))
+        self.assertNotIn("DriveSyncJob", source("MainActivity"))
 
     def test_retirement_facade_cannot_open_remote_or_local_business_state(self):
         code = source('DriveSyncCoordinator')
@@ -153,21 +150,6 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertLess(invoice.index('"INVOICE_NUMBER_COLLISION"'),
                         reservation_write.start())
 
-    def test_local_authority_does_not_require_external_backup(self):
-        migration = source('LocalAuthorityMigration')
-        finance = source('LocalAuthorityRules')
-        ui = source('LocalAuthorityActivity')
-        workflow = source('LocalWorkflowTools')
-        self.assertNotIn('externalBackupProof', finance)
-        self.assertNotIn('requireBackup(', migration)
-        self.assertNotIn('LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED', migration)
-        self.assertNotIn('FULL_EXTERNAL_BACKUP_REQUIRED', source('LocalMigrationInventory'))
-        self.assertNotIn('requires_current_external_backup', migration)
-        self.assertNotIn('selectedBackup', ui)
-        self.assertNotIn('Arrays.asList("expected_preview_hash", "backup_id", "writer_evidence")', workflow)
-        self.assertIn('LOCAL_MIGRATION_OPEN_NUMBER_ACTIONS', migration)
-        self.assertIn('LOCAL_MIGRATION_DATA_REVIEW_REQUIRED', migration)
-        self.assertIn('requireCurrentEvidence(writerProof,', migration)
 
 
 if __name__=='__main__':unittest.main()

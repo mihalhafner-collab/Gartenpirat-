@@ -12,7 +12,6 @@ class OwnerApplicationService {
         register(PhotoApplicationService(repository), arrayOf("begin_file_upload", "write_file_chunk", "create_photo", "update_photo"))
         register(SyncArchiveApplicationService(repository), arrayOf("empty_trash", "archive_work_records", "close_legacy_conflicts", "request_sync", "purge_entity", "delete_entity", "archive_entity", "restore_entity", "resolve_sync_conflict", "create_backup", "restore_backup"))
         register(SettingsApplicationService(repository), arrayOf("update_business_settings", "update_settings"))
-        register(InvoiceApplicationService(repository), arrayOf("request_invoice_issue", "create_invoice_correction", "update_invoice_payment", "prepare_invoice_share"))
         register(PlanningApplicationService(repository), AppointmentTools.WRITES)
         register(LocalWorkflowApplicationService(repository), LocalWorkflowTools.WRITES)
     }

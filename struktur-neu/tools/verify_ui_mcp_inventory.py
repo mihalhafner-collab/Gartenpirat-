@@ -26,7 +26,7 @@ paths.update(native_source(name) for name in (
     'DriveJournalRules', 'GardenRules', 'BillingRules', 'TestDataRules', 'WorklogRules',
     'EntityProtectionRules', 'OwnerJournalRules', 'SyncActionOrder', 'OrderReviewRules',
     'InvoiceIssueRules', 'DriveRolePolicy', 'DriveSyncCoordinator',
-    'DriveSyncJob', 'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
+    'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
     'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
     'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',
     'SyncArchiveApplicationService', 'LocalMigrationInventory', 'LocalAuthorityMigration',
@@ -42,7 +42,7 @@ paths.update(native_source(name) for name in (
     'RevierLocalRepository', 'RevierSnapshotRepository', 'LocalWorkflowTools',
     'PlanningApplicationService', 'OfferApplicationService', 'LocalInvoiceService',
     'OwnerRequestTransactions', 'McpErrors', 'CalendarSetupRules', 'FullBackupActivity',
-    'RestoreRecoveryActivity', 'LocalAuthorityActivity',
+    'RestoreRecoveryActivity',
 ))
 paths.add(ROOT / 'android/app/src/main/assets/offer-contract.json')
 for action in manifest['actions']:

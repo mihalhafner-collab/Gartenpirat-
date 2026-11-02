@@ -24,18 +24,18 @@
   ],
   "current_task": {
     "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
-    "status": "DECISION_RECORDED; OBSOLETE_MIGRATION_UI_ENTRY_REMOVED; DEEP_CODE_CLEANUP_PENDING",
+    "status": "PARTIAL_PRUNING_IMPLEMENTED; FURTHER_CODE_CLEANUP_PENDING; QA_PENDING",
     "remaining": [
-      "Veraltete Drive-, Online-Sync-, Migrations- und Rechnungsnachweisklassen im aktuellen Kotlin-Quellbestand vollständig entfernen; bislang sind lediglich die alten Drive-Transporte und der sichtbare Umstellungs-Menüeintrag entfernt.",
-      "Rechnungsverwaltung vorerst nicht ausbauen; sevDesk erstellt und versendet Rechnungen. Versuchsweise importierte Altbelege brauchen weder Übernahme noch externe Freigaben. Bestehende App-Rechnungsanzeige ist optional.",
-      "Nach Änderungen Quellprüfung, Kotlin-Bau und native Android-Regressionen ausführen. GitHub Actions für den vorherigen Stand prüfen; bestehende laufende Läufe sind keine Abnahme dieser neuen Anweisung.",
-      "Pixel bleibt unverändert auf 1.57.2 / Build 121. Keine neue APK veröffentlicht oder installiert, keine produktiven Geschäftsdaten gelöscht."
+      "Zusammenhängende Migrationsoberfläche, externer Belegimport, früherer Drive-Job und eigenständiger Rechnungs-Ausgabedienst aus Kotlin entfernt; zentrale Alt-Journal-, Rechnungs- und Synchronisationspfade sind weiterhin zu entfernen.",
+      "Alle Rechnungs- und Zahlungs-APIs, native UI-Einstiege, überholte Tests und Migrationsevidenz entfernen. Historische Datensätze und lokale Backup-/Restore-Funktion erhalten.",
+      "Nach dem vollständigen Refactoring Kotlin-/Android-Bau, Quellprüfung und betroffene Regressionen ausführen. Der aktuelle Commit ist noch nicht abgenommen.",
+      "Pixel weiter Build 121, keine Installation, kein Geschäftsdaten-Löschen."
     ]
   },
   "open_checks": [
-    "Neuere ausdrückliche Entscheidung: SevDesk ist für Rechnungsstellung und Versand zuständig; kein App-Rechnungsprojekt in dieser Etappe.",
-    "Bisherige Quellcode-Bereinigung ist nicht vollständig, insbesondere verbliebene Autoritäts-, Beleg- und Alt-Synchronisationspfade.",
-    "Installierte App ist weiterhin Build 121; ein produktiver Gerätefunktionstest des geänderten Quellstands fehlt."
+    "Radikale Bereinigung noch unvollständig; insbesondere LocalInvoiceService, LocalAuthorityMigration und DriveJournalRules.",
+    "GitHub-Actions-Quell-/Build-/Regressionen zum neuen Stand prüfen.",
+    "Produktives Pixel auf Version 1.57.2 / Build 121 unverändert."
   ],
   "workflow": {
     "code": "android/app/src/main",
