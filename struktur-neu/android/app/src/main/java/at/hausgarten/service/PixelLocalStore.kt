@@ -126,7 +126,6 @@ seedServiceCatalog(master)
 LocalTestCleanup.overlay({ key, fallback -> DatabaseBackupSnapshot.ownerValue(db, key, fallback) ?: fallback }, master)
 master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
 OfferDecisionProjection.apply(db, master)
-LocalBillingProjection.apply(db, master)
  })
 }
 return@LAM null
@@ -460,7 +459,6 @@ throw IllegalStateException("LOCAL_STATE_BUILD_FAILED", error)
 }
 try {
 OfferDecisionProjection.apply(this, output.getJSONObject("master"))
-LocalBillingProjection.apply(this, output.getJSONObject("master"))
 output.put("sync_status", JSONObject().put("state", "local_only")
     .put("syncing", false).put("business_sync_allowed", false)
     .put("cloud_confirmed", false))

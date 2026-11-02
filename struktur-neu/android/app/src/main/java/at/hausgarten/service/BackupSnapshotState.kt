@@ -35,7 +35,6 @@ internal object BackupSnapshotState {
                 .put("local_contract_version", LocalAuthorityRules.CONTRACT)
         }
         OfferDecisionProjection.apply(db, master)
-        LocalBillingProjection.apply(db, master)
         val actions = LocalPendingActions.read(db, false, { id -> photo(db, id) }, 0)
         val state = JSONObject().put("master", master)
             .put("pending", DriveJournalRules.union(actions, master.optJSONArray("drive_review_actions")))

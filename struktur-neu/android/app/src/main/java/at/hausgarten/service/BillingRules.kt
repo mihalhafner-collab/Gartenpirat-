@@ -164,93 +164,40 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun groups(logs: JSONArray?, master: JSONObject): JSONArray {
-            var groups: MutableMap<String, JSONObject> = TreeMap()
-            var sorted: ArrayList<JSONObject> = ArrayList()
-            run {
-                var i: Int = 0
-                while (((logs !== null) && (i < logs!!.length()))) {
-                    sorted!!.add(logs!!.getJSONObject(i))
-
-                    i++
+            val groups = java.util.TreeMap<String, JSONObject>()
+            val sorted = (0 until (logs?.length() ?: 0))
+                .map { logs!!.getJSONObject(it) }
+                .sortedWith(compareByDescending<JSONObject> { it.optString("work_date") }
+                    .thenBy { it.optString("id") })
+            for (row in sorted) {
+                if (row.optInt("billed", 0) != 0) continue
+                val recipientId = recipient(row)
+                val group = groups.getOrPut(recipientId) {
+                    val detail = assignment(row, master, true)
+                    JSONObject().put("billing_customer_id", recipientId)
+                        .put("billing_customer_name", detail.optString("billing_customer_name", "Zuordnung prüfen"))
+                        .put("valid", detail.optBoolean("valid"))
+                        .put("hours", 0.0)
+                        .put("work_records", JSONArray())
+                        .put("billing_status", "marked_open_not_proven")
                 }
-            }
-            sorted!!.sortWith(
-                ((Comparator.comparing(
-                            lambda@{ row: JSONObject -> row!!.optString("work_date") }
-                        ))!!
-                        .reversed())!!
-                    .thenComparing(lambda@{ row -> row!!.optString("id") })
-            )
-            for (row in sorted!!) {
-                var quantity =
-                    LocalBillingRules.state(row, master!!.optJSONArray("invoices"), master)
-                var evidence =
-                    PixelMcpBusinessTools.billing(row, master!!.optJSONArray("invoices"), master)
-                if (((row!!.optInt("billed", 0) != 0) || ("proven_invoiced")!!.equals(evidence))) {
-                    continue
-                }
-                var recipient = recipient(row)
-                var group = groups!!.get(recipient)
-                if ((group === null)) {
-                    var detail = assignment(row, master, true)
-                    group =
-                        ((((((JSONObject())!!.put("billing_customer_id", recipient))!!.put(
-                                            "billing_customer_name",
-                                            detail!!.optString(
-                                                "billing_customer_name",
-                                                "Zuordnung prüfen",
-                                            ),
-                                        ))!!
-                                        .put("valid", detail!!.getBoolean("valid")))!!
-                                    .put("hours", 0))!!
-                                .put("work_records", JSONArray()))!!
-                            .put("billing_status", "marked_open_not_proven")
-                    groups!!.put(recipient, group)
-                }
-                var copy: JSONObject =
-                    ((JSONObject(row!!.toString()))!!.put("billing_customer_id", recipient))!!.put(
-                        "billing_evidence",
-                        evidence,
-                    )
-                if ((quantity !== null)) {
-                    (copy!!.put("billing_quantity", quantity))!!.put(
-                        "quantity_remaining_decimal",
-                        quantity!!.getString("remaining_decimal"),
-                    )
-                }
+                val copy = JSONObject(row.toString())
+                    .put("billing_customer_id", recipientId)
+                    .put("billing_evidence", "marked_open_not_proven")
                 try {
-                    copy!!.put(
-                        "work_customer_name",
-                        (customer(master!!.optJSONArray("customers"), text(row, "customer_id")))!!
-                            .optString("name"),
-                    )
-                } catch (missing: Exception) {
-                    copy!!.put("work_customer_name", "Einsatzkunde fehlt")
-                    group!!.put("valid", false)
+                    copy.put("work_customer_name",
+                        customer(master.optJSONArray("customers"), text(row, "customer_id")).optString("name"))
+                } catch (_: Exception) {
+                    copy.put("work_customer_name", "Einsatzkunde fehlt")
+                    group.put("valid", false)
                 }
-                (group!!.getJSONArray("work_records"))!!.put(copy)
-                if ((master!!.optJSONObject("local_billing_sources") === null)) {
-                    group!!.put(
-                        "hours",
-                        (group!!.getDouble("hours") + row!!.optDouble("hours", (0).toDouble())),
-                    )
-                } else {
-                    var remaining =
-                        (if ((quantity === null)) BigDecimal(row!!.optString("hours", "0"))
-                        else BigDecimal(quantity!!.getString("remaining_decimal")))
-                    var total: BigDecimal =
-                        (BigDecimal(group!!.optString("hours_decimal", "0")))!!.add(remaining)
-                    (group!!.put(
-                            "hours_decimal",
-                            (total!!.stripTrailingZeros())!!.toPlainString(),
-                        ))!!
-                        .put("hours", total!!.toDouble())
-                }
+                group.getJSONArray("work_records").put(copy)
+                group.put("hours", group.optDouble("hours") + row.optDouble("hours"))
             }
-            var result: JSONArray = JSONArray()
-            for (group in (groups!!.values)!!) {
-                group!!.put("hours", (Math.round((group!!.getDouble("hours") * 100)) / 100.0))
-                result!!.put(group)
+            val result = JSONArray()
+            for (group in groups.values) {
+                group.put("hours", Math.round(group.getDouble("hours") * 100) / 100.0)
+                result.put(group)
             }
             return result
         }

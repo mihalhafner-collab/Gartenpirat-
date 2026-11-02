@@ -23,9 +23,7 @@ object BackupInventory {
             var i = 0
             while (rows != null && i < rows.length()) {
                 val row = rows.optJSONObject(i++) ?: continue
-                val document = collection == "invoices" && IssuedInvoiceRules.isIssued(row) ||
-                    collection == "offers" && row.optString("finalized_at").isNotEmpty()
-                if (collection == "invoices" && document) issued.put(row.optString("id"))
+                val document = collection == "offers" && row.optString("finalized_at").isNotEmpty()
                 if (collection == "photos" || document) {
                     inspectRow(if (collection == "photos") "photo" else "document", row, originals, warnings, inspected)
                 }

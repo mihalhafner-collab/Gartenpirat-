@@ -20,90 +20,14 @@ internal class PixelMcpBusinessTools {
 
         @JvmStatic
         @Throws(Exception::class)
-        fun billing(row: JSONObject, invoices: JSONArray?): String {
-
-            var id = row.optString("id")
-            var draft: Boolean = false
-            var issued: Boolean = false
-            run {
-                var i: Int = 0
-                var firstIteration81 = true
-                while (true) {
-                    if (firstIteration81) firstIteration81 = false
-                    else {
-                        i++
-                    }
-                    if (!(((invoices != null) && (i < invoices.length())))) break
-
-                    var inv = invoices.getJSONObject(i)
-                    if (
-                        Arrays.asList("Storniert", "Cancelled", "Entfernt")
-                            .contains(inv.optString("status"))
-                    ) {
-                        continue
-                    }
-                    var links = inv.optJSONArray("worklog_ids")
-                    var linked: Boolean = false
-                    run {
-                        var j: Int = 0
-                        var firstIteration79 = true
-                        while (true) {
-                            if (firstIteration79) firstIteration79 = false
-                            else {
-                                j++
-                            }
-                            if (!(((links != null) && (j < links.length())))) break
-
-                            if ((id == links.optString(j))) {
-                                linked = true
-                            }
-                        }
-                    }
-                    var positions = inv.optJSONArray("positions")
-                    run {
-                        var j: Int = 0
-                        var firstIteration80 = true
-                        while (true) {
-                            if (firstIteration80) firstIteration80 = false
-                            else {
-                                j++
-                            }
-                            if (!(((positions != null) && (j < positions.length())))) break
-
-                            if ((id == positions.getJSONObject(j).optString("worklog_id"))) {
-                                linked = true
-                            }
-                        }
-                    }
-                    if (linked) {
-                        if (
-                            (!(inv.optString("issued_at").isEmpty()) ||
-                                (!(inv.optString("sevdesk_id").isEmpty()) &&
-                                    !(("Entwurf" == inv.optString("status")))))
-                        ) {
-                            issued = true
-                        } else {
-                            draft = true
-                        }
-                    }
-                }
-            }
-            return (if (issued) "proven_invoiced"
-            else
-                (if ((row.optInt("billed", 0) != 0)) "billing_unclear"
-                else (if (draft) "draft_linked_not_proven" else "marked_open_not_proven")))
-        }
+        fun billing(row: JSONObject, invoices: JSONArray?): String =
+            if (row.optInt("billed", 0) != 0) "billing_unclear" else "marked_open_not_proven"
 
         @JvmStatic
-        @Throws(Exception::class)
-        fun billing(row: JSONObject, invoices: JSONArray?, master: JSONObject): String {
+        fun billing(row: JSONObject, invoices: JSONArray?, master: JSONObject): String =
+            billing(row, invoices)
 
-            var quantity = LocalBillingRules.state(row, invoices, master)
-            return (if ((quantity == null)) billing(row, invoices)
-            else quantity.getString("evidence"))
-        }
-
-        @JvmStatic
+                @JvmStatic
         fun overlap(a: JSONObject, b: JSONObject): Boolean {
 
             if (

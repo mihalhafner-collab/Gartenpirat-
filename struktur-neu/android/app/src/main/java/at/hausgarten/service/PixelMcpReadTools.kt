@@ -352,12 +352,6 @@ class PixelMcpReadTools {
                 "billing_evidence",
                 PixelMcpBusinessTools.billing((data as JSONObject), invoices, master),
             )
-            var quantity = LocalBillingRules.state((data as JSONObject), invoices, master)
-            if ((quantity != null)) {
-                result
-                    .put("billing_quantity", quantity)
-                    .put("quantity_remaining_decimal", quantity.getString("remaining_decimal"))
-            }
         }
         if ((name == "get_work_record")) {
             result.put(
