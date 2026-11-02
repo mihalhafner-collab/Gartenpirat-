@@ -100,7 +100,6 @@ class EntityApplicationService {
                 payload.put("_mcp_base", base)
                 payload.remove("_mcp_create")
             } else {
-                payload = JSONObject()            } else {
                 payload = JSONObject()
                 for (key in fields) {
                     if ((args.has(key))) {
