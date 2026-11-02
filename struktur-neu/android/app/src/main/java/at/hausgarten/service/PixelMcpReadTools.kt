@@ -231,6 +231,7 @@ class PixelMcpReadTools {
                     if (access != null) {
                         val runtime = access.query(name, a)
                         result.put("runtime", runtime)
+                    }
                     result
                 }
                 "get_photo" -> {
