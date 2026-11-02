@@ -746,36 +746,12 @@ override @Throws(Exception::class) fun revierAction(name: String, args: JSONObje
 
 return revier().execute(name, args)
 }
-override @Throws(Exception::class) fun localInvoiceAction(name: String, args: JSONObject, request: String): JSONObject? {
-
-if ((name == "activate_local_authority")) {
-return LocalAuthorityMigration(context!!, store!!).activateFromArgs(args)
-}
-if ((name == "reconcile_local_invoice_authority")) {
-return LocalAuthorityMigration(context!!, store!!).reconcile(args)
-}
-return LocalInvoiceService(context!!, store!!).performIfLocal(name, args, request)
-}
-override @Throws(Exception::class) fun localFinancialQuery(name: String, args: JSONObject): JSONObject {
-
-if ((name == "preview_local_authority")) {
-return LocalAuthorityMigration(context!!, store!!).preview()
-}
-return LocalInvoiceService(context!!, store!!).query(name, args)
-}
 fun interface Request {
 @Throws(Exception::class) fun run(): JSONObject
 }
 @Throws(Exception::class) fun runRequest(request: String, fingerprint: String, command: Request): JSONObject {
 
 return OwnerRequestTransactions.runRequest(requests, request, fingerprint, command::run, java.time.Instant.now().toString())
-}
-@Throws(Exception::class) fun prepareLegacyBackup(request: String, preview: String): JSONObject {
-
-if (!(DriveRolePolicy.businessSyncAllowed())) {
-throw PixelMcpWriteTools.Rejected("LEGACY_SYNC_RETIRED", "Der frühere Geschäftsabgleich ist stillgelegt. Vollsicherungsstatus prüfen; keine alten Drive-Geschäftsdaten nachgeladen.")
-}
-return LegacyConflictBackup.create(context!!, store!!, request, preview)
 }
 @Throws(Exception::class) fun photoStorageSummary(): JSONObject {
 

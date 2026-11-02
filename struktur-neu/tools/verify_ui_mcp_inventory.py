@@ -29,7 +29,7 @@ paths.update(native_source(name) for name in (
     'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
     'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
     'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',
-    'SyncArchiveApplicationService', 'LocalMigrationInventory', 'LocalAuthorityMigration',
+    'SyncArchiveApplicationService', 'LocalMigrationInventory',
     'LocalAuthorityRules', 'LocalAuthorityGuard', 'RevierApplication',
     'PlanningConnectionActivity', 'PixelTunnelActivity', 'PixelTunnelService',
     'PixelTunnelBootReceiver', 'BackgroundWorkDispatch', 'PendingWorkPhotoStore',
@@ -40,7 +40,7 @@ paths.update(native_source(name) for name in (
     'RestoredBrowserReviewRules', 'RevierApplicationService', 'RevierRules',
     'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules', 'RevierRepository',
     'RevierLocalRepository', 'RevierSnapshotRepository', 'LocalWorkflowTools',
-    'PlanningApplicationService', 'OfferApplicationService', 'LocalInvoiceService',
+    'PlanningApplicationService', 'OfferApplicationService',
     'OwnerRequestTransactions', 'McpErrors', 'CalendarSetupRules', 'FullBackupActivity',
     'RestoreRecoveryActivity',
 ))

@@ -331,13 +331,9 @@ parity = parity and (!(action.optString("barrier").isEmpty()))
 }
 }
 checks.put(JSONObject().put("name", "ui_mcp_parity").put("status", (if (!(PixelTunnelConfig(context).writeEnabled())) "NOT TESTABLE" else (if (parity) "PASS" else "FAIL"))).put("actions", actions.length()))
-var sync = DriveSyncCoordinator.status(context, store.getState().getJSONObject("sync_queue"))
-checks.put(JSONObject().put("name", "sync_state").put("status", (if ((sync.optString("code") == "LEGACY_SYNC_RETIRED")) "PASS" else "FAIL")).put("scope", "business_drive_writer_retirement").put("state", sync.optString("state")).put("historical_review", sync.optInt("review")).put("cloud_confirmed", false))
 var docs = File(context.getFilesDir(), "business-documents")
 checks.put(JSONObject().put("name", "private_document_storage").put("status", (if (docs.isDirectory() && docs.canRead()) "PASS" else "NOT TESTABLE")))
 checks.put(JSONObject().put("name", "physical_google_and_delivery").put("status", "NOT TESTABLE").put("reason", "Separate Kontofreigabe und tatsächlichen Providerbeleg prüfen; Diagnose sendet nichts."))
-var migration = LocalMigrationInventory.inspect(store.getState(), LocalOriginalVerifier(context.getFilesDir(), store::photoAttachment, { id -> JSONObject(store.ownerValue("local_invoice_job:" + id, "{}")) }))
-checks.put(JSONObject().put("name", "local_authority_transition").put("status", "NOT TESTABLE").put("reason", "Inventar ist keine Umstellungsfreigabe; aktueller Beleg- und Schreibernachweis erforderlich."))
-return JSONObject().put("checks", checks).put("local_migration_inventory", migration).put("build_fingerprint", BuildProvenance.describe()).put("tool_count", catalogue.length()).put("tool_catalog_hash", PixelMcpWriteTools.hash(catalogue)).put("tool_catalog_semantic", CatalogSemanticHash.describe(catalogue)).put("ui_catalog_hash", PixelMcpWriteTools.hash(inventory)).put("ui_catalog_semantic", CatalogSemanticHash.describe(inventory)).put("sync", JSONObject().put("state", sync.optString("state")).put("pending", sync.optInt("pending")).put("review", sync.optInt("review")).put("confirmation_scope", sync.optString("confirmation_scope")).put("cloud_confirmed", sync.optBoolean("cloud_confirmed"))).put("business_data_changed", false).put("secrets_exposed", false)
+return JSONObject().put("checks", checks).put("build_fingerprint", BuildProvenance.describe()).put("tool_count", catalogue.length()).put("tool_catalog_hash", PixelMcpWriteTools.hash(catalogue)).put("tool_catalog_semantic", CatalogSemanticHash.describe(catalogue)).put("ui_catalog_hash", PixelMcpWriteTools.hash(inventory)).put("ui_catalog_semantic", CatalogSemanticHash.describe(inventory)).put("business_data_changed", false).put("secrets_exposed", false)
 }
 }

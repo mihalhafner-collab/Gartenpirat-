@@ -194,7 +194,7 @@ internal object LocalBackupDataset {
                         val capturedState = BackupSnapshotState.read(captured,
                             BackupPreferences.values(JSONObject(text(File(directory, "preferences.json"))), "haus_garten"),
                             text(File(directory, "bootstrap/initial-data.json")), text(File(directory, "bootstrap/service-catalog.json")))
-                        capturedBusinessHash = LocalAuthorityMigration.businessHash(capturedState)
+                        capturedBusinessHash = businessHash(capturedState)
                         capturedInventory = LocalMigrationInventory.inspect(capturedState, LocalOriginalVerifier(File(directory, "files"),
                             { id -> BackupSnapshotState.photo(captured, id) },
                             { id -> JSONObject(DatabaseBackupSnapshot.ownerValue(captured, "local_invoice_job:$id", "{}")!!) }))
@@ -203,7 +203,7 @@ internal object LocalBackupDataset {
                         if (PixelMcpWriteTools.hash(source) != PixelMcpWriteTools.hash(capturedRaw)) throw IOException("TABLE_BACKUP_SOURCE_MISMATCH")
                     }
                     val live = store.getState().put("extended_business_fingerprint", BusinessStateFingerprint.read(store.readableDatabase))
-                    if (LocalAuthorityMigration.businessHash(live) != manifest.optString("business_snapshot_sha256", capturedBusinessHash)) {
+                    if (businessHash(live) != manifest.optString("business_snapshot_sha256", capturedBusinessHash)) {
                         throw IOException("TABLE_BACKUP_BUSINESS_STATE_CHANGED")
                     }
                     val inventory = LocalMigrationInventory.inspect(live, LocalOriginalVerifier(store.appContext().filesDir,
@@ -224,6 +224,20 @@ internal object LocalBackupDataset {
                 }
             }
         }
+
+    /** Stable fingerprint retained only for the optional explicit table-transfer check. */
+    private fun businessHash(state: JSONObject): String {
+        val effective = SnapshotProjection.effective(state)
+        val selected = JSONObject()
+        for (name in arrayOf(
+            "customers", "orders", "worklogs", "photos", "offers", "invoices",
+            "appointments", "service_catalog", "business_settings", "owner_archive"
+        )) if (effective.has(name)) selected.put(name, effective.get(name))
+        if (state.has("extended_business_fingerprint")) {
+            selected.put("extended_business_fingerprint", state.get("extended_business_fingerprint"))
+        }
+        return PixelMcpWriteTools.hash(selected)
+    }
 
     @Throws(Exception::class)
     private fun asset(context: Context, name: String): String = context.assets.open(name).use { input ->
