@@ -19,26 +19,43 @@ ableiten; geänderten Code niemals als bereits installierten Build ausgeben.
 Nach einem Geräteupdate die Identität erneut lesen und den vorhandenen Arbeitsstand
 aktualisieren. Keine neuen Branches, Tags oder Verweisdateien ohne Nutzerauftrag.
 
-## Separater TEST-Kandidat: 2.0.0 / Test-Build 2
+## TEST-Kandidat: ausschließlich aus dem aktuellen produktiven Kotlin-Quellbestand
 
-Verbindlicher vollständiger Quellcommit: `c9d955bd5775ce300e91c4cea2122838c3fa8f10`.
-https://github.com/mihalhafner-collab/Gartenpirat-/tree/c9d955bd5775ce300e91c4cea2122838c3fa8f10
-Branch: `test/2.0.0-build2`; Quellcode dort unter `app/`, Variante `app/src/fullTest/`.
-Die genaue APK-/Quellzuordnung steht unter `current_test_candidate` im bestehenden
-`struktur-neu/AKTUELLER-STAND.json`. Die übrigen Felder dieses Dokuments, insbesondere
-`source_directory`, `current_task`, `workflow` und `last_distributed_build`, betreffen PRODUKTIV.
+Der bisherige TEST 2.0.0 / Test-Build 2 mit Commit
+`c9d955bd5775ce300e91c4cea2122838c3fa8f10`,
+Branch `test/2.0.0-build2` und Quellverzeichnis `app/` ist ein
+historischer Java-/WebView-Kandidat und **keine gültige Entwicklungs- oder
+Freigabegrundlage** für die aktuelle Kotlin-/Compose-App. Eine alte APK oder
+ein historischer Git-Branch darf nicht stillschweigend erneut zum aktiven
+TEST-Kandidaten erklärt werden.
 
-Neue Chats müssen bei TEST-Aufträgen diesen Quellcommit verwenden und dessen
-`AGENTS.md` sowie `app-versions.properties` lesen. TEST-Paket:
-`at.hausgarten.service.fulltest`; sichtbare Version 2.0.0 / Test-Build 2;
-Android-Code 118. Der TEST-Zähler darf den Produktivzähler niemals erhöhen.
-Die APK wurde vor dieser Git-Sicherung auf Basis `d721780` mit lokalen Änderungen
-gebaut; `SOURCE_DIRTY=true` ist für diese bestehende APK korrekt. Der neue Quellcommit
-ist der vollständige identische Archiv-Dateistand, kein neuer APK-Build.
-Vor TEST-Geräteaktionen die TEST-Paketidentität gesondert prüfen; eine MCP-Antwort
-der produktiven App beweist keine Installation der TEST-App. Keine produktiven
-Daten zum Testen verwenden. Aus der Quellenveröffentlichung folgt keine Installation
-oder produktive Freigabe.
+Verbindliche gemeinsame funktionale Quelle für beide künftigen Varianten:
+`main/struktur-neu/android/app/src/main/` einschließlich der dort
+referenzierten Ressourcen, der Fachregeln und der aktuellen Android-Baukonfiguration.
+Der produktiv installierte Pixel-Quellstand ist vor Änderungen durch
+`get_capabilities`, Build-Fingerprint und Commit zu verifizieren.
+Keine fachliche Weiterentwicklung auf dem abweichenden Java-Testbranch.
+
+Die neue TEST-Variante ist erst dann ein gültiger Kandidat, wenn sie **aus
+demselben Kotlin-/Compose-Quellstand** gebaut wurde, eine eigene Paketkennung
+(`at.hausgarten.service.fulltest`), eigene Android-App-Daten und die
+bestehende TEST-Signatur besitzt. Nur Buildvarianten-spezifische Identität
+und isolierende Konfiguration dürfen vom Produktivpaket abweichen.
+TEST darf Originalsignatur, Produktiv-Versionsreihe, produktive Daten,
+Kalender-/MCP-Anbindungen oder Updatezustand nicht verändern.
+Bis zur erfolgreichen Build- und Geräteprüfung steht
+`current_test_candidate` auf null (kein aktiver gültiger TEST-Build).
+
+Eine spätere Produktivfreigabe verwendet den identischen geprüften
+funktionalen Git-Quellstand, aber die ursprüngliche Produktiv-Paketkennung,
+Originalsignatur und eine höhere produktive Versionsnummer. Das fertige
+Produktivpaket benötigt eigene Integritäts-, Installations-, Update- und
+Datenerhaltstests; aus TEST-Abnahmen folgt keine Installationsfreigabe.
+Keine historisch aufgezeichneten TEST-Erfolge als heutige Kotlin-/Pixel-
+Ergebnisse übernehmen. Historische Testquellen nur als Nachweis aufbewahren.
+Neue Branches, Umstellungen und Löschungen erst nach verifiziertem
+Test-Build und eindeutiger Referenzbereinigung; kein Force-Push zur
+Verschleierung der Historie.
 
 ## Umsetzung
 
