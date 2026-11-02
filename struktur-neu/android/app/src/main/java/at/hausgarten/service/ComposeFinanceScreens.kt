@@ -41,7 +41,6 @@ private fun financeRows(data: JSONObject, vararg names: String): List<JSONObject
 internal fun financeMoney(value: Any?): String = if (value == null || value == JSONObject.NULL) "offen" else runCatching { BigDecimal(value.toString()).setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €" }.getOrDefault("Betrag prüfen")
 private fun financeFields(row: JSONObject, keys: Array<String>) = JSONObject().also { out -> keys.forEach { if (row.has(it)) out.put(it, row.get(it)) } }
 private fun financeStatus(value: String): String = mapOf("draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "declined" to "Abgelehnt", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt", "cash" to "Bar", "bank" to "Bank", "card" to "Karte", "other" to "Andere", "b2b" to "Unternehmen", "consumer" to "Verbraucher", "on_premise" to "Im Geschäft", "distance" to "Fernabsatz", "off_premise" to "Außerhalb der Geschäftsräume", "confirmed" to "Bestätigt", "catalog" to "Freigegebener Katalogpreis", "calculated" to "Berechnet", "estimated" to "Geschätzt", "unit" to "Einheitspreis", "text" to "Text", "own" to "Eigener Nummernkreis")[value] ?: nativeValue(value)
-private fun financeInvoiceTitle(row: JSONObject): String = row.optString("invoice_number").takeUnless { it.isBlank() || it.startsWith("Entwurf-") } ?: "Rechnungsentwurf"
 private val financePartyFields=listOf("name" to "Name","company" to "Firma","first_name" to "Vorname","last_name" to "Nachname","street" to "Straße","postal_code" to "Postleitzahl","city" to "Ort","country" to "Land","email" to "E-Mail","phone" to "Telefon")
 private suspend fun financeInspect(controller: NativeAppController, tool: String, args: JSONObject): JSONObject? {
     val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", args))
@@ -67,7 +66,6 @@ private fun FinanceIssuerSummary(issuer:JSONObject?) {
 
 @Composable
 private fun FinanceDraftSummary(controller: NativeAppController, row: JSONObject, section: String) {
-    if(section=="invoices") Text(financeInvoiceTitle(row))
     FinanceValues(row,listOf("title" to "Bezeichnung","status" to "Status","document_type" to "Dokumentart","invoice_date" to "Rechnungsdatum","issue_date" to "Angebotsdatum","service_start" to "Leistungsbeginn","service_end" to "Leistungsende","valid_until" to "Gültig bis","execution_window" to "Ausführung","tax_mode" to "Steuermodus","payment_days" to "Zahlungsziel in Tagen","payment_terms" to "Zahlungsbedingungen","location" to "Einsatzort","recipient_type" to "Empfängertyp","recipient_vat_id" to "Empfänger-UID","domestic_service_confirmed" to "Inlandsleistung bestätigt","header_text" to "Kopftext","footer_text" to "Fußtext","notes" to "Notizen","binding_notice" to "Bindungshinweis","assumptions" to "Annahmen","exclusions" to "Ausschlüsse","description" to "Beschreibung","unit" to "Einheit","default_price" to "Standardpreis","default_quantity" to "Standardmenge","pricing_type" to "Positionsart","price_confirmed" to "Preis bestätigt","category" to "Kategorie","legal_notes" to "Rechtliche Hinweise","customer_type" to "Kundentyp","contract_channel" to "Vertragsweg","consumer_information" to "Verbraucherinformationen","consumer_information_confirmed" to "Verbraucherinformationen bestätigt","scope_confirmed" to "Leistungsumfang bestätigt","binding_confirmed" to "Bindungsart bestätigt","active" to "Aktiv"))
     for((field,collection,label) in listOf(Triple("customer_id","customers","Kunde"),Triple("billing_customer_id","customers","Rechnungsempfänger"),Triple("order_id","orders","Auftrag"))) {
         val id=row.optString(field)
@@ -154,11 +152,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
         else -> Column(Modifier.fillMaxSize()) {
             val editable = section == "catalog" || OfferRules.editable(row)
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(if (section == "invoices") financeInvoiceTitle(row) else row.optString("title"), style = MaterialTheme.typography.headlineSmall)
-            Text(financeStatus(if(section == "invoices") row.optString("status", "Entwurf") else row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")))
+            Text(row.optString("title"), style = MaterialTheme.typography.headlineSmall)
+            Text(financeStatus(row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")))
             if (section != "catalog") {
                 Text("Summe: ${financeMoney(row.opt("gross_total") ?: row.opt("amount"))}")
-                val dates = if (section == "invoices") listOf("invoice_date" to "Rechnungsdatum", "service_start" to "Leistung ab", "service_end" to "Leistung bis") else listOf("issue_date" to "Datum", "valid_until" to "Gültig bis")
+                val dates = listOf("issue_date" to "Datum", "valid_until" to "Gültig bis")
                 val dateText = dates.mapNotNull { (key, label) -> row.optString(key).takeIf { it.isNotBlank() }?.let { "$label: ${nativeDisplayDate(it)}" } }.joinToString(" · ")
                 if (dateText.isNotEmpty()) Text(dateText)
                 FinancePositionSummary(row.optJSONArray("positions"))
@@ -224,11 +222,11 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
         onFilters = if (section == "catalog") null else ({ filtersOpen = !filtersOpen }), onFocus = { filtersOpen = false }) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), if (section == "invoices") "Rechnungsempfänger" else "Kunde") }
+        if (!imeVisible) item { NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer), "Kunde") }
         if (filtersOpen) item(key = "native-list-filters") {
         if (section != "catalog") {
-            NativeRecordPicker(controller, "customers", if (section == "invoices") "Rechnungsempfänger" else "Kunde", customer) { customer = it; offset = 0 }
-            FinanceChoice("Status", status, if(section == "invoices") listOf("" to "Alle", "Entwurf" to "Entwurf", "Gestellt" to "Gestellt", "Bezahlt" to "Bezahlt", "Storniert" to "Storniert") else listOf("" to "Alle", "draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt")) { status = it; offset = 0 }
+            NativeRecordPicker(controller, "customers", "Kunde", customer) { customer = it; offset = 0 }
+            FinanceChoice("Status", status, listOf("" to "Alle", "draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt")) { status = it; offset = 0 }
         }
         }
         if (!imeVisible && (customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty())) item { TextButton(onClick = { customer="";status="";query="";offset=0 }) { Text("Filter und Suche zurücksetzen") } }
@@ -237,7 +235,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         if (!listLoading && page.rows.isEmpty() && error.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
         items(page.rows, key = { it.id }) { row -> OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
             Column(Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
-                Text(if (section == "invoices" && row.title.startsWith("Entwurf-")) "Rechnungsentwurf" else row.title, style=MaterialTheme.typography.titleMedium)
+                Text(row.title, style=MaterialTheme.typography.titleMedium)
                 if (row.subtitle.isNotEmpty()) Text(nativeDisplayText(row.subtitle))
                 if (row.status.isNotEmpty()) NativeStatus(financeStatus(row.status))
                 if (section == "catalog") Text(if (row.active) "Aktiv" else "Deaktiviert")
@@ -248,15 +246,10 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             TextButton(enabled=page.hasMore,onClick={offset+=50}) { Text("Weitere") }
         }
         }
-        if(section == "invoices" && !imeVisible) item {
-            OutlinedButton(onClick={controller.navigate("payments")},Modifier.fillMaxWidth()) { Text("Zahlungsübersicht") }
-            TextButton(onClick={controller.action("Aussteller und Steuermodus", "get_business_settings")}) { Text("Ausstellerdaten und Nummernkonfiguration lesen") }
-            TextButton(onClick={scope.launch {try {val settings=controller.query("get_business_settings");controller.action("Ausstellerdaten bewusst aktualisieren", "update_business_settings",JSONObject().put("expected_record_hash",settings.getString("record_hash")).put("updates",JSONObject()))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}}) { Text("Ausstellerdaten und Nummernkonfiguration bearbeiten") }
-        }
         }
         if (!imeVisible) Surface(tonalElevation = 3.dp) {
             Button(onClick = onCreate, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(if (section == "catalog") "Neuer Leistungsbaustein" else if (section == "invoices") "Neuer Rechnungsentwurf" else "Neues Angebot / Kostenvoranschlag")
+                Text(if (section == "catalog") "Neuer Leistungsbaustein" else "Neues Angebot / Kostenvoranschlag")
             }
         }
     }
