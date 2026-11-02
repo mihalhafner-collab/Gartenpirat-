@@ -23,18 +23,19 @@
     }
   ],
   "current_task": {
-    "name": "Entfernung der externen Backup-Pflicht und veralteter Drive-Schnittstellen",
-    "status": "SOURCE_CLEANUP_COMPLETE; CURRENT_ANDROID_QA_RUNNING",
+    "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
+    "status": "DECISION_RECORDED; OBSOLETE_MIGRATION_UI_ENTRY_REMOVED; DEEP_CODE_CLEANUP_PENDING",
     "remaining": [
-      "Quellprüfung bestanden; finalen GitHub-Actions-Lauf 41478715720 (Commit d4e5299) für Android-Bau, JVM- und native Emulatortests auswerten. Ein laufender Test ist noch kein PASS.",
-      "Keine produktiven Pixel-Daten verändert. Installiert bleibt Version 1.57.2 / Build 121. Quellkandidat 1.57.3 / Build 122 ist noch nicht originalsigniert, verteilt oder installiert.",
-      "Der externe Backup-Pflichtnachweis und FULL_EXTERNAL_BACKUP_REQUIRED sind entfernt. Drive-Geschäftstransport ist stillgelegt; Google Drive ist ausschließlich für ausdrücklich beauftragte APK-Paketbereitstellung vorgesehen.",
-      "Historische Drive*-Fach- und DB-Lesepfade nur mit Migrations- und Abwärtskompatibilitätsnachweis entfernen; externe Schreiber-, Rechnungsnummern- und Originalbelegprüfungen bleiben erhalten."
+      "Veraltete Drive-, Online-Sync-, Migrations- und Rechnungsnachweisklassen im aktuellen Kotlin-Quellbestand vollständig entfernen; bislang sind lediglich die alten Drive-Transporte und der sichtbare Umstellungs-Menüeintrag entfernt.",
+      "Rechnungsverwaltung vorerst nicht ausbauen; sevDesk erstellt und versendet Rechnungen. Versuchsweise importierte Altbelege brauchen weder Übernahme noch externe Freigaben. Bestehende App-Rechnungsanzeige ist optional.",
+      "Nach Änderungen Quellprüfung, Kotlin-Bau und native Android-Regressionen ausführen. GitHub Actions für den vorherigen Stand prüfen; bestehende laufende Läufe sind keine Abnahme dieser neuen Anweisung.",
+      "Pixel bleibt unverändert auf 1.57.2 / Build 121. Keine neue APK veröffentlicht oder installiert, keine produktiven Geschäftsdaten gelöscht."
     ]
   },
   "open_checks": [
-    "MCP-Buildidentität geprüft; kein produktiver Gerätefunktionstest durchgeführt.",
-    "Externer Sicherungsnachweis aus Umstellungs-UI/MCP/Code entfernt; Quellprüfungen PASS, Kotlin- und Pixel-Funktionstests stehen aus."
+    "Neuere ausdrückliche Entscheidung: SevDesk ist für Rechnungsstellung und Versand zuständig; kein App-Rechnungsprojekt in dieser Etappe.",
+    "Bisherige Quellcode-Bereinigung ist nicht vollständig, insbesondere verbliebene Autoritäts-, Beleg- und Alt-Synchronisationspfade.",
+    "Installierte App ist weiterhin Build 121; ein produktiver Gerätefunktionstest des geänderten Quellstands fehlt."
   ],
   "workflow": {
     "code": "android/app/src/main",
