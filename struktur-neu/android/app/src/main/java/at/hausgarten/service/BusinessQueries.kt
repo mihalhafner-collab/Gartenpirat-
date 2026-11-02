@@ -22,11 +22,7 @@ QUERIES.put("get_customer_work_records", BusinessQueries::work)
 QUERIES.put("get_work_record_summary", BusinessQueries::work)
 QUERIES.put("get_active_work_session", BusinessQueries::work)
 QUERIES.put("get_work_record", BusinessQueries::work)
-QUERIES.put("list_invoices", BusinessQueries::documents)
-QUERIES.put("get_invoice", BusinessQueries::documents)
 QUERIES.put("list_photos", BusinessQueries::documents)
-QUERIES.put("get_sync_overview", BusinessQueries::sync)
-QUERIES.put("get_sync_status", BusinessQueries::sync)
 QUERIES.put("get_business_summary", BusinessQueries::overview)
 QUERIES.put("search_business_data", BusinessQueries::overview)
 }
@@ -40,7 +36,7 @@ if (state.optBoolean("storage_list_selected")) {
 if ((name == "search_business_data")) {
 return JSONObject().put("customers", master.getJSONArray("customers")).put("orders", master.getJSONArray("orders")).put("work_records", master.getJSONArray("worklogs"))
 }
-var collection = (if ((name == "search_customers")) "customers" else (if ((name == "search_orders") || (name == "get_open_orders")) "orders" else (if ((name == "list_work_records") || (name == "get_customer_work_records")) "worklogs" else (if ((name == "list_invoices")) "invoices" else (if ((name == "list_photos")) "photos" else "")))))
+var collection = (if ((name == "search_customers")) "customers" else (if ((name == "search_orders") || (name == "get_open_orders")) "orders" else (if ((name == "list_work_records") || (name == "get_customer_work_records")) "worklogs" else (if ((name == "list_photos")) "photos" else ""))))
 if (collection.isEmpty()) {
 throw IllegalArgumentException("TABLE_LIST_QUERY_UNSUPPORTED")
 }
@@ -58,7 +54,6 @@ private @JvmStatic @Throws(Exception::class) fun customersOrders(name: String, a
 var customers = master.optJSONArray("customers")
 var orders = master.optJSONArray("orders")
 var logs = master.optJSONArray("worklogs")
-var invoices = master.optJSONArray("invoices")
 var photos = master.optJSONArray("photos")
 var data: Any
 when (name) {
@@ -91,7 +86,6 @@ private @JvmStatic @Throws(Exception::class) fun work(name: String, a: JSONObjec
 var customers = master.optJSONArray("customers")
 var orders = master.optJSONArray("orders")
 var logs = master.optJSONArray("worklogs")
-var invoices = master.optJSONArray("invoices")
 var photos = master.optJSONArray("photos")
 var data: Any
 when (name) {
@@ -151,85 +145,11 @@ private @JvmStatic @Throws(Exception::class) fun documents(name: String, a: JSON
 var customers = master.optJSONArray("customers")
 var orders = master.optJSONArray("orders")
 var logs = master.optJSONArray("worklogs")
-var invoices = master.optJSONArray("invoices")
 var photos = master.optJSONArray("photos")
 var data: Any
 when (name) {
-"list_invoices" -> {
-data = JSONObject().put("invoices", select(invoices, a, "invoice", master))
-}
-"get_invoice" -> {
-data = find(invoices, a.getString("invoice_id"))
-}
 "list_photos" -> {
 data = JSONObject().put("photos", select(photos, a, "photo", master))
-}
-else -> {
-throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
-}
-}
-return data
-}
-private @JvmStatic @Throws(Exception::class) fun sync(name: String, a: JSONObject, state: JSONObject, master: JSONObject, writer: PixelMcpWriteTools.Sink?): Any {
-
-var customers = master.optJSONArray("customers")
-var orders = master.optJSONArray("orders")
-var logs = master.optJSONArray("worklogs")
-var invoices = master.optJSONArray("invoices")
-var photos = master.optJSONArray("photos")
-var data: Any
-when (name) {
-"get_sync_overview" -> {
-run {
-var pending = state.optJSONArray("pending")
-data = JSONObject().put("integrity", PixelDriveState.integrity(state.getJSONObject("master"))).put("pending_actions", (if (pending == null) 0 else pending.length())).put("last_drive_sync", state.optString("last_drive_sync")).put("sync_errors", (if (master.optJSONArray("sync_errors") == null) JSONArray() else master.getJSONArray("sync_errors"))).put("timezone", "Europe/Vienna").put("archived_conflict_reviews", (if (master.optJSONObject("owner_conflict_history") == null) 0 else master.getJSONObject("owner_conflict_history").length())).put("journal_errors", (if (master.optJSONArray("drive_journal_errors") == null) JSONArray() else master.getJSONArray("drive_journal_errors"))).put("confirmation_scope", state.optString("confirmation_scope", "drive_provider_readback")).put("cloud_confirmed", state.optBoolean("cloud_confirmed", false) && ("drive_server_manifest" == state.optString("confirmation_scope"))).put("last_full_sync", state.optString("last_full_sync")).put("notice", "Lokale Speicherung, Provider-Rücklesen und vollständiger Abgleich sind getrennte Zustände. Nur geprüfte Drive-Serverbelege bestätigen die Übernahme.")
-}
-}
-"get_sync_status" -> {
-run {
-if (writer != null) {
-return PixelMcpBusinessTools.sync(writer.status(a.getString("client_id"), state), state)
-}
-var id = a.getString("client_id")
-var status = "unknown"
-var accepted = master.optJSONArray("accepted_ids")
-if (accepted != null) {
-run {
-var i: Int = 0
-var firstIteration9 = true
-while (true) {
-if (firstIteration9) firstIteration9 = false else { i++ }
-if (!(i < accepted.length())) break
-
-if ((id == accepted.optString(i))) {
-status = "accepted"
-}
-
-}
-}
-}
-var pending = state.optJSONArray("pending")
-if (!(("accepted" == status)) && pending != null) {
-run {
-var i: Int = 0
-var firstIteration10 = true
-while (true) {
-if (firstIteration10) firstIteration10 = false else { i++ }
-if (!(i < pending.length())) break
-
-if ((id == pending.getJSONObject(i).optString("client_id"))) {
-status = "queued"
-}
-
-}
-}
-}
-var applied: Boolean = DriveJournalRules.ids(master.optJSONArray("drive_applied_ids")).contains(id)
-if (applied && !((status == "accepted"))) {
-status = "transferred"
-}
-data = JSONObject().put("client_id", id).put("status", status).put("confirmed_by_app", ("accepted" == status)).put("applied_on_pixel", applied).put("cloud_confirmed", false)
-}
 }
 else -> {
 throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
@@ -242,7 +162,6 @@ private @JvmStatic @Throws(Exception::class) fun overview(name: String, a: JSONO
 var customers = master.optJSONArray("customers")
 var orders = master.optJSONArray("orders")
 var logs = master.optJSONArray("worklogs")
-var invoices = master.optJSONArray("invoices")
 var photos = master.optJSONArray("photos")
 var data: Any
 when (name) {
