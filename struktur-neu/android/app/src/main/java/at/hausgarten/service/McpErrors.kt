@@ -12,92 +12,14 @@ internal class McpErrors {
                 Arrays.asList(
                     "REVIER_SCHEMA_UPGRADE_REQUIRED",
                     "REVIER_RECORD_INVALID",
-                    "LOCAL_AUTHORITY_REQUIRED",
-                    "LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE",
                     "LOCAL_STATE_BUILD_FAILED",
                     "LOCAL_BOOTSTRAP_INVALID",
-                    "INVOICE_ORIGINAL_RECONCILIATION_REQUIRED",
-                    "INVOICE_REVIEW_CONTEXT_REQUIRED",
-                    "INVOICE_PDF_NOT_CREATED_REVIEW_REQUIRED",
-                    "FINANCIAL_JOB_ORIGIN_INVALID",
-                    "FINANCIAL_JOB_AUTHORIZATION_INVALID",
-                    "FINANCIAL_JOB_ADOPTION_INVALID",
-                    "FINANCIAL_RECOVERY_AUDIT_INVALID",
-                    "INVOICE_OPENING_BALANCE_CORRECTION_REQUIRED",
-                    "INVOICE_RECONCILIATION_REVIEW_REQUIRED",
-                    "LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED",
-                    "LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE",
-                    "LEGACY_SYNC_WRITER_DISABLED",
-                    "LEGACY_SYNC_RETIRED",
                     "LOCAL_DATABASE_CONTRACT_REVIEW_REQUIRED",
                     "LOCAL_ORIGINAL_MISSING",
                     "LOCAL_STATE_CONTRACT_INVALID",
                     "LOCAL_STATE_METADATA_UNREADABLE",
                     "LOCAL_STORE_PATH_INVALID",
                     "RESTORE_DATABASE_STILL_OPEN",
-                    "FINANCIAL_NUMBER_EVIDENCE_INVALID",
-                    "FINANCIAL_ORIGINAL_EVIDENCE_INVALID",
-                    "FINANCIAL_ORIGINAL_PATH_REJECTED",
-                    "FINANCIAL_ORIGINAL_MISSING",
-                    "FINANCIAL_ORIGINAL_SIZE_MISMATCH",
-                    "FINANCIAL_ORIGINAL_HASH_MISMATCH",
-                    "FINANCIAL_ORIGINAL_PDF_INVALID",
-                    "FINANCIAL_ORIGINAL_CHANGED",
-                    "FINANCIAL_ORIGINAL_READ_FAILED",
-                    "FINANCIAL_ORIGINAL_INTERRUPTED",
-                    "FINANCIAL_PAYMENT_DUPLICATE_REQUEST",
-                    "FINANCIAL_AMOUNT_INVALID",
-                    "FINANCIAL_COUNTER_INVALID",
-                    "FINANCIAL_COUNTER_MISSING",
-                    "FINANCIAL_DUPLICATE_ALLOCATION",
-                    "FINANCIAL_DUPLICATE_ID",
-                    "FINANCIAL_JOB_DOCUMENT_INVALID",
-                    "FINANCIAL_JOB_INVALID",
-                    "FINANCIAL_JOB_MISSING",
-                    "FINANCIAL_JOB_SNAPSHOT_MISMATCH",
-                    "FINANCIAL_MATERIAL_REFERENCE_INVALID",
-                    "FINANCIAL_NAMESPACE_INVALID",
-                    "FINANCIAL_NUMBER_COLLISION",
-                    "FINANCIAL_ISSUED_NUMBER_COLLISION",
-                    "FINANCIAL_RESERVATION_COUNTER_COLLISION",
-                    "FINANCIAL_RESERVATION_INVOICE_COLLISION",
-                    "FINANCIAL_EXTERNAL_NUMBER_COLLISION",
-                    "FINANCIAL_OPENING_BALANCE_INVALID",
-                    "FINANCIAL_PAYMENT_CORRECTION_INVALID",
-                    "FINANCIAL_PAYMENT_INVALID",
-                    "FINANCIAL_PAYMENT_REFERENCE_INVALID",
-                    "FINANCIAL_PAYMENT_SUM_MISMATCH",
-                    "FINANCIAL_QUANTITY_INVALID",
-                    "FINANCIAL_RECORD_INVALID",
-                    "FINANCIAL_REFERENCE_INVALID",
-                    "FINANCIAL_REFERENCE_MISSING",
-                    "FINANCIAL_RESERVATION_INVALID",
-                    "FINANCIAL_RESERVATION_MISSING",
-                    "FINANCIAL_RESERVATION_SNAPSHOT_MISMATCH",
-                    "FINANCIAL_SOURCE_QUANTITY_EXCEEDED",
-                    "FINANCIAL_SOURCE_REFERENCE_INVALID",
-                    "FINANCIAL_SOURCE_SNAPSHOT_MISMATCH",
-                    "PAYMENT_AMOUNT_MINOR_INVALID",
-                    "PAYMENT_BALANCE_RECONCILIATION_REQUIRED",
-                    "PAYMENT_CREDIT_DOCUMENT_ALLOCATION_REQUIRES_REVIEW",
-                    "PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS",
-                    "INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED",
-                    "INVOICE_DOCUMENT_RECEIPT_INVALID",
-                    "INVOICE_DOCUMENT_RECEIPT_STORAGE_UNAVAILABLE",
-                    "INVOICE_CURRENT_LEDGER_INCOMPLETE",
-                    "INVOICE_EVIDENCE_DUPLICATE",
-                    "INVOICE_EVIDENCE_MISMATCH",
-                    "INVOICE_EXTERNAL_ORIGINAL_MISSING",
-                    "INVOICE_OPENING_BALANCE_INVALID",
-                    "INVOICE_ORIGINAL_EVIDENCE_REQUIRED",
-                    "INVOICE_RECONCILIATION_REPLAY_MISMATCH",
-                    "INVOICE_RESERVATION_REVIEW_REQUIRED",
-                    "INVOICE_MATERIAL_RECIPIENT_MISMATCH",
-                    "INVOICE_MATERIAL_SOURCE_MISSING",
-                    "INVOICE_MATERIAL_SOURCE_NOT_AVAILABLE",
-                    "INVOICE_SOURCE_QUANTITY_REVIEW_REQUIRED",
-                    "INVOICE_AUTHORITY_CHECKPOINT_PENDING",
-                    "INVOICE_JOB_SCOPE_UNAVAILABLE",
                     "BACKUP_SAF_OWNED_TEMP_CLEANUP_REQUIRED",
                     "BACKUP_CAPTURE_METADATA_MISSING",
                     "BACKUP_RUNNER_BUSY",
@@ -130,7 +52,6 @@ internal class McpErrors {
                     "BACKUP_DEVICE_EPOCH_CONFLICT",
                     "BACKUP_DEVICE_GUARD_INVALID",
                     "BACKUP_DEVICE_GUARD_UNAVAILABLE",
-                    "BACKUP_DRIVE_DESTINATION_REQUIRED",
                     "BACKUP_DUPLICATE_FILE",
                     "BACKUP_ENVELOPE_INVALID",
                     "BACKUP_ENVELOPE_TOO_LARGE",
@@ -220,8 +141,6 @@ internal class McpErrors {
                     "BACKUP_STAGING_UNAVAILABLE",
                     "BACKUP_STAGING_UNREADABLE",
                     "BACKUP_STORAGE_RESERVE_REQUIRED",
-                    "BACKUP_UPLOAD_PHASE_UNSUPPORTED",
-                    "BACKUP_UPLOAD_REQUIRES_OUTSIDE_TRANSACTION",
                     "BACKUP_VERSION_UNSUPPORTED",
                     "BACKUP_WORK_LINK_REJECTED",
                     "BACKUP_WORK_OWNERSHIP_MISMATCH",
@@ -229,49 +148,8 @@ internal class McpErrors {
                     "BACKUP_WORK_PATH_REJECTED",
                     "BACKUP_WORK_STORAGE_UNAVAILABLE",
                     "INVALID_DECIMAL_POSITION",
-                    "INVOICE_ALREADY_ISSUED",
-                    "INVOICE_AUTHORITY_RECONCILIATION_REQUIRED",
-                    "INVOICE_DOCUMENT_JOB_MISSING",
-                    "INVOICE_DOCUMENT_SOURCE_MISMATCH",
-                    "INVOICE_FROZEN_SNAPSHOT_CHANGED",
-                    "INVOICE_NUMBER_COLLISION",
-                    "INVOICE_NUMBER_CONFIGURATION_REQUIRED",
-                    "INVOICE_NUMBER_RANGE_EXHAUSTED",
-                    "INVOICE_NUMBER_ROLLBACK_DETECTED",
-                    "INVOICE_NUMBER_ROLLBACK_RECONCILIATION_REQUIRED",
-                    "INVOICE_NUMBER_STATE_INVALID",
-                    "INVOICE_PDF_NOT_READY",
-                    "INVOICE_SOURCE_ALREADY_BILLED",
-                    "INVOICE_SOURCE_QUANTITY_EXCEEDED",
-                    "INVOICE_SOURCE_UNIT_REVIEW_REQUIRED",
-                    "INVOICE_TOTAL_MISMATCH",
-                    "LOCAL_AUTHORITY_CONTRACT_UNSUPPORTED",
-                    "LOCAL_AUTHORITY_EVIDENCE_REQUIRED",
-                    "LOCAL_AUTHORITY_RECORD_INVALID",
-                    "LOCAL_AUTHORITY_STORAGE_UNAVAILABLE",
                     "LOCAL_DATABASE_CONTRACT_UNSUPPORTED",
-                    "LOCAL_FINANCIAL_QUERY_UNKNOWN",
-                    "LOCAL_MIGRATION_DATA_REVIEW_REQUIRED",
-                    "LOCAL_MIGRATION_OPEN_NUMBER_ACTIONS",
-                    "LOCAL_MIGRATION_RECEIPT_MISMATCH",
-                    "LOCAL_MIGRATION_REPLAY_MISMATCH",
-                    "LOCAL_MIGRATION_REQUEST_ID_REQUIRED",
-                    "LOCAL_MIGRATION_REVIEW_REQUIRED",
-                    "LOCAL_MIGRATION_SYNC_STILL_RUNNING",
-                    "LOCAL_MIGRATION_WRITE_CONFLICT",
                     "MONEY_REQUIRED",
-                    "PAYMENT_ALLOCATION_EXCEEDS_AMOUNT",
-                    "PAYMENT_ALLOCATION_INVALID",
-                    "PAYMENT_ALREADY_CORRECTED",
-                    "PAYMENT_AMOUNT_AND_ALLOCATION_REQUIRED",
-                    "PAYMENT_CORRECTION_REASON_REQUIRED",
-                    "PAYMENT_DATE_IN_FUTURE",
-                    "PAYMENT_DUPLICATE_ID",
-                    "PAYMENT_INVOICE_INVALID",
-                    "PAYMENT_LEDGER_WRITE_CONFLICT",
-                    "PAYMENT_METHOD_INVALID",
-                    "PAYMENT_NOT_CORRECTABLE",
-                    "PAYMENT_POSITIVE_AMOUNT_REQUIRED",
                     "RECOVERY_ALREADY_CONFIGURED",
                     "RECOVERY_CODE_INVALID",
                     "RECOVERY_CONFIRMATION_MISMATCH",
@@ -340,39 +218,14 @@ internal class McpErrors {
 
         private @JvmStatic fun localMessage(code: String): String {
 
-            if ((code == "INVOICE_REVIEW_CONTEXT_REQUIRED")) {
-                return "Rechnung samt aktuellem Aussteller, Empfänger und Leistungsquellen neu öffnen, den vollständigen Prüfstand lesen und ausdrücklich bestätigen. Noch keine Nummer vergeben."
-            }
             if ((code == "LOCAL_STATE_BUILD_FAILED")) {
                 return "Der lokale Datenstand konnte nicht vollständig aufgebaut werden. Lokalen Stand und geprüfte Sicherung am Gerät prüfen; keine automatische Rückspielung starten."
-            }
-            if ((code == "INVOICE_ORIGINAL_RECONCILIATION_REQUIRED")) {
-                return "Nach Wiederherstellung ist der ursprüngliche PDF-Stand ungeklärt. Aktuelles externes Original unverändert binden oder ausdrücklich nachweisen, dass noch kein Original erstellt wurde. Die Belegnummer bleibt erhalten; kein PDF wird automatisch neu erzeugt."
-            }
-            if (
-                ((code == "LOCAL_AUTHORITY_CURRENT_EVIDENCE_REQUIRED") ||
-                    (code == "LOCAL_AUTHORITY_RECEIPT_STALE_AFTER_RESTORE"))
-            ) {
-                return "Nach Umstellung oder Wiederherstellung aktuellen externen Beleg-/Nummernstand für diese Installation neu prüfen und ausdrücklich bestätigen. Eine frühere Bestätigung gibt nichts frei."
-            }
-            if ((code == "LEGACY_SYNC_WRITER_DISABLED")) {
-                return "Der lokale Pixelbestand ist maßgeblich. Alte operative Drive-Schreibwege bleiben gesperrt; Drive dient der Vollsicherung."
-            }
-            if ((code == "LEGACY_SYNC_RETIRED")) {
-                return "Der frühere Drive-Geschäftsabgleich ist stillgelegt. Lokale Daten und Aktionen bleiben erhalten. Vollsicherung in der App einrichten oder get_full_backup_status lesen; es wurde keine Sicherung gestartet."
             }
             if ((code == "LOCAL_BOOTSTRAP_INVALID")) {
                 return "Der leere lokale App-Ausgangsstand konnte nicht geprüft werden. App-Version und Sicherungsstand prüfen; keine automatische Übernahme externer Daten und keine Änderung ausgeführt."
             }
-            if (
-                (((code == "LOCAL_ORIGINAL_MISSING") ||
-                    (code == "INVOICE_DOCUMENT_ORIGINAL_MISSING_OR_CHANGED")) ||
-                    code.startsWith("FINANCIAL_ORIGINAL_"))
-            ) {
-                return "Ein benötigtes Original fehlt, ist verändert oder konnte nicht vollständig geprüft werden. Geprüfte Sicherung am Gerät prüfen; Originale werden nicht automatisch ersetzt."
-            }
-            if ((code == "INVOICE_PDF_NOT_READY")) {
-                return "Das Rechnungs-PDF ist noch nicht lokal verifiziert. Dokumentauftrag prüfen oder denselben Auftrag erneut ausführen; Belegnummer bleibt erhalten."
+            if (code == "LOCAL_ORIGINAL_MISSING") {
+                return "Ein benötigtes Original fehlt oder konnte nicht vollständig geprüft werden. Geprüfte Sicherung am Gerät prüfen; Originale werden nicht automatisch ersetzt."
             }
             if (
                 ((code.contains("WRITE_CONFLICT") || code.contains("EPOCH_CONFLICT")) ||
@@ -385,15 +238,6 @@ internal class McpErrors {
             }
             if (code.contains("REPLAY_MISMATCH")) {
                 return "Die Anfragekennung gehört zu anderen Angaben. Die ursprüngliche Aktion prüfen."
-            }
-            if ((code.contains("AUTHORITY") || code.contains("RECONCILIATION"))) {
-                return "Rechnungsausgabe bleibt gesperrt: aktuellen Original-/Nummernstand und den alleinigen Schreiber nachweisen und erneut prüfen."
-            }
-            if ((code == "PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS")) {
-                return "Eine Zahlung vollständig zurücknehmen: Betrag 0, keine neuen Rechnungszuordnungen und einen Korrekturgrund angeben. Die ursprüngliche Zahlung bleibt protokolliert; keine Bankbuchung wird ausgelöst."
-            }
-            if ((code == "PAYMENT_AMOUNT_AND_ALLOCATION_REQUIRED")) {
-                return "Zahlung mit Betrag, Datum, Zahlungsart und ausdrücklicher Rechnungszuordnung erfassen. Persönliches b.b. bleibt unabhängig."
             }
             if ((code.contains("DECIMAL") || code.startsWith("MONEY_"))) {
                 return "Beträge und Mengen mit exakten Dezimalwerten beziehungsweise kleinsten Währungseinheiten prüfen."
@@ -448,7 +292,7 @@ internal class McpErrors {
                             )
                                 error.message
                             else
-                                "Anfrage nicht möglich. Pflichtangaben, Datensatz-ID oder gespeicherten Drive-Stand prüfen.")),
+                                "Anfrage nicht möglich. Pflichtangaben, Datensatz-ID oder gespeicherten lokalen Stand prüfen.")),
                     )
             if (error is HttpTransport.Failure) {
                 var failure = (error as HttpTransport.Failure)

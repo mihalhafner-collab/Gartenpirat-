@@ -640,7 +640,7 @@ private fun nativeEnrichProofs(schema: JSONObject, entered: JSONObject, observat
     return nativeBooleanDefaults(schema, entered)
 }
 
-private fun nativeNeedsComparison(code: String): Boolean = code.contains("WRITE_CONFLICT") || code.contains("EPOCH_CONFLICT") || code.endsWith("CHANGED") || code == "INVOICE_REVIEW_CONTEXT_REQUIRED"
+private fun nativeNeedsComparison(code: String): Boolean = code.contains("WRITE_CONFLICT") || code.contains("EPOCH_CONFLICT") || code.endsWith("CHANGED")
 
 private fun nativeChangedUpdates(updates: JSONObject, base: JSONObject): JSONObject = JSONObject().also { changed ->
     for (key in updates.keys().asSequence()) {

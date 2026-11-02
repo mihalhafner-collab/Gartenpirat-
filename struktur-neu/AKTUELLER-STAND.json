@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-02T19:41:46Z",
+    "observed_at_utc": "2026-11-02T20:09:23Z",
     "version_name": "1.57.2",
     "version_code": 121,
     "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
@@ -53,10 +53,11 @@
       "Quellprüfung erfolgreich; acht synthetische JVM-Suiten einschließlich Angeboten, Material und 111 ZIP-/Integritätsprüfungen erfolgreich",
       "compileReleaseKotlin, compileReleaseJavaWithJavac, assembleRelease, assembleReleaseAndroidTest und lintRelease erfolgreich",
       "Bisherige Drive-Installations-APK vollständig zurückgelesen; SHA256 und Originalzertifikat stimmen mit dem bestehenden Identitätsvertrag überein",
-      "Heute-Erweiterung und lokale CAS-Reparatur: Quellprüfung, acht JVM-Suiten (einschließlich 97 Wartungsprüfungen), Kotlin/Java, Release-/Android-Test-APK und lintRelease erfolgreich"
+      "Heute-Erweiterung und lokale CAS-Reparatur: Quellprüfung, acht JVM-Suiten (einschließlich 97 Wartungsprüfungen), Kotlin/Java, Release-/Android-Test-APK und lintRelease erfolgreich",
+      "Zusätzliche Entfernung alter Rechnungs-/Zahlungs-/Drive-Fehlerzweige: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich"
     ],
     "remaining": [
-      "Vollständigen GitHub-Actions-Emulatorlauf nach Heute-Erweiterung und Reparatur der im Lauf 41506712906 gefundenen lokalen CAS-/Testumgebungsfehler ausführen",
+      "Vollständigen GitHub-Actions-Gesamtlauf auf dem endgültigen bereinigten Commit ausführen; Heute-Emulatorlauf 41513635503 läuft auf dem vorherigen Commit",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü; vier Hauptbereiche und Android-Zurück bleiben erhalten."
