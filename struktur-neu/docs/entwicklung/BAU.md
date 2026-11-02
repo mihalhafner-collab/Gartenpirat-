@@ -603,3 +603,10 @@ ursprünglichen Modus wieder her. Android darf die Geste an Launcher/Taskbar del
 SystemUI-Objekt ist deshalb kein Funktionsnachweis. Fehlende System-Gestenränder
 oder eine wirkungslose Randgeste bleiben Testfehler. Eine Zurück-Taste ersetzt
 diesen Nachweis nicht.
+
+`camera_capture` verwendet ausschließlich die emulierten Kameras des Wegwerf-AVD
+(keine Webcam). Die Bedienfolge startet die externe Kamera über Heute/Erfassen,
+bricht zuerst ohne Fotoschreibvorgang ab, löst dann tatsächlich aus und bestätigt
+die Kamera-Rückgabe. Sie speichert das Bild mit Kundenzuordnung und prüft
+dekodierbare Originalbytes sowie Metadaten nach Activity- und SQLite-Neuöffnung.
+Die Screenshots camera-scene und camera-selected zeigen nur die künstliche Szene.

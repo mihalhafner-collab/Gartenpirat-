@@ -335,6 +335,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("surfaces", ::surfaceJourney)
             journey("large_text", ::largeTextJourney)
             journey("storage_settings", ::storageSettingsJourney)
+            journey("camera_capture", ::cameraCaptureJourney)
             if (failures.isNotEmpty()) {
                 val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
                 failures.forEach(failure::addSuppressed)
@@ -346,7 +347,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_recreation", true).put("timer_state_transitions", true).put("font_scale_200_percent", true)
                 .put("planning_notification_alternatives", true).put("customer_conflict_review", true)
                 .put("draft_write_failure_recovery", true)
-                .put("work_entry_usability", true).put("work_photo_retention", true)
+                .put("work_entry_usability", true).put("work_photo_retention", true).put("real_camera_capture", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
                 .put("today_hub", true).put("storage_settings_cleanup", true).put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
@@ -821,6 +822,68 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         }
+    }
+
+    private fun cameraCaptureJourney() {
+        val resolved = shell("cmd package resolve-activity --brief -a android.media.action.IMAGE_CAPTURE").lineSequence()
+            .lastOrNull { it.matches(Regex("[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+")) }
+        yes(resolved != null, "REAL_CAMERA_ACTIVITY_INSTALLED")
+        val cameraPackage = requireNotNull(resolved).substringBefore('/')
+        for (permission in listOf("CAMERA", "RECORD_AUDIO")) shell("pm grant $cameraPackage android.permission.$permission")
+        fun cameraAction(ids: List<String>, labels: List<String>): AccessibilityNodeInfo? = nodes().firstOrNull { item ->
+            item.isVisibleToUser && item.isEnabled && clickable(item) != null &&
+                (ids.any { item.viewIdResourceName?.endsWith(":id/$it") == true } || texts(item).any { it in labels })
+        }?.let(::clickable)
+        fun shutter(): AccessibilityNodeInfo? = cameraAction(listOf("shutter_button", "photo_video_button"),
+            listOf("Capture photo", "Take photo", "Take picture", "Shutter", "Foto aufnehmen", "Auslöser"))
+        fun cameraReady() {
+            waitUntil("REAL_CAMERA_READY", 45000) {
+                cameraAction(listOf("permission_allow_foreground_only_button", "permission_allow_button"),
+                    listOf("While using the app", "Allow", "Bei Nutzung der App"))?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                cameraAction(listOf("location_tagging_dialog_negative_button"), listOf("No thanks", "No, thanks", "Nein, danke"))
+                    ?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                shutter() != null
+            }
+            yes(automation.rootInActiveWindow?.packageName?.toString() == cameraPackage, "EXTERNAL_CAMERA_OWNS_WINDOW")
+        }
+        fun photos() = PixelMcpReadTools.effective(store.getState()).getJSONArray("photos")
+        val before = photos().length()
+        yes(store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("photo_import"), "").isEmpty(), "CAMERA_FIXTURE_HAS_NO_PENDING_DRAFT")
+        click("Heute"); click("+ Erfassen"); click("Foto aufnehmen")
+        cameraReady(); back(); shown("Foto hinzufügen")
+        yes(photos().length() == before, "CAMERA_CANCEL_NO_PHOTO_WRITE")
+        waitUntil("CAMERA_CANCEL_RELEASES_TARGET") { File(context.cacheDir, "photo-capture").listFiles().orEmpty().none { it.isFile } }
+        click("Kamera"); cameraReady(); captureSyntheticScreen("camera-scene")
+        yes(requireNotNull(shutter()).performAction(AccessibilityNodeInfo.ACTION_CLICK), "REAL_CAMERA_SHUTTER")
+        waitUntil("REAL_CAMERA_RESULT", 45000) {
+            if (automation.rootInActiveWindow?.packageName?.toString() == context.packageName) node("Ausgewähltes Foto") != null
+            else {
+                cameraAction(listOf("done_button", "review_done", "capture_done", "intent_done_button"),
+                    listOf("Done", "OK", "Accept", "Use photo", "Fertig", "Übernehmen"))?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                false
+            }
+        }
+        captureSyntheticScreen("camera-selected")
+        click("Lösen"); click("Kunden auswählen"); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
+        val caption = "QA real emulator camera capture"
+        enter("Bildunterschrift", caption); if (keyboardVisible()) back(); click("Speichern")
+        waitUntil("CAMERA_SQLITE_SAVED") { photos().length() == before + 1 }
+        val saved = (0 until photos().length()).map { photos().getJSONObject(it) }.single { it.optString("caption") == caption }
+        val id = saved.getString("id")
+        yes(saved.getString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "CAMERA_CUSTOMER_ASSOCIATION")
+        val original = store.photoAttachmentStore().verifiedFile(requireNotNull(store.photoAttachment(id)))
+        val bytes = original.readBytes()
+        val dimensions = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, dimensions)
+        yes(bytes.isNotEmpty() && dimensions.outWidth > 0 && dimensions.outHeight > 0, "CAMERA_ORIGINAL_DECODES")
+        recreate(); shown("Foto gespeichert. Ein weiteres Foto kann derselben Arbeit zugeordnet werden.")
+        val reopened = PixelLocalStore(context)
+        try {
+            val attachment = requireNotNull(reopened.photoAttachment(id))
+            yes(reopened.photoAttachmentStore().verifiedFile(attachment).readBytes().contentEquals(bytes), "CAMERA_ORIGINAL_AFTER_SQLITE_REOPEN")
+            yes(PixelMcpReadTools.effective(reopened.getState()).getJSONArray("photos").toString().contains(caption), "CAMERA_METADATA_AFTER_SQLITE_REOPEN")
+        } finally { reopened.close() }
+        click("Heute")
     }
 
     private fun timerJourney() {
