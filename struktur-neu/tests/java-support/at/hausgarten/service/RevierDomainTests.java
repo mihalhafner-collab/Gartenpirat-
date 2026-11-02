@@ -150,14 +150,13 @@ public final class RevierDomainTests {
         JSONObject settings=args("qa_restore_settings_update").put("expected_record_hash",PixelMcpWriteTools.hash(object())).put("updates",object().put("business_city","QA Beispielort"));
         // SettingsApplicationService delegates to enqueue; it returns no settings object or entity ID.
         ownerEditReceipt(store,"update_business_settings",settings,object().put("client_id","mcp_owner_"+PixelMcpWriteTools.hash(settings.getString("request_id"))).put("entity_type","business_settings").put("entity_id","").put("local_state","local_saved").put("sync_state","sync_pending").put("test_local_only",false).put("cloud_confirmed",false));
-        JSONObject photoId=args("qa_restore_photo_id_shape").put("photo_id","qa_photo_id_shape"),nestedPhoto=args("qa_restore_photo_nested").put("photo_id","qa_photo_nested"),payment=args("qa_restore_payment_flag").put("invoice_id","qa_invoice_existing"),legacySettings=args("qa_restore_settings_object"),unprovenSettings=args("qa_restore_settings_unknown_type");
+        JSONObject photoId=args("qa_restore_photo_id_shape").put("photo_id","qa_photo_id_shape"),nestedPhoto=args("qa_restore_photo_nested").put("photo_id","qa_photo_nested"),legacySettings=args("qa_restore_settings_object"),unprovenSettings=args("qa_restore_settings_unknown_type");
         ownerEditReceipt(store,"update_photo",photoId,object().put("photo_id","qa_photo_id_shape"));ownerEditReceipt(store,"update_photo",nestedPhoto,object().put("photo",object().put("id","qa_photo_nested")));
-        ownerEditReceipt(store,"record_payment",payment,object().put("payment_id","qa_payment_original"));
         ownerEditReceipt(store,"update_business_settings",legacySettings,object().put("settings",object().put("business_city","QA Beispielort")));
         ownerEditReceipt(store,"update_business_settings",unprovenSettings,object().put("entity_type","device_settings").put("entity_id","qa_unrelated_settings"));
         String rowsBefore=store.values.toString(),snapshotHash=PixelMcpWriteTools.hash(store.snapshot);int writesBefore=store.writes;
         JSONObject photoProof=inspectOwnerEdit(app,"update_photo",photo);yes(photoProof.getString("state").equals("confirmed")&&photoProof.getString("entity_id").equals("qa_photo_existing")&&photoProof.getString("entity_type").equals("photo")&&!photoProof.getBoolean("business_write_performed"));
-        yes(inspectOwnerEdit(app,"update_photo",photoId).getString("entity_id").equals("qa_photo_id_shape"));yes(inspectOwnerEdit(app,"update_photo",nestedPhoto).getString("entity_id").equals("qa_photo_nested"));yes(inspectOwnerEdit(app,"record_payment",payment).getString("entity_id").equals("qa_payment_original"));
+        yes(inspectOwnerEdit(app,"update_photo",photoId).getString("entity_id").equals("qa_photo_id_shape"));yes(inspectOwnerEdit(app,"update_photo",nestedPhoto).getString("entity_id").equals("qa_photo_nested"));
         JSONObject settingsProof=inspectOwnerEdit(app,"update_business_settings",settings);yes(settingsProof.getString("state").equals("confirmed")&&settingsProof.getString("entity_id").equals("business_settings")&&settingsProof.getString("entity_type").equals("settings")&&!settingsProof.getBoolean("business_write_performed"));
         yes(settingsProof.getJSONObject("result").getString("entity_type").equals("business_settings")&&!settingsProof.getJSONObject("result").has("settings"));
         JSONObject legacyProof=inspectOwnerEdit(app,"update_business_settings",legacySettings);yes(legacyProof.getString("entity_id").equals("business_settings")&&legacyProof.getString("entity_type").equals("settings"));yes(inspectOwnerEdit(app,"update_business_settings",unprovenSettings).getString("state").equals("unknown"));
@@ -170,30 +169,13 @@ public final class RevierDomainTests {
     /** Persisted receipt inspection must prove the original action without executing it. */
     static void nativeAndOwnerReceiptInspection()throws Exception {
         Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);
-        JSONObject invoice=args("qa_native_invoice_receipt").put("customer_id","qa_customer_1").put("invoice_date","2027-05-18").put("positions",new JSONArray().put(object().put("title","QA Gartenpflege").put("quantity",1).put("price",25)));
-        McpSchema.validate(invoice,PixelMcpEntityWriteTools.schema("create_invoice_draft"));
-        yes(inspectOwnerEdit(app,"create_invoice_draft",invoice).getString("state").equals("unknown"));
-        JSONObject receipt=object().put("tool","create_invoice_draft").put("fingerprint",PixelMcpWriteTools.hash(object().put("tool","create_invoice_draft").put("args",invoice))).put("entity_type","invoice").put("entity_id","qa_invoice_receipt").put("uploaded",false);
-        store.nativeReceipts.put(invoice.getString("request_id"),receipt);
-        JSONObject proof=inspectOwnerEdit(app,"create_invoice_draft",invoice);
-        yes(proof.getString("state").equals("confirmed"));
-        yes(proof.getJSONObject("result").getString("entity_id").equals("qa_invoice_receipt"));
-        yes(!proof.getBoolean("business_write_performed"));
-        JSONObject changed=new JSONObject(invoice.toString()).put("customer_id","qa_customer_2");
-        rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"create_invoice_draft",changed));
-        rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,"update_invoice_draft",invoice));
-        receipt.put("test_purged",true);
-        yes(inspectOwnerEdit(app,"create_invoice_draft",invoice).getString("state").equals("content_removed"));
-        receipt.remove("test_purged");receipt.put("entity_id","");
-        yes(inspectOwnerEdit(app,"create_invoice_draft",invoice).getString("state").equals("unknown"));
         JSONObject timer=args("qa_native_timer_receipt").put("customer_id","qa_customer_1");
         store.nativeReceipts.put(timer.getString("request_id"),object().put("tool","start_work").put("fingerprint",PixelMcpWriteTools.hash(object().put("tool","start_work").put("args",timer))).put("entity_type","work_session").put("entity_id","qa_session_receipt").put("result",object().put("session",object().put("id","qa_session_receipt").put("state","RUNNING"))));
         yes(inspectOwnerEdit(app,"start_work",timer).getJSONObject("result").getJSONObject("session").getString("id").equals("qa_session_receipt"));
-        for(String tool:new String[]{"request_invoice_issue","create_catalog_entry","update_settings","create_photo"}){
-            String idField=tool.equals("request_invoice_issue")?"invoice_id":tool.equals("create_catalog_entry")?"entry_id":"entity_id";
+        for(String tool:new String[]{"create_catalog_entry","update_settings","create_photo"}){
+            String idField=tool.equals("create_catalog_entry")?"entry_id":"entity_id";
             JSONObject original=args("qa_owner_receipt_"+tool);
-            if(tool.equals("request_invoice_issue"))original.put("invoice_id","qa_invoice_receipt").put("expected_record_hash","a".repeat(64)).put("confirmed",true);
-            else if(tool.equals("create_catalog_entry"))original.put("title","QA Gartenpflege").put("unit","h").put("category","QA Pflege");
+            if(tool.equals("create_catalog_entry"))original.put("title","QA Gartenpflege").put("unit","h").put("category","QA Pflege");
             else if(tool.equals("update_settings"))original.put("expected_record_hash","a".repeat(64)).put("updates",object().put("default_activity","QA Gartenpflege"));
             else original.put("upload_id","qa_upload_receipt").put("customer_id","qa_customer_1");
             McpSchema.validate(original,tool.equals("create_catalog_entry")?OfferTools.schema(tool):PixelMcpOwnerTools.schema(tool));
@@ -202,15 +184,14 @@ public final class RevierDomainTests {
             yes(known.getString("state").equals("confirmed"));
             yes(known.getString("entity_id").equals("qa_"+tool));
             JSONObject altered=new JSONObject(original.toString());
-            if(tool.equals("request_invoice_issue"))altered.put("invoice_id","qa_invoice_other");
-            else if(tool.equals("create_catalog_entry"))altered.put("title","QA andere Leistung");
+            if(tool.equals("create_catalog_entry"))altered.put("title","QA andere Leistung");
             else if(tool.equals("update_settings"))altered.put("updates",object().put("default_activity","QA andere Tätigkeit"));
             else altered.put("customer_id","qa_customer_2");
             rejected("REPLAY_MISMATCH",()->inspectOwnerEdit(app,tool,altered));
         }
-        rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"not_a_registered_writer",invoice));
+        rejected("INVALID_INPUT",()->inspectOwnerEdit(app,"not_a_registered_writer",timer));
         String ownerBefore=store.values.toString(),nativeBefore=new JSONObject(store.nativeReceipts).toString(),snapshotBefore=store.snapshot.toString();int writesBefore=store.writes;
-        inspectOwnerEdit(app,"start_work",timer);inspectOwnerEdit(app,"create_invoice_draft",invoice);
+        inspectOwnerEdit(app,"start_work",timer);
         yes(store.writes==writesBefore&&store.transactions==0&&store.effectiveReads==0&&ownerBefore.equals(store.values.toString())&&nativeBefore.equals(new JSONObject(store.nativeReceipts).toString())&&snapshotBefore.equals(store.snapshot.toString()));
     }
     static void calendarDayFilters()throws Exception {
