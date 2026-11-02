@@ -250,7 +250,6 @@ internal class LocalAuthorityEvidence {
             body: String,
             uri: String,
             hash: String,
-            backup: String,
         ): Unit {
 
             synchronized(DRAFT_LOCK) {
@@ -269,7 +268,6 @@ internal class LocalAuthorityEvidence {
                         .put("pending_body", body)
                         .put("evidence_uri", uri)
                         .put("evidence_hash", hash)
-                        .put("backup_id", backup)
                 var target = draft(context)
                 var bytes = record.toString().toByteArray(StandardCharsets.UTF_8)
                 if ((bytes.size > ((16 * 1024) * 1024))) {

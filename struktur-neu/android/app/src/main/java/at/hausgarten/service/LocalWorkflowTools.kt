@@ -172,10 +172,10 @@ internal class LocalWorkflowTools {
                 return "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen."
             }
             if ((name == "preview_local_authority")) {
-                return "Liest den versionierten Umstellungs-/Rechnungsautoritätsstand und die aktuelle Vorschau. Keine Umstellung oder Freigabe durch Lesen. Sicherung, offene Aktionen, Originale und externe Schreiber gesondert belegen."
+                return "Liest den versionierten Umstellungs-/Rechnungsautoritätsstand und die aktuelle Vorschau. Keine Umstellung oder Freigabe durch Lesen. Offene Aktionen, Originale und weitere Schreiber gesondert prüfen."
             }
             if ((name == "activate_local_authority")) {
-                return "Aktiviert nach ausdrücklicher Umstellungsentscheidung den maßgeblichen lokalen Pixelbestand anhand aktueller Vorschau, serverseitig geprüfter Vollsicherung und dokumentiert ausgeschlossener externer Schreiber. Kein vom Aufrufer erfundener Sicherungsbeleg. request_id bei Wiederholung beibehalten. Die Rechnungsautorität bleibt bis eigenständigem Original-/Nummernabgleich gesperrt."
+                return "Aktiviert nach ausdrücklicher Entscheidung den maßgeblichen lokalen Pixelbestand anhand aktueller Vorschau und dokumentiert ausgeschlossener weiterer Schreiber. Kein externer Sicherungsnachweis erforderlich. request_id bei Wiederholung beibehalten. Die Rechnungsautorität bleibt bis eigenständigem Original-/Nummernabgleich gesperrt."
             }
             if ((name == "reconcile_local_invoice_authority")) {
                 return "Gleicht lokale Rechnungsautorität nach Umstellung/Restore mit aktuellem externen Beleg-/Reservierungs-/Nummernnachweis ab. Original-PDF-Hashes/Größen und alle bekannten Belege werden geprüft; Backupzähler allein gibt nichts frei. current_review muss eine ausdrückliche aktuelle Belegprüfung an genau dieser installation_id und restore_epoch bestätigen; eine importierte frühere Bestätigung reicht nicht. Für bekannte PDF_PENDING-Belege kann pdf_resolution=original das externe Original mit snapshot_sha256 und Bytegröße unverändert binden. not_created braucht ausdrücklich bestätigten aktuellen Nichterstellungsnachweis samt Grund und snapshot_sha256; Erzeugung erst nach genau diesem vollständigen Belegabgleich, niemals bei vorhandener Dateiquittung oder Originalreferenz. Historische Restbeträge nur als ausdrücklich belegte Eröffnungsstände, keine erfundenen Zahlungen."
@@ -564,13 +564,12 @@ internal class LocalWorkflowTools {
                 "preview_local_authority" -> {}
                 "activate_local_authority" -> {
                     p.put("expected_preview_hash", McpFields.hash())
-                        .put("backup_id", McpFields.id())
                         .put(
                             "writer_evidence",
                             McpFields.`object`(evidenceFields(), *evidenceRequired()),
                         )
                     required.addAll(
-                        Arrays.asList("expected_preview_hash", "backup_id", "writer_evidence")
+                        Arrays.asList("expected_preview_hash", "writer_evidence")
                     )
                 }
                 "reconcile_local_invoice_authority" -> {

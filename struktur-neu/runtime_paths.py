@@ -1,4 +1,4 @@
-"""Fail-closed host paths. Pixel/Drive remains the operative adapter.
+"""Fail-closed host paths. Pixel is the only operative business storage adapter.
 
 No runtime path is resolved and no directory is created at import time. Tests
 register disposable OS-temp roots explicitly; they never select the private root.

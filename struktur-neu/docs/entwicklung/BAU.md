@@ -82,7 +82,7 @@ Bibliotheksauflösung, Kotlin-/Java-Interoperabilität, Android-Bau und die
 synthetischen Regressionen prüfen diese konkrete Kombination. Eine Bibliothek
 nur entfernen, wenn kein verbleibender Funktionspfad sie benötigt: Google Auth
 wird weiterhin für Kalender verwendet, Tink ausschließlich zum Lesen älterer
-verschlüsselter Sicherungen. Keine Drive-API wird dadurch wieder eingeführt.
+verschlüsselter Sicherungen. Es wird keine Cloud-Speicher-API verwendet.
 
 ## Sicherungs- und Wiederherstellungsvertrag
 
@@ -94,9 +94,9 @@ vollständiges Zurücklesen des ZIP-Streams ersetzen `capture/`, lokales `backup
 und die komplette `verify/`-Entpackung im Sicherungsweg. Der Restoreleser behält
 seine notwendige isolierte Staging-/Rollback-Funktion. `local_backup` prüft
 verwaiste Arbeitsdateien, fehlende Medien-Vollkopien, Überschreiben desselben Ziels
-mit neuer Kennung sowie Wiederholung und Fehlerbereinigung. Drive ist ausschließlich ein durch den Android-Dateianbieter
-gewähltes Ziel oder eine ausdrücklich gewählte Restorequelle. Es gibt keine eigene
-Drive-Anmeldung, API, Berechtigung oder Geschäftsdaten-Synchronisierung.
+mit neuer Kennung sowie Wiederholung und Fehlerbereinigung. Die App verwendet ausschließlich per Android-Dateiauswahl gewählte
+lokale Dokumente; für Speicherung und Wiederherstellung wird keine Cloud-API
+oder automatische Geschäftsdaten-Synchronisierung eingebunden.
 Kalenderfunktionen und ihre gesonderte Kontoauswahl bleiben erhalten.
 
 Alle Tabellen, unbekannte Zusatzdaten, BLOBs, IDs, Beziehungen, private Dateien,
@@ -161,7 +161,7 @@ Tests entfernen nur ihren eigenen temporären Bestand.
 Jeder Nachweis nennt Quellcommit oder abweichenden Fingerabdruck, Testbefehl,
 Umgebung, Ergebnis und Messgrenzen. `PASS`, `FAIL` und `NOT_RUN` unterscheiden.
 Ein Build ist kein ausgeführter Emulatorlauf; ein synthetischer Emulatorlauf ist
-keine Pixel-Abnahme oder Prüfung eines echten Drive-Kontos. Vorhandener Testcode
+keine Pixel-Abnahme oder Prüfung externer Anbieter. Vorhandener Testcode
 und ein definierter CI-Schritt allein belegen keinen erfolgreichen Lauf.
 
 ## Quellprüfung und Android-Bau
@@ -175,7 +175,7 @@ Verträge, synthetische Fixtures, Pflanzenressourcen und Wartungstexte. Er baut
 keine APK, signiert nicht und greift auf kein Gerät zu.
 `tools/verify_ui_mcp_inventory.py` prüft die 210 semantischen Aktionen gegen den
 nativen Katalog und die geprüften Kotlin-Quellfingerabdrücke. Plattformausnahmen
-und stillgelegte Drive-Aktionen bleiben ausdrücklich erkennbar. Nach tatsächlicher
+und stillgelegte Geschäftsabgleich-Aktionen bleiben ausdrücklich erkennbar. Nach tatsächlicher
 Quellsichtung mit `--record-reviewed` aufzeichnen und anschließend ohne Schalter
 prüfen; die Aufzeichnung ersetzt keine ausgeführten Bedienwege.
 
@@ -300,8 +300,7 @@ Fotos zusätzlich am tatsächlichen nativen Bildpfad prüfen: verifizierte Vorsc
 ohne Originalzugriff, geprüfter Originalfallback, Coil-Dekodiergröße, sichtbarer
 Fehler, Auswahlabbruch, Gerätezuordnung, Export und Neustart. Ebenso die ausgewählten
 und ausdrücklich zurückgestellten Restoremedien prüfen. Ein alter DOM-/Bridge-Test
-belegt diese Compose-Bedienwege nicht. Physischer Pixel, reales Drive-Konto und ein
-individuell gewähltes Sicherungsarchiv benötigen ihre eigenen zulässigen Nachweise.
+belegt diese Compose-Bedienwege nicht. Physischer Pixel und die tatsächlich gewählte lokale Sicherungsdatei benötigen eigene zulässige Nachweise.
 
 Für die vereinfachte Bedienung prüft `native_compose` zusätzlich das erneute Öffnen
 der Kundenliste bei erhaltenem Filter, freie Arbeits-/Pausen-/Entsorgungswerte,

@@ -723,15 +723,6 @@ async function backup() {
   catch (error) { notice(error.message, true); }
 }
 
-async function driveSync() {
-  const folder = $('#settings-form').elements.backup_folder.value.trim();
-  try {
-    const result = await api('/api/drive-sync', {method:'POST', body:JSON.stringify({folder})});
-    notice(result.ok ? `${result.imported} mobile Einträge übernommen. Drive-Stand aktualisiert.` : `${result.imported} Einträge übernommen; ${result.failed?.length||0} benötigen Prüfung. Nicht übernommene Daten bleiben erhalten.`, !result.ok);
-    await loadAll();
-  } catch (error) { notice(error.message, true); }
-}
-
 function bindEvents() {
   document.addEventListener('click', async event => {
     const layout=event.target.closest('[data-invoice-layout]');
@@ -809,7 +800,6 @@ function bindEvents() {
   $('#settings-button').addEventListener('click', openSettings);
   $('#settings-form').addEventListener('submit', saveSettings);
   $('#backup-button').addEventListener('click', backup);
-  $('#drive-sync-button').addEventListener('click', driveSync);
   $('#customer-view-select').addEventListener('change', event => showCustomerView(event.target.value));
   $('#worklog-period').addEventListener('change', event => { state.filters.period = event.target.value; state.worklogLimit = 50; renderWorklogs(); });
   $('#worklog-billed').addEventListener('change', event => { state.filters.billed = event.target.value; state.worklogLimit = 50; renderWorklogs(); });

@@ -73,14 +73,12 @@ Aktivierung bleibt gesperrt; ihre bloße Dateierhaltung ist kein Übernahmenachw
 ## Sicherung
 
 SQLite-Schema7 und ZIP-Manifestformat1 bleiben kompatibel. Neue Sicherungen sind
-unverschlüsselte ZIP-Dateien: Speicherknopf, Android-Dateiauswahl, Drive oder lokalen Speicher als Ziel wählen und die
-gespeicherte Datei zurücklesen. Drive ist ausschließlich Speicherort des fertigen
-Backup-Archivs und Quelle einer ausdrücklich gewählten Wiederherstellung.
-Die installierte Drive-App übernimmt die Ablage über den Android-Dateianbieter.
-Es gibt keine eigene Drive-API, Drive-Anmeldung, Drive-Berechtigungen,
-Geschäftsdaten-Synchronisierung oder automatischen Uploadjob in der App.
-Die lokale Datenbank bleibt führend. Eine Rücklesung durch den Dateianbieter
-bestätigt die gelesenen Dateibytes; sie belegt keine unabhängige Cloud-Bestätigung.
+unverschlüsselte ZIP-Dateien: Speicherknopf, Android-Dateiauswahl und einen
+lokalen Speicherort auf dem Pixel wählen. Die geschriebene Datei wird vollständig
+zurückgelesen. Es gibt weder einen Cloudzugang noch eine automatische Übertragung.
+Eine spätere Kopie zu einem anderen Speicherort erledigt der Eigentümer manuell
+außerhalb der App. Die lokale Datenbank bleibt führend. Das erfolgreiche
+Rücklesen beweist die Integrität der lokalen Sicherungsdatei.
 Vorhandene ältere Archive und Schlüssel bleiben für eine bewusst beauftragte
 Wiederherstellung erhalten. Deren Lesbarkeit rechtfertigt keine neue komplizierte
 Einrichtung für aktuelle Sicherungen.

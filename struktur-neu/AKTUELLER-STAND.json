@@ -23,21 +23,17 @@
     }
   ],
   "current_task": {
-    "name": "Kotlin-Produktivstand als einzige funktionale Quelle für isolierte TEST-Variante sichern",
-    "status": "TEST_VARIANT_NOT_YET_BUILT",
+    "name": "Obsolete externe Sicherungssperre aus lokaler Betriebsumstellung entfernen",
+    "status": "SOURCE_PATCH_STAGED; BUILD_AND_DEVICE_TESTS_NOT_RUN",
     "remaining": [
-      "Aktuelle Live-Pixel-Identität vor produktionsbezogenen Arbeiten erneut abgleichen.",
-      "Neuen TEST-Build nur aus struktur-neu/android/app/src/main ableiten; TEST und PRODUKTIV dürfen keine getrennten Funktionsquellen haben.",
-      "Buildvarianten, App-Daten, Testsignatur, Provider, Kalender und MCP voneinander isolieren und nachweisen.",
-      "GitHub-Emulator- und Android-Tests auf identischem funktionalem Quellcommit ausführen.",
-      "Produktiv-Release und Update mit synthetischem Altbestand gesondert prüfen; keine automatische Installation."
+      "Kotlin-Build und bestehende SQLite-/Rechnungstests auf endgültigem Quellstand ausführen.",
+      "Prüfen, dass lokale Umstellung keine Sicherungs-ID verlangt und weiterhin Geschäftsintegrität und eindeutige Rechnungsnummern kontrolliert.",
+      "Produktiv-APK vor späterer Installation separat signieren und gegen synthetische Bestandsdaten prüfen."
     ]
   },
   "open_checks": [
-    "Bekannte UI-Fehler aus Build120 wurden für Build121 nicht erneut geprüft.",
     "MCP-Buildidentität geprüft; kein produktiver Gerätefunktionstest durchgeführt.",
-    "Alte Java/WebView-TEST-APK 2.0.0 / Build 2 ist historische Quelle, keine gültige Kotlin-Testabnahme.",
-    "Gemeinsame Kotlin-TEST-Variante ist noch nicht erstellt und nicht getestet."
+    "Externer Sicherungsgate ist im geänderten Quellstand entfernt; neue APK und Pixel-Verhalten sind nicht geprüft."
   ],
   "workflow": {
     "code": "android/app/src/main",
@@ -56,14 +52,14 @@
     "original_certificate_match": true,
     "source_binding": "PASS;all source assets;commit/fingerprint in DEX;clean BuildConfig",
     "built_at_utc": "2026-11-01T12:53:59.183388+00:00",
-    "download_url": "https://drive.google.com/file/d/14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF/view?usp=drivesdk",
+    "download_url": "https://drive.google.com/file/d/1aXXjFN5r6WUXp6gfupEv-gq4LnmqAOs5/view",
     "drive": {
-      "file_id": "14hAJWKOxjD6pOg3PQn9OcCVA0czqr-dF",
-      "parent_folder_id": "1K4WB9L6ZKlW-33o8uPK3zTfqgAOVOE8u",
-      "visibility": "PRIVATE_OWNER_ONLY;fresh permissions readback;existing rights unchanged"
+      "file_id": "1aXXjFN5r6WUXp6gfupEv-gq4LnmqAOs5",
+      "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
+      "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
-      "status": "PASS;complete authenticated target download;byte-identical cmp;size/SHA256/original signature and candidate verification",
+      "status": "PASS; identical verified APK SHA256 at current package-installation location",
       "bytes": 89584575,
       "sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
       "observed_at_utc": "2026-11-01T12:53:59.183388+00:00",
@@ -75,32 +71,5 @@
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "NOT_ACTIVATED"
   },
-  "current_test_candidate": null,
-  "historical_test_candidates": [
-    {
-      "identity": "TEST 2.0.0 / Test-Build 2",
-      "package_name": "at.hausgarten.service.fulltest",
-      "version_name": "2.0.0",
-      "test_build_number": 2,
-      "android_version_code": 118,
-      "source_branch": "test/2.0.0-build2",
-      "source_commit": "c9d955bd5775ce300e91c4cea2122838c3fa8f10",
-      "source_url": "https://github.com/mihalhafner-collab/Gartenpirat-/tree/c9d955bd5775ce300e91c4cea2122838c3fa8f10",
-      "source_directory": "app",
-      "test_source_directory": "app/src/fullTest",
-      "source_sha256": "2e830ea9cfc4352471b495efd31523eaba818ee8653c174d5c96b47f298f38f4",
-      "apk_embedded_base_commit": "d7217808835f257b6ff8dae1f55f1f08d01b27e0",
-      "apk_embedded_source_dirty": true,
-      "source_binding": "Git source commit equals complete delivered archive; APK unchanged",
-      "apk_sha256": "a3ed68fbc40de6aa4fbfa2c9182932eebb2560083ed02daffef93d7869593790",
-      "certificate_sha256": "cdd2e4d02b0927b38162b4d0c5385a4fa7e5485fea16586f12f844a2d9fe1634",
-      "apk_url": "https://drive.google.com/file/d/1AJVvySLiJ3bnm8Fdz7UY-hZlrITcuNhC/view",
-      "source_archive_url": "https://drive.google.com/file/d/1Cc3zn2pkqqwBB0QMNBmjBJh4umEk188U/view",
-      "installation": "NOT_VERIFIED",
-      "device_functional_acceptance": "NOT_COMPLETED",
-      "production_release": false,
-      "archived_reason": "WRONG_SOURCE_FOR_CURRENT_PRODUCTIVE_APP: Java/WebView versus Kotlin/Compose; not a valid future TEST baseline",
-      "archived_status": "HISTORICAL_ONLY_NOT_APPROVED_FOR_TEST_OR_PRODUCTION"
-    }
-  ]
+  "current_test_candidate": null
 }

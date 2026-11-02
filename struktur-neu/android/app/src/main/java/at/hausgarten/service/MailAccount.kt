@@ -14,7 +14,7 @@ internal class MailAccount private constructor() {
             if (account.isEmpty())
                 throw PixelMcpWriteTools.Rejected(
                     "MAIL_AUTH_REQUIRED",
-                    "Unter Drive-Verbindung ein Google-Konto wählen und Gmail-Versandbelege freigeben.",
+                    "Für Gmail-Versandbelege ein Google-Konto wählen und den getrennten Lesezugriff freigeben.",
                 )
             val manager = AccountManager.get(context)
             val selected = Account(account, "com.google")

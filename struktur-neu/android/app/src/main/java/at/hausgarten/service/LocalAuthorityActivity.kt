@@ -16,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -41,7 +40,6 @@ class LocalAuthorityActivity : ComponentActivity() {
     private var status by mutableStateOf("Bestand wird ausschließlich lokal geprüft …")
     private var inventory by mutableStateOf("")
     private var evidenceText by mutableStateOf("Noch kein externer Nachweis gewählt.")
-    private var selection by mutableStateOf("Keine Sicherung ausdrücklich gewählt.")
     private var originals by
         mutableStateOf(
             "Originale werden ausschließlich anhand der PDF-Prüfsummen aus dem ausgewählten Nachweis zugeordnet."
@@ -53,15 +51,10 @@ class LocalAuthorityActivity : ComponentActivity() {
     private var evidence by mutableStateOf<LocalAuthorityEvidence.Loaded?>(null)
     private var evidenceUri = ""
     private var evidenceHash = ""
-    private var selectedBackup by mutableStateOf("")
     private var pendingName = ""
     private var pendingBody by mutableStateOf("")
     private var importRequest = ""
     private var busy by mutableStateOf(false)
-    private var backupOffset by mutableStateOf(0)
-    private var backupTotal by mutableStateOf(0)
-    private val backupRows = mutableStateListOf<JSONObject>()
-    private var backupEmpty by mutableStateOf(false)
 
     private data class Dialog(
         val title: String,
@@ -89,7 +82,6 @@ class LocalAuthorityActivity : ComponentActivity() {
         if (savedInstanceState != null) {
             evidenceUri = savedInstanceState.getString("evidence_uri", "")
             evidenceHash = savedInstanceState.getString("evidence_hash", "")
-            selectedBackup = savedInstanceState.getString("backup_id", "")
             importRequest = savedInstanceState.getString("import_request", "")
         }
         onBackPressedDispatcher.addCallback(
@@ -109,54 +101,8 @@ class LocalAuthorityActivity : ComponentActivity() {
             Text(inventory)
             TextButton(onClick = { refresh(true) }, enabled = !busy) { Text("Bestand neu prüfen") }
             HorizontalDivider()
-            Text(
-                "2 · Sicherung und alte Schreiber prüfen",
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                "Vor der Umstellung den aktuellen Stand vollständig extern sichern. Eine alte Sicherung oder nur das Rücklesen eines Cloud-Dateianbieters genügt nicht. Offene Konflikte und fehlende Originale müssen geklärt bleiben."
-            )
-            Text(selection)
-            for (job in backupRows) {
-                val id = job.optString("backup_id")
-                val historical =
-                    job.optString("phase") == "REMOTE_VERIFIED" &&
-                        job.optString("remote_verified_at").isNotEmpty()
-                TextButton(
-                    onClick = {
-                        selectedBackup = id
-                        clearChecks()
-                        selection =
-                            "Gewählte Generation: $id\nDatenstand: ${time(job.optString("captured_at"))}. Der Geschäftsstand wird beim Ausführen erneut verglichen."
-                    },
-                    enabled = !busy,
-                ) {
-                    Text(
-                        (if (id == selectedBackup) "Gewählt · " else "Wählen · ") +
-                            (if (historical) "Historischer externer Nachweis"
-                            else "Entfernbares Medium zurückgelesen") +
-                            "\nDatenstand: ${time(job.optString("captured_at"))}\nGeneration: $id"
-                    )
-                }
-            }
-            if (backupEmpty)
-                Text(
-                    "Auf dieser Seite liegt keine aktuelle extern geprüfte Generation vor. Vollsicherung durchführen oder weitere Generationen lesen."
-                )
-            if (backupOffset < backupTotal)
-                TextButton(onClick = ::loadMore, enabled = !busy) {
-                    Text("Weitere Sicherungen lesen")
-                }
-            TextButton(
-                onClick = {
-                    startActivity(
-                        Intent(this@LocalAuthorityActivity, FullBackupActivity::class.java)
-                    )
-                },
-                enabled = !busy,
-            ) {
-                Text("Zur Vollsicherung")
-            }
+            Text("2 · Frühere Schreiber prüfen", style = MaterialTheme.typography.titleLarge)
+            Text("Der aktuelle lokale Geschäftsbestand wird geprüft. Ein externer Sicherungsnachweis ist für die Umstellung nicht erforderlich. Ungeklärte Daten und weitere aktive Rechnungsaussteller bleiben gesperrt.")
             Text(evidenceText)
             TextButton(onClick = ::chooseEvidence, enabled = !busy) {
                 Text("Externen JSON-Nachweis auswählen")
@@ -181,7 +127,6 @@ class LocalAuthorityActivity : ComponentActivity() {
                 onClick = ::confirmActivate,
                 enabled =
                     ready &&
-                        selectedBackup.isNotEmpty() &&
                         mode in listOf("LEGACY_DRIVE", "RESTORE_REVIEW"),
             ) {
                 Text("Lokalen Arbeitsbestand umstellen")
@@ -307,8 +252,6 @@ class LocalAuthorityActivity : ComponentActivity() {
             PixelLocalStore(this).use { store ->
                 val migration = LocalAuthorityMigration(this, store)
                 val current = migration.preview()
-                val backups =
-                    migration.historicalBackups(JSONObject().put("offset", 0).put("limit", 20))
                 val durable =
                     if (previousBody.isEmpty()) LocalAuthorityEvidence.loadPending(this)
                     else JSONObject()
@@ -334,7 +277,6 @@ class LocalAuthorityActivity : ComponentActivity() {
                         pendingBody = durable.optString("pending_body")
                         evidenceUri = chosenUri
                         evidenceHash = chosenHash
-                        selectedBackup = durable.optString("backup_id", selectedBackup)
                     }
                     val changed =
                         preview != null &&
@@ -347,10 +289,6 @@ class LocalAuthorityActivity : ComponentActivity() {
                         renderEvidence()
                     }
                     renderPreview()
-                    backupRows.clear()
-                    backupOffset = 0
-                    backupTotal = backups.optInt("total")
-                    renderBackups(backups.optJSONArray("jobs"))
                     if (durable.optBoolean("stale_context"))
                         status +=
                             "\nEine frühere Bildschirmaktion gehört zu einem älteren Wiederherstellungsstand und wird nicht erneut ausgeführt."
@@ -405,49 +343,7 @@ class LocalAuthorityActivity : ComponentActivity() {
                 "\nEin bisheriger Abgleich läuft noch. Sein Abschluss muss vor einer Umstellung geprüft werden."
             )
         inventory = body.toString()
-        selection =
-            if (selectedBackup.isEmpty()) "Keine Sicherung ausdrücklich gewählt."
-            else
-                "Gewählte Generation: $selectedBackup\nDer aktuelle Geschäftsstand wird bei der Umstellung erneut mit dieser Sicherung verglichen."
-    }
 
-    private fun loadMore() {
-        val offset = backupOffset
-        run {
-            PixelLocalStore(this).use { store ->
-                val result =
-                    LocalAuthorityMigration(this, store)
-                        .historicalBackups(JSONObject().put("offset", offset).put("limit", 20))
-                ui {
-                    backupTotal = result.optInt("total")
-                    renderBackups(result.optJSONArray("jobs"))
-                }
-            }
-        }
-    }
-
-    private fun renderBackups(jobs: JSONArray?) {
-        var accepted = 0
-        if (jobs != null)
-            for (i in 0 until jobs.length()) {
-                val job = jobs.optJSONObject(i) ?: continue
-                if (
-                    !job.optBoolean("current_context") ||
-                        job.optString("media_coverage") != "VERIFIED_NATIVE_MIRROR"
-                )
-                    continue
-                val historical =
-                    job.optString("phase") == "REMOTE_VERIFIED" &&
-                        job.optString("remote_verified_at").isNotEmpty()
-                val removable =
-                    job.optBoolean("external_storage_verified") &&
-                        job.optString("provider_verified_at").isNotEmpty()
-                if (!historical && !removable) continue
-                accepted++
-                backupRows.add(job)
-            }
-        if (backupOffset == 0) backupEmpty = accepted == 0
-        backupOffset += jobs?.length() ?: 0
     }
 
     private fun chooseEvidence() {
@@ -563,14 +459,14 @@ class LocalAuthorityActivity : ComponentActivity() {
     private fun confirmActivate() {
         val current = preview ?: return
         val selected = evidence ?: return
-        if (busy || selectedBackup.isEmpty() || !writers) return
+        if (busy || !writers) return
         if (pendingBody.isNotEmpty()) {
             showError("LOCAL_AUTHORITY_REQUEST_PENDING")
             return
         }
         confirm(
             "Pixel als Arbeitsbestand aktivieren?",
-            "Den eben gelesenen Geschäftsbestand mit der ausdrücklich gewählten extern geprüften Sicherung vergleichen und auf lokalen Betrieb umstellen? Alte Schreibwege werden geschützt angehalten; Verbindungen bleiben erhalten. Die Rechnungsausgabe bleibt gesperrt. Betriebsdaten und Journale werden nicht gelöscht.",
+            "Den aktuellen lokalen Geschäftsbestand auf lokalen Betrieb umstellen? Alte Schreibwege werden geschützt angehalten; Verbindungen bleiben erhalten. Die Rechnungsausgabe bleibt gesperrt. Betriebsdaten und Journale werden nicht gelöscht.",
             "Weiter prüfen",
             "Lokal umstellen",
         ) {
@@ -580,7 +476,6 @@ class LocalAuthorityActivity : ComponentActivity() {
                     JSONObject()
                         .put("request_id", UUID.randomUUID().toString())
                         .put("expected_preview_hash", current.getString("preview_hash"))
-                        .put("backup_id", selectedBackup)
                         .put("writer_evidence", selected.writer(Instant.now().toString()))
                         .toString()
                 submitPending()
@@ -640,10 +535,9 @@ class LocalAuthorityActivity : ComponentActivity() {
         val body = pendingBody
         val uri = evidenceUri
         val hash = evidenceHash
-        val backup = selectedBackup
         run {
             PixelLocalStore(this).use { store ->
-                LocalAuthorityEvidence.savePending(this, name, body, uri, hash, backup)
+                LocalAuthorityEvidence.savePending(this, name, body, uri, hash)
                 val response = PixelOwnerAccess(this, store).execute(name, JSONObject(body))
                 if (!response.optBoolean("ok"))
                     throw IOException("LOCAL_AUTHORITY_OPERATION_FAILED")
@@ -705,7 +599,6 @@ class LocalAuthorityActivity : ComponentActivity() {
         super.onSaveInstanceState(outState)
         outState.putString("evidence_uri", evidenceUri)
         outState.putString("evidence_hash", evidenceHash)
-        outState.putString("backup_id", selectedBackup)
         outState.putString("import_request", importRequest)
     }
 
@@ -743,10 +636,8 @@ class LocalAuthorityActivity : ComponentActivity() {
             when (code) {
                 "LOCAL_MIGRATION_WRITE_CONFLICT" ->
                     "Der Bestand wurde inzwischen geändert. Eingaben bleiben erhalten. Bestand neu prüfen und die Nachweise erneut vergleichen."
-                "LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED" ->
-                    "Die gewählte Sicherung bestätigt den aktuellen Geschäftsstand nicht vollständig extern. Aktuellen Stand vollständig sichern und danach neu prüfen."
                 "LOCAL_MIGRATION_REQUIRED_AFTER_RESTORE" ->
-                    "Nach dieser Wiederherstellung muss zunächst der lokale Arbeitsbestand erneut mit aktueller externer Sicherung und stillgelegten Schreibern abgeglichen werden."
+                    "Nach dieser Wiederherstellung müssen der lokale Geschäftsbestand und die stillgelegten Schreiber erneut geprüft werden."
                 "LOCAL_MIGRATION_DATA_REVIEW_REQUIRED" ->
                     "IDs, Beziehungen oder Originale sind noch ungeklärt. Bestand und fehlende Originale prüfen; es wird nichts automatisch entschieden."
                 "LOCAL_MIGRATION_OPEN_NUMBER_ACTIONS",

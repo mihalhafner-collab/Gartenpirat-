@@ -15,55 +15,6 @@ internal class LocalAuthorityMigration {
     }
 
     @Throws(Exception::class)
-    fun historicalBackups(args: JSONObject): JSONObject {
-
-        var identity = BackupDeviceGuard(context).current()
-        var records = JSONArray()
-        store
-            .getReadableDatabase()
-            .rawQuery(
-                "SELECT key FROM owner_state WHERE key LIKE 'backup_job:%' ORDER BY key",
-                null,
-            )
-            .use { rows ->
-                while (rows.moveToNext()) {
-                    try {
-
-                        var key = rows.getString(0)
-                        var job = JSONObject(store.ownerValue(key, "{}"))
-                        if (!((key == ("backup_job:" + job.optString("backupId"))))) {
-                            continue
-                        }
-                        records.put(
-                            JSONObject()
-                                .put(
-                                    "job",
-                                    JSONObject(job.toString())
-                                        .put("revision", PixelMcpWriteTools.hash(job)),
-                                )
-                                .put(
-                                    "sameInstallation",
-                                    (identity.getString("installationId") ==
-                                        job.optString("installationId")),
-                                )
-                                .put(
-                                    "sameRestoreEpoch",
-                                    (identity.getString("restoreEpoch") ==
-                                        job.optString("restoreEpoch")),
-                                )
-                        )
-                    } catch (malformed: org.json.JSONException) {}
-                }
-            }
-        return BackupStatusRules.project(
-            records,
-            JSONObject(args.toString()).put("legacy_evidence", true),
-            Collections.emptySet(),
-            java.time.Instant.now(),
-        )
-    }
-
-    @Throws(Exception::class)
     fun preview(): JSONObject {
 
         var state = withExtended(store.getState())
@@ -84,54 +35,17 @@ internal class LocalAuthorityMigration {
                 .put("state_sha256", businessHash(state))
                 .put("drive_writer_running", DriveSyncCoordinator.running())
                 .put("invoice_issue_allowed", false)
-                .put("requires_current_external_backup", true)
                 .put("requires_external_writer_evidence", true)
         return result.put("preview_hash", PixelMcpWriteTools.hash(result))
     }
 
     @Throws(Exception::class)
-    fun activateFromArgs(args: JSONObject): JSONObject {
-
-        var backupId = args.getString("backup_id")
-        if (!(backupId.matches(Regex("[A-Za-z0-9_-]{8,100}")))) {
-            throw IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED")
-        }
-        var job = JSONObject(store.ownerValue(("backup_job:" + backupId), "{}"))
-        var identity = BackupDeviceGuard(context).current()
-        if (
-            ((!((backupId == job.optString("backupId"))) ||
-                !((identity.getString("installationId") == job.optString("installationId")))) ||
-                !((identity.getString("restoreEpoch") == job.optString("restoreEpoch"))))
-        ) {
-            throw IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED")
-        }
-        var root = File(context.getNoBackupFilesDir(), ("full-backup-work/" + backupId))
-        var capture = job.getJSONObject("capture")
-        var archive = job.getJSONObject("archive")
-        var info = evidenceFile(root, capture.getString("metadataFile"))
-        var file = evidenceFile(root, archive.getString("file"))
-        if (
-            ((!((EncryptedBackupArchive.sha256(info) == capture.getString("metadataSha256"))) ||
-                (file.length() != archive.getLong("size"))) ||
-                !((EncryptedBackupArchive.sha256(file) == archive.getString("sha256"))))
-        ) {
-            throw IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED")
-        }
-        var manifest =
-            JSONObject(
-                String(
-                    java.nio.file.Files.readAllBytes(info.toPath()),
-                    java.nio.charset.StandardCharsets.UTF_8,
-                )
-            )
-        var proof = LocalAuthorityRules.externalBackupProof(job, manifest, java.time.Instant.now())
-        return activate(
+    fun activateFromArgs(args: JSONObject): JSONObject =
+        activate(
             args.getString("request_id"),
             args.getString("expected_preview_hash"),
-            proof,
             args.getJSONObject("writer_evidence"),
         )
-    }
 
     @Throws(Exception::class)
     fun reconcile(args: JSONObject): JSONObject {
@@ -752,7 +666,6 @@ internal class LocalAuthorityMigration {
     fun activate(
         request: String?,
         expectedPreview: String,
-        backupProof: JSONObject,
         writerProof: JSONObject,
     ): JSONObject {
 
@@ -764,7 +677,6 @@ internal class LocalAuthorityMigration {
             PixelMcpWriteTools.hash(
                 JSONObject()
                     .put("expected_preview", expectedPreview)
-                    .put("backup", backupProof)
                     .put("writers", writerProof)
             )
         synchronized(DriveSyncCoordinator.LOCK) {
@@ -827,7 +739,6 @@ internal class LocalAuthorityMigration {
                     }
                 }
             }
-            requireBackup(backupProof, preview.getString("state_sha256"))
             requireCurrentEvidence(writerProof, preview.getJSONObject("authority"), false)
             var guard = LocalAuthorityGuard(context)
             var staged =
@@ -863,7 +774,6 @@ internal class LocalAuthorityMigration {
                             .put("migration_request", request)
                             .put("activated_at", java.time.Instant.now().toString())
                             .put("source_business_sha256", preview.getString("state_sha256"))
-                            .put("backup_proof_sha256", PixelMcpWriteTools.hash(backupProof))
                             .put("writer_proof_sha256", PixelMcpWriteTools.hash(writerProof))
                             .put("old_journal_preserved", true)
                     store.putOwnerValue("local_authority_contract", contract.toString())
@@ -968,24 +878,6 @@ internal class LocalAuthorityMigration {
     }
 
     companion object {
-        private @JvmStatic @Throws(Exception::class) fun evidenceFile(
-            root: File,
-            name: String,
-        ): File {
-
-            if (!(name.matches(Regex("[A-Za-z0-9_-][A-Za-z0-9_.-]{0,159}")))) {
-                throw IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED")
-            }
-            var file = File(root, name)
-            if (
-                ((!(file.isFile()) || java.nio.file.Files.isSymbolicLink(file.toPath())) ||
-                    !((file.getCanonicalFile().getParentFile() == root.getCanonicalFile())))
-            ) {
-                throw IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED")
-            }
-            return file
-        }
-
         private @JvmStatic @Throws(Exception::class) fun stateWriteHash(state: JSONObject): String {
 
             return PixelMcpWriteTools.hash(
@@ -1027,21 +919,5 @@ internal class LocalAuthorityMigration {
             return PixelMcpWriteTools.hash(selected)
         }
 
-        private @JvmStatic @Throws(Exception::class) fun requireBackup(
-            proof: JSONObject,
-            current: String,
-        ): Unit {
-
-            if (
-                ((((!(("1" == java.lang.String.valueOf(proof.opt("formatVersion")))) ||
-                    !(proof.optBoolean("verified"))) || !(proof.optBoolean("external_verified"))) ||
-                    !(proof.optString("archive_sha256").matches(Regex("[0-9a-f]{64}")))) ||
-                    !((current == proof.optString("business_snapshot_sha256"))))
-            ) {
-                throw IOException("LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED")
-            }
-            java.time.Instant.parse(proof.getString("captured_at"))
-            java.time.Instant.parse(proof.getString("verified_at"))
-        }
     }
 }

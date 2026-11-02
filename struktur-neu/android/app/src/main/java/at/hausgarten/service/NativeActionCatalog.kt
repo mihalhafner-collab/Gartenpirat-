@@ -1093,7 +1093,7 @@ internal object NativeActionCatalog {
             NativeAction(
                 "buero.activate_local_authority",
                 "buero",
-                "Bestätigten lokalen Bestand nach geprüfter Sicherung aktivieren",
+                "Geprüften lokalen Geschäftsbestand aktivieren",
                 listOf("activate_local_authority"),
             ),
             NativeAction(

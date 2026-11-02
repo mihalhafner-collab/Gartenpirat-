@@ -1,25 +1,19 @@
 # Gartenpirat
 
-Einziger aktueller funktionaler Quellbestand: `struktur-neu/android/app/src/main/`
-(Kotlin / Jetpack Compose). Das Originalpaket `at.hausgarten.service` bleibt
-auf dem Pixel produktiv und unverändert, bis eine eigens freigegebene,
-originalsignierte Update-APK die Produktivtests besteht.
+Einziger funktionaler Android-Quellstand: `struktur-neu/android/app/src/main/`
+(Kotlin, Jetpack Compose, lokale SQLite-Datenbank). TEST und PRODUKTIV
+entstehen aus demselben fachlichen Quellcode; keine getrennten Implementierungen.
 
-Vor der Entwicklung: [AGENTS.md](AGENTS.md), den
-[aktuellen Stand](struktur-neu/AKTUELLER-STAND.json) und die lebende
-Pixel-MCP-Buildidentität prüfen. Quellprüfung:
-`python3 -B struktur-neu/tools/check_current.py`.
+Maßgebliche Projektregeln: [AGENTS.md](AGENTS.md).
+Aktueller Stand: [AKTUELLER-STAND.json](struktur-neu/AKTUELLER-STAND.json).
+Vor jeder Entwicklung die installierte Pixel-App und ihren Quellfingerabdruck
+prüfen. Eine Quelländerung ist nicht automatisch auf dem Pixel installiert.
 
-**TEST und PRODUKTIV müssen aus dem gleichen Kotlin-Funktionscode gebaut
-werden.** Eine neue isolierte TEST-Variante ist erst nach abgeschlossenem
-Build, eigenständiger Signatur, Isolationsnachweis und Prüfung gültig.
+Lokale Sicherungen entstehen ausschließlich per Android-Dateiauswahl auf dem
+Pixel und werden auf Wunsch des Eigentümers außerhalb der App manuell kopiert.
+Es gibt keine automatische Geschäftsdatensynchronisation und keine
+Sicherungspflicht bei der Umstellung auf lokalen Betrieb.
 
-Der frühere Kandidat TEST 2.0.0 / Test-Build 2 unter
-[Commit c9d955b](https://github.com/mihalhafner-collab/Gartenpirat-/tree/c9d955bd5775ce300e91c4cea2122838c3fa8f10)
-und Branch `test/2.0.0-build2` basiert auf Java/WebView und ist
-**historisch, nicht mehr zur Weiterentwicklung oder Produktivübernahme
-zugelassen**. Seine APK und sein Quellarchiv bleiben reine historische
-Nachweise; keine behauptete Kotlin-Abnahme.
-
-Der aktuelle Status enthält alle gültigen Kandidaten, offenen Prüfungen
-und Grenzen. Keine parallelen Regel- oder Statusfassungen anlegen.
+Die einzige für Google Drive vorgesehene Veröffentlichung ist die ausdrücklich
+freigegebene, originalsignierte [Paketinstallation](https://drive.google.com/drive/folders/1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua).
+Aktuell installierte Version: 1.57.2 / Build 121. Keine automatische Installation.

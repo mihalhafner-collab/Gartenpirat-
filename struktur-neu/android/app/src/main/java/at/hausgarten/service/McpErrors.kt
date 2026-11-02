@@ -252,7 +252,6 @@ internal class McpErrors {
                     "LOCAL_DATABASE_CONTRACT_UNSUPPORTED",
                     "LOCAL_FINANCIAL_QUERY_UNKNOWN",
                     "LOCAL_MIGRATION_DATA_REVIEW_REQUIRED",
-                    "LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED",
                     "LOCAL_MIGRATION_OPEN_NUMBER_ACTIONS",
                     "LOCAL_MIGRATION_RECEIPT_MISMATCH",
                     "LOCAL_MIGRATION_REPLAY_MISMATCH",

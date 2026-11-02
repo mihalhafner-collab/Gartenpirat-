@@ -132,7 +132,7 @@
   <dialog id="settings-dialog">
     <form id="settings-form" method="dialog">
       <div class="dialog-heading"><div><p class="eyebrow">LOKALE EINSTELLUNGEN</p><h2>Sicherung</h2></div><button type="button" class="icon-button" data-close>×</button></div>
-      <label>Google-Drive- oder Sicherungsordner<input name="backup_folder" placeholder="z. B. G:\Meine Ablage\Haus-Garten-Sicherungen"></label>
+      <label>Lokaler Sicherungsordner<input name="backup_folder" placeholder="Lokaler Ordner"></label>
       <label>Betriebsname<input name="business_name" placeholder="Haus- & Gartenservice"></label>
       <details><summary>Rechnungsaussteller und Nummernkreis</summary>
       <p>Für österreichische Inlandsrechnungen als umsatzsteuerbefreiter Kleinunternehmer. sevDesk-Reihe wird im Format RE-Nummer/Jahr fortgesetzt. Nicht gleichzeitig neue Rechnungen in sevDesk erstellen.</p>
@@ -149,9 +149,9 @@
       <label><input type="checkbox" name="invoice_numbering_confirmed" value="1">Nummernstand übernommen; neue Rechnungen ausschließlich in dieser App erstellen, nicht parallel in sevDesk</label>
       </details>
       <label>Zuhause / Startadresse<input name="home_address" placeholder="Straße, PLZ und Ort"></label>
-      <p class="hint">Die aktive Datenbank bleibt lokal. Derselbe Drive-Ordner kann Sicherungen und den Pixel-Abgleich aufnehmen.</p>
-      <p class="settings-chatgpt-hint">ChatGPT-Einträge werden aus <strong>HausGarten-ChatGPT.json</strong> übernommen, sobald du am Laptop „Pixel abgleichen“ oder am Pixel „Jetzt abgleichen“ wählst. Es gibt keine dauerhafte Direktverbindung zum Chat.</p>
-      <div class="dialog-actions"><button type="button" class="secondary" id="backup-button">Jetzt sichern</button><button type="button" class="secondary" id="drive-sync-button">Pixel abgleichen</button><button type="submit" class="primary">Einstellungen speichern</button></div>
+      <p class="hint">Die aktive Datenbank bleibt lokal; es erfolgt keine automatische Cloud-Übertragung.</p>
+      
+      <div class="dialog-actions"><button type="button" class="secondary" id="backup-button">Jetzt sichern</button><button type="submit" class="primary">Einstellungen speichern</button></div>
     </form>
   </dialog>
 

@@ -339,7 +339,7 @@ internal class OfferTools {
                                                     (if (n!!.equals("convert_offer_to_order"))
                                                         "Übernimmt ein ausdrücklich angenommenes Angebot mit Kunde, Einsatzort und offer_id in einen Auftrag. Keine Rechnung."
                                                     else
-                                                        "Verwaltet Angebote in der bestehenden App und im bestehenden Drive-Journal. Entwürfe dürfen unvollständig sein; Dokumentart bewusst wählen. record_hash vor Updates lesen; request_id bei Wiederholung unverändert lassen. Niemals Kunden, Stunden oder Preise erfinden.")))))))))
+                                                        "Verwaltet Angebote in der bestehenden App und im lokalen Geschäftsjournal. Entwürfe dürfen unvollständig sein; Dokumentart bewusst wählen. record_hash vor Updates lesen; request_id bei Wiederholung unverändert lassen. Niemals Kunden, Stunden oder Preise erfinden.")))))))))
                 out!!.put(
                     ((((JSONObject())!!.put("name", n))!!.put("description", d))!!.put(
                             "inputSchema",

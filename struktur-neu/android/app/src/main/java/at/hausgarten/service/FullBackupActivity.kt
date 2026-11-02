@@ -83,7 +83,7 @@ class FullBackupActivity : ComponentActivity() {
             }) { Text(saveLabel) }
         }) {
             BackHandler(enabled = busy) { status = "Die Sicherung läuft noch. Bitte auf das Ergebnis warten." }
-            Text("Speichert deinen vorhandenen Bestand als unverschlüsselte ZIP-Datei. Wähle in der Android-Dateiauswahl Drive oder einen lokalen Speicherort.")
+            Text("Speichert deinen vorhandenen Bestand als unverschlüsselte ZIP-Datei. Wähle in der Android-Dateiauswahl einen lokalen Speicherort auf deinem Pixel.")
             if (showNewTarget) OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { target = ""; chooseSave() }) { Text("Anderen Speicherort wählen") }
             Text(status)
             OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
@@ -162,7 +162,7 @@ class FullBackupActivity : ComponentActivity() {
         request = UUID.randomUUID().toString()
         val filename = "Haus-Garten-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")) + ".zip"
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
-            .setType("application/zip").putExtra(Intent.EXTRA_TITLE, filename)
+            .setType("application/zip").putExtra(Intent.EXTRA_TITLE, filename).putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         try {
             startActivityForResult(intent, SAVE)
         } catch (_: ActivityNotFoundException) {
@@ -171,7 +171,7 @@ class FullBackupActivity : ComponentActivity() {
     }
 
     private fun chooseRestore() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*").putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         try {
             startActivityForResult(intent, OPEN)
         } catch (_: ActivityNotFoundException) {

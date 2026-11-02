@@ -117,7 +117,7 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         picker = source('FullBackupActivity')
         self.assertIn('ACTION_CREATE_DOCUMENT', picker)
         self.assertIn('ACTION_OPEN_DOCUMENT', picker)
-        self.assertNotIn('EXTRA_LOCAL_ONLY', picker)
+        self.assertIn('EXTRA_LOCAL_ONLY', picker)
         self.assertRegex(code, r'\.put\("cloud_confirmed",\s*false\)')
 
     def test_backup_does_not_require_financial_business_validity(self):
@@ -149,5 +149,21 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertIsNotNone(reservation_write, 'The reservation must still be persisted after collision checks')
         self.assertLess(invoice.index('"INVOICE_NUMBER_COLLISION"'),
                         reservation_write.start())
+
+    def test_local_authority_does_not_require_external_backup(self):
+        migration = source('LocalAuthorityMigration')
+        finance = source('LocalAuthorityRules')
+        ui = source('LocalAuthorityActivity')
+        workflow = source('LocalWorkflowTools')
+        self.assertNotIn('externalBackupProof', finance)
+        self.assertNotIn('requireBackup(', migration)
+        self.assertNotIn('LOCAL_MIGRATION_EXTERNAL_BACKUP_REQUIRED', migration)
+        self.assertNotIn('requires_current_external_backup', migration)
+        self.assertNotIn('selectedBackup', ui)
+        self.assertNotIn('Arrays.asList("expected_preview_hash", "backup_id", "writer_evidence")', workflow)
+        self.assertIn('LOCAL_MIGRATION_OPEN_NUMBER_ACTIONS', migration)
+        self.assertIn('LOCAL_MIGRATION_DATA_REVIEW_REQUIRED', migration)
+        self.assertIn('requireCurrentEvidence(writerProof,', migration)
+
 
 if __name__=='__main__':unittest.main()
