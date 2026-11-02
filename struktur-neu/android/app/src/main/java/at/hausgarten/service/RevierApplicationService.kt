@@ -543,7 +543,12 @@ class RevierApplicationService {
         }
         var key: String
         var fingerprint: String
-        var kind: String? = (if (tool.equals("saveCustomer")) "customer" else (if (tool.equals("saveOrder")) "order" else (if (tool.equals("saveWorklog")) "worklog" else (if (tool.equals("saveInvoice")) "invoice" else null))))
+        var kind: String? = when (tool) {
+                        "saveCustomer" -> "customer"
+                        "saveOrder" -> "order"
+                        "saveWorklog" -> "worklog"
+                        else -> null
+                    }
         if (((kind != null))) {
             request = original.optString("_request_id")
             var payload: JSONObject = RevierRules.copy(original)

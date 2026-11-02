@@ -25,7 +25,7 @@ paths.update(native_source(name) for name in (
     'NativeAppController', 'NativeActionCatalog', 'NativeDataRepository',
     'DriveJournalRules', 'GardenRules', 'BillingRules', 'TestDataRules', 'WorklogRules',
     'EntityProtectionRules', 'OwnerJournalRules', 'SyncActionOrder', 'OrderReviewRules',
-    'InvoiceIssueRules', 
+
     'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
     'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
     'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',

@@ -6,7 +6,7 @@ import java.util.*
 /** Additive owner journal protocol. Old journals and immutable receipts survive. */
 class OwnerJournalRules {
     companion object {
-        @JvmField val KINDS: Array<String> = arrayOf("purge_v1", "purge_trash_v1", "archive", "restore", "conflict_resolution", "invoice_payment", "business_settings", "invoice_correction")
+        @JvmField val KINDS: Array<String> = arrayOf("purge_v1", "purge_trash_v1", "archive", "restore", "conflict_resolution", "business_settings")
         @JvmStatic fun handles(kind: String): Boolean {
             return (Arrays.asList(*KINDS).contains(kind) || OfferJournalRules.handles(kind))
         }
@@ -70,10 +70,6 @@ class OwnerJournalRules {
                 TrashRules.purge(snapshot, action)
                 return
             }
-            if ((kind.equals("invoice_correction"))) {
-                InvoiceIssueRules.correction(snapshot, action)
-                return
-            }
             if ((OfferJournalRules.handles(kind))) {
                 OfferJournalRules.apply(snapshot, action)
                 return
@@ -94,9 +90,6 @@ class OwnerJournalRules {
                     while (keys.hasNext()) {
                         var key: String = keys.next()
                         var value: Any = changes.get(key)
-                        if (((((key.equals("invoice_sevdesk_checked_at") || key.equals("invoice_numbering_checked_at"))) && !value.toString().isEmpty()))) {
-                            java.time.Instant.parse(value.toString())
-                        }
                         updated.put(key, (if (value is Boolean) ((if (value) "1" else "0")) else value.toString()))
                     }
                 }

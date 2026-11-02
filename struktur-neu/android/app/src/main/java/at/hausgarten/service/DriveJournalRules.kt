@@ -4,10 +4,6 @@ import java.util.*
 import org.json.*
 
 internal class DriveJournalRules {
-    fun interface Financial {
-        @Throws(Exception::class) fun apply(snapshot: JSONObject, action: JSONObject): Unit
-    }
-
     companion object {
         @JvmField
         val KINDS: Array<String> =
@@ -592,13 +588,6 @@ internal class DriveJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun apply(snapshot: JSONObject, actions: JSONArray): JSONArray {
-
-            return apply(snapshot, actions, null)
-        }
-
-        @JvmStatic
-        @Throws(Exception::class)
-        fun apply(snapshot: JSONObject, actions: JSONArray, financial: Financial?): JSONArray {
             var actions = actions
 
             actions = SyncActionOrder.order(actions)
@@ -776,22 +765,12 @@ internal class DriveJournalRules {
                         )
                         continue
                     }
-                    if ((OwnerJournalRules.handles(kind) || (kind == "pixel_invoice_issue_v1"))) {
+                    if (OwnerJournalRules.handles(kind)) {
                         try {
 
                             var trial = JSONObject(snapshot.toString())
                             var trialResolved = JSONObject(resolved.toString())
-                            if ((kind == "pixel_invoice_issue_v1")) {
-                                if ((financial == null)) {
-                                    throw PixelMcpWriteTools.Rejected(
-                                        "NUMBERING_ONLINE_REQUIRED",
-                                        "Online-Abschluss durch Pixel/Drive ausstehend.",
-                                    )
-                                }
-                                financial.apply(trial, action)
-                            } else {
-                                OwnerJournalRules.apply(trial, action, all, trialResolved)
-                            }
+                            OwnerJournalRules.apply(trial, action, all, trialResolved)
                             run {
                                 var keys = trial.keys()
                                 var firstIteration12 = true
@@ -1419,10 +1398,6 @@ internal class DriveJournalRules {
             }
             if ((kind == "service_template")) {
                 validateTemplate(row)
-                return
-            }
-            if ((kind == "invoice")) {
-                InvoiceDraftRules.normalize(row, old, snapshot)
                 return
             }
             if ((kind == "photo")) {
