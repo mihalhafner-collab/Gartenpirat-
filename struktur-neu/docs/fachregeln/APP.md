@@ -121,21 +121,27 @@ beweist keinen laufenden Worker. Der Selbsttest unterscheidet fehlende Nachweise
 Fehler und protokolliertes Dateirücklesen; letzteres ist keine neue Dateiprüfung
 und kein Restore-Test. Fehlercodes dürfen keine Finanzdaten ausgeben.
 
-## Rechnungen und Datenübernahme
+## Rechnungen: ausschließlich sevDesk
 
-Die Rechnungsfunktion ist bei künftigen Rechnungserstellungen für korrekte und
-eindeutige Nummern verantwortlich. Ihre Prüfungen von Integrität, Nummern und
-Originalbelegen bleiben wirksam. Eine erfolgreiche Sicherung oder Wiederherstellung
-bestätigt keine fachliche Gültigkeit der vorhandenen Rechnungen.
-Eine allgemeine lokale Datenautorität ist keine Rechnungsfreigabe. Ausgestellte
-Rechnungsangaben und Original-PDFs erhalten; wiederholtes Bestätigen darf keine
-zweite Nummer vergeben. Preise und Pflichtangaben müssen vor Abschluss feststehen.
-Teilen eines PDFs belegt keinen erfolgreichen Versand. Gesetzliche Aufbewahrung
-beachten; bisherige Nummern oder externe Kontowerte nicht als aktuelle Vorgabe kopieren.
+Rechnungen werden ausschließlich über sevDesk erstellt, nummeriert, freigegeben
+und versendet; auch die Zahlungsverwaltung erfolgt dort. Gartenpirat stellt
+keine neuen Rechnungen aus, erzeugt keine Rechnungsentwürfe, vergibt keine
+Rechnungsnummern und bearbeitet keine Zahlungen. Altlogik und ehemalige
+Freigabe-/Migrationsnachweise werden aus dem Quellcode entfernt.
 
-Produktive Migration, Rechnungsfreigabe, Installation und Wiederherstellung werden
-nicht durch die Repositorybereinigung ausgelöst. Die noch fehlenden Nachweise
-stehen im aktuellen Arbeitsstand.
+Arbeitsaufzeichnungen mit Abrechnungsmarkierungen, Auftraggebern und
+Rechnungsempfängern bleiben lokal zugänglich. Sie dienen als fachliche
+Arbeitsgrundlage für eine manuelle Rechnungserstellung in sevDesk.
+Historische Belege in vorhandenen Sicherungen und Geschäftsdaten werden nicht
+aufgrund dieser Codebereinigung gelöscht. Die Wiederherstellung ist eine
+technische Datensicherung, keine Freigabe zur Rechnungsausstellung.
+
+Die Eigentümerfreigabe vom 02.11.2026 akzeptiert, dass alte und nicht mehr
+gebrauchte Drive-, Rechnungs- oder Migrationsverknüpfungen nach der
+Verschlankung unlesbar werden können. Aus diesem Grund keine
+Kompatibilitätsschicht oder Ersatzmigration für abgeschaffte Funktionen bauen.
+Der aktuelle Betrieb, lokale Sicherungen und die Wiederherstellung bleiben
+erhalten.
 
 ## Pflanzen und Geräte
 

@@ -10,7 +10,12 @@ auch für die Gradle-JVM verwenden. Ein vollständiger Cache erlaubt Offline-Bau
 ## Android-Architektur und Baugrundlage
 
 Die Anwendung bleibt ein Update von `at.hausgarten.service` mit Originalsignatur
-und höherer Versionsnummer. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
+und höherer Versionsnummer.
+Die integrierte Rechnungsstellung und Zahlungsverwaltung werden in dieser
+Ausbaustufe nicht mehr angeboten. Rechnungen entstehen ausschließlich in sevDesk.
+Veraltete Drive-/Rechnungs-/Migrationsklassen und ausschließlich dafür
+bestehende Tests sind zu löschen; nicht als deaktivierte zweite Implementierung
+weiterführen. Arbeitsaufzeichnungen und Angebote bleiben testbar. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
 die Android-Oberfläche liegen als Kotlin im bestehenden `:app`-Modul. Der
 Quellordner heißt weiterhin `android/app/src/main/java/at/hausgarten/service`;
 das ist kein Java-Anwendungspfad. Java-Dateien in den synthetischen Tests sind

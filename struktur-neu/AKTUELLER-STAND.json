@@ -26,7 +26,7 @@
     "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
     "status": "OBSOLETE_SYNC_READERS_REMOVED; DEEP_DOMAIN_CLEANUP_PENDING; QA_PENDING",
     "remaining": [
-      "Veraltete MCP-Sync-Status-, Konflikt- und Rechnungsleser sowie ihre Beschreibung, Hintergrundabfrage und Konfliktregelklasse physisch entfernt.",
+      "Bisherige Löschungen: 12 veraltete Kotlin-Klassen und 646 parallele Webdateien. 32 native/MCP-Aktionen für Rechnung, Zahlung, Alt-Sync aus Funktionskatalog entfernt.",
       "Aufrufpfade und Prüfschemata für frühere Sync-/Rechnungsaktionen, unnötige Finanz- und Migrationsklassen sowie restliche native Compose-Rechnungsanzeige entfernen; Arbeitsstunden und Angebote erhalten.",
       "Quellprüfung, Kotlin-Bau und native Regression für den endgültigen Quellstand in GitHub Actions nachweisen; aktuell nicht als bestanden ausgeben.",
       "Pixel unverändert Build 121; keine Installation, kein produktiver Datenzugriff und keine neue APK."
@@ -35,7 +35,9 @@
   "open_checks": [
     "Kern-DriveJournal, übrige Alt-Finanzregeln und native Compose-Rechnungssicht müssen noch reduziert werden; lokale Sicherung bewahren.",
     "Neuer GitHub-Actions-Build ist nach Codeänderungen abzuwarten.",
-    "Pixel Build 121 ist unverändert."
+    "Pixel Build 121 ist unverändert.",
+    "Eigentümer akzeptiert Unlesbarkeit veralteter Verknüpfungen; allein aktuelle lokale Geschäftsdaten, Backup/Restore und Angebote bleiben schutzwürdig.",
+    "Zwischenstand c970e018 scheiterte in Kotlin an überschüssigem OwnerRepository-Abschluss; unter 3bc27c2a korrigiert, Neubau ausstehend."
   ],
   "workflow": {
     "code": "android/app/src/main",
