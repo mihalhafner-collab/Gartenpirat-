@@ -23,17 +23,18 @@
     }
   ],
   "current_task": {
-    "name": "Obsolete externe Sicherungssperre aus lokaler Betriebsumstellung entfernen",
-    "status": "SOURCE_PATCH_STAGED; BUILD_AND_DEVICE_TESTS_NOT_RUN",
+    "name": "Entfernung der externen Backup-Pflicht und veralteter Drive-Schnittstellen",
+    "status": "GITHUB_SOURCE_CHECK_PASS; ANDROID_BUILD_AND_DEVICE_TESTS_PENDING",
     "remaining": [
-      "Kotlin-Build und bestehende SQLite-/Rechnungstests auf endgültigem Quellstand ausführen.",
-      "Prüfen, dass lokale Umstellung keine Sicherungs-ID verlangt und weiterhin Geschäftsintegrität und eindeutige Rechnungsnummern kontrolliert.",
-      "Produktiv-APK vor späterer Installation separat signieren und gegen synthetische Bestandsdaten prüfen."
+      "GitHub Actions Lauf 41469014072 auf Kotlin-Kompilierung, JVM- und Emulatorprüfungen auswerten.",
+      "Nur den geprüften aktuellen Kotlin-Quellstand verwenden; eine neue APK ist nicht verteilt oder installiert.",
+      "Verbleibende Drive*-Klassen nur nach Abhängigkeits-/DB-Kompatibilitätsprüfung bereinigen; produktive Daten nicht löschen.",
+      "Bestehende externe Beleg-/Schreibernachweise bleiben von der gelöschten Backup-Pflicht getrennt."
     ]
   },
   "open_checks": [
     "MCP-Buildidentität geprüft; kein produktiver Gerätefunktionstest durchgeführt.",
-    "Externer Sicherungsgate ist im geänderten Quellstand entfernt; neue APK und Pixel-Verhalten sind nicht geprüft."
+    "Externer Sicherungsnachweis aus Umstellungs-UI/MCP/Code entfernt; Quellprüfungen PASS, Kotlin- und Pixel-Funktionstests stehen aus."
   ],
   "workflow": {
     "code": "android/app/src/main",
