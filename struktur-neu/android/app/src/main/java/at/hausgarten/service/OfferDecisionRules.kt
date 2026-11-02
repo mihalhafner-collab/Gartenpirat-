@@ -50,11 +50,7 @@ internal object OfferDecisionRules {
 
     @JvmStatic
     fun local(state: JSONObject): Boolean {
-        var authority = state!!.optJSONObject("local_authority")
-        return ((authority !== null) &&
-            (Arrays.asList("LOCAL_ACTIVE", "RESTORE_REVIEW"))!!.contains(
-                authority!!.optString("mode")
-            ))
+        return true
     }
 
     @JvmStatic

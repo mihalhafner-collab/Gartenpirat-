@@ -34,7 +34,7 @@ constructor(context: Context) : this(context, WorkSessionStore.DeviceClock(conte
 
 }
 constructor(context: Context, clock: WorkSessionStore.Clock) : super(context, "haus-garten-mobile.db", null, SCHEMA_VERSION) {
-LocalAuthorityGuard.assertStoreMayOpen(context)
+RestoreStartupGuard.assertStoreMayOpen(context)
 setWriteAheadLoggingEnabled(true)
 this.clock = clock
 this.context = context
@@ -45,13 +45,13 @@ migrateLegacySnapshotPhotoAttachments()
 override @Synchronized fun getWritableDatabase(): SQLiteDatabase {
 
 if (closed) return closedTransactionDatabase()
-LocalAuthorityGuard.assertStoreMayOpen(context)
+RestoreStartupGuard.assertStoreMayOpen(context)
 return super.getWritableDatabase()
 }
 override @Synchronized fun getReadableDatabase(): SQLiteDatabase {
 
 if (closed) return closedTransactionDatabase()
-LocalAuthorityGuard.assertStoreMayOpen(context)
+RestoreStartupGuard.assertStoreMayOpen(context)
 return super.getReadableDatabase()
 }
 private fun closedTransactionDatabase(): SQLiteDatabase {
@@ -64,7 +64,6 @@ override fun onOpen(database: SQLiteDatabase): Unit {
 super.onOpen(database)
 try {
 
-LocalAuthorityGuard.verifyDatabaseContract(context, database)
 if (!database.isReadOnly && !database.isWriteAheadLoggingEnabled) throw IllegalStateException("LOCAL_WAL_REQUIRED")
 lastOpenedDatabase = database
 synchronized(OPEN_DATABASES) { OPEN_DATABASES[database] = context.getDatabasePath("haus-garten-mobile.db").canonicalPath }
@@ -125,9 +124,7 @@ documentReferences(master)
 PixelDriveState.prepare(master)
 seedServiceCatalog(master)
 LocalTestCleanup.overlay({ key, fallback -> DatabaseBackupSnapshot.ownerValue(db, key, fallback) ?: fallback }, master)
-if (LocalAuthorityGuard.local(context)) {
 master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
-}
 OfferDecisionProjection.apply(db, master)
 LocalBillingProjection.apply(db, master)
  })
@@ -447,9 +444,7 @@ documentReferences(master)
 PixelDriveState.prepare(master)
 seedServiceCatalog(master)
 LocalTestCleanup.overlay(this, master)
-if (LocalAuthorityGuard.local(context)) {
 master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
-}
 output.put("master", master)
 output.put("pending", pendingActions())
 output.put("work_session", workSessions().current())
@@ -459,7 +454,6 @@ output.put("sync_queue", JSONObject().put("mode", "local_only").put("contract_ve
 output.put("storage_contract_version", 3)
 output.put("processing_engine", LocalAuthorityRules.ENGINE)
 output.put("business_sync_allowed", false)
-output.put("local_authority", LocalAuthorityGuard(context).current())
 
 } catch (error: Exception) {
 throw IllegalStateException("LOCAL_STATE_BUILD_FAILED", error)

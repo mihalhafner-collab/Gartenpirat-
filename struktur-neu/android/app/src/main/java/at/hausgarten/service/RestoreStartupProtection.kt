@@ -106,7 +106,7 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
             requestId != identity.optString("lastRestoreRequest")) {
             throw IOException("RESTORE_TARGET_CONTEXT_CHANGED")
         }
-        LocalAuthorityGuard(context).blockAfterRestore(requestId, restoredManifest)
+        RestoreStartupGuard.prepareForRestore(context, requestId)
     }
 
     @Throws(Exception::class)
@@ -154,7 +154,6 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
                 if (mediaWarning.isNotEmpty()) put(db, "restore_media_warning", mediaWarning)
                 RestoredBrowserCheckpoint.install(db, requestId, restoredManifest,
                     restoredManifest.getJSONObject("_restored_browser_checkpoint"), BackupDeviceGuard(context).current())
-                put(db, "restore_requires_invoice_reconciliation", "true")
                 db.version = PixelLocalStore.SCHEMA_VERSION
                 db.setTransactionSuccessful()
             } finally {
@@ -174,7 +173,7 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
         @Throws(Exception::class)
         fun enterMaintenance(context: Context): AutoCloseable {
             PixelLocalStore.assertNoOpenStores(context)
-            return LocalAuthorityGuard.exclusiveStartup()
+            return RestoreStartupGuard.exclusiveStartup()
         }
 
         @JvmStatic

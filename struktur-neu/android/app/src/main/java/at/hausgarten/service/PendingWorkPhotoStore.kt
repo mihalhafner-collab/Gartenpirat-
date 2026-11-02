@@ -16,7 +16,7 @@ class PendingWorkPhotoStore(private val context: Context) {
     private val file: AtomicFile
 
     init {
-        LocalAuthorityGuard.assertStoreMayOpen(context)
+        RestoreStartupGuard.assertStoreMayOpen(context)
         file = AtomicFile(File(context.filesDir, "pending-work-photo.json"))
     }
 
@@ -25,7 +25,7 @@ class PendingWorkPhotoStore(private val context: Context) {
 
     @Throws(Exception::class)
     private fun stageLocked(raw: String?): String {
-        LocalAuthorityGuard.assertStoreMayOpen(context)
+        RestoreStartupGuard.assertStoreMayOpen(context)
         if (raw == null) throw IllegalArgumentException("Der Foto-Wiederholauftrag fehlt.")
         val payload = JSONObject(raw)
         if (payload.optString("id").isEmpty()) payload.put("id", "pho_mobile_" + UUID.randomUUID().toString().replace("-", ""))
@@ -66,7 +66,7 @@ class PendingWorkPhotoStore(private val context: Context) {
 
     @Throws(Exception::class)
     private fun readLocked(): String {
-        LocalAuthorityGuard.assertStoreMayOpen(context)
+        RestoreStartupGuard.assertStoreMayOpen(context)
         val stored = readStored() ?: return ""
         val payload = if (isFileEnvelope(stored)) {
             val hash = stored.getString("sha256")
@@ -82,7 +82,7 @@ class PendingWorkPhotoStore(private val context: Context) {
     @Synchronized fun clear() = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { clearLocked() }
 
     private fun clearLocked() {
-        LocalAuthorityGuard.assertStoreMayOpen(context)
+        RestoreStartupGuard.assertStoreMayOpen(context)
         val owned = try {
             val value = readStored()
             if (value != null && isFileEnvelope(value)) {

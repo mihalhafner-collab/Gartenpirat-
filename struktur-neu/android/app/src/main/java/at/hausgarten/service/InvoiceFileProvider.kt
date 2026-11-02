@@ -16,7 +16,7 @@ open class InvoiceFileProvider : ContentProvider() {
 
     @Throws(FileNotFoundException::class)
     private fun file(uri: Uri): File {
-        LocalAuthorityGuard.assertStoreMayOpen(requireNotNull(context))
+        RestoreStartupGuard.assertStoreMayOpen(requireNotNull(context))
         val name = uri.lastPathSegment
         if (name == null || !name.matches(Regex("(?:Rechnung|Angebot)-[a-f0-9-]{36}\\.pdf"))) throw FileNotFoundException()
         val value = File(File(context!!.cacheDir, "invoice-share"), name)

@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity(), McpSyncHost {
             var openingStore: PixelLocalStore? = null
             try {
                 val opened = withContext(Dispatchers.IO) {
-                    LocalAuthorityGuard.assertStoreMayOpen(this@MainActivity)
+                    RestoreStartupGuard.assertStoreMayOpen(this@MainActivity)
                     preferences = getSharedPreferences("haus_garten", MODE_PRIVATE)
                     PixelLocalStore(this@MainActivity).also { local ->
                         openingStore = local

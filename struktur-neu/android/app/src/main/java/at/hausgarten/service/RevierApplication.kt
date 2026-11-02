@@ -17,7 +17,6 @@ class RevierApplication : Application() {
         startupExecutor.execute {
             startupWorker.set(true)
             try {
-                LocalAuthorityGuard(this).recoverInterruptedMigration()
                 if (BackupRestoreService.requiresExclusiveStartup(this)) {
                     BackupRestoreService.activatePending(this, RestoreStartupProtection(this))
                 }

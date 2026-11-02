@@ -18,7 +18,7 @@ class PhotoThumbnailProvider : ContentProvider() {
         if (mode != "r" || name == null || !name.matches(Regex("[0-9a-f]{64}\\.jpg")) || uri.pathSegments.size != 1) throw FileNotFoundException("Vorschaureferenz ungültig.")
         val store = PhotoAttachmentStore(context!!)
         try {
-            LocalAuthorityGuard.assertStoreMayOpen(context!!)
+            RestoreStartupGuard.assertStoreMayOpen(context!!)
             val f = store.verifiedThumbnailFile(name)
             return ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY)
         } catch (_: Exception) { throw FileNotFoundException("Vorschau noch nicht verfügbar.") }

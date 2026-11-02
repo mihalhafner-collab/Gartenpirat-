@@ -21,7 +21,7 @@ class PhotoCaptureProvider : ContentProvider() {
     @Throws(FileNotFoundException::class)
     private fun file(uri: Uri?): File {
         val context = context ?: throw FileNotFoundException()
-        LocalAuthorityGuard.assertStoreMayOpen(context)
+        RestoreStartupGuard.assertStoreMayOpen(context)
         if (uri == null || uri.scheme != "content" || uri.authority != context.packageName + ".photocapture" || uri.pathSegments.size != 1) throw FileNotFoundException()
         val file = checked(context, uri.lastPathSegment)
         if (!file.isFile) throw FileNotFoundException()
@@ -63,7 +63,7 @@ class PhotoCaptureProvider : ContentProvider() {
 
         @JvmStatic @Throws(IOException::class)
         fun createTarget(context: Context): File {
-            LocalAuthorityGuard.assertStoreMayOpen(context)
+            RestoreStartupGuard.assertStoreMayOpen(context)
             val directory = directory(context)
             if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Kamera-Zwischenspeicher ist nicht verfügbar.")
             cleanupStale(context)
@@ -74,7 +74,7 @@ class PhotoCaptureProvider : ContentProvider() {
 
         @JvmStatic @Throws(FileNotFoundException::class)
         fun uri(context: Context, file: File?): Uri {
-            LocalAuthorityGuard.assertStoreMayOpen(context)
+            RestoreStartupGuard.assertStoreMayOpen(context)
             if (file == null) throw FileNotFoundException("Die vorbereitete Kameradatei fehlt.")
             val checked = checked(context, file.name)
             try {
@@ -89,14 +89,14 @@ class PhotoCaptureProvider : ContentProvider() {
         /** Release only the exact randomly named handoff owned by a completed/discarded capture. */
         @JvmStatic @Throws(IOException::class)
         fun release(context: Context, uri: Uri?) {
-            LocalAuthorityGuard.assertStoreMayOpen(context)
+            RestoreStartupGuard.assertStoreMayOpen(context)
             if (uri == null || uri.scheme != "content" || uri.authority != context.packageName + ".photocapture" || uri.pathSegments.size != 1) return
             val target = checked(context, uri.lastPathSegment)
             if (target.exists() && !target.delete()) throw IOException("Die abgeschlossene Kameradatei konnte noch nicht entfernt werden.")
         }
 
         @JvmStatic fun cleanupStale(context: Context) {
-            LocalAuthorityGuard.assertStoreMayOpen(context)
+            RestoreStartupGuard.assertStoreMayOpen(context)
             // Age does not prove an interrupted or restored capture is unreferenced.
             // The owning operation must explicitly release it.
         }
@@ -106,7 +106,7 @@ class PhotoCaptureProvider : ContentProvider() {
 
         @Throws(FileNotFoundException::class)
         private fun checked(context: Context, name: String?): File {
-            LocalAuthorityGuard.assertStoreMayOpen(context)
+            RestoreStartupGuard.assertStoreMayOpen(context)
             if (!validName(name)) throw FileNotFoundException()
             try {
                 val directory = directory(context).canonicalFile

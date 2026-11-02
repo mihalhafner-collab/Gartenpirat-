@@ -284,7 +284,7 @@ class PixelTunnelService : Service(), McpSyncHost {
         fun recoveryStartBlocked(context: Context): Boolean {
             if (RevierApplication.recoveryRequired()) return true
             return try {
-                LocalAuthorityGuard.assertStoreMayOpen(context)
+                RestoreStartupGuard.assertStoreMayOpen(context)
                 false
             } catch (_: RuntimeException) {
                 true

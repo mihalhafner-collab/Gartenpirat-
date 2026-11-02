@@ -279,7 +279,7 @@ mime = m.getString("mime_type")
 "offer" -> {
 run {
 var offer = PixelMcpWriteTools.find(effective().getJSONArray("offers"), id)
-if (LocalAuthorityGuard.local(context!!) && (offer.optString("pdf_storage_name").isEmpty() || offer.optString("pdf_sha256").isEmpty())) {
+if ((offer.optString("pdf_storage_name").isEmpty() || offer.optString("pdf_sha256").isEmpty())) {
 throw localOriginalMissing()
 }
 try {
@@ -295,12 +295,12 @@ mime = "application/pdf"
 "invoice" -> {
 run {
 var invoice = PixelMcpWriteTools.find(effective().getJSONArray("invoices"), id)
-if (LocalAuthorityGuard.local(context!!) && !((invoice.optString("pdf_state", "READY") == "READY"))) {
+if (!((invoice.optString("pdf_state", "READY") == "READY"))) {
 throw PixelMcpWriteTools.Rejected("INVOICE_PDF_NOT_READY", "Das lokale Rechnungs-PDF ist noch nicht verifiziert. Dokumentauftrag prüfen oder erneut ausführen.")
 }
 var data = invoice.optString("pdf_base64")
 if (data.isEmpty()) {
-if (LocalAuthorityGuard.local(context!!) && (invoice.optString("pdf_storage_name").isEmpty() || invoice.optString("pdf_sha256").isEmpty())) {
+if ((invoice.optString("pdf_storage_name").isEmpty() || invoice.optString("pdf_sha256").isEmpty())) {
 throw localOriginalMissing()
 }
 try {
