@@ -36,7 +36,7 @@ jobs:
           cache-disabled: true
       - name: Check current source and synthetic fixtures
         run: python3 -B tools/check_current.py
-      - name: Install Android build and isolated emulator packages
+      - name: Install Android build packages
         run: |
           set -euo pipefail
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
@@ -44,7 +44,7 @@ jobs:
           import subprocess,sys
           subprocess.run([sys.argv[1], '--licenses'], input='y\n'*100, text=True, check=True)
           PY
-          "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools' 'emulator' 'system-images;android-35;default;x86_64'
+          "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools'
       - name: Build production sources and native test APK without release signing
         working-directory: struktur-neu/android
         run: gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease
@@ -56,6 +56,14 @@ jobs:
           curl -fsSL https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.46.1.0/sqlite-jdbc-3.46.1.0.jar -o "$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar"
           curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
           HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
+      - name: Prepare isolated emulator packages
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$ANDROID_HOME/emulator/emulator" ]; then
+            "$SDKMANAGER" 'emulator'
+          fi
+          "$SDKMANAGER" 'system-images;android-35;default;x86_64'
       - name: Sign disposable emulator test packages only
         run: |
           set -euo pipefail
