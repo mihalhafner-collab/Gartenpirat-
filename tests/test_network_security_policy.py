@@ -25,10 +25,3 @@ class NetworkSecurityPolicyTests(unittest.TestCase):
                     self.assertEqual(domain.get('includeSubdomains'), 'false')
                     allowed.append(domain.text)
         self.assertCountEqual(allowed, ['127.0.0.1', 'localhost', '10.0.2.2'])
-
-    def test_preview_still_removes_network_permissions(self):
-        manifest = ET.parse(ROOT/'app/src/preview/AndroidManifest.xml').getroot()
-        permissions = {p.get(ANDROID+'name'):p.get('{http://schemas.android.com/tools}node')
-                       for p in manifest.findall('uses-permission')}
-        self.assertEqual(permissions.get('android.permission.INTERNET'), 'remove')
-        self.assertEqual(permissions.get('android.permission.ACCESS_NETWORK_STATE'), 'remove')

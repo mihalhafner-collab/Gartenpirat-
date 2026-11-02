@@ -110,7 +110,7 @@ final class EncryptedBackupArchive {
     }
     private static void requireMetadata(JSONObject m,int supportedSchema)throws Exception {
         if(m.getInt("formatVersion")!=FORMAT_VERSION||m.getInt("schemaVersion")<1||m.getInt("schemaVersion")>supportedSchema)throw new IOException("BACKUP_VERSION_UNSUPPORTED");
-        if(!m.getString("applicationId").equals("at.hausgarten.service")||m.getString("appVersion").isEmpty()||!m.getString("backupId").matches("[a-zA-Z0-9_-]{8,120}")||m.getString("installationId").isEmpty()||m.getString("businessId").isEmpty())throw new IOException("BACKUP_MANIFEST_INVALID");
+        if(!m.getString("applicationId").equals(BuildConfig.APPLICATION_ID)||m.getString("appVersion").isEmpty()||!m.getString("backupId").matches("[a-zA-Z0-9_-]{8,120}")||m.getString("installationId").isEmpty()||m.getString("businessId").isEmpty())throw new IOException("BACKUP_MANIFEST_INVALID");
         java.time.Instant.parse(m.getString("capturedAt"));m.getJSONObject("counts");m.getJSONObject("numberState");m.getJSONArray("lastIssuedDocumentIds");
     }
     private static void requirePath(String path)throws IOException {

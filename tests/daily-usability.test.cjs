@@ -8,6 +8,7 @@ const {chromium}=require('./browser.cjs');
  try{
   const page=await browser.newPage({viewport:{width:412,height:915},isMobile:true,hasTouch:true}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
+  let nativeFixture;const addInitScript=page.addInitScript.bind(page);page.addInitScript=script=>{nativeFixture=script;return addInitScript(script);};
   await page.addInitScript(()=>{
    window.master={customers:[{id:'qa_c1',name:'Test Kunde',active:1,city:'QA Beispielort'},{id:'qa_c2',name:'Archivierter Kunde',active:0}],orders:[{id:'qa_o1',customer_id:'qa_c1',title:'Pflege',status:'Geplant'}],invoices:[],photos:[],worklogs:[{id:'qa_w1',customer_id:'qa_c1',work_date:'2026-10-12',activity:'Hecke pflegen',hours:3,break_minutes:0,kilometers:0,billed:0,customer_visible:1}]};
    window.pending=[];window.writes=[];window.queue=null;window.nativeSync={configured:true,last_sync:'2026-10-13T03:35:00Z',syncing:false,confirmation_scope:'provider_readback',cloud_confirmed:false};
@@ -40,6 +41,22 @@ const {chromium}=require('./browser.cjs');
   }
   await check('Removed root swipe never changes main destinations, including old saved preferences',async()=>{await page.evaluate(()=>{localStorage.setItem('hausgarten.ui.side_swipe.v1','true');openPage('home');});assert.equal(await page.locator('#setting-side-swipe').count(),0);await swipe(250,300,100,305,'.today-header');assert.equal(await page.evaluate(()=>currentPage),'home');await page.evaluate(()=>openPage('customers'));await swipe(250,300,100,305);assert.equal(await page.evaluate(()=>currentPage),'customers');await swipe(200,300,210,470);assert.equal(await page.evaluate(()=>currentPage),'customers');await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.startup==='ready'&&document.body.dataset.fieldReady==='true');await page.evaluate(()=>openPage('settings-page'));assert.equal(await page.locator('#setting-side-swipe').count(),0);assert.equal(await page.locator('#settings-preference-state').count(),0);});
   await check('Small mobile, Pixel and laptop widths have no horizontal overflow',async()=>{for(const width of [320,360,412,1280]){await page.setViewportSize({width,height:915});for(const id of ['home','customers','worklogs','orders','settings-page']){await page.evaluate(id=>openPage(id),id);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),id+' '+width);if(['customers','worklogs','orders'].includes(id)){const box=await page.locator('#daily-tools-'+id).boundingBox();assert(box.x>=0&&box.x+box.width<=width&&box.y+box.height<915);}}}assert.deepEqual(errors,[]);});
+  await check('TEST and PRODUKTIV show independent identities instead of the technical Android code',async()=>{
+   const fixtureSource='('+nativeFixture.toString()+')();';
+   for(const identity of [{channel:'TEST',displayVersion:'2.0.0',buildNumber:2,versionCode:118},{channel:'PRODUKTIV',displayVersion:'1.57.3',buildNumber:122,versionCode:122}]){
+    const isolated=await browser.newPage({viewport:{width:412,height:915},isMobile:true,hasTouch:true});
+    try{
+     const expected=identity.channel+' · '+identity.displayVersion+' · Build '+identity.buildNumber;
+     const info={...identity,versionName:identity.displayVersion,identityLabel:expected};
+     await isolated.addInitScript({content:fixtureSource+'\nAndroidData.getAppInfo=()=>JSON.stringify('+JSON.stringify(info)+');'});
+     await isolated.goto(pathToFileURL(path.resolve('app/src/main/assets/mobile.html')).href);
+     await isolated.waitForFunction(expected=>document.querySelector('.brand p')?.textContent===expected,expected);
+     await isolated.evaluate(()=>openPage('settings-page'));
+     assert.equal(await isolated.locator('#settings-version').innerText(),expected);
+     if(identity.channel==='TEST')assert.doesNotMatch(await isolated.locator('#settings-version').innerText(),/Build 118/);
+    }finally{await isolated.close();}
+   }
+  });
   await check('Capture actual browser screenshots',async()=>{await page.setViewportSize({width:412,height:915});for(const id of ['customers','settings-page']){await page.evaluate(id=>openPage(id),id);await page.screenshot({path:'outputs/Design-v1.41-'+id+'.png'});}});
  }finally{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,5000))]);}
  fs.writeFileSync('outputs/Daily-Usability-v1.41-Tests.json',JSON.stringify({method:'actual_browser',data:'isolated native bridge fixture',results},null,2));if(results.some(x=>x.result==='FAIL'))process.exitCode=1;

@@ -70,7 +70,7 @@
       let connection=get('pixel-tunnel-state')?.textContent||'Verbindung noch nicht eingerichtet.';
       try{const info=JSON.parse(AndroidData.getPixelTunnelStatus());connection=HGBusinessFeedback.connection(info);}catch(_){}
       get('settings-connection-state').textContent=connection;
-      try{const info=JSON.parse(AndroidData.getAppInfo());get('settings-version').textContent='Haus & Garten App · Version '+(info.versionName||'unbekannt')+(info.versionCode?' · Build '+info.versionCode:'');}catch(_){get('settings-version').textContent='Versionsangabe derzeit nicht verfügbar.';}
+      try{const info=JSON.parse(AndroidData.getAppInfo());get('settings-version').textContent=info.identityLabel||('Haus & Garten · Version '+(info.versionName||'unbekannt')+(info.versionCode?' · Android-Code '+info.versionCode:''));}catch(_){get('settings-version').textContent='Versionsangabe derzeit nicht verfügbar.';}
     }
     // Read local status on visibility/focus; native business-change callbacks refresh the local records.
     let lastRefresh='',lastBusinessRefresh=JSON.stringify([syncInfo.last_sync||'',syncInfo.pending||0,syncInfo.review||0,syncInfo.pending_total||0]);

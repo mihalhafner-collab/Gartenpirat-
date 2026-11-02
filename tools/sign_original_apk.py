@@ -178,13 +178,6 @@ def apk_metadata(path, aapt, env, expected):
                 or len(re.findall(r'android:targetPackage\([^\n]*="at\.hausgarten\.service"', tree)) != 1
                 or len(re.findall(r'android:name\([^\n]*="at\.hausgarten\.service\.PixelMcpInstrumentation"', tree)) != 1):
             raise SigningError('Instrumentation must exclusively target the original operative package and runner.')
-    if expected.get('ui_preview'):
-        tree = tool([aapt, 'dump', 'xmltree', str(path), 'AndroidManifest.xml'], env).decode('utf-8', 'replace')
-        if ("application-label:'Haus & Garten Test'" not in raw
-                or "uses-permission: name='android.permission.INTERNET'" in raw
-                or re.search(r'^\s*E: instrumentation ', tree, re.MULTILINE)
-                or 'android:sharedUserId' in tree):
-            raise SigningError('UI preview requires its own label/sandbox and no Internet or instrumentation.')
     return {'package': package, 'version_name': version, 'version_code': int(code)}
 
 
@@ -208,20 +201,16 @@ def verify_signed(path, apksigner, env, expected):
         raise SigningError('Signed APK does not have exactly the expected single original signer.')
 
 
-def _sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumentation=False, ui_preview=False):
+def _sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumentation=False):
     env = dict(os.environ if env is None else env)
     private = configuration(env)  # Missing values fail before any tool or temp-file operation.
     ci_names = ('CI', 'GITHUB_ACTIONS', 'GITLAB_CI', 'TF_BUILD', 'BUILDKITE', 'CIRCLECI', 'JENKINS_URL')
     if any(env.get(name, '').lower() not in ('', '0', 'false') for name in ci_names):
         raise SigningError('Original signing is forbidden in CI; use the selected personal Cloud environment.')
     expected = baseline()
-    if instrumentation and ui_preview:
-        raise SigningError('UI preview and instrumentation are distinct artifact types.')
     if instrumentation:
         # Existing androidTest runner only; no alternate operative application or key.
         expected = dict(expected, package='at.hausgarten.service.test', version_code=0, instrumentation=True)
-    if ui_preview:
-        expected = dict(expected, package='at.hausgarten.service.preview', version_code=0, ui_preview=True)
     output = Path(output)
     if output.exists() or output.is_symlink():
         raise SigningError('Output already exists; no existing file will be overwritten.')
@@ -293,11 +282,11 @@ def _sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrume
     return result
 
 
-def sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumentation=False, ui_preview=False):
+def sign(apk, output, *, keytool, aapt, zipalign, apksigner, env=None, instrumentation=False):
     failure = None
     try:
         return _sign(apk, output, keytool=keytool, aapt=aapt, zipalign=zipalign,
-                     apksigner=apksigner, env=env, instrumentation=instrumentation, ui_preview=ui_preview)
+                     apksigner=apksigner, env=env, instrumentation=instrumentation)
     except SigningError as error:
         failure = str(error)
     except Exception:
@@ -318,8 +307,6 @@ def main(argv=None):
             parser.add_argument('--' + name, required=True)
         parser.add_argument('--instrumentation', action='store_true',
                             help='Sign only the existing androidTest runner for the original app; never installs.')
-        parser.add_argument('--ui-preview', action='store_true',
-                            help='Sign only the expressly requested isolated .preview UI app; never an operative update.')
         arguments=vars(parser.parse_args(argv))
         sys.path.insert(0,str(ROOT))
         from tools.source_preservation import verify_preserved_source, SourcePreservationError

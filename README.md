@@ -3,6 +3,23 @@
 Android-App `at.hausgarten.service`, Quellcode unter `app/`.
 Arbeitsregeln: [AGENTS.md](AGENTS.md).
 
+Die App-Identitäten und getrennten Nummern stehen verbindlich in
+[app-versions.properties](app-versions.properties). TEST verwendet
+`at.hausgarten.service.fulltest`, einen eigenen Testschlüssel und ein pinkes
+TEST-Kolbensymbol; PRODUKTIV verwendet `at.hausgarten.service` und die Originalsignatur.
+Die sichtbare TEST-Reihe beginnt bei 2.0.0 / Build 2. Für das Update der früheren
+Testinstallation entspricht das Android-Code 118 (Test-Build + 116).
+Die produktive Reihe bleibt davon unabhängig: am Pixel bestätigt 1.57.2 / Build 121,
+als nächstes vorbereitet 1.57.3 / Build 122. Ein Test-Build veröffentlicht keine
+Produktivversion und ändert deren Zähler nicht.
+
+APK-Namen: `Garten-TEST-<Version>-Build<Nummer>.apk` oder
+`Garten-PRODUKTIV-<Version>-Build<Nummer>.apk`. Die App zeigt Kanal, Version und
+sichtbare Buildnummer in Kopfzeile/Einstellungen; die native Diagnose und MCP
+liefern zusätzlich Paket, Android-Code, Quellfingerabdruck und Buildtyp.
+Ein historischer Dateiname mit Build 117 bezeichnet noch die frühere TEST-APK,
+keine aktuelle Produktivversion. Bestehende Archive sind historische Quellnachweise.
+
 `tools/` enthält die benötigten Build-, Katalog- und Prüfwerkzeuge.
 `tests/` enthält ausführbare Regressionstests mit synthetischen Daten.
 `libraries/plants/` enthält botanische Quellen, Bildrechte und Importnachweise.

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <application android:icon="@mipmap/test_app_icon" android:roundIcon="@mipmap/test_app_icon" tools:replace="android:icon" />
+</manifest>
