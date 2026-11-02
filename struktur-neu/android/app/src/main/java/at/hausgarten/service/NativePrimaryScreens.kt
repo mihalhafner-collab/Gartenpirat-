@@ -325,7 +325,7 @@ private fun NativeToday(controller: NativeAppController) {
     fun rows(array: JSONArray?) = (0 until (array?.length() ?: 0)).map { array!!.getJSONObject(it) }
     val planned = rows(overview?.optJSONArray("planned_visits"))
     val tourIds = rows(overview?.optJSONObject("tour")?.optJSONArray("stops")).map { it.optString("id") }
-    val visits = planned.sortedWith(compareBy<JSONObject> { tourIds.indexOf(it.optString("id")).let { index -> if (index < 0) Int.MAX_VALUE else index } }.thenBy { it.optString("window_start", "99:99") })
+    val visits = planned.sortedWith(compareBy<JSONObject> { tourIds.indexOf(it.optString("id")).let { index -> if (index < 0) Int.MAX_VALUE else index } }.thenBy { it.optString("window_start").ifBlank { "99:99" } })
     val state = session?.optString("state")
     val active = state in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")
     val next = visits.firstOrNull { !active || it.optString("id") != session?.optString("visit_id") }
@@ -399,7 +399,7 @@ private fun NativeToday(controller: NativeAppController) {
                         backup!!.optBoolean("clock_review_required") -> "Sicherung: Uhrzeit prüfen"
                         backup!!.optString("state") == "RUNNING" -> "Sicherung läuft"
                         backup!!.optString("state") == "FAILED" -> "Sicherung prüfen"
-                        backup!!.optString("last_local_verified_at").isNotBlank() -> "Sicherung geprüft: " + nativeDisplayDate(backup!!.getString("last_local_verified_at").take(10))
+                        backup!!.optString("last_local_verified_at").isNotBlank() -> "Sicherung geprüft: " + nativeDisplayDate(backup!!.getString("last_local_verified_at"))
                         else -> "Noch keine geprüfte Sicherung"
                     }
                     Text(status, Modifier.clickable { controller.navigate("backup") }, style = MaterialTheme.typography.labelSmall, color = ink)

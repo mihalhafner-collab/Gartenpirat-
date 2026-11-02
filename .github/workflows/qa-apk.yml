@@ -59,6 +59,10 @@ jobs:
       - name: Prepare isolated emulator packages
         run: |
           set -euo pipefail
+          # This disposable Kotlin/Android runner never uses the preinstalled .NET SDK.
+          # Leave enough real disk headroom for the Google APIs userdata image.
+          if [ -d /usr/share/dotnet ]; then sudo rm -rf /usr/share/dotnet; fi
+          df -h "$RUNNER_TEMP"
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           if [ ! -x "$ANDROID_HOME/emulator/emulator" ]; then
             "$SDKMANAGER" 'emulator'
@@ -94,8 +98,9 @@ jobs:
           python3 - "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd/config.ini" <<'PYAVD'
           import pathlib,sys
           path=pathlib.Path(sys.argv[1])
-          lines=[line for line in path.read_text().splitlines() if not line.startswith('disk.dataPartition.size=')]
+          lines=[line for line in path.read_text().splitlines() if line.partition('=')[0].strip() != 'disk.dataPartition.size']
           path.write_text('\n'.join(lines+['disk.dataPartition.size=3072M'])+'\n')
+          print('AVD data partition: 3072M; one normalized setting')
           PYAVD
           df -h "$ANDROID_AVD_HOME"
           test -f "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.ini"

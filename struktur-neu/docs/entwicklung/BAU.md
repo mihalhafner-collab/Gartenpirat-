@@ -563,6 +563,8 @@ Timerweg prüft Pause/Fortsetzen/Beenden auch direkt auf Heute; Beenden muss wei
 die Zeitprüfung öffnen. Die Screenshots today-idle, today-running, today-capture
 und today-large-font enthalten ausschließlich synthetische Daten. Das API35-Systembild
 mit Google APIs verwendet eine auf 3072 MB begrenzte Wegwerf-Datenpartition,
-damit es auf dem Hosted Runner starten kann. Es liefert den vollständigen
+damit es auf dem Hosted Runner starten kann. Die unbenötigte vorinstallierte
+.NET-Toolchain wird ausschließlich auf diesem Wegwerf-Runner entfernt, um zusätzlich
+Platz für die Google-APIs-Datenpartition freizuhalten. Es liefert den vollständigen
 System-Gestenhandler; der physische
 Randgestentest wird weiterhin tatsächlich ausgeführt.
