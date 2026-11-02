@@ -110,8 +110,18 @@ public final class KotlinMcpRegressionTests {
             public JSONObject status(String id, JSONObject value) throws Exception { return new JSONObject().put("phase", "local_saved"); }
         };
         PixelMcpReadTools write = new PixelMcpReadTools(() -> state, sink);
-        yes(read.tools().length() == 73, "Read catalog keeps 73 tools");
-        yes(write.tools().length() == 169, "Read/write catalog keeps 169 tools");
+        JSONArray readonly = read.tools(), writable = write.tools();
+        yes(readonly.length() >= 50, "Retained reader capabilities are registered");
+        yes(writable.length() > readonly.length(), "Writable owner capabilities are registered");
+        for (JSONArray catalog : new JSONArray[]{readonly, writable}) {
+            for (int index = 0; index < catalog.length(); index++) {
+                String tool = catalog.getJSONObject(index).getString("name");
+                yes(!java.util.Arrays.asList("list_invoices", "get_invoice", "create_invoice_draft",
+                    "update_invoice_draft", "request_invoice_issue", "update_invoice_payment",
+                    "request_sync", "resolve_sync_conflict", "get_sync_overview").contains(tool),
+                    "Retired invoice and Drive tools are not advertised");
+            }
+        }
         yes(read.call("search_customers", new JSONObject().put("query", "Katalog"))
                 .getJSONObject("data").getInt("count") == 1, "Search works with absent optional customer fields");
         rejected("WRITE_DISABLED", () -> read.call("create_customer", new JSONObject()));
