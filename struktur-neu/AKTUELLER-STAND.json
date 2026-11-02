@@ -57,10 +57,11 @@
       "Zusätzliche Entfernung alter Rechnungs-/Zahlungs-/Drive-Fehlerzweige: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich",
       "Heute: Sicherungszeit in Wiener Ortszeit und leere Einsatz-Uhrzeiten nach terminierten Einsätzen; Quellprüfung sowie kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich",
       "41519270807: Emulatorstart mit freiem Speicher erfolgreich; SQLite-/Backup-/Restore-/Provider-Suiten einschließlich Prozessneustart und Today-Timerfolge erfolgreich. Compose-Gesamtlauf wegen Archivieren ohne request_id sowie falschem Heute-Geometrieziel fehlgeschlagen; Folgefehler durch offenen Dialog.",
-      "Archiv-/Papierkorbreparatur, entfernte Drive-Papierkorbfunktionen und korrigiertes Heute-Geometrieziel: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich. Zusätzliche stale-delete-Assertions sind kompiliert; Android-Ausführung steht aus."
+      "Archiv-/Papierkorbreparatur, entfernte Drive-Papierkorbfunktionen und korrigiertes Heute-Geometrieziel: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich. Zusätzliche stale-delete-Assertions sind kompiliert; Android-Ausführung steht aus.",
+      "Suchprüfungen an die vom nächsten Einsatz übergebene Kundenzuordnung angepasst: sechs unveränderte Tastaturkombinationen und physischer Zurück-Gestentest prüfen die tatsächliche Vorbelegung. Ungebundene Angebots-Viewportfälle setzen Filter über die echte Oberfläche zurück. Quellprüfung und kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich."
     ],
     "remaining": [
-      "Gesamtlauf nach Wiederverwendung des dauerhaften Aktionsformulars im Löschdialog, Beachtung gelesener Vergleichshashes und Korrektur des Heute-Geometrieziels wiederholen",
+      "Vollständigen CI-Lauf nach Archiv-/Papierkorbreparatur und Anpassung der Suchtests an tatsächlich vorbelegte Kundenzuordnungen ausführen",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü; vier Hauptbereiche und Android-Zurück bleiben erhalten."

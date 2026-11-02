@@ -884,6 +884,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "OPENING_ALTERNATIVES_DOES_NOT_CHANGE_APPOINTMENT")
     }
 
+    private fun openWorkCustomerPicker(): String {
+        scrollTop()
+        var caption: String? = null
+        waitUntil("WORK_CUSTOMER_PICKER_READY") {
+            caption = nodes().asSequence().filter { it.isVisibleToUser && clickable(it) != null }
+                .flatMap { texts(it).asSequence() }.firstOrNull { it.startsWith("Kunde: ") }
+            caption != null
+        }
+        return requireNotNull(caption).also { click(it) }
+    }
+
     private fun actionBounds(label: String): Rect {
         val target = nodes().asSequence().filter { it.isVisibleToUser && matches(it, label) }.mapNotNull(::clickable).firstOrNull()
             ?: throw IllegalArgumentException("QA_NATIVE_COMPOSE_NOT_ACTIONABLE_$label")
@@ -1115,7 +1126,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     automation.setRotation(UiAutomation.ROTATION_FREEZE_0)
                     launch()
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
-                    click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
+                    click("+ Erfassen"); click("Arbeit nachtragen"); openWorkCustomerPicker()
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = if (landscape) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                     waitUntil("SEARCH_CONFIGURATION_$key") {
                         var correct = false
@@ -1169,7 +1180,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             throw failure
         }
         yes(searchMatrix.length() == 6, "ALL_SEARCH_DISPLAY_COMBINATIONS")
-        click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
+        click("+ Erfassen"); click("Arbeit nachtragen"); val priorCustomer = openWorkCustomerPicker()
         enter("Suchen", "NO_SYNTHETIC_MATCH_48273"); shown("0 Treffer"); shown("Keine Treffer. Suchtext oder Filter ändern.")
         shown("Keine Zuordnung")
         showKeyboard("Suchen"); captureSyntheticScreen("search-no-results", requireKeyboard = true)
@@ -1177,7 +1188,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         back(); waitUntil("SEARCH_PAGING_IME_HIDDEN") { !keyboardVisible() }
         click("Weitere"); reveal(fixturePrefix + "030"); click("Vorherige")
         enter("Suchen", ""); yes(field("Suchen") != null, "EMPTY_SEARCH_REMAINS_OPEN")
-        click("Schließen"); shown("Kunde: Nicht zugeordnet")
+        click("Schließen"); shown(priorCustomer)
         click("‹ Zurück")
         click("Kunden"); enter("Suchen", fixturePrefix + "000"); showKeyboard("Suchen")
         visibleResult(fixturePrefix + "000", requireKeyboard = true); captureSyntheticScreen("search-customer-list", requireKeyboard = true)
@@ -1199,7 +1210,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
             waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-            click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
+            click("+ Erfassen"); click("Arbeit nachtragen"); val priorCustomer = openWorkCustomerPicker()
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
             fun gestureHandlers(): String {
@@ -1236,7 +1247,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             while (node("Schließen") != null && SystemClock.uptimeMillis() < settle) SystemClock.sleep(50)
             if (node("Schließen") != null) swipeFromEdge(true)
             try {
-                waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node("Kunde: Nicht zugeordnet") != null }
+                waitUntil("BACK_GESTURE_CLOSES_ONLY_PICKER") { node("Schließen") == null && node(priorCustomer) != null }
             } catch (failure: Throwable) {
                 test.sendStatus(0, Bundle().apply {
                     putString("gesture_diagnostics", gestureHandlers())
@@ -1355,7 +1366,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Verwerfen"); click("OK", scrollTo = false)
         }
         case("duplicate-customers") {
-            click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
+            click("+ Erfassen"); click("Arbeit nachtragen"); openWorkCustomerPicker()
             enter("Suchen", "QA Gleichnamig"); shown("2 Treffer"); reveal("QA TestNord"); reveal("QA TestSüd")
             enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName, requireKeyboard = true)
             captureSyntheticScreen("domain-duplicate-customers", requireKeyboard = true); visibleResult(duplicateName, tap = true, requireKeyboard = true)
@@ -1443,6 +1454,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         kotlin.math.abs(config.fontScale-2f) < 0.02f && (config.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) == landscape
                     }
                     target.open(); enter(target.label, target.query)
+                    if (target.key == "offers") {
+                        // Unscoped viewport setup uses the real reset action. Separate
+                        // customer-context journeys continue to verify persisted filters.
+                        click("Filter und Suche zurücksetzen")
+                        enter(target.label, target.query)
+                    }
                     if (target.manual) {
                         showKeyboard(target.label)
                         yes(requireNotNull(field(target.label)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "LIST_MANUAL_SEARCH_$key")
@@ -1465,6 +1482,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     listViewportCases.put(JSONObject().put("case", key).put("font", 2.0).put("compact", true).put("landscape", landscape).put("keyboard_bounds", true).put("real_touch", true).put("ime_preserves_query", true))
                 } catch (failure: Throwable) {
                     test.sendStatus(0, Bundle().apply { putString("list_viewport_failure", "$key: " + failure.stackTraceToString()) })
+                    if (target.key == "offers") runCatching {
+                        val backend = runBlocking { store.nativeData().list("offers", search = target.query, includeInactive = false) }
+                        test.sendStatus(0, Bundle().apply { putInt("offer_viewport_backend_matches", backend.total) })
+                    }
                     runCatching { captureSyntheticScreen("failure-list-$key") }
                     failures.add(AssertionError("LIST_VIEWPORT_$key", failure))
                 }

@@ -574,3 +574,9 @@ Die Papierkorb-Prüfung umfasst veraltete Datensatz-, Fotozuordnungs- und
 Gesamtvorschau-Hashes: Sie müssen ohne Geschäftsänderung abgewiesen werden.
 Die Hauptschaltflächen verwenden das bestehende persistente Aktionsformular;
 Anfragekennung und geprüfte Vergleichswerte werden vor dem Schreibaufruf gesichert.
+
+Die Suchmatrix öffnet den tatsächlichen Kundenwähler auch bei vorhandener
+Entwurfs- oder Einsatzzuordnung. Zurück muss diese Zuordnung unverändert lassen.
+Ungebundene Angebots-Viewportfälle verwenden vor der Suche die echte
+Filter-zurücksetzen-Aktion; die Kundenkontext-Prüfung verifiziert weiterhin
+getrennt die erhaltenen Zuordnungen und Filter.
