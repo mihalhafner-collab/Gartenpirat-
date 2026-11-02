@@ -39,7 +39,6 @@ private fun financeRows(data: JSONObject, vararg names: String): List<JSONObject
     return (0 until array.length()).mapNotNull { array.optJSONObject(it) }.map { it.optJSONObject("offer") ?: it.optJSONObject("entry") ?: it }
 }
 internal fun financeMoney(value: Any?): String = if (value == null || value == JSONObject.NULL) "offen" else runCatching { BigDecimal(value.toString()).setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €" }.getOrDefault("Betrag prüfen")
-private fun financeMinor(value: String): Long = BigDecimal(value.trim().replace(',', '.')).movePointRight(2).longValueExact()
 private fun financeFields(row: JSONObject, keys: Array<String>) = JSONObject().also { out -> keys.forEach { if (row.has(it)) out.put(it, row.get(it)) } }
 private fun financeStatus(value: String): String = mapOf("draft" to "Entwurf", "validated" to "Geprüft", "finalized" to "Finalisiert", "accepted" to "Angenommen", "declined" to "Abgelehnt", "share_prepared" to "Teilen vorbereitet", "sent" to "Versand bestätigt", "cash" to "Bar", "bank" to "Bank", "card" to "Karte", "other" to "Andere", "b2b" to "Unternehmen", "consumer" to "Verbraucher", "on_premise" to "Im Geschäft", "distance" to "Fernabsatz", "off_premise" to "Außerhalb der Geschäftsräume", "confirmed" to "Bestätigt", "catalog" to "Freigegebener Katalogpreis", "calculated" to "Berechnet", "estimated" to "Geschätzt", "unit" to "Einheitspreis", "text" to "Text", "own" to "Eigener Nummernkreis")[value] ?: nativeValue(value)
 private fun financeInvoiceTitle(row: JSONObject): String = row.optString("invoice_number").takeUnless { it.isBlank() || it.startsWith("Entwurf-") } ?: "Rechnungsentwurf"
@@ -64,17 +63,6 @@ private fun FinanceIssuerSummary(issuer:JSONObject?) {
     Text("Aussteller und Belegkonfiguration",style=MaterialTheme.typography.titleMedium)
     if(issuer==null) Text("Aussteller fehlt",color=MaterialTheme.colorScheme.error)
     else FinanceValues(issuer,listOf("business_name" to "Betrieb","owner_name" to "Inhaber","business_street" to "Straße","business_postal_code" to "Postleitzahl","business_city" to "Ort","business_legal_info" to "Rechtliche Angaben","business_vat_id" to "UID","tax_mode" to "Steuermodus","tax_exemption_text" to "Steuerbefreiung","business_iban" to "IBAN","business_bank" to "Bank","business_bic" to "BIC","business_email" to "E-Mail","business_phone" to "Telefon","invoice_number_format" to "Nummernformat","invoice_prefix" to "Präfix","invoice_numbering_last_number" to "Bestätigter letzter Zähler","invoice_numbering_checked_at" to "Nummernprüfung am","invoice_issuer_confirmed" to "Aussteller bestätigt","invoice_numbering_confirmed" to "Nummernkreis bestätigt"))
-}
-
-@Composable
-private fun FinanceInvoiceLabel(controller: NativeAppController, id: String, knownTitle: String = "") {
-    if(knownTitle.isNotBlank()) {Text(if(knownTitle.startsWith("Entwurf-")) "Rechnungsentwurf" else knownTitle);return}
-    var title by remember(id) { mutableStateOf("Rechnung") }
-    LaunchedEffect(id) {
-        title = try { controller.store.nativeData().detail("invoices", id)?.let(::financeInvoiceTitle) ?: "Rechnung nicht mehr vorhanden" }
-        catch(cancelled:CancellationException) {throw cancelled} catch(_:Exception) {"Rechnung derzeit nicht lesbar"}
-    }
-    Text(title)
 }
 
 @Composable
@@ -103,29 +91,24 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
     var detail by remember(section, id) { mutableStateOf<JSONObject?>(null) }
     var error by remember(section, id) { mutableStateOf("") }
     var pendingAction by remember(section,id) { mutableStateOf<Pair<String, JSONObject>?>(null) }
-    var issueReview by remember(section,id) { mutableStateOf<JSONObject?>(null) }
-    var initialModeHandled by remember(section,id,controller.route.mode,controller.route.args.optString("_draft_key")) {mutableStateOf(false)}
     var offerReview by remember(section,id) { mutableStateOf<JSONObject?>(null) }
     var offerReviewed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(section, id, refresh) {
-        if (id.isEmpty() || section == "payments") return@LaunchedEffect
+        if (id.isEmpty()) return@LaunchedEffect
         error = ""
         try {
             detail = when (section) {
-                "invoices" -> controller.call("get_invoice", JSONObject().put("invoice_id", id))
                 "offers" -> controller.query("get_offer", JSONObject().put("offer_id", id))
                 else -> controller.query("get_offer_template", JSONObject().put("entry_id", id))
             }
-            if(section=="invoices" && controller.route.mode=="issue" && !initialModeHandled) {issueReview=detail;initialModeHandled=true}
         } catch(cancelled:CancellationException){throw cancelled}catch (failure: Exception) { error = failure.message ?: "Datensatz konnte nicht gelesen werden." }
     }
-    val row = detail?.let { when(section) { "invoices" -> it.optJSONObject("data") ?: it.optJSONObject("invoice"); "offers" -> it.optJSONObject("offer"); else -> it.optJSONObject("entry") } }
+    val row = detail?.let { if (section == "offers") it.optJSONObject("offer") else it.optJSONObject("entry") }
     when {
         pendingAction != null -> {
             val action = pendingAction!!
             NativeActionForm(controller, action.first, when(action.first) {
-                "create_invoice_correction" -> "Korrekturentwurf / Storno"
                 "record_offer_acceptance" -> "Annahme mit Nachweis erfassen"
                 "decline_offer" -> "Ablehnung erfassen"
                 "finalize_offer" -> "Geprüftes Angebot finalisieren"
@@ -161,8 +144,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             Button(enabled=offerReviewed && validation.optBoolean("valid"),onClick={pendingAction="finalize_offer" to JSONObject().put("offer_id",id).put("expected_record_hash",review.getString("record_hash")).put("expected_context_hash",review.getString("context_hash"));offerReview=null},modifier=Modifier.fillMaxWidth()) {Text("Geprüfte Finalisierung bestätigen")}
             TextButton(onClick={offerReview=null}) {Text("Zum Angebot zurück")}
         }
-        issueReview != null -> FinanceIssueReview(controller, id, issueReview!!, onClose = { issueReview = null; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ })
-        section == "payments" -> FinancePayments(controller, id)
         editing && (fresh || row!=null || controller.route.args.optString("_draft_key").isNotEmpty()) -> FinanceEditor(section, if (fresh) null else row, if (fresh) "" else detail?.optString("record_hash").orEmpty(), controller,
             onClose = { editing = false; fresh = false; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ }, onSaved = { savedId -> editing = false; fresh = false; if (savedId.isNotEmpty()) controller.navigate(section, savedId, args = controller.route.args) else refresh++ })
         id.isEmpty() -> listStates.SaveableStateProvider("finance-list") { FinanceList(section, controller, onCreate = { fresh = true; editing = true }) }
@@ -171,7 +152,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             TextButton(onClick = { refresh++ }) { Text("Erneut lesen") }
         }
         else -> Column(Modifier.fillMaxSize()) {
-            val editable = section == "catalog" || if(section == "invoices") !IssuedInvoiceRules.isIssued(row) && row.optString("status", "Entwurf") == "Entwurf" else OfferRules.editable(row)
+            val editable = section == "catalog" || OfferRules.editable(row)
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(if (section == "invoices") financeInvoiceTitle(row) else row.optString("title"), style = MaterialTheme.typography.headlineSmall)
             Text(financeStatus(if(section == "invoices") row.optString("status", "Entwurf") else row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")))
@@ -186,14 +167,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 Text(row.optString("description")); Text("Einheit: ${row.optString("unit")} · Preis: ${financeMoney(row.opt("default_price"))}")
                 Text(if (row.optBoolean("price_confirmed")) "Preis bestätigt" else "Preis noch nicht bestätigt")
                 Text(if (row.optBoolean("active", true)) "Aktiv" else "Deaktiviert")
-            }
-            if (section == "invoices") {
-                if (editable) OutlinedButton(onClick = { scope.launch { try { issueReview = controller.call("get_invoice", JSONObject().put("invoice_id", id)) } catch(cancelled:CancellationException){throw cancelled}catch(f: Exception) { controller.message(f.message.orEmpty()) } } }, Modifier.fillMaxWidth()) { Text("Ausgabe vollständig prüfen") }
-                else {
-                    Text("Ausgestellte Angaben und Original bleiben erhalten.")
-                    OutlinedButton(onClick = { pendingAction = "create_invoice_correction" to JSONObject().put("invoice_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Korrektur / Storno vorbereiten") }
-                    FinanceInvoiceDocument(controller, id)
-                }
             }
             if (section == "offers") {
                 if (editable) {
@@ -214,12 +187,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 TextButton(onClick = { pendingAction = "duplicate_offer" to JSONObject().put("offer_id", id) }) { Text("Als neue Version duplizieren") }
             }
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
-            if (editable && section != "catalog") NativeDeleteButton(controller, if (section == "offers") "offer" else "invoice", id, label = "Entwurf in Papierkorb") { controller.returnToList(section) }
+            if (editable && section == "offers") NativeDeleteButton(controller, "offer", id, label = "Entwurf in Papierkorb") { controller.returnToList(section) }
             }
             NativeActions {
                 TextButton(onClick = { controller.returnToList(section) }) { Text("Zur Liste") }
                 if (editable) Button(onClick = { fresh = false; editing = true }) { Text("Bearbeiten") }
-                else if (section == "invoices") Button(onClick = { controller.navigate("payments", id) }) { Text("Zahlungen und belegten Rest prüfen") }
                 else if (section == "offers") Button(onClick = { pendingAction = "prepare_offer_share" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }) { Text("Geprüftes Original-PDF teilen") }
             }
         }
@@ -621,292 +593,4 @@ private fun FinancePositions(values:JSONArray,offer:Boolean,onChange:(JSONArray)
     removed?.let { (originalIndex,line) -> TextButton(onClick={val next=JSONArray();val position=originalIndex.coerceAtMost(values.length());for(index in 0..values.length()) {if(index==position) next.put(financeCopy(line));if(index<values.length()) next.put(values.get(index))};removed=null;onChange(next)}) {Text("Entfernen rückgängig")}}
     OutlinedButton(onClick={onChange(JSONArray(values.toString()).put(JSONObject().put("title","").put("description","").put("quantity",JSONObject.NULL).put("price",JSONObject.NULL).put("unit","").put("tax_rate",JSONObject.NULL)))},modifier=Modifier.fillMaxWidth()) {Text("Position hinzufügen")}
     Text("Mengen und Preise bleiben offen, bis Sie sie ausdrücklich angeben. Summen werden beim Speichern durch dieselben Fachregeln wie bei MCP geprüft.")
-}
-
-@Composable
-private fun FinanceIssueReview(controller:NativeAppController,id:String,envelope:JSONObject,onClose:()->Unit) {
-    val key=controller.route.args.optString("_draft_key").ifEmpty {"finance:issue:$id"}
-    var review by remember(id) { mutableStateOf(envelope.optJSONObject("issue_review") ?: JSONObject()) }
-    var loaded by remember(id) {mutableStateOf(false)}
-    var loadRetry by remember(id) {mutableIntStateOf(0)}
-    var compared by remember { mutableStateOf<JSONObject?>(null) }
-    var pending by remember { mutableStateOf<JSONObject?>(null) }
-    var request by rememberSaveable(id) { mutableStateOf(UUID.randomUUID().toString()) }
-    var confirmed by rememberSaveable(id) { mutableStateOf(false) }
-    var acceptComparison by remember { mutableStateOf(false) }
-    var rejected by remember { mutableStateOf("") }
-    var restored by remember { mutableStateOf(false) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf("") }
-    val scope=rememberCoroutineScope()
-    fun retain() { controller.saveDraft(key,JSONObject().put("review",review).put("args",pending ?: JSONObject()).put("request_id",request).put("rejected_code",rejected)) }
-    LaunchedEffect(id,loadRetry) {try {controller.draft(key)?.let { saved ->
-        saved.optJSONObject("review")?.let {review=it}
-        pending=saved.optJSONObject("args")?.takeIf {it.has("request_id")}
-        request=saved.optString("request_id",request);rejected=saved.optString("rejected_code");confirmed=pending!=null
-        restored=saved.optBoolean("_restore_action_review_required")
-    };loaded=true}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty();loaded=false}}
-    suspend fun compare() {
-        val latest=controller.call("get_invoice",JSONObject().put("invoice_id",id))
-        val invoice=latest.optJSONObject("data") ?: throw IllegalArgumentException("Der gespeicherte Beleg fehlt.")
-        if(IssuedInvoiceRules.isIssued(invoice)) {controller.removeDraft(key);controller.message("Bereits ausgestellten Beleg gelesen. Keine zweite Nummer vergeben.");onClose();return}
-        compared=latest.optJSONObject("issue_review") ?: throw IllegalArgumentException("Die vollständige Ausgabeprüfung fehlt.")
-        acceptComparison=false
-    }
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Text("Rechnung lokal verbindlich ausstellen",style=MaterialTheme.typography.headlineSmall)
-        if(!loaded) {if(error.isEmpty()) CircularProgressIndicator() else {Text(error,color=MaterialTheme.colorScheme.error);TextButton(onClick={error="";loadRetry++}) {Text("Ausgabeentwurf erneut lesen")}};TextButton(onClick=onClose) {Text("Zurück")};return@Column}
-        Text("Prüfen Sie den gemeinsam gelesenen Aussteller, Empfänger, Beleg und alle Leistungsquellen. Eine Nummer wird erst mit erfolgreicher Ausgabe atomar vergeben. PDF-Erstellung und Teilen folgen getrennt.")
-        FinanceReviewSummary(controller,review)
-        val ready=review.optBoolean("ready") && review.optJSONArray("blockers")?.length()==0
-        if(pending==null) FinanceCheck("Ich bestätige genau die oben gezeigten Aussteller-, Empfänger-, Beleg- und Quellenangaben einschließlich der Mengen.",confirmed) {confirmed=it}
-        if(pending!=null) Text(if(rejected.isEmpty()) "Die ursprüngliche Aktion und der bestätigte Prüfstand bleiben für dieselbe Wiederholung erhalten." else "Die ursprüngliche Ausgabe wurde abgewiesen. Aktuellen Prüfstand vergleichen und bewusst neu übernehmen.")
-        if(restored) Text("Diese frühere Ausgabeprüfung stammt aus einer Wiederherstellung. Zuerst den ursprünglichen Aktionsbeleg lesen. Eine unbestätigte Prüfung vor einer neuen Ausgabe ausdrücklich mit dem aktuellen Stand vergleichen.")
-        if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
-        OutlinedButton(enabled=!busy,onClick={scope.launch {try{compare()}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Gespeicherten Prüfstand vergleichen")}
-        compared?.let { next ->
-            HorizontalDivider();Text(if(next.optString("context_hash")==review.optString("context_hash")) "Neu gelesen: Prüfstand unverändert" else "Neu gelesen: Angaben wurden geändert",style=MaterialTheme.typography.titleMedium)
-            FinanceReviewSummary(controller,next)
-            if(pending==null || rejected.isNotEmpty()) {
-                FinanceCheck("Ich habe den bisherigen und den neu gelesenen Prüfstand einschließlich aller Änderungen verglichen.",acceptComparison) {acceptComparison=it}
-                Button(enabled=acceptComparison && !busy,onClick={scope.launch {try {review=financeCopy(next);request=UUID.randomUUID().toString();controller.adoptDraft(key,JSONObject().put("review",review).put("request_id",request));compared=null;pending=null;rejected="";restored=false;confirmed=false;error="Neuen Prüfstand übernommen. Erneut ausdrücklich bestätigen; es wurde keine Rechnung ausgestellt."}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Geprüften Stand neu übernehmen")}
-            } else Text("Die ursprüngliche Ausgabe zuerst eindeutig prüfen. Bis dahin bleibt dieselbe Aktionskennung erhalten.")
-        }
-        Button(enabled=!busy && ((ready && confirmed && rejected.isEmpty() && !restored) || (restored && pending!=null)),onClick={scope.launch {
-            busy=true;error=""
-            var attemptedWrite=false
-            try {
-                pending?.let { original ->
-                    if(financeInspect(controller,"request_invoice_issue",original)!=null) {controller.removeDraft(key);controller.message("Ursprüngliche Ausgabe bestätigt. Keine zweite Rechnung erstellt.");onClose();return@launch}
-                }
-                if(restored) {compare();throw IllegalStateException("Kein eindeutiger Beleg für die ursprüngliche Ausgabe gefunden. Die alte Anfrage bleibt erhalten; sie wird nicht erneut ausgeführt.")}
-                if(pending==null) pending=JSONObject().put("invoice_id",id).put("request_id",request).put("expected_record_hash",review.getString("record_hash")).put("expected_context_hash",review.getString("context_hash")).put("confirmed",true)
-                retain();controller.flushDrafts()
-                attemptedWrite=true
-                val result=financeData(controller.call("request_invoice_issue",pending!!))
-                if(result.optString("finalization")!="locally_issued" || result.optString("invoice_id")!=id || result.optString("invoice_number").isEmpty()) throw IllegalStateException("Ausgabe noch nicht eindeutig bestätigt. Dieselbe Aktion erneut prüfen.")
-                controller.removeDraft(key);controller.message("Rechnung ${result.getString("invoice_number")} lokal ausgestellt. PDF-Status: ${result.optString("pdf_state")}. Kein Versand bestätigt.");onClose()
-            } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {
-                val code=(f as? NativeCallFailure)?.detail?.optString("code").orEmpty()
-                if(attemptedWrite && code in setOf("WRITE_CONFLICT","INVOICE_REVIEW_CONTEXT_REQUIRED","INVALID_INPUT","INVOICE_SOURCE_QUANTITY_EXCEEDED","INVOICE_SOURCE_ALREADY_BILLED","INVOICE_SOURCE_UNIT_REVIEW_REQUIRED")) {rejected=code;retain()}
-                else runCatching {compare()}
-                error=f.message.orEmpty()+" Ursprünglicher Prüfstand und Anfrage bleiben erhalten."
-            } finally {busy=false}
-        }},modifier=Modifier.fillMaxWidth()) {Text(if(busy) "Ausgabe wird geprüft …" else if(restored && pending!=null) "Ursprünglichen Ausgabebeleg lesen" else if(pending!=null) "Dieselbe Ausgabe erneut prüfen" else "Rechnung verbindlich ausstellen")}
-        TextButton(enabled=!busy,onClick=onClose) {Text("Später prüfen")}
-    }
-}
-
-@Composable
-private fun FinanceReviewSummary(controller:NativeAppController,review:JSONObject) {
-    val snapshot=review.optJSONObject("snapshot") ?: JSONObject()
-    val invoice=snapshot.optJSONObject("invoice")
-    FinanceIssuerSummary(snapshot.optJSONObject("issuer"))
-    Text("Rechnungsempfänger",style=MaterialTheme.typography.titleMedium)
-    FinanceValues(snapshot.optJSONObject("recipient"),financePartyFields)
-    invoice?.let {FinanceDraftSummary(controller,it,"invoices");Text("Netto ${financeMoney(it.opt("net_total"))} · Steuer ${financeMoney(it.opt("tax_total"))} · Gesamt ${financeMoney(it.opt("gross_total"))}")}
-    for((collection,label) in listOf("worklogs" to "Arbeitsquellen","materials" to "Materialquellen","orders" to "Zugeordnete Aufträge")) {
-        val rows=snapshot.optJSONArray(collection) ?: continue
-        if(rows.length()>0) Text(label,style=MaterialTheme.typography.titleMedium)
-        for(index in 0 until rows.length()) {
-            val source=rows.optJSONObject(index) ?: continue
-            val record=source.optJSONObject("record")
-            FinanceValues(record,listOf("title" to "Bezeichnung","activity" to "Tätigkeit","description" to "Beschreibung","work_date" to "Arbeitsdatum","start_time" to "Beginn","end_time" to "Ende","break_minutes" to "Pause in Minuten","hours" to "Stunden","quantity_decimal" to "Ursprungsmenge","unit" to "Einheit","location" to "Einsatzort","notes" to "Notizen","material" to "Material","material_cost" to "Materialkosten","kilometers" to "Kilometer"))
-            FinanceValues(source.optJSONObject("billing_customer_context"),listOf("name" to "Abrechnungskontext","billing_mode" to "Abrechnungsweg"))
-            if(collection!="orders") {
-                val quantity=source.optJSONObject("billing_quantity")
-                Text("Angefragt: ${source.optString("requested_quantity_decimal")} · Gesamt: ${quantity?.optString("total_decimal") ?: source.optString("total_decimal")} · bereits zugeordnet: ${quantity?.optString("allocated_decimal") ?: source.optString("allocated_decimal")} · Rest: ${quantity?.optString("remaining_decimal") ?: source.optString("remaining_decimal")}")
-                val allocations=source.optJSONObject("allocations_by_invoice") ?: JSONObject()
-                for(invoiceId in allocations.keys()) {FinanceInvoiceLabel(controller,invoiceId);Text("Bereits zugeordnete Menge: ${allocations.optString(invoiceId)}")}
-            }
-        }
-    }
-    snapshot.optJSONObject("correction_original")?.let {original ->Text("Unverändertes Korrekturoriginal",style=MaterialTheme.typography.titleMedium);FinanceDraftSummary(controller,original,"invoices")}
-    val blockers=review.optJSONArray("blockers") ?: JSONArray()
-    if(!review.optBoolean("ready")) Text("Ausgabe noch gesperrt",color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.titleMedium)
-    for(index in 0 until blockers.length()) Text(blockers.optJSONObject(index)?.optString("message") ?: "Prüfung erforderlich",color=MaterialTheme.colorScheme.error)
-}
-
-@Composable
-private fun FinanceInvoiceDocument(controller:NativeAppController,id:String) {
-    var data by remember(id) {mutableStateOf(JSONObject())}
-    var tick by remember {mutableIntStateOf(0)}
-    var error by remember {mutableStateOf("")}
-    val scope=rememberCoroutineScope()
-    LaunchedEffect(id,tick) {try{data=controller.query("get_invoice_document_job",JSONObject().put("invoice_id",id));error=""}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}
-    val state=data.optString("pdf_state")
-    Text("Original-PDF: ${when(state){"READY"->"Geprüftes Original vorhanden";"PDF_PENDING"->"Lokale Erstellung ausstehend";"ORIGINAL_REVIEW_REQUIRED"->"Originalnachweis muss geprüft werden";else->state.ifEmpty{"Noch nicht gelesen"}}}")
-    if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
-    TextButton(onClick={tick++}) {Text("PDF-Status lesen")}
-    if(state=="READY" && data.optBoolean("original_verified")) {
-        OutlinedButton(onClick={scope.launch {try{controller.viewDocument("invoice",id)}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Original-PDF öffnen")}
-        for((channel,label) in listOf("share" to "Original-PDF teilen","email" to "Original-PDF per E-Mail übergeben","whatsapp" to "Original-PDF an WhatsApp übergeben")) OutlinedButton(onClick={scope.launch {try{controller.call("prepare_invoice_share",JSONObject().put("invoice_id",id).put("request_id",UUID.randomUUID().toString()).put("channel",channel));controller.shareDocument("invoice",id,channel)}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text(label)}
-    } else if(state=="PDF_PENDING") OutlinedButton(onClick={controller.action("Lokale PDF-Erstellung erneut prüfen","retry_invoice_document_job",JSONObject().put("invoice_id",id).put("expected_record_hash",data.optString("record_hash")))},modifier=Modifier.fillMaxWidth()) {Text("PDF-Erstellung erneut anfordern")}
-    Text("Teilen oder die Übergabe an eine App bestätigt weder Versand noch Zustellung.")
-}
-
-@Composable
-private fun FinancePayments(controller:NativeAppController,invoiceId:String) {
-    var ledger by remember(invoiceId) {mutableStateOf(JSONObject())}
-    var offset by rememberSaveable(invoiceId) {mutableIntStateOf(0)}
-    var refresh by remember {mutableIntStateOf(0)}
-    var editing by rememberSaveable(invoiceId,controller.route.mode,controller.route.args.optString("_draft_key")) {mutableStateOf(controller.route.mode in listOf("edit","new"))}
-    var correction by remember(invoiceId,controller.route.args.optString("payment_id")) {mutableStateOf(controller.route.args.optJSONObject("_correction") ?: controller.route.args.optString("payment_id").takeIf {it.isNotEmpty()}?.let {JSONObject().put("payment_id",it)})}
-    var error by remember {mutableStateOf("")}
-    LaunchedEffect(invoiceId,offset,refresh) {try{val args=JSONObject().put("offset",offset).put("limit",50);if(invoiceId.isNotEmpty()) args.put("invoice_id",invoiceId);ledger=controller.query("get_payment_ledger",args);error=""}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}
-    if(editing) {
-        if(ledger.optString("ledger_hash").isEmpty()) Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            if(error.isEmpty()) CircularProgressIndicator() else Text(error,color=MaterialTheme.colorScheme.error)
-            TextButton(onClick={refresh++}) {Text("Zahlungsstand erneut lesen")}
-            TextButton(onClick={controller.back()}) {Text("Zurück")}
-        } else FinancePaymentEditor(controller,invoiceId,ledger,correction,onClose={editing=false;correction=null;if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate("payments",invoiceId) else refresh++})
-        return
-    }
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Text("Zahlungen und belegte Reststände",style=MaterialTheme.typography.headlineSmall)
-        Text("Zahlungen, Rechnungsstatus und persönliche b.b.-Markierungen bleiben getrennt. Eine Erfassung ist keine Bankbuchung.")
-        if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
-        val balances=ledger.optJSONArray("balances") ?: JSONArray()
-        for(i in 0 until balances.length()) {val balance=balances.getJSONObject(i)
-            Card(Modifier.fillMaxWidth().clickable {controller.navigate("invoices",balance.getString("invoice_id"))}) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                FinanceInvoiceLabel(controller,balance.optString("invoice_id"),balance.optString("invoice_number"))
-                Text(financeStatus(balance.optString("legacy_status")))
-                if(!balance.optBoolean("balance_known")) Text("Reststand noch nicht vollständig belegt. Historischen Bestand prüfen.") else {
-                    Text("Forderung ${financeMoney(BigDecimal(balance.optLong("invoice_minor")).movePointLeft(2))}")
-                    Text("Rest ${financeMoney(if(balance.isNull("remaining_minor")) null else BigDecimal(balance.optLong("remaining_minor")).movePointLeft(2))} · Guthaben ${financeMoney(BigDecimal(balance.optLong("credit_minor")).movePointLeft(2))}")
-                }
-            }}
-        }
-        val payments=ledger.optJSONArray("payments") ?: JSONArray()
-        Text("${ledger.optInt("total",payments.length())} Zahlungen / Korrekturen")
-        for(i in 0 until payments.length()) {val payment=payments.getJSONObject(i)
-            Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text("${nativeDisplayDate(payment.optString("paid_on",payment.optString("recorded_at")))} · ${financeMoney(BigDecimal(payment.optLong("amount_minor")).movePointLeft(2))}",style=MaterialTheme.typography.titleMedium)
-                Text("${financeStatus(payment.optString("method"))} ${payment.optString("reference")}")
-                if(payment.optBoolean("reversal")) Text("Gegenbuchung; Original bleibt erhalten.")
-                if(payment.optString("reason").isNotEmpty()) Text("Korrekturgrund: ${payment.optString("reason")}")
-                val allocations=payment.optJSONArray("allocations") ?: JSONArray()
-                for(j in 0 until allocations.length()) {val allocation=allocations.getJSONObject(j);FinanceInvoiceLabel(controller,allocation.optString("invoice_id"),allocation.optString("invoice_number"));Text("Zugeordnet: ${financeMoney(BigDecimal(allocation.optLong("amount_minor")).movePointLeft(2))}")}
-                Text("Unzugeordnet: ${financeMoney(BigDecimal(payment.optLong("unallocated_minor")).movePointLeft(2))}")
-                if(!payment.optBoolean("reversal") && payment.optLong("amount_minor")>0) OutlinedButton(onClick={correction=financeCopy(payment);editing=true}) {Text("Korrektur mit Grund erfassen")}
-            }}
-        }
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-            TextButton(enabled=offset>0,onClick={offset=(offset-50).coerceAtLeast(0)}) {Text("Zurück")}
-            TextButton(enabled=offset+payments.length()<ledger.optInt("total",0),onClick={offset+=50}) {Text("Weitere")}
-        }
-        Button(enabled=ledger.optString("ledger_hash").isNotEmpty(),onClick={correction=null;editing=true},modifier=Modifier.fillMaxWidth()) {Text("Zahlung erfassen")}
-        TextButton(onClick={refresh++}) {Text("Gespeicherten Zahlungsstand lesen")}
-    }
-}
-
-@Composable
-private fun FinancePaymentEditor(controller:NativeAppController,invoiceId:String,ledger:JSONObject,correction:JSONObject?,onClose:()->Unit) {
-    val key=controller.route.args.optString("_draft_key").ifEmpty {"finance:payment:${correction?.optString("payment_id") ?: "new:$invoiceId"}"}
-    var form by remember(key) {mutableStateOf(JSONObject().put("amount",correction?.takeIf {it.has("amount_minor")}?.let {BigDecimal(it.getLong("amount_minor")).movePointLeft(2).toPlainString()} ?: "").put("paid_on",correction?.optString("paid_on") ?: financeToday()).put("method",correction?.optString("method") ?: "").put("reference",correction?.optString("reference") ?: "").put("allocations",JSONArray()))}
-    var loaded by remember(key) {mutableStateOf(false)}
-    var loadRetry by remember(key) {mutableIntStateOf(0)}
-    var ledgerHash by rememberSaveable(key) {mutableStateOf(ledger.optString("ledger_hash"))}
-    var request by rememberSaveable(key) {mutableStateOf(UUID.randomUUID().toString())}
-    var pending by remember {mutableStateOf<JSONObject?>(null)}
-    var rejected by remember {mutableStateOf(false)}
-    var restored by remember {mutableStateOf(false)}
-    var compared by remember {mutableStateOf<JSONObject?>(null)}
-    var confirmed by rememberSaveable(key) {mutableStateOf(false)}
-    var adoptReviewed by remember {mutableStateOf(false)}
-    var error by remember {mutableStateOf("")}
-    var busy by remember {mutableStateOf(false)}
-    val scope=rememberCoroutineScope()
-    fun retain(next:JSONObject) {if(pending!=null)return;form=next;controller.saveDraft(key,JSONObject().put("form",form).put("ledger_hash",ledgerHash).put("request_id",request))}
-    fun field(name:String,value:Any) {retain(financeCopy(form).put(name,value))}
-    LaunchedEffect(key,loadRetry) {try {
-        val saved=controller.draft(key)
-        if(saved!=null) {form=saved.optJSONObject("form") ?: form;ledgerHash=saved.optString("ledger_hash",ledgerHash);request=saved.optString("request_id",request);pending=saved.optJSONObject("args")?.takeIf {it.has("request_id")};rejected=saved.optBoolean("rejected");confirmed=pending!=null;restored=saved.optBoolean("_restore_action_review_required")}
-        else {
-            val allocations=JSONArray()
-            if(correction!=null) {val old=correction.optJSONArray("allocations") ?: JSONArray();for(i in 0 until old.length()) {val value=old.getJSONObject(i);allocations.put(JSONObject().put("invoice_id",value.getString("invoice_id")).put("amount",BigDecimal(value.getLong("amount_minor")).movePointLeft(2).toPlainString()))}}
-            else if(invoiceId.isNotEmpty()) allocations.put(JSONObject().put("invoice_id",invoiceId).put("amount",""))
-            for(i in 0 until allocations.length()) {val allocation=allocations.getJSONObject(i);val balances=ledger.optJSONArray("balances") ?: JSONArray();for(j in 0 until balances.length()) {val balance=balances.getJSONObject(j);if(balance.optString("invoice_id")==allocation.optString("invoice_id")) allocation.put("expected_record_hash",balance.optString("record_hash")).put("remaining_minor",balance.opt("remaining_minor") ?: JSONObject.NULL).put("invoice_number",balance.optString("invoice_number"))}
-                if(allocation.optString("expected_record_hash").isEmpty()) try {val current=controller.query("get_payment_ledger",JSONObject().put("invoice_id",allocation.getString("invoice_id"))).optJSONArray("balances")?.optJSONObject(0) ?: throw IllegalArgumentException("Die zugeordnete Rechnung ist nicht als ausgestellter Beleg lesbar.");allocation.put("expected_record_hash",current.getString("record_hash")).put("remaining_minor",current.opt("remaining_minor") ?: JSONObject.NULL).put("invoice_number",current.optString("invoice_number"))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}
-            }
-            form=financeCopy(form).put("allocations",allocations)
-        }
-        loaded=true
-    }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty();loaded=false}}
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Text(if(correction==null) "Zahlung erfassen" else "Zahlungskorrektur mit Gegenbuchung",style=MaterialTheme.typography.headlineSmall)
-        if(!loaded) {if(error.isEmpty()) CircularProgressIndicator() else {Text(error,color=MaterialTheme.colorScheme.error);TextButton(onClick={error="";loadRetry++}) {Text("Zahlungsentwurf erneut lesen")}};TextButton(onClick=onClose) {Text("Zurück")};return@Column}
-        if(correction!=null) Text("Die ursprüngliche Zahlung ${if(correction.has("amount_minor")) financeMoney(BigDecimal(correction.optLong("amount_minor")).movePointLeft(2)) else ""} bleibt unverändert. Eine Gegenbuchung und die bestätigte Ersatzquittung werden gemeinsam protokolliert. Betrag 0 mit leerer Zuordnung nimmt die Zahlung vollständig zurück.")
-        if(pending==null) {
-            NativeField("Tatsächlich gezahlter Betrag in EUR",form.optString("amount"),{field("amount",it)},required=true)
-            NativeField("Zahlungsdatum",form.optString("paid_on"),{field("paid_on",it)},required=true)
-            FinanceChoice("Zahlungsart",form.optString("method"),listOf("cash" to "Bar","bank" to "Bank","card" to "Karte","other" to "Andere")) {field("method",it)}
-            NativeField("Zahlungsreferenz",form.optString("reference"),{field("reference",it)})
-            if(correction!=null) NativeField("Grund der Korrektur",form.optString("reason"),{field("reason",it)},required=true,multiline=true)
-            Text("Rechnungszuordnungen",style=MaterialTheme.typography.titleMedium)
-            val allocations=form.optJSONArray("allocations") ?: JSONArray()
-            for(i in 0 until allocations.length()) {val value=allocations.getJSONObject(i)
-                NativeRecordPicker(controller,"invoices","Rechnung",value.optString("invoice_id")) {chosen ->scope.launch {try {
-                    if(chosen.isEmpty()) {val next=JSONArray(allocations.toString());next.getJSONObject(i).remove("expected_record_hash");next.getJSONObject(i).put("invoice_id","").remove("invoice_number");field("allocations",next);return@launch}
-                    val balance=controller.query("get_payment_ledger",JSONObject().put("invoice_id",chosen)).optJSONArray("balances")?.optJSONObject(0) ?: throw IllegalArgumentException("Nur ausgestellte Rechnungen können einer Zahlung zugeordnet werden.")
-                    val next=JSONArray(allocations.toString());next.getJSONObject(i).put("invoice_id",chosen).put("invoice_number",balance.optString("invoice_number")).put("expected_record_hash",balance.getString("record_hash")).put("remaining_minor",balance.opt("remaining_minor") ?: JSONObject.NULL);field("allocations",next)
-                } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()} }}
-                if(value.optString("invoice_id").isNotEmpty()) FinanceInvoiceLabel(controller,value.getString("invoice_id"),value.optString("invoice_number"))
-                Text("Gelesener Rest ${financeMoney(if(!value.has("remaining_minor") || value.isNull("remaining_minor")) null else BigDecimal(value.optLong("remaining_minor")).movePointLeft(2))}")
-                NativeField("Zugeordneter Teilbetrag in EUR",value.optString("amount"),{amount ->val next=JSONArray(allocations.toString());next.getJSONObject(i).put("amount",amount);field("allocations",next)},required=true)
-                TextButton(onClick={val next=JSONArray();for(j in 0 until allocations.length()) if(j!=i)next.put(allocations.get(j));field("allocations",next)}) {Text("Zuordnung entfernen")}
-            }
-            OutlinedButton(onClick={field("allocations",JSONArray(allocations.toString()).put(JSONObject().put("invoice_id","").put("amount","")))},modifier=Modifier.fillMaxWidth()) {Text("Weitere Rechnung zuordnen")}
-            FinanceCheck("Betrag, Zahlungsdatum, Art und alle Rechnungszuordnungen ausdrücklich geprüft",confirmed) {confirmed=it}
-        } else Text("Der ursprünglich bestätigte Zahlungsauftrag bleibt unverändert. Zuerst nachlesen und denselben Vorgang erneut prüfen.")
-        if(restored) Text("Dieser Zahlungsentwurf stammt aus einer Wiederherstellung. Den ursprünglichen Speicherbeleg zuerst lesen; eine neue Zahlung erfordert die bewusste Übernahme des aktuellen Zahlungsstands.")
-        if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
-        OutlinedButton(enabled=!busy,onClick={scope.launch {try{compared=controller.query("get_payment_ledger",JSONObject().put("limit",100));adoptReviewed=false;controller.message("Aktuellen Zahlungsstand gelesen. Der ursprüngliche Auftrag bleibt erhalten.")}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Gespeicherten Zahlungsstand vergleichen")}
-        compared?.let {read ->
-            Text(if(read.optString("ledger_hash")==ledgerHash) "Zahlungsstand unverändert." else "Der gespeicherte Zahlungsstand wurde geändert.")
-            val balances=read.optJSONArray("balances") ?: JSONArray()
-            for(i in 0 until balances.length()) {val b=balances.getJSONObject(i);FinanceInvoiceLabel(controller,b.optString("invoice_id"),b.optString("invoice_number"));Text(financeStatus(b.optString("legacy_status")));Text("Rest ${financeMoney(if(b.isNull("remaining_minor")) null else BigDecimal(b.optLong("remaining_minor")).movePointLeft(2))}")}
-            if(pending==null || (rejected && !restored)) {
-                FinanceCheck("Ich habe die Zahlung, ihre Zuordnungen und den neu gelesenen Zahlungsstand verglichen.",adoptReviewed) {adoptReviewed=it}
-                TextButton(enabled=adoptReviewed && !busy,onClick={scope.launch {try {
-                    ledgerHash=read.getString("ledger_hash")
-                    val allocations=JSONArray((form.optJSONArray("allocations") ?: JSONArray()).toString())
-                    for(i in 0 until allocations.length()) {
-                        val a=allocations.getJSONObject(i)
-                        val balance=(0 until balances.length()).map {balances.getJSONObject(it)}.firstOrNull {it.optString("invoice_id")==a.optString("invoice_id")} ?: throw IllegalArgumentException("Eine zugeordnete Rechnung fehlt im gelesenen Zahlungsstand. Die Auswahl bewusst neu prüfen.")
-                        a.put("expected_record_hash",balance.getString("record_hash")).put("remaining_minor",balance.opt("remaining_minor") ?: JSONObject.NULL).put("invoice_number",balance.optString("invoice_number"))
-                    }
-                    form=financeCopy(form).put("allocations",allocations);request=UUID.randomUUID().toString()
-                    controller.adoptDraft(key,JSONObject().put("form",form).put("ledger_hash",ledgerHash).put("request_id",request))
-                    pending=null;rejected=false;restored=false;compared=null;confirmed=false;adoptReviewed=false
-                }catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}}) {Text("Diesen gelesenen Stand für erneute Prüfung übernehmen")}
-            }
-        }
-        Button(enabled=!busy && ((confirmed && !rejected && !restored) || (restored && pending!=null)),onClick={scope.launch {
-            busy=true;error=""
-            var attemptedWrite=false
-            try {
-                pending?.let { original ->
-                    if(financeInspect(controller,if(correction==null) "record_payment" else "correct_payment",original)!=null) {controller.removeDraft(key);controller.message("Ursprüngliche Zahlung bestätigt. Keine zweite Buchung erzeugt.");onClose();return@launch}
-                }
-                if(restored) throw IllegalStateException("Kein eindeutiger Beleg für die alte Zahlung gefunden. Der ursprüngliche Auftrag bleibt erhalten und wird nicht erneut ausgeführt.")
-                val args=pending ?: run {
-                    val allocations=JSONArray();val values=form.optJSONArray("allocations") ?: JSONArray()
-                    for(i in 0 until values.length()) {val value=values.getJSONObject(i);val invoice=value.getString("invoice_id");if(value.optString("expected_record_hash").isEmpty()) throw IllegalArgumentException("Die gewählte Rechnung zuerst aktuell lesen.");allocations.put(JSONObject().put("invoice_id",invoice).put("amount_minor",financeMinor(value.getString("amount"))).put("expected_record_hash",value.getString("expected_record_hash")))}
-                    JSONObject().put("request_id",request).put("expected_ledger_hash",ledgerHash).put("amount_minor",financeMinor(form.getString("amount"))).put("paid_on",form.getString("paid_on")).put("method",form.getString("method")).put("reference",form.optString("reference")).put("allocations",allocations).also {if(correction!=null) it.put("payment_id",correction.getString("payment_id")).put("reason",form.getString("reason"));it.put("confirmed",true)}
-                }
-                pending=financeCopy(args);controller.saveDraft(key,JSONObject().put("form",form).put("ledger_hash",ledgerHash).put("request_id",request).put("args",args));controller.flushDrafts()
-                attemptedWrite=true
-                controller.call(if(correction==null) "record_payment" else "correct_payment",args)
-                controller.removeDraft(key);controller.message(if(correction==null) "Zahlung mit Zuordnungen gespeichert." else "Gegenbuchung und Ersatzquittung gespeichert. Originalzahlung erhalten.");onClose()
-            } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {
-                val code=(f as? NativeCallFailure)?.detail?.optString("code").orEmpty()
-                if(attemptedWrite && (f as? NativeCallFailure)?.detail?.optString("commit_state")=="not_committed") {pending=null;rejected=false;confirmed=false;request=UUID.randomUUID().toString();controller.saveDraft(key,JSONObject().put("form",form).put("ledger_hash",ledgerHash).put("request_id",request))}
-                else if(attemptedWrite && code in setOf("WRITE_CONFLICT","PAYMENT_LEDGER_WRITE_CONFLICT","INVALID_INPUT","PAYMENT_POSITIVE_AMOUNT_REQUIRED","PAYMENT_ZERO_CORRECTION_REQUIRES_EMPTY_ALLOCATIONS","PAYMENT_CORRECTION_REASON_REQUIRED","PAYMENT_DATE_IN_FUTURE","PAYMENT_INVOICE_INVALID","PAYMENT_ALLOCATION_EXCEEDS_AMOUNT")) {rejected=true;controller.saveDraft(key,JSONObject().put("form",form).put("ledger_hash",ledgerHash).put("request_id",request).put("args",pending ?: JSONObject()).put("rejected",true))}
-                error=f.message.orEmpty()
-            } finally {busy=false}
-        }},modifier=Modifier.fillMaxWidth()) {Text(if(busy) "Zahlung wird geprüft …" else if(restored && pending!=null) "Ursprünglichen Zahlungsbeleg lesen" else if(pending!=null) "Dieselbe Zahlung erneut prüfen" else if(correction==null) "Bestätigte Zahlung speichern" else "Bestätigte Korrektur protokollieren")}
-        TextButton(enabled=!busy && pending==null,onClick={scope.launch {controller.removeDraft(key);onClose()}}) {Text("Verwerfen")}
-        TextButton(enabled=!busy,onClick=onClose) {Text("Später prüfen")}
-    }
 }
