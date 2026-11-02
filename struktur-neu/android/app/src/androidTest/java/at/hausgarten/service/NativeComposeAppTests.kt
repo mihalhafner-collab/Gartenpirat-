@@ -509,7 +509,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun usabilityJourney() {
         click("Heute")
-        reveal("Erfasste Arbeiten")
+        val day = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
+        val workSummary = read("get_work_record_summary", JSONObject().put("date_from", day).put("date_to", day))
+        if (workSummary.optInt("work_records") > 0) reveal("Erfasste Arbeiten")
+        else { reveal("Arbeitszeit heute"); shown("0 h gespeichert · 0 Einträge") }
         val overview = read("get_revier_overview", JSONObject().put("date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()))
         val due = overview.optJSONArray("due_visits") ?: JSONArray()
         val today = overview.getString("date")
@@ -790,13 +793,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             activity?.let { current -> test.runOnMainSync { current.finish() } }
             shell("settings put system font_scale 2.0"); launch()
             shown("Einsatz starten")
-            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
-            for (label in listOf("Einsatz starten", "Planung", "+ Erfassen", "Heute", "Arbeit", "Kunden", "Büro")) {
+            val labels = listOf("Einsatz starten", "Planung", "+ Erfassen", "Heute", "Arbeit", "Kunden", "Büro")
+            waitUntil("TODAY_LARGE_TEXT_LAYOUT_READY") {
+                var fontReady = false
+                test.runOnMainSync { fontReady = (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f }
+                fontReady && !keyboardVisible() && labels.all { label ->
+                    runCatching {
+                        val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                        screen.contains(actionBounds(label))
+                    }.getOrDefault(false)
+                }
+            }
+            for (label in labels) {
                 val bounds = actionBounds(label)
-                yes(screen.contains(bounds) && bounds.height() >= 48, "TODAY_LARGE_TEXT_ACTION_$label")
+                val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                val density = activity!!.resources.displayMetrics.density
+                val minimum = if (label in labels.take(3)) 56 else 48
+                yes(screen.contains(bounds) && bounds.height() >= minimum * density - 1,
+                    "TODAY_LARGE_TEXT_ACTION_${label}_bounds=${bounds}_screen=${screen}")
             }
             click("+ Erfassen"); reveal("Schließen"); click("Schließen")
             captureSyntheticScreen("today-large-font")
+        } catch (failure: Throwable) {
+            captureSyntheticScreen("failure-today-large-font")
+            throw failure
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
@@ -1220,9 +1240,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("+ Erfassen"); click("Arbeit nachtragen"); val priorCustomer = openWorkCustomerPicker()
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
+            fun gestureDump(): String = shell("dumpsys activity service com.android.systemui/.SystemUIService --dump-priority NORMAL") +
+                "\n" + shell("dumpsys activity service com.android.systemui/.SystemUIService --dump-priority CRITICAL")
             fun gestureHandlers(): String {
-                val dump = shell("dumpsys activity service com.android.systemui/.SystemUIService")
-                return dump.split("EdgeBackGestureHandler:").drop(1).joinToString("\nNEXT_HANDLER\n") { it.take(2200) }
+                val dump = gestureDump()
+                val headers = Regex("(?m)^\\s*(?:[A-Za-z0-9_$.]+\\.)?EdgeBackGestureHandler[^\\r\\n]*$").findAll(dump).toList()
+                return headers.mapIndexed { index, header ->
+                    val start = header.range.last + 1
+                    val end = minOf(start + 2200, headers.getOrNull(index + 1)?.range?.first ?: dump.length)
+                    dump.substring(start, end)
+                }.joinToString("\nNEXT_HANDLER\n")
             }
             try {
                 waitUntil("ATTACHED_EDGE_GESTURE_HANDLER") {
@@ -1230,7 +1257,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
             } catch (failure: Throwable) {
                 test.sendStatus(0, Bundle().apply {
-                    putString("gesture_attach_diagnostics", shell("dumpsys activity service com.android.systemui/.SystemUIService").takeLast(24000))
+                    putString("gesture_attach_diagnostics", gestureDump().lineSequence().filter { line -> listOf("EdgeBack", "mIsAttached", "mIsEnabled", "Gestural", "NavigationBar", "No dump target", "Unknown argument").any { it in line } }.joinToString("\n").take(20000))
+                    putString("gesture_dumpables", shell("dumpsys activity service com.android.systemui/.SystemUIService --list").take(12000))
                 })
                 throw failure
             }

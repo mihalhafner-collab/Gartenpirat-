@@ -581,3 +581,15 @@ Entwurfs- oder Einsatzzuordnung. Zurück muss diese Zuordnung unverändert lasse
 Ungebundene Angebots-Viewportfälle verwenden vor der Suche die echte
 Filter-zurücksetzen-Aktion; die Kundenkontext-Prüfung verifiziert weiterhin
 getrennt die erhaltenen Zuordnungen und Filter.
+
+Der Kunden-Suchdialog blendet im Querformat bei offener Tastatur nur die
+Statusleiste seines eigenen Fensters aus und stellt sie anschließend wieder her.
+Ergebnisflächen bleiben auch bei 200 % vollständig oberhalb der IME; Schrift und
+Treffer werden nicht verkleinert. Der Randgestentest liest die NORMAL- und
+CRITICAL-Dumpklassen von SystemUI und verlangt weiterhin einen aktiv angehängten
+EdgeBackGestureHandler, bevor er echte Randberührungen injiziert.
+Die Heute-Geometrieprüfung wartet auf die angewandte 200-%-Konfiguration und
+verwendet aktuelle Fenstergrenzen. Hauptaktionen benötigen mindestens 56 dp,
+Navigation mindestens 48 dp. Ein Fehlerbild wird vor dem Zurücksetzen der Schrift
+aufgenommen. Eine leere Tagesübersicht wird anhand des tatsächlichen lokalen
+Stundensummenergebnisses geprüft.

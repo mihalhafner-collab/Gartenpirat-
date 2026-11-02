@@ -168,6 +168,14 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
         val focus = LocalFocusManager.current
         val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
         val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val dialogWindow = (view.parent as? DialogWindowProvider)?.window
+        DisposableEffect(dialogWindow, landscape, imeVisible) {
+            val bars = dialogWindow?.let { androidx.core.view.WindowCompat.getInsetsController(it, view) }
+            // Preserve full-size search text and result rows above a tall landscape IME.
+            if (landscape && imeVisible) bars?.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            else bars?.show(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            onDispose { bars?.show(androidx.core.view.WindowInsetsCompat.Type.statusBars()) }
+        }
         val largeSearch = imeVisible && LocalDensity.current.fontScale > 1.3f
         val compactControls = largeSearch && !landscape
         val compactLabel = largeSearch && landscape
