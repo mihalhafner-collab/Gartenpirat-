@@ -130,7 +130,7 @@ internal class LocalWorkflowTools {
                 return "Erfasst eine tatsächlich erledigte Wartung am vorhandenen Plan mit explizitem performed_on, aktuellem Gerätehash und stabiler request_id. Kein Zukunftsdatum. Ein älterer Nachtrag verdrängt keine neuere Erledigung. Optionale kürzere Intervalle nur mit Grund, etwa Fehlschnitten oder erneutem Nachschärfen. Historie bleibt erhalten; Gerätezustand und Backup bleiben unabhängig."
             }
             if ((name == "get_restore_status")) {
-                return "Liest ausschließlich den nicht geheimen Zustand einer am Gerät bestätigten vollständigen Wiederherstellung: Phase, Vorschauhash, Neustartbedarf und Rechnungssperre. Kein Recovery-Code, Dateipfad oder Inhalt und keine Aktivierung durch Lesen."
+                return "Liest ausschließlich den nicht geheimen Zustand einer am Gerät bestätigten vollständigen Wiederherstellung: Phase, Vorschauhash, Neustartbedarf und lokale Integritätsprüfung. Kein Recovery-Code, Dateipfad oder Inhalt und keine Aktivierung durch Lesen."
             }
             if ((name == "get_offer_decision_history")) {
                 return "Liest Annahme-/Ablehnungshistorie der unveränderlichen Angebotsversion mit Nachweis und Zeitpunkt. Kein Versand-/Zustellbeleg aus bloßem Teilen."
@@ -140,30 +140,6 @@ internal class LocalWorkflowTools {
             }
             if ((name == "decline_offer")) {
                 return "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen."
-            }
-            if ((name == "preview_local_authority")) {
-                return "Liest den versionierten Umstellungs-/Rechnungsautoritätsstand und die aktuelle Vorschau. Keine Umstellung oder Freigabe durch Lesen. Offene Aktionen, Originale und weitere Schreiber gesondert prüfen."
-            }
-            if ((name == "activate_local_authority")) {
-                return "Aktiviert nach ausdrücklicher Entscheidung den maßgeblichen lokalen Pixelbestand anhand aktueller Vorschau und dokumentiert ausgeschlossener weiterer Schreiber. Kein externer Sicherungsnachweis erforderlich. request_id bei Wiederholung beibehalten. Die Rechnungsautorität bleibt bis eigenständigem Original-/Nummernabgleich gesperrt."
-            }
-            if ((name == "reconcile_local_invoice_authority")) {
-                return "Gleicht lokale Rechnungsautorität nach Umstellung/Restore mit aktuellem externen Beleg-/Reservierungs-/Nummernnachweis ab. Original-PDF-Hashes/Größen und alle bekannten Belege werden geprüft; Backupzähler allein gibt nichts frei. current_review muss eine ausdrückliche aktuelle Belegprüfung an genau dieser installation_id und restore_epoch bestätigen; eine importierte frühere Bestätigung reicht nicht. Für bekannte PDF_PENDING-Belege kann pdf_resolution=original das externe Original mit snapshot_sha256 und Bytegröße unverändert binden. not_created braucht ausdrücklich bestätigten aktuellen Nichterstellungsnachweis samt Grund und snapshot_sha256; Erzeugung erst nach genau diesem vollständigen Belegabgleich, niemals bei vorhandener Dateiquittung oder Originalreferenz. Historische Restbeträge nur als ausdrücklich belegte Eröffnungsstände, keine erfundenen Zahlungen."
-            }
-            if ((name == "get_payment_ledger")) {
-                return "Liest unveränderliche Zahlungen, Zuordnungen und Korrekturen samt verbleibenden Forderungen/Guthaben und ledger_hash. Persönliches b.b. bleibt unabhängig. Beträge in kleinsten Währungseinheiten."
-            }
-            if ((name == "correct_payment")) {
-                return "Protokolliert eine ausdrücklich bestätigte Zahlungskorrektur mit Grund, aktuellem ledger_hash und stabiler request_id. Originalzahlung bleibt unverändert; Gegenbuchung und Ersatzquittung bleiben nachvollziehbar. Betrag 0 bedeutet vollständige Rücknahme und verlangt leere allocations sowie ausdrückliche Bestätigung; die sichtbare Nullquittung bleibt im Rechnungsverlauf. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen; persönliches b.b. bleibt unabhängig."
-            }
-            if ((name == "record_payment")) {
-                return "Erfasst die ausdrücklich bestätigte positive Zahlung mit Datum, Zahlungsart, Beträgen in kleinsten Währungseinheiten und versionierten Rechnungszuordnungen. ledger_hash prüfen; request_id bei Retry gleich lassen. Keine Bankbuchung, Nachricht oder Änderung ursprünglicher Rechnungspositionen. Überzahlung bleibt Guthaben/ungeklärte Zuordnung."
-            }
-            if ((name == "get_invoice_document_job")) {
-                return "Liest den lokalen PDF-Job zum unveränderlichen Rechnungsbeleg; Belegstatus, PDF-Status und verifizierte Dateireferenz bleiben getrennt."
-            }
-            if ((name == "retry_invoice_document_job")) {
-                return "Merkt die Wiederholung desselben lokalen PDF-Jobs anhand seines aktuellen record_hash vor. Verwendet denselben eingefrorenen Snapshot und dieselbe Belegnummer; keine zweite Rechnung, kein Versand."
             }
             if ((name == "get_full_backup_status")) {
                 return "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät."
@@ -232,14 +208,6 @@ internal class LocalWorkflowTools {
                 )
         }
 
-        private @JvmStatic @Throws(Exception::class) fun minor(): JSONObject {
-
-            return JSONObject()
-                .put("type", "integer")
-                .put("minimum", 0)
-                .put("maximum", 9000000000000000L)
-        }
-
         private @JvmStatic @Throws(Exception::class) fun array(
             item: JSONObject,
             max: Int,
@@ -257,46 +225,6 @@ internal class LocalWorkflowTools {
                         .put("quantity_decimal", decimal(false)),
                     "material_id",
                     "quantity_decimal",
-                ),
-                100,
-            )
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun evidenceFields(): JSONObject {
-
-            return JSONObject()
-                .put("formatVersion", McpFields.number(1, 1))
-                .put(
-                    "external_writers_disabled",
-                    McpFields.bool().put("enum", JSONArray().put(true)),
-                )
-                .put("evidence_sha256", McpFields.hash())
-                .put("evidence_reference", McpFields.text(4000).put("minLength", 1))
-                .put("checked_at", instant())
-        }
-
-        private @JvmStatic fun evidenceRequired(): Array<String> {
-
-            return arrayOf(
-                "formatVersion",
-                "external_writers_disabled",
-                "evidence_sha256",
-                "evidence_reference",
-                "checked_at",
-            )
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun allocations(): JSONObject {
-
-            return array(
-                McpFields.`object`(
-                    JSONObject()
-                        .put("invoice_id", McpFields.id())
-                        .put("amount_minor", minor().put("minimum", 1))
-                        .put("expected_record_hash", McpFields.hash()),
-                    "invoice_id",
-                    "amount_minor",
-                    "expected_record_hash",
                 ),
                 100,
             )
@@ -490,171 +418,6 @@ internal class LocalWorkflowTools {
                         .put("expected_record_hash", McpFields.hash())
                         .put("reason", McpFields.text(4000))
                     required.addAll(Arrays.asList("offer_id", "expected_record_hash"))
-                }
-                "get_payment_ledger" -> {
-                    p.put("invoice_id", McpFields.id())
-                        .put("offset", McpFields.number(0, 1000000))
-                        .put("limit", McpFields.number(1, 100))
-                }
-                "record_payment",
-                "correct_payment" -> {
-                    p.put(
-                            "amount_minor",
-                            minor().put("minimum", (if ((name == "correct_payment")) 0 else 1)),
-                        )
-                        .put("paid_on", date())
-                        .put("method", McpFields.enumeration("cash", "bank", "card", "other"))
-                        .put("reference", McpFields.text(4000))
-                        .put("allocations", allocations())
-                        .put("expected_ledger_hash", McpFields.hash())
-                    required.addAll(
-                        Arrays.asList(
-                            "amount_minor",
-                            "paid_on",
-                            "method",
-                            "allocations",
-                            "expected_ledger_hash",
-                        )
-                    )
-                    if ((name == "correct_payment")) {
-                        p.put("payment_id", McpFields.id())
-                            .put("reason", McpFields.text(4000).put("minLength", 1))
-                        required.addAll(Arrays.asList("payment_id", "reason"))
-                    }
-                }
-                "get_invoice_document_job" -> {
-                    p.put("invoice_id", McpFields.id())
-                    required.add("invoice_id")
-                }
-                "retry_invoice_document_job" -> {
-                    p.put("invoice_id", McpFields.id())
-                        .put("expected_record_hash", McpFields.hash())
-                    required.addAll(Arrays.asList("invoice_id", "expected_record_hash"))
-                }
-                "preview_local_authority" -> {}
-                "activate_local_authority" -> {
-                    p.put("expected_preview_hash", McpFields.hash())
-                        .put(
-                            "writer_evidence",
-                            McpFields.`object`(evidenceFields(), *evidenceRequired()),
-                        )
-                    required.addAll(
-                        Arrays.asList("expected_preview_hash", "writer_evidence")
-                    )
-                }
-                "reconcile_local_invoice_authority" -> {
-                    run {
-                        var fields =
-                            evidenceFields()
-                                .put("last_number", McpFields.number(0, Integer.MAX_VALUE))
-                                .put(
-                                    "issued",
-                                    array(
-                                        McpFields.`object`(
-                                            JSONObject()
-                                                .put("invoice_id", McpFields.id())
-                                                .put(
-                                                    "invoice_number",
-                                                    McpFields.text(500).put("minLength", 1),
-                                                )
-                                                .put("pdf_sha256", McpFields.hash())
-                                                .put(
-                                                    "pdf_byte_size",
-                                                    JSONObject()
-                                                        .put("type", "integer")
-                                                        .put("minimum", 1)
-                                                        .put("maximum", Long.MAX_VALUE),
-                                                )
-                                                .put(
-                                                    "pdf_resolution",
-                                                    McpFields.enumeration("original", "not_created")
-                                                        .put("default", "original"),
-                                                )
-                                                .put("snapshot_sha256", McpFields.hash())
-                                                .put(
-                                                    "not_created_confirmed",
-                                                    McpFields.bool()
-                                                        .put("enum", JSONArray().put(true)),
-                                                )
-                                                .put(
-                                                    "not_created_reason",
-                                                    McpFields.text(4000).put("minLength", 1),
-                                                ),
-                                            "invoice_id",
-                                            "invoice_number",
-                                        ),
-                                        100000,
-                                    ),
-                                )
-                                .put(
-                                    "reservations",
-                                    array(
-                                        McpFields.`object`(
-                                            JSONObject()
-                                                .put("reservation_id", McpFields.id())
-                                                .put("invoice_id", McpFields.id())
-                                                .put(
-                                                    "invoice_number",
-                                                    McpFields.text(500).put("minLength", 1),
-                                                )
-                                                .put("counter", McpFields.number(0, 1000000000))
-                                                .put(
-                                                    "state",
-                                                    McpFields.enumeration(
-                                                        "reserved",
-                                                        "issued",
-                                                        "cancelled",
-                                                    ),
-                                                ),
-                                            "reservation_id",
-                                            "invoice_id",
-                                            "invoice_number",
-                                            "counter",
-                                            "state",
-                                        ),
-                                        10000,
-                                    ),
-                                )
-                                .put(
-                                    "opening_balances",
-                                    array(
-                                        McpFields.`object`(
-                                            JSONObject()
-                                                .put("invoice_id", McpFields.id())
-                                                .put("remaining_minor", minor()),
-                                            "invoice_id",
-                                            "remaining_minor",
-                                        ),
-                                        100000,
-                                    ),
-                                )
-                        fields.put(
-                            "current_review",
-                            McpFields.`object`(
-                                JSONObject()
-                                    .put(
-                                        "confirmed",
-                                        McpFields.bool().put("enum", JSONArray().put(true)),
-                                    )
-                                    .put("installation_id", McpFields.id())
-                                    .put("restore_epoch", McpFields.id())
-                                    .put("reviewed_at", instant())
-                                    .put("evidence_sha256", McpFields.hash()),
-                                "confirmed",
-                                "installation_id",
-                                "restore_epoch",
-                                "reviewed_at",
-                                "evidence_sha256",
-                            ),
-                        )
-                        var must = ArrayList<String>(evidenceRequired().asList())
-                        must.addAll(
-                            Arrays.asList("last_number", "issued", "reservations", "current_review")
-                        )
-                        p.put("expected_preview_hash", McpFields.hash())
-                            .put("ledger", McpFields.`object`(fields, *must.toTypedArray()))
-                        required.addAll(Arrays.asList("expected_preview_hash", "ledger"))
-                    }
                 }
                 "get_full_backup_status" -> {
                     p.put("offset", McpFields.number(0, 1000000))
