@@ -228,14 +228,9 @@ class PixelMcpReadTools {
                         .put("cloud_confirmed", false)
                         .put("storage_contract_version", 3)
                         .put("business_sync_allowed", false)
-                        .put("invoice_finalization", "DISABLED_SEVDESK_ONLY")
                     if (access != null) {
                         val runtime = access.query(name, a)
                         result.put("runtime", runtime)
-                        if (runtime != null && runtime.has("invoice_finalization")) {
-                            result.put("invoice_finalization", runtime.getString("invoice_finalization"))
-                        }
-                    }
                     result
                 }
                 "get_photo" -> {
@@ -434,14 +429,6 @@ class PixelMcpReadTools {
                 ),
             )
         }
-        if ((name == "get_invoice")) {
-            result.put(
-                "record_hash",
-                PixelMcpWriteTools.hash(
-                    PixelMcpEntityWriteTools.recordForHash("invoice", (data as JSONObject))
-                ),
-            )
-        }
         return (SnapshotReadSupport.withoutBinary(result) as JSONObject)
     }
 
@@ -609,13 +596,6 @@ class PixelMcpReadTools {
                 "get_open_orders" -> {
                     fields = arrayOf("customer_id", "offset", "limit")
                 }
-                "list_invoices" -> {
-                    fields = arrayOf("customer_id", "status", "offset", "limit")
-                }
-                "get_invoice" -> {
-                    fields = arrayOf("invoice_id")
-                    required.put("invoice_id")
-                }
                 "list_photos" -> {
                     fields =
                         arrayOf(
@@ -633,10 +613,6 @@ class PixelMcpReadTools {
                 "search_business_data" -> {
                     fields = arrayOf("query", "limit_per_type")
                     required.put("query")
-                }
-                "get_sync_status" -> {
-                    fields = arrayOf("client_id")
-                    required.put("client_id")
                 }
                 else -> {
                     fields = emptyArray()
