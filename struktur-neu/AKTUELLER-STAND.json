@@ -24,16 +24,16 @@
   ],
   "current_task": {
     "name": "Radikale Bereinigung nach KISS/YAGNI; Rechnungen bleiben bei sevDesk",
-    "status": "INVOICE_SERVICE_AND_LOCAL_MIGRATION_REMOVED; DEEP_LEGACY_CLEANUP_PENDING; QA_PENDING",
+    "status": "OBSOLETE_LEGACY_SYNC_DISPATCH_REMOVED; DEEP_CODE_CLEANUP_PENDING; QA_PENDING",
     "remaining": [
-      "Rechnungs-PDF-Worker, Rechnungsdienste, Autoritätsmigration und Prüfoberfläche physisch entfernt. Alter Rechnungs-, Journal- und Sync-Hilfscode existiert noch in gemeinsamen Basisklassen und wird weiter bereinigt.",
+      "Die nur noch historisch vorhandenen Konfliktabschlüsse und Drive-Synchronisationsschreiber sowie überflüssige MCP-Schemas und Rechnungs-Beschreibungen wurden aus den ausführbaren Dienstpfaden entfernt.",
       "Aufrufpfade und Prüfschemata für frühere Sync-/Rechnungsaktionen, unnötige Finanz- und Migrationsklassen sowie restliche native Compose-Rechnungsanzeige entfernen; Arbeitsstunden und Angebote erhalten.",
       "Quellprüfung, Kotlin-Bau und native Regression für den endgültigen Quellstand in GitHub Actions nachweisen; aktuell nicht als bestanden ausgeben.",
       "Pixel unverändert Build 121; keine Installation, kein produktiver Datenzugriff und keine neue APK."
     ]
   },
   "open_checks": [
-    "Noch vorhandene Legacy-Drive-Journal-, Rechnungs-, UI- und Schemaklassen müssen auf tatsächliche Nutzung reduziert werden.",
+    "Verbliebene historische Sync-Leser, DriveJournalRules, Rechnungsentwurfs-/Compose-Implementierung und Finanz-Nachweisregeln werden noch bereinigt.",
     "Neuer GitHub-Actions-Build ist nach Codeänderungen abzuwarten.",
     "Pixel Build 121 ist unverändert."
   ],

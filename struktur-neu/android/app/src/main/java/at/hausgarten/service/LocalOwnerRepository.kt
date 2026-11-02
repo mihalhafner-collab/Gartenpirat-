@@ -679,10 +679,6 @@ override @Throws(Exception::class) fun verifyDelivery(id: String, offer: JSONObj
 
 return MailAccount.client(context!!).verify(id, offer)
 }
-override @Throws(Exception::class) fun verifyLegacyBackup(id: String, preview: String): Unit {
-
-LegacyConflictBackup.verify(context!!, store!!, id, preview)
-}
 override @Throws(Exception::class) fun planningSettings(): JSONObject {
 
 return AppointmentRuntime.publicSettings(context!!, store!!)

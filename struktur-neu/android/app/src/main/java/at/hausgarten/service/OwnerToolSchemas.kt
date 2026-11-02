@@ -17,19 +17,13 @@ internal class OwnerToolSchemas {
             BUILDERS.put("inspect_order_review", OwnerToolSchemas::inspectOrderReview)
             BUILDERS.put("save_reviewed_order", OwnerToolSchemas::saveReviewedOrder)
             BUILDERS.put(
-                "prepare_legacy_conflict_backup",
-                OwnerToolSchemas::prepareLegacyConflictBackup,
-            )
-            BUILDERS.put(
                 "preview_archive_work_records",
                 OwnerToolSchemas::previewArchiveWorkRecords,
             )
             BUILDERS.put("archive_work_records", OwnerToolSchemas::previewArchiveWorkRecords)
             BUILDERS.put("empty_trash", OwnerToolSchemas::emptyTrash)
-            BUILDERS.put("close_legacy_conflicts", OwnerToolSchemas::closeLegacyConflicts)
             BUILDERS.put("get_photo", OwnerToolSchemas::getPhoto)
             BUILDERS.put("list_archive", OwnerToolSchemas::listArchive)
-            BUILDERS.put("get_sync_conflicts", OwnerToolSchemas::getSyncConflicts)
             BUILDERS.put("search_catalog", OwnerToolSchemas::searchCatalog)
             BUILDERS.put("get_catalog_entry", OwnerToolSchemas::getCatalogEntry)
             BUILDERS.put("get_file_metadata", OwnerToolSchemas::getFileMetadata)
@@ -46,16 +40,11 @@ internal class OwnerToolSchemas {
             BUILDERS.put("delete_entity", OwnerToolSchemas::purgeEntity)
             BUILDERS.put("archive_entity", OwnerToolSchemas::purgeEntity)
             BUILDERS.put("restore_entity", OwnerToolSchemas::purgeEntity)
-            BUILDERS.put("resolve_sync_conflict", OwnerToolSchemas::resolveSyncConflict)
             BUILDERS.put("update_business_settings", OwnerToolSchemas::updateBusinessSettings)
             BUILDERS.put("update_settings", OwnerToolSchemas::updateSettings)
             BUILDERS.put("set_personal_paid", OwnerToolSchemas::setPersonalPaid)
             BUILDERS.put("inspect_backup", OwnerToolSchemas::inspectBackup)
             BUILDERS.put("restore_backup", OwnerToolSchemas::restoreBackup)
-            BUILDERS.put("request_invoice_issue", OwnerToolSchemas::requestInvoiceIssue)
-            BUILDERS.put("prepare_invoice_share", OwnerToolSchemas::prepareInvoiceShare)
-            BUILDERS.put("create_invoice_correction", OwnerToolSchemas::createInvoiceCorrection)
-            BUILDERS.put("update_invoice_payment", OwnerToolSchemas::updateInvoicePayment)
         }
 
         @JvmStatic
@@ -83,7 +72,6 @@ internal class OwnerToolSchemas {
                             Arrays.asList(
                                     "delete_entity",
                                     "archive_entity",
-                                    "update_invoice_payment",
                                 )
                                 .contains(name)
                         )
@@ -171,15 +159,6 @@ internal class OwnerToolSchemas {
             required.addAll(Arrays.asList("id", "token", "decision", "confirmed"))
         }
 
-        private @JvmStatic @Throws(Exception::class) fun prepareLegacyConflictBackup(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("expected_preview_hash", McpFields.hash())
-        }
-
         private @JvmStatic @Throws(Exception::class) fun previewArchiveWorkRecords(
             name: String,
             p: JSONObject,
@@ -213,18 +192,6 @@ internal class OwnerToolSchemas {
             required.add("confirmed")
         }
 
-        private @JvmStatic @Throws(Exception::class) fun closeLegacyConflicts(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("backup_id", McpFields.id())
-                .put("expected_preview_hash", McpFields.hash())
-                .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
-            required.addAll(Arrays.asList("backup_id", "expected_preview_hash", "confirmed"))
-        }
-
         private @JvmStatic @Throws(Exception::class) fun getPhoto(
             name: String,
             p: JSONObject,
@@ -245,18 +212,6 @@ internal class OwnerToolSchemas {
                 .put("offset", McpFields.number(0, 1000000))
                 .put("entity", McpFields.enumeration(*DeletionRules.ENTITIES))
                 .put("entity_id", McpFields.id())
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun getSyncConflicts(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("limit", McpFields.number(1, 100))
-                .put("offset", McpFields.number(0, 1000000))
-                .put("client_id", McpFields.id())
-                .put("include_history", McpFields.bool())
         }
 
         private @JvmStatic @Throws(Exception::class) fun searchCatalog(
@@ -421,26 +376,6 @@ internal class OwnerToolSchemas {
             }
         }
 
-        private @JvmStatic @Throws(Exception::class) fun resolveSyncConflict(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("client_id", McpFields.id())
-                .put("expected_action_hash", McpFields.hash())
-                .put("expected_current_hash", McpFields.hash())
-                .put("resolution", McpFields.enumeration("keep_current", "apply_proposed"))
-            required.addAll(
-                Arrays.asList(
-                    "client_id",
-                    "expected_action_hash",
-                    "expected_current_hash",
-                    "resolution",
-                )
-            )
-        }
-
         private @JvmStatic @Throws(Exception::class) fun updateBusinessSettings(
             name: String,
             p: JSONObject,
@@ -536,55 +471,5 @@ internal class OwnerToolSchemas {
             required.addAll(Arrays.asList("backup_id", "expected_state_hash"))
         }
 
-        private @JvmStatic @Throws(Exception::class) fun requestInvoiceIssue(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("invoice_id", McpFields.id())
-                .put("expected_record_hash", McpFields.hash())
-                .put("expected_context_hash", McpFields.hash())
-                .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
-            required.addAll(Arrays.asList("invoice_id", "expected_record_hash", "confirmed"))
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun prepareInvoiceShare(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("invoice_id", McpFields.id())
-                .put("channel", McpFields.enumeration("share", "email", "whatsapp"))
-            required.addAll(Arrays.asList("invoice_id", "channel"))
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun createInvoiceCorrection(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("invoice_id", McpFields.id())
-                .put("expected_record_hash", McpFields.hash())
-                .put("reason", McpFields.text(2000).put("minLength", 1))
-                .put("correction_type", McpFields.enumeration("replacement", "cancellation"))
-            required.addAll(
-                Arrays.asList("invoice_id", "expected_record_hash", "reason", "correction_type")
-            )
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun updateInvoicePayment(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-
-            p.put("invoice_id", McpFields.id())
-                .put("expected_record_hash", McpFields.hash())
-                .put("paid", McpFields.bool())
-            required.addAll(Arrays.asList("invoice_id", "expected_record_hash", "paid"))
-        }
     }
 }

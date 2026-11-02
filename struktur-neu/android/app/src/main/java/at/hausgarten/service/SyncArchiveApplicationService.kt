@@ -41,27 +41,6 @@ class SyncArchiveApplicationService : OwnerCommand {
                     return JSONObject().put("count", saved.length()).put("actions", saved).put("recoverable", true).put("physical_delete", false).put("local_state", "local_saved").put("sync_state", "sync_pending")
                 }
             }
-            "close_legacy_conflicts" -> {
-                run {
-                    var expected: String = a.getString("expected_preview_hash")
-                    repository.verifyLegacyBackup(a.getString("backup_id"), expected)
-                    LegacyConflictRules.require(repository.state(), expected)
-                    var preview: JSONObject = LegacyConflictRules.preview(repository.state())
-                    var entries: JSONArray = preview.getJSONArray("entries")
-                    run {
-                        var i: Int = 0
-                        while ((i < entries.length())) {
-                            var entry: JSONObject = entries.getJSONObject(i)
-                            var result: JSONObject = perform("resolve_sync_conflict", entry, (("" + request + "_") + i))
-                            i++
-                        }
-                    }
-                    return JSONObject().put("decisions_queued", entries.length()).put("resolution", "keep_current").put("business_data_changed", false).put("backup_id", a.getString("backup_id")).put("history_state", "sync_pending")
-                }
-            }
-            "request_sync" -> {
-                return DriveRolePolicy.retiredResponse()
-            }
             "purge_entity" -> {
                 run {
                     requireInactiveSession(a.getString("entity"), a.getString("entity_id"))
@@ -87,49 +66,6 @@ class SyncArchiveApplicationService : OwnerCommand {
                     p.put("_archive_entry", OwnerJournalRules.archives(all).getJSONObject((("" + entity + ":") + id)))
                     OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("client_id", request).put("kind", "restore").put("payload", p).put("created_at", stamp), HashMap(), JSONObject())
                     return repository.enqueue("restore", p, request)
-                }
-            }
-            "resolve_sync_conflict" -> {
-                run {
-                    var resolutionState: JSONObject = repository.state()
-                    var conflicts: JSONObject = PixelMcpOwnerTools.conflicts(resolutionState, JSONObject().put("limit", 1).put("client_id", a.getString("client_id")))
-                    var found: JSONObject? = null
-                    var list: JSONArray = conflicts.getJSONArray("conflicts")
-                    run {
-                        var i: Int = 0
-                        while ((i < list.length())) {
-                            if ((a.getString("client_id").equals(list.getJSONObject(i).optString("client_id")))) {
-                                found = list.getJSONObject(i)
-                            }
-                            i++
-                        }
-                    }
-                    if ((((found != null) && !found!!.optBoolean("resolution_available", false)))) {
-                        var code: String = found!!.optString("code")
-                        if (("SYNC_COMPONENT_UPDATE_REQUIRED".equals(code))) {
-                            throw PixelMcpWriteTools.Rejected(code, "Dieser Vorgang ist kein Datenkonflikt. Zuerst Pixel-Verarbeitung aktualisieren und erneut synchronisieren; keine Konfliktentscheidung wurde erzeugt.")
-                        }
-                        if (("ACTION_ID_CONFLICT".equals(code))) {
-                            throw PixelMcpWriteTools.Rejected(code, "Die Kontrollaktion selbst ist widersprüchlich und darf nicht durch eine weitere Konfliktentscheidung verändert werden.")
-                        }
-                        if (("legacy_inline_photo_requires_original_review".equals(found!!.optString("review_reason")))) {
-                            throw PixelMcpWriteTools.Rejected("LEGACY_PHOTO_REVIEW_REQUIRED", "Älteres Fotojournal benötigt Prüfung des Originals. Keine Aktion verworfen oder verändert.")
-                        }
-                        throw PixelMcpWriteTools.Rejected("CONFLICT_RESOLUTION_NOT_AVAILABLE", "Dieser technische oder geschützte Vorgang kann nicht als normaler Datenkonflikt aufgelöst werden.")
-                    }
-                    if ((((found == null) || !found!!.has("action")))) {
-                        throw IllegalArgumentException("Konfliktaktion nicht vollständig verfügbar; nichts geändert.")
-                    }
-                    var p: JSONObject = JSONObject(a.toString())
-                    p.remove("request_id")
-                    var original: JSONObject = found!!.getJSONObject("action")
-                    p.put("_original_action", original)
-                    var current: JSONObject? = found!!.optJSONObject("current")
-                    p.put("_current_base", (if ((current == null)) JSONObject.NULL else (if ((("purge_v1".equals(original.getString("kind")) || TrashPurgeBatch.KIND.equals(original.getString("kind"))))) DriveJournalRules.clean(current) else DriveJournalRules.guard(current, (if ("delete".equals(original.getString("kind"))) original.getJSONObject("payload").getString("entity") else original.getString("kind"))))))
-                    var actions: MutableMap<String, JSONObject> = HashMap()
-                    actions.put(a.getString("client_id"), found!!.getJSONObject("action"))
-                    OwnerJournalRules.apply(SnapshotProjection.effective(resolutionState), JSONObject().put("kind", "conflict_resolution").put("client_id", request).put("payload", p), actions, JSONObject())
-                    return repository.enqueue("conflict_resolution", p, request)
                 }
             }
             "create_backup" -> {

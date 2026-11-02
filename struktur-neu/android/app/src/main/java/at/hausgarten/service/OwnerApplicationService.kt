@@ -10,7 +10,7 @@ class OwnerApplicationService {
         register(OfferApplicationService(repository), OfferTools.WRITES)
         register(WorkApplicationService(repository), arrayOf("save_reviewed_order", "set_work_record_billed", "reassign_work_record", "set_personal_paid"))
         register(PhotoApplicationService(repository), arrayOf("begin_file_upload", "write_file_chunk", "create_photo", "update_photo"))
-        register(SyncArchiveApplicationService(repository), arrayOf("empty_trash", "archive_work_records", "close_legacy_conflicts", "request_sync", "purge_entity", "delete_entity", "archive_entity", "restore_entity", "resolve_sync_conflict", "create_backup", "restore_backup"))
+        register(SyncArchiveApplicationService(repository), arrayOf("empty_trash", "archive_work_records", "purge_entity", "delete_entity", "archive_entity", "restore_entity", "create_backup", "restore_backup"))
         register(SettingsApplicationService(repository), arrayOf("update_business_settings", "update_settings"))
         register(PlanningApplicationService(repository), AppointmentTools.WRITES)
         register(LocalWorkflowApplicationService(repository), LocalWorkflowTools.WRITES)
