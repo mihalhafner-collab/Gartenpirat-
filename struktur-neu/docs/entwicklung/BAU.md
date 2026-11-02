@@ -585,11 +585,21 @@ getrennt die erhaltenen Zuordnungen und Filter.
 Der Kunden-Suchdialog blendet im Querformat bei offener Tastatur nur die
 Statusleiste seines eigenen Fensters aus und stellt sie anschließend wieder her.
 Ergebnisflächen bleiben auch bei 200 % vollständig oberhalb der IME; Schrift und
-Treffer werden nicht verkleinert. Der Randgestentest liest die NORMAL- und
-CRITICAL-Dumpklassen von SystemUI und verlangt weiterhin einen aktiv angehängten
-EdgeBackGestureHandler, bevor er echte Randberührungen injiziert.
+Treffer werden nicht verkleinert. Der Randgestentest protokolliert die NORMAL- und CRITICAL-Dumpklassen von
+SystemUI. Vor den echten Randberührungen verlangt er aktivierte Gestennavigation
+und beidseitige System-Gestenränder des Fensters. Die tatsächliche Geste muss
+ausschließlich den Wähler schließen und die vorherige Kundenzuordnung erhalten.
 Die Heute-Geometrieprüfung wartet auf die angewandte 200-%-Konfiguration und
 verwendet aktuelle Fenstergrenzen. Hauptaktionen benötigen mindestens 56 dp,
 Navigation mindestens 48 dp. Ein Fehlerbild wird vor dem Zurücksetzen der Schrift
 aufgenommen. Eine leere Tagesübersicht wird anhand des tatsächlichen lokalen
 Stundensummenergebnisses geprüft.
+
+Der isolierte Emulator verwendet ausdrücklich das Pixel-5-Telefonprofil mit
+320 × 640 Pixeln und 160 dpi; der bisherige enge 320 × 640-dp-Prüfausschnitt bleibt
+erhalten. Der Gestentest wechselt tatsächlich von Dreitasten- auf Gestennavigation,
+auch wenn das Systembild bereits mit Gesten startet, und stellt anschließend den
+ursprünglichen Modus wieder her. Android darf die Geste an Launcher/Taskbar delegieren; ein inaktives internes
+SystemUI-Objekt ist deshalb kein Funktionsnachweis. Fehlende System-Gestenränder
+oder eine wirkungslose Randgeste bleiben Testfehler. Eine Zurück-Taste ersetzt
+diesen Nachweis nicht.

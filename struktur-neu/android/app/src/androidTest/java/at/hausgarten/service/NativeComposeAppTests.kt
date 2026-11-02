@@ -1234,6 +1234,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // The base three-button configuration needs no enabled navbar overlay.
         yes(original != null || originalMode == "0", "RECOGNIZED_INITIAL_NAVIGATION_MODE")
         try {
+            // Exercise a real navigation-mode transition even when the image boots gestural.
+            shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.threebutton")
+            waitUntil("THREE_BUTTON_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "0" }
             shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
             waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
@@ -1251,16 +1254,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     dump.substring(start, end)
                 }.joinToString("\nNEXT_HANDLER\n")
             }
-            try {
-                waitUntil("ATTACHED_EDGE_GESTURE_HANDLER") {
-                    gestureHandlers().split("NEXT_HANDLER").any { it.contains("mIsEnabled=true") && it.contains("mIsAttached=true") }
+            // Android may delegate back to Launcher/Taskbar; require the window's real
+            // gesture regions and the observable edge gesture, not one internal dump owner.
+            waitUntil("SYSTEM_BACK_GESTURE_EDGES") {
+                var enabled = false
+                test.runOnMainSync {
+                    val edges = activity?.window?.decorView?.rootWindowInsets?.getInsets(WindowInsets.Type.systemGestures())
+                    enabled = edges != null && edges.left > 0 && edges.right > 0
                 }
-            } catch (failure: Throwable) {
-                test.sendStatus(0, Bundle().apply {
-                    putString("gesture_attach_diagnostics", gestureDump().lineSequence().filter { line -> listOf("EdgeBack", "mIsAttached", "mIsEnabled", "Gestural", "NavigationBar", "No dump target", "Unknown argument").any { it in line } }.joinToString("\n").take(20000))
-                    putString("gesture_dumpables", shell("dumpsys activity service com.android.systemui/.SystemUIService --list").take(12000))
-                })
-                throw failure
+                enabled && shell("settings get secure navigation_mode") == "2"
             }
             test.sendStatus(0, Bundle().apply { putString("gesture_handlers_before", gestureHandlers()) })
             val screen = Rect().also { requireNotNull(automation.rootInActiveWindow).getBoundsInScreen(it) }

@@ -35,7 +35,7 @@
   ],
   "current_task": {
     "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "LOCAL_SOURCE_RELEASE_LINT_JVM_PASSED; COMPOSE_LAYOUT_AND_GESTURE_RECHECK_PENDING",
+    "status": "SOURCE_RELEASE_JVM_AND_ALL_BUSINESS_UI_PASSED; CI_PHONE_GESTURE_RECHECK_PENDING",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -58,10 +58,11 @@
       "Heute: Sicherungszeit in Wiener Ortszeit und leere Einsatz-Uhrzeiten nach terminierten Einsätzen; Quellprüfung sowie kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich",
       "41519270807: Emulatorstart mit freiem Speicher erfolgreich; SQLite-/Backup-/Restore-/Provider-Suiten einschließlich Prozessneustart und Today-Timerfolge erfolgreich. Compose-Gesamtlauf wegen Archivieren ohne request_id sowie falschem Heute-Geometrieziel fehlgeschlagen; Folgefehler durch offenen Dialog.",
       "Suchprüfungen an die vom nächsten Einsatz übergebene Kundenzuordnung angepasst: sechs unveränderte Tastaturkombinationen und physischer Zurück-Gestentest prüfen die tatsächliche Vorbelegung. Ungebundene Angebots-Viewportfälle setzen Filter über die echte Oberfläche zurück. Quellprüfung und kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich.",
-      "41532435166: SQLite/Backup/Restore/Provider und 278 native Datenprüfungen einschließlich veralteter Löschbelege erfolgreich. Kundenarchivierung, Timer, Kundennotiz ohne Arbeitsänderung, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Offene Compose-Fehler: leere Heute-Stundenübersicht im Test, Suchdialog mit großer Querformat-Tastatur, SystemUI-Dumppriorität und Schriftwechsel-Geometrie; Gesamtlauf fehlgeschlagen."
+      "41532435166: SQLite/Backup/Restore/Provider und 278 native Datenprüfungen einschließlich veralteter Löschbelege erfolgreich. Kundenarchivierung, Timer, Kundennotiz ohne Arbeitsänderung, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Offene Compose-Fehler: leere Heute-Stundenübersicht im Test, Suchdialog mit großer Querformat-Tastatur, SystemUI-Dumppriorität und Schriftwechsel-Geometrie; Gesamtlauf fehlgeschlagen.",
+      "41539556826: Release/Lint, acht JVM-Suiten, native SQLite-/Backup-/Restore-/Dateiprüfungen und sämtliche Compose-Fachabläufe einschließlich Heute, 200-%-Navigation, sechs Tastaturkombinationen, 15 Suchfällen, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Einziger Fehler: SystemUI-Taskbar liefert mIsAttached=false für den Randgestentest. CI jetzt mit ausdrücklichem Pixel-5-Telefonprofil bei unverändertem 320×640-dp-Prüfausschnitt; tatsächlicher Wechsel Dreitasten→Gesten statt bereits aktive Gesten nur erneut einzuschalten. Der Test verlangt nun die tatsächlichen System-Gestenränder und die unveränderte beobachtbare Picker-/Kundenzuordnungswirkung statt einer bestimmten internen SystemUI-Instanz; kein Tastenersatz."
     ],
     "remaining": [
-      "Vollständigen CI-Gesamtlauf mit korrigiertem Suchdialog, tatsächlichem System-Gestenhandler und stabiler 200-%-Geometrie erfolgreich abschließen",
+      "Vollständigen CI-Gesamtlauf einschließlich echter System-Randgeste erfolgreich abschließen",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten."
