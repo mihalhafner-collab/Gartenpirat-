@@ -61,12 +61,12 @@ private fun FinanceValues(row: JSONObject?, fields: List<Pair<String, String>>) 
 private fun FinanceIssuerSummary(issuer:JSONObject?) {
     Text("Aussteller und Belegkonfiguration",style=MaterialTheme.typography.titleMedium)
     if(issuer==null) Text("Aussteller fehlt",color=MaterialTheme.colorScheme.error)
-    else FinanceValues(issuer,listOf("business_name" to "Betrieb","owner_name" to "Inhaber","business_street" to "Straße","business_postal_code" to "Postleitzahl","business_city" to "Ort","business_legal_info" to "Rechtliche Angaben","business_vat_id" to "UID","tax_mode" to "Steuermodus","tax_exemption_text" to "Steuerbefreiung","business_iban" to "IBAN","business_bank" to "Bank","business_bic" to "BIC","business_email" to "E-Mail","business_phone" to "Telefon","invoice_number_format" to "Nummernformat","invoice_prefix" to "Präfix","invoice_numbering_last_number" to "Bestätigter letzter Zähler","invoice_numbering_checked_at" to "Nummernprüfung am","invoice_issuer_confirmed" to "Aussteller bestätigt","invoice_numbering_confirmed" to "Nummernkreis bestätigt"))
+    else FinanceValues(issuer,listOf("business_name" to "Betrieb","owner_name" to "Inhaber","business_street" to "Straße","business_postal_code" to "Postleitzahl","business_city" to "Ort","business_legal_info" to "Rechtliche Angaben","business_vat_id" to "UID","tax_mode" to "Steuermodus","tax_exemption_text" to "Steuerbefreiung","business_iban" to "IBAN","business_bank" to "Bank","business_bic" to "BIC","business_email" to "E-Mail","business_phone" to "Telefon"))
 }
 
 @Composable
 private fun FinanceDraftSummary(controller: NativeAppController, row: JSONObject, section: String) {
-    FinanceValues(row,listOf("title" to "Bezeichnung","status" to "Status","document_type" to "Dokumentart","invoice_date" to "Rechnungsdatum","issue_date" to "Angebotsdatum","service_start" to "Leistungsbeginn","service_end" to "Leistungsende","valid_until" to "Gültig bis","execution_window" to "Ausführung","tax_mode" to "Steuermodus","payment_days" to "Zahlungsziel in Tagen","payment_terms" to "Zahlungsbedingungen","location" to "Einsatzort","recipient_type" to "Empfängertyp","recipient_vat_id" to "Empfänger-UID","domestic_service_confirmed" to "Inlandsleistung bestätigt","header_text" to "Kopftext","footer_text" to "Fußtext","notes" to "Notizen","binding_notice" to "Bindungshinweis","assumptions" to "Annahmen","exclusions" to "Ausschlüsse","description" to "Beschreibung","unit" to "Einheit","default_price" to "Standardpreis","default_quantity" to "Standardmenge","pricing_type" to "Positionsart","price_confirmed" to "Preis bestätigt","category" to "Kategorie","legal_notes" to "Rechtliche Hinweise","customer_type" to "Kundentyp","contract_channel" to "Vertragsweg","consumer_information" to "Verbraucherinformationen","consumer_information_confirmed" to "Verbraucherinformationen bestätigt","scope_confirmed" to "Leistungsumfang bestätigt","binding_confirmed" to "Bindungsart bestätigt","active" to "Aktiv"))
+    FinanceValues(row,listOf("title" to "Bezeichnung","status" to "Status","document_type" to "Dokumentart","issue_date" to "Angebotsdatum","valid_until" to "Gültig bis","execution_window" to "Ausführung","tax_mode" to "Steuermodus","payment_terms" to "Zahlungsbedingungen","location" to "Einsatzort","header_text" to "Kopftext","footer_text" to "Fußtext","notes" to "Notizen","binding_notice" to "Bindungshinweis","assumptions" to "Annahmen","exclusions" to "Ausschlüsse","description" to "Beschreibung","unit" to "Einheit","default_price" to "Standardpreis","default_quantity" to "Standardmenge","pricing_type" to "Positionsart","price_confirmed" to "Preis bestätigt","category" to "Kategorie","legal_notes" to "Rechtliche Hinweise","customer_type" to "Kundentyp","contract_channel" to "Vertragsweg","consumer_information" to "Verbraucherinformationen","consumer_information_confirmed" to "Verbraucherinformationen bestätigt","scope_confirmed" to "Leistungsumfang bestätigt","binding_confirmed" to "Bindungsart bestätigt","active" to "Aktiv"))
     for((field,collection,label) in listOf(Triple("customer_id","customers","Kunde"),Triple("billing_customer_id","customers","Rechnungsempfänger"),Triple("order_id","orders","Auftrag"))) {
         val id=row.optString(field)
         if(id.isNotEmpty()) {
@@ -78,7 +78,7 @@ private fun FinanceDraftSummary(controller: NativeAppController, row: JSONObject
     FinancePositionSummary(row.optJSONArray("positions"))
 }
 
-/** Offers, invoice originals, catalog and immutable payments use their existing owner commands. */
+/** Offer and service-catalog editors use the existing local owner commands. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeFinanceScreen(section: String, id: String, controller: NativeAppController) {
@@ -453,7 +453,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                     }
                     FinanceChoice("Steuermodus",form.optString("tax_mode"),listOf("small_business" to "Kleinunternehmer","standard" to "Umsatzsteuer")) {field("tax_mode",it)}
                     Text("Der Steuermodus muss mit den zentral bestätigten Ausstellerdaten übereinstimmen.")
-                    FinancePositions(form.optJSONArray("positions") ?: JSONArray(),true) {field("positions",it)}
+                    FinancePositions(form.optJSONArray("positions") ?: JSONArray()) {field("positions",it)}
                     OutlinedButton(onClick={sourceVisible=!sourceVisible;sourceOffset=0},Modifier.fillMaxWidth()) {Text("Leistungsbausteine auswählen")}
                     if(sourceVisible) {
                         LaunchedEffect(section,sourceOffset,sourceSearch,form.optString("customer_id"),form.optJSONObject("_source_context")?.toString()) {
@@ -511,8 +511,8 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
 }
 
 @Composable
-private fun FinancePositions(values:JSONArray,offer:Boolean,onChange:(JSONArray)->Unit) {
-    var removed by remember(offer) {mutableStateOf<Pair<Int,JSONObject>?>(null)}
+private fun FinancePositions(values:JSONArray,onChange:(JSONArray)->Unit) {
+    var removed by remember {mutableStateOf<Pair<Int,JSONObject>?>(null)}
     fun update(index:Int,key:String,value:Any?) { val next=JSONArray(values.toString());val line=next.getJSONObject(index);line.put(key,value ?: JSONObject.NULL);for(name in listOf("net","tax","net_total","tax_total","gross_total")) line.remove(name);onChange(next) }
     Text("Positionen",style=MaterialTheme.typography.titleLarge)
     for(index in 0 until values.length()) {val row=values.getJSONObject(index)
@@ -526,7 +526,6 @@ private fun FinancePositions(values:JSONArray,offer:Boolean,onChange:(JSONArray)
                 if(key=="quantity" && line.has("source_quantity_decimal")) line.put("source_quantity_decimal",value.replace(',','.'))
                 onChange(next)
             },required=key!="tax_rate")
-            if(offer) {
                 FinanceChoice("Preisgrundlage",row.optString("price_basis","confirmed"),listOf("confirmed" to "Bestätigt","catalog" to "Freigegebener Katalogpreis","calculated" to "Berechnet","estimated" to "Geschätzt")) {chosen ->
                     val next=JSONArray(values.toString());val line=next.getJSONObject(index);line.put("price_basis",chosen)
                     if(chosen!="catalog") {line.remove("catalog_entry_id");line.remove("catalog_hash")}
@@ -537,8 +536,6 @@ private fun FinancePositions(values:JSONArray,offer:Boolean,onChange:(JSONArray)
                 }
                 NativeField("Preisberechnung / Schätzgrundlage",row.optString("price_note"),{update(index,"price_note",it)},multiline=true)
                 if(row.optString("price_basis")=="calculated") for((name,label) in listOf("base_price" to "Berechnungsbasis","factor" to "Faktor","surcharge" to "Zuschlag")) NativeField(label,row.optJSONObject("calculation")?.optString(name).orEmpty(),{value ->val calculation=financeCopy(row.optJSONObject("calculation") ?: JSONObject()).put(name,value);update(index,"calculation",calculation)})
-            } else NativeField("Rabatt in %",row.optString("discount","0"),{update(index,"discount",it)})
-            if(row.optString("worklog_id").isNotEmpty() || row.optString("source_type")=="material_movement") Text("Mit ursprünglicher Leistungsquelle verknüpft. Die Restmenge wird beim Speichern und Ausstellen erneut geprüft.")
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 TextButton(enabled=index>0,onClick={val next=JSONArray();for(i in 0 until values.length()) next.put(values.get(if(i==index-1) index else if(i==index) index-1 else i));onChange(next)}) {Text("Nach oben")}
                 TextButton(onClick={removed=index to financeCopy(row);val next=JSONArray();for(i in 0 until values.length()) if(i!=index) next.put(values.get(i));onChange(next)}) {Text("Entfernen")}
