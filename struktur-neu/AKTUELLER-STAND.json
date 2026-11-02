@@ -35,7 +35,7 @@
   ],
   "current_task": {
     "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "LOCAL_SOURCE_RELEASE_LINT_AND_JVM_PASSED_WITH_TODAY_HUB; EMULATOR_RECHECK_AND_DISTRIBUTION_PENDING",
+    "status": "LOCAL_CHECKS_PASSED; CI_EMULATOR_PARTITION_SPACE_FIX_PENDING_RECHECK",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -57,7 +57,7 @@
       "Zusätzliche Entfernung alter Rechnungs-/Zahlungs-/Drive-Fehlerzweige: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich"
     ],
     "remaining": [
-      "Vollständigen GitHub-Actions-Gesamtlauf auf dem endgültigen bereinigten Commit ausführen; Heute-Emulatorlauf 41513635503 läuft auf dem vorherigen Commit",
+      "Gesamtlauf nach Emulator-Speicherreparatur: 41513635503 scheiterte vor App-Tests, weil 7373 MB für die Standard-Datenpartition benötigt und nur 6934 MB frei waren; Testpartition jetzt 3072 MB",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü; vier Hauptbereiche und Android-Zurück bleiben erhalten."

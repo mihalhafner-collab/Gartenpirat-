@@ -89,6 +89,15 @@ jobs:
           export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
           mkdir -p "$ANDROID_AVD_HOME"
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -p "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd" -k 'system-images;android-35;google_apis;x86_64'
+          # The Google APIs image defaults to a 6-GB data partition. Bound the
+          # disposable synthetic database/media volume to fit the hosted runner.
+          python3 - "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd/config.ini" <<'PYAVD'
+          import pathlib,sys
+          path=pathlib.Path(sys.argv[1])
+          lines=[line for line in path.read_text().splitlines() if not line.startswith('disk.dataPartition.size=')]
+          path.write_text('\n'.join(lines+['disk.dataPartition.size=3072M'])+'\n')
+          PYAVD
+          df -h "$ANDROID_AVD_HOME"
           test -f "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.ini"
           "$ANDROID_HOME/emulator/emulator" -list-avds
           "$ANDROID_HOME/emulator/emulator" -avd Gartenpirat_Backup_QA -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &

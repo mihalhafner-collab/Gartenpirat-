@@ -562,5 +562,7 @@ Geschäftsdatenänderung, die vier Hauptbereiche, Notizfeld und 200-%-Schrift. D
 Timerweg prüft Pause/Fortsetzen/Beenden auch direkt auf Heute; Beenden muss weiterhin
 die Zeitprüfung öffnen. Die Screenshots today-idle, today-running, today-capture
 und today-large-font enthalten ausschließlich synthetische Daten. Das API35-Systembild
-mit Google APIs liefert den vollständigen System-Gestenhandler; der physische
+mit Google APIs verwendet eine auf 3072 MB begrenzte Wegwerf-Datenpartition,
+damit es auf dem Hosted Runner starten kann. Es liefert den vollständigen
+System-Gestenhandler; der physische
 Randgestentest wird weiterhin tatsächlich ausgeführt.
