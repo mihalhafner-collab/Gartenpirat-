@@ -895,7 +895,6 @@ private fun NativeSettings(controller: NativeAppController) {
         if (advanced) {
             item { settings?.let { NativeBusinessValues(it) } }
             item { OutlinedButton({ controller.navigate("planning") }, Modifier.fillMaxWidth()) { Text("Planung und Wetter") } }
-            item { OutlinedButton({ controller.open(LocalAuthorityActivity::class.java) }, Modifier.fillMaxWidth()) { Text("Datenübernahme und Rechnungsfreigabe prüfen") } }
             item { OutlinedButton({ controller.navigate("drafts") }, Modifier.fillMaxWidth()) { Text("Formularentwürfe und übernommene Bearbeitungen") } }
             item { TextButton({ controller.navigate("connections") }) { Text("Verbindungen") } }
             item { NativeActionMenu(controller, "einstellungen") }
