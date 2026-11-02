@@ -35,6 +35,18 @@ für die ausdrücklich freigegebene Verteilung originalsignierter Installations-
 verwendet; keine automatische Übertragung von Geschäfts- oder Sicherungsdaten.
 Die Verteilung benötigt jeweils einen eigenen ausdrücklichen Auftrag.
 
+## Vereinfachter Rechnungsumfang (Eigentümerentscheidung 02.11.2026)
+
+sevDesk erstellt und versendet sämtliche Rechnungen. Die Gartenpirat-Rechnungsfunktionen
+werden derzeit nicht erweitert oder produktiv freigegeben. Historische aus
+sevDesk übernommene Rechnungen sind unverbindliche Versuchsdaten; ihre Übernahme,
+Wiederherstellung, Nummernabstimmung oder Fremdschreiber-Nachweise sind keine
+Voraussetzung für die übrige App. Alte Cloud-Geschäftsverbindungen und
+Migrationsmasken entfernen. Bestehende Rechnungsansichten dürfen rein informativ
+bleiben. Kein automatisches Löschen auf dem installierten Pixel durch
+Quellcode-Bereinigung, keine Änderungen an bereits ausgestellten sevDesk-Belegen.
+Neue Rechnungserstellung in der App erst bei gesondertem Auftrag und eigener Prüfung.
+
 ## Umsetzung
 
 KISS und YAGNI: flacher, direkter Code; keine vorsorglichen Abstraktionen,
