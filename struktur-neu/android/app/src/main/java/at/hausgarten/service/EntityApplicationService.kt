@@ -3,16 +3,20 @@ package at.hausgarten.service
 import org.json.*
 import java.util.*
 
-/** Validated customer/order/invoice-draft use cases, independent of transport and storage. */
+/** Validated local customer and order commands. */
 class EntityApplicationService {
     companion object {
         @Throws(Exception::class)
         @JvmStatic fun prepare(name: String, args: JSONObject, state: JSONObject, actionId: String): JSONObject {
             var master: JSONObject = SnapshotProjection.effective(state)
             var update: Boolean = name.startsWith("update_")
-            var entity: String = (if (name.contains("customer")) "customer" else (if (name.contains("order")) "order" else "invoice"))
-            var collection: String = (if (entity.equals("customer")) "customers" else (if (entity.equals("order")) "orders" else "invoices"))
-            var fields: Array<String> = (if (entity.equals("customer")) EntityContract.CUSTOMER_FIELDS else (if (entity.equals("order")) EntityContract.ORDER_FIELDS else EntityContract.INVOICE_FIELDS))
+            val entity = when (name) {
+                "create_customer", "update_customer" -> "customer"
+                "create_order", "update_order" -> "order"
+                else -> throw IllegalArgumentException("Unbekannter Geschäftsvorgang.")
+            }
+            val collection = if (entity == "customer") "customers" else "orders"
+            val fields = if (entity == "customer") EntityContract.CUSTOMER_FIELDS else EntityContract.ORDER_FIELDS
             var payload: JSONObject
             if ((update)) {
                 var capabilities: JSONObject? = master.optJSONObject("capabilities")
@@ -28,7 +32,7 @@ class EntityApplicationService {
                 if ((!PixelMcpWriteTools.hash(EntityContract.editable(old, fields)).equals(args.getString("expected_record_hash")))) {
                     throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Der Datensatz wurde inzwischen geändert. Bitte erneut öffnen.")
                 }
-                var pending: JSONArray? = (if (PixelDriveState.ENGINE.equals(master.optString("processing_engine"))) null else state.optJSONArray("pending"))
+                var pending: JSONArray? = state.optJSONArray("pending")
                 run {
                     var i: Int = 0
                     while (((pending != null) && (i < pending!!.length()))) {
@@ -46,7 +50,7 @@ class EntityApplicationService {
                         payload.put(key, old.get(key))
                     }
                 }
-                for (key in arrayOf("status", "sevdesk_id", "sevdesk_contact_id", "issued_at", "invoice_number", "order_id", "created_at", "document_type", "correction_of", "correction_reason", "header_text", "footer_text")) {
+                for (key in arrayOf("status", "order_id", "created_at")) {
                     if ((old.has(key))) {
                         payload.put(key, old.get(key))
                     }
@@ -76,11 +80,11 @@ class EntityApplicationService {
                 }
                 var base: JSONObject = JSONObject().put("id", id)
                 for (key in fields) {
-                    if (((((!key.equals("positions") && !key.equals("domestic_service_confirmed")) && !key.equals("payment_days")) && old.has(key)))) {
+                    if (old.has(key)) {
                         base.put(key, old.get(key))
                     }
                 }
-                for (key in arrayOf("updated_at", "status", "invoice_number")) {
+                for (key in arrayOf("updated_at", "status")) {
                     if ((old.has(key))) {
                         base.put(key, old.get(key))
                     }
@@ -95,17 +99,15 @@ class EntityApplicationService {
                 }
                 payload.put("_mcp_base", base)
                 payload.remove("_mcp_create")
-                if ((entity.equals("invoice"))) {
-                    payload.put("_mcp_invoice_positions", old.optJSONArray("positions")).put("_mcp_invoice_payment_days", old.optInt("payment_days", 14))
-                }
             } else {
+                payload = JSONObject()            } else {
                 payload = JSONObject()
                 for (key in fields) {
                     if ((args.has(key))) {
                         payload.put(key, args.get(key))
                     }
                 }
-                payload.put("id", (((if (entity.equals("customer")) "cus_mobile_mcp_" else (if (entity.equals("order")) "ord_mobile_mcp_" else "inv_mobile_mcp_"))) + PixelMcpWriteTools.hash(actionId).substring(0, 32)))
+                payload.put("id", (if (entity == "customer") "cus_mobile_mcp_" else "ord_mobile_mcp_") + PixelMcpWriteTools.hash(actionId).substring(0, 32))
                 var rows: JSONArray? = master.optJSONArray(collection)
                 run {
                     var i: Int = 0
@@ -170,62 +172,9 @@ class EntityApplicationService {
                         }
                     }
                     payload.put("customer_visible", (if (payload.optBoolean("customer_visible", (payload.optInt("customer_visible", 1) != 0))) 1 else 0)).put("source", "ChatGPT Sprache")
-                } else {
-                    PixelMcpWriteTools.find(master.optJSONArray("customers"), payload.optString("customer_id"))
-                    if ((((!"Entwurf".equals(payload.optString("status", "Entwurf")) || !payload.optString("sevdesk_id").isEmpty()) || !payload.optString("issued_at").isEmpty()))) {
-                        throw PixelMcpWriteTools.Rejected("INVOICE_LOCKED", "Nur lokale Rechnungsentwürfe dürfen bearbeitet werden.")
-                    }
-                    for (key in arrayOf("invoice_date", "service_start", "service_end")) {
-                        if ((!payload.optString(key).isEmpty())) {
-                            try {
-                                java.time.LocalDate.parse(payload.optString(key))
-                            } catch (e: Exception) {
-                                throw PixelMcpWriteTools.Rejected("INVALID_INPUT", "Bitte gültige Rechnungs- und Leistungsdaten angeben.")
-                            }
-                        }
-                    }
-                    EntityContract.validatePositions(payload.getJSONArray("positions"))
-                    payload.put("status", "Entwurf").put("sevdesk_id", "").put("source", "ChatGPT Sprache")
-                    var positions: JSONArray = payload.getJSONArray("positions")
-                    var used: MutableSet<String> = HashSet()
-                    run {
-                        var i: Int = 0
-                        while ((i < positions.length())) {
-                            var worklogId: String = positions.getJSONObject(i).optString("worklog_id")
-                            if ((!worklogId.isEmpty())) {
-                                var log: JSONObject = PixelMcpWriteTools.find(master.optJSONArray("worklogs"), worklogId)
-                                if ((((!payload.optString("customer_id").equals(BillingRules.recipient(log)) || (log.optInt("billed", 0) != 0)) || !used.add(worklogId)))) {
-                                    throw PixelMcpWriteTools.Rejected("REFERENCE_MISMATCH", "Rechnungspositionen müssen offene Arbeiten dieses Kunden verwenden und dürfen keine Arbeit doppelt enthalten.")
-                                }
-                            }
-                            i++
-                        }
-                    }
-                    if ((!update)) {
-                        payload.put("invoice_number", ("Entwurf-" + payload.getString("id")))
-                    }
-                    if (((payload.optInt("payment_days", 14) > 365))) {
-                        throw PixelMcpWriteTools.Rejected("INVALID_INPUT", "Das Zahlungsziel muss zwischen 0 und 365 Tagen liegen.")
-                    }
-                    var total: java.math.BigDecimal = java.math.BigDecimal.ZERO
-                    run {
-                        var i: Int = 0
-                        while ((i < positions.length())) {
-                            var p: JSONObject? = positions.getJSONObject(i)
-                            var quantity: java.math.BigDecimal = java.math.BigDecimal(p!!.get("quantity").toString())
-                            var price: java.math.BigDecimal = java.math.BigDecimal(p!!.get("price").toString())
-                            var discount: java.math.BigDecimal = java.math.BigDecimal((if ((p!!.opt("discount") == null)) "0" else p!!.get("discount").toString()))
-                            var amount: java.math.BigDecimal = quantity.multiply(price).multiply(java.math.BigDecimal.ONE.subtract(discount.divide(java.math.BigDecimal("100")))).setScale(2, java.math.RoundingMode.HALF_UP)
-                            p!!.put("net", amount.toDouble()).put("tax", 0)
-                            total = total.add(amount)
-                            i++
-                        }
-                    }
-                    payload.put("amount", total.toDouble()).put("net_total", total.toDouble()).put("gross_total", total.toDouble()).put("tax_total", 0)
-                    InvoiceDraftRules.normalize(payload, (if (update) PixelMcpWriteTools.find(master.getJSONArray("invoices"), payload.getString("id")) else null), master)
                 }
             }
-            return JSONObject().put("entity_type", entity).put("payload", payload)
+                        return JSONObject().put("entity_type", entity).put("payload", payload)
         }
     }
 }
