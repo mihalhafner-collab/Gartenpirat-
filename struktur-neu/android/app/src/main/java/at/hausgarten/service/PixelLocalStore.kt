@@ -366,48 +366,6 @@ return out.toString()
 
 ServiceCatalogBootstrap.seed(snapshot, { readAsset("service-catalog.json") })
 }
-@Throws(Exception::class) fun commitSnapshot(snapshot: JSONObject, confirmed: MutableSet<String>): Unit {
-
-if (!(LocalAuthorityGuard.legacySyncAllowed(context))) {
-throw IOException("LEGACY_SYNC_WRITER_DISABLED")
-}
-var db = getWritableDatabase()
-beginBusinessTransaction(db)
-try {
-
-var remaining = JSONArray()
-var actions = pendingActions()
-run {
-var i: Int = 0
-var firstIteration38 = true
-while (true) {
-if (firstIteration38) firstIteration38 = false else { i++ }
-if (!(i < actions.length())) break
-
-if (!(confirmed.contains(actions.getJSONObject(i).getString("client_id")))) {
-remaining.put(actions.getJSONObject(i))
-}
-
-}
-}
-var future = SnapshotProjection.effective(JSONObject().put("master", JSONObject(snapshot.toString())).put("pending", remaining))
-RevierApplicationService(RevierSnapshotRepository(db, future)).validateRelationships()
-putOwnerValue("snapshot", snapshot.toString())
-acknowledge(confirmed)
-db.setTransactionSuccessful()
-
-} finally {
-db.endTransaction()
-}
-}
-@Throws(Exception::class) fun commitLocalSnapshot(snapshot: JSONObject): Unit {
-
-if (!(LocalAuthorityGuard.local(context))) {
-throw IOException("LOCAL_AUTHORITY_REQUIRED")
-}
-snapshot.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
-putOwnerValue("snapshot", snapshot.toString())
-}
 private fun createPhotoAttachmentSchema(database: SQLiteDatabase): Unit {
 
 database.execSQL("CREATE TABLE IF NOT EXISTS photo_attachments(photo_id TEXT PRIMARY KEY,content_sha256 TEXT NOT NULL,mime_type TEXT NOT NULL,byte_size INTEGER NOT NULL,storage_name TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'documentation',transfer_state TEXT NOT NULL DEFAULT 'local',created_at TEXT NOT NULL)")
@@ -493,7 +451,7 @@ if (LocalAuthorityGuard.local(context)) {
 master.put("processing_engine", LocalAuthorityRules.ENGINE).put("local_contract_version", LocalAuthorityRules.CONTRACT)
 }
 output.put("master", master)
-output.put("pending", DriveJournalRules.union(pendingActions(), output.getJSONObject("master").optJSONArray("drive_review_actions")))
+output.put("pending", pendingActions())
 output.put("work_session", workSessions().current())
 output.put("sync_queue", JSONObject().put("mode", "local_only").put("contract_version", 3)
     .put("total", 0).put("pending", 0).put("review", 0)
@@ -827,9 +785,6 @@ entityId = saveCustomer(payload)
 }
 "order" -> {
 entityId = saveOrder(payload)
-}
-"invoice" -> {
-entityId = saveInvoiceDraft(payload)
 }
 else -> {
 entityId = saveWorklog(payload)
@@ -1182,9 +1137,6 @@ throw IllegalArgumentException("Diese Arbeitssitzung ist bereits abgeschlossen. 
 id = (if (session.isEmpty()) saveWorklog(work) else completeWorkSession(session, work, "ui-finalize-" + session))
 }
 }
-"invoice" -> {
-id = saveInvoiceDraft(payload)
-}
 else -> {
 throw IllegalArgumentException("Unbekannter Editor.")
 }
@@ -1310,74 +1262,6 @@ return saved
 
 } finally {
 database.endTransaction()
-}
-}
-@Throws(Exception::class) fun saveInvoiceDraft(payload: JSONObject): String {
-var payload = payload
-
-var db = getWritableDatabase()
-beginBusinessTransaction(db)
-try {
-
-var all = PixelMcpReadTools.effective(getState())
-var id = payload.optString("id")
-if (id.isEmpty()) {
-id = "inv_mobile_" + UUID.randomUUID().toString().replace("-", "")
-}
-payload.put("id", id)
-var old = findById(all.getJSONArray("invoices"), id)
-payload = ManualChangeRules.editor(payload, old, "invoice")
-run {
-var i: Int = 0
-var firstIteration47 = true
-while (true) {
-if (firstIteration47) firstIteration47 = false else { i++ }
-if (!(i < getState().getJSONArray("pending").length())) break
-
-var a = getState().getJSONArray("pending").getJSONObject(i)
-if (java.util.Arrays.asList("invoice_issue", "owner_invoice_issue", "pixel_invoice_issue_v1").contains(a.optString("kind")) && (id == a.getJSONObject("payload").optString("id"))) {
-throw IllegalArgumentException("Rechnungsabschluss ist bereits vorgemerkt.")
-}
-
-}
-}
-if (LocalAuthorityGuard.local(context)) {
-var positions = payload.optJSONArray("positions")
-run {
-var i: Int = 0
-var firstIteration48 = true
-while (true) {
-if (firstIteration48) firstIteration48 = false else { i++ }
-if (!(positions != null && i < positions.length())) break
-
-var position = positions.getJSONObject(i)
-var quantity = position.opt("quantity")
-if (quantity is String) {
-var text = (quantity as String)
-if (!(text.matches(Regex("(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,8})?")))) {
-throw IllegalArgumentException("Positionsmenge als positive Dezimalzahl mit höchstens acht Nachkommastellen angeben.")
-}
-var decimal = java.math.BigDecimal(text)
-if (decimal.signum() <= 0 || decimal.precision() > 12) {
-throw IllegalArgumentException("Positionsmenge benötigt höchstens zwölf Ziffern und muss positiv sein.")
-}
-position.put("quantity", decimal)
-}
-
-}
-}
-}
-InvoiceDraftRules.normalize(payload, old, all)
-if (payload.optString("invoice_number").isEmpty()) {
-payload.put("invoice_number", "Entwurf-" + id)
-}
-prepareManualChange("invoice", payload, old)
-var result = saveAction("invoice", "inv_mobile_", payload)
-db.setTransactionSuccessful()
-return result
-
-} finally {
-db.endTransaction()
 }
 }
 @Throws(Exception::class) fun savePhoto(payload: JSONObject): String {
@@ -1978,21 +1862,8 @@ return id
 db.endTransaction()
 }
 }
-@Throws(Exception::class) fun pendingActions(): JSONArray {
-
-return pendingActions(false)
-}
-@Throws(Exception::class) fun pendingActionsForDrive(): JSONArray {
-
-if (!(LocalAuthorityGuard.legacySyncAllowed(context))) {
-return JSONArray()
-}
-return pendingActions(true)
-}
-private @Throws(Exception::class) fun pendingActions(forDrive: Boolean): JSONArray {
-
-return LocalPendingActions.read(getReadableDatabase(), forDrive, this::photoAttachment, System.currentTimeMillis())
-}
+@Throws(Exception::class) fun pendingActions(): JSONArray =
+    LocalPendingActions.read(getReadableDatabase(), false, this::photoAttachment, System.currentTimeMillis())
 fun acknowledge(ids: MutableSet<String>): Unit {
 
 var database = getWritableDatabase()
