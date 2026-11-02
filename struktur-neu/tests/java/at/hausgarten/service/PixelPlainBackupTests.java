@@ -10,7 +10,7 @@ public final class PixelPlainBackupTests {
     static JSONObject metadata()throws Exception{return new JSONObject().put("schemaVersion",6).put("applicationId","at.hausgarten.service").put("appVersion","qa").put("backupId","qa_plain_backup").put("installationId","qa_install").put("businessId","qa_business").put("capturedAt","2026-10-28T00:00:00Z").put("counts",new JSONObject()).put("numberState",new JSONObject()).put("lastIssuedDocumentIds",new JSONArray());}
     static void diagnosticChecks()throws Exception{
         // These failures used to collapse to BACKUP_CAPTURE_INVENTORY_IO_FAILED.
-        for(String code:new String[]{"BROWSER_MEDIA_RECORD_MISSING","FINANCIAL_NUMBER_COLLISION","FINANCIAL_ORIGINAL_HASH_MISMATCH"}){
+        for(String code:new String[]{"BROWSER_MEDIA_RECORD_MISSING","BACKUP_DATABASE_INTEGRITY_FAILED","FINANCIAL_ORIGINAL_HASH_MISMATCH"}){
             Exception error=BackupScheduleRules.captureFailure("INVENTORY",new IOException(code));
             yes(BackupScheduleRules.errorCode(error).equals(code));
         }
@@ -32,10 +32,10 @@ public final class PixelPlainBackupTests {
     static void statusChecks()throws Exception {
         JSONObject empty=status(new JSONArray(),new JSONObject());yes(empty.getString("state").equals("NOT_SAVED"));yes(BackupStatusRules.selfTest(empty).getString("status").equals("NOT TESTABLE"));
         JSONObject success=proof(backup("qa_z_old","2026-10-28T10:00:00Z","PROVIDER_VERIFIED"));
-        JSONObject failed=backup("qa_a_new","2026-10-29T10:00:00Z","FAILED");failed.getJSONObject("job").put("lastErrorCode","FINANCIAL_NUMBER_COLLISION").put("lastAttemptAt","2026-10-29T10:02:00Z");
+        JSONObject failed=backup("qa_a_new","2026-10-29T10:00:00Z","FAILED");failed.getJSONObject("job").put("lastErrorCode","BACKUP_DATABASE_INTEGRITY_FAILED").put("lastAttemptAt","2026-10-29T10:02:00Z");
         JSONObject stale=backup("qa_y_stale","2026-10-27T10:00:00Z","CAPTURING");
         JSONArray all=new JSONArray().put(failed).put(stale).put(success);String unchanged=all.toString();
-        JSONObject shown=status(all,new JSONObject().put("limit",1));yes(shown.getJSONObject("latest_job").getString("backup_id").equals("qa_a_new"));yes(shown.getString("state").equals("FAILED"));yes(shown.getJSONArray("jobs").length()==1&&shown.getInt("total")==3);yes(!shown.getString("last_local_verified_at").isEmpty());yes(BackupStatusRules.selfTest(shown).getString("status").equals("FAIL"));yes(BackupStatusRules.message(shown).contains("doppelte Nummer"));
+        JSONObject shown=status(all,new JSONObject().put("limit",1));yes(shown.getJSONObject("latest_job").getString("backup_id").equals("qa_a_new"));yes(shown.getString("state").equals("FAILED"));yes(shown.getJSONArray("jobs").length()==1&&shown.getInt("total")==3);yes(!shown.getString("last_local_verified_at").isEmpty());yes(BackupStatusRules.selfTest(shown).getString("status").equals("FAIL"));yes(BackupStatusRules.message(shown).contains("Datenbank ist technisch nicht lesbar"));
         JSONObject page=status(all,new JSONObject().put("offset",1).put("limit",1));yes(page.getString("state").equals("FAILED")&&page.getJSONObject("latest_job").getString("backup_id").equals("qa_a_new"));yes(page.getJSONArray("jobs").getJSONObject(0).getString("backup_id").equals("qa_z_old"));
         JSONObject older=status(all,new JSONObject().put("backup_id","qa_z_old"));yes(older.getString("state").equals("VERIFIED"));yes(BackupStatusRules.selfTest(older).getString("status").equals("PASS"));yes(!BackupStatusRules.selfTest(older).getBoolean("file_rechecked_now")&&!BackupStatusRules.selfTest(older).getBoolean("restore_tested"));
         JSONObject interrupted=status(new JSONArray().put(stale),new JSONObject());yes(interrupted.getString("state").equals("FAILED"));yes(interrupted.getJSONObject("latest_job").getString("last_error_code").equals("BACKUP_INTERRUPTED"));yes(interrupted.getJSONObject("latest_job").getString("recorded_phase").equals("CAPTURING"));

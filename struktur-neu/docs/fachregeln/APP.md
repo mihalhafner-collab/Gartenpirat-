@@ -236,7 +236,18 @@ keinen entsprechenden Nachweis auf dem Pixel.
 ## Vereinfachte native Bedienung und Arbeitszubehör
 
 Heute, Arbeitsaufzeichnungen, Kunden und Büro sind die vier festen Hauptbereiche.
-Heute zeigt erfasste Arbeiten und Hinweise direkt. Der Kunden-Menüaufruf beginnt
+Heute folgt der am 02.11.2026 zusätzlich beauftragten Bildvorlage: lokale
+Speicher-/Sicherungsangabe, nächster geplanter Einsatz, Tagestour und gespeicherte
+Tagesstunden. Während einer Arbeit zeigt die Ansicht die persistente Nettozeit,
+Pause/Fortsetzen und Beenden. Beenden öffnet die vorhandene Zeitprüfung und erzeugt
+keine ungeprüfte Arbeitsaufzeichnung. Foto und Material verwenden die bestehende
+Erfassung mit dem tatsächlichen Kunden-/Auftrags-/Sitzungsbezug. Das unten geöffnete
+Erfassen-Menü bietet Foto, Material, manuelle Arbeit und den Arbeitseintrag mit
+vorangestelltem Notizfeld. Vorhandene Entwürfe bleiben vorrangig. Es gibt keine
+neue Menügeste; Android-Zurück schließt den Dialog. Hauptaktionen sind mindestens
+56 dp hoch, große Schrift bleibt ungekürzt. Gerätewartungen und offene lokale
+Hinweise erscheinen nur aus vorhandenen Daten. Die Ansicht behauptet keinen
+externen Sicherungsnachweis. Der Kunden-Menüaufruf beginnt
 am Listenanfang; Suchtext und Filter werden dadurch nicht geändert. Arbeitsnotizen
 stehen ohne Aufklappen im Detail. Büro erhält die vorhandenen Funktionen einschließlich
 Maschinenpark und Gerätewartung. Häufige Aktionen liegen kompakt am unteren Rand.

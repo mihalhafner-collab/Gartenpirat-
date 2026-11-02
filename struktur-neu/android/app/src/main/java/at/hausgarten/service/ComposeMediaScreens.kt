@@ -356,6 +356,14 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
             if (previous.isNotBlank() && previous != selected) withContext(Dispatchers.IO) { runCatching { PhotoCaptureProvider.release(controller.context, Uri.parse(previous)) } }
         } catch (failure: Exception) { controller.message(mediaError(failure)) }
     } }
+    var cameraOpened by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(draftReady) {
+        if (draftReady && initialArgs.optBoolean("_open_camera") && !cameraOpened) {
+            cameraOpened = true
+            // An existing unsaved capture always wins over a new shortcut.
+            if (!draftTouched && selected.isBlank() && pending.isBlank()) choose(true)
+        }
+    }
     fun leave() { if (!busy) { if (draftTouched || selected.isNotBlank() || pending.isNotBlank()) confirmDiscard = true else close() } }
     BackHandler { leave() }
     Column(Modifier.fillMaxSize()) {

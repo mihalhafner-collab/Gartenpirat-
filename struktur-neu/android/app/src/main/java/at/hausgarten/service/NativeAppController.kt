@@ -104,6 +104,35 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (spec(name)?.optJSONObject("annotations")?.optBoolean("readOnlyHint") == false) store.notifyCommittedChange()
         result
     }
+    /** Today and the timer use one durable action/recovery path. */
+    suspend fun timerAction(tool: String, sessionId: String): JSONObject {
+        require(tool in listOf("start_break", "end_break", "stop_work", "continue_work", "discard_work_session", "restore_work_session"))
+        val previous = draft("timer_action")
+        if (previous != null && previous.optString("original_tool") != tool) throw IllegalStateException("Zuerst den ungeklärten Zeitvorgang prüfen.")
+        val args = previous?.getJSONObject("original_args") ?: JSONObject().put("request_id", UUID.randomUUID().toString()).put("session_id", sessionId)
+        suspend fun confirmed(): JSONObject {
+            if (tool == "discard_work_session") {
+                saveDraft("timer_cancelled", JSONObject().put("session_id", args.getString("session_id"))); flushDrafts()
+            } else if (tool == "restore_work_session") removeDraft("timer_cancelled")
+            removeDraft("timer_action")
+            return query("get_active_work_session")
+        }
+        if (previous != null) {
+            val proof = query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", args))
+            if (proof.optString("state") == "confirmed") return confirmed()
+            if (previous.optBoolean("_restore_action_review_required") || proof.optString("state") != "unknown") {
+                throw IllegalStateException("Kein eindeutiger Speicherbeleg. Den übernommenen Zeitvorgang zuerst prüfen.")
+            }
+        }
+        saveDraft("timer_action", JSONObject().put("original_tool", tool).put("original_args", args)); flushDrafts()
+        try { call(tool, args) }
+        catch (failure: Exception) {
+            if (failure is NativeCallFailure && failure.detail.optString("commit_state") == "not_committed") removeDraft("timer_action")
+            throw failure
+        }
+        return confirmed()
+    }
+
     suspend fun storageUsage(): JSONObject = withContext(Dispatchers.IO) { LocalStorageMaintenance(context, store).usage() }
     suspend fun cleanStorage(): JSONObject {
         flushDrafts()

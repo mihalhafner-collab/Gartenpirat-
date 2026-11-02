@@ -27,21 +27,22 @@ class EntityApplicationService {
                 var id: String = args.getString(idKey)
                 var old: JSONObject = PixelMcpWriteTools.find(master.optJSONArray(collection), id)
                 if ((old.optString("updated_at").isEmpty())) {
-                    throw PixelMcpWriteTools.Rejected("REMOTE_GUARD_REQUIRED", "Der Änderungsstand fehlt. Bitte zuerst vollständig abgleichen.")
+                    throw PixelMcpWriteTools.Rejected("REMOTE_GUARD_REQUIRED", "Der Änderungsstand fehlt. Bitte den lokalen Eintrag erneut öffnen.")
                 }
                 if ((!PixelMcpWriteTools.hash(EntityContract.editable(old, fields)).equals(args.getString("expected_record_hash")))) {
                     throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Der Datensatz wurde inzwischen geändert. Bitte erneut öffnen.")
                 }
-                var pending: JSONArray? = state.optJSONArray("pending")
-                run {
-                    var i: Int = 0
-                    while (((pending != null) && (i < pending!!.length()))) {
-                        var a: JSONObject = pending!!.getJSONObject(i)
-                        var p: JSONObject? = a.optJSONObject("payload")
-                        if ((((p != null) && id.equals(p!!.optString("id"))))) {
-                            throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Für diesen Datensatz ist bereits eine Änderung vorgemerkt. Bitte zuerst abgleichen.")
-                        }
-                        i++
+                // The effective local snapshot already applies committed journal entries.
+                // CAS above protects concurrent edits; only unresolved entries block another write.
+                val applied = LocalJournalRules.ids(master.optJSONArray("drive_applied_ids")).apply {
+                    addAll(LocalJournalRules.ids(master.optJSONArray("accepted_ids")))
+                    master.optJSONObject("drive_resolved_actions")?.keys()?.forEach { add(it) }
+                }
+                val pending = state.optJSONArray("pending") ?: JSONArray()
+                for (i in 0 until pending.length()) {
+                    val action = pending.getJSONObject(i)
+                    if (action.optString("client_id") !in applied && action.optJSONObject("payload")?.optString("id") == id) {
+                        throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Ein früherer lokaler Vorgang ist ungeklärt. Bitte zuerst prüfen.")
                     }
                 }
                 payload = JSONObject().put("id", id)

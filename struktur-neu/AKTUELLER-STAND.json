@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-02T18:41:26Z",
+    "observed_at_utc": "2026-11-02T19:41:46Z",
     "version_name": "1.57.2",
     "version_code": 121,
     "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
@@ -34,8 +34,8 @@
     }
   ],
   "current_task": {
-    "name": "KISS/YAGNI-Bereinigung; lokale SQLite-App, sevDesk für Rechnungen",
-    "status": "LOCAL_SOURCE_RELEASE_LINT_AND_JVM_PASSED; CI_AND_ORIGINAL_RELEASE_DISTRIBUTION_PENDING",
+    "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
+    "status": "LOCAL_SOURCE_RELEASE_LINT_AND_JVM_PASSED_WITH_TODAY_HUB; EMULATOR_RECHECK_AND_DISTRIBUTION_PENDING",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -52,12 +52,14 @@
       "Installierter Quellfingerabdruck stimmt exakt mit f44797bfc412d2fea27236fd9ffd4bda6b234286 überein; dieser Commit ist Vorfahr von main",
       "Quellprüfung erfolgreich; acht synthetische JVM-Suiten einschließlich Angeboten, Material und 111 ZIP-/Integritätsprüfungen erfolgreich",
       "compileReleaseKotlin, compileReleaseJavaWithJavac, assembleRelease, assembleReleaseAndroidTest und lintRelease erfolgreich",
-      "Bisherige Drive-Installations-APK vollständig zurückgelesen; SHA256 und Originalzertifikat stimmen mit dem bestehenden Identitätsvertrag überein"
+      "Bisherige Drive-Installations-APK vollständig zurückgelesen; SHA256 und Originalzertifikat stimmen mit dem bestehenden Identitätsvertrag überein",
+      "Heute-Erweiterung und lokale CAS-Reparatur: Quellprüfung, acht JVM-Suiten (einschließlich 97 Wartungsprüfungen), Kotlin/Java, Release-/Android-Test-APK und lintRelease erfolgreich"
     ],
     "remaining": [
-      "GitHub-Actions-Emulatorprüfungen auf dem Commit vollständig ausführen und gegebenenfalls reparieren",
+      "Vollständigen GitHub-Actions-Emulatorlauf nach Heute-Erweiterung und Reparatur der im Lauf 41506712906 gefundenen lokalen CAS-/Testumgebungsfehler ausführen",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
-    ]
+    ],
+    "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü; vier Hauptbereiche und Android-Zurück bleiben erhalten."
   },
   "open_checks": [
     "Pixel bleibt unverändert auf 1.57.2 (121); keine Installation, Migration, Wiederherstellung oder produktiven Tests.",

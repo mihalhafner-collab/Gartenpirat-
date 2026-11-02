@@ -1974,8 +1974,19 @@ class RevierApplicationService {
                 i++
             }
         }
+        val maintenance = JSONArray()
+        var maintenanceUnclear = 0
+        val equipment = records("equipment")
+        for (i in 0 until equipment.length()) {
+            val device = equipment.getJSONObject(i)
+            if (device.optBoolean("archived") || !device.optBoolean("active", true)) continue
+            try {
+                val next = EquipmentMaintenanceRules.nextDue(device).ifEmpty { device.optString("maintenance_due") }
+                if (next.isNotEmpty() && next <= day) maintenance.put(JSONObject().put("id", device.getString("id")).put("name", device.optString("name")).put("next_due_on", next))
+            } catch (_: Exception) { maintenanceUnclear++ }
+        }
         var customerCount: Int = (if ((state.optJSONArray("customers") == null)) 0 else state.getJSONArray("customers").length())
-        return JSONObject().put("date", day).put("timezone", "Europe/Vienna").put("visits", planned).put("planned_visits", planned).put("due_visits", due).put("tour", tour(day)).put("properties_count", records("property").length()).put("customers_count", customerCount).put("open_inquiries", open).put("work_session", repository.currentSession()).put("external_calendar_status", "unknown").put("local_only", true)
+        return JSONObject().put("date", day).put("timezone", "Europe/Vienna").put("visits", planned).put("planned_visits", planned).put("due_visits", due).put("tour", tour(day)).put("properties_count", records("property").length()).put("customers_count", customerCount).put("open_inquiries", open).put("work_session", repository.currentSession()).put("external_calendar_status", "unknown").put("maintenance_due", maintenance).put("maintenance_unclear", maintenanceUnclear).put("local_only", true)
     }
     @Throws(Exception::class)
     fun detachOptionalParent(entity: String, id: String, request: String) {

@@ -127,5 +127,18 @@ public final class EquipmentMaintenanceTests {
         f.app.execute("record_equipment_maintenance",f.args("qa_maintenance_format_event").put("plan_id",f.plan().getString("id")).put("performed_on","2027-05-18"));
         yes(f.current().getJSONArray("items").getJSONObject(0).getInt("format_version")==2);yes(f.app.validateRelationships().getString("status").equals("PASS"));
     }
-    public static void main(String[] unused)throws Exception{SyntheticBusinessData.verify();calendar();lifecycle();failuresAndRestore();schemaAndSharedPort();earlierReview();purgeEmptyPlan();formatBoundary();System.out.println("PASS "+checks+" equipment maintenance calendar/early review/history/idempotency/CAS/rollback/restore/reference/shared-port checks; synthetic JVM only");}
+    static void todayOverview()throws Exception {
+        Fixture f=new Fixture();
+        yes(f.app.query("get_revier_overview",obj().put("date","2027-05-18")).getJSONArray("maintenance_due").length()==0);
+        yes(f.app.query("get_revier_overview",obj().put("date","2027-06-01")).getJSONArray("maintenance_due").length()==1);
+        f.createPlan();
+        yes(f.app.query("get_revier_overview",obj().put("date","2027-06-17")).getJSONArray("maintenance_due").length()==0);
+        JSONObject overview=f.app.query("get_revier_overview",obj().put("date","2027-06-18"));
+        yes(overview.getJSONArray("maintenance_due").getJSONObject(0).getString("id").equals(f.id));
+        yes(overview.getInt("maintenance_unclear")==0);
+        String key=RevierRules.ROOT+"entity:equipment:"+f.id;
+        f.store.values.put(key,new JSONObject(f.store.values.get(key)).put("active",false).toString());
+        yes(f.app.query("get_revier_overview",obj().put("date","2027-06-18")).getJSONArray("maintenance_due").length()==0);
+    }
+    public static void main(String[] unused)throws Exception{SyntheticBusinessData.verify();calendar();todayOverview();lifecycle();failuresAndRestore();schemaAndSharedPort();earlierReview();purgeEmptyPlan();formatBoundary();System.out.println("PASS "+checks+" equipment maintenance calendar/early review/history/idempotency/CAS/rollback/restore/reference/shared-port checks; synthetic JVM only");}
 }

@@ -159,33 +159,6 @@ internal class LocalJournalRules {
                                 "offer_refs",
                             )
                         else
-                            (if ((kind == "invoice"))
-                                arrayOf(
-                                    "id",
-                                    "updated_at",
-                                    "customer_id",
-                                    "order_id",
-                                    "invoice_number",
-                                    "invoice_date",
-                                    "service_start",
-                                    "service_end",
-                                    "status",
-                                    "sevdesk_id",
-                                    "issued_at",
-                                    "positions",
-                                    "payment_days",
-                                    "notes",
-                                    "domestic_service_confirmed",
-                                    "document_type",
-                                    "correction_of",
-                                    "correction_reason",
-                                    "header_text",
-                                    "footer_text",
-                                    "tax_mode",
-                                    "recipient_type",
-                                    "recipient_vat_id",
-                                )
-                            else
                                 arrayOf(
                                     "id",
                                     "customer_id",
@@ -202,7 +175,7 @@ internal class LocalJournalRules {
                                     "session_id",
                                     "capture_time",
                                     "updated_at",
-                                )))))
+                                ))))
             for (key in keys) {
                 base.put(
                     key,

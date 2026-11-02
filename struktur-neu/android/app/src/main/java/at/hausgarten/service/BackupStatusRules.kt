@@ -136,15 +136,6 @@ object BackupStatusRules {
         if (code == "BACKUP_PREFERENCES_CHANGED_RETRY" || code == "BACKUP_SOURCE_CHANGED") return "Der Bestand hat sich während der Aufnahme verändert. Bitte den laufenden Vorgang abschließen und erneut sichern."
         if (code == "BACKUP_DATABASE_INTEGRITY_FAILED") return "Die Datenbank ist technisch nicht lesbar. Der Bestand bleibt erhalten; die Datenbank muss geprüft werden."
         if (code.startsWith("BACKUP_FILE_") || code.startsWith("BACKUP_MANIFEST_") || code == "BACKUP_COMMIT_MISSING") return "Die Sicherungsdatei ist unvollständig oder beschädigt. Bitte eine andere Sicherungsdatei auswählen."
-        val reason = when (code) {
-            "FINANCIAL_ISSUED_NUMBER_COLLISION" -> "Mehrere ausgestellte Rechnungen verwenden dieselbe Nummer."
-            "FINANCIAL_RESERVATION_COUNTER_COLLISION" -> "Eine Rechnungsnummer wurde mehrfach reserviert."
-            "FINANCIAL_RESERVATION_INVOICE_COLLISION" -> "Für eine Rechnung bestehen mehrere Nummernreservierungen."
-            "FINANCIAL_EXTERNAL_NUMBER_COLLISION" -> "Eine Rechnungsnummer kollidiert mit dem vorhandenen externen Belegnachweis."
-            "FINANCIAL_NUMBER_COLLISION" -> "Im Rechnungsbestand oder Nummernnachweis wurde eine doppelte Nummer erkannt."
-            else -> ""
-        }
-        if (reason.isNotEmpty()) return "Sicherung nicht abgeschlossen. $reason Bitte die Belege und den Nummernkreis prüfen lassen. Rechnungen und Nummern wurden nicht verändert. Fehlercode: $code"
         return "Vorgang nicht abgeschlossen. Der vorhandene Bestand bleibt erhalten. Fehlercode: $code"
     }
 

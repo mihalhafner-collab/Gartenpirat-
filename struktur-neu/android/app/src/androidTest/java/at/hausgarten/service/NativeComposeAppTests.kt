@@ -319,6 +319,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
                 }
             }
+            journey("today_hub", ::todayJourney)
             journey("customer", ::customerJourney)
             journey("usability", ::usabilityJourney)
             journey("accessories", ::accessoryJourney)
@@ -347,7 +348,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_write_failure_recovery", true)
                 .put("work_entry_usability", true).put("work_photo_retention", true)
                 .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("storage_settings_cleanup", true).put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
+                .put("today_hub", true).put("storage_settings_cleanup", true).put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -519,7 +520,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("55 Treffer · 1–50")
         yes(field("Suchen")?.text?.toString()?.contains(fixturePrefix) == true, "CUSTOMER_FILTER_PRESERVED_ON_ENTRY")
         click("Heute")
-        click("Arbeit erfassen")
+        click("+ Erfassen"); click("Arbeit nachtragen")
         click("Kunde: Nicht zugeordnet")
         enter("Suchen", fixturePrefix + "000")
         click(fixturePrefix + "000")
@@ -568,7 +569,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         workPhotoRetention(row)
         // Discard has already returned to Today; its selected tab has no click action.
         reveal("Erfasste Arbeiten")
-        click("Arbeit erfassen")
+        click("+ Erfassen"); click("Arbeit nachtragen")
         click("Kunde: Nicht zugeordnet")
         enter("Suchen", fixturePrefix + "000")
         click(fixturePrefix + "000")
@@ -732,7 +733,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("_request_id", "qa_discard_work_photo").put("activity", "QA unsaved photo draft"))
             .put("selected_photo_uri", other.toString()))
         controller.flushDrafts()
-        click("Heute"); click("Arbeit erfassen")
+        click("Heute"); click("+ Erfassen"); click("Arbeit nachtragen")
         reveal("Ungespeichertes Foto")
         val workCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         click("Speichern")
@@ -750,6 +751,43 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(controller.draft("editor:worklog:new") == null, "DISCARD_REMOVES_ONLY_OWN_DRAFT")
         yes(original.isFile && original.readBytes().contentEquals(originalBytes), "DISCARD_PRESERVES_SAVED_PHOTO_BYTES")
         source.delete()
+    }
+
+    private fun todayJourney() {
+        click("Heute")
+        shown("Einsatz starten")
+        for (label in listOf("Heute", "Arbeit", "Kunden", "Büro")) shown(label)
+        yes(actionBounds("Einsatz starten").height() >= 56, "TODAY_PRIMARY_TOUCH_TARGET")
+        yes(visibleTexts().none { it.contains("Externe Sicherung") }, "TODAY_HAS_NO_FABRICATED_EXTERNAL_BACKUP_PROOF")
+        captureSyntheticScreen("today-idle")
+        val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        click("+ Erfassen")
+        for (label in listOf("Foto aufnehmen", "Material buchen", "Arbeit nachtragen", "Notiz hinzufügen")) shown(label)
+        captureSyntheticScreen("today-capture")
+        back()
+        shown("Einsatz starten")
+        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before, "TODAY_CAPTURE_BACK_DOES_NOT_WRITE")
+        click("+ Erfassen"); click("Notiz hinzufügen")
+        shown("Notizen")
+        yes(!keyboardVisible(), "TODAY_NOTE_HAS_NO_FORCED_IME")
+        click("‹ Zurück")
+        shown("Einsatz starten")
+        val oldFont = shell("settings get system font_scale")
+        try {
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            shell("settings put system font_scale 2.0"); launch()
+            shown("Einsatz starten")
+            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+            for (label in listOf("Einsatz starten", "Planung", "+ Erfassen", "Heute", "Arbeit", "Kunden", "Büro")) {
+                val bounds = actionBounds(label)
+                yes(screen.contains(bounds) && bounds.height() >= 48, "TODAY_LARGE_TEXT_ACTION_$label")
+            }
+            click("+ Erfassen"); reveal("Schließen"); click("Schließen")
+            captureSyntheticScreen("today-large-font")
+        } finally {
+            shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
+            activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
+        }
     }
 
     private fun timerJourney() {
@@ -770,6 +808,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val session = read("get_active_work_session")
         val id = session.getString("id")
         yes(session.optString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "TIMER_SYNTHETIC_CUSTOMER")
+        click("Heute")
+        shown("Pause")
+        captureSyntheticScreen("today-running")
+        click("Pause")
+        waitUntil("TODAY_PAUSED") { read("get_active_work_session").optString("state") == "PAUSED" }
+        shown("Fortsetzen"); click("Fortsetzen")
+        waitUntil("TODAY_RESUMED") { read("get_active_work_session").optString("state") == "RUNNING" }
+        click("Beenden")
+        shown("Arbeit gestoppt")
+        yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "TODAY_STOP_REQUIRES_REVIEW")
+        click("Arbeit fortsetzen")
+        shown("Arbeit läuft")
         click("Heute")
         click("Laufende Arbeit öffnen")
         reveal("Arbeit läuft")
@@ -1056,7 +1106,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     automation.setRotation(UiAutomation.ROTATION_FREEZE_0)
                     launch()
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
-                    click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+                    click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = if (landscape) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                     waitUntil("SEARCH_CONFIGURATION_$key") {
                         var correct = false
@@ -1110,7 +1160,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             throw failure
         }
         yes(searchMatrix.length() == 6, "ALL_SEARCH_DISPLAY_COMBINATIONS")
-        click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+        click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
         enter("Suchen", "NO_SYNTHETIC_MATCH_48273"); shown("0 Treffer"); shown("Keine Treffer. Suchtext oder Filter ändern.")
         shown("Keine Zuordnung")
         showKeyboard("Suchen"); captureSyntheticScreen("search-no-results", requireKeyboard = true)
@@ -1140,15 +1190,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
             waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-            click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+            click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
             fun gestureHandlers(): String {
                 val dump = shell("dumpsys activity service com.android.systemui/.SystemUIService")
                 return dump.split("EdgeBackGestureHandler:").drop(1).joinToString("\nNEXT_HANDLER\n") { it.take(2200) }
             }
-            waitUntil("ATTACHED_EDGE_GESTURE_HANDLER") {
-                gestureHandlers().split("NEXT_HANDLER").any { it.contains("mIsEnabled=true") && it.contains("mIsAttached=true") }
+            try {
+                waitUntil("ATTACHED_EDGE_GESTURE_HANDLER") {
+                    gestureHandlers().split("NEXT_HANDLER").any { it.contains("mIsEnabled=true") && it.contains("mIsAttached=true") }
+                }
+            } catch (failure: Throwable) {
+                test.sendStatus(0, Bundle().apply {
+                    putString("gesture_attach_diagnostics", shell("dumpsys activity service com.android.systemui/.SystemUIService").takeLast(24000))
+                })
+                throw failure
             }
             test.sendStatus(0, Bundle().apply { putString("gesture_handlers_before", gestureHandlers()) })
             val screen = Rect().also { requireNotNull(automation.rootInActiveWindow).getBoundsInScreen(it) }
@@ -1179,7 +1236,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 throw failure
             }
             captureSyntheticScreen("back-gesture")
-            click("‹ Zurück"); shown("Arbeit erfassen")
+            click("‹ Zurück"); shown("Einsatz starten")
         } catch (failure: Throwable) {
             runCatching { captureSyntheticScreen("failure-back-gesture-active") }
             throw failure
@@ -1283,13 +1340,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
         }
         case("phrases") {
-            click("Arbeit erfassen"); click("Textbausteine ▾")
+            click("+ Erfassen"); click("Arbeit nachtragen"); click("Textbausteine ▾")
             keyboardSearchProof("phrases", "Vorschläge durchsuchen", "Rasen gemäht", "Rasen gemäht")
             waitUntil("PHRASE_TRANSFERRED") { field("Was wurde erledigt? *")?.text?.toString()?.contains("Rasen gemäht") == true }
             click("Verwerfen"); click("OK", scrollTo = false)
         }
         case("duplicate-customers") {
-            click("Arbeit erfassen"); click("Kunde: Nicht zugeordnet")
+            click("+ Erfassen"); click("Arbeit nachtragen"); click("Kunde: Nicht zugeordnet")
             enter("Suchen", "QA Gleichnamig"); shown("2 Treffer"); reveal("QA TestNord"); reveal("QA TestSüd")
             enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName, requireKeyboard = true)
             captureSyntheticScreen("domain-duplicate-customers", requireKeyboard = true); visibleResult(duplicateName, tap = true, requireKeyboard = true)
@@ -1476,9 +1533,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         fun planning() { click("Büro"); click("Planung") }
         fun billing() { click("Büro"); click("Offene Arbeitsstunden") }
-        case("today", "Arbeit beginnen", true) { }
+        case("today", "Einsatz starten", true) { }
         case("work", "Arbeitsentwürfe") { click("Arbeit") }
-        case("timer", "Zeiterfassung") { click("Arbeit beginnen") }
+        case("timer", "Zeiterfassung") { click("Einsatz starten") }
         case("customers", "Kunde anlegen") { click("Kunden") }
         case("office", "Kunden und Aufträge ▾", true) { click("Büro") }
         case("properties", "Objekt anlegen") { openOfficeGroup("Kunden und Aufträge", "Objekte") }
@@ -1531,7 +1588,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val previousFont = shell("settings get system font_scale")
         val before = PixelMcpReadTools.effective(store.getState())
         fun retainedBusiness(value: JSONObject) = JSONObject().apply {
-            for (key in listOf("customers", "orders", "worklogs", "invoices", "offers", "photos", "appointments", "owner_archive")) put(key, value.opt(key))
+            for (key in listOf("customers", "orders", "worklogs", "invoices", "offers", "photos", "appointments")) put(key, value.opt(key))
+            // Purged tombstones are reclaimable metadata; archived business records are retained.
+            val archives = value.optJSONObject("owner_archive") ?: JSONObject()
+            put("owner_archive", JSONObject().apply {
+                for (key in archives.keys()) if (!archives.getJSONObject(key).optBoolean("purged")) put(key, archives.get(key))
+            })
         }
         try {
             for (scale in listOf(1.0, 2.0)) {
@@ -1614,7 +1676,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("PLANNING_BACK_TO_MAIN") { node("Termine") == null && automation.rootInActiveWindow?.packageName?.toString() == context.packageName }
         checks++
         shown("Heute")
-        click("Arbeit erfassen")
+        click("+ Erfassen"); click("Arbeit nachtragen")
         shown("Speichern")
         reveal("Arbeitsdatum *")
         enter("Beginn", "08:00")

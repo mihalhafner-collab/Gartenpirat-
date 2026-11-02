@@ -242,7 +242,7 @@ Katalogaktualisierung unverändert.
 ## Native Android-Prüfungen
 
 `qa-apk.yml` definiert Release-/Testbau, JVM-Lauf mit `--tables` und acht native
-Phasen auf einem frischen API35-Wegwerf-Emulator in genau dieser Reihenfolge:
+Phasen auf einem frischen API35-Google-APIs-Wegwerf-Emulator in genau dieser Reihenfolge:
 
 | Suite | Prüfgrenze |
 |---|---|
@@ -556,3 +556,11 @@ die jeweiligen tatsächlichen Eingaben mit IME.
 Der native Datenzugriffstest schließt den SQLite-Helper auch mitten in einer vollständigen Bestandsabfrage. Erfolg und Abfragefehler müssen die Transaktion beenden, die letzte Datenbankreferenz freigeben und anschließendes Lesen/Schreiben ohne verbleibende Sperre erlauben.
 
 Ergänzend prüft `list_viewports` zehn Fachlisten bei 200 % und verkleinerter Höhe im Hochformat; Kunden, Arbeit, Angebote, Leistungskatalog und lokale Suche zusätzlich im Querformat (15 Fälle). Suche und Trefferzahl müssen vollständig oberhalb der IME liegen. Bei langen Detailkarten darf der restliche Karteninhalt scrollbar außerhalb des kleinen Ausschnitts liegen; der sichtbare Titelanfang und eine mindestens 48 × 48 dp große tatsächlich injizierte Touchfläche müssen innerhalb der Bildschirm-/IME-Grenzen liegen. Die bisherigen Dialog- und normalen Suchprüfungen verlangen weiterhin vollständig sichtbare Ergebnisflächen. IME-Fertig, erhaltener Suchwert und Öffnen desselben Treffers werden getrennt geprüft.
+
+Die zusätzliche Heute-Prüfung öffnet das Erfassen-Menü, prüft Android-Zurück ohne
+Geschäftsdatenänderung, die vier Hauptbereiche, Notizfeld und 200-%-Schrift. Der
+Timerweg prüft Pause/Fortsetzen/Beenden auch direkt auf Heute; Beenden muss weiterhin
+die Zeitprüfung öffnen. Die Screenshots today-idle, today-running, today-capture
+und today-large-font enthalten ausschließlich synthetische Daten. Das API35-Systembild
+mit Google APIs liefert den vollständigen System-Gestenhandler; der physische
+Randgestentest wird weiterhin tatsächlich ausgeführt.
