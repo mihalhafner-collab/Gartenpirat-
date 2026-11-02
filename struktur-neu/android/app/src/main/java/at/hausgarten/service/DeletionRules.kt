@@ -8,9 +8,6 @@ class DeletionRules {
     }
     companion object {
         @JvmField val ENTITIES: Array<String> = arrayOf("customer", "order", "worklog", "photo", "invoice", "offer", "service_template", "appointment")
-        @JvmStatic fun cancelable(action: JSONObject?, code: String): Boolean {
-            return (((((action != null) && java.util.Arrays.asList("archive", "purge_v1", "purge_trash_v1").contains(action!!.optString("kind"))) && java.util.Arrays.asList("WRITE_CONFLICT", "INVALID_ACTION", "DEPENDENCY_BLOCKED").contains(code)) && (action!!.optJSONObject("payload") != null)) && ((TrashPurgeBatch.KIND.equals(action!!.optString("kind")) || java.util.Arrays.asList(*ENTITIES).contains(action!!.optJSONObject("payload").optString("entity")))))
-        }
         @Throws(Exception::class)
         @JvmStatic fun preview(snapshot: JSONObject, entity: String, id: String): JSONObject {
             if ((!java.util.Arrays.asList(*ENTITIES).contains(entity))) {

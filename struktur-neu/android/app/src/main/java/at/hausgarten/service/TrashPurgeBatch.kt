@@ -132,26 +132,9 @@ class TrashPurgeBatch {
             return JSONObject().put("confirmed", true).put("expected_preview_hash", expected).put("entries", preview.getJSONArray("entries"))
         }
         @Throws(Exception::class)
-        @JvmStatic fun currentGuard(snapshot: JSONObject): JSONObject {
-            return JSONObject().put("preview_hash", preview(snapshot).getString("preview_hash"))
-        }
-        @Throws(Exception::class)
-        @JvmStatic fun bindDrivePreview(payload: JSONObject, shared: JSONObject) {
-            var drive: JSONObject = preview(shared)
-            if ((!PixelMcpWriteTools.hash(payload.getJSONArray("entries")).equals(PixelMcpWriteTools.hash(drive.getJSONArray("entries"))))) {
-                throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Lokale und für Drive vorgesehene Papierkorbmenge unterscheiden sich. Einträge einzeln prüfen; nichts gelöscht.")
-            }
-            if ((!drive.getString("preview_hash").equals(payload.getString("expected_preview_hash")))) {
-                payload.put("_drive_preview_hash", drive.getString("preview_hash"))
-            }
-        }
-        @Throws(Exception::class)
         @JvmStatic fun apply(snapshot: JSONObject, action: JSONObject) {
             var supplied: JSONObject = action.getJSONObject("payload")
-            var expected: String = supplied.getString("expected_preview_hash")
-            if (((supplied.has("_drive_preview_hash") && !preview(snapshot).getString("preview_hash").equals(expected)))) {
-                expected = supplied.getString("_drive_preview_hash")
-            }
+            val expected = supplied.getString("expected_preview_hash")
             var checked: JSONObject = payload(snapshot, expected, supplied.optBoolean("confirmed"))
             if ((!PixelMcpWriteTools.hash(checked.getJSONArray("entries")).equals(PixelMcpWriteTools.hash(supplied.getJSONArray("entries"))))) {
                 throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Die bestätigte Löschmenge stimmt nicht mehr überein.")

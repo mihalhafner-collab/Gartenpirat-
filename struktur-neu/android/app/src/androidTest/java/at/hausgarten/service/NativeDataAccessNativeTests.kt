@@ -237,7 +237,19 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             var sequence = 0
             fun command(name: String, entity: String, id: String): JSONObject = access.execute(name,
                 JSONObject().put("request_id", "qa_cleanup_${sequence++}").put("entity", entity).put("entity_id", id).apply { if (name == "purge_entity") put("confirmed", true) })
+            fun staleDeletion(name: String, args: JSONObject) {
+                val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+                var rejected = false
+                try { access.execute(name, args.put("request_id", "qa_stale_delete_${sequence++}")) }
+                catch (failure: PixelMcpWriteTools.Rejected) { rejected = failure.code == "WRITE_CONFLICT" }
+                yes(rejected, "STALE_DELETE_PROOF_REJECTED_$name")
+                yes(before == PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())), "STALE_DELETE_PRESERVES_DATA_$name")
+            }
+            staleDeletion("archive_entity", JSONObject().put("entity", "order").put("entity_id", "qa_order_1").put("expected_record_hash", "0".repeat(64)))
+            staleDeletion("archive_entity", JSONObject().put("entity", "order").put("entity_id", "qa_order_1").put("expected_photo_links_hash", "0".repeat(64)))
             command("archive_entity", "order", "qa_order_1")
+            staleDeletion("purge_entity", JSONObject().put("entity", "order").put("entity_id", "qa_order_1").put("confirmed", true).put("expected_record_hash", "0".repeat(64)))
+            staleDeletion("empty_trash", JSONObject().put("confirmed", true).put("expected_preview_hash", "0".repeat(64)))
             var current = PixelMcpReadTools.effective(store.getState())
             yes(current.getJSONArray("orders").length() == 0, "ORDER_ARCHIVED_WITH_WORK")
             yes(current.getJSONArray("worklogs").getJSONObject(0).optString("order_id").isEmpty(), "WORK_ORDER_DETACHED")

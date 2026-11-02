@@ -510,7 +510,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun usabilityJourney() {
         click("Heute")
         reveal("Erfasste Arbeiten")
-        reveal("Hinweise")
+        val overview = read("get_revier_overview", JSONObject().put("date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()))
+        val due = overview.optJSONArray("due_visits") ?: JSONArray()
+        val today = overview.getString("date")
+        val hasHints = overview.optInt("open_inquiries") + overview.optInt("maintenance_unclear") + (overview.optJSONArray("maintenance_due")?.length() ?: 0) > 0 ||
+            (0 until due.length()).any { due.getJSONObject(it).optString("date") < today }
+        if (hasHints) reveal("Handlungsbedarf") else yes(node("Handlungsbedarf") == null, "TODAY_NO_SPURIOUS_HINTS")
+        reveal("Arbeitszeit heute")
         yes(node("Mehr") == null, "NO_TODAY_MORE_MENU")
         click("Kunden")
         enter("Suchen", fixturePrefix)
@@ -810,7 +816,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(session.optString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "TIMER_SYNTHETIC_CUSTOMER")
         click("Heute")
         shown("Pause")
+        shown(fixturePrefix + "000")
         captureSyntheticScreen("today-running")
+        click("+ Erfassen"); shown("Für " + fixturePrefix + "000"); back()
+        yes(read("get_active_work_session").optString("id") == id, "TODAY_CAPTURE_BACK_PRESERVES_SESSION")
         click("Pause")
         waitUntil("TODAY_PAUSED") { read("get_active_work_session").optString("state") == "PAUSED" }
         shown("Fortsetzen"); click("Fortsetzen")
@@ -876,8 +885,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun actionBounds(label: String): Rect {
-        val selected = requireNotNull(node(label)) { "QA_NATIVE_COMPOSE_MISSING_$label" }
-        val target = requireNotNull(clickable(selected)) { "QA_NATIVE_COMPOSE_NOT_ACTIONABLE_$label" }
+        val target = nodes().asSequence().filter { it.isVisibleToUser && matches(it, label) }.mapNotNull(::clickable).firstOrNull()
+            ?: throw IllegalArgumentException("QA_NATIVE_COMPOSE_NOT_ACTIONABLE_$label")
         return Rect().also { target.getBoundsInScreen(it) }
     }
 

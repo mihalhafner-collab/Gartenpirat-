@@ -35,7 +35,7 @@
   ],
   "current_task": {
     "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "LOCAL_CHECKS_PASSED; CI_EMULATOR_PARTITION_SPACE_FIX_PENDING_RECHECK",
+    "status": "LOCAL_SOURCE_RELEASE_LINT_JVM_PASSED; ARCHIVE_SQLITE_AND_COMPOSE_RECHECK_PENDING",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -55,10 +55,12 @@
       "Bisherige Drive-Installations-APK vollständig zurückgelesen; SHA256 und Originalzertifikat stimmen mit dem bestehenden Identitätsvertrag überein",
       "Heute-Erweiterung und lokale CAS-Reparatur: Quellprüfung, acht JVM-Suiten (einschließlich 97 Wartungsprüfungen), Kotlin/Java, Release-/Android-Test-APK und lintRelease erfolgreich",
       "Zusätzliche Entfernung alter Rechnungs-/Zahlungs-/Drive-Fehlerzweige: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich",
-      "Heute: Sicherungszeit in Wiener Ortszeit und leere Einsatz-Uhrzeiten nach terminierten Einsätzen; Quellprüfung sowie kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich"
+      "Heute: Sicherungszeit in Wiener Ortszeit und leere Einsatz-Uhrzeiten nach terminierten Einsätzen; Quellprüfung sowie kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich",
+      "41519270807: Emulatorstart mit freiem Speicher erfolgreich; SQLite-/Backup-/Restore-/Provider-Suiten einschließlich Prozessneustart und Today-Timerfolge erfolgreich. Compose-Gesamtlauf wegen Archivieren ohne request_id sowie falschem Heute-Geometrieziel fehlgeschlagen; Folgefehler durch offenen Dialog.",
+      "Archiv-/Papierkorbreparatur, entfernte Drive-Papierkorbfunktionen und korrigiertes Heute-Geometrieziel: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich. Zusätzliche stale-delete-Assertions sind kompiliert; Android-Ausführung steht aus."
     ],
     "remaining": [
-      "Gesamtlauf nach realer CI-Speicherfreigabe und normalisierter AVD-Konfiguration: 41516864624 verlangte trotz Einstellung weiter 7373 MB bei 6932 MB frei; ungenutzte .NET-Toolchain wird nur auf dem Wegwerf-Runner entfernt",
+      "Gesamtlauf nach Wiederverwendung des dauerhaften Aktionsformulars im Löschdialog, Beachtung gelesener Vergleichshashes und Korrektur des Heute-Geometrieziels wiederholen",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen"
     ],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü; vier Hauptbereiche und Android-Zurück bleiben erhalten."

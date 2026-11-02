@@ -3,7 +3,7 @@ package at.hausgarten.service
 import org.json.*
 import java.util.*
 
-/** Shared UI/MCP/Drive trash policy. No cascade deletion, no filesystem side effects. */
+/** Shared local UI/MCP trash policy. No cascade deletion, no filesystem side effects. */
 class TrashRules {
     private constructor() {
     }

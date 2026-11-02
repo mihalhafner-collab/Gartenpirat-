@@ -307,7 +307,7 @@ internal fun NativeBusinessValues(value: JSONObject, depth: Int = 0) {
     }
 }
 
-private fun referenceCollection(name: String): String? = mapOf("customer_id" to "customers", "billing_customer_id" to "customers", "default_billing_customer_id" to "customers", "order_id" to "orders", "existing_order_id" to "orders", "property_id" to "properties", "visit_id" to "visits", "work_record_id" to "worklogs", "worklog_id" to "worklogs", "equipment_id" to "equipment", "material_id" to "materials", "care_plan_id" to "care_plans", "appointment_id" to "appointments", "offer_id" to "offers", "invoice_id" to "invoices", "photo_id" to "photos")[name]
+private fun referenceCollection(name: String): String? = mapOf("customer_id" to "customers", "billing_customer_id" to "customers", "default_billing_customer_id" to "customers", "order_id" to "orders", "existing_order_id" to "orders", "property_id" to "properties", "visit_id" to "visits", "work_record_id" to "worklogs", "worklog_id" to "worklogs", "equipment_id" to "equipment", "material_id" to "materials", "care_plan_id" to "care_plans", "appointment_id" to "appointments", "offer_id" to "offers", "photo_id" to "photos")[name]
 
 @Composable
 private fun NativeSchemaField(controller: NativeAppController, name: String, spec: JSONObject, value: Any?, required: Boolean, change: (Any?) -> Unit, depth: Int = 0) {
@@ -359,9 +359,9 @@ private fun NativeSchemaField(controller: NativeAppController, name: String, spe
 
 /** Rare actions reuse the registered business schema; primary workflows have their own native screens. */
 @Composable
-internal fun NativeActionForm(controller: NativeAppController, tool: String, title: String, initial: JSONObject = JSONObject(), onDone: (JSONObject) -> Unit = { controller.back() }) {
+internal fun NativeActionForm(controller: NativeAppController, tool: String, title: String, initial: JSONObject = JSONObject(), fixedInputs: Boolean = false, submitLabel: String = "Bewusst speichern", onCancel: () -> Unit = { controller.back() }, onDone: (JSONObject) -> Unit = { controller.back() }) {
     val scope = rememberCoroutineScope()
-    val defaultDraftKey = "action:$tool:" + initial.optString("entity_id", initial.optString("customer_id", initial.optString("invoice_id", initial.optString("offer_id"))))
+    val defaultDraftKey = "action:$tool:" + initial.optString("entity_id", initial.optString("customer_id", initial.optString("offer_id")))
     val draftKey = controller.route.args.optString("_draft_key", initial.optString("_draft_key", defaultDraftKey))
     var spec by remember(tool, draftKey) { mutableStateOf<JSONObject?>(null) }
     var text by rememberSaveable(tool, draftKey, initial.toString()) { mutableStateOf(initial.toString()) }
@@ -487,7 +487,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
         if (!loaded) {
             if (error.isBlank()) Text("Aktion wird vorbereitet …")
             else TextButton({ error = ""; prepareRevision++ }) { Text("Entwurf erneut lesen") }
-            OutlinedButton({ controller.back() }, enabled = !busy) { Text("Zurück") }
+            OutlinedButton({ onCancel() }, enabled = !busy) { Text("Zurück") }
             return@Column
         }
         val schema = requireNotNull(spec).getJSONObject("inputSchema")
@@ -544,13 +544,13 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                 } }) { Text("Geprüfte Eingaben als neuen Entwurf fortsetzen") }
             }
             if (restored) TextButton(enabled = !busy && !orderLoading, onClick = { scope.launch {
-                try { controller.removeDraft(draftKey); controller.back() }
+                try { controller.removeDraft(draftKey); onCancel() }
                 catch (cancelled: CancellationException) { throw cancelled }
                 catch (failure: Exception) { error = failure.message.orEmpty() }
             } }) { Text("Diesen ungespeicherten Entwurf verwerfen") }
         }
         if (!restored && pending == null) {
-            for (key in properties.keys().asSequence().toList()) {
+            if (!fixedInputs) for (key in properties.keys().asSequence().toList()) {
                 NativeSchemaField(controller, key, properties.getJSONObject(key), args.opt(key), (0 until required.length()).any { required.getString(it) == key }, fieldChange@{ value ->
                     if (busy || pending != null) return@fieldChange
                     if (key == "existing_order_id") selectExistingOrder(value as? String ?: "")
@@ -577,10 +577,10 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                 val allowed = nativeFilterInput(schema, JSONObject(text))
                 allowed.optJSONObject("updates")?.let { allowed.put("updates", nativeChangedUpdates(it, JSONObject(updateBaseText))) }
                 scope.launch { perform(allowed) }
-            }) { Text(if (spec?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) == true) "Anzeigen / prüfen" else "Bewusst speichern") }
+            }) { Text(if (spec?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) == true) "Anzeigen / prüfen" else submitLabel) }
         }
         response?.let { HorizontalDivider(); NativeBusinessValues(it) }
-        OutlinedButton({ controller.back() }, enabled = !busy) { Text("Zurück") }
+        OutlinedButton({ onCancel() }, enabled = !busy) { Text("Zurück") }
     }
 }
 
@@ -700,37 +700,30 @@ private fun nativeExistingOrderProof(observation: JSONObject, chosen: String): S
 }
 
 /** One confirmation shared by record details, documents and the trash list. */
+/** Reuse the reviewed, durable action form for archive and irreversible local deletion. */
 @Composable
 internal fun NativeDeleteButton(controller: NativeAppController, entity: String, id: String,
     label: String = "In Papierkorb", permanent: Boolean = false, emptyTrash: Boolean = false,
     enabled: Boolean = true, onDone: () -> Unit) {
     var showing by rememberSaveable(entity, id) { mutableStateOf(false) }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-    OutlinedButton({ error = ""; showing = true }, enabled = enabled) { Text(label) }
-    if (showing) AlertDialog(
-        onDismissRequest = { if (!busy) showing = false },
-        title = { Text(if (emptyTrash) "Papierkorb leeren?" else if (permanent) "Endgültig löschen?" else "In den Papierkorb verschieben?") },
-        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
-            Text(if (permanent || emptyTrash) "Diese Löschung lässt sich nicht rückgängig machen. Dateien werden entfernt, sobald sie nirgends mehr verwendet werden. Ausgestellte Belege bleiben geschützt."
-                else "Der Eintrag kann im Papierkorb wiederhergestellt werden. Bei Aufträgen und Terminen bleiben erfasste Arbeiten, Fotos und ihr Kundenbezug erhalten; nur die optionale Zuordnung wird gelöst.")
-            if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
-        } },
-        confirmButton = { TextButton(enabled = !busy, onClick = {
-            busy = true
-            scope.launch {
-                try {
-                    val args = if (emptyTrash) JSONObject().put("confirmed", true) else JSONObject().put("entity", entity).put("entity_id", id).apply { if (permanent) put("confirmed", true) }
-                    val saved = controller.query(if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity", args)
-                    showing = false
-                    onDone()
-                    if (saved.optBoolean("storage_cleanup_pending")) controller.message("Eintrag gelöscht. Einige ungenutzte Dateien konnten noch nicht entfernt werden; unter Einstellungen → Sicherung und Diagnose erneut bereinigen.")
-                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-                catch (failure: Exception) { error = failure.message ?: "Löschen nicht möglich. Der Eintrag bleibt erhalten." }
-                finally { busy = false }
+    OutlinedButton({ showing = true }, enabled = enabled) { Text(label) }
+    if (showing) Dialog(onDismissRequest = { showing = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+                Text(if (permanent || emptyTrash) "Diese Löschung lässt sich nicht rückgängig machen. Nur nicht mehr verwendete Dateien werden entfernt. Ausgestellte Belege bleiben geschützt."
+                    else "Der Eintrag kann im Papierkorb wiederhergestellt werden. Erfasste Arbeiten und Fotos bleiben erhalten; nur die optionale Zuordnung wird gelöst.", Modifier.padding(16.dp))
+                val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity"
+                val args = if (emptyTrash) JSONObject().put("confirmed", true) else JSONObject().put("entity", entity).put("entity_id", id).apply { if (permanent) put("confirmed", true) }
+                Box(Modifier.weight(1f)) {
+                    NativeActionForm(controller, tool, if (emptyTrash) "Papierkorb leeren" else label, args,
+                        fixedInputs = true, submitLabel = if (permanent || emptyTrash) "Endgültig löschen" else "In Papierkorb", onCancel = { showing = false }) { result ->
+                        showing = false
+                        onDone()
+                        val saved = result.optJSONObject("data") ?: result
+                        if (saved.optBoolean("storage_cleanup_pending")) controller.message("Eintrag gelöscht. Unbenutzte Dateien unter Einstellungen → Speicher bereinigen erneut prüfen.")
+                    }
+                }
             }
-        }) { Text(if (busy) "Wird gelöscht …" else if (permanent || emptyTrash) "Endgültig löschen" else "In Papierkorb") } },
-        dismissButton = { TextButton({ showing = false }, enabled = !busy) { Text("Abbrechen") } }
-    )
+        }
+    }
 }

@@ -27,8 +27,10 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
-Die lokale Einzelnutzer-Oberfläche benötigt zum Archivieren oder endgültigen
-Löschen einen verständlichen Bestätigungsdialog, keine vorab einzuholenden
+Die lokale Einzelnutzer-Oberfläche verwendet zum Archivieren oder endgültigen
+Löschen einen verständlichen Bestätigungsdialog mit demselben dauerhaften
+Aktionsbeleg und Vergleichsschutz wie die übrigen Schreibvorgänge. Technische
+Kennungen bleiben ausgeblendet. Es gibt keine vorab einzuholenden
 Vorschau- oder Fotoverknüpfungs-Hashes. Fachliche Sperren für ausgestellte
 Rechnungen, abgeschlossene Angebote und laufende Zeiterfassung bleiben bestehen.
 Beim Entfernen von Auftrag oder Termin werden optionale Bezüge an Arbeiten,

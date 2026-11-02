@@ -562,9 +562,15 @@ Geschäftsdatenänderung, die vier Hauptbereiche, Notizfeld und 200-%-Schrift. D
 Timerweg prüft Pause/Fortsetzen/Beenden auch direkt auf Heute; Beenden muss weiterhin
 die Zeitprüfung öffnen. Die Screenshots today-idle, today-running, today-capture
 und today-large-font enthalten ausschließlich synthetische Daten. Das API35-Systembild
-mit Google APIs verwendet eine auf 3072 MB begrenzte Wegwerf-Datenpartition,
-damit es auf dem Hosted Runner starten kann. Die unbenötigte vorinstallierte
+mit Google APIs erhält den normalisierten Konfigurationseintrag
+`disk.dataPartition.size=3072M`. Zusätzlich hält der Hosted Runner den tatsächlich
+vom Systemimage benötigten Platz frei. Die unbenötigte vorinstallierte
 .NET-Toolchain wird ausschließlich auf diesem Wegwerf-Runner entfernt, um zusätzlich
 Platz für die Google-APIs-Datenpartition freizuhalten. Es liefert den vollständigen
 System-Gestenhandler; der physische
 Randgestentest wird weiterhin tatsächlich ausgeführt.
+
+Die Papierkorb-Prüfung umfasst veraltete Datensatz-, Fotozuordnungs- und
+Gesamtvorschau-Hashes: Sie müssen ohne Geschäftsänderung abgewiesen werden.
+Die Hauptschaltflächen verwenden das bestehende persistente Aktionsformular;
+Anfragekennung und geprüfte Vergleichswerte werden vor dem Schreibaufruf gesichert.

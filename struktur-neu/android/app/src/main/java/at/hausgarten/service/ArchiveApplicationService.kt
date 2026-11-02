@@ -16,7 +16,7 @@ class ArchiveApplicationService : OwnerCommand {
         when ((name)) {
             "empty_trash" -> {
                 run {
-                    val payload = TrashPurgeBatch.payload(all, TrashPurgeBatch.preview(all).getString("preview_hash"), a.getBoolean("confirmed"))
+                    val payload = TrashPurgeBatch.payload(all, a.optString("expected_preview_hash", TrashPurgeBatch.preview(all).getString("preview_hash")), a.getBoolean("confirmed"))
                     val targets = payload.getJSONArray("entries")
                     for (i in 0 until targets.length()) {
                         val target = targets.getJSONObject(i)
@@ -45,7 +45,7 @@ class ArchiveApplicationService : OwnerCommand {
                 run {
                     requireInactiveSession(a.getString("entity"), a.getString("entity_id"))
                     var kind: String = "purge_v1"
-                    var p: JSONObject = JSONObject().put("id", a.getString("entity_id")).put("expected_record_hash", OwnerJournalRules.version(OwnerJournalRules.archives(all).getJSONObject(a.getString("entity") + ":" + a.getString("entity_id")))).put("updated_at", stamp)
+                    var p: JSONObject = JSONObject().put("id", a.getString("entity_id")).put("expected_record_hash", a.optString("expected_record_hash", OwnerJournalRules.version(OwnerJournalRules.archives(all).getJSONObject(a.getString("entity") + ":" + a.getString("entity_id"))))).put("updated_at", stamp)
                     if ((name.equals("purge_entity"))) {
                         p.put("entity", a.getString("entity")).put("confirmed", a.getBoolean("confirmed"))
                     }
@@ -90,7 +90,8 @@ class ArchiveApplicationService : OwnerCommand {
         val id = args.getString("entity_id")
         val current = OwnerJournalRules.findOrNull(all.getJSONArray(OwnerJournalRules.group(entity)), id)
             ?: throw IllegalArgumentException("Der Eintrag fehlt oder liegt bereits im Papierkorb.")
-        val p = DeletionRules.payload(all, entity, id, OwnerJournalRules.version(current), stamp)
+        val p = DeletionRules.payload(all, entity, id, args.optString("expected_record_hash", OwnerJournalRules.version(current)), stamp)
+        if (args.has("expected_photo_links_hash")) p.put("expected_photo_links_hash", args.getString("expected_photo_links_hash"))
         OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", "archive").put("client_id", request).put("payload", p).put("created_at", stamp), HashMap(), JSONObject())
         return repository.enqueue("archive", p, request).put("recoverable", true).put("physical_delete", false)
     }
