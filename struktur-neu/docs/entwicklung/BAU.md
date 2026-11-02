@@ -27,7 +27,7 @@ kompilieren und gegen die betroffenen Bedienwege prüfen.
 `NativeAppController` verbindet Formulare mit denselben transaktionalen
 Fachschreibern wie MCP; Geschäftsregeln werden nicht in UI-Code dupliziert.
 Die App benötigt weder WebView noch eine aktive JavaScript-Oberfläche.
-Die eigenständige Website unter `static/` bleibt davon getrennt.
+Die frühere parallele Weboberfläche wurde aus dem aktiven Projektbestand entfernt.
 
 Die vorhandene SQLite-Datenbank mit Schema7 bleibt erhalten. `NativeDataRepository`
 verwaltet darin die abgeleiteten Tabellen `native_read_rows`, `native_read_records`
@@ -342,17 +342,14 @@ Inhalte und Hash müssen gleich bleiben; große Unicodeeinträge prüfen weiterh
 den vorhandenen gestückelten Rückfallpfad. Diese Teilmessung belegt keine
 Beschleunigung der gesamten Zahlungsansicht oder des physischen Pixels.
 
-## Eigenständige Website
+## Pflanzenressourcen
 
-`static/` und seine JavaScript-/CSS-Ressourcen bleiben eine eigenständige Website.
-Der verteilte Pflanzenkatalog ist `android/app/src/main/assets/plant-catalog.json`;
-`tools/sync_plant_assets.py` prüft daraus erzeugte Webspiegel und referenzierte Bilder.
-Browserprüfungen bei Änderungen an der Website auf ihre tatsächlichen Ressourcen
-ausrichten und getrennt von Android auswerten. Browser- und Node-Tests sind kein
-Nachweis für die Kotlin-/Compose-App; insbesondere darf ein Test keine entfernte
-Android-HTML- oder Bridge-Datei als aktuelle App laden.
+Die Android-App nutzt allein `android/app/src/main/assets/plant-catalog.json`
+und die zugehörigen Android-Bilder. `tools/sync_plant_assets.py` prüft die
+benötigten Quelldateien und Bildnachweise. Es existieren keine gesonderten
+Webspiegel oder Web-App-Builds mehr.
 
-Offizielle Grundlagen:
+Offizielle Android-Grundlagen:
 [Built-in Kotlin](https://developer.android.com/build/migrate-to-built-in-kotlin),
 [AGP9.1-Kompatibilität](https://developer.android.com/build/releases/agp-9-1-0-release-notes),
 [Compose-Compiler](https://developer.android.com/develop/ui/compose/setup-compose-dependencies-and-compiler),

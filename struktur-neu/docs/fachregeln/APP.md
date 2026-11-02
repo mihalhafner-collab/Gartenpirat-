@@ -6,8 +6,8 @@ Die App auf dem Pixel führt die Geschäftsdaten lokal. Die Android-Anwendung is
 in Kotlin auf Android/JVM mit nativer Compose-Oberfläche implementiert. Oberfläche
 und MCP verwenden dieselben transaktionalen Fachpfade. Paketkennung
 `at.hausgarten.service`, Originalsignatur und Updatefähigkeit bleiben erhalten.
-Ein Update benötigt eine höhere Versionsnummer. Die Website unter `static/` bleibt
-eigenständig.
+Ein Update benötigt eine höhere Versionsnummer. Die frühere eigenständige
+Weboberfläche wird nicht mehr gepflegt.
 
 Kunden, Einsatzobjekte und Rechnungsempfänger sind unterschiedliche Beziehungen.
 Auftragslose Arbeiten bleiben möglich. Persönliches
@@ -140,8 +140,8 @@ stehen im aktuellen Arbeitsstand.
 ## Pflanzen und Geräte
 
 `android/app/src/main/assets/plant-catalog.json` und die dort referenzierten Bilder
-sind die verteilte Pflanzenquelle. Die erzeugten Webspiegel über
-`tools/sync_plant_assets.py` pflegen. Fachquellen, Bildrechte und die vom vorhandenen
+sind die einzige verteilte Pflanzenquelle. `tools/sync_plant_assets.py`
+prüft nur diese Android-Quellen und deren Bildnachweise. Fachquellen, Bildrechte und die vom vorhandenen
 Importwerkzeug benötigten redaktionellen Eingaben bleiben in `libraries/plants/`.
 
 Gerätefotos gehören zum Gerät. Abgebrochene Auswahl und verworfene Bearbeitung
