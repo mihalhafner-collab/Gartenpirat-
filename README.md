@@ -1,5 +1,24 @@
 # Gartenpirat
 
+Aktueller Testkandidat: **TEST 2.0.0 / Test-Build 2**, Paket
+`at.hausgarten.service.fulltest`, Android-Versionscode **118**.
+
+- [Exakter, vollständiger Quellcommit c9d955b](https://github.com/mihalhafner-collab/Gartenpirat-/tree/c9d955bd5775ce300e91c4cea2122838c3fa8f10)
+- [TEST-Branch test/2.0.0-build2](https://github.com/mihalhafner-collab/Gartenpirat-/tree/test/2.0.0-build2)
+- [Installierbare TEST-APK](https://drive.google.com/file/d/1AJVvySLiJ3bnm8Fdz7UY-hZlrITcuNhC/view)
+- [Unverändertes, zur APK gehörendes Quellarchiv](https://drive.google.com/file/d/1Cc3zn2pkqqwBB0QMNBmjBJh4umEk188U/view)
+
+Entwicklungspfad für diesen Kandidaten: `app/`, Testvariante: `app/src/fullTest/`.
+`SOURCE_SHA256`: `2e830ea9cfc4352471b495efd31523eaba818ee8653c174d5c96b47f298f38f4`.
+Der Quellcommit enthält exakt den vollständigen Dateistand des ausgelieferten
+Archivs. Die APK selbst wurde davor auf Basis von `d721780` mit lokalen Änderungen
+gebaut (`SOURCE_DIRTY=true`); die nachträgliche Git-Sicherung verändert die APK
+nicht. Zusätzliche Verlinkungen im Branch sind Dokumentationsänderungen.
+
+Dieser Branch ist ein TEST-Quellnachweis. Die produktive Entwicklung wird im
+[Haupteinstieg](https://github.com/mihalhafner-collab/Gartenpirat-/blob/main/README.md)
+separat geführt. TEST 2 ist keine Freigabe für ein produktives Update.
+
 Android-App `at.hausgarten.service`, Quellcode unter `app/`.
 Arbeitsregeln: [AGENTS.md](AGENTS.md).
 

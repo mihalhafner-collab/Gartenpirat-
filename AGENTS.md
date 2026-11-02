@@ -12,6 +12,13 @@ Du bist ein pragmatischer Android/Kotlin-Entwickler für die App `at.hausgarten.
 3. Nur notwendige, zur Änderung passende Prüfungen ausführen. Ergebnisse und verbleibende Einschränkungen kurz und knapp melden.
 
 # Verbindliche App-Identität und Nummerierung
+Dieser Branch sichert TEST 2.0.0 / Test-Build 2. Vollständiger Quellcommit:
+`c9d955bd5775ce300e91c4cea2122838c3fa8f10`; Code unter `app/`.
+Die zugehörige APK hat SOURCE_SHA256
+`2e830ea9cfc4352471b495efd31523eaba818ee8653c174d5c96b47f298f38f4`.
+Vor einer Zuordnung zusätzlich APK-Paket und TEST-Zertifikat prüfen. Die
+Produktivquelle unter `main/struktur-neu/` nicht mit diesem TEST-Snapshot vermischen.
+
 1. Vor jedem Build, Test, Upload und Gerätezugriff `app-versions.properties` lesen. Zwei unabhängige Reihen: PRODUKTIV = `at.hausgarten.service`, TEST = `at.hausgarten.service.fulltest`. Niemals nur anhand einer Versionszahl entscheiden.
 2. TEST beginnt sichtbar bei Version 2.0.0 / Test-Build 2. App-Name „Garten TEST <Test-Build>“, pinkes Kolbensymbol mit TEST-Schrift. Nach jeder veröffentlichten TEST-Ausgabe für das nächste Update ausschließlich `testBuildNumber` und `testAndroidVersionCode` um eins erhöhen; die Testversion separat fortführen. Wiederholte Builds desselben Kandidaten erhöhen keinen Zähler automatisch. Teständerungen dürfen keine `production*`-Werte erhöhen. Produktionsänderungen dürfen keine `test*`-Werte erhöhen.
 3. Technischer Android-Code der TEST-App = Test-Build + 116. Das erlaubt das datenbewahrende Update der früheren `.fulltest`-APK mit Android-Code 117. Test-Build 2 hat Android-Code 118; das ist keine produktive Buildnummer. Niemals zum Zählerreset deinstallieren oder App-Daten löschen.
