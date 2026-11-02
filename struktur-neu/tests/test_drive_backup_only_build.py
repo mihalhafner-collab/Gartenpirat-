@@ -88,14 +88,15 @@ class DriveBackupOnlyBuildTests(unittest.TestCase):
         self.assertNotIn("DriveSyncJob", source("RevierApplication"))
         self.assertNotIn("DriveSyncJob", source("MainActivity"))
 
-    def test_retirement_facade_cannot_open_remote_or_local_business_state(self):
-        code = source('DriveSyncCoordinator')
-        self.assertNotRegex(code, r'\b(?:Files|Doc|DriveRestClient|ContentResolver|DocumentsContract|ExecutorService)\b')
-        self.assertNotRegex(code, r'\b(?:commitSnapshot|acknowledge|pendingActionsForDrive|getWritableDatabase)\(')
-        for name in ('MainActivity', 'PixelTunnelService', 'PixelOwnerAccess',
-                     'PixelLocalStore', 'LocalOwnerRepository', 'PhotoThumbnailProvider'):
-            self.assertNotRegex(source(name),
-                                r'DriveSyncCoordinator\.(?:fetch\w*|poll|request|noteRequest)\(')
+    def test_retired_drive_facades_are_removed(self):
+        for name in ('DriveSyncCoordinator', 'DriveRolePolicy', 'DrivePublication'):
+            self.assertFalse((MAIN / (name + '.kt')).exists(), name)
+        for path in native_sources():
+            self.assertNotRegex(
+                path.read_text(),
+                r'\b(?:DriveSyncCoordinator|DriveRolePolicy|DrivePublication)\b',
+                path.name,
+            )
 
     def test_old_partial_restore_rejects_before_accessing_backup_or_business_data(self):
         code = source('LocalOwnerRepository')
