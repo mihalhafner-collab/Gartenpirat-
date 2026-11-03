@@ -2,6 +2,12 @@ name: Gartenpirat Kotlin, Compose and native regression checks
 
 on:
   workflow_dispatch:
+    inputs:
+      emulator:
+        description: 'Native Laufzeitprüfungen im isolierten Emulator ausdrücklich ausführen'
+        type: boolean
+        default: false
+        required: false
   push:
     branches: [main]
     paths:
@@ -57,6 +63,7 @@ jobs:
           curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
           HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
       - name: Prepare isolated emulator packages
+        if: github.event_name == 'workflow_dispatch' && inputs.emulator
         run: |
           set -euo pipefail
           # This disposable Kotlin/Android runner never uses the preinstalled .NET SDK.
@@ -69,6 +76,7 @@ jobs:
           fi
           "$SDKMANAGER" 'system-images;android-35;google_apis;x86_64'
       - name: Sign disposable emulator test packages only
+        if: github.event_name == 'workflow_dispatch' && inputs.emulator
         run: |
           set -euo pipefail
           # This temporary test key is never used for a user APK and no APK is published.
@@ -84,6 +92,7 @@ jobs:
           mkdir -p outputs
           (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
+        if: github.event_name == 'workflow_dispatch' && inputs.emulator
         timeout-minutes: 50
         run: |
           set -euo pipefail
@@ -193,7 +202,7 @@ jobs:
           done
           test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
-        if: failure()
+        if: failure() && github.event_name == 'workflow_dispatch' && inputs.emulator
         run: |
           mkdir -p outputs
           cp "$RUNNER_TEMP/emulator.log" outputs/emulator.txt 2>/dev/null || true
@@ -218,5 +227,5 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove disposable test signing material
-        if: always()
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.emulator
         run: rm -f "$RUNNER_TEMP/gp-test.jks" "$RUNNER_TEMP/gp-app.apk" "$RUNNER_TEMP/gp-test.apk"

@@ -619,3 +619,11 @@ weiter den letzten bestätigten Bestand lesen. Bestehende Schreibtransaktionen,
 Verbindungspins und die Transaktions-API älterer Android-Versionen bleiben erhalten.
 Die native WAL-Prüfung hält den Schreiber ausdrücklich offen und liest währenddessen
 auch den vollständigen Bestand über einen zweiten Helper.
+
+Eigentümerentscheidung vom 03.11.2026: Für diesen Abschluss keine weiteren
+Emulatorprüfungen ausführen. Reguläre Push-Prüfungen und ein manueller Lauf ohne
+Zusatzoption führen deshalb Quellprüfung, Kotlin-/Java-/Release-/Android-Testbau,
+Lint und die acht JVM-Suiten aus. Die vorhandenen nativen Prüffolgen bleiben
+unverändert verfügbar und werden ausschließlich bei einem ausdrücklich gestarteten
+`workflow_dispatch` mit `emulator=true` ausgeführt. Nicht ausgeführte Android-
+Laufzeitprüfungen sind kein Erfolgsnachweis und werden im Projektstatus benannt.

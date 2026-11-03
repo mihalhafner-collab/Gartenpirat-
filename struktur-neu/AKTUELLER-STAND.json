@@ -35,7 +35,7 @@
   ],
   "current_task": {
     "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "SOURCE_RELEASE_JVM_AND_BUSINESS_UI_VERIFIED; WAL_READ_AND_CAMERA_FINAL_CI_PENDING",
+    "status": "SOURCE_RELEASE_LINT_JVM_PASSED; EMULATOR_OMITTED_BY_OWNER; SIGNED_DISTRIBUTION_PENDING",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -67,11 +67,15 @@
       "Sichtbare Kamera-Speicherbestätigung vor Activity-Neuerstellung: Quellprüfung, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich; Produktionscode unverändert. Vollständiger aktueller Emulatorlauf bleibt erforderlich."
     ],
     "remaining": [
-      "Vollständigen CI-Gesamtlauf mit WAL-Lesetransaktion, konsistenter Emulatoranzeige, echter Randgeste und Kameraaufnahme erfolgreich abschließen",
-      "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen",
-      "Zusätzliche echte Emulator-Kameraaufnahme einschließlich Abbruch, Android-Rückgabe und Datei-/SQLite-Neuöffnung im vollständigen CI-Lauf prüfen"
+      "CI für den aktuellen Commit ohne Emulator erfolgreich abschließen",
+      "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und über bestehende Drive-Datei bereitstellen"
     ],
-    "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten."
+    "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten.",
+    "emulator_decision": "03.11.2026: Eigentümer ausdrücklich „Lass emulator weg“. Laufende Läufe 41550713484 und 41552337601 abgebrochen; keine weitere Emulatorausführung für diesen Abschluss. Vorhandene Tests bleiben als ausdrücklich startbare Option erhalten.",
+    "runtime_limitations": [
+      "Abschließender Android-Laufzeittest der WAL-Lesetransaktion und der korrigierten Kamera-Neuerstellungsprüfung nicht vollständig bestätigt. Frühere native Prüfungen und reale Kameraaufnahme sind belegt; kein vollständiger Emulator-Erfolg für den endgültigen Stand.",
+      "Keine Installation, Migration, Wiederherstellung oder produktiven Funktionstests auf dem Pixel."
+    ]
   },
   "open_checks": [
     "Pixel bleibt unverändert auf 1.57.2 (121); keine Installation, Migration, Wiederherstellung oder produktiven Tests.",
