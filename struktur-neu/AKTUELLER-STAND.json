@@ -79,10 +79,10 @@
     "runtime_limitations": [
       "Frühere ausdrückliche Emulator-Abwahl beachtet; keine Emulator- oder Pixel-Funktionstests ausgeführt.",
       "Keine Installation, Migration, Wiederherstellung oder produktiven Geschäftsaktionen aus diesem Entwicklungsauftrag.",
-      "Der Kandidat ist nicht originalsigniert oder verteilt. Die zuletzt tatsächlich beobachtete Installation bleibt 1.57.3/122.",
+      "1.58.0/123 originalsigniert und auf ausdrücklichen Auftrag im Drive-Paketinstallationsordner bereitgestellt; byteidentischer Download geprüft. Keine Installation durch diesen Auftrag; zuletzt beobachtete Geräteidentität unverändert.",
       "Arbeitsumgebung nach Unterbrechung wieder erreichbar; frühere Ausfallursache mangels Diagnoseprotokollen nicht nachweisbar."
     ],
-    "updated_at_utc": "2026-11-03T13:57:05Z",
+    "updated_at_utc": "2026-11-03T17:34:45.134262+00:00",
     "chapter_coverage": [
       {
         "chapters": "1–6",
@@ -157,8 +157,8 @@
       "independent_review": "PASS; repeated source review against all 38 chapters, separate connection and native test source reviews; no unresolved concrete findings",
       "native_ui_execution": "NOT_RUN; Android test APK compiled only",
       "pixel_acceptance": "NOT_RUN",
-      "original_signing": "NOT_PERFORMED",
-      "installation_migration_restore_distribution": "NOT_PERFORMED",
+      "original_signing": "PASS; original certificate verified; temporary signing material removed",
+      "installation_migration_restore_distribution": "DISTRIBUTED_BY_EXPLICIT_OWNER_REQUEST; INSTALLATION_MIGRATION_RESTORE_NOT_PERFORMED",
       "github_ci": {
         "status": "PASS_WITHOUT_EMULATOR_BY_OWNER_REQUEST",
         "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41646595337",
@@ -187,33 +187,37 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "version_name": "1.57.3",
-    "version_code": 122,
+    "version_name": "1.58.0",
+    "version_code": 123,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b",
+    "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+    "source_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
+    "apk_sha256": "7163747cd8d018fc34f0c06088e586dc291c1f3e38f6d7e215824dcec60e4f9e",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
-    "source_binding": "PASS; clean BuildConfig.GIT_SHA and SOURCE_SHA256 read directly from DEX; exact release commit and APK SHA256 in delivery response",
-    "download_url": "https://drive.google.com/file/d/1aXXjFN5r6WUXp6gfupEv-gq4LnmqAOs5/view",
+    "source_binding": "PASS; clean BuildConfig identity reread directly from signed APK DEX",
+    "download_url": "https://drive.google.com/file/d/11C8o6Dw8J4W3n0imCnPTO_K24aXtf0Rp/view?usp=drivesdk",
     "drive": {
-      "file_id": "1aXXjFN5r6WUXp6gfupEv-gq4LnmqAOs5",
+      "file_id": "11C8o6Dw8J4W3n0imCnPTO_K24aXtf0Rp",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
-      "status": "PASS; complete signed APK reread byte-for-byte; SHA256, signature and embedded source identity verified",
+      "status": "PASS; complete Drive APK downloaded and byte-identical to verified signed APK",
+      "apk_sha256": "7163747cd8d018fc34f0c06088e586dc291c1f3e38f6d7e215824dcec60e4f9e",
+      "byte_size": 88277809,
       "signature_valid": true,
       "original_certificate_match": true
     },
     "source_ci": {
-      "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41553616164",
+      "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41646595337",
       "status": "PASS_WITHOUT_EMULATOR_BY_OWNER_REQUEST",
-      "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b"
+      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b"
     },
-    "identity_note": "Stable source/certificate/version/distribution identity is stored here; final Git commit and byte-level APK checksum are verified from the APK, avoiding self-referential release hashes in this status commit.",
     "temporary_signing_material_removed": true,
-    "installation": "LIVE_PIXEL_CONFIRMED; 1.57.3/122 independently observed through current get_capabilities; no installation by this task",
+    "installation": "NOT_PERFORMED; last_observed_installed_build remains unchanged",
+    "native_runtime_acceptance": "NOT_RUN",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
@@ -225,8 +229,8 @@
     "installation": "NOT_PERFORMED; NOT_AUTHORIZED_BY_GENERAL_DEVELOPMENT_TASK",
     "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
     "concept_binding": "NEUES Bedienkonzept Fassung 2; 38 pages; HTML SHA256 2aa51313631533d6f8674105e0893b6b2dced345bbb27569df33b39560e0e537",
-    "artifact": "LOCAL_UNSIGNED_RELEASE_AND_ANDROID_TEST_APK; NOT_DISTRIBUTED",
-    "source_git_sha": "0c8df71eb6372e0e314e2c84461d7fc0c925af9b",
+    "artifact": "ORIGINAL_SIGNED_RELEASE_APK; DRIVE_DISTRIBUTED_BY_EXPLICIT_OWNER_REQUEST",
+    "source_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
     "local_unsigned_apk_identity": {
       "apk_sha256": "23b7c26a4b41d4577acad6e340c29b489877b32280efebebd4ea73f2a46b65f7",
       "byte_size": 88266789,
@@ -234,6 +238,17 @@
       "retired_crypto_classes": "ABSENT",
       "original_signing": "NOT_PERFORMED"
     },
-    "artifact_identity_note": "Local unsigned APK identity reread from DEX and manifest; source commit is pinned independently of this documentation-only status commit. GitHub built the same production source; its separately built unsigned APK checksum is recorded under github_ci."
+    "artifact_identity_note": "Historical unsigned local and CI artifacts remain recorded separately. Signed release was rebuilt from clean documentation-only successor 6c2a179 with identical production source_sha256; its exact source commit and byte checksum are recorded in signed_apk_identity.",
+    "signed_apk_identity": {
+      "apk_sha256": "7163747cd8d018fc34f0c06088e586dc291c1f3e38f6d7e215824dcec60e4f9e",
+      "byte_size": 88277809,
+      "source_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
+      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+      "source_dirty": false,
+      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+      "signature_valid": true,
+      "original_certificate_match": true,
+      "download_url": "https://drive.google.com/file/d/11C8o6Dw8J4W3n0imCnPTO_K24aXtf0Rp/view?usp=drivesdk"
+    }
   }
 }
