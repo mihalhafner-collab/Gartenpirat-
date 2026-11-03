@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-03T00:06:03Z",
+    "observed_at_utc": "2026-11-03T00:47:35Z",
     "version_name": "1.57.2",
     "version_code": 121,
     "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
@@ -35,7 +35,7 @@
   ],
   "current_task": {
     "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "SOURCE_RELEASE_LINT_JVM_PASSED; EMULATOR_OMITTED_BY_OWNER; SIGNED_DISTRIBUTION_PENDING",
+    "status": "CLEANUP_AND_ORIGINAL_SIGNED_APK_DELIVERED; EMULATOR_EXCLUDED_BY_OWNER",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -49,38 +49,27 @@
       "SQLite Schema 7; lokale ZIP-Sicherung, Integrität, Restore-Staging, Rollback und Prozessneustartschutz"
     ],
     "verified": [
-      "Installierter Quellfingerabdruck stimmt exakt mit f44797bfc412d2fea27236fd9ffd4bda6b234286 überein; dieser Commit ist Vorfahr von main",
-      "Quellprüfung erfolgreich; acht synthetische JVM-Suiten einschließlich Angeboten, Material und 111 ZIP-/Integritätsprüfungen erfolgreich",
-      "compileReleaseKotlin, compileReleaseJavaWithJavac, assembleRelease, assembleReleaseAndroidTest und lintRelease erfolgreich",
-      "Bisherige Drive-Installations-APK vollständig zurückgelesen; SHA256 und Originalzertifikat stimmen mit dem bestehenden Identitätsvertrag überein",
-      "Heute-Erweiterung und lokale CAS-Reparatur: Quellprüfung, acht JVM-Suiten (einschließlich 97 Wartungsprüfungen), Kotlin/Java, Release-/Android-Test-APK und lintRelease erfolgreich",
-      "Zusätzliche Entfernung alter Rechnungs-/Zahlungs-/Drive-Fehlerzweige: Quellprüfung, acht JVM-Suiten, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich",
-      "Heute: Sicherungszeit in Wiener Ortszeit und leere Einsatz-Uhrzeiten nach terminierten Einsätzen; Quellprüfung sowie kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich",
-      "41519270807: Emulatorstart mit freiem Speicher erfolgreich; SQLite-/Backup-/Restore-/Provider-Suiten einschließlich Prozessneustart und Today-Timerfolge erfolgreich. Compose-Gesamtlauf wegen Archivieren ohne request_id sowie falschem Heute-Geometrieziel fehlgeschlagen; Folgefehler durch offenen Dialog.",
-      "Suchprüfungen an die vom nächsten Einsatz übergebene Kundenzuordnung angepasst: sechs unveränderte Tastaturkombinationen und physischer Zurück-Gestentest prüfen die tatsächliche Vorbelegung. Ungebundene Angebots-Viewportfälle setzen Filter über die echte Oberfläche zurück. Quellprüfung und kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich.",
-      "41532435166: SQLite/Backup/Restore/Provider und 278 native Datenprüfungen einschließlich veralteter Löschbelege erfolgreich. Kundenarchivierung, Timer, Kundennotiz ohne Arbeitsänderung, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Offene Compose-Fehler: leere Heute-Stundenübersicht im Test, Suchdialog mit großer Querformat-Tastatur, SystemUI-Dumppriorität und Schriftwechsel-Geometrie; Gesamtlauf fehlgeschlagen.",
-      "41539556826: Release/Lint, acht JVM-Suiten, native SQLite-/Backup-/Restore-/Dateiprüfungen und sämtliche Compose-Fachabläufe einschließlich Heute, 200-%-Navigation, sechs Tastaturkombinationen, 15 Suchfällen, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Einziger Fehler: SystemUI-Taskbar liefert mIsAttached=false für den Randgestentest. CI jetzt mit ausdrücklichem Pixel-5-Telefonprofil bei unverändertem 320×640-dp-Prüfausschnitt; tatsächlicher Wechsel Dreitasten→Gesten statt bereits aktive Gesten nur erneut einzuschalten. Der Test verlangt nun die tatsächlichen System-Gestenränder und die unveränderte beobachtbare Picker-/Kundenzuordnungswirkung statt einer bestimmten internen SystemUI-Instanz; kein Tastenersatz.",
-      "Echte Emulator-Kameraaufnahme ergänzt: Quellprüfung, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich; Abbruch/Auslösen/Rückgabe/Kundenzuordnung/Originalbytes/SQLite-Neuöffnung sind kompiliert. Tatsächliche Kamera-Ausführung im Gesamtlauf steht aus.",
-      "41544456189: Tatsächliche System-Randgeste erfolgreich. Pixel-Profil mit verkleinerten LCD-Parametern erzeugte unnatürlich hohe Statusleiste und neue Geometriefehler; ursprüngliche Displayparameter wiederhergestellt. Zusätzlich SQLITE_BUSY bei getState während Archivierung: reine Bestandsabfrage verwendet ab API35 eine WAL-Lesetransaktion mit derselben konsistenten Materialisierung; native Zweit-Helper-Prüfung bei offenem Schreiber ergänzt. Gesamtlauf deshalb noch nicht erfolgreich.",
-      "WAL-Lesetransaktion und ursprüngliche Emulator-Anzeige: Quellprüfung, acht JVM-Suiten, compileReleaseKotlin/Java, assembleRelease/AndroidTest und lintRelease erfolgreich. Zusätzliche Zweit-Helper-Snapshotprüfungen sind kompiliert. Pixel-Identität am 03.11.2026 um 00:06:03 UTC erneut unverändert auf 1.57.2/121 bestätigt.",
-      "41546960036: Reale Kamera-App gestartet, Abbruch ohne Fotobuchung/Temporärdatei, tatsächliches Auslösen und Rückgabe, Kundenzuordnung und dekodierbares Original erfolgreich. Prüfung nach Activity-Neuerstellung suchte die obere Bestätigung an einer tieferen Scrollposition; ruft diese nun vor der Neuerstellung sichtbar auf und prüft sie danach erneut. Bekannte falsche Anzeigeparameter dieses Laufs sind im aktuellen main bereits korrigiert.",
-      "Sichtbare Kamera-Speicherbestätigung vor Activity-Neuerstellung: Quellprüfung, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich; Produktionscode unverändert. Vollständiger aktueller Emulatorlauf bleibt erforderlich."
+      "Live Pixel 03.11.2026 00:47:35 UTC: at.hausgarten.service, 1.57.2/121, release, source_dirty=false, f44797bfc412d2fea27236fd9ffd4bda6b234286 / 9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae. Quellfingerabdruck aus Git reproduziert; Vorfahr von main. Keine produktiven Geschäftsdaten gelesen oder verändert.",
+      "Physisch entfernte Drive-/Rechnungs-/Zahlungsarchitektur einschließlich IssuedInvoiceRules-Aufrufketten, LocalAuthorityRules, LegacyPdfAttachment, InvoiceFileProvider, DriveJournalRules, PixelDriveState und SyncActionOrder. Gemeinsame Komponenten auf Angebote bzw. lokale Transaktionen reduziert. SQLite-Schema 7 und Backupformat erhalten.",
+      "check_current.py, compileReleaseKotlin, compileReleaseJavaWithJavac, assembleRelease, assembleReleaseAndroidTest und lintRelease erfolgreich. Acht synthetische JVM-Suiten: SQLite/JDBC 102, Wartung 97, Gerätefotos 54, Fachregeln 378, Angebote/Abrechnungsbeziehungen 27, MCP 555, ZIP/Integrität 111, Arbeit/Zubehör 53 Prüfungen.",
+      "CI 41553616164 auf 2f7af1e51084b3e0fd37fff2464fb33e7d8a41aa erfolgreich: Quellprüfung, Release-/Android-Testbau, Lint und alle JVM-Suiten; Emulator ausdrücklich ausgelassen. Produktions-Quellfingerabdruck 2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b.",
+      "Vor dem angeforderten Abbruch von 41550713484 bestanden bei genau diesem Produktions-Quellfingerabdruck: local_backup 51, local_backup_reopen 13, browser_checkpoint 79, browser_checkpoint_reopen 23, native_data 280, document_provider 75 und document_provider_reopen 17 Prüfungen. Einschließlich WAL-Lesetransaktion bei offenem Schreiber, SQLite-Schreiben/Neuöffnung, ZIP/Restore, Prozessneustart, Dateianbieter und veralteten Löschbelegen.",
+      "Heute-Ansicht mit vier Hauptbereichen, Tagesplanung, persistenter Nettozeit, Pause/Fortsetzen/Beenden und Erfassen-Menü implementiert. Kundennotiz ohne Änderung der Arbeitsaufzeichnungen, 200-%-Heute-Navigation, sechs Such-/Tastaturkombinationen sowie 35 Oberflächen und 15 Listen-Viewports im früheren Lauf 41539556826 erfolgreich; spätere Gesamt-UI-Abnahme nicht erfolgreich abgeschlossen.",
+      "Reale synthetische Kameraaufnahme in 41546960036 erfolgreich bis einschließlich Abbruch ohne Fotobuchung, tatsächlichem Auslösen/Rückgabe, Kundenzuordnung und dekodierbarem Original. Bestätigungsprüfung nach Activity-Neuerstellung korrigiert und kompiliert; auf Eigentümerwunsch nicht abschließend ausgeführt.",
+      "Originalsignierte 1.57.3/122 mit identischem Zertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8 geprüft. Paket unverändert, Versionscode höher als live installiert, keine Geschäftsdaten/Testklassen in der APK. Entfernte Klassen und alte Drive-/Rechnungszweige auch im DEX nicht vorhanden. Bestehende Drive-Datei ersetzt und vollständig bytegleich einschließlich SHA256/Signatur/BuildConfig zurückgelesen."
     ],
-    "remaining": [
-      "CI für den aktuellen Commit ohne Emulator erfolgreich abschließen",
-      "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und über bestehende Drive-Datei bereitstellen"
-    ],
+    "remaining": [],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten.",
     "emulator_decision": "03.11.2026: Eigentümer ausdrücklich „Lass emulator weg“. Laufende Läufe 41550713484 und 41552337601 abgebrochen; keine weitere Emulatorausführung für diesen Abschluss. Vorhandene Tests bleiben als ausdrücklich startbare Option erhalten.",
     "runtime_limitations": [
-      "Abschließender Android-Laufzeittest der WAL-Lesetransaktion und der korrigierten Kamera-Neuerstellungsprüfung nicht vollständig bestätigt. Frühere native Prüfungen und reale Kameraaufnahme sind belegt; kein vollständiger Emulator-Erfolg für den endgültigen Stand.",
-      "Keine Installation, Migration, Wiederherstellung oder produktiven Funktionstests auf dem Pixel."
+      "Weitere Emulatorausführung am 03.11.2026 ausdrücklich abgewählt. Kein erfolgreicher vollständiger UI-/Gestenlauf für den endgültigen Stand. System-Randgeste im Telefonprofil 41544456189 erfolgreich; im Standard-Emulator 41550713484 zuletzt BACK_GESTURE_CLOSES_ONLY_PICKER fehlgeschlagen. Normale Android-Zurück-Implementierung nicht durch eine eigene Menü-Gestenlogik ersetzt.",
+      "Keine Installation, Migration, Wiederherstellung oder produktiven Funktionstests auf dem Pixel. Update und Datenerhalt auf dem produktiven Gerät deshalb nicht praktisch abgenommen."
     ]
   },
   "open_checks": [
-    "Pixel bleibt unverändert auf 1.57.2 (121); keine Installation, Migration, Wiederherstellung oder produktiven Tests.",
-    "Zentrale Pages meldeten page_not_found; aktuelle Eigentümeranweisung und Repositoryregeln verwendet.",
-    "Kein /dev/kvm in der Cloud; Android-Laufzeittests über den vorhandenen synthetischen GitHub-Actions-Emulator."
+    "Pixel zuletzt live am 03.11.2026 um 00:47:35 UTC auf 1.57.2/121 bestätigt; keine automatische Installation oder Datenänderung.",
+    "Weitere Emulatorläufe auf ausdrücklichen Eigentümerwunsch entfallen; vollständige UI-/Gestenabnahme nicht nachgewiesen. Native Backup-/Restore-/SQLite-Prüfungen des bereinigten Produktionscodes bestanden vor dem Abbruch.",
+    "Zentrale Pages meldeten page_not_found; aktuelle ausdrückliche Eigentümerentscheidungen und Repositoryregeln verwendet."
   ],
   "workflow": {
     "code": "android/app/src/main",
@@ -88,17 +77,14 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "version_name": "1.57.2",
-    "version_code": 121,
-    "app_source_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
-    "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
-    "apk_sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
-    "apk_bytes": 89584575,
+    "version_name": "1.57.3",
+    "version_code": 122,
+    "package_name": "at.hausgarten.service",
+    "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
-    "source_binding": "PASS;all source assets;commit/fingerprint in DEX;clean BuildConfig",
-    "built_at_utc": "2026-11-01T12:53:59.183388+00:00",
+    "source_binding": "PASS; clean BuildConfig.GIT_SHA and SOURCE_SHA256 read directly from DEX; exact release commit and APK SHA256 in delivery response",
     "download_url": "https://drive.google.com/file/d/1aXXjFN5r6WUXp6gfupEv-gq4LnmqAOs5/view",
     "drive": {
       "file_id": "1aXXjFN5r6WUXp6gfupEv-gq4LnmqAOs5",
@@ -106,23 +92,26 @@
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
-      "status": "PASS; identical verified APK SHA256 at current package-installation location",
-      "bytes": 89584575,
-      "sha256": "1d7b1acac5ba450bd6697eee11f5a1584d86432273e03bcf31063441869e0a4e",
-      "observed_at_utc": "2026-11-01T12:53:59.183388+00:00",
+      "status": "PASS; complete signed APK reread byte-for-byte; SHA256, signature and embedded source identity verified",
       "signature_valid": true,
       "original_certificate_match": true
     },
+    "source_ci": {
+      "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41553616164",
+      "status": "PASS_WITHOUT_EMULATOR_BY_OWNER_REQUEST",
+      "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b"
+    },
+    "identity_note": "Stable source/certificate/version/distribution identity is stored here; final Git commit and byte-level APK checksum are verified from the APK, avoiding self-referential release hashes in this status commit.",
     "temporary_signing_material_removed": true,
-    "installation": "LIVE_PIXEL_MCP_RUNTIME_CONFIRMED;no APK reread in this task",
+    "installation": "NOT_PERFORMED; last verified Pixel remains 1.57.2/121",
     "productive_migration": "NOT_PERFORMED",
-    "invoice_authority": "NOT_ACTIVATED"
+    "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
     "version_name": "1.57.3",
     "version_code": 122,
     "package_name": "at.hausgarten.service",
-    "status": "LOCAL_RELEASE_AND_LINT_PASSED; CI_AND_ORIGINAL_SIGNING_PENDING",
-    "installation": "NOT_AUTHORIZED; NOT_PERFORMED"
+    "status": "ORIGINAL_SIGNED_RELEASE_AND_DRIVE_READBACK_VERIFIED; EMULATOR_EXCLUDED_BY_OWNER",
+    "installation": "NO_AUTOMATIC_INSTALLATION; NOT_PERFORMED"
   }
 }
