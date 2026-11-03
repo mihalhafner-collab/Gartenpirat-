@@ -446,13 +446,13 @@ private fun RevierDetail(
             for (event in data?.optJSONArray("history")?.revierObjects().orEmpty()) Text(listOf(nativeDisplayDate(event.optString("at")), event.optString("reason", "Änderung gespeichert")).filter { it.isNotBlank() }.joinToString(" · "))
             if (loadFailure.isNotEmpty()) { Text(loadFailure, color = MaterialTheme.colorScheme.error); TextButton(onRefresh) { Text("Erneut lesen") } }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
-            TextButton({ archiveMode = if (row.optBoolean("archived")) "purge" else "archive" }) { Text(if (row.optBoolean("archived")) "Endgültig löschen" else "Löschen") }
+            if (!row.optBoolean("archived")) TextButton({ archiveMode = "purge" }) { Text("Löschen") }
         }
         NativeActionBar(
-            primaryLabel = when { row.optBoolean("archived") -> "Eintrag wiederherstellen"; config.kind == "equipment" -> if (equipmentTab == 0) "Wartung erfassen" else "Zubehör bearbeiten"; else -> "Bearbeiten" },
+            primaryLabel = when { row.optBoolean("archived") -> "Löschen"; config.kind == "equipment" -> if (equipmentTab == 0) "Wartung erfassen" else "Zubehör bearbeiten"; else -> "Bearbeiten" },
             onPrimary = {
                 when {
-                    row.optBoolean("archived") -> { archiveMode = "restore" }
+                    row.optBoolean("archived") -> { archiveMode = "purge" }
                     config.kind == "equipment" && equipmentTab == 0 -> { maintenancePicker = true }
                     config.kind == "equipment" -> onEdit("accessories", row, JSONObject())
                     else -> onEdit(config.kind, row, JSONObject())
@@ -1397,7 +1397,7 @@ private fun RevierArchive(controller: NativeAppController) {
             items(rows, key = { it.optString("entity") + ":" + it.getJSONObject("record").getString("id") }) { entry ->
                 val row = entry.getJSONObject("record")
                 OutlinedCard(Modifier.fillMaxWidth().clickable { controller.navigate(revierCollection(entry.getString("entity")), row.getString("id"), "detail") }) {
-                    Column(Modifier.padding(12.dp)) { Text(row.optString("name", row.optString("title", "Eintrag"))); Text("Archiviert · zum Prüfen und Wiederherstellen öffnen") }
+                    Column(Modifier.padding(12.dp)) { Text(row.optString("name", row.optString("title", "Eintrag"))); Text("Alter Eintrag · zum Löschen öffnen") }
                 }
             }
             if (result != null && rows.isEmpty()) item { Text("Keine archivierten Einträge dieser Art.") }

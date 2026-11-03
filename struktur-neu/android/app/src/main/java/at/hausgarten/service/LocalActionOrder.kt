@@ -6,6 +6,32 @@ import java.util.*
 /** Stable dependency order, independent of device clocks. Original action bytes stay unchanged. */
 class LocalActionOrder {
     companion object {
+        /** Explicit removal is based on the currently read version, not an unapplied older edit. */
+        @JvmStatic fun predecessors(kind: String, payload: JSONObject, prior: JSONArray, current: JSONObject?): JSONArray {
+            val selected = linkedSetOf<String>()
+            val explicit = payload.optJSONArray("_sync_predecessors") ?: JSONArray()
+            for (i in 0 until explicit.length()) selected.add(explicit.getString(i))
+            val removal = kind in setOf("archive", "delete", "purge_v1")
+            val incorporated = if (removal) {
+                requireNotNull(current) { "Aktueller Löschstand fehlt." }
+                LocalJournalRules.ids(current.optJSONArray("drive_applied_ids")).apply {
+                    addAll(LocalJournalRules.ids(current.optJSONArray("accepted_ids")))
+                    current.optJSONObject("drive_resolved_actions")?.keys()?.forEach { add(it) }
+                }
+            } else null
+            val links = payload.optJSONArray("photo_link_ids") ?: JSONArray()
+            for (i in 0 until prior.length()) {
+                val event = prior.getJSONObject(i)
+                val client = event.getString("client_id")
+                if (incorporated != null && client !in incorporated) continue
+                val previous = event.getJSONObject("payload").optString("id")
+                val same = payload.optString("id").isNotEmpty() && payload.optString("id") == previous
+                val linked = (0 until links.length()).any { links.getJSONObject(it).getString("id") == previous }
+                if (same || linked || kind == "business_settings" && event.optString("kind") == kind) selected.add(client)
+            }
+            return JSONArray(selected.toList())
+        }
+
         @Throws(Exception::class)
         @JvmStatic fun order(input: JSONArray): JSONArray {
             var actions: LinkedHashMap<String, JSONObject> = LinkedHashMap()

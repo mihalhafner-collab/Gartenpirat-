@@ -53,13 +53,14 @@ internal object NativeActionCatalog {
                 "kunden.12",
                 "kunden",
                 "Archivieren mit Fotoablösung",
-                listOf("preview_delete", "archive_entity"),
+                listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
                 "kunden.13",
                 "kunden",
                 "Wiederherstellen",
                 listOf("list_archive", "restore_entity"),
+                retired = true,
             ),
             NativeAction(
                 "auftraege.14",
@@ -97,13 +98,14 @@ internal object NativeActionCatalog {
                 "auftraege.24",
                 "auftraege",
                 "Archivieren",
-                listOf("preview_delete", "archive_entity"),
+                listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
                 "auftraege.25",
                 "auftraege",
                 "Wiederherstellen",
                 listOf("list_archive", "restore_entity"),
+                retired = true,
             ),
             NativeAction(
                 "arbeiten.26",
@@ -170,19 +172,20 @@ internal object NativeActionCatalog {
                 "arbeiten.37",
                 "arbeiten",
                 "Einzeln in Papierkorb",
-                listOf("preview_delete", "archive_entity"),
+                listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
                 "arbeiten.38",
                 "arbeiten",
                 "Auswahl in Papierkorb",
-                listOf("preview_archive_work_records", "archive_work_records"),
+                listOf("preview_archive_work_records", "delete_work_records"),
             ),
             NativeAction(
                 "arbeiten.39",
                 "arbeiten",
                 "Rückgängig / wiederherstellen",
                 listOf("list_archive", "restore_entity"),
+                retired = true,
             ),
             NativeAction(
                 "zeiterfassung.40",
@@ -300,7 +303,7 @@ internal object NativeActionCatalog {
                 "angebote.75",
                 "angebote",
                 "Entwurf in Papierkorb",
-                listOf("preview_delete", "archive_entity"),
+                listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
                 "leistungskatalog.76",
@@ -385,13 +388,14 @@ internal object NativeActionCatalog {
                 "fotos.90",
                 "fotos",
                 "Papierkorb und Kundenverknüpfung lösen",
-                listOf("preview_delete", "archive_entity"),
+                listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
                 "fotos.91",
                 "fotos",
                 "Wiederherstellen einschließlich geprüfter Zuordnung",
                 listOf("list_archive", "restore_entity"),
+                retired = true,
             ),
             NativeAction(
                 "fotos.92",
@@ -410,6 +414,7 @@ internal object NativeActionCatalog {
                 "papierkorb",
                 "Einzeln wiederherstellen",
                 listOf("list_archive", "restore_entity"),
+                retired = true,
             ),
             NativeAction(
                 "papierkorb.101",
@@ -595,7 +600,7 @@ internal object NativeActionCatalog {
                 "termine.141",
                 "termine",
                 "Archivieren und wiederherstellen",
-                listOf("preview_delete", "archive_entity", "restore_entity"),
+                listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
                 "pflanzen.142",
@@ -935,6 +940,7 @@ internal object NativeActionCatalog {
                 "revier",
                 "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
                 listOf("set_revier_archived"),
+                retired = true,
             ),
             NativeAction(
                 "revier.purge_revier_entity",

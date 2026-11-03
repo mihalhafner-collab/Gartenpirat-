@@ -525,6 +525,10 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                         controller.navigate(collection, row.id, mode = if (collection == "customers" && controller.route.args.optBoolean("_note_first")) "edit" else "list", args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
                     })
                     if (row.status.isNotBlank() && collection != "customers") NativeStatus(nativeValue(row.status))
+                    if (collection == "worklogs") NativeDeleteButton(controller, "worklog", row.id, enabled = !deleting) {
+                        selected = selected - row.id
+                        if (page.rows.size == 1 && offset > 0) offset = maxOf(0, offset - 50)
+                    }
                 }
             }
         }
@@ -533,7 +537,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         if (collection == "worklogs" && selected.isNotEmpty()) item {
             Button({ if (!deleting) { deleting = true; scope.launch {
                 try {
-                    controller.deleteDirect("archive_work_records", JSONObject().put("work_record_ids", JSONArray(selected)))
+                    controller.deleteDirect("delete_work_records", JSONObject().put("work_record_ids", JSONArray(selected)))
                     selected = emptyList()
                     controller.message("Auswahl gelöscht.")
                 } catch (failure: Exception) { controller.message(failure.message ?: "Löschen nicht bestätigt.") }
@@ -1224,7 +1228,7 @@ private fun NativeSettings(controller: NativeAppController) {
             catch (failure: Exception) { error = failure.message.orEmpty() }
         } }) }
         item { NativeInfoRow("Speicher", "Belegung und Bereinigung", { controller.navigate("storage") }) }
-        item { NativeInfoRow("Papierkorb", "Wiederherstellen oder endgültig löschen", { controller.navigate("trash") }) }
+        item { NativeInfoRow("Papierkorb", "Alte Einträge löschen", { controller.navigate("trash") }) }
         item { Text("App prüfen", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.titleMedium) }
         item { OutlinedButton({ scope.launch {
             testing = true
@@ -1300,7 +1304,6 @@ private fun NativeTrash(controller: NativeAppController) {
                 Text(nativeDisplayDate(archived.optString("archived_at")), style = MaterialTheme.typography.bodySmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     NativeDeleteButton(controller, entity, id, label = "Löschen", permanent = true) { refresh++ }
-                    TextButton({ controller.action("Wiederherstellen", "restore_entity", JSONObject().put("entity", entity).put("entity_id", id).put("expected_record_hash", row.optString("record_hash"))) }) { Text("Wiederherstellen") }
                 }
                 HorizontalDivider()
             }

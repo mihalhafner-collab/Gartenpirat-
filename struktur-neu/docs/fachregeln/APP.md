@@ -27,8 +27,9 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
-Die lokale Einzelnutzer-Oberfläche löscht oder archiviert direkt mit einem
-Antippen. Aktionsbeleg und Vergleichsschutz bleiben intern erhalten; zusätzliche
+Die lokale Einzelnutzer-Oberfläche entfernt beim Antippen von „Löschen“ den
+Datensatz endgültig samt ungeteilten Dateien. Die intern nötigen Schritte werden
+in einem Vorgang übernommen; es bleibt kein neuer Papierkorbeintrag. Aktionsbeleg und Vergleichsschutz bleiben intern erhalten; zusätzliche
 Bestätigungsdialoge und Pflichttexte entfallen. Technische Kennungen bleiben ausgeblendet. Es gibt keine vorab einzuholenden
 Vorschau- oder Fotoverknüpfungs-Hashes. Fachliche Sperren für ausgestellte
 Rechnungen, abgeschlossene Angebote und laufende Zeiterfassung bleiben bestehen.
@@ -75,8 +76,10 @@ Aktivierung bleibt gesperrt; ihre bloße Dateierhaltung ist kein Übernahmenachw
 
 Das eigenständige Entwürfe-Menü samt Inbox ist entfernt. Automatische Zwischenstände
 laufender Formulare und Vorgangsprüfungen bleiben im jeweiligen Fachformular.
-Der Papierkorb zeigt Name und Datum mit direkten Tasten für Löschen und Wiederherstellen;
-keine Rohdatenansicht oder zusätzliche Detailseite.
+Arbeitsaufzeichnungen haben eine direkte Löschtaste je Listeneintrag und eine
+Sammellöschung. Fotos, Termine und Revier-Einträge verwenden dieselbe eindeutige
+Bedienung. Historische Papierkorbeinträge bleiben nur zum endgültigen Entfernen
+erreichbar; die Oberfläche zeigt keine Wiederherstellungswahl.
 
 Bei eindeutig markierten Testeinträgen umfasst endgültiges Löschen auch die zugehörigen
 aktiven oder archivierten Test-Arbeiten, Testfotos und weiteren Testdatensätze. Die
@@ -379,3 +382,8 @@ Austausch hinterlässt keine vollständige Kopie des vorherigen Bestands.
 Einstellungen zeigen kurze Ergebnisse; interne Datensatzkennungen und ungefilterte
 Diagnosewerte werden dort nicht mehr ausgegeben. Die Speicheransicht schlüsselt
 verbleibende Arbeitsordner einzeln auf.
+
+Automatische Vorgängerbezüge von Löschaktionen enthalten nur bereits übernommene
+Änderungen. Eine ältere fehlgeschlagene Änderung wird nicht zur künstlichen
+Löschvoraussetzung; aktuelle Versions- und Referenzprüfungen bleiben bestehen.
+Ausdrücklich angegebene Vorgänger und normale Bearbeitungen behalten ihre Prüfungen.

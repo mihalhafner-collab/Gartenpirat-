@@ -179,7 +179,7 @@
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
-        "archive_entity"
+        "delete_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -201,7 +201,7 @@
       "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "retired": false,
+      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -319,7 +319,7 @@
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
-        "archive_entity"
+        "delete_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -341,7 +341,7 @@
       "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "retired": false,
+      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -522,7 +522,7 @@
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
-        "archive_entity"
+        "delete_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -538,7 +538,7 @@
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_archive_work_records",
-        "archive_work_records"
+        "delete_work_records"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -560,7 +560,7 @@
       "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "retired": false,
+      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -911,7 +911,7 @@
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "preview_delete",
-        "archive_entity"
+        "delete_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -1149,7 +1149,7 @@
       "source": "ComposeMediaScreens.kt",
       "mcp": [
         "preview_delete",
-        "archive_entity"
+        "delete_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -1171,7 +1171,7 @@
       "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "retired": false,
+      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -1218,7 +1218,7 @@
       "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
-      "retired": false,
+      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -1695,8 +1695,7 @@
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "preview_delete",
-        "archive_entity",
-        "restore_entity"
+        "delete_entity"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -2520,7 +2519,7 @@
       ],
       "platform_only": false,
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
+      "retired": true,
       "native_dispatch": "NativeForms.kt",
       "action": "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
       "rights": "owner_write"
@@ -2603,7 +2602,7 @@
   ],
   "reviewed_sources": {
     "android/app/src/main/assets/offer-contract.json": "f2fa77c5f92e22f69f46875ba4fc64f15a4d454d47b8339ede853b83ec393971",
-    "android/app/src/main/java/at/hausgarten/service/ArchiveApplicationService.kt": "5398726e95a0ae9dc7cc011486330a814f9840afe0c6e93f4af727be34069c1f",
+    "android/app/src/main/java/at/hausgarten/service/ArchiveApplicationService.kt": "fbba1a1e6e4a9135a7796749e62833c59d91d3f96122564a1ff5145ba8de9ed8",
     "android/app/src/main/java/at/hausgarten/service/BackupArchive.kt": "eb8d5ceedef9f682d57b35cd33ef42533e87a42b1597959d735faca98b503492",
     "android/app/src/main/java/at/hausgarten/service/BackupDocumentTransfer.kt": "2d31551bb68522de0619b8e7a48a769f6f5bda4d73033521fb16fa82939ed734",
     "android/app/src/main/java/at/hausgarten/service/BackupInventory.kt": "23335ba715030b712fc5224d4b3b0ba8cb41aa9c72adf0b7eccdddcb3285e734",
@@ -2619,28 +2618,28 @@
     "android/app/src/main/java/at/hausgarten/service/ComposeFinanceScreens.kt": "40ac2e0d5847280db55f8d7554628ba6e30341e4ee63f8fd889f2d57e11f3cad",
     "android/app/src/main/java/at/hausgarten/service/ComposeMediaScreens.kt": "589bc928073454a0230d2b5c521859832f25f4d31cf818e682171e7d050b767a",
     "android/app/src/main/java/at/hausgarten/service/ComposePlanningScreens.kt": "914aede2c0f7ebe6ccb6997305582a43e6e538bb38a873202bdacd5a06b933db",
-    "android/app/src/main/java/at/hausgarten/service/ComposeRevierScreens.kt": "4e87f5aa67b99693bcf23689b55ad7b03e837d698783309ac9517840e831f04a",
+    "android/app/src/main/java/at/hausgarten/service/ComposeRevierScreens.kt": "dd1faff5709eb75317e8244b99d8fb98c1a23e788293e081458713ac8dac3946",
     "android/app/src/main/java/at/hausgarten/service/EntityProtectionRules.kt": "a4457ac0f11af63852c8525bc8f729585d13251e18aaa6a6fb352332365fe682",
     "android/app/src/main/java/at/hausgarten/service/EquipmentMaintenanceRules.kt": "d760e5486acdefe2fec66a281d0f8d71d561ef27c47c1a638dea71705a9e9155",
     "android/app/src/main/java/at/hausgarten/service/EquipmentProfilePhotoRules.kt": "13baf94a9d0b24bda3d2cf5a2b6ab723f3a7e64f30b014a4f0dd80a42588d3cb",
     "android/app/src/main/java/at/hausgarten/service/FullBackupActivity.kt": "d4e26eb18396b0b1f8632746bc8d2d9807b55db5252fd8e8e71ae9b871cf3732",
     "android/app/src/main/java/at/hausgarten/service/GardenRules.kt": "70b13d61b0269042e1bed7f8852dba34a801f9854a7c2ae6877efc93379560ff",
-    "android/app/src/main/java/at/hausgarten/service/LocalActionOrder.kt": "ba7dc7fd2a4be3232b13f7e48424f563b551024eb056a824c2bb0707268486b7",
+    "android/app/src/main/java/at/hausgarten/service/LocalActionOrder.kt": "a1540bef23c422d25b5fd742f7d6d76ecdc80be282ae2696ec135052bb25a97f",
     "android/app/src/main/java/at/hausgarten/service/LocalBackupDataset.kt": "bc09a77ebff233817ba32e1fcea918d03bbb0eefcf94b749c0651f90a61da802",
     "android/app/src/main/java/at/hausgarten/service/LocalBusinessState.kt": "2ea02013e59470fcb32965bf1d808f78ccec618153186908fd8c32751ec3d352",
     "android/app/src/main/java/at/hausgarten/service/LocalJournalRules.kt": "142a5b47062120b08662b28d169d30ff6ceb86f657ebac2f3e0053a668626447",
-    "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.kt": "adc5bc451f6103b4f7970c41c0374978b6826a55e55d487d2968fcd17f11c84b",
+    "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.kt": "64a0878477c36ad8fd939494e4910a3465f25cb5d8f06fe4f0faff2261b60ce9",
     "android/app/src/main/java/at/hausgarten/service/LocalStorageMaintenance.kt": "43144f3804cdaae7466f333afa2bb5dc7c754175318c7ab4a4d83c2116f273d2",
-    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.kt": "1320175d2cf419fbf886e3e519771d401662326ea03828ef30bd1683d18c7584",
+    "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.kt": "698dd9623078bc336289dc06fd5311998a562ecedf21152f385992b270e684bd",
     "android/app/src/main/java/at/hausgarten/service/MainActivity.kt": "2f3015669397fa2619b62fb6393d4878d6ee71809cc71601128ff523fd2823c6",
     "android/app/src/main/java/at/hausgarten/service/McpErrors.kt": "d0318544dff6b554e74b3a63c37679d0d6e920b70759d509e4dc3a19e12934ec",
-    "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "5be3cfecae62377b92bbd7c99e94b11763f0aa17a4d5b855ee6f0f9068c9d029",
-    "android/app/src/main/java/at/hausgarten/service/NativeAppController.kt": "18dfc12b91a3477ef838ee492ec4deba80ea1ca02ee874b8bdc8c8e65bbdd631",
+    "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "5c451e994a970c500b38245aed64131b9519deb5b909e0e1403ada6313321e22",
+    "android/app/src/main/java/at/hausgarten/service/NativeAppController.kt": "2b1d6041acfc5106dbbcbe5ed948d9dbafd4e165b6bb20d0849b297032b28d91",
     "android/app/src/main/java/at/hausgarten/service/NativeCompose.kt": "f52ddde6eba71d5502347652a73845fc2e262f991ad317ebb0d9f8c96bc4ce58",
     "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "42850947592b714687d3ba9605e47c5ace98cca029d627970050484186b1c9a0",
-    "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "0faa7f4a9f7530f6120a2a825699bf739dc1f7621d4f859d70770957ead19065",
+    "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "dcf0f8daa0cbed9d725fdae07193c01727c0c71985919bdc65b7027a785302e4",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "e8879b6e1936f20803dda1faad2200a1b9cc771c803cc65fc9dfb70a1da71bc4",
-    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "355dc9e44f54c3f4252c3d1317aca64b95dbf730c3aa4dc1b767dd6f1e425dc4",
+    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "883aa05b6c45b64b86a3a5e3f07a3188fa85d5a3af59c8d829c2c2e5d3be04fb",
     "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "da391f39efbc6a33a848d4fd5981138468be2b220054c13fb9543f7ea7ef3bad",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "33c4c3447dfb6a9d80c2e2fd72e264f3e835a7c11cc91e2bf2d67f045676dcb0",
     "android/app/src/main/java/at/hausgarten/service/OfferFileProvider.kt": "5dcfe2b3dd18c9e4546c2ccd77e42ca002c405b14f88c344b328038683df7dc9",
@@ -2650,8 +2649,8 @@
     "android/app/src/main/java/at/hausgarten/service/PendingWorkPhotoStore.kt": "588ac98c0cb3ab655c11f50583ec86f7ff5987dbf66ed5c61b775e613ebab876",
     "android/app/src/main/java/at/hausgarten/service/PixelBackupService.kt": "1813685cef6365eec27895abfde5df75cfd33ba31e278a3e8194871645dede28",
     "android/app/src/main/java/at/hausgarten/service/PixelLocalStore.kt": "444644272882eabf8f4e1fb95d20942416a26c7f2f6ee5352819cbc99f139b07",
-    "android/app/src/main/java/at/hausgarten/service/PixelMcpOwnerTools.kt": "41e9199e6d0c7750a6350bcee21170c26d9d2198f03d4f6b781ca1436f095069",
-    "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.kt": "87d9c7780e39d24162615eeb687d6e1e094aedfcdbfa32a6ac6554a81786a674",
+    "android/app/src/main/java/at/hausgarten/service/PixelMcpOwnerTools.kt": "ddcf5a3ebd90d7f89c258f382669f2514bd078edf615f88ec3e6ca22f99ff7fb",
+    "android/app/src/main/java/at/hausgarten/service/PixelOwnerAccess.kt": "16fcb3b07ee82629d227b702b8f8310e26db64112d14be05d3c2a2b7fa16474c",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelActivity.kt": "d8a8593dcb25d1a81f1695abbbc0a1d77a0ea735ceacf221b17a2931ea9ea52d",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelBootReceiver.kt": "202e9ed94e362c80eccec5cd88672e028fd03248a7e9853e4cb8c8b1fb251cd1",
     "android/app/src/main/java/at/hausgarten/service/PixelTunnelService.kt": "eb957388f142141eabba74161662c4f1da4f77578668c07e6bd8e714978305df",
@@ -2663,7 +2662,7 @@
     "android/app/src/main/java/at/hausgarten/service/RestoredBrowserCheckpoint.kt": "b774941b5253a1c528c1495cb40617b4b9cad55637d740ee38adb34d12f06000",
     "android/app/src/main/java/at/hausgarten/service/RestoredBrowserReviewRules.kt": "c0d8d897dddfead1f7e496ec51958fd4d91ba166d4b09b469c3e403786c7f7ac",
     "android/app/src/main/java/at/hausgarten/service/RevierApplication.kt": "7a9f3ea4d0ab55cc615471f63b8d1c02d5dc10813796bb61a9d3372dc88e5f4d",
-    "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.kt": "27c67b9ec7ef58209f7d7870cd947b67ce8c5f51fc559786513583e4485158cb",
+    "android/app/src/main/java/at/hausgarten/service/RevierApplicationService.kt": "c05b4ff3f52ca09c4312675798d9ccd7d8dd9eaa91b5e269163d578e8ae3b7c6",
     "android/app/src/main/java/at/hausgarten/service/RevierLocalRepository.kt": "40a772b30dd247edf344dba0ea166ef942fa23a4b450064fbd2630698d92bda7",
     "android/app/src/main/java/at/hausgarten/service/RevierRepository.kt": "9366f5b82c8d9c4ace1901277e78b9c591babaef61a013adaabb91d42a7d89ec",
     "android/app/src/main/java/at/hausgarten/service/RevierRules.kt": "b0e07546868a7fcecacb23d9b8b366847bd1c0601ed3badd863124d5094bd9bb",

@@ -160,7 +160,7 @@ internal class LocalWorkflowTools {
                 return "Archiviert oder öffnet genau einen ausdrücklich bestätigten Revier-Eintrag mit aktuellem record_hash. Aktive Einsätze zuerst gesondert beenden; laufende Arbeit und Abhängigkeiten bleiben geschützt. Stabile request_id bei Wiederholung."
             }
             if ((name == "purge_revier_entity")) {
-                return "Entfernt genau einen bereits archivierten Revier-Eintrag nach aktueller Versions- und Abhängigkeitsprüfung und ausdrücklicher Bestätigung. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests."
+                return "Entfernt genau einen aktiven oder früher archivierten Revier-Eintrag endgültig nach aktueller Versions- und Abhängigkeitsprüfung. Die lokale Oberfläche führt die beschriftete Löschung direkt aus. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests."
             }
             if ((name == "accept_inquiry_direct")) {
                 return "Nimmt eine Anfrage ausdrücklich ohne vorheriges Angebot an: tatsächlichen Annahmezeitpunkt, Nachweis und gegebenenfalls getrennten Rechnungsempfänger angeben. Aktuellen record_hash prüfen. Derselbe request_id erzeugt höchstens einen verknüpften Auftrag; kein Rechnungsversand."

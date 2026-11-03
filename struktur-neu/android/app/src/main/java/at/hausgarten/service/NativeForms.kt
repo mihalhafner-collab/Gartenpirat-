@@ -458,7 +458,7 @@ private fun NativeSchemaField(controller: NativeAppController, name: String, spe
 @Composable
 internal fun NativeActionForm(controller: NativeAppController, tool: String, title: String, initial: JSONObject = JSONObject(), fixedInputs: Boolean = false, submitLabel: String = "Speichern", onCancel: () -> Unit = { controller.back() }, detailsContent: (@Composable () -> Unit)? = null, onDone: (JSONObject) -> Unit = { controller.finishAction() }) {
     val scope = rememberCoroutineScope()
-    if (tool in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records")) {
+    if (tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records")) {
         var failure by remember(tool, initial.toString()) { mutableStateOf("") }
         var attempt by remember(tool, initial.toString()) { mutableIntStateOf(0) }
         LaunchedEffect(tool, attempt) {
@@ -762,8 +762,8 @@ internal fun NativeActionMenu(controller: NativeAppController, area: String, con
         }, key = { it.id }) { action ->
             TextButton({
                 show = false
-                val tool = action.tools.firstOrNull { it in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records") } ?: action.tools.first()
-                if (tool in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records")) {
+                val tool = action.tools.firstOrNull { it in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") } ?: action.tools.first()
+                if (tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records")) {
                     scope.launch {
                         try { controller.deleteDirect(tool, contextArgs); controller.finishAction(); controller.message("Gelöscht.") }
                         catch (failure: Exception) { controller.message(nativeActionError(failure, "Löschen nicht bestätigt.")) }
@@ -772,8 +772,8 @@ internal fun NativeActionMenu(controller: NativeAppController, area: String, con
             }, Modifier.fillMaxWidth()) { Text(when {
                 "empty_trash" in action.tools -> "Papierkorb leeren"
                 "purge_entity" in action.tools -> "Endgültig löschen"
-                "archive_entity" in action.tools -> "Löschen"
-                "archive_work_records" in action.tools -> "Auswahl löschen"
+                "delete_entity" in action.tools -> "Löschen"
+                "delete_work_records" in action.tools -> "Auswahl löschen"
                 else -> action.label
             }) }
         } }
@@ -900,7 +900,7 @@ private fun nativeExistingOrderProof(observation: JSONObject, chosen: String): S
 
 /** A tap starts deletion; its durable request is inspected after an uncertain response. */
 internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSONObject): JSONObject {
-    require(tool in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records"))
+    require(tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records"))
     val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
     val legacyKey = actionDraftKey(tool, initial)
     val legacy = draft(legacyKey)?.takeIf { it.optString("original_tool") == tool }?.optJSONObject("original_args")
@@ -910,7 +910,7 @@ internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSO
             throw IllegalStateException("Ein früherer Löschvorgang ist noch offen. Bitte später erneut prüfen.")
         removeDraft(legacyKey)
         val sameTarget = when (tool) {
-            "archive_work_records" -> legacy.optJSONArray("work_record_ids")?.toString() == initial.optJSONArray("work_record_ids")?.toString()
+            "delete_work_records" -> legacy.optJSONArray("work_record_ids")?.toString() == initial.optJSONArray("work_record_ids")?.toString()
             "empty_trash" -> true
             else -> legacy.optString("entity") == initial.optString("entity") && legacy.optString("entity_id") == initial.optString("entity_id")
         }
@@ -954,7 +954,7 @@ internal fun NativeDeleteButton(controller: NativeAppController, entity: String,
             busy = true
             scope.launch {
                 try {
-                    val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity"
+                    val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "delete_entity"
                     val args = JSONObject().apply { if (!emptyTrash) put("entity", entity).put("entity_id", id) }
                     controller.deleteDirect(tool, args)
                     onDone()

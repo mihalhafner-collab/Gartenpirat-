@@ -708,8 +708,9 @@ class RevierApplicationService {
             var saved: JSONObject = save(type, row, old, request, reason)
             return JSONObject().put("record", saved).put("entity", type).put("entity_id", id).put("archived", archived)
         }
-        if ((!old.optBoolean("archived"))) {
-            throw RevierRules.error("ARCHIVE_REQUIRED", "Eintrag zuerst archivieren und anschließend endgültiges Löschen bewusst bestätigen.")
+        val running = repository.currentSession()
+        if (references(running, id) && running.optString("state") !in listOf("IDLE", "FINALIZED", "CANCELLED")) {
+            throw RevierRules.error("DEPENDENCY_EXISTS", "Die laufende Arbeit verwendet diesen Eintrag.")
         }
         var related: JSONArray = repository.list(("" + RevierRules.ROOT + "entity:"))
         run {

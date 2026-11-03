@@ -518,10 +518,10 @@ internal suspend fun NativeAppController.actionObservation(tool: String, argumen
     return when {
         tool == "update_settings" -> call("get_settings")
         tool == "update_business_settings" -> call("get_business_settings")
-        tool == "archive_entity" -> call("preview_delete", JSONObject().put("entity", id("entity")).put("entity_id", id("entity_id")))
+        tool == "delete_entity" -> call("preview_delete", JSONObject().put("entity", id("entity")).put("entity_id", id("entity_id")))
         tool == "purge_entity" -> call("preview_purge", JSONObject().put("entity", id("entity")).put("entity_id", id("entity_id")))
         tool == "empty_trash" -> call("preview_empty_trash")
-        tool == "archive_work_records" -> call("preview_archive_work_records", JSONObject().put("work_record_ids", arguments.getJSONArray("work_record_ids")))
+        tool == "delete_work_records" -> call("preview_archive_work_records", JSONObject().put("work_record_ids", arguments.getJSONArray("work_record_ids")))
         tool == "review_work_session" && id("session_id").isNotEmpty() -> withContext(Dispatchers.IO) { JSONObject().put("data", store.workSessions().current(id("session_id"))) }
         id("offer_id").isNotEmpty() -> call("get_offer", JSONObject().put("offer_id", id("offer_id")).apply { if (tool == "finalize_offer") put("include_review", true) })
         id("work_record_id").isNotEmpty() -> call("get_work_record", JSONObject().put("work_record_id", id("work_record_id")))

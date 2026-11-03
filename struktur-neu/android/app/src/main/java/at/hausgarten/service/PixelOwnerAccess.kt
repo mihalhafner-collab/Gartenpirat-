@@ -58,7 +58,7 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                 result.put("upload_cleanup_pending", true)
             }
         }
-        if (((name == "purge_entity") || (name == "empty_trash"))) {
+        if (name in setOf("purge_entity", "empty_trash", "delete_entity", "delete_work_records")) {
             try {
 
                 LocalStorageMaintenance(context, store).clean(false)

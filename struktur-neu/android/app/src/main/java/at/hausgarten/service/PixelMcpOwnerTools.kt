@@ -40,6 +40,7 @@ internal class PixelMcpOwnerTools {
                 arrayOf(
                     "empty_trash",
                     "archive_work_records",
+                    "delete_work_records",
 
                     "set_work_record_billed",
                     "reassign_work_record",
@@ -103,6 +104,7 @@ internal class PixelMcpOwnerTools {
                                     (Arrays.asList(
                                             "empty_trash",
                                             "archive_work_records",
+                    "delete_work_records",
                                             "set_work_record_billed",
                                             "reassign_work_record",
                                             "purge_entity",
@@ -132,7 +134,10 @@ internal class PixelMcpOwnerTools {
                     return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert."
                 }
                 "preview_archive_work_records" -> {
-                    return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für archive_work_records."
+                    return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für archive_work_records oder delete_work_records."
+                }
+                "delete_work_records" -> {
+                    return "Entfernt die ausgewählten Arbeitsaufzeichnungen atomar und endgültig mit aktuellem preview_hash. Kein Papierkorb-Zwischenschritt; ungeteilte Dateien nach lokalem Commit bereinigen. Bei unveränderter request_id keine Wiederholung." + common
                 }
                 "archive_work_records" -> {
                     return ("Verschiebt die ausdrücklich bestätigte Auswahl anhand des unveränderten preview_hash atomar in den wiederherstellbaren Papierkorb. Bei nur einem geänderten/geschützten Eintrag keine Änderung. Bestehende Einzeljournale, Originalfotos und stabile Request-Belege bleiben erhalten." +
@@ -168,10 +173,10 @@ internal class PixelMcpOwnerTools {
                         common)
                 }
                 "preview_delete" -> {
-                    return "Prüft ohne Änderung die Löschregeln, Verknüpfungen und den aktuellen Vergleichshash. Löschungen bleiben im Papierkorb wiederherstellbar."
+                    return "Prüft ohne Änderung Version und Verknüpfungen vor dem Löschen. Die Oberfläche führt delete_entity anschließend endgültig aus."
                 }
                 "delete_entity" -> {
-                    return ("Entfernt einen zulässigen Eintrag versionsgeschützt in den bestehenden lokalen Papierkorb. Keine operative Drive-Synchronisierung, keine physische Löschung und keine Kaskade. Bei betroffenen Fotos expected_photo_links_hash aus preview_delete erforderlich. " +
+                    return ("Entfernt einen zulässigen lokalen Eintrag versionsgeschützt endgültig samt ungeteilten Dateien. Kein verbleibender Papierkorbeintrag. Zuordnungen intern prüfen; Testdaten schließen ihre zugehörigen Testdatensätze ein. Bei betroffenen Fotos expected_photo_links_hash aus preview_delete erforderlich. " +
                         common)
                 }
                 "archive_entity" -> {

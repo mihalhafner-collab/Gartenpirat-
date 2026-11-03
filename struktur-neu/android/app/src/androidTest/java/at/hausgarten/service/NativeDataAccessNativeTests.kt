@@ -271,7 +271,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             yes(keptPhoto.isFile, "TRASH_RETAINS_SHARED_PHOTO")
             command("purge_entity", "photo", first)
             yes(keptPhoto.isFile, "ACTIVE_SHARED_PHOTO_RETAINED")
-            yes(store.ownerValue("receipt:qa_deleted_photo", "").isEmpty() && store.ownerValue("photo-ui:qa_photo_cleanup_first", "").isEmpty(), "DELETED_PHOTO_RECEIPTS_REMOVED")
+            val removedReceipt = JSONObject(store.ownerValue("receipt:qa_deleted_photo", "{}"))
+            yes(removedReceipt.getJSONObject("result").optBoolean("_result_content_removed") && !removedReceipt.getJSONObject("result").has("photo_id") && store.ownerValue("photo-ui:qa_photo_cleanup_first", "").isEmpty(), "DELETED_PHOTO_CONTENT_REMOVED")
             db.rawQuery("SELECT count(*) FROM pending WHERE id='receipt_qa_deleted_photo'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "DELETED_NATIVE_RECEIPT_REMOVED") }
             command("archive_entity", "invoice", "qa_draft")
             yes(draft.isFile, "TRASH_RETAINS_DRAFT_PDF")
@@ -300,6 +301,25 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             current = PixelMcpReadTools.effective(store.getState())
             yes(current.getJSONArray("worklogs").length() == 1 && current.getJSONArray("invoices").length() == 1, "BUSINESS_ROWS_PRESERVED")
             yes(OwnerJournalRules.archives(current).length() == 0, "TRASH_PHYSICALLY_EMPTY")
+            val directWork = JSONObject(current.getJSONArray("worklogs").getJSONObject(0).toString()).put("id", "qa_direct_work").put("billed", 0)
+            current.getJSONArray("worklogs").put(directWork)
+            store.putOwnerValue("snapshot", current.toString())
+            val directRemoved = access.execute("delete_entity", JSONObject().put("request_id", "qa_direct_work_delete").put("entity", "worklog").put("entity_id", "qa_direct_work").put("expected_record_hash", OwnerJournalRules.version(directWork)))
+            val afterDirect = PixelMcpReadTools.effective(store.getState())
+            yes(!directRemoved.optBoolean("recoverable", true) && OwnerJournalRules.findOrNull(afterDirect.getJSONArray("worklogs"), "qa_direct_work") == null && !OwnerJournalRules.archives(afterDirect).has("worklog:qa_direct_work"), "DIRECT_WORK_PERMANENT_WITHOUT_TRASH")
+            val red = android.graphics.Bitmap.createBitmap(2, 2, android.graphics.Bitmap.Config.ARGB_8888)
+            red.eraseColor(android.graphics.Color.RED)
+            val directBytes = java.io.ByteArrayOutputStream().use { output -> red.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output); output.toByteArray() }
+            red.recycle()
+            val directPhotoId = store.savePhoto(JSONObject().put("customer_id", "qa_customer_1").put("_photo_request_id", "qa_direct_photo")
+                .put("data", "data:image/png;base64," + android.util.Base64.encodeToString(directBytes, android.util.Base64.NO_WRAP)))
+            val directPhoto = OwnerJournalRules.findOrNull(PixelMcpReadTools.effective(store.getState()).getJSONArray("photos"), directPhotoId)!!
+            val directFile = File(File(context.filesDir, "customer-photo-originals"), store.photoAttachment(directPhotoId)!!.getString("storage_name"))
+            yes(directFile.isFile, "DIRECT_PHOTO_EXISTS_BEFORE_DELETE")
+            access.execute("delete_entity", JSONObject().put("request_id", "qa_direct_photo_delete").put("entity", "photo").put("entity_id", directPhotoId).put("expected_record_hash", OwnerJournalRules.version(directPhoto)))
+            val afterPhoto = PixelMcpReadTools.effective(store.getState())
+            yes(!directFile.exists() && OwnerJournalRules.findOrNull(afterPhoto.getJSONArray("photos"), directPhotoId) == null && !OwnerJournalRules.archives(afterPhoto).has("photo:$directPhotoId"), "DIRECT_PHOTO_AND_FILE_PERMANENTLY_REMOVED")
+
         }
         PixelLocalStore(context).use { reopened ->
             val current = PixelMcpReadTools.effective(reopened.getState())

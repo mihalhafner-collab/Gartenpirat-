@@ -67,8 +67,10 @@ aktuelle lokale ZIP-Sicherungen nicht automatisch löschen.
 
 ## Eigentümerentscheidung 03.11.2026: Löschen, Speicher und Menüs
 
-Löschaktionen werden mit einem Antippen ohne zusätzliche Bestätigungsdialoge
-oder Pflichttexte ausgeführt. Aktuelle Versionen, Verknüpfungen und unklare
+„Löschen“ bedeutet endgültiges Entfernen mit einem Antippen, einschließlich
+zugehöriger ungeteilter Dateien. Kein neuer Papierkorbeintrag, keine zusätzliche
+Wahl zwischen Archivieren, Wiederherstellen und endgültigem Löschen. Zuordnungen
+intern bereinigen. Löschaktionen haben keine Bestätigungsdialoge oder Pflichttexte. Aktuelle Versionen, Verknüpfungen und unklare
 Vorgangsergebnisse intern prüfen; keine doppelte Ausführung. Diese Entscheidung
 ersetzt die bisherigen zusätzlichen UI-Bestätigungen beim Löschen und Verwerfen.
 Rückfallkopien einschließlich Erstellen, Prüfen und Wiederherstellen sind

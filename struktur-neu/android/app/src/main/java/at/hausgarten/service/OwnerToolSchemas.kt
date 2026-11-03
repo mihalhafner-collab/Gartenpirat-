@@ -19,6 +19,7 @@ internal class OwnerToolSchemas {
                 OwnerToolSchemas::previewArchiveWorkRecords,
             )
             BUILDERS.put("archive_work_records", OwnerToolSchemas::previewArchiveWorkRecords)
+            BUILDERS.put("delete_work_records", OwnerToolSchemas::previewArchiveWorkRecords)
             BUILDERS.put("empty_trash", OwnerToolSchemas::emptyTrash)
             BUILDERS.put("get_photo", OwnerToolSchemas::getPhoto)
             BUILDERS.put("list_archive", OwnerToolSchemas::listArchive)
@@ -136,7 +137,7 @@ internal class OwnerToolSchemas {
                     .put("items", McpFields.id()),
             )
             required.add("work_record_ids")
-            if ((name == "archive_work_records")) {
+            if (name == "archive_work_records" || name == "delete_work_records") {
                 p.put("expected_preview_hash", McpFields.hash())
                     .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
                 required.addAll(Arrays.asList("expected_preview_hash", "confirmed"))

@@ -70,8 +70,23 @@ class ArchiveApplicationService : OwnerCommand {
                     return result.put("recoverable", false).put("media_cleanup", "local_after_commit")
                 }
             }
-            "delete_entity", "archive_entity" -> {
+            "delete_entity" -> {
+                return deleteOne(all, a, request, stamp)
+            }
+            "archive_entity" -> {
                 return archiveOne(all, a, request, stamp)
+            }
+            "delete_work_records" -> {
+                val ids = a.getJSONArray("work_record_ids")
+                // Validate the whole selection before its first change; the owner request owns the transaction.
+                val selection = WorklogArchiveBatch.actions(all, ids, a.getString("expected_preview_hash"), request, stamp)
+                if (!a.getBoolean("confirmed")) throw IllegalArgumentException("Löschauswahl fehlt.")
+                for (i in 0 until selection.length()) {
+                    val payload = selection.getJSONObject(i).getJSONObject("payload")
+                    deleteOne(repository.effective(), JSONObject().put("entity", "worklog").put("entity_id", payload.getString("id"))
+                        .put("expected_record_hash", payload.getString("expected_record_hash")), "${request}_$i", stamp)
+                }
+                return JSONObject().put("count", ids.length()).put("recoverable", false).put("physical_delete", true).put("local_state", "local_saved").put("sync_state", "not_applicable")
             }
             "restore_entity" -> {
                 run {
@@ -108,6 +123,17 @@ class ArchiveApplicationService : OwnerCommand {
     private fun requireInactiveSession(entity: String, id: String) {
         ActiveWorkProtection.require(repository.state(), entity, id)
     }
+    /** Both internal journal steps commit together; no recoverable row is published. */
+    private fun deleteOne(all: JSONObject, args: JSONObject, request: String, stamp: String): JSONObject {
+        archiveOne(all, args, request + "_archive", stamp)
+        val entity = args.getString("entity")
+        val id = args.getString("entity_id")
+        val archived = OwnerJournalRules.archives(repository.effective()).getJSONObject("$entity:$id")
+        return perform("purge_entity", JSONObject().put("entity", entity).put("entity_id", id)
+            .put("expected_record_hash", OwnerJournalRules.version(archived)).put("confirmed", true), request)
+            .put("physical_delete", true)
+    }
+
     @Throws(Exception::class)
     private fun archiveOne(all: JSONObject, args: JSONObject, request: String, stamp: String): JSONObject {
         requireInactiveSession(args.getString("entity"), args.getString("entity_id"))

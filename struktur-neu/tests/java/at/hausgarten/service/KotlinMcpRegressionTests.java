@@ -261,12 +261,111 @@ public final class KotlinMcpRegressionTests {
         }
     }
 
+    private static void removalAfterFailedEdit() throws Exception {
+        for (String entity : new String[]{"customer", "worklog"}) {
+            JSONObject baseline = trashFixture();
+            String id = entity.equals("customer") ? "qa_trash_customer" : "qa_trash_work";
+            JSONObject row = OwnerJournalRules.findOrNull(baseline.getJSONArray(OwnerJournalRules.group(entity)), id);
+            JSONObject badBase = LocalJournalRules.guard(new JSONObject(row.toString()).put("updated_at", "qa_stale_version"), entity);
+            JSONObject edit = new JSONObject().put("client_id", "qa_failed_edit").put("kind", entity).put("created_at", "2026-11-03T20:00:00Z")
+                .put("payload", new JSONObject(row.toString()).put("_sync_base", badBase));
+            JSONArray prior = new JSONArray().put(edit);
+            JSONObject current = new JSONObject(baseline.toString());
+            yes(LocalJournalRules.apply(current, prior).length() == 1, "Synthetic stale edit remains unapplied");
+            JSONObject deletion = entity.equals("customer") ? purgeAction(current) : new JSONObject().put("kind", "archive").put("client_id", "qa_remove_work")
+                .put("created_at", "2026-11-03T20:01:00Z").put("payload", DeletionRules.payload(current, "worklog", id, OwnerJournalRules.version(row), "2026-11-03T20:01:00Z"));
+            JSONObject old = new JSONObject(deletion.toString());
+            old.getJSONObject("payload").put("_sync_predecessors", new JSONArray().put("qa_failed_edit"));
+            JSONObject blocked = new JSONObject(baseline.toString());
+            JSONArray errors = LocalJournalRules.apply(blocked, new JSONArray().put(edit).put(old));
+            yes(errors.length() == 2 && errors.getJSONObject(1).getString("code").equals("DEPENDENCY_BLOCKED"), "An automatic dependency on a failed edit used to block removal");
+            JSONObject payload = deletion.getJSONObject("payload");
+            payload.put("_sync_predecessors", LocalActionOrder.predecessors(deletion.getString("kind"), payload, prior, current));
+            JSONObject actual = new JSONObject(baseline.toString());
+            yes(LocalJournalRules.apply(actual, new JSONArray().put(edit).put(deletion)).length() == 1, "Only the old stale edit remains failed");
+            yes(OwnerJournalRules.findOrNull(actual.getJSONArray(OwnerJournalRules.group(entity)), id) == null, "Current-version removal is applied despite the old failed edit");
+            yes(prior.length() == 1 && PixelMcpWriteTools.hash(edit).equals(PixelMcpWriteTools.hash(prior.getJSONObject(0))), "The failed edit is not silently rewritten or deleted");
+            JSONObject stale = new JSONObject(baseline.toString());
+            OwnerJournalRules.findOrNull(stale.getJSONArray(OwnerJournalRules.group(entity)), id).put("updated_at", "qa_new_version");
+            yes(LocalJournalRules.apply(stale, new JSONArray().put(edit).put(deletion)).length() == 2, "A changed current version still prevents deletion");
+            JSONObject explicit = new JSONObject(payload.toString()).put("_sync_predecessors", new JSONArray().put("qa_failed_edit"));
+            yes(LocalActionOrder.predecessors(deletion.getString("kind"), explicit, prior, current).getString(0).equals("qa_failed_edit"), "Explicit predecessor requirements remain intact");
+            yes(LocalActionOrder.predecessors(entity, new JSONObject().put("id", id), prior, null).getString(0).equals("qa_failed_edit"), "Ordinary edits keep their prior-action dependency");
+        }
+    }
+
+    private static OwnerRepository deletionPort(JSONObject state, String failId) {
+        return (OwnerRepository) java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, (proxy, method, args) -> {
+            switch (method.getName()) {
+                case "state": return state;
+                case "effective": return SnapshotProjection.effective(state);
+                case "enqueue":
+                    JSONObject payload = (JSONObject) args[1];
+                    if ("purge_v1".equals(args[0]) && failId.equals(payload.optString("id"))) throw new java.io.IOException("QA simulated second removal failure");
+                    state.getJSONArray("pending").put(new JSONObject().put("kind", args[0]).put("payload", payload).put("client_id", args[2]).put("created_at", "2026-11-03T20:00:00Z"));
+                    return new JSONObject().put("client_id", args[2]).put("local_state", "local_saved");
+                default: throw new UnsupportedOperationException(method.getName());
+            }
+        });
+    }
+
+    private static void permanentDeletion() throws Exception {
+        for (String entity : new String[]{"worklog", "photo"}) {
+            String id = entity.equals("worklog") ? "qa_trash_work" : "qa_trash_photo";
+            JSONObject state = new JSONObject().put("master", trashFixture()).put("pending", new JSONArray()).put("work_session", new JSONObject().put("state", "IDLE"));
+            OwnerRepository repository = deletionPort(state, "");
+            JSONObject row = OwnerJournalRules.findOrNull(repository.effective().getJSONArray(OwnerJournalRules.group(entity)), id);
+            JSONObject result = new ArchiveApplicationService(repository).perform("delete_entity", new JSONObject().put("entity", entity).put("entity_id", id).put("expected_record_hash", OwnerJournalRules.version(row)), "qa_permanent_" + entity);
+            JSONObject actual = repository.effective();
+            yes(!result.getBoolean("recoverable"), "Delete means permanent removal for " + entity);
+            yes(OwnerJournalRules.findOrNull(actual.getJSONArray(OwnerJournalRules.group(entity)), id) == null && !OwnerJournalRules.archives(actual).has(entity + ":" + id), "No active or trash copy remains for " + entity);
+            if (entity.equals("photo")) yes(actual.getJSONArray("worklogs").length() == 1, "Deleting a photo never deletes its parent work");
+            String committed = PixelMcpWriteTools.hash(actual);
+            yes(LocalJournalRules.apply(actual, state.getJSONArray("pending")).length() == 0 && committed.equals(PixelMcpWriteTools.hash(actual)), "Repeating the committed removal does not restore its content");
+        }
+        for (boolean failSecond : new boolean[]{false, true}) {
+            JSONObject master = trashFixture();
+            master.getJSONArray("worklogs").put(new JSONObject(master.getJSONArray("worklogs").getJSONObject(0).toString()).put("id", "qa_second_work"));
+            JSONObject state = new JSONObject().put("master", master).put("pending", new JSONArray()).put("work_session", new JSONObject().put("state", "IDLE"));
+            OwnerRepository repository = deletionPort(state, failSecond ? "qa_second_work" : "");
+            JSONArray ids = new JSONArray().put("qa_trash_work").put("qa_second_work");
+            JSONObject args = new JSONObject().put("work_record_ids", ids).put("expected_preview_hash", WorklogArchiveBatch.preview(repository.effective(), ids).getString("preview_hash")).put("confirmed", true);
+            java.util.Map<String,String> receipts = new java.util.HashMap<>();
+            OwnerRequestTransactions.Store transaction = new OwnerRequestTransactions.Store() {
+                JSONObject before; boolean committed;
+                public void begin() { before = new JSONObject(state.toString()); committed = false; }
+                public String read(String key) { return receipts.getOrDefault(key, ""); }
+                public void write(String key, String value) { receipts.put(key, value); }
+                public void successful() { committed = true; }
+                public void end() {
+                    if (!committed) {
+                        for (String key : new java.util.ArrayList<>(state.keySet())) state.remove(key);
+                        for (String key : before.keySet()) state.put(key, before.get(key));
+                    }
+                }
+            };
+            String original = PixelMcpWriteTools.hash(state);
+            try {
+                OwnerRequestTransactions.runRequest(transaction, "qa_delete_selection", "qa_fingerprint", () -> new ArchiveApplicationService(repository).perform("delete_work_records", args, "qa_delete_selection"), "2026-11-03T20:00:00Z");
+                if (failSecond) throw new AssertionError("Expected second purge failure");
+                JSONObject actual = repository.effective();
+                yes(actual.getJSONArray("worklogs").length() == 0 && !OwnerJournalRules.archives(actual).has("worklog:qa_trash_work") && !OwnerJournalRules.archives(actual).has("worklog:qa_second_work"), "Batch deletion leaves no work copies in trash");
+                yes(receipts.containsKey("receipt:qa_delete_selection"), "Success receipt exists only for the completed selection");
+            } catch (java.io.IOException expected) {
+                if (!failSecond) throw expected;
+                yes(original.equals(PixelMcpWriteTools.hash(state)) && receipts.isEmpty(), "A failed second purge rolls back both removals and their receipt");
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         optionalJsonBoundaries();
         guardedCustomerJournal();
         readAndWriteCatalog();
         testTrashCleanup();
         deletionReadback();
+        removalAfterFailedEdit();
+        permanentDeletion();
         System.out.println("PASS " + checks + " Kotlin MCP nullable-JSON/journal/catalog regression checks; synthetic only");
     }
 }

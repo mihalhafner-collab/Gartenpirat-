@@ -374,42 +374,10 @@ revier().detachOptionalParent(entry.getString("entity"), entry.getString("entity
 }
 }
 }
-var predecessors = payload.optJSONArray("_sync_predecessors")
-if (predecessors == null) {
-predecessors = JSONArray()
-}
 var prior = store!!.pendingActions()
-run {
-var i: Int = 0
-var firstIteration25 = true
-while (true) {
-if (firstIteration25) firstIteration25 = false else { i++ }
-if (!(i < prior.length())) break
-
-var event = prior.getJSONObject(i)
-if ((!(payload.optString("id").isEmpty()) && (payload.optString("id") == event.getJSONObject("payload").optString("id"))) || ((kind == "business_settings") && (kind == event.getString("kind")))) {
-predecessors.put(event.getString("client_id"))
-}
-var linked = payload.optJSONArray("photo_link_ids")
-run {
-var j: Int = 0
-var firstIteration24 = true
-while (true) {
-if (firstIteration24) firstIteration24 = false else { j++ }
-if (!(linked != null && j < linked.length())) break
-
-if ((linked.getJSONObject(j).getString("id") == event.getJSONObject("payload").optString("id"))) {
-predecessors.put(event.getString("client_id"))
-}
-
-}
-}
-
-}
-}
-if (predecessors.length() > 0) {
-payload.put("_sync_predecessors", predecessors)
-}
+val removal = kind in setOf("archive", "delete", "purge_v1")
+var predecessors = LocalActionOrder.predecessors(kind, payload, prior, if (removal) effective() else null)
+if (predecessors.length() > 0) payload.put("_sync_predecessors", predecessors)
 if ((kind == "appointment") || (kind == "offer_convert")) {
 var parentProjection = JSONObject(state().getJSONObject("master").toString())
 LocalJournalRules.apply(parentProjection, prior)
