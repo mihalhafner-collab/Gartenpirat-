@@ -58,7 +58,9 @@
       "Reale synthetische Kameraaufnahme in 41546960036 erfolgreich bis einschließlich Abbruch ohne Fotobuchung, tatsächlichem Auslösen/Rückgabe, Kundenzuordnung und dekodierbarem Original. Bestätigungsprüfung nach Activity-Neuerstellung korrigiert und kompiliert; auf Eigentümerwunsch nicht abschließend ausgeführt.",
       "Originalsignierte 1.57.3/122 mit identischem Zertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8 geprüft. Paket unverändert, Versionscode höher als live installiert, keine Geschäftsdaten/Testklassen in der APK. Entfernte Klassen und alte Drive-/Rechnungszweige auch im DEX nicht vorhanden. Bestehende Drive-Datei ersetzt und vollständig bytegleich einschließlich SHA256/Signatur/BuildConfig zurückgelesen."
     ],
-    "remaining": [],
+    "remaining": [
+      "Nutzernotiz 03.11.2026: Veralteten Drive-Bestätigungshinweis in AppointmentTools.kt (Werkzeugbeschreibung: Kalender-/Drive-Bestätigung getrennt beachten) entfernen. Gemeint ist der überholte Drive-Hinweis, nicht die Terminverwaltung oder die weiterhin geltenden Kalenderregeln. Entfernung noch nicht umgesetzt."
+    ],
     "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten.",
     "emulator_decision": "03.11.2026: Eigentümer ausdrücklich „Lass emulator weg“. Laufende Läufe 41550713484 und 41552337601 abgebrochen; keine weitere Emulatorausführung für diesen Abschluss. Vorhandene Tests bleiben als ausdrücklich startbare Option erhalten.",
     "runtime_limitations": [
