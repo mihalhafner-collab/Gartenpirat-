@@ -102,12 +102,13 @@
       "installation_and_productive_cleanup": "NOT_PERFORMED; installed app remains 1.58.0/123",
       "artifact": "PASS; package/version/original certificate/assets/classes/empty business seed independently read back; removed fallback-copy methods absent in release DEX",
       "source_identity": "PASS; release DEX GIT_SHA=fadec74356a4fc63591fb94aa4850149803dae82; SOURCE_SHA256=6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8; SOURCE_DIRTY=false",
-      "original_signing": "PASS; source commit pushed and independently confirmed on GitHub before signing; original certificate a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8; temporary private signing files removed"
+      "original_signing": "PASS; source commit pushed and independently confirmed on GitHub before signing; original certificate a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8; temporary private signing files removed",
+      "distribution": "PASS; explicit owner request; original-signed 1.58.2/125 uploaded to Gartenpirat – Paketinstallation; complete authenticated download reread byte-for-byte"
     },
-    "updated_at_utc": "2026-11-03T18:39:29.980283+00:00"
+    "updated_at_utc": "2026-11-03T18:50:53.502548+00:00"
   },
   "open_checks": [
-    "1.58.2 ist nicht am Pixel installiert; tatsächliche Freigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands noch nicht gemessen.",
+    "Installation von 1.58.2 am Pixel noch nicht bestätigt; tatsächliche Freigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands noch nicht gemessen.",
     "Native UI-/Geräteabnahme NOT_RUN; APK-/Test-APK-Bau, Lint, Python- und JVM-Prüfungen ersetzen diese nicht.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
@@ -117,36 +118,31 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "version_name": "1.58.0",
-    "version_code": 123,
+    "version_name": "1.58.2",
+    "version_code": 125,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
-    "source_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
-    "apk_sha256": "7163747cd8d018fc34f0c06088e586dc291c1f3e38f6d7e215824dcec60e4f9e",
+    "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
+    "source_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
+    "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "signature_valid": true,
     "original_certificate_match": true,
-    "source_binding": "PASS; clean BuildConfig identity reread directly from signed APK DEX",
-    "download_url": "https://drive.google.com/file/d/11C8o6Dw8J4W3n0imCnPTO_K24aXtf0Rp/view?usp=drivesdk",
+    "source_binding": "PASS; clean release BuildConfig identity independently read from signed APK DEX",
+    "download_url": "https://drive.google.com/file/d/12ngcyTmVw5AzEbB_exqIJgjx5jRtTAwx/view?usp=drivesdk",
     "drive": {
-      "file_id": "11C8o6Dw8J4W3n0imCnPTO_K24aXtf0Rp",
+      "file_id": "12ngcyTmVw5AzEbB_exqIJgjx5jRtTAwx",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
-      "status": "PASS; complete Drive APK downloaded and byte-identical to verified signed APK",
-      "apk_sha256": "7163747cd8d018fc34f0c06088e586dc291c1f3e38f6d7e215824dcec60e4f9e",
+      "status": "PASS; complete Drive APK streamed back and compared byte-for-byte to verified local original-signed APK",
+      "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
       "byte_size": 88277809,
       "signature_valid": true,
       "original_certificate_match": true
     },
-    "source_ci": {
-      "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41646595337",
-      "status": "PASS_WITHOUT_EMULATOR_BY_OWNER_REQUEST",
-      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b"
-    },
     "temporary_signing_material_removed": true,
-    "installation": "LIVE_PIXEL_CONFIRMED; 1.58.0/123; no installation by this task",
+    "installation": "NOT_PERFORMED; upload/distribution only; live installation must be checked separately",
     "native_runtime_acceptance": "NOT_RUN",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
@@ -160,10 +156,23 @@
     "artifact": "outputs/Haus-Garten-1.58.2.apk; LOCAL_ORIGINAL_SIGNED_APK",
     "installation": "NOT_PERFORMED; installed app last observed at 1.58.0/123",
     "original_signing": "PASS; original certificate matches prior distribution; release DEX source identity verified",
-    "distribution": "LOCAL_ARTIFACT_PREPARED; NOT_UPLOADED_TO_DRIVE",
+    "distribution": "ORIGINAL_SIGNED_APK_UPLOADED_TO_DRIVE; COMPLETE_BYTE_READBACK_PASS",
     "source_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
     "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
     "byte_size": 88277809,
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "download_url": "https://drive.google.com/file/d/12ngcyTmVw5AzEbB_exqIJgjx5jRtTAwx/view?usp=drivesdk",
+    "drive": {
+      "file_id": "12ngcyTmVw5AzEbB_exqIJgjx5jRtTAwx",
+      "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
+      "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
+    },
+    "download_readback": {
+      "status": "PASS; complete Drive APK streamed back and compared byte-for-byte to verified local original-signed APK",
+      "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
+      "byte_size": 88277809,
+      "signature_valid": true,
+      "original_certificate_match": true
+    }
   }
 }
