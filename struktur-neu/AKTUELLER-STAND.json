@@ -65,7 +65,7 @@
   ],
   "current_task": {
     "name": "Entwürfe-Menü entfernen und Testdaten samt Verknüpfungen endgültig löschen",
-    "status": "IMPLEMENTED; SOURCE_AND_JVM_PASS; FINAL_CLEAN_BUILD_PENDING",
+    "status": "IMPLEMENTED; ORIGINAL_SIGNED_APK_VERIFIED; OPERATIONAL_TEST_CLEANUP_PARTIAL",
     "concept": {
       "title": "Haus und Garten NEUES Bedienkonzept – Fassung 2",
       "pages": 38,
@@ -111,13 +111,15 @@
     "validation": {
       "source": "PASS; 61 Python tests, source/layout/privacy gates and reviewed native UI mapping",
       "jvm": "PASS; 8 synthetic suites, 1440 assertions including dependency cascade, CAS, mixed trash, replay and false-acknowledgement readback",
-      "android": "PRELIMINARY PASS; release/test APK and lint 0 errors/84 warnings; final clean-commit rebuild pending",
+      "android": "PASS; final clean source release/test APK build and lint, 0 errors/84 warnings",
       "native_ui_execution": "NOT_RUN; prior owner emulator opt-out retained",
       "pixel_acceptance": "NOT_RUN for 1.58.3; installed 1.58.2 identity verified",
       "installation": "NOT_PERFORMED by agent; owner installed 1.58.2/125 independently, verified live",
-      "artifact": "PENDING original signing after checked source commit and GitHub readback"
+      "artifact": "PASS; original certificate and upgrade identity against 1.58.2, packaged assets/classes/empty business seed and absence of removed draft inbox independently verified",
+      "source_identity": "PASS; signed APK DEX {\"APPLICATION_ID\": \"at.hausgarten.service\", \"BUILD_TYPE\": \"release\", \"GIT_SHA\": \"eabd87dd601a0c101e8da3934e7fa1cc39286efb\", \"SOURCE_DIRTY\": false, \"SOURCE_SHA256\": \"1a312826f0e041b303a1ea67ea633c3b2e36dd224c8bfe3af06ea06fa3c52315\", \"VERSION_CODE\": 126, \"VERSION_NAME\": \"1.58.3\"}",
+      "original_signing": "PASS; checked source commit pushed and exact GitHub main readback before original signing; temporary private signing files removed"
     },
-    "updated_at_utc": "2026-11-03T19:20:48.611217+00:00",
+    "updated_at_utc": "2026-11-03T19:26:45.111660+00:00",
     "operational_test_cleanup": {
       "verified_removed_test_archive_entries": 5,
       "remaining_marked_test_customers": 2,
@@ -172,10 +174,17 @@
     "version_name": "1.58.3",
     "version_code": 126,
     "package_name": "at.hausgarten.service",
-    "status": "SOURCE_AND_JVM_PASS; FINAL_CLEAN_BUILD_PENDING",
+    "status": "ORIGINAL_SIGNED_APK_VERIFIED; NATIVE_DEVICE_ACCEPTANCE_NOT_RUN",
     "installation": "NOT_INSTALLED; live Pixel 1.58.2/125",
     "distribution": "NOT_REQUESTED_FOR_THIS_CANDIDATE; no Drive upload",
-    "artifact": "PENDING original-signed local APK",
-    "source_sha256": "1a312826f0e041b303a1ea67ea633c3b2e36dd224c8bfe3af06ea06fa3c52315"
+    "artifact": "outputs/Haus-Garten-1.58.3.apk; LOCAL_ORIGINAL_SIGNED_APK",
+    "source_sha256": "1a312826f0e041b303a1ea67ea633c3b2e36dd224c8bfe3af06ea06fa3c52315",
+    "source_git_sha": "eabd87dd601a0c101e8da3934e7fa1cc39286efb",
+    "apk_sha256": "10d5baea953a0025911a39db4dc958df2f5f4d1daa7930e08144495d6521e37d",
+    "byte_size": 88245041,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
+    "original_signing": "PASS; same original signer and update-compatible package identity as distributed 1.58.2",
+    "temporary_signing_material_removed": true,
+    "verification": "PASS; source/JVM/release/test APK/lint/assets/classes/empty seed and clean signed DEX identity; no native execution"
   }
 }
