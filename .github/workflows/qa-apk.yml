@@ -92,13 +92,13 @@ jobs:
           export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
           export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
           mkdir -p "$ANDROID_AVD_HOME"
-          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --device pixel_5 -n Gartenpirat_Backup_QA -p "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd" -k 'system-images;android-35;google_apis;x86_64'
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -p "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd" -k 'system-images;android-35;google_apis;x86_64'
           # The Google APIs image defaults to a 6-GB data partition. Bound the
           # disposable synthetic database/media volume to fit the hosted runner.
           python3 - "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd/config.ini" <<'PYAVD'
           import pathlib,sys
           path=pathlib.Path(sys.argv[1])
-          settings={'disk.dataPartition.size':'3072M','hw.lcd.width':'320','hw.lcd.height':'640','hw.lcd.density':'160','hw.camera.back':'emulated','hw.camera.front':'emulated'}
+          settings={'disk.dataPartition.size':'3072M','hw.camera.back':'emulated','hw.camera.front':'emulated'}
           lines=[line for line in path.read_text().splitlines() if line.partition('=')[0].strip() not in settings]
           path.write_text('\n'.join(lines+[key+'='+value for key,value in settings.items()])+'\n')
           print('AVD data partition: 3072M; one normalized setting')

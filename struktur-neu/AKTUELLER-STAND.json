@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-02T20:09:23Z",
+    "observed_at_utc": "2026-11-03T00:06:03Z",
     "version_name": "1.57.2",
     "version_code": 121,
     "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
@@ -35,7 +35,7 @@
   ],
   "current_task": {
     "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "SOURCE_RELEASE_JVM_AND_ALL_BUSINESS_UI_PASSED; CI_PHONE_GESTURE_RECHECK_PENDING",
+    "status": "SOURCE_RELEASE_JVM_AND_BUSINESS_UI_VERIFIED; WAL_READ_AND_CAMERA_FINAL_CI_PENDING",
     "removed": [
       "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
       "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
@@ -60,10 +60,12 @@
       "Suchprüfungen an die vom nächsten Einsatz übergebene Kundenzuordnung angepasst: sechs unveränderte Tastaturkombinationen und physischer Zurück-Gestentest prüfen die tatsächliche Vorbelegung. Ungebundene Angebots-Viewportfälle setzen Filter über die echte Oberfläche zurück. Quellprüfung und kompletter lokaler Kotlin/Java-/Release-/Android-Test-/Lint-Bau erfolgreich.",
       "41532435166: SQLite/Backup/Restore/Provider und 278 native Datenprüfungen einschließlich veralteter Löschbelege erfolgreich. Kundenarchivierung, Timer, Kundennotiz ohne Arbeitsänderung, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Offene Compose-Fehler: leere Heute-Stundenübersicht im Test, Suchdialog mit großer Querformat-Tastatur, SystemUI-Dumppriorität und Schriftwechsel-Geometrie; Gesamtlauf fehlgeschlagen.",
       "41539556826: Release/Lint, acht JVM-Suiten, native SQLite-/Backup-/Restore-/Dateiprüfungen und sämtliche Compose-Fachabläufe einschließlich Heute, 200-%-Navigation, sechs Tastaturkombinationen, 15 Suchfällen, 35 Oberflächen und 15 Listen-Viewports erfolgreich. Einziger Fehler: SystemUI-Taskbar liefert mIsAttached=false für den Randgestentest. CI jetzt mit ausdrücklichem Pixel-5-Telefonprofil bei unverändertem 320×640-dp-Prüfausschnitt; tatsächlicher Wechsel Dreitasten→Gesten statt bereits aktive Gesten nur erneut einzuschalten. Der Test verlangt nun die tatsächlichen System-Gestenränder und die unveränderte beobachtbare Picker-/Kundenzuordnungswirkung statt einer bestimmten internen SystemUI-Instanz; kein Tastenersatz.",
-      "Echte Emulator-Kameraaufnahme ergänzt: Quellprüfung, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich; Abbruch/Auslösen/Rückgabe/Kundenzuordnung/Originalbytes/SQLite-Neuöffnung sind kompiliert. Tatsächliche Kamera-Ausführung im Gesamtlauf steht aus."
+      "Echte Emulator-Kameraaufnahme ergänzt: Quellprüfung, Kotlin/Java, Release-/Android-Testbau und lintRelease erfolgreich; Abbruch/Auslösen/Rückgabe/Kundenzuordnung/Originalbytes/SQLite-Neuöffnung sind kompiliert. Tatsächliche Kamera-Ausführung im Gesamtlauf steht aus.",
+      "41544456189: Tatsächliche System-Randgeste erfolgreich. Pixel-Profil mit verkleinerten LCD-Parametern erzeugte unnatürlich hohe Statusleiste und neue Geometriefehler; ursprüngliche Displayparameter wiederhergestellt. Zusätzlich SQLITE_BUSY bei getState während Archivierung: reine Bestandsabfrage verwendet ab API35 eine WAL-Lesetransaktion mit derselben konsistenten Materialisierung; native Zweit-Helper-Prüfung bei offenem Schreiber ergänzt. Gesamtlauf deshalb noch nicht erfolgreich.",
+      "WAL-Lesetransaktion und ursprüngliche Emulator-Anzeige: Quellprüfung, acht JVM-Suiten, compileReleaseKotlin/Java, assembleRelease/AndroidTest und lintRelease erfolgreich. Zusätzliche Zweit-Helper-Snapshotprüfungen sind kompiliert. Pixel-Identität am 03.11.2026 um 00:06:03 UTC erneut unverändert auf 1.57.2/121 bestätigt."
     ],
     "remaining": [
-      "Vollständigen CI-Gesamtlauf einschließlich echter System-Randgeste erfolgreich abschließen",
+      "Vollständigen CI-Gesamtlauf mit WAL-Lesetransaktion, konsistenter Emulatoranzeige, echter Randgeste und Kameraaufnahme erfolgreich abschließen",
       "Originalsignierte 1.57.3 (122) vom endgültigen Commit prüfen und im bestehenden Drive-Installationsordner bereitstellen",
       "Zusätzliche echte Emulator-Kameraaufnahme einschließlich Abbruch, Android-Rückgabe und Datei-/SQLite-Neuöffnung im vollständigen CI-Lauf prüfen"
     ],

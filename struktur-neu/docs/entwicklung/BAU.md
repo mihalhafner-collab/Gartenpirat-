@@ -595,9 +595,9 @@ Navigation mindestens 48 dp. Ein Fehlerbild wird vor dem Zurücksetzen der Schri
 aufgenommen. Eine leere Tagesübersicht wird anhand des tatsächlichen lokalen
 Stundensummenergebnisses geprüft.
 
-Der isolierte Emulator verwendet ausdrücklich das Pixel-5-Telefonprofil mit
-320 × 640 Pixeln und 160 dpi; der bisherige enge 320 × 640-dp-Prüfausschnitt bleibt
-erhalten. Der Gestentest wechselt tatsächlich von Dreitasten- auf Gestennavigation,
+Der isolierte Emulator verwendet die ursprünglichen Anzeigeparameter des
+Systembilds. Datenpartition und synthetische Kameras sind ausdrücklich konfiguriert;
+LCD-Maße, Dichte und Geräteausschnitt bleiben konsistent. Der Gestentest wechselt tatsächlich von Dreitasten- auf Gestennavigation,
 auch wenn das Systembild bereits mit Gesten startet, und stellt anschließend den
 ursprünglichen Modus wieder her. Android darf die Geste an Launcher/Taskbar delegieren; ein inaktives internes
 SystemUI-Objekt ist deshalb kein Funktionsnachweis. Fehlende System-Gestenränder
@@ -610,3 +610,12 @@ bricht zuerst ohne Fotoschreibvorgang ab, löst dann tatsächlich aus und bestä
 die Kamera-Rückgabe. Sie speichert das Bild mit Kundenzuordnung und prüft
 dekodierbare Originalbytes sowie Metadaten nach Activity- und SQLite-Neuöffnung.
 Die Screenshots camera-scene und camera-selected zeigen nur die künstliche Szene.
+
+Vollständige Bestandsabfragen verwenden ab Android 35 eine SQLite-Lesetransaktion,
+wenn noch keine Transaktion des Aufrufers läuft. Die Materialisierung nutzt genau
+diesen Snapshot, ohne eine verschachtelte Schreibtransaktion zu beginnen. Dadurch
+kann eine unabhängige Verbindung während eines noch nicht bestätigten WAL-Schreibers
+weiter den letzten bestätigten Bestand lesen. Bestehende Schreibtransaktionen,
+Verbindungspins und die Transaktions-API älterer Android-Versionen bleiben erhalten.
+Die native WAL-Prüfung hält den Schreiber ausdrücklich offen und liest währenddessen
+auch den vollständigen Bestand über einen zweiten Helper.

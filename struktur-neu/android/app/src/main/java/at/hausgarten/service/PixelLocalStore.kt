@@ -374,10 +374,13 @@ var db = getWritableDatabase()
 // Keep the connection pool alive through endTransaction, including failures.
 db.acquireReference()
 try {
-db.beginTransaction()
+// A top-level snapshot must not compete with a WAL writer for its write lock.
+// Nested calls retain the caller's write transaction; older Android keeps its API.
+if (db.inTransaction() || android.os.Build.VERSION.SDK_INT < 35) db.beginTransaction()
+else db.beginTransactionReadOnly()
 try {
 
-var result = getStateLocked()
+var result = getStateLocked(db)
 db.setTransactionSuccessful()
 return result
 
@@ -411,12 +414,12 @@ return readSource().metadata().put("master", JSONObject()).put("pending", JSONAr
 
 return nativeData().queryState(tool, args, readSource().metadata()) ?: getState()
 }
-private fun getStateLocked(): JSONObject {
+private fun getStateLocked(database: SQLiteDatabase): JSONObject {
 
 var output = JSONObject()
 try {
 
-var master = rawSnapshot(readAsset("initial-data.json"))
+var master = businessTables(database, true).snapshot(preferences.getString("drive_snapshot", readAsset("initial-data.json"))!!)
 removeSnapshotPhotoBinaries(master)
 LocalBusinessState.prepare(master)
 seedServiceCatalog(master)

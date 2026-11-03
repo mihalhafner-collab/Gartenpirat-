@@ -593,6 +593,9 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 phase = "cold_helper_wal"
                 val coldRead = withTimeout(5_000) { cold.nativeData().list("equipment") }
                 yes(coldRead.rows.single().title == "QA initial", "COLD_HELPER_READS_VALID_WAL_CACHE_WITHOUT_WRITER")
+                val snapshot = withTimeout(5_000) { withContext(Dispatchers.IO) { cold.getState() } }
+                yes(snapshot.has("master"), "FULL_SNAPSHOT_READS_DURING_UNCOMMITTED_WAL_WRITER")
+                yes(cold.ownerValue(key, "").contains("QA initial"), "FULL_SNAPSHOT_PRESERVES_UNCOMMITTED_WRITER_ISOLATION")
                 phase = "flow_commit"
             } finally { releaseWriter.countDown() }
             writer.await()
