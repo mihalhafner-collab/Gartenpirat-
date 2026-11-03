@@ -85,8 +85,9 @@ Compose-Compiler und eingebautes Kotlin müssen dieselbe Version verwenden;
 Bibliotheksauflösung, Kotlin-/Java-Interoperabilität, Android-Bau und die
 synthetischen Regressionen prüfen diese konkrete Kombination. Eine Bibliothek
 nur entfernen, wenn kein verbleibender Funktionspfad sie benötigt: Google Auth
-wird weiterhin für Kalender verwendet, Tink ausschließlich zum Lesen älterer
-verschlüsselter Sicherungen. Es wird keine Cloud-Speicher-API verwendet.
+wird weiterhin für Kalender verwendet. Der ausdrücklich abgeschaffte Leser älterer
+verschlüsselter Sicherungen und seine Tink-Abhängigkeit sind entfernt.
+Es wird keine Cloud-Speicher-API verwendet.
 
 ## Sicherungs- und Wiederherstellungsvertrag
 
@@ -109,8 +110,9 @@ erzeugt Hinweise in `data/backup-notes.json`, ohne Rechnungsnummernkollisionen,
 bereits vorhandene Beziehungsfehler oder fehlende Originale zu reparieren oder
 allein deswegen abzubrechen. Unlesbare Datenbanken, beschädigte Archive und
 Schreib-/Rücklesefehler bleiben echte Fehler. Die vollständige Dateiliste mit
-Größen und Prüfsummen ist zwingend. Ältere verschlüsselte Archive werden nur gelesen;
-der aktuelle Schreiber erzeugt keine neuen verschlüsselten Sicherungen.
+Größen und Prüfsummen ist zwingend. `BackupArchive` liest und schreibt ausschließlich
+die lokalen unverschlüsselten ZIP-Dateien. Alte verschlüsselte Container werden
+als nicht unterstützt abgewiesen; vorhandene Benutzerdateien werden nicht gelöscht.
 
 Wiederherstellung benötigt eine ausdrückliche Auswahl und Bestätigung, technische
 Prüfung, Rückfallkopie, geschützten atomaren Dateiaustausch sowie Wiederanlauf und
@@ -177,7 +179,7 @@ python3 -B tools/check_current.py
 Der Befehl prüft aktuelle Quellen, Originalidentität, Datenschutz, generierte
 Verträge, synthetische Fixtures, Pflanzenressourcen und Wartungstexte. Er baut
 keine APK, signiert nicht und greift auf kein Gerät zu.
-`tools/verify_ui_mcp_inventory.py` prüft die 210 semantischen Aktionen gegen den
+`tools/verify_ui_mcp_inventory.py` prüft die 170 semantischen Aktionen gegen den
 nativen Katalog und die geprüften Kotlin-Quellfingerabdrücke. Plattformausnahmen
 und stillgelegte Geschäftsabgleich-Aktionen bleiben ausdrücklich erkennbar. Nach tatsächlicher
 Quellsichtung mit `--record-reviewed` aufzeichnen und anschließend ohne Schalter

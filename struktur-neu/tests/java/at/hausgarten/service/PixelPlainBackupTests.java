@@ -48,6 +48,43 @@ public final class PixelPlainBackupTests {
         JSONObject retry=new JSONObject(success.toString());retry.getJSONObject("job").put("lastErrorCode","BACKUP_LOCAL_READBACK_FAILED").put("lastAttemptAt","2026-10-29T11:00:00Z");JSONObject retryStatus=status(new JSONArray().put(retry),new JSONObject());yes(retryStatus.getString("state").equals("FAILED")&&!retryStatus.getString("last_local_verified_at").isEmpty());yes(retry.getJSONObject("job").getString("phase").equals("PROVIDER_VERIFIED"));
         JSONObject utc=backup("qa_z_utc","2026-10-29T09:00:00Z","CAPTURE_PENDING"),offset=backup("qa_a_offset","2026-10-29T10:00:00+02:00","CAPTURE_PENDING");yes(status(new JSONArray().put(offset).put(utc),new JSONObject()).getJSONObject("latest_job").getString("backup_id").equals("qa_z_utc"));
     }
+    static void warningStatusChecks()throws Exception {
+        JSONObject saved=proof(backup("qa_warning_saved","2026-10-28T10:00:00Z","PROVIDER_VERIFIED"));
+        saved.getJSONObject("job").put("warning_count",1).put("warnings",new JSONArray().put(new JSONObject().put("kind","photo").put("message","QA original absent")));
+        JSONObject result=status(new JSONArray().put(saved),new JSONObject());
+        yes(result.getString("state").equals("VERIFIED"));
+        yes(result.getJSONObject("latest_job").getJSONArray("warnings").length()==1);
+        yes(BackupStatusRules.message(result).startsWith("Gespeichert mit Einschränkungen"));
+        yes(BackupStatusRules.message(result).contains("1 Foto fehlt oder ist ungeprüft"));
+        yes(BackupStatusRules.failureMessage("BACKUP_FORMAT_UNSUPPORTED").contains("unverschlüsselte lokale ZIP"));
+    }
+    static void uncheckedArchive(File file,JSONObject manifest,String path,byte[] payload)throws Exception {
+        try(ZipOutputStream zip=new ZipOutputStream(new FileOutputStream(file))){
+            zip.putNextEntry(new ZipEntry("data/"+path));zip.write(payload);zip.closeEntry();
+            zip.putNextEntry(new ZipEntry("manifest.json"));zip.write(manifest.toString().getBytes("UTF-8"));zip.closeEntry();
+        }
+    }
+    static void archiveSafetyChecks(File root)throws Exception {
+        byte[] payload="QA payload".getBytes("UTF-8");
+        JSONObject file=new JSONObject().put("path","database.sqlite").put("size",payload.length).put("sha256",BackupArchive.hex(java.security.MessageDigest.getInstance("SHA-256").digest(payload)));
+        JSONObject manifest=metadata().put("formatVersion",1).put("archiveProtection","NONE").put("completion","COMPLETE").put("files",new JSONArray().put(file)).put("totalBytes",payload.length);
+        File invalid=new File(root,"qa_untrusted.zip");
+        JSONObject changed=new JSONObject(manifest.toString());changed.getJSONArray("files").getJSONObject(0).put("path","../qa_escape.txt");
+        uncheckedArchive(invalid,changed,"../qa_escape.txt",payload);
+        reject(()->BackupArchive.verifyPlain(new FileInputStream(invalid),new File(root,"unsafe_path"),1024*1024,6));yes(!new File(root,"qa_escape.txt").exists()&&!new File(root,"unsafe_path").exists());
+        changed=new JSONObject(manifest.toString());changed.getJSONArray("files").getJSONObject(0).put("sha256","0".repeat(64));
+        uncheckedArchive(invalid,changed,"database.sqlite",payload);
+        reject(()->BackupArchive.verifyPlain(new FileInputStream(invalid),new File(root,"hash_mismatch"),1024*1024,6));yes(!new File(root,"hash_mismatch").exists());
+        changed=new JSONObject(manifest.toString()).put("totalBytes",payload.length+1);
+        uncheckedArchive(invalid,changed,"database.sqlite",payload);
+        reject(()->BackupArchive.verifyPlain(new FileInputStream(invalid),new File(root,"size_mismatch"),1024*1024,6));
+        changed=new JSONObject(manifest.toString()).put("archiveProtection","OBSOLETE_ENCRYPTED_FORMAT");
+        uncheckedArchive(invalid,changed,"database.sqlite",payload);
+        try{BackupArchive.verifyPlain(new FileInputStream(invalid),new File(root,"unsupported_manifest"),1024*1024,6);throw new AssertionError("protected manifest accepted");}
+        catch(IOException unsupported){yes(unsupported.getMessage().equals("BACKUP_FORMAT_UNSUPPORTED"));}
+        File existing=new File(root,"existing");yes(existing.mkdir());File sentinel=new File(existing,"qa_preserve.txt");Files.writeString(sentinel.toPath(),"QA retained");
+        reject(()->BackupArchive.verifyPlain(new FileInputStream(invalid),existing,1024*1024,6));yes(Files.readString(sentinel.toPath()).equals("QA retained"));
+    }
     static void conflictingRecordsRoundTrip(File root)throws Exception {
         JSONObject first=new JSONObject().put("id","qa_conflict_one").put("invoice_number","QA-2026-0042").put("issued_at","2026-10-28T10:00:00Z").put("amount","12.3400");
         JSONObject second=new JSONObject(first.toString()).put("id","qa_conflict_two");
@@ -56,10 +93,10 @@ public final class PixelPlainBackupTests {
         byte[] original=new JSONObject().put("effective",data).put("namespaces",namespaces).put("unknown_optional","Grün 🌿").toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         File source=new File(root,"qa_conflicts.json"),archive=new File(root,"qa_conflicts.zip");Files.write(source.toPath(),original);
         try(OutputStream output=new FileOutputStream(archive)){
-            EncryptedBackupArchive.writePlain(output,metadata(),Collections.singletonList(new EncryptedBackupArchive.Source("files/qa-financial-state.json",source)));
+            BackupArchive.writePlain(output,metadata(),Collections.singletonList(new BackupArchive.Source("files/qa-financial-state.json",source)));
         }
         // Same archive reader used by the restore path; synthetic JSON, not a native DB capture.
-        try(EncryptedBackupArchive.Verified restored=EncryptedBackupArchive.verifyArchive(new FileInputStream(archive),"",new File(root,"conflict_restore"),1024*1024,6)){
+        try(BackupArchive.Verified restored=BackupArchive.verifyPlain(new FileInputStream(archive),new File(root,"conflict_restore"),1024*1024,6)){
             byte[] restoredBytes=Files.readAllBytes(restored.file("files/qa-financial-state.json").toPath());yes(Arrays.equals(original,restoredBytes));
             JSONObject saved=new JSONObject(new String(restoredBytes,java.nio.charset.StandardCharsets.UTF_8));
             JSONArray invoices=saved.getJSONObject("effective").getJSONArray("invoices");yes(invoices.length()==2);
@@ -78,13 +115,14 @@ public final class PixelPlainBackupTests {
         JSONObject report=BackupInventory.inspect(state,(kind,row)->kind.equals("photo")?"ORIGINAL_FILE_MISSING":"ORIGINAL_METADATA_INCOMPLETE");
         yes(state.toString().equals(before));yes(report.getJSONArray("warnings").length()==2);
         yes(report.getJSONArray("warnings").getJSONObject(0).getString("record_id").equals("qa_missing_photo"));
-        yes(BackupInventory.message(report.getJSONArray("warnings")).contains("2 Hinweise"));
+        yes(BackupInventory.message(report.getJSONArray("warnings")).contains("1 Foto fehlt oder ist ungeprüft"));
+        yes(BackupInventory.message(report.getJSONArray("warnings")).contains("1 Dokument fehlt oder ist ungeprüft"));
         JSONObject failedInspection=BackupInventory.inspect(state,(kind,row)->{throw new IOException("qa unreadable metadata");});
         yes(failedInspection.getJSONArray("warnings").length()==2);
         File notes=new File(root,"qa-notes.json"),original=new File(root,"qa-readable.bin"),zip=new File(root,"qa-with-missing.zip");
         Files.writeString(notes.toPath(),report.toString());Files.writeString(original.toPath(),"QA available original even when old metadata disagrees");
-        try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata().put("datasetFormat","pixel.snapshot.v2").put("warning_count",2),Arrays.asList(new EncryptedBackupArchive.Source("backup-notes.json",notes),new EncryptedBackupArchive.Source("files/original.bin",original)));}
-        try(EncryptedBackupArchive.Verified checked=EncryptedBackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"qa_warning_restore"),1024*1024,6)){
+        try(OutputStream out=new FileOutputStream(zip)){BackupArchive.writePlain(out,metadata().put("datasetFormat","pixel.snapshot.v2").put("warning_count",2),Arrays.asList(new BackupArchive.Source("backup-notes.json",notes),new BackupArchive.Source("files/original.bin",original)));}
+        try(BackupArchive.Verified checked=BackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"qa_warning_restore"),1024*1024,6)){
             yes(Files.readString(checked.file("backup-notes.json").toPath()).equals(report.toString()));
             yes(Files.readString(checked.file("files/original.bin").toPath()).equals(Files.readString(original.toPath())));
             yes(checked.manifest.getInt("warning_count")==2);
@@ -109,42 +147,34 @@ public final class PixelPlainBackupTests {
         }
     }
     public static void main(String[] args)throws Exception{
-        diagnosticChecks();statusChecks();
+        diagnosticChecks();statusChecks();warningStatusChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
-            conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
+            archiveSafetyChecks(root);conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
-            try(OutputStream out=new FileOutputStream(zip)){EncryptedBackupArchive.writePlain(out,metadata(),Arrays.asList(new EncryptedBackupArchive.Source("database.sqlite",source)));}
+            try(OutputStream out=new FileOutputStream(zip)){BackupArchive.writePlain(out,metadata(),Arrays.asList(new BackupArchive.Source("database.sqlite",source)));}
             try(ZipFile readable=new ZipFile(zip)){yes(readable.getEntry("data/database.sqlite")!=null&&readable.getEntry("manifest.json")!=null);}
-            try(EncryptedBackupArchive.Verified checked=EncryptedBackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"verify"),1024*1024,6)){yes(Arrays.equals(bytes,Files.readAllBytes(checked.file("database.sqlite").toPath())));yes(checked.manifest.getString("archiveProtection").equals("NONE"));}
+            try(BackupArchive.Verified checked=BackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"verify"),1024*1024,6)){yes(Arrays.equals(bytes,Files.readAllBytes(checked.file("database.sqlite").toPath())));yes(checked.manifest.getString("archiveProtection").equals("NONE"));}
             yes(!new File(root,"verify").exists());
-            try(EncryptedBackupArchive.Verified checked=EncryptedBackupArchive.verifyArchive(new FileInputStream(zip),"",new File(root,"detect"),1024*1024,6)){yes(checked.manifest.getInt("schemaVersion")==6);}
-            // Fixed synthetic archive produced by the pre-cleanup writer; no app data or real key.
-            byte[] legacy=Base64.getDecoder().decode("SEctQkFDS1VQLTEKAAABq3siZW5jcnlwdGVkS2V5c2V0IjoiRStoS3J1dThDbmlpOWRBMWpXQWU3QUZCQ0YzOTBHMkgvTXhMRERYRnlkN1RhY3VSUlNxdy9IWUxVd2JnL1lOU0JiU1NJU3h5cXVhZXJZb2poR0N0SW93TjdjODBkVU4rTWpibUw0WXk3VFFEQlhXcjE1UmVQRXB0Q1h4OGo4S3FORnZ1RXdLUDArK3pVYkVUQXpRQndrTVhTUHJENDlUNmJkT1hVVy94cWF5QzdMYVN5bEtIcmttME13TmVVeVNZaG9HaXhsY2FldHEvcFNMdkNMWDEiLCJrZXlzZXRJbmZvIjp7InByaW1hcnlLZXlJZCI6NDA3NjI5NDA2MSwia2V5SW5mbyI6W3sidHlwZVVybCI6InR5cGUuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmNyeXB0by50aW5rLkFlc0djbUhrZGZTdHJlYW1pbmdLZXkiLCJzdGF0dXMiOiJFTkFCTEVEIiwia2V5SWQiOjQwNzYyOTQwNjEsIm91dHB1dFByZWZpeFR5cGUiOiJSQVcifV19fQooAhEZZY4DId0LY7B8LiKiKmwPrz6RHb+ASBLTdM30LgOJLEKAA02x0ptBoP3B9y2dbyAzSLEjW3me1AIYbXem70F7fSfVqo8SMHCQrutGsjezRce6vA1z2FyrdmZea26eVw36hPcBJQGd5OKZ6BpYqA8eHw1aAunnZ0DkqzL/yc/qP8oG8NUfOqc+k7+3ZKtqbcZ2UHsfIp397zEL4NPf+bkqGvfEl/jAN7hjAUXGmSLeWmcpzUvhLxiihkEzPJe2SCHskTuOVFTkO+3non7m9iMPiHAzk/QtzagQJTJFsXyxVKc+BRM5ldhZmQCHluyjd1ALC5u26Q2v2Zh7t1dmjQfnEutEEmohIWaiTXFdqTaCFHWJU8KSIH7u+cnypUPqbj5nN94fSEiVvuZR2gwAtJIfPDCTibz40+AuzHVgPz7+G+/KyRT0BrYPeA+R6ZPRsNwa8aj4RKPvBEJeSpbPOGAmwCjjv34KDKQ+9EbqZBdxP282jBbZ5qYbusnWWKE9Ro9PFjslgYciZON2GXbuyYK2b7MUioAiXXeQJZe1e56ZDgNUtCiAIqzOMIpwt4i8jdyrxLt9zQJY9XBXxmSHP+bH6srS1hDLsW2555hCJuePiwF494Uts99Mv/aLpLhEiXymZjhvCXL9e+50WuEoXhC3eBAsVHtan4fe5shFAQRKLVuAsQmfDl3v2ZTYD0y/yeg+uSTLxrsuv1WbO3ExOacwlXFnCnSobGMJtly/NLUF1i43oyvUaVO5osoYLe2NUIOQA13zgFO85piT9oypo8WJ45zC0yt9SkM6UNIEG7rSbOiA0hOnxiYGvyiL6tYLK86Qy4CkiD40W4oXbJll7qFycs6GAuVhjY0deNZsLlu0fScALBFh1G1af3T106RSJnEwhChyonMhkJGBG7jlfo2+Ez99tDdmbgCTwdFfLa67QiDpeP5TcaRIc+AkUc4kFZKagUHJ9K2wCBgJ2IN9mFhqBEB9J3erRABdktI8Rw2VB4bKkb+PhJ31qf6uUiBdzfkzIkbYQVYWrMS17A1JH18ENzCmJEiSu3yU5G7nz0DcgTO+mphm44l2ar3TVW15WySvljzpQ7kFGcI/aj2Em1Kr6Q==");String legacyKey="HG1.RApIVK9clBAeg0cq0zgzFclqcgF0Mpkk8QU99Vl7Hvs.93680f3c";
-            try{EncryptedBackupArchive.verifyArchive(new ByteArrayInputStream(legacy),"",new File(root,"key_required"),1024*1024,6);throw new AssertionError("missing legacy key accepted");}
-            catch(java.security.GeneralSecurityException expectedKey){yes(expectedKey.getMessage().equals("RECOVERY_CODE_INVALID"));}
-            yes(!new File(root,"key_required").exists());
-            try(EncryptedBackupArchive.Verified restored=EncryptedBackupArchive.verifyArchive(new ByteArrayInputStream(legacy),legacyKey,new File(root,"legacy_read"),1024*1024,6)){
-                yes(new String(Files.readAllBytes(restored.file("database.sqlite").toPath()),"UTF-8").equals("QA legacy synthetic backup"));
-            }
-            yes(!new File(root,"legacy_read").exists());
-            byte[] corruptLegacy=legacy.clone();corruptLegacy[corruptLegacy.length-1]^=1;
-            reject(()->EncryptedBackupArchive.verifyArchive(new ByteArrayInputStream(corruptLegacy),legacyKey,new File(root,"legacy_corrupt"),1024*1024,6));yes(!new File(root,"legacy_corrupt").exists());
-            reject(()->EncryptedBackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"old_schema"),1024*1024,5));
-            byte[] raw=Files.readAllBytes(zip.toPath());File truncated=new File(root,"qa_truncated.zip");Files.write(truncated.toPath(),Arrays.copyOf(raw,raw.length-7));reject(()->EncryptedBackupArchive.verifyPlain(new FileInputStream(truncated),new File(root,"truncated"),1024*1024,6));
-            File missing=new File(root,"qa_missing.zip");try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(missing))){out.putNextEntry(new ZipEntry("data/database.sqlite"));out.write(bytes);out.closeEntry();}reject(()->EncryptedBackupArchive.verifyPlain(new FileInputStream(missing),new File(root,"missing"),1024*1024,6));
-            reject(()->EncryptedBackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"space"),1,6));yes(Arrays.equals(bytes,Files.readAllBytes(source.toPath())));
+            byte[] legacy="HG-BACKUP-1\nsynthetic obsolete encrypted container".getBytes("UTF-8");
+            try{BackupArchive.verifyPlain(new ByteArrayInputStream(legacy),new File(root,"unsupported"),1024*1024,6);throw new AssertionError("obsolete encrypted container accepted");}
+            catch(IOException unsupported){yes(unsupported.getMessage().equals("BACKUP_FORMAT_UNSUPPORTED"));}
+            yes(!new File(root,"unsupported").exists());
+            reject(()->BackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"old_schema"),1024*1024,5));
+            byte[] raw=Files.readAllBytes(zip.toPath());File truncated=new File(root,"qa_truncated.zip");Files.write(truncated.toPath(),Arrays.copyOf(raw,raw.length-7));reject(()->BackupArchive.verifyPlain(new FileInputStream(truncated),new File(root,"truncated"),1024*1024,6));
+            File missing=new File(root,"qa_missing.zip");try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(missing))){out.putNextEntry(new ZipEntry("data/database.sqlite"));out.write(bytes);out.closeEntry();}reject(()->BackupArchive.verifyPlain(new FileInputStream(missing),new File(root,"missing"),1024*1024,6));
+            reject(()->BackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"space"),1,6));yes(Arrays.equals(bytes,Files.readAllBytes(source.toPath())));
             File saved=new File(root,"qa_saved.zip");int[] writes={0};BackupDocumentTransfer.LocalFile destination=new BackupDocumentTransfer.LocalFile(){public OutputStream write()throws Exception{writes[0]++;return new FileOutputStream(saved);}public InputStream read()throws Exception{return new FileInputStream(saved);}};
-            String expected=EncryptedBackupArchive.sha256(zip);BackupDocumentTransfer.exportLocal(zip,expected,false,destination);yes(EncryptedBackupArchive.sha256(saved).equals(expected)&&writes[0]==1);
+            String expected=BackupArchive.sha256(zip);BackupDocumentTransfer.exportLocal(zip,expected,false,destination);yes(BackupArchive.sha256(saved).equals(expected)&&writes[0]==1);
             BackupDocumentTransfer.exportLocal(zip,expected,true,destination);yes(writes[0]==1);
             try(OutputStream output=new FileOutputStream(saved)){output.write(1);}reject(()->BackupDocumentTransfer.exportLocal(zip,expected,true,destination));yes(writes[0]==1);
-            BackupDocumentTransfer.exportLocal(zip,expected,false,destination);yes(writes[0]==2&&EncryptedBackupArchive.sha256(saved).equals(expected));
+            BackupDocumentTransfer.exportLocal(zip,expected,false,destination);yes(writes[0]==2&&BackupArchive.sha256(saved).equals(expected));
             reject(()->BackupDocumentTransfer.exportLocal(zip,expected,false,new BackupDocumentTransfer.LocalFile(){public OutputStream write()throws Exception{throw new IOException("QA storage full");}public InputStream read(){return null;}}));
-            yes(EncryptedBackupArchive.sha256(zip).equals(expected));
+            yes(BackupArchive.sha256(zip).equals(expected));
             File large=new File(root,"qa_large.bin"),largeZip=new File(root,"qa_large.zip");byte[] block=new byte[65536];new Random(27).nextBytes(block);try(OutputStream out=new FileOutputStream(large)){for(int i=0;i<768;i++)out.write(block);}
-            try(OutputStream out=new FileOutputStream(largeZip)){EncryptedBackupArchive.writePlain(out,metadata(),Arrays.asList(new EncryptedBackupArchive.Source("files/qa_large.bin",large)));}
-            try(EncryptedBackupArchive.Verified checked=EncryptedBackupArchive.verifyPlain(new FileInputStream(largeZip),new File(root,"large_verify"),192L*1024*1024,6)){yes(EncryptedBackupArchive.sha256(checked.file("files/qa_large.bin")).equals(EncryptedBackupArchive.sha256(large)));}
+            try(OutputStream out=new FileOutputStream(largeZip)){BackupArchive.writePlain(out,metadata(),Arrays.asList(new BackupArchive.Source("files/qa_large.bin",large)));}
+            try(BackupArchive.Verified checked=BackupArchive.verifyPlain(new FileInputStream(largeZip),new File(root,"large_verify"),192L*1024*1024,6)){yes(BackupArchive.sha256(checked.file("files/qa_large.bin")).equals(BackupArchive.sha256(large)));}
             yes(largeZip.length()>48L*1024*1024);
-            System.out.println("PASS "+checks+" plaintext ZIP/no-key/readback/auto-detect/schema/truncation/manifest/space/48MiB-stream/source-preservation checks");
+            System.out.println("PASS "+checks+" plaintext ZIP/no-key/readback/unsupported-format/schema/truncation/manifest/space/48MiB-stream/source-preservation checks");
         }finally{try(java.util.stream.Stream<Path> paths=Files.walk(root.toPath())){for(Path path:(Iterable<Path>)paths.sorted(Comparator.reverseOrder())::iterator)Files.deleteIfExists(path);}}
     }
 }

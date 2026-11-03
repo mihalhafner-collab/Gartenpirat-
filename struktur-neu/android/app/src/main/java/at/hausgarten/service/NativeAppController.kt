@@ -40,8 +40,6 @@ internal class NativeAppController(private val activity: MainActivity, val store
     val messages = MutableStateFlow("")
     var route by mutableStateOf(NativeRoute())
         private set
-    var customerListEntry by mutableStateOf(0)
-        private set
     private val history = ArrayDeque<NativeRoute>()
     private val draftMutex get() = NativeDraftPersistence.mutex
     private val draftScope get() = NativeDraftPersistence.scope
@@ -51,40 +49,116 @@ internal class NativeAppController(private val activity: MainActivity, val store
     private val draftFailures get() = NativeDraftPersistence.failures
     private var catalog: Map<String, JSONObject>? = null
 
+    private val areaNavigation = mutableMapOf<String, List<NativeRoute>>()
+    private val mainAreas = setOf("today", "worklogs", "customers", "office")
+
+    private fun sameScreen(left: NativeRoute, right: NativeRoute): Boolean =
+        left.section == right.section && left.id == right.id && left.mode == right.mode && left.area == right.area &&
+            (left.section != "action" || left.args.optString("_draft_key", left.args.optString("customer_id")) == right.args.optString("_draft_key", right.args.optString("customer_id")))
+
     fun navigate(section: String, id: String = "", mode: String = "list", args: JSONObject = JSONObject()) {
+        if (section in mainAreas && id.isEmpty() && mode == "list" && args.length() == 0 && section != route.area) {
+            openSection(section)
+            return
+        }
         messages.value = ""
-        history.addLast(route)
-        route = NativeRoute(section, id, mode, JSONObject(args.toString()), if (section == "action") route.area else if (section == "drafts" && args.optString("scope") == "billing") "office" else nativeMainSection(section))
-    }
-    fun openSection(section: String) {
-        if (section == "customers") customerListEntry++
-        if (route.section != section || route.id.isNotEmpty() || route.mode != "list") navigate(section)
-    }
-    fun back() { messages.value = ""; route = if (history.isEmpty()) NativeRoute() else history.removeLast() }
-    fun returnToList(section: String) {
-        val previous = history.lastOrNull()
-        if (previous?.section == section && previous.id.isEmpty() && previous.mode == "list") back()
-        else navigate(section, args = route.args)
-    }
-    fun requestBack() { activity.onBackPressedDispatcher.onBackPressed() }
-    fun canGoBack(): Boolean = history.isNotEmpty() || route.section != "today"
-    fun restoreRoute(saved: String?) {
-        if (saved.isNullOrEmpty()) return
-        runCatching { JSONObject(saved) }.getOrNull()?.let {
-            history.clear()
-            val stack = it.optJSONArray("back_stack") ?: JSONArray()
-            for (i in 0 until stack.length()) {
-                val entry = stack.getJSONObject(i)
-                val section = entry.optString("section", "today")
-                history.addLast(NativeRoute(section, entry.optString("id"), entry.optString("mode", "list"), entry.optJSONObject("args") ?: JSONObject(), entry.optString("area", nativeMainSection(section))))
-            }
-            val section = it.optString("section", "today")
-            route = NativeRoute(section, it.optString("id"), it.optString("mode", "list"), it.optJSONObject("args") ?: JSONObject(), it.optString("area", nativeMainSection(section)))
+        val next = NativeRoute(section, id, mode, JSONObject(args.toString()), route.area)
+        if (sameScreen(route, next)) return
+        val previous = history.indexOfLast { sameScreen(it, next) }
+        if (previous >= 0) {
+            // Reuse the original route and its saveable-state key, including list filters.
+            while (history.size > previous + 1) history.removeLast()
+            route = history.removeLast()
+        } else {
+            history.addLast(route)
+            route = next
         }
     }
-    fun savedRoute(): String = JSONObject().put("section", route.section).put("id", route.id).put("mode", route.mode).put("args", route.args).put("area", route.area).toString()
-    fun savedNavigation(): String = JSONObject(savedRoute()).put("back_stack", JSONArray().apply {
-        history.forEach { entry -> put(JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)) }
+    fun openSection(section: String) {
+        require(section in mainAreas)
+        messages.value = ""
+        if (route.area == section) {
+            val root = history.indexOfFirst { it.section == section && it.id.isEmpty() && it.mode == "list" }
+            if (root >= 0) {
+                while (history.size > root + 1) history.removeLast()
+                route = history.removeLast()
+            } else if (route.section != section || route.id.isNotEmpty() || route.mode != "list") {
+                history.clear()
+                route = NativeRoute(section, area = section)
+            }
+            return
+        }
+        areaNavigation[route.area] = history.toList() + route
+        val saved = areaNavigation[section].orEmpty()
+        history.clear()
+        if (section == "today") {
+            // Today always means the day overview, including when its previous visit opened a timer.
+            route = saved.firstOrNull { it.section == "today" && it.id.isEmpty() && it.mode == "list" } ?: NativeRoute("today")
+        } else if (saved.isEmpty()) route = NativeRoute(section, area = section)
+        else {
+            saved.dropLast(1).forEach(history::addLast)
+            route = saved.last()
+        }
+    }
+    fun back() {
+        messages.value = ""
+        route = if (history.isEmpty()) NativeRoute(route.area, area = route.area) else history.removeLast()
+    }
+    /** A saved work returns to its original caller; the stopped timer is no longer an editing step. */
+    fun finishAction() {
+        fun workStep(entry: NativeRoute): Boolean = entry.section in setOf("timer", "work") ||
+            entry.section == "worklogs" && entry.mode in setOf("new", "edit", "duplicate") ||
+            entry.section == "action" && entry.id in setOf("start_work", "complete_work_session", "finish_work", "discard_work_session", "create_worklog", "update_worklog")
+        val completedWork = workStep(route)
+        var target = if (history.isEmpty()) NativeRoute(route.area, area = route.area) else history.removeLast()
+        if (completedWork) while (workStep(target) && history.isNotEmpty()) target = history.removeLast()
+        route = if (completedWork && workStep(target)) NativeRoute(route.area, area = route.area) else target
+    }
+    fun returnToList(section: String) {
+        val previous = history.indexOfLast { it.section == section && it.id.isEmpty() && it.mode == "list" }
+        if (previous >= 0) {
+            while (history.size > previous + 1) history.removeLast()
+            back()
+        } else {
+            history.clear()
+            route = NativeRoute(section, args = JSONObject(route.args.toString()), area = route.area)
+        }
+    }
+    fun requestBack() { activity.onBackPressedDispatcher.onBackPressed() }
+    fun canGoBack(): Boolean = history.isNotEmpty() || route.section != route.area || route.id.isNotEmpty() || route.mode != "list"
+    private fun routeValue(entry: NativeRoute): JSONObject = JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)
+    private fun readRoute(value: JSONObject): NativeRoute {
+        val section = value.optString("section", "today")
+        return NativeRoute(section, value.optString("id"), value.optString("mode", "list"), value.optJSONObject("args") ?: JSONObject(), value.optString("area", nativeMainSection(section)))
+    }
+    fun restoreRoute(saved: String?) {
+        if (saved.isNullOrEmpty()) return
+        runCatching { JSONObject(saved) }.getOrNull()?.let { value ->
+            history.clear()
+            areaNavigation.clear()
+            val areas = value.optJSONObject("area_navigation") ?: JSONObject()
+            areas.keys().asSequence().filter { it in mainAreas }.forEach { area ->
+                val entries = areas.optJSONArray(area) ?: JSONArray()
+                areaNavigation[area] = (0 until entries.length()).map { readRoute(entries.getJSONObject(it)) }
+            }
+            val stack = value.optJSONArray("back_stack") ?: JSONArray()
+            for (i in 0 until stack.length()) {
+                val entry = readRoute(stack.getJSONObject(i))
+                val repeated = history.indexOfLast { sameScreen(it, entry) }
+                if (repeated >= 0) while (history.size > repeated) history.removeLast()
+                history.addLast(entry)
+            }
+            route = readRoute(value)
+            // Old saved tab visits must not become a new chain of main-area back steps.
+            val sameArea = history.filter { it.area == route.area }
+            history.clear(); sameArea.forEach(history::addLast)
+        }
+    }
+    fun savedRoute(): String = routeValue(route).toString()
+    fun savedNavigation(): String = routeValue(route).put("back_stack", JSONArray().apply {
+        history.forEach { put(routeValue(it)) }
+    }).put("area_navigation", JSONObject().apply {
+        areaNavigation.forEach { (area, entries) -> put(area, JSONArray().apply { entries.forEach { put(routeValue(it)) } }) }
     }).toString()
     fun message(value: String) { messages.value = value }
     fun open(type: Class<*>) { activity.startActivity(Intent(activity, type)) }
@@ -104,6 +178,60 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (spec(name)?.optJSONObject("annotations")?.optBoolean("readOnlyHint") == false) store.notifyCommittedChange()
         result
     }
+    internal fun actionDraftKey(tool: String, initial: JSONObject): String {
+        val defaultKey = "action:$tool:" + initial.optString("entity_id", initial.optString("customer_id", initial.optString("offer_id")))
+        return route.args.optString("_draft_key", initial.optString("_draft_key", defaultKey))
+    }
+
+    /** Called by an explicit start click with a known customer, never by opening a route. */
+    suspend fun startKnownWork(args: JSONObject): JSONObject {
+        require(args.optString("customer_id").isNotBlank()) { "Bitte zuerst einen Kunden auswählen." }
+        val key = actionDraftKey("start_work", args)
+        val saved = draft(key)
+        val original = saved?.optJSONObject("original_args")
+        if (original != null) {
+            require(saved?.optString("original_tool", "start_work") == "start_work") { "Zuerst den ursprünglichen Vorgang prüfen." }
+            val proof = query("inspect_edit_action", JSONObject().put("original_tool", "start_work").put("original_args", JSONObject(original.toString())))
+            if (proof.optString("state") == "confirmed") {
+                removeDraft(key)
+                return query("get_active_work_session")
+            }
+            throw IllegalStateException(when (proof.optString("state")) {
+                "content_removed" -> "Dieser Arbeitsstart wurde gespeichert und später entfernt. Bitte den aktuellen Zeitstand ansehen."
+                "changed" -> "Der Arbeitsstart wurde inzwischen geändert. Bitte den aktuellen Zeitstand ansehen."
+                else -> "Der Arbeitsstart ist weiterhin unbestätigt. Eingaben und ursprünglicher Vorgang bleiben erhalten; bitte das Ergebnis prüfen."
+            })
+        }
+        val current = query("get_active_work_session")
+        require(current.optString("state") != "UNAVAILABLE") { "Die aktuelle Zeiterfassung ist nicht lesbar. Bitte zuerst den Zeitstand prüfen." }
+        if (current.optString("state") in setOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) return current
+        require(saved?.optBoolean("_restore_action_review_required") != true && saved?.optBoolean("review_required") != true) {
+            "Diesen übernommenen Startentwurf zuerst im Formular prüfen und ausdrücklich weiterbearbeiten."
+        }
+        val entered = saved?.optJSONObject("values")?.let { JSONObject(it.toString()) } ?: JSONObject(args.toString())
+        require(entered.optString("customer_id") == args.optString("customer_id")) { "Der erhaltene Startentwurf gehört zu einem anderen Kunden. Bitte zuerst den Entwurf prüfen." }
+        val properties = requireNotNull(spec("start_work")).getJSONObject("inputSchema").getJSONObject("properties")
+        val frozen = JSONObject()
+        properties.keys().asSequence().filter { entered.has(it) }.forEach { frozen.put(it, entered.get(it)) }
+        if (frozen.optString("request_id").isBlank()) frozen.put("request_id", UUID.randomUUID().toString())
+        val envelope = JSONObject().put("values", JSONObject(frozen.toString())).put("original_tool", "start_work")
+            .put("update_base", JSONObject()).put("review_required", false).put("original_args", JSONObject(frozen.toString()))
+        saveDraft(key, envelope)
+        flushDrafts()
+        try { call("start_work", frozen) }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) {
+            if (failure is NativeCallFailure && failure.detail.optString("commit_state") == "not_committed") {
+                envelope.remove("original_args")
+                saveDraft(key, envelope)
+                flushDrafts()
+            }
+            throw failure
+        }
+        removeDraft(key)
+        return query("get_active_work_session")
+    }
+
     /** Today and the timer use one durable action/recovery path. */
     suspend fun timerAction(tool: String, sessionId: String): JSONObject {
         require(tool in listOf("start_break", "end_break", "stop_work", "continue_work", "discard_work_session", "restore_work_session"))
@@ -120,9 +248,11 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (previous != null) {
             val proof = query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", args))
             if (proof.optString("state") == "confirmed") return confirmed()
-            if (previous.optBoolean("_restore_action_review_required") || proof.optString("state") != "unknown") {
-                throw IllegalStateException("Kein eindeutiger Speicherbeleg. Den übernommenen Zeitvorgang zuerst prüfen.")
-            }
+            throw IllegalStateException(when (proof.optString("state")) {
+                "content_removed" -> "Der ursprüngliche Zeitvorgang ist bestätigt, sein Inhalt wurde später entfernt. Es wurde nichts erneut ausgeführt."
+                "changed" -> "Der Zeitvorgang wurde inzwischen geändert. Bitte den aktuellen Zeitstand ansehen."
+                else -> "Das Ergebnis ist weiterhin offen. Der ursprüngliche Zeitvorgang bleibt erhalten; bitte später erneut prüfen."
+            })
         }
         saveDraft("timer_action", JSONObject().put("original_tool", tool).put("original_args", args)); flushDrafts()
         try { call(tool, args) }

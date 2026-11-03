@@ -1039,13 +1039,13 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             val pinnedPhoto = File(capture, "files/customer-photo-originals/${photo.name}")
             val pinnedThumb = File(capture, "files/customer-photo-originals/thumbnails/${thumbnail.name}")
             val pinnedDocument = File(capture, "files/business-documents/${documentFile.name}")
-            val before = listOf(pinnedPhoto, pinnedThumb, pinnedDocument).map { EncryptedBackupArchive.sha256(it) }
+            val before = listOf(pinnedPhoto, pinnedThumb, pinnedDocument).map { BackupArchive.sha256(it) }
             val count = events.size
             yes(!attachments.store(image, photoMeta), "PUBLISH_PHOTO_RETRY_REUSES_FINAL")
             attachments.storeThumbnail(image, thumbnail.name)
             documents.store(document, documentMeta)
-            yes(before == listOf(photo, thumbnail, documentFile).map { EncryptedBackupArchive.sha256(it) }, "PUBLISH_RETRIES_PRESERVE_FINAL_BYTES")
-            yes(before == listOf(pinnedPhoto, pinnedThumb, pinnedDocument).map { EncryptedBackupArchive.sha256(it) }, "PUBLISH_RETRIES_PRESERVE_PINNED_BYTES")
+            yes(before == listOf(photo, thumbnail, documentFile).map { BackupArchive.sha256(it) }, "PUBLISH_RETRIES_PRESERVE_FINAL_BYTES")
+            yes(before == listOf(pinnedPhoto, pinnedThumb, pinnedDocument).map { BackupArchive.sha256(it) }, "PUBLISH_RETRIES_PRESERVE_PINNED_BYTES")
             yes(events.drop(count).none { it == photo.name || it == thumbnail.name || it == documentFile.name }, "PUBLISH_NO_FINAL_WRITE_ON_RETRY")
             yes(File(capture, "files/customer-photo-originals/${legacy.name}").readBytes().contentEquals(byteArrayOf(81, 65)) && legacy.readBytes().contentEquals(byteArrayOf(81, 65)), "LEGACY_NEW_FILE_PRESERVED_RAW")
         } finally {

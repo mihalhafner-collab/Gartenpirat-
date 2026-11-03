@@ -16,7 +16,7 @@ object DatabaseBackupSnapshot {
         if (freshTarget.exists() || freshTarget.isDirectory) throw IOException("BACKUP_SNAPSHOT_TARGET_EXISTS")
         val parent = freshTarget.parentFile!!
         if (!parent.isDirectory && !parent.mkdirs()) throw IOException("BACKUP_SNAPSHOT_STORAGE_UNAVAILABLE")
-        EncryptedBackupArchive.checkCancelled()
+        BackupArchive.checkCancelled()
         val pages = source.rawQuery("PRAGMA page_count", null).use { count ->
             if (!count.moveToFirst()) throw IOException("BACKUP_DATABASE_SIZE_UNAVAILABLE")
             count.getLong(0)
@@ -25,7 +25,7 @@ object DatabaseBackupSnapshot {
         // SQLite performs a transactional snapshot, including committed WAL pages.
         // Never copy only the live main DB file. Older unsupported engines fail without changing source.
         source.execSQL("VACUUM INTO '${freshTarget.absolutePath.replace("'", "''")}'")
-        EncryptedBackupArchive.checkCancelled()
+        BackupArchive.checkCancelled()
         FileOutputStream(freshTarget, true).use { it.fd.sync() }
         return inspect(freshTarget)
     }
@@ -66,7 +66,7 @@ object DatabaseBackupSnapshot {
                 .put("tableCounts", counts)
                 .put("schemaSha256", PixelMcpWriteTools.hash(JSONObject(definitions)))
                 .put("size", database.length())
-                .put("sha256", EncryptedBackupArchive.sha256(database))
+                .put("sha256", BackupArchive.sha256(database))
         }
     }
 

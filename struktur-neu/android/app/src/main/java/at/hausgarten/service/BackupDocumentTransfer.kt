@@ -52,7 +52,7 @@ object BackupDocumentTransfer {
     @JvmStatic
     @Throws(Exception::class)
     fun exportLocal(archive: File, expectedHash: String, alreadyVerified: Boolean, destination: LocalFile) {
-        if (!archive.isFile || EncryptedBackupArchive.sha256(archive) != expectedHash) {
+        if (!archive.isFile || BackupArchive.sha256(archive) != expectedHash) {
             throw IOException("BACKUP_LOCAL_SOURCE_CHANGED")
         }
         if (!alreadyVerified) {
@@ -60,7 +60,7 @@ object BackupDocumentTransfer {
                 FileInputStream(archive).use { input ->
                     destination.write().use { output ->
                         if (output == null) throw IOException("BACKUP_LOCAL_WRITE_FAILED")
-                        EncryptedBackupArchive.copy(input, output, null, archive.length())
+                        BackupArchive.copy(input, output, null, archive.length())
                         output.flush()
                     }
                 }
@@ -92,7 +92,7 @@ object BackupDocumentTransfer {
         while (true) {
             val n = input.read(buffer)
             if (n == -1) break
-            EncryptedBackupArchive.checkCancelled()
+            BackupArchive.checkCancelled()
             if (n > maximum - count) return ""
             digest.update(buffer, 0, n)
             count += n

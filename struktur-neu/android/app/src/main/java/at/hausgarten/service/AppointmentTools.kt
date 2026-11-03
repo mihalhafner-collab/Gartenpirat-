@@ -47,7 +47,7 @@ internal object AppointmentTools {
     }
     @JvmStatic @Throws(Exception::class) fun tools(writable: Boolean): JSONArray {
         val out = JSONArray(); val names = READS.toMutableList(); if (writable) names.addAll(WRITES)
-        for (name in names) out.put(JSONObject().put("name", name).put("description", if (write(name)) "Verwaltet Einsätze der bestehenden App. Nur auf konkrete Nutzeranweisung, keine Ist-Stunden/Rechnung/Einladung. request_id bei Retry beibehalten; Updates mit aktuellem record_hash. Kalender-/Drive-Bestätigung getrennt beachten." else "Liest App-Planung und zuletzt geprüfte Kalender-/Wetterdaten. Unbekannte oder veraltete Verfügbarkeit ist keine freie Zeit. Kunden/Ort/Dauer nicht erfinden; Vorschläge buchen nichts.")
+        for (name in names) out.put(JSONObject().put("name", name).put("description", if (write(name)) "Verwaltet Einsätze der bestehenden App. Nur auf konkrete Nutzeranweisung, keine Ist-Stunden/Rechnung/Einladung. request_id bei Retry beibehalten; Updates mit aktuellem record_hash. Kalenderbestätigung getrennt beachten." else "Liest App-Planung und zuletzt geprüfte Kalender-/Wetterdaten. Unbekannte oder veraltete Verfügbarkeit ist keine freie Zeit. Kunden/Ort/Dauer nicht erfinden; Vorschläge buchen nichts.")
             .put("inputSchema", schema(name)).put("annotations", JSONObject().put("readOnlyHint", read(name)).put("idempotentHint", true).put("destructiveHint", name == "cancel_appointment").put("openWorldHint", false)))
         return out
     }

@@ -28,7 +28,7 @@ names = ['SnapshotProjection', 'OwnerCommand', 'EntityContract', 'EntityApplicat
          'WorklogRelationRules', 'ManualChangeRules', 'GardenRules', 'LocalActionOrder', 'HttpTransport', 'McpSchema', 'McpFileTransfer', 'PixelMcpOwnerTools', 'OwnerJournalRules', 'LocalJournalRules',  'PixelTunnelConfig',
          'PixelTunnelWire', 'WorkSessionPauseRules']
 names += ['WorkSessionTimingRules','OwnerRequestTransactions','LocalTestTombstone','ActiveWorkProtection','CatalogSemanticHash','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
-names += ['BackupCrypto', 'EncryptedBackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'BackupScheduleRules', 'BackupStatusRules', 'BackupInventory', 'BackupStorageBudget']
+names += ['BackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'BackupScheduleRules', 'BackupStatusRules', 'BackupInventory', 'BackupStorageBudget']
 names += ['OfferMoney','LocalBusinessState','LocalWorkflowTools','LocalWorkflowApplicationService','RevierRepository','RevierRules','RevierApplicationService','OfferDecisionRules','OfferDecisionService','BackupDocumentTransfer','BackupDatasetExchange','OfferDecisionValidation']
 names += ['RestoredBrowserReviewRules', 'BrowserMediaFiles', 'BrowserMediaRepositoryRules', 'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules']
 table_tests = '--tables' in sys.argv
@@ -38,13 +38,6 @@ if table_tests:
     names += ['BusinessTableStore']
 support = sorted((ROOT/'tests/java-support').rglob('*.java'))
 dependency_cache = Path(os.environ.get('GRADLE_USER_HOME', Path.home()/'.gradle'))/'caches/modules-2/files-2.1'
-crypto_jars = []
-for group, artifact, version in [('com.google.crypto.tink', 'tink-android', '1.24.0'),
-                                 ('com.google.code.gson', 'gson', '2.13.2')]:
-    resolved = list((dependency_cache/group/artifact/version).glob('*/*.jar'))
-    if len(resolved) != 1:
-        raise RuntimeError('Resolve the pinned Android dependency with Gradle first: '+artifact)
-    crypto_jars += resolved
 table_jars = []
 if table_tests:
     for variable, digest in [
@@ -57,7 +50,7 @@ if table_tests:
 stdlib = list((dependency_cache/'org.jetbrains.kotlin/kotlin-stdlib/2.2.10').glob('*/*.jar'))
 if len(stdlib) != 1:
     raise RuntimeError('Resolve the pinned Kotlin standard library with Gradle first')
-cp = os.pathsep.join(map(str, [classes, jar, android, *crypto_jars, *table_jars, *stdlib]))
+cp = os.pathsep.join(map(str, [classes, jar, android, *table_jars, *stdlib]))
 
 def run(command):
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=180)
@@ -102,7 +95,7 @@ if kotlin_sources or kotlin_tests:
 run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes), *map(str, java_sources)])
 results = []
 for test in tests:
-    runtime_cp = os.pathsep.join(map(str, [classes, jar, *crypto_jars, *table_jars, *stdlib]))
+    runtime_cp = os.pathsep.join(map(str, [classes, jar, *table_jars, *stdlib]))
     heap = '-Xmx512m' if test.stem == 'BusinessTableStoreTests' else '-Xmx64m'
     output = run([shutil.which('java'), heap, '-Dfile.encoding=UTF-8', '-cp', runtime_cp, 'at.hausgarten.service.'+test.stem])
     print(output.strip())

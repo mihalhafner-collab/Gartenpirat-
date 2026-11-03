@@ -16,9 +16,9 @@ import java.time.Instant
 
 /** Private captured inputs for backup; no provider, network or activation. */
 internal object LocalBackupDataset {
-    class Captured(@JvmField val directory: File, @JvmField val metadata: JSONObject, private val originals: List<EncryptedBackupArchive.Source> = emptyList()) {
+    class Captured(@JvmField val directory: File, @JvmField val metadata: JSONObject, private val originals: List<BackupArchive.Source> = emptyList(), @JvmField val notes: JSONObject = JSONObject()) {
         @Throws(Exception::class)
-        fun sources(): List<EncryptedBackupArchive.Source> = BackupFilePins.sources(directory) + originals
+        fun sources(): List<BackupArchive.Source> = BackupFilePins.sources(directory) + originals
     }
 
     @JvmStatic
@@ -57,7 +57,7 @@ internal object LocalBackupDataset {
                 val database = File(directory, "database.sqlite")
                 val db = DatabaseBackupSnapshot.capture(store.writableDatabase, database)
                 stage = "FILES"
-                val originals = ArrayList<EncryptedBackupArchive.Source>()
+                val originals = ArrayList<BackupArchive.Source>()
                 fun include(root: File, prefix: String) {
                     if (streamOriginals) originals.addAll(BackupFilePins.directSources(root, prefix))
                     else BackupFilePins.capture(root, directory, prefix)
@@ -112,7 +112,7 @@ internal object LocalBackupDataset {
                     .put("numberState", JSONObject()).put("lastIssuedDocumentIds", report.getJSONArray("lastIssuedDocumentIds"))
                     .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences_browser_storage_and_legacy_backups")
                     .put("media_coverage", "AVAILABLE_FILES_WITH_NOTES")
-                Captured(directory, metadata, originals)
+                Captured(directory, metadata, originals, report)
             } catch (failure: Exception) {
                 throw BackupScheduleRules.captureFailure(stage, failure)
             }

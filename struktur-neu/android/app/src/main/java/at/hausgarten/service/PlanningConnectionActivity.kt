@@ -14,6 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.*
 import org.json.*
 import java.time.*
@@ -51,11 +54,13 @@ class PlanningConnectionActivity : ComponentActivity() {
     private var technicalDisclosure by mutableStateOf(false)
     private var notificationDisclosure by mutableStateOf(false)
     private var advancedDisclosure by mutableStateOf(false)
+    private var weatherSourceDisclosure by mutableStateOf(false)
 
     private data class Presentation(
         val connected: Boolean = false, val enabled: Boolean = false, val state: String = "pending", val setupCode: String = "",
         val existingGrant: Boolean = false, val accountLabel: String = "", val steps: String = "1 Konto · 2 Freigabe · 3 Kalender",
-        val details: String = "", val weather: String = "", val action: String = "Verbinden", val label: String = "Prüfung nötig", val initialStatus: String = ""
+        val details: String = "", val weather: String = "", val action: String = "Verbinden", val label: String = "Prüfung nötig", val initialStatus: String = "",
+        val weatherEnabled: Boolean = false, val notificationsEnabled: Boolean = false
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,21 +71,21 @@ class PlanningConnectionActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.safeDrawingPadding().imePadding(),
                     bottomBar = {
-                        NativeActions {
-                                OutlinedButton(onClick = { onBackPressedDispatcher.onBackPressed() }) { Text("Zurück") }
-                                Button(onClick = { calendarPrimary() }, enabled = loaded && !working) { Text(presentation.action) }
-                        }
+                        NativeActionBar(presentation.action, { calendarPrimary() }, "Zurück",
+                            { onBackPressedDispatcher.onBackPressed() }, enabled = loaded && !working)
                     }
                 ) { insets ->
                     Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text("Kalender & Wetter", style = MaterialTheme.typography.headlineSmall)
-                        Text(presentation.label, color = if (presentation.setupCode.isEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
-                        Text(presentation.steps, style = MaterialTheme.typography.bodySmall)
+                        NativeStatus(presentation.label, if (presentation.setupCode.isEmpty()) NativeStatusTone.Neutral else NativeStatusTone.Attention)
+                        Text("Kalender und Wetter sind optional. Die lokale Arbeitserfassung funktioniert ohne diese Verbindungen.")
                         if (status.isNotEmpty()) Text(status)
+                        if (loaded) Action("Status prüfen") { status = ""; refreshPresentation() }
                         if (!loaded) {
                             if (status.isEmpty()) CircularProgressIndicator()
                         } else {
                             Section("Google Kalender") {
+                                Text(presentation.steps, style = MaterialTheme.typography.bodySmall)
                                 if (presentation.setupCode.isNotEmpty()) Text("! " + CalendarAccessRules.message(presentation.setupCode), color = MaterialTheme.colorScheme.error)
                                 if (presentation.setupCode == "CALENDAR_BUSY_PERMISSION_REQUIRED") Action("Kalender ohne Belegtzeiten verbinden") { busy = false; beginCalendarSetup() }
                                 Text("Deine Einsätze erscheinen im eigenen Kalender „Haus & Garten – Einsätze“. App-Termine bleiben erhalten. Keine Kundeneinladungen.")
@@ -107,8 +112,11 @@ class PlanningConnectionActivity : ComponentActivity() {
                                 Text(presentation.weather)
                                 Toggle("Wetterwarnungen", weather) { saveWeatherSwitch("weather_enabled", it) }
                                 Toggle("Pixel-Benachrichtigungen", notifications) { saveWeatherSwitch("notifications", it) }
-                                Text("Wetter optional · gewerbliche API-Nutzung ungeklärt. Aktueller Hauptanbieter: Open-Meteo, öffentlicher Gratis-Endpunkt für nichtkommerzielle API-Nutzung. CC BY 4.0 der Wetterdaten bestätigt keine gewerbliche Nutzung dieses API-Dienstes. Vor betrieblicher Nutzung Bedingungen prüfen: https://open-meteo.com/en/terms. Die lokale Planung funktioniert ohne Wetter. GeoSphere Austria ergänzt amtliche Warnungen. Schalter speichern sofort; GPS nur auf Wunsch.")
-                                Action("Wetter und Einsatzgebiete prüfen") { if (!weather) status = "Wetterwarnungen zuerst einschalten." else checkPlanning() }
+                                Text("Schalter speichern sofort. Wetterwarnungen und Pixel-Meldungen sind getrennte Freigaben. Wetterdaten können fehlen oder veraltet sein; die Hinweise ersetzen keine Entscheidung vor Ort.")
+                                Action("Kalender abgleichen und Wetter aktualisieren") { checkPlanning() }
+                                Disclosure("Wetterquellen und Nutzungsbedingungen", weatherSourceDisclosure, { weatherSourceDisclosure = !weatherSourceDisclosure }) {
+                                    Text("Hauptanbieter: Open-Meteo, öffentlicher Gratis-Endpunkt für nichtkommerzielle API-Nutzung. CC BY 4.0 der Wetterdaten bestätigt keine gewerbliche Nutzung dieses API-Dienstes. Gewerbliche API-Nutzung ungeklärt; Bedingungen: https://open-meteo.com/en/terms. GeoSphere Austria liefert kurzfristige Ersatzvorhersagen und amtliche Warnungen. GPS nur auf Wunsch.", style = MaterialTheme.typography.bodySmall)
+                                }
                                 Disclosure("Pixel-Meldungen testen oder freigeben", notificationDisclosure, { notificationDisclosure = !notificationDisclosure }) {
                                     Action("Pixel-Testmeldung anzeigen") {
                                         try {
@@ -182,7 +190,9 @@ class PlanningConnectionActivity : ComponentActivity() {
         }
     }
     @Composable private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
-        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { Text(title, style = MaterialTheme.typography.titleLarge); content() } }
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            HorizontalDivider(); Text(title, style = MaterialTheme.typography.titleLarge); content()
+        }
     }
     @Composable private fun Toggle(label: String, checked: Boolean, action: (Boolean) -> Unit) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -229,7 +239,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                         val attempted = preferences.getString("calendar_setup_attempt_at", "") ?: ""; if (attempted.isNotEmpty()) details.append("\nEinrichtungsversuch: ").append(calendarTime(attempted))
                         val retry = preferences.getString("calendar_retry_at", "") ?: ""; if (retry.isNotEmpty()) details.append("\nErneuter Versuch frühestens: ").append(calendarTime(retry))
                         if (setupCode == "CALENDAR_APP_REGISTRATION_REQUIRED") details.append("\n").append(CalendarSetupRules.registrationChecklist(packageName, signingSha1))
-                        val action = if (setupCode.isNotEmpty() || state == "authorization_required") { if (existingGrant) "Freigabe erneuern" else "Erneut verbinden" } else if (!connected) "Verbinden" else if (!enabled) "Kalender einschalten" else "Jetzt abgleichen"
+                        val action = if (setupCode.isNotEmpty() || state == "authorization_required") { if (existingGrant) "Freigabe erneuern" else "Erneut verbinden" } else if (!connected) "Verbinden" else if (!enabled) "Kalender einschalten" else "Kalender abgleichen und Wetter aktualisieren"
                         val weatherEnabled = AppointmentRuntime.flag(context, store, "weather_enabled"); val notificationEnabled = AppointmentRuntime.flag(context, store, "notifications")
                         val delivery = WeatherNotifications.state(context)
                         val pixel = if (!notificationEnabled) "AUS" else when (delivery) { "ready" -> "bereit"; "channel_blocked" -> "Wetterkanal blockiert"; "app_blocked" -> "App-Meldungen blockiert"; else -> "Freigabe nötig" }
@@ -244,14 +254,15 @@ class PlanningConnectionActivity : ComponentActivity() {
                             summary += "\nEinsatzgebiete: " + known + " erkannt" + (if (missing > 0) " · " + missing + " noch offen." else if (known == 0) ". Keine anstehenden Einsätze in den nächsten 16 Tagen." else ".")
                         } catch (unavailable: Exception) { summary += "\nEinsatzgebiete derzeit nicht lesbar." }
                         Presentation(connected, enabled, state, setupCode, existingGrant, accountLabel, steps, details.toString(), summary, action,
-                            if (needsReview) "Prüfung nötig" else if (connected) "Verbunden" else "Nicht verbunden",
-                            if (needsReview) "Bitte Verbindung prüfen und bei Bedarf erneut verbinden." else if (!connected) "Konto auswählen und Google Kalender verbinden." else label.replace("Verbunden · ", ""))
+                            if (needsReview) "Prüfung nötig" else if (connected) { if (enabled) "Kalender eingeschaltet" else "Kalender pausiert" } else "Kalender nicht eingerichtet",
+                            if (needsReview) "Bitte Verbindung prüfen und bei Bedarf erneut verbinden." else if (!connected) "Konto auswählen und Google Kalender verbinden." else label.replace("Verbunden · ", ""),
+                            weatherEnabled = weatherEnabled, notificationsEnabled = notificationEnabled)
                     }
                 }
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (unavailable: Exception) { status = "Kalenderstatus derzeit nicht lesbar. Bitte erneut öffnen."; return@launch }
             if (generation == presentationGeneration) {
-                presentation = next; calendar = next.enabled
+                presentation = next; calendar = next.enabled; weather = next.weatherEnabled; notifications = next.notificationsEnabled
                 if (status.isEmpty()) status = next.initialStatus
             }
         }
@@ -336,11 +347,11 @@ class PlanningConnectionActivity : ComponentActivity() {
     }
     private fun checkPlanning() {
         if (working) return
-        working = true; status = "Kalender und Wetter werden geprüft …"
+        working = true; status = "Eingeschalteten Kalender abgleichen und eingeschaltetes Wetter aktualisieren …"
         lifecycleScope.launch {
             try {
                 runInterruptible(Dispatchers.IO) { PixelLocalStore(this@PlanningConnectionActivity).use { store -> AppointmentRuntime.request(this@PlanningConnectionActivity, store); AppointmentRuntime.refresh(this@PlanningConnectionActivity, store) } }
-                status = "Prüfung beendet. Verbindungsstand und Einsatzhinweise beachten."
+                status = "Aktualisierung beendet. Den gespeicherten Kalenderstand und die Wetterhinweise getrennt beachten."
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (unavailable: Exception) { status = "Prüfung derzeit nicht möglich. Gespeicherte Termine bleiben erhalten." }
             finally { working = false; refreshPresentation() }
@@ -520,4 +531,86 @@ class PlanningConnectionActivity : ComponentActivity() {
     }
     private fun calendarTime(value: String): String = try { DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMAN).withZone(ZoneId.of("Europe/Vienna")).format(Instant.parse(value)) } catch (invalid: Exception) { "Zeitpunkt nicht lesbar" }
     companion object { private const val GOOGLE_AUTH_REQUEST = 84 }
+}
+
+/** This overview reads only local evidence; foreign ChatGPT accounts are outside the app. */
+@Composable
+internal fun NativeConnections(controller: NativeAppController) {
+    val scope = rememberCoroutineScope()
+    val owner = LocalLifecycleOwner.current
+    var snapshot by remember(controller) { mutableStateOf<JSONObject?>(null) }
+    var checking by remember(controller) { mutableStateOf(false) }
+    var error by remember(controller) { mutableStateOf("") }
+    fun refreshPresentation() {
+        if (checking) return
+        checking = true
+        scope.launch {
+            try {
+                snapshot = withContext(Dispatchers.IO) {
+                    val context = controller.context
+                    val store = controller.store
+                    val settings = AppointmentRuntime.publicSettings(context, store)
+                    JSONObject()
+                        .put("calendar_connected", PlanningAccount.connected(context))
+                        .put("calendar_enabled", AppointmentRuntime.calendarEnabled(context, store))
+                        .put("calendar_state", store.ownerValue("calendar:status", "pending"))
+                        .put("calendar_last_success_at", store.ownerValue("calendar:last_success_at", ""))
+                        .put("weather_enabled", settings.optBoolean("weather_enabled"))
+                        .put("weather_state", store.ownerValue("weather:status", "pending"))
+                        .put("notifications_enabled", settings.optBoolean("notifications"))
+                        .put("notification_state", WeatherNotifications.state(context))
+                        .put("pixel", PixelTunnelService.status(context))
+                }
+                error = ""
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { error = "Lokaler Verbindungsstatus derzeit nicht lesbar." }
+            finally { checking = false }
+        }
+    }
+    LaunchedEffect(controller) { refreshPresentation() }
+    DisposableEffect(owner, controller) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) refreshPresentation() }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Optionale Verbindungen", style = MaterialTheme.typography.titleLarge)
+            Text("Die lokale Arbeitserfassung benötigt keine dieser Verbindungen.")
+            NativeStatus(if (checking) "Lokalen Status lesen …" else if (error.isNotEmpty()) "Status unbestätigt" else if (snapshot != null) "Lokalen Status gelesen" else "Noch nicht geprüft",
+                if (error.isNotEmpty()) NativeStatusTone.Attention else NativeStatusTone.Neutral)
+            if (error.isNotEmpty()) Text(error)
+            snapshot?.let { info ->
+                val last = info.optString("calendar_last_success_at")
+                val calendar = when {
+                    !info.optBoolean("calendar_connected") -> "Nicht eingerichtet"
+                    !info.optBoolean("calendar_enabled") -> "Eingerichtet · pausiert"
+                    info.optString("calendar_state") == "authorization_required" -> "Eingeschaltet · Google-Freigabe prüfen"
+                    info.optString("calendar_state") == "review_required" -> "Eingeschaltet · Kalenderänderung prüfen"
+                    else -> "Eingerichtet · eingeschaltet"
+                }
+                val calendarTime = if (last.isBlank()) "Noch kein erfolgreicher Abgleich gespeichert." else {
+                    val time = runCatching { Instant.parse(last).toEpochMilli() }.getOrDefault(0)
+                    "Letzter erfolgreicher Abgleich: " + pixelConnectionTime(time, "Zeitpunkt nicht lesbar")
+                }
+                NativeInfoRow("Google Kalender", "$calendar\n$calendarTime", { controller.open(PlanningConnectionActivity::class.java) })
+                val weather = if (!info.optBoolean("weather_enabled")) "Aus · optionale Funktion" else when (info.optString("weather_state")) {
+                    "checked" -> "Eingeschaltet · gespeicherte Hinweise je Einsatz ansehen"
+                    "authorization_required", "review_required", "retry_limit_reached" -> "Eingeschaltet · Wetterprüfung benötigt Aufmerksamkeit"
+                    else -> "Eingeschaltet · neue Wetterdaten nicht bestätigt"
+                }
+                NativeInfoRow("Wetter", weather, { controller.open(PlanningConnectionActivity::class.java) })
+                val notifications = if (!info.optBoolean("notifications_enabled")) "Aus" else when (info.optString("notification_state")) {
+                    "ready" -> "Lokal freigegeben · keine Zustellung getestet"
+                    else -> "Eingeschaltet · Android-Freigabe prüfen"
+                }
+                NativeInfoRow("Pixel-Wetterbenachrichtigungen", notifications, { controller.open(PlanningConnectionActivity::class.java) })
+                val pixel = info.getJSONObject("pixel")
+                NativeInfoRow("ChatGPT-Verbindung", pixelConnectionLabel(pixel) + "\nLetzte beantwortete Anfrage: " +
+                    pixelConnectionTime(pixel.optLong("last_response_at"), "noch keine bestätigt"), { controller.open(PixelTunnelActivity::class.java) })
+            }
+            Text("Dieser Statusabruf liest gespeicherte lokale Meldungen. Er löst keinen Kalenderabgleich und keine Wetterprüfung aus und bestätigt keine Schreibberechtigung bei fremden Diensten.", style = MaterialTheme.typography.bodySmall)
+        }
+        NativeActionBar("Status prüfen", { refreshPresentation() }, "Zurück", { controller.back() }, enabled = !checking)
+    }
 }

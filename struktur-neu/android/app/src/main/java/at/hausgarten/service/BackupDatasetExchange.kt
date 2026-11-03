@@ -39,7 +39,7 @@ class BackupDatasetExchange private constructor() {
             val state = journal.read()
             val targets = state.getJSONArray("targets")
             for (i in 0 until targets.length()) {
-                EncryptedBackupArchive.checkCancelled()
+                BackupArchive.checkCancelled()
                 val target = targets.getJSONObject(i)
                 val live = file(target, "live")
                 val old = file(target, "old")

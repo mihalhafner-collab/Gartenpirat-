@@ -100,17 +100,17 @@ final class LocalBackupNativeTests {
             yes(service.status(new JSONObject()).getString("state").equals("VERIFIED"));
             service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {}); yes(writes[0] == 1);
             yes(service.saveTo("qa_native_save_002", "qa_destination", provider, message -> {}).getBoolean("verified")); yes(writes[0] == 2);
-            String savedHash = EncryptedBackupArchive.sha256(saved);
+            String savedHash = BackupArchive.sha256(saved);
             BackupDocumentTransfer.LocalFile broken = new BackupDocumentTransfer.LocalFile() {
                 public OutputStream write() throws Exception { throw new IOException("QA disk full"); }
                 public InputStream read() { return null; }
             };
             rejects(() -> service.saveTo("qa_native_failure", "qa_other_destination", broken, message -> {}));
             yes(service.status(new JSONObject()).getString("state").equals("FAILED"));
-            yes(EncryptedBackupArchive.sha256(saved).equals(savedHash));
+            yes(BackupArchive.sha256(saved).equals(savedHash));
             File work = new File(context.getNoBackupFilesDir(), "pixel-backup"); yes(work.list() != null && work.list().length == 0);
         }
-        try (EncryptedBackupArchive.Verified checked = EncryptedBackupArchive.verifyPlain(new FileInputStream(saved), new File(context.getNoBackupFilesDir(), "qa-check"), context.getNoBackupFilesDir().getUsableSpace(), PixelLocalStore.SCHEMA_VERSION)) {
+        try (BackupArchive.Verified checked = BackupArchive.verifyPlain(new FileInputStream(saved), new File(context.getNoBackupFilesDir(), "qa-check"), context.getNoBackupFilesDir().getUsableSpace(), PixelLocalStore.SCHEMA_VERSION)) {
             JSONObject report = LocalBackupDataset.inspectStaged(new File(checked.directory, "data"), checked.manifest);
             yes(report.getJSONArray("warnings").toString().contains("qa_missing_original"));
             yes(report.getJSONArray("warnings").toString().contains("qa_missing_metadata"));
@@ -123,8 +123,8 @@ final class LocalBackupNativeTests {
         }
         BackupRestoreService restore = new BackupRestoreService(context);
         byte[] zipBytes = Files.readAllBytes(saved.toPath());
-        rejects(() -> restore.previewFrom("qa_corrupt_preview", "qa_corrupt", "", () -> new ByteArrayInputStream(Arrays.copyOf(zipBytes, zipBytes.length - 40))));
-        JSONObject preview = restore.previewFrom("qa_native_preview", "qa_saved", "", () -> new FileInputStream(saved));
+        rejects(() -> restore.previewFrom("qa_corrupt_preview", "qa_corrupt", () -> new ByteArrayInputStream(Arrays.copyOf(zipBytes, zipBytes.length - 40))));
+        JSONObject preview = restore.previewFrom("qa_native_preview", "qa_saved", () -> new FileInputStream(saved));
         yes(preview.getString("phase").equals("VALIDATED"));
         yes(preview.getJSONObject("summary").getInt("warning_count") >= 4);
         try (PixelLocalStore store = new PixelLocalStore(context)) { store.putOwnerValue("qa_backup_marker", "QA after save"); }
@@ -184,7 +184,7 @@ final class LocalBackupNativeTests {
             try (android.database.Cursor setting = source.rawQuery("PRAGMA wal_autocheckpoint=" + checkpoint, null)) {
                 if (!setting.moveToFirst() || setting.getInt(0) != checkpoint) throw new IOException("QA_WAL_SETTING_UNAVAILABLE");
             }
-            EncryptedBackupArchive.removeOwned(directory);
+            BackupArchive.removeOwned(directory);
         }
     }
     private static String text(File file) throws IOException { return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8); }

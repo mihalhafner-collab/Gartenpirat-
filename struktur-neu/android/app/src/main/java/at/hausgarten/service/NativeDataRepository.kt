@@ -125,6 +125,11 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         chronological: Boolean = false
     ): Flow<NativeListPage> = flow { changes.collect { awaitCommit(); emit(list(collection, search, status, customerId, offset, limit, includeInactive, billingType, propertyId, role, dateFrom, dateTo, orderId, worklogId, sessionId, chronological)) } }.distinctUntilChanged().flowOn(Dispatchers.IO)
 
+    /** Overview data can change outside the visible page of a list. */
+    fun watchCommittedChanges(): Flow<Long> = flow {
+        changes.collect { version -> awaitCommit(); emit(version) }
+    }.flowOn(Dispatchers.IO)
+
     suspend fun detail(collection: String, id: String): JSONObject? = withContext(Dispatchers.IO) {
         requireCollection(collection)
         readCurrent { db -> record(db, collection, id) }

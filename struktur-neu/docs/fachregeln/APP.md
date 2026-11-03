@@ -81,9 +81,10 @@ zurückgelesen. Es gibt weder einen Cloudzugang noch eine automatische Übertrag
 Eine spätere Kopie zu einem anderen Speicherort erledigt der Eigentümer manuell
 außerhalb der App. Die lokale Datenbank bleibt führend. Das erfolgreiche
 Rücklesen beweist die Integrität der lokalen Sicherungsdatei.
-Vorhandene ältere Archive und Schlüssel bleiben für eine bewusst beauftragte
-Wiederherstellung erhalten. Deren Lesbarkeit rechtfertigt keine neue komplizierte
-Einrichtung für aktuelle Sicherungen.
+Ältere verschlüsselte Sicherungen werden nicht mehr eingelesen. Tink, der alte
+Entschlüsselungspfad und Wiederherstellungsschlüssel-Abfragen sind entfernt.
+Bestehende Benutzerdateien und Schlüsseldateien werden dadurch nicht gelöscht.
+Unterstützt werden die vorhandenen unverschlüsselten lokalen ZIP-Sicherungen.
 
 Sicherung bewahrt den vorhandenen Bestand. Ein konsistenter SQLite-Snapshot,
 typisierte Einstellungen und der zuletzt lesbare Formularstand werden aufgenommen.
@@ -107,8 +108,8 @@ Sicherungslauf darf dieselbe ausdrücklich gewählte Zieldatei überschreiben.
 Verwaiste Inhalte des ausschließlich temporären Verzeichnisses `pixel-backup`
 werden beim Start sowie vor und nach jedem Sicherungslauf entfernt. Ein laufender
 Sicherungsvorgang wird dabei nicht abgeräumt. Es gibt keine Verbindung zur Migrationsprüfung oder zur
-Rechnungsfreigabe. Der Leser älterer verschlüsselter Archive bleibt ausschließlich
-für bereits vorhandene Altsicherungen erhalten; er erzeugt keine neuen Sicherungen.
+Rechnungsfreigabe. Unverschlüsselte ZIP-Sicherungen behalten Manifestformat und
+Integritätsprüfung; verschlüsselte Container werden als nicht unterstützt abgewiesen.
 
 Wiederherstellung erfolgt ausdrücklich nach technischer Archivprüfung und mit
 einer Rückfallkopie des aktuellen Bestands. Der bestehende atomare Dateiaustausch
@@ -155,6 +156,42 @@ Importwerkzeug benötigten redaktionellen Eingaben bleiben in `libraries/plants/
 Gerätefotos gehören zum Gerät. Abgebrochene Auswahl und verworfene Bearbeitung
 dürfen keine Geschäftsdaten erzeugen. Bestehende Wartungsintervalle und ihr Verlauf
 bleiben erhalten. Der Wortlautkatalog wird über das vorhandene Werkzeug erzeugt.
+
+## Verbindliche Oberfläche: neues Bedienkonzept Fassung 2
+
+Die Umsetzung folgt dem in `AKTUELLER-STAND.json` mit Drive-URL und SHA256
+gebundenen neuen 38-seitigen Konzept. Das frühere 29-seitige Konzept ist keine
+Umsetzungsvorlage. Die gemeinsame Gestaltung verwendet helle Flächen, dunkle
+Schrift und einen gedeckten blauen Akzent. Fachliche Listen und gezielte Details
+ersetzen Rohdatenwände und wiederholte Kartenstapel.
+
+Die Hauptaktion steht rechts; eine alleinige Hauptaktion darf die ganze Leiste
+belegen. Sekundäraktionen stehen links. Große Schrift darf Aktionen untereinander
+anordnen, ohne Beschriftungen zu verkleinern oder Inhalte zu verdecken. Status
+verwenden Text und Zeichen: laufend blau, pausiert beziehungsweise eingerichtet
+neutral, bestätigt grün, Prüfbedarf orange und nachgewiesen fehlgeschlagen rot.
+Ein Erfolg mit Einschränkung nennt diese bereits in seiner Hauptaussage.
+
+„Arbeit starten“, „Pause“, „Fortsetzen“, „Zeit stoppen“, „Arbeit speichern“,
+„Arbeit nachtragen“ und „Foto hinzufügen“ bezeichnen überall denselben Vorgang.
+Zeit stoppen legt noch keine bestätigte Arbeit an. Eine gestoppte ungespeicherte
+Arbeit bleibt mit klarer Abschlussaktion sichtbar. Zurück erhält Eingaben;
+Abbrechen schließt die aktuelle Auswahl ohne Übernahme; Verwerfen entfernt
+bewusst genau den benannten Entwurf. Nach Speichern zum erhaltenen Aufrufer
+zurückkehren. Hauptbereichswechsel bauen keinen Besuchsstapel auf.
+
+Datum und Uhrzeit verwenden Android-Auswahl und interne ISO-Werte. Netto-Dauer
+und Uhrzeiten sind getrennte Eingabewege; eine Pause wird nur im Uhrzeitenweg
+abgezogen. Textbausteine ergänzen vorhandenen Text. „Ergebnis prüfen“ bleibt
+lesend; eine ausdrücklich gewählte Wiederholung verwendet dieselbe ursprüngliche
+Kennung und dieselben Argumente und darf keine zweite Buchung erzeugen.
+
+Kalender, Wetter und die einzelne ChatGPT-Verbindung bleiben optional.
+Einschaltung, aktuelle Freigabe, letzter Transportkontakt und tatsächlich
+übermittelte Antwort sind unterschiedliche Nachweise. Eine lokale Statusprüfung
+löst keinen Kalenderabgleich und keine Wetterabfrage aus. Wetter wird nicht
+mit dem ersten Termin eingeschaltet. Fremde ChatGPT-Connectoren werden nicht
+von der Android-App inventarisiert oder als Pflichtfunktion eingeführt.
 
 ## Bedienung und Listenfilter
 

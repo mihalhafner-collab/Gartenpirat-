@@ -3,6 +3,7 @@ package at.hausgarten.service
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,22 +41,22 @@ internal fun android.view.Window.nativeLightSystemBars() {
 fun HausGartenTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = Color(0xff1c6846), onPrimary = Color.White,
-            primaryContainer = Color(0xffd3ebda), onPrimaryContainer = Color(0xff102d20),
-            secondary = Color(0xff506354), onSecondary = Color.White,
-            secondaryContainer = Color(0xffdce9dc), onSecondaryContainer = Color(0xff1b3325),
-            tertiary = Color(0xff526246), onTertiary = Color.White,
-            tertiaryContainer = Color(0xffe1e9ce), onTertiaryContainer = Color(0xff24321d),
-            background = Color(0xfff6f8f4), onBackground = Color(0xff1a211c),
-            surface = Color(0xfffcfdf9), onSurface = Color(0xff1a211c),
-            surfaceVariant = Color(0xffe1e7dd), onSurfaceVariant = Color(0xff424c44),
-            surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xfff0f4ed),
-            surfaceContainer = Color(0xffeaf0e7), surfaceContainerHigh = Color(0xffe4eae1),
-            surfaceContainerHighest = Color(0xffdee5db), surfaceTint = Color(0xff1c6846),
-            outline = Color(0xff707b71), outlineVariant = Color(0xffbcc7bc),
-            error = Color(0xff9a2924), onError = Color.White,
-            errorContainer = Color(0xffffdad5), onErrorContainer = Color(0xff410005),
-            inverseSurface = Color(0xff2f3831), inverseOnSurface = Color(0xffedf3eb), inversePrimary = Color(0xff9ed5af)
+            primary = Color(0xff31566f), onPrimary = Color.White,
+            primaryContainer = Color(0xffe6eef3), onPrimaryContainer = Color(0xff23313a),
+            secondary = Color(0xff54616a), onSecondary = Color.White,
+            secondaryContainer = Color(0xffedf0f2), onSecondaryContainer = Color(0xff23313a),
+            tertiary = Color(0xff626e76), onTertiary = Color.White,
+            tertiaryContainer = Color(0xffedf1f2), onTertiaryContainer = Color(0xff23313a),
+            background = Color(0xfffbfaf7), onBackground = Color(0xff23313a),
+            surface = Color(0xffffffff), onSurface = Color(0xff23313a),
+            surfaceVariant = Color(0xffedf1f2), onSurfaceVariant = Color(0xff626e76),
+            surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xfffbfaf7),
+            surfaceContainer = Color(0xfff4f5f3), surfaceContainerHigh = Color(0xffedf0ef),
+            surfaceContainerHighest = Color(0xffe6eae9), surfaceTint = Color(0xff31566f),
+            outline = Color(0xff7b878c), outlineVariant = Color(0xffdce0df),
+            error = Color(0xff963d36), onError = Color.White,
+            errorContainer = Color(0xfff7e9e7), onErrorContainer = Color(0xff6d2420),
+            inverseSurface = Color(0xff23313a), inverseOnSurface = Color(0xfffbfaf7), inversePrimary = Color(0xffb8d0df)
         ),
         typography = Typography(),
         shapes = Shapes(extraSmall = RoundedCornerShape(4.dp), small = RoundedCornerShape(8.dp),
@@ -68,7 +69,7 @@ fun HausGartenTheme(content: @Composable () -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeActions(content: @Composable FlowRowScope.() -> Unit) {
-    Surface(tonalElevation = 3.dp) {
+    Surface(tonalElevation = 0.dp) {
         FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             verticalArrangement = Arrangement.spacedBy(4.dp), content = content)
@@ -102,13 +103,95 @@ internal fun NativeBackButton(onBack: () -> Unit) {
     }
 }
 
-/** Status remains readable without relying on color alone. */
+/** The same explicit status semantics are used in every feature. */
+internal enum class NativeStatusTone { Neutral, Running, Confirmed, Attention, Failed }
+
 @Composable
-internal fun NativeStatus(label: String) {
+internal fun NativeStatus(label: String, tone: NativeStatusTone = NativeStatusTone.Neutral) {
     if (label.isBlank()) return
-    Surface(color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        shape = MaterialTheme.shapes.small) {
-        Text(label, Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelLarge)
+    val (background, foreground, symbol) = when (tone) {
+        NativeStatusTone.Running -> Triple(Color(0xffe6eef5), Color(0xff28516c), "●")
+        NativeStatusTone.Confirmed -> Triple(Color(0xffe7f0e9), Color(0xff245d4c), "✓")
+        NativeStatusTone.Attention -> Triple(Color(0xfff8ebda), Color(0xff8a4b10), "!")
+        NativeStatusTone.Failed -> Triple(Color(0xfff7e9e7), Color(0xff963d36), "×")
+        NativeStatusTone.Neutral -> Triple(Color(0xffedf0f2), Color(0xff54616a), "·")
+    }
+    Surface(color = background, contentColor = foreground, shape = MaterialTheme.shapes.extraSmall) {
+        Text("$symbol $label", Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+            style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+/** Secondary left, primary right; large text may stack without hiding actions. */
+@Composable
+internal fun NativeActionBar(
+    primaryLabel: String,
+    onPrimary: () -> Unit,
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
+    enabled: Boolean = true,
+    secondaryEnabled: Boolean = true,
+    destructive: Boolean = false
+) {
+    val stacked = LocalDensity.current.fontScale > 1.3f
+    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
+        Column(Modifier.fillMaxWidth()) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            val primaryColors = if (destructive) ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ) else ButtonDefaults.buttonColors()
+            if (stacked) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (secondaryLabel != null && onSecondary != null) {
+                        OutlinedButton(onSecondary, Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                            enabled = secondaryEnabled) { Text(secondaryLabel) }
+                    }
+                    Button(onPrimary, Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        enabled = enabled, colors = primaryColors) { Text(primaryLabel) }
+                }
+            } else {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    if (secondaryLabel != null && onSecondary != null) {
+                        OutlinedButton(onSecondary, Modifier.weight(1f).heightIn(min = 56.dp),
+                            enabled = secondaryEnabled) { Text(secondaryLabel) }
+                    }
+                    Button(onPrimary, Modifier.weight(if (secondaryLabel == null) 1f else 1.25f)
+                        .heightIn(min = 56.dp), enabled = enabled, colors = primaryColors) {
+                        Text(primaryLabel)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Plain feature rows keep the same hierarchy without repeated card stacks. */
+@Composable
+internal fun NativeInfoRow(
+    title: String,
+    detail: String = "",
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier.fillMaxWidth().then(
+        if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+    )) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (onClick != null) Text("›", style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 

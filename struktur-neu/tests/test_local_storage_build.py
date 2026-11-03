@@ -44,7 +44,7 @@ class LocalStorageBuildTests(unittest.TestCase):
         self.assertNotIn('openConnection()', source('HttpTransport'))
 
     def test_unused_legacy_classes_and_writers_are_removed(self):
-        for name in ('FullBackupController', 'LocalBackupCoordinator', 'BackupJobRepository', 'BackupPortableFormat', 'BackupRecoveryExport', 'BackupRecoveryRepairService',
+        for name in ('BackupCrypto', 'BackupRecoveryKeyStore', 'EncryptedBackupArchive', 'FullBackupController', 'LocalBackupCoordinator', 'BackupJobRepository', 'BackupPortableFormat', 'BackupRecoveryExport', 'BackupRecoveryRepairService',
                      'DriveConnectionActivity', 'DrivePrimaryState', 'DriveTransferPool',
                      'ImmutableStateReference', 'LegacyBackupPolicy', 'OwnerReceiptRetention',
                      'ReceiptRetentionRules', 'SyncCommitRules', 'SyncMediaPlan',
@@ -53,8 +53,9 @@ class LocalStorageBuildTests(unittest.TestCase):
         for name in ('RetiredDriveAccount', 'RetiredDriveBackupUpload',
                      'RetiredBackupDriveClient', 'RetiredBackupScheduleRules'):
             self.assertFalse(any((FIXTURES / (name + ext)).exists() for ext in ('.java', '.kt')), name)
-        self.assertNotRegex(source('BackupCrypto'), r'\bencrypt\s*\(')
-        self.assertNotIn('repairAfterVerifiedArchive(', source('BackupRecoveryKeyStore'))
+        self.assertNotIn('com.google.crypto.tink', (ROOT/'android/app/build.gradle').read_text())
+        self.assertNotIn('recoveryCode', source('FullBackupActivity'))
+        self.assertNotIn('recoveryCode', source('BackupRestoreService'))
         self.assertNotIn('DriveConnectionActivity', (ROOT/'android/app/src/main/AndroidManifest.xml').read_text())
 
     def test_old_jobs_have_no_registered_service_or_scheduling(self):
@@ -107,7 +108,7 @@ class LocalStorageBuildTests(unittest.TestCase):
         service = source('PixelBackupService')
         self.assertIn('LocalBackupDataset.forStreaming(', service)
         self.assertIn('BackupDocumentTransfer.exportStream(', service)
-        self.assertNotIn('EncryptedBackupArchive.verifyPlain(', service)
+        self.assertNotIn('BackupArchive.verifyPlain(', service)
         for name in ('BackupRestoreService', 'RestoreStartupProtection'):
             self.assertIn('LocalBackupDataset.inspectStaged(', source(name))
 

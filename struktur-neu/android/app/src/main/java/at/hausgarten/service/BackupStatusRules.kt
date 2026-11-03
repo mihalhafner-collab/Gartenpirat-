@@ -90,7 +90,8 @@ object BackupStatusRules {
                 .put("external_storage_verified", proof != null && proof.optBoolean("external_storage_verified")).put("provider_verified_at", checked)
                 .put("remote_verified_at", if (job.optJSONObject("upload") == null) "" else job.getJSONObject("upload").optString("remoteVerifiedAt"))
                 .put("local_verified_at", archive?.optString("localVerifiedAt") ?: "").put("byte_size", archive?.optLong("size") ?: 0L)
-                .put("warning_count", job.optInt("warning_count")).put("encrypted", archive != null && archive.optString("archiveFormat") != "PLAIN_ZIP")
+                .put("warning_count", maxOf(job.optInt("warning_count"), job.optJSONArray("warnings")?.length() ?: 0)).put("warnings", job.optJSONArray("warnings") ?: JSONArray())
+                .put("counts", job.optJSONObject("counts") ?: JSONObject()).put("encrypted", archive != null && archive.optString("archiveFormat") != "PLAIN_ZIP")
                 .put("saved_proof_valid", proven && !badClock).put("cloud_confirmed", false))
         }
         ordered.sortWith(Comparator { a, b ->
@@ -126,6 +127,7 @@ object BackupStatusRules {
 
     @JvmStatic
     fun failureMessage(code: String): String {
+        if (code == "BACKUP_FORMAT_UNSUPPORTED") return "Dieses Sicherungsformat wird nicht unterstützt. Bitte eine unverschlüsselte lokale ZIP-Sicherung auswählen. Alte verschlüsselte Sicherungen können nicht mehr geöffnet werden."
         if (code == "BACKUP_DOCUMENT_REQUIRED" || code == "BACKUP_PIXEL_FOLDER_REQUIRED") return "Bitte über die Android-Dateiauswahl eine lokale Sicherungsdatei auf dem Pixel wählen."
         if (code == "BACKUP_INTERRUPTED") return "Die letzte Sicherung wurde unterbrochen. Bitte die Sicherung erneut öffnen und speichern."
         if (code == "BACKUP_RUNNER_BUSY") return "Eine Sicherung läuft bereits. Bitte auf deren Ergebnis warten."
@@ -155,7 +157,7 @@ object BackupStatusRules {
         if (state == "FAILED") return failureMessage(latest?.optString("last_error_code", "BACKUP_OPERATION_FAILED") ?: "BACKUP_OPERATION_FAILED") +
             if (earlier.isEmpty()) "" else " Früherer bestätigter Sicherungszeitpunkt: ${displayTime(earlier)}."
         if (status.optBoolean("clock_review_required")) return "Sicherungszeit nicht bestätigt. Bitte Gerätezeit und Sicherungsdatei prüfen."
-        if (state == "VERIFIED") return "Sicherung gespeichert und vollständig zurückgelesen: ${displayTime(earlier)}. Enthaltener Datenstand: ${displayTime(status.optString("last_local_captured_at"))}. Neuere Arbeit ist damit nicht automatisch gesichert." +
+        if (state == "VERIFIED") return (if (latest != null && latest.optInt("warning_count") > 0) "Gespeichert mit Einschränkungen · ${BackupInventory.warningSummary(latest.optJSONArray("warnings"), latest.optInt("warning_count"))}. " else "") + "Sicherung gespeichert und vollständig zurückgelesen: ${displayTime(earlier)}. Enthaltener Datenstand: ${displayTime(status.optString("last_local_captured_at"))}. Neuere Arbeit ist damit nicht automatisch gesichert." +
             if (latest != null && latest.optInt("warning_count") > 0) " Hinweise zum Ausgangsbestand: ${latest.optInt("warning_count")}. Details: data/backup-notes.json in der ZIP-Datei." else ""
         return "Noch keine vollständig gespeicherte und zurückgelesene Sicherung bestätigt. Eine Kopie auf demselben Pixel schützt nicht bei Verlust oder Defekt des Geräts."
     }

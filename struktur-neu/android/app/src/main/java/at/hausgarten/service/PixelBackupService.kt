@@ -47,7 +47,7 @@ class PixelBackupService internal constructor(private val context: Context, priv
             for (child in root.listFiles() ?: throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")) {
                 if (!Files.isSymbolicLink(child.toPath())) {
                     removed += if (child.isDirectory) child.walkTopDown().onEnter { !Files.isSymbolicLink(it.toPath()) }.filter { it.isFile && !Files.isSymbolicLink(it.toPath()) }.sumOf { it.length() } else child.length()
-                    EncryptedBackupArchive.removeOwned(child)
+                    BackupArchive.removeOwned(child)
                 } else Files.delete(child.toPath())
             }
             return removed
@@ -164,7 +164,7 @@ class PixelBackupService internal constructor(private val context: Context, priv
                 val captured = LocalBackupDataset.forStreaming(context, store, File(attempt, "snapshot"), captureIdentity)
                 progress.accept("Originaldateien sichern und ZIP vollständig zurücklesen …")
                 val archive = BackupDocumentTransfer.exportStream(selectedFile) { output ->
-                    EncryptedBackupArchive.writePlain(output, captured.metadata, captured.sources())
+                    BackupArchive.writePlain(output, captured.metadata, captured.sources())
                 }
                 captured to archive
             }
@@ -172,6 +172,7 @@ class PixelBackupService internal constructor(private val context: Context, priv
             val size = archive.getLong("size")
             val verifiedAt = Instant.now().toString()
             current.put("phase", "PROVIDER_VERIFIED").put("warning_count", captured.metadata.optInt("warning_count"))
+                .put("counts", captured.metadata.getJSONObject("counts")).put("warnings", captured.notes.getJSONArray("warnings"))
                 .put("archive", JSONObject().put("archiveFormat", "PLAIN_ZIP").put("sha256", sha).put("size", size)
                     .put("capturedAt", captured.metadata.getString("capturedAt")).put("localVerifiedAt", verifiedAt)
                     .put("mediaCoverage", "AVAILABLE_FILES_WITH_NOTES"))
@@ -205,5 +206,8 @@ class PixelBackupService internal constructor(private val context: Context, priv
     private fun result(record: JSONObject): JSONObject = JSONObject()
         .put("backup_id", record.getString("backupId")).put("saved", true).put("verified", true)
         .put("encrypted", false).put("byte_size", record.getJSONObject("archive").getLong("size"))
-        .put("warning_count", record.optInt("warning_count")).put("cloud_confirmed", false)
+        .put("warning_count", record.optInt("warning_count"))
+        .put("warnings", record.optJSONArray("warnings") ?: JSONArray()).put("counts", record.optJSONObject("counts") ?: JSONObject())
+        .put("captured_at", record.getJSONObject("archive").optString("capturedAt"))
+        .put("verified_at", record.getJSONObject("provider").optString("verified_at")).put("cloud_confirmed", false)
 }

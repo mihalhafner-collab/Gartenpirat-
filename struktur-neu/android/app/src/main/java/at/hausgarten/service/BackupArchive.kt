@@ -11,7 +11,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
 import java.io.OutputStream
-import java.io.PushbackInputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.security.MessageDigest
@@ -22,8 +21,8 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-/** Complete plaintext ZIP and legacy encrypted-container reader. No business activation. */
-object EncryptedBackupArchive {
+/** Complete local plaintext ZIP reader and writer. No business activation. */
+object BackupArchive {
     const val FORMAT_VERSION = 1
 
     // Metadata-only anti-exhaustion limit; payload/media have no fixed archive-size cap.
@@ -100,58 +99,32 @@ object EncryptedBackupArchive {
 
     @JvmStatic
     @Throws(Exception::class)
-    fun verifyAndStage(
-        encrypted: InputStream, recovery: String?, newDirectory: File, availableBytes: Long, supportedSchema: Int
-    ): Verified = verifyContainer(encrypted, recovery, newDirectory, availableBytes, supportedSchema, false)
-
-    @JvmStatic
-    @Throws(Exception::class)
-    fun verifyPlain(input: InputStream, newDirectory: File, availableBytes: Long, supportedSchema: Int): Verified =
-        verifyContainer(input, "", newDirectory, availableBytes, supportedSchema, true)
-
-    @JvmStatic
-    @Throws(Exception::class)
-    fun verifyArchive(input: InputStream, recovery: String?, directory: File, bytes: Long, schema: Int): Verified {
-        val source = PushbackInputStream(input, 4)
-        val magic = ByteArray(4)
-        var count = 0
-        try {
-            while (count < 4) {
-                val read = source.read(magic, count, 4 - count)
-                if (read == -1) break
-                count += read
-            }
-            source.unread(magic, 0, count)
-        } catch (failure: Throwable) {
-            try {
-                source.close()
-            } catch (closeFailure: Throwable) {
-                if (closeFailure !== failure) failure.addSuppressed(closeFailure)
-            }
-            throw failure
-        }
-        val unencrypted = count == 4 && magic[0] == 80.toByte() && magic[1] == 75.toByte() &&
-            magic[2] == 3.toByte() && magic[3] == 4.toByte()
-        return verifyContainer(source, recovery, directory, bytes, schema, unencrypted)
-    }
-
-    @Throws(Exception::class)
-    private fun verifyContainer(
-        encrypted: InputStream, recovery: String?, newDirectory: File, availableBytes: Long,
-        supportedSchema: Int, unencrypted: Boolean
-    ): Verified = encrypted.use { owned ->
+    fun verifyPlain(
+        input: InputStream, newDirectory: File, availableBytes: Long, supportedSchema: Int
+    ): Verified = input.use { owned ->
         if (availableBytes <= 0 || newDirectory.exists() || !newDirectory.mkdirs()) {
             throw IOException("RESTORE_STAGING_UNAVAILABLE")
         }
         var verified = false
-        val plain = File(newDirectory, "authenticated.zip")
+        val plain = File(newDirectory, "archive.zip")
         try {
-            // Read the AEAD stream to EOF, including the authenticated final segment, before
-            // parsing ZIP metadata. ZipInputStream alone could stop before that final tag.
-            val decrypted = if (unencrypted) owned else BackupCrypto.decrypt(owned, recovery)
-            decrypted.use { input ->
+            BufferedInputStream(owned).use { source ->
+                source.mark(4)
+                val signature = ByteArray(4)
+                var count = 0
+                while (count < signature.size) {
+                    val read = source.read(signature, count, signature.size - count)
+                    if (read == -1) break
+                    if (read == 0) continue
+                    count += read
+                }
+                if (count != 4 || signature[0] != 80.toByte() || signature[1] != 75.toByte() ||
+                    signature[2] != 3.toByte() || signature[3] != 4.toByte()) {
+                    throw IOException("BACKUP_FORMAT_UNSUPPORTED")
+                }
+                source.reset()
                 FileOutputStream(plain).use { output ->
-                    copy(input, BackupStorageBudget.guard(output, newDirectory), null, availableBytes)
+                    copy(source, BackupStorageBudget.guard(output, newDirectory), null, availableBytes)
                     output.fd.sync()
                 }
             }
@@ -230,6 +203,10 @@ object EncryptedBackupArchive {
 
     @Throws(Exception::class)
     private fun requireMetadata(manifest: JSONObject, supportedSchema: Int) {
+        if (manifest.optString("archiveProtection") != "NONE") {
+            throw IOException("BACKUP_FORMAT_UNSUPPORTED")
+        }
+
         if (manifest.getInt("formatVersion") != FORMAT_VERSION || manifest.getInt("schemaVersion") < 1 ||
             manifest.getInt("schemaVersion") > supportedSchema) {
             throw IOException("BACKUP_VERSION_UNSUPPORTED")

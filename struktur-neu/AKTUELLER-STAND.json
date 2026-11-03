@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-03T00:47:35Z",
-    "version_name": "1.57.2",
-    "version_code": 121,
-    "reported_base_git_sha": "f44797bfc412d2fea27236fd9ffd4bda6b234286",
-    "source_sha256": "9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae",
+    "observed_at_utc": "2026-11-03T11:09:56Z",
+    "version_name": "1.57.3",
+    "version_code": 122,
+    "reported_base_git_sha": "a86cb5e28065b79741536677c10293fa80cb01d5",
+    "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; exact source_sha256 recomputed from f44797bfc412d2fea27236fd9ffd4bda6b234286; ancestor of current main"
+    "repository_source_match": "PASS; current main aabb4d2323b426866a3940dd10234fb1458508e0 has exact installed production source SHA256; GitHub compare reports main identical"
   },
   "observed_installation_history": [
     {
@@ -31,48 +31,138 @@
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
       "repository_source_match": "PASS; exact source_sha256 recomputed from f44797bfc412d2fea27236fd9ffd4bda6b234286; ancestor of current main"
+    },
+    {
+      "observed_at_utc": "2026-11-03T11:09:56Z",
+      "version_name": "1.57.3",
+      "version_code": 122,
+      "reported_base_git_sha": "a86cb5e28065b79741536677c10293fa80cb01d5",
+      "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; current main aabb4d2323b426866a3940dd10234fb1458508e0 has exact installed production source SHA256; GitHub compare reports main identical"
     }
   ],
   "current_task": {
-    "name": "KISS/YAGNI-Bereinigung und zusätzlich beauftragte Heute-Ansicht",
-    "status": "CLEANUP_AND_ORIGINAL_SIGNED_APK_DELIVERED; EMULATOR_EXCLUDED_BY_OWNER",
-    "removed": [
-      "Rechnungserstellung, Zahlungsbuchung, Rechnungs-PDF und Versandzweige",
-      "Drive-Journalverteilung, Cloud-Feldabgleich, Hintergrund-Sync und alte Auftrags-Konfliktprüfung",
-      "Rechnungsautorität, Material-Rechnungssperre und ausführbare wiederhergestellte Rechnungs-/Zahlungseditoren",
-      "JSON-Teilsicherung, deaktivierter Teilrestore und ausschließlich zugehörige Verträge"
-    ],
-    "retained": [
-      "Kunden, Aufträge, Arbeit, Pausen und Abrechnungsmarkierungen für sevDesk",
-      "Angebote/Kostenvoranschläge mit PDF, Katalog, Material, Geräte und Fotos",
-      "Revier, Planung, Termine, Touren, Pflanzen, Papierkorb und lokale MCP-Werkzeuge",
-      "SQLite Schema 7; lokale ZIP-Sicherung, Integrität, Restore-Staging, Rollback und Prozessneustartschutz"
+    "name": "Vollständige Umsetzung NEUES Bedienkonzept Fassung 2",
+    "status": "IMPLEMENTED_SOURCE_AND_BUILD_VERIFIED; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN",
+    "concept": {
+      "title": "Haus und Garten NEUES Bedienkonzept – Fassung 2",
+      "pages": 38,
+      "html_url": "https://drive.google.com/file/d/1b-Utp7XoN0D30vFkjfmGqoixQWBx0blu/view?usp=drivesdk",
+      "pdf_url": "https://drive.google.com/file/d/1hfWK1XKNhk1Rn1C9BhIgjfnmcFxTGYGi/view?usp=drivesdk",
+      "sha256": "2aa51313631533d6f8674105e0893b6b2dced345bbb27569df33b39560e0e537",
+      "supersedes": "Älteres 29-seitiges Bedienkonzept; nicht als Umsetzungsbasis verwenden"
+    },
+    "scope": [
+      "Einheitliche blaue Gestaltung, fachliche Listen und feste Hauptaktionsposition",
+      "Heute, Kurzstart, Pause/Fortsetzen, Zeit stoppen, Abschluss und Nachtragen",
+      "Kontexterhalt, native Datum-/Zeitauswahl, Entwürfe und Textbausteine",
+      "Kunden, Planung, Angebote, offene Stunden, Geräte, Material, Fotos und Pflege",
+      "Optionale Verbindungen mit ehrlichen Prüfgrenzen, keine MCP-Katalogreparatur",
+      "Lokale ZIP-Sicherung, Vorschau/Rückfallkopie und Entfernung alter Tink-/Schlüsselpfade",
+      "KISS/YAGNI; gemeinsame Fachschreiber und SQLite-Schema/ZIP-Format erhalten"
     ],
     "verified": [
-      "Live Pixel 03.11.2026 00:47:35 UTC: at.hausgarten.service, 1.57.2/121, release, source_dirty=false, f44797bfc412d2fea27236fd9ffd4bda6b234286 / 9effca5a874b05c6fbc097adba1c06d273d3963bf3e4e092b0560ec2664075ae. Quellfingerabdruck aus Git reproduziert; Vorfahr von main. Keine produktiven Geschäftsdaten gelesen oder verändert.",
-      "Physisch entfernte Drive-/Rechnungs-/Zahlungsarchitektur einschließlich IssuedInvoiceRules-Aufrufketten, LocalAuthorityRules, LegacyPdfAttachment, InvoiceFileProvider, DriveJournalRules, PixelDriveState und SyncActionOrder. Gemeinsame Komponenten auf Angebote bzw. lokale Transaktionen reduziert. SQLite-Schema 7 und Backupformat erhalten.",
-      "check_current.py, compileReleaseKotlin, compileReleaseJavaWithJavac, assembleRelease, assembleReleaseAndroidTest und lintRelease erfolgreich. Acht synthetische JVM-Suiten: SQLite/JDBC 102, Wartung 97, Gerätefotos 54, Fachregeln 378, Angebote/Abrechnungsbeziehungen 27, MCP 555, ZIP/Integrität 111, Arbeit/Zubehör 53 Prüfungen.",
-      "CI 41553616164 auf 2f7af1e51084b3e0fd37fff2464fb33e7d8a41aa erfolgreich: Quellprüfung, Release-/Android-Testbau, Lint und alle JVM-Suiten; Emulator ausdrücklich ausgelassen. Produktions-Quellfingerabdruck 2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b.",
-      "Vor dem angeforderten Abbruch von 41550713484 bestanden bei genau diesem Produktions-Quellfingerabdruck: local_backup 51, local_backup_reopen 13, browser_checkpoint 79, browser_checkpoint_reopen 23, native_data 280, document_provider 75 und document_provider_reopen 17 Prüfungen. Einschließlich WAL-Lesetransaktion bei offenem Schreiber, SQLite-Schreiben/Neuöffnung, ZIP/Restore, Prozessneustart, Dateianbieter und veralteten Löschbelegen.",
-      "Heute-Ansicht mit vier Hauptbereichen, Tagesplanung, persistenter Nettozeit, Pause/Fortsetzen/Beenden und Erfassen-Menü implementiert. Kundennotiz ohne Änderung der Arbeitsaufzeichnungen, 200-%-Heute-Navigation, sechs Such-/Tastaturkombinationen sowie 35 Oberflächen und 15 Listen-Viewports im früheren Lauf 41539556826 erfolgreich; spätere Gesamt-UI-Abnahme nicht erfolgreich abgeschlossen.",
-      "Reale synthetische Kameraaufnahme in 41546960036 erfolgreich bis einschließlich Abbruch ohne Fotobuchung, tatsächlichem Auslösen/Rückgabe, Kundenzuordnung und dekodierbarem Original. Bestätigungsprüfung nach Activity-Neuerstellung korrigiert und kompiliert; auf Eigentümerwunsch nicht abschließend ausgeführt.",
-      "Originalsignierte 1.57.3/122 mit identischem Zertifikat a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8 geprüft. Paket unverändert, Versionscode höher als live installiert, keine Geschäftsdaten/Testklassen in der APK. Entfernte Klassen und alte Drive-/Rechnungszweige auch im DEX nicht vorhanden. Bestehende Drive-Datei ersetzt und vollständig bytegleich einschließlich SHA256/Signatur/BuildConfig zurückgelesen."
+      "Live-App 1.57.3/122 und Ausgangs-main aabb4d2323b426866a3940dd10234fb1458508e0 hatten denselben Produktionsquellfingerabdruck; ausschließlich daraus weiterentwickelt.",
+      "Verbindliche neue Drive-HTML vollständig gelesen und mit SHA256 gebunden; alle 38 Kapitel gegen die native Umsetzung geprüft. Das alte 29-seitige Konzept wurde nicht als Vorlage verwendet.",
+      "Einheitliche Gestaltung und Aktionsleisten; Direktstart, Pause/Fortsetzen, Stopp ohne Buchung, ausdrücklicher Abschluss, erhaltene Eingaben und lesende Ergebnisklärung umgesetzt.",
+      "Kunden, Planung, Angebote, offene Stunden, Geräte, Material, Fotos, Pflege sowie Daten-/Entwurfsansichten folgen den gemeinsamen Bedienmustern.",
+      "Optionale Verbindungen trennen Einrichtung, Freigabe, Transportkontakt und übermittelte Antwort. Kein Umbau des MCP-Werkzeugkatalogs; weiterhin 170 semantische UI-Aktionen.",
+      "Tink-Abhängigkeit, alter Entschlüsselungsleser und ausschließlich zugehörige Schlüsselpfade entfernt. Lokale ZIP-Integritätsprüfung, Schema 7, Vorschau, Rückfallkopie und geschützter Austausch erhalten; keine Benutzerdateien gelöscht.",
+      "Unabhängige Subagenten haben Konzeptabdeckung, Navigation, Ergebnisklärung, Verbindungszustände und Testquellen wiederholt gegengeprüft; konkrete Funde wurden korrigiert und erneut kontrolliert."
     ],
     "remaining": [
-      "Nutzernotiz 03.11.2026: Veralteten Drive-Bestätigungshinweis in AppointmentTools.kt (Werkzeugbeschreibung: Kalender-/Drive-Bestätigung getrennt beachten) entfernen. Gemeint ist der überholte Drive-Hinweis, nicht die Terminverwaltung oder die weiterhin geltenden Kalenderregeln. Entfernung noch nicht umgesetzt.",
-      "Eigentümernotiz 03.11.2026: In der live geprüften App 1.57.3/122 ist Tink Android 1.24.0 ausschließlich für den Leser älterer verschlüsselter Sicherungen enthalten, einschließlich Wiederherstellungsschlüssel-Abfrage. Aktuelle Sicherungen sind unverschlüsselte lokale ZIP-Dateien und benötigen Tink nicht. Ob tatsächlich ältere verschlüsselte Sicherungen existieren, wurde nicht geprüft. Für eine spätere Bereinigung festhalten: Tink-Abhängigkeit, Backup-Verschlüsselung, Leser verschlüsselter Archive, Schlüsselabfragen sowie sämtliche ausschließlich zugehörigen Verweise und Verknüpfungen vollständig entfernen, sodass diese Funktionen nicht wiederverwendet oder automatisch reaktiviert werden können. Letzte ausdrückliche Nutzeranweisung: Nichts umsetzen, nur eine Notiz erstellen. Daher kein laufender Ausbau- oder Löschauftrag; keine Implementierung, Abhängigkeit oder Gerätedatei geändert. Die aktuelle lokale ZIP-Sicherung bleibt erhalten."
+      "Native Laufzeitabnahme bleibt offen: große Schrift, Tastatur/System-Zurück, Kamera/Dateiauswahl, Prozessneustart und reale externe Verbindungen sind durch Quellprüfung und Kompilierung nicht belegt."
     ],
-    "today_view": "Bildvorlage umgesetzt: lokale Statusangabe, Tagesplanung, persistenter Timer, Pause/Beenden und Erfassen-Menü. Kundennotizen werden über den vorhandenen Kundeneditor gespeichert; ohne Einsatzbezug wird zuerst der Kunde gewählt. Vier Hauptbereiche und Android-Zurück bleiben erhalten.",
-    "emulator_decision": "03.11.2026: Eigentümer ausdrücklich „Lass emulator weg“. Laufende Läufe 41550713484 und 41552337601 abgebrochen; keine weitere Emulatorausführung für diesen Abschluss. Vorhandene Tests bleiben als ausdrücklich startbare Option erhalten.",
     "runtime_limitations": [
-      "Weitere Emulatorausführung am 03.11.2026 ausdrücklich abgewählt. Kein erfolgreicher vollständiger UI-/Gestenlauf für den endgültigen Stand. System-Randgeste im Telefonprofil 41544456189 erfolgreich; im Standard-Emulator 41550713484 zuletzt BACK_GESTURE_CLOSES_ONLY_PICKER fehlgeschlagen. Normale Android-Zurück-Implementierung nicht durch eine eigene Menü-Gestenlogik ersetzt.",
-      "Keine Installation, Migration, Wiederherstellung oder produktiven Funktionstests auf dem Pixel. Update und Datenerhalt auf dem produktiven Gerät deshalb nicht praktisch abgenommen."
-    ]
+      "Frühere ausdrückliche Emulator-Abwahl beachtet; keine Emulator- oder Pixel-Funktionstests ausgeführt.",
+      "Keine Installation, Migration, Wiederherstellung oder produktiven Geschäftsaktionen aus diesem Entwicklungsauftrag.",
+      "Der Kandidat ist nicht originalsigniert oder verteilt. Die zuletzt tatsächlich beobachtete Installation bleibt 1.57.3/122.",
+      "Arbeitsumgebung nach Unterbrechung wieder erreichbar; frühere Ausfallursache mangels Diagnoseprotokollen nicht nachweisbar."
+    ],
+    "updated_at_utc": "2026-11-03T13:40:48Z",
+    "chapter_coverage": [
+      {
+        "chapters": "1–6",
+        "scope": "Umfang, Gestaltung, Begriffe, Status und konsistente Daten",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "7–12",
+        "scope": "Heute, Direktstart, Timer, Abschluss, Bausteine und Nachtragen",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "13–16",
+        "scope": "Navigation, Kunden und Planung",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "17–24",
+        "scope": "Angebote, offene Stunden, Geräte, Material, Fotos und Pflege",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "25–26, 29",
+        "scope": "Einstellungen und optionale Pixel-Verbindung",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "27–28",
+        "scope": "Dokumentierter MCP-Prüfanhang; keine zusätzliche Android-Funktion",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "30–34",
+        "scope": "ZIP, Hinweise, Wiederherstellung, Speicher und Entwürfe",
+        "source_review": "PASS"
+      },
+      {
+        "chapters": "35–38",
+        "scope": "Ergebnisklärung, Bedienbarkeit und gemeinsame Fachpfade",
+        "source_review": "PASS; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN"
+      }
+    ],
+    "validation": {
+      "environment": "Selected Cloud Linux; JDK 17, Gradle 9.3.1, Android SDK/Build Tools 37; synthetic fixtures only",
+      "source": {
+        "command": "python3 -B tools/check_current.py",
+        "status": "PASS",
+        "python_tests": 61,
+        "semantic_actions": 170,
+        "operational_seed_rows": 0
+      },
+      "jvm": {
+        "command": "python3 -B tools/run-followup-java.py --tables",
+        "status": "PASS",
+        "suites": 8,
+        "assertions": 1387,
+        "timer_scenarios_included": 2000,
+        "scope": "Synthetic JVM; not Android transaction/provider or UI acceptance"
+      },
+      "android": {
+        "tasks": [
+          ":app:assembleRelease",
+          ":app:assembleReleaseAndroidTest",
+          ":app:lintRelease"
+        ],
+        "status": "PASS",
+        "lint_errors": 0,
+        "lint_warnings": 86,
+        "lint_hints": 30,
+        "artifact_privacy": "PASS; operational_seed_rows=0"
+      },
+      "independent_review": "PASS; repeated source review against all 38 chapters, separate connection and native test source reviews; no unresolved concrete findings",
+      "native_ui_execution": "NOT_RUN; Android test APK compiled only",
+      "pixel_acceptance": "NOT_RUN",
+      "original_signing": "NOT_PERFORMED",
+      "installation_migration_restore_distribution": "NOT_PERFORMED"
+    }
   },
   "open_checks": [
-    "Pixel zuletzt live am 03.11.2026 um 00:47:35 UTC auf 1.57.2/121 bestätigt; keine automatische Installation oder Datenänderung.",
-    "Weitere Emulatorläufe auf ausdrücklichen Eigentümerwunsch entfallen; vollständige UI-/Gestenabnahme nicht nachgewiesen. Native Backup-/Restore-/SQLite-Prüfungen des bereinigten Produktionscodes bestanden vor dem Abbruch.",
-    "Zentrale Pages meldeten page_not_found; aktuelle ausdrückliche Eigentümerentscheidungen und Repositoryregeln verwendet."
+    "Native UI-/Geräteabnahme NOT_RUN; Quellreview, JVM-Prüfungen, APK-Bau und Lint ersetzen diese nicht.",
+    "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
   "workflow": {
     "code": "android/app/src/main",
@@ -106,15 +196,18 @@
     },
     "identity_note": "Stable source/certificate/version/distribution identity is stored here; final Git commit and byte-level APK checksum are verified from the APK, avoiding self-referential release hashes in this status commit.",
     "temporary_signing_material_removed": true,
-    "installation": "NOT_PERFORMED; last verified Pixel remains 1.57.2/121",
+    "installation": "LIVE_PIXEL_CONFIRMED; 1.57.3/122 independently observed through current get_capabilities; no installation by this task",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.57.3",
-    "version_code": 122,
+    "version_name": "1.58.0",
+    "version_code": 123,
     "package_name": "at.hausgarten.service",
-    "status": "ORIGINAL_SIGNED_RELEASE_AND_DRIVE_READBACK_VERIFIED; EMULATOR_EXCLUDED_BY_OWNER",
-    "installation": "NO_AUTOMATIC_INSTALLATION; NOT_PERFORMED"
+    "status": "IMPLEMENTED; SOURCE_CHECKS_JVM_APK_BUILD_LINT_PASS; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN",
+    "installation": "NOT_PERFORMED; NOT_AUTHORIZED_BY_GENERAL_DEVELOPMENT_TASK",
+    "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+    "concept_binding": "NEUES Bedienkonzept Fassung 2; 38 pages; HTML SHA256 2aa51313631533d6f8674105e0893b6b2dced345bbb27569df33b39560e0e537",
+    "artifact": "LOCAL_UNSIGNED_RELEASE_AND_ANDROID_TEST_APK; NOT_DISTRIBUTED"
   }
 }

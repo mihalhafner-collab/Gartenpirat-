@@ -2,6 +2,7 @@ package at.hausgarten.service
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -68,7 +69,7 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
     }
     BackHandler(edit != null || selected.isNotEmpty()) {
         val open = edit
-        if (open != null) { open.retain(controller); edit = null; editorTarget = null } else selected = ""
+        if(open!=null) {open.retain(controller);edit=null;editorTarget=null;if(routeEditorOpened && controller.route.mode in setOf("new","edit")) controller.back()} else if(id.isNotEmpty()) controller.back() else selected=""
     }
     LaunchedEffect(id, controller.route.mode) {
         val restoring = editorTarget
@@ -79,10 +80,10 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
         }
     }
     when {
-        edit != null -> PlanningEditor(controller, repository, edit!!, onClose = { edit = null; editorTarget = null }, onSaved = { result ->
-            selected = result.optString("appointment_id", edit?.original?.optString("id").orEmpty()); edit = null; editorTarget = null
-        })
-        selected.isNotEmpty() -> PlanningDetail(controller, repository, selected, onBack = { selected = "" }, onEdit = { openEditor(selected) }, onAlternative = { proposal ->
+        edit != null -> PlanningEditor(controller,repository,edit!!,
+            onClose={edit=null;editorTarget=null;if(routeEditorOpened && controller.route.mode in setOf("new","edit")) controller.back()},
+            onSaved={edit=null;editorTarget=null;if(routeEditorOpened && controller.route.mode in setOf("new","edit")) controller.finishAction()})
+        selected.isNotEmpty() -> PlanningDetail(controller, repository, selected, onBack = { if(id.isNotEmpty()) controller.back() else selected = "" }, onEdit = { openEditor(selected) }, onAlternative = { proposal ->
             scope.launch {
                 try {
                     val result = controller.query("get_appointment", JSONObject().put("appointment_id", selected))
@@ -95,18 +96,18 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
                 catch (error: Exception) { failure = error.message.orEmpty() }
             }
         })
-        else -> listStates.SaveableStateProvider("planning-list") { PlanningList(controller, repository, weatherView, { weatherView = it }, onSelect = { selected = it }, onNew = { openEditor() }) }
+        else -> listStates.SaveableStateProvider("planning-list") { PlanningList(controller, repository, weatherView, { weatherView = it }, onSelect = { selected = it }, onNew = { repeats,date -> openEditor(seed=JSONObject(controller.route.args.toString()).put("_repeat",repeats).put("date",date)) }) }
     }
     if (failure.isNotEmpty()) Text(failure, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PlanningList(controller: NativeAppController, repository: NativeDataRepository, weatherView: Boolean, onWeather: (Boolean) -> Unit, onSelect: (String) -> Unit, onNew: () -> Unit) {
+private fun PlanningList(controller: NativeAppController, repository: NativeDataRepository, weatherView: Boolean, onWeather: (Boolean) -> Unit, onSelect: (String) -> Unit, onNew: (Boolean, String) -> Unit) {
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
     var anchor by rememberSaveable { mutableStateOf(controller.route.args.optString("date", controller.route.args.optString("date_from", planningDay().toString()))) }
-    var week by rememberSaveable { mutableStateOf(true) }
+    var week by rememberSaveable { mutableStateOf(false) }
     var search by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("") }
     var customer by rememberSaveable { mutableStateOf(controller.route.args.optString("customer_id")) }
@@ -134,44 +135,49 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     }
     val risks = remember(context?.toString()) { context?.optJSONArray("appointments")?.planningRows()?.associateBy { it.getJSONObject("appointment").optString("id") }.orEmpty() }
     val planningActions: @Composable () -> Unit = {
-        NativeActions {
-            Button(onNew, enabled = !busy) { Text(if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen") }
-            OutlinedButton({ scope.launch { busy = true; try {
-                val result = controller.query("request_calendar_sync", JSONObject().put("request_id", planningRequest()))
-                controller.message(if (result.optString("state") == "configuration_required") "Kalender oder Wetter zuerst einrichten." else "Prüfung angefordert. Abschluss hängt von Geräteplanung und Netz ab."); refresh++
-            } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() } finally { busy = false } } }, enabled = !busy) { Text("Jetzt prüfen") }
-        }
+        NativeActionBar(if(savedDraft) "Entwurf fortsetzen" else "Termin planen", {onNew(false,anchor)},enabled=!busy)
     }
     NativeSearchList("Suche", search, { search = it; offset = 0 },
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
-        if (!imeVisible) Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
+        if (!imeVisible) Column(Modifier.padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            NativeDateField("Datum",anchor,{anchor=it;offset=0},required=true)
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
+                TextButton({anchor=day.minusDays(if(week) 7 else 1).toString();offset=0}) {Text("‹")}
+                FilterChip(selected=!week,onClick={week=false;offset=0},label={Text("Tag")})
+                FilterChip(selected=week,onClick={week=true;offset=0},label={Text("Woche")})
+                TextButton({anchor=day.plusDays(if(week) 7 else 1).toString();offset=0}) {Text("›")}
+                TextButton({anchor=planningDay().toString();offset=0}) {Text("Heute")}
+            }
+            if (week) {
+                Text("${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}",style=MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                    for (index in 0..6) {
+                        val date=from.plusDays(index.toLong())
+                        FilterChip(selected=date==day,onClick={anchor=date.toString();week=false;offset=0},label={Text(date.format(DateTimeFormatter.ofPattern("EE d",Locale.GERMAN)))})
+                    }
+                }
+            }
+        }
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
           if (!imeVisible && search.isBlank()) item {
               NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer))
-              FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                  TextButton({ controller.navigate("tour", args = JSONObject().put("date", anchor).put("customer_id", customer)) }) { Text("Tagestour") }
-                  TextButton({ controller.navigate("visits", args = JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }) { Text("Einsätze") }
-                  TextButton({ onWeather(!weatherView) }) { Text(if (weatherView) "Termine" else "Wetterhinweise") }
-              }
+              NativeInfoRow("Tagestour", "Reihenfolge und Zeitfenster für ${nativeDisplayDate(day.toString())}",onClick={controller.navigate("tour",args=JSONObject().put("date",anchor).put("customer_id",customer))})
+              NativeInfoRow("Wiederholungen", "Konkrete Vorschläge vor dem Anlegen prüfen",onClick={onNew(true,anchor)})
+              NativeInfoRow("Kalender prüfen","Abgleich und Belegtzeiten gesondert prüfen",onClick={scope.launch {
+                  busy=true
+                  try {
+                      val result=controller.query("request_calendar_sync",JSONObject().put("request_id",planningRequest()))
+                      controller.message(if(result.optString("state")=="configuration_required") "Kalender zuerst einrichten." else "Kalenderprüfung angefordert. Der Abgleich ist erst nach bestätigtem Ergebnis abgeschlossen.")
+                      refresh++
+                  } catch(cancelled:CancellationException){throw cancelled} catch(error:Exception){failure=error.message.orEmpty()} finally{busy=false}
+              }})
+              NativeInfoRow(if(weatherView) "Termine ansehen" else "Wetter",if(weatherView) "Zur lokalen Planung" else "Optional · zuletzt geprüfte Angaben ansehen",onClick={onWeather(!weatherView)})
+              Text("Geplante Einsätze sind keine geleisteten Stunden.",style=MaterialTheme.typography.bodySmall)
           }
           if (!imeVisible && search.isBlank()) item { NativeRelatedList(controller, "visits", "Geplante Einsätze", JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }
           if (filtersOpen) item(key = "native-list-filters") { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(if (weatherView) "Wetter & Einsätze" else "Planung", style = MaterialTheme.typography.headlineSmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                OutlinedButton({ anchor = day.minusDays(if (week) 7 else 1).toString(); offset = 0 }) { Text("‹") }
-                TextButton({ anchor = planningDay().toString(); offset = 0 }) { Text("Heute") }
-                OutlinedButton({ anchor = day.plusDays(if (week) 7 else 1).toString(); offset = 0 }) { Text("›") }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = !week, onClick = { week = false; offset = 0 }, label = { Text("Tag") })
-                FilterChip(selected = week, onClick = { week = true; offset = 0 }, label = { Text("Woche") })
-                Text(if (from == to) nativeDisplayDate(from.toString()) else "${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}", Modifier.padding(top = 12.dp))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = !weatherView, onClick = { onWeather(false) }, label = { Text("Termine") })
-                FilterChip(selected = weatherView, onClick = { onWeather(true) }, label = { Text("Wetter") })
-            }
             TextButton({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender & Wetter") }
             PlanningPicker("Kundenfilter", "customers", customer, controller, repository, allowEmpty = true) { customer = it?.id.orEmpty(); offset = 0 }
             PlanningChoice("Status", status, linkedMapOf("" to "Alle") + planningStatuses) { status = it; offset = 0 }
@@ -179,7 +185,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
             if (search.isNotEmpty() || customer.isNotEmpty() || status.isNotEmpty()) TextButton({ search = ""; customer = ""; status = ""; offset = 0 }) { Text("Filter zurücksetzen") }
             val integration = context?.optJSONObject("integration")
             if (integration != null) Text("Google Kalender: " + integration.optString("calendar_state", "unbekannt") + " · Belegtzeiten: " + integration.optString("calendar_busy_state", "ungeprüft"))
-            if (weatherView) Text("Wetter optional · gewerbliche API-Nutzung ungeklärt. Fehlende oder veraltete Wetterdaten bleiben unbekannt. Ein Wetterhinweis verschiebt keinen Termin.")
+            if (weatherView) Text("Fehlende oder veraltete Wetterdaten bleiben unbekannt. Ein Wetterhinweis verschiebt keinen Termin.")
           } }
             if (failure.isNotEmpty()) item { Text(failure, color = MaterialTheme.colorScheme.error) }
             if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
@@ -192,7 +198,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                         NativeStatus(planningStatuses[row.status] ?: row.status)
                         val entry = risks[row.id]; val risk = entry?.optJSONObject("weather")
                         if (weatherView) {
-                            Text(risk?.optString("label") ?: "Wetter im Detail prüfen")
+                            Text(if(risk?.optString("checked_at").isNullOrBlank()) "Wetter noch nicht geprüft" else risk?.optString("label").orEmpty())
                             if (risk?.optString("location_precision") == "locality") Text("Ortsvorhersage · " + risk.optString("location_area"))
                             val reasons = risk?.optJSONArray("reasons"); if (reasons != null) for (i in 0 until reasons.length()) Text(reasons.optString(i), style = MaterialTheme.typography.bodySmall)
                         }
@@ -248,18 +254,18 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
                         val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", saved.getString("tool")).put("original_args", saved.getJSONObject("args")))
                         if (proof.optString("state") == "confirmed") {
                             controller.removeDraft(key); controller.message("Der bereits gespeicherte Vorgang wurde gefunden.")
-                            if (action.first == "delete_entity") onBack() else if (action.first == "start_work") controller.navigate("today") else refresh++
+                            if (action.first == "delete_entity") onBack() else refresh++
                             return@launch
                         }
                         require(proof.optString("state") != "content_removed") { "Der ursprüngliche Beleg wurde entfernt. Aktuellen Termin prüfen; keine erneute Übernahme." }
-                        if (saved.optBoolean("_restore_action_review_required")) error("Diese unbestätigte Aktion stammt aus einem anderen Gerätestand. Aktuellen Termin und Vorgang zuerst prüfen; keine automatische Wiederholung.")
+                        throw IllegalStateException("Speichern weiterhin nicht bestätigt. Der ursprüngliche Vorgang bleibt erhalten; es wurde nur sein Ergebnis geprüft.")
                     }
                     val args = saved?.optJSONObject("args") ?: action.second.planningCopy().put("request_id", planningRequest())
                     controller.saveDraft(key, JSONObject().put("tool", action.first).put("args", args)); controller.flushDrafts()
                     mutationAttempted = true
                     controller.query(action.first, args); controller.removeDraft(key)
-                    controller.message(when (action.first) { "start_work" -> "Zeiterfassung für diesen Einsatz gestartet."; "cancel_appointment" -> "Termin lokal abgesagt. Kalenderabgleich folgt."; "resolve_calendar_conflict" -> "Entscheidung gespeichert. Google-Version wird vor Verarbeitung erneut geprüft."; "acknowledge_weather_alert" -> "Kenntnisnahme gespeichert. Termin bleibt unverändert."; else -> "Eintrag im Papierkorb. Original bleibt erhalten." })
-                    if (action.first == "delete_entity") onBack() else if (action.first == "start_work") controller.navigate("today") else refresh++
+                    controller.message(when (action.first) { "cancel_appointment" -> "Termin lokal abgesagt. Kalenderabgleich folgt."; "resolve_calendar_conflict" -> "Entscheidung gespeichert. Google-Version wird vor Verarbeitung erneut geprüft."; "acknowledge_weather_alert" -> "Kenntnisnahme gespeichert. Termin bleibt unverändert."; else -> "Eintrag im Papierkorb. Original bleibt erhalten." })
+                    if (action.first == "delete_entity") onBack() else refresh++
                 } catch (cancelled: CancellationException) { throw cancelled }
                 catch (error: Exception) {
                     if (mutationAttempted && error is NativeCallFailure && error.detail.optString("commit_state") == "not_committed") controller.removeDraft(key)
@@ -273,9 +279,10 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(row.optString("title", "Termin"), style = MaterialTheme.typography.headlineSmall)
             Text(planningStamp(row.optString("starts_at")) + " – " + if (AppointmentRules.openEnd(row)) "Ende offen" else planningStamp(row.optString("ends_at")))
-            Text(planningStatuses[row.optString("status")] ?: row.optString("status"))
+            NativeStatus(planningStatuses[row.optString("status")] ?: row.optString("status"))
             Text(row.optString("location").ifEmpty { "Einsatzort offen" })
-            Text("Geplant: " + (if (result.isNull("planned_hours")) "offen" else nativeNumber(result.opt("planned_hours")) + " h") + " · tatsächlich erfasst: " + nativeNumber(result.optDouble("actual_hours", 0.0)) + " h")
+            NativeInfoRow("Geplante Zeit",if(result.isNull("planned_hours")) "Ende offen" else nativeNumber(result.opt("planned_hours")) + " Std.")
+            NativeInfoRow("Tatsächlich erfasste Arbeit",nativeNumber(result.optDouble("actual_hours",0.0)) + " Std.")
             if (row.optInt("break_minutes") > 0) Text("Geplante Pause: ${row.optInt("break_minutes")} min")
             if (row.optInt("travel_minutes") > 0) Text("Anfahrtpuffer: ${row.optInt("travel_minutes")} min")
             if (row.optString("notes").isNotEmpty()) Text(row.optString("notes"))
@@ -284,6 +291,14 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
             PlanningCollisions(collisions)
             HorizontalDivider()
             PlanningWeather(risk)
+            OutlinedButton({ scope.launch {
+                busy=true
+                try {
+                    val checked=controller.query("request_weather_refresh",JSONObject().put("request_id",planningRequest()))
+                    controller.message(if(checked.optString("state")=="configuration_required") "Wetter zuerst unter Kalender und Wetter einrichten." else "Wetterprüfung angefordert. Aktuelle Angaben sind erst nach bestätigtem Prüfstand verfügbar.")
+                    refresh++
+                } catch(cancelled:CancellationException){throw cancelled} catch(error:Exception){failure=error.message.orEmpty()} finally{busy=false}
+            } },enabled=!busy) {Text("Wetter prüfen")}
             OutlinedButton({ suggestions = true }, enabled = !busy) { Text("Alternative suchen") }
             if (risk.optString("alert_hash").isNotEmpty()) OutlinedButton({ confirm = Triple("acknowledge_weather_alert", JSONObject().put("appointment_id", id).put("expected_alert_hash", risk.getString("alert_hash")), "Diesen Wetterhinweis als geprüft markieren? Der Termin bleibt unverändert.") }, enabled = !busy) { Text("Wetterhinweis geprüft") }
             HorizontalDivider()
@@ -309,16 +324,28 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
                 } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() }
             } }, enabled = !busy) { Text("In Papierkorb") }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
+            TextButton(onBack){Text("Zur Planung")}
         }
-        NativeActions {
-            TextButton(onBack) { Text("Zur Planung") }
-            OutlinedButton(onEdit, enabled = !busy) { Text("Bearbeiten") }
-            if (row.optString("status") !in listOf("draft", "completed", "cancelled")) Button({
-                val args = JSONObject().put("appointment_id", id).put("customer_id", row.getString("customer_id")).put("location", row.optString("location")).put("activity", row.optString("title")).put("work_date", planningDay().toString())
-                if (row.optString("order_id").isNotEmpty()) args.put("order_id", row.getString("order_id"))
-                confirm = Triple("start_work", args, "Zeiterfassung für diesen Einsatz starten? Eine bereits laufende oder noch offene Erfassung muss zuerst abgeschlossen werden.")
-            }, enabled = !busy) { Text("Arbeit starten") }
-        }
+        val canStart=row.optString("status") !in listOf("draft","completed","cancelled")
+        NativeActionBar(
+            primaryLabel=if(canStart) "Arbeit starten" else "Termin bearbeiten",
+            onPrimary={if(!canStart) onEdit() else if(!busy) {
+                val args=JSONObject().put("appointment_id",id).put("customer_id",row.getString("customer_id")).put("location",row.optString("location")).put("activity",row.optString("title")).put("work_date",planningDay().toString())
+                if(row.optString("order_id").isNotEmpty()) args.put("order_id",row.getString("order_id"))
+                busy=true
+                scope.launch {
+                    try {
+                        controller.startKnownWork(args)
+                        controller.navigate("timer",args=args)
+                    } catch(cancelled:CancellationException){throw cancelled}
+                    catch(error:Exception) {
+                        controller.navigate("timer",args=args)
+                        controller.message(error.message ?: "Arbeitsstart nicht bestätigt. Ursprünglichen Vorgang prüfen.")
+                    } finally{busy=false}
+                }
+            }},
+            secondaryLabel=if(canStart) "Termin bearbeiten" else "Zur Planung",onSecondary={if(canStart) onEdit() else onBack()},enabled=!busy,secondaryEnabled=!busy
+        )
     }
 }
 
@@ -334,7 +361,9 @@ private fun PlanningCollisions(report: JSONObject?) {
 
 @Composable
 private fun PlanningWeather(risk: JSONObject) {
-    Text(risk.optString("label", "Wetter unbekannt"), style = MaterialTheme.typography.titleMedium)
+    val checked = risk.optString("checked_at").isNotBlank()
+    NativeStatus(if(checked) "Wetter geprüft" else "Wetter noch nicht geprüft",if(checked) NativeStatusTone.Neutral else NativeStatusTone.Attention)
+    Text(if(checked) risk.optString("label", "Wetter unbekannt") else "Ohne aktuelle Prüfung gibt es keine Wetteraussage.",style=MaterialTheme.typography.titleMedium)
     Text("Einsatzgebiet: " + risk.optString("location_area", risk.optString("location_label", "Adresse fehlt")))
     if (risk.optString("location_notice").isNotEmpty()) Text(risk.optString("location_notice"))
     val reasons = risk.optJSONArray("reasons"); if (reasons != null) for (i in 0 until reasons.length()) Text(reasons.optString(i))
@@ -343,8 +372,8 @@ private fun PlanningWeather(risk: JSONObject) {
     if (risk.optBoolean("forecast_available") && risk.optString("forecast_valid_until").isNotEmpty()) Text("Vorhersage reicht bis " + planningStamp(risk.optString("forecast_valid_until")) + if (risk.optBoolean("forecast_complete")) "" else " · teilweise unvollständig")
     if (risk.optString("forecast_notice").isNotEmpty()) Text(risk.optString("forecast_notice"))
     if (risk.optBoolean("uncertain_long_range")) Text("Früher Wettertrend: erhöhte Unsicherheit. Wird näher am Termin erneut geprüft.")
-    Text(risk.optString("source", OpenMeteoWeatherSource.ATTRIBUTION), style = MaterialTheme.typography.bodySmall)
-    Text("Wetter optional · gewerbliche API-Nutzung ungeklärt. Open-Meteo stellt den öffentlichen Endpunkt für nichtkommerzielle Nutzung bereit. Die lokale Planung funktioniert ohne Wetter. Bedingungen: https://open-meteo.com/en/terms", style = MaterialTheme.typography.bodySmall)
+    if(checked) Text(risk.optString("source",OpenMeteoWeatherSource.ATTRIBUTION),style=MaterialTheme.typography.bodySmall)
+    Text("Die lokale Planung und Arbeitserfassung bleiben ohne Wetter verwendbar.",style=MaterialTheme.typography.bodySmall)
 }
 
 private class PlanningEdit(
@@ -403,10 +432,10 @@ private class PlanningEdit(
             for ((field, value) in mapOf("timezone" to "Europe/Vienna", "status" to "tentative", "purpose" to "work", "weather_profile" to "general", "travel_minutes" to 0, "break_minutes" to 0)) if (!values.has(field)) values.put(field, if (seed.has(field)) seed.get(field) else value)
             for (field in arrayOf("latitude", "longitude")) if (!values.has(field)) values.put(field, seed.opt(field) ?: JSONObject.NULL)
             val start = original.optString("starts_at", seed.optString("starts_at"))
-            values.put("local_start", if (start.isEmpty()) planningDay().toString() + "T09:00" else planningLocal(start))
+            values.put("local_start", if (start.isEmpty()) seed.optString("date", planningDay().toString()) + "T" else planningLocal(start))
             val end = original.optString("ends_at", seed.optString("ends_at"))
             values.put("end_open", end.isEmpty()).put("duration_hours", if (start.isEmpty() || end.isEmpty()) "" else (Duration.between(AppointmentRules.instant(start), AppointmentRules.instant(end)).toMinutes() / 60.0).toString())
-                .put("utc_offset", "").put("occurrences", 1).put("interval_weeks", 1)
+                .put("utc_offset", "").put("occurrences", 1).put("interval_weeks", 1).put("_repeat",seed.optBoolean("_repeat"))
             return PlanningEdit(key, original, values, result?.optString("record_hash") ?: "", planningRequest())
         }
         fun restore(key: String, saved: JSONObject): PlanningEdit = PlanningEdit(key, saved.getJSONObject("original"), saved.getJSONObject("values"), saved.optString("record_hash"), saved.getString("request_id"), saved.optJSONObject("pending"), saved.optBoolean("restore_review_required") || saved.optBoolean("_restore_action_review_required"), saved.optBoolean("dirty"))
@@ -422,8 +451,69 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
     var locationConfirmation by remember { mutableStateOf(false) }
     var suggestions by remember { mutableStateOf(false) }
     var collision by remember { mutableStateOf<JSONObject?>(null) }
+    var more by rememberSaveable(edit.key) {mutableStateOf(false)}
+    var repeatOpen by rememberSaveable(edit.key) {mutableStateOf(edit.values.optBoolean("_repeat"))}
+    var seriesReview by remember {mutableStateOf<List<JSONObject>?>(null)}
     val values = edit.values; val existing = edit.original.optString("id").isNotEmpty(); val enabled = !busy && edit.pending == null
     fun change(key: String, value: Any) { edit.change(key, value, controller); failure = "" }
+    fun save(seriesConfirmed:Boolean=false) {
+        if(busy) return
+        if(edit.pending==null && !existing && planningText(values,"occurrences").toIntOrNull()?.let{it>1}==true && !seriesConfirmed) {
+            try {
+                val candidate=edit.businessValues()
+                val count=planningText(values,"occurrences").toInt()
+                val interval=planningText(values,"interval_weeks").toInt()
+                require(count in 2..26 && interval in 1..12) {"Wiederholung: 2 bis 26 Einsätze im Abstand von 1 bis 12 Wochen wählen."}
+                val zone=candidate.getString("timezone")
+                val start=AppointmentRules.instant(candidate.getString("starts_at")).atZone(ZoneId.of(zone)).toLocalDateTime()
+                val end=if(AppointmentRules.openEnd(candidate)) null else AppointmentRules.instant(candidate.getString("ends_at")).atZone(ZoneId.of(zone)).toLocalDateTime()
+                seriesReview=(0 until count).map {index ->
+                    val weeks=index.toLong()*interval
+                    candidate.planningCopy().put("starts_at",AppointmentRules.local(start.plusWeeks(weeks).toString(),zone,"").toString())
+                        .put("ends_at",if(end==null) "" else AppointmentRules.local(end.plusWeeks(weeks).toString(),zone,"").toString())
+                }
+            } catch(error:Exception){failure=error.message.orEmpty()}
+            return
+        }
+                busy = true
+                scope.launch {
+                    var mutationAttempted = false
+                    try {
+                        val prior = edit.pending
+                        if (prior != null) {
+                            val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", prior.getString("tool")).put("original_args", prior.getJSONObject("args")))
+                            if (proof.optString("state") == "confirmed") {
+                                controller.removeDraft(edit.key); edit.pending = null
+                                controller.message("Der bereits gespeicherte Termin wurde gefunden.")
+                                onSaved(proof.optJSONObject("result") ?: proof); return@launch
+                            }
+                            require(proof.optString("state") != "content_removed") { "Der ursprüngliche Beleg wurde entfernt. Aktuellen Termin prüfen; keine erneute Übernahme." }
+                            throw IllegalStateException("Speichern weiterhin nicht bestätigt. Die ursprünglichen Angaben bleiben erhalten; es wird nur das Ergebnis geprüft.")
+                        }
+                        require(!edit.restoreReview) { "Gespeicherten Stand und alte Aktion nach Wiederherstellung zuerst prüfen. Kein eindeutiger Speicherbeleg vorhanden." }
+                        val action = withContext(Dispatchers.IO) { edit.freeze() }
+                        if (action == null) { controller.removeDraft(edit.key); onClose(); return@launch }
+                        edit.dirty = true; edit.retain(controller); controller.flushDrafts()
+                        mutationAttempted = true
+                        val result = controller.query(action.getString("tool"), action.getJSONObject("args"))
+                        controller.removeDraft(edit.key); edit.pending = null
+                        controller.message("Termin auf diesem Gerät gespeichert. Kalenderübertragung wird gesondert geprüft."); onSaved(result)
+                    } catch (cancelled: CancellationException) { throw cancelled }
+                    catch (error: Exception) {
+                        if (mutationAttempted && error is NativeCallFailure && error.detail.optString("commit_state") == "not_committed") edit.pending = null
+                        edit.retain(controller); failure = error.message.orEmpty()
+                    } finally { busy = false }
+                }
+
+    }
+    seriesReview?.let {proposals ->
+        AlertDialog(onDismissRequest={seriesReview=null},title={Text("Wiederholungen prüfen")},text={
+            Column(Modifier.heightIn(max=460.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                Text("${proposals.size} Vorschläge · noch nicht gespeichert. Jeder Termin wird beim Anlegen auf Überschneidungen geprüft; bestehende Termine werden nicht verschoben.")
+                proposals.forEachIndexed {index,row -> NativeInfoRow("${index+1}. ${planningStamp(row.getString("starts_at"))}",if(AppointmentRules.openEnd(row)) "Ende offen" else "Bis ${planningStamp(row.getString("ends_at"))}")}
+            }
+        },dismissButton={TextButton({seriesReview=null}){Text("Zurück")}},confirmButton={TextButton({seriesReview=null;save(true)}){Text("${proposals.size} Termine anlegen")}})
+    }
     LaunchedEffect(values.toString()) {
         collision = try {
             val candidate = edit.businessValues().put("id", edit.original.optString("id", "ui-draft"))
@@ -462,7 +552,7 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
                 change("customer_id", row?.id.orEmpty()); change("order_id", "")
                 change("location", row?.address.orEmpty()); change("latitude", JSONObject.NULL); change("longitude", JSONObject.NULL)
             }
-            PlanningField("Datum und Startzeit (z. B. 2027-05-19T09:00)", planningText(values, "local_start"), { change("local_start", it) }, enabled)
+            NativeDateTimeField("Geplanter Beginn",planningText(values,"local_start"),{change("local_start",it)},required=true,enabled=enabled)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 for ((hours, label) in listOf("1" to "1 Std", "2" to "2 Std", "4" to "Halber Tag")) OutlinedButton({ change("duration_hours", hours); change("end_open", false) }, enabled = enabled) { Text(label) }
             }
@@ -484,15 +574,22 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
             PlanningChoice("Status", values.optString("status"), planningStatuses, enabled) { change("status", it) }
             PlanningChoice("Zweck", values.optString("purpose"), linkedMapOf("work" to "Arbeitseinsatz", "inspection" to "Besichtigung"), enabled) { change("purpose", it) }
             PlanningField("Einsatzort", values.optString("location"), { change("location", it); change("latitude", JSONObject.NULL); change("longitude", JSONObject.NULL) }, enabled)
-            PlanningChoice("Wetterprofil", values.optString("weather_profile"), planningProfiles, enabled) { change("weather_profile", it) }
-            Text("Die Einsatzadresse wird bei der Wetterprüfung gesucht. Koordinaten sind nur bei unklarer Adresse nötig.")
-            for ((key, label) in listOf("latitude" to "Breitengrad", "longitude" to "Längengrad", "travel_minutes" to "Anfahrtpuffer vor dem Einsatz (Minuten)", "break_minutes" to "Geplante Pause (Minuten)", "flexible_from" to "Frühester vereinbarter Arbeitstag (JJJJ-MM-TT)", "flexible_until" to "Spätester vereinbarter Arbeitstag (JJJJ-MM-TT)", "utc_offset" to "Bei Zeitumstellung: UTC-Offset (z. B. +02:00)"))
-                PlanningField(label, planningText(values, key), { change(key, it) }, enabled)
-            OutlinedButton({ locationConfirmation = true }, enabled = enabled) { Text("Ich bin am Einsatzort – Standort übernehmen") }
-            if (!existing) {
-                Text("Termin wiederholen (optional)", style = MaterialTheme.typography.titleMedium)
-                PlanningField("Anzahl Einsätze (1–26)", planningText(values, "occurrences"), { change("occurrences", it) }, enabled)
-                PlanningField("Abstand in Wochen (1–12)", planningText(values, "interval_weeks"), { change("interval_weeks", it) }, enabled)
+            NativeInfoRow("Kalender und Wetter", "Zusatzangaben bei Bedarf",onClick={more=!more})
+            if(more) {
+                PlanningChoice("Wetterprofil",values.optString("weather_profile"),planningProfiles,enabled){change("weather_profile",it)}
+                Text("Ungeprüftes Wetter bleibt unbekannt. Für eine Wetterprüfung wird die Einsatzadresse verwendet.")
+                for((key,label) in listOf("latitude" to "Breitengrad (optional)","longitude" to "Längengrad (optional)","travel_minutes" to "Anfahrtpuffer (Minuten)","break_minutes" to "Geplante Pause (Minuten)")) PlanningField(label,planningText(values,key),{change(key,it)},enabled)
+                NativeDateField("Frühester vereinbarter Arbeitstag",planningText(values,"flexible_from"),{change("flexible_from",it)},enabled=enabled)
+                NativeDateField("Spätester vereinbarter Arbeitstag",planningText(values,"flexible_until"),{change("flexible_until",it)},enabled=enabled)
+                PlanningField("Bei doppelter Uhrzeit: UTC-Offset",planningText(values,"utc_offset"),{change("utc_offset",it)},enabled)
+                OutlinedButton({locationConfirmation=true},enabled=enabled){Text("Standort am Einsatzort übernehmen")}
+            }
+            if(!existing) {
+                NativeInfoRow("Wiederholungen", "Vorschläge vor dem Anlegen prüfen",onClick={repeatOpen=!repeatOpen})
+                if(repeatOpen) {
+                    PlanningField("Anzahl Einsätze (1–26)",planningText(values,"occurrences"),{change("occurrences",it)},enabled)
+                    PlanningField("Abstand in Wochen (1–12)",planningText(values,"interval_weeks"),{change("interval_weeks",it)},enabled)
+                }
             }
             OutlinedTextField(values.optString("notes"), { change("notes", it) }, label = { Text("Notizen") }, enabled = enabled, modifier = Modifier.fillMaxWidth(), minLines = 3)
             Text("Bestätigt bedeutet: Kundenzusage liegt vor. Es wird keine Nachricht gesendet. Keine Ist-Stunden oder Rechnung.", style = MaterialTheme.typography.bodySmall)
@@ -510,39 +607,12 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
             if (failure.isNotEmpty()) Text(failure + " Dein Entwurf bleibt erhalten.", color = MaterialTheme.colorScheme.error)
             TextButton({ if (edit.pending == null) discard = true else failure = "Zuerst dieselbe Speicherung erneut prüfen." }, enabled = !busy) { Text("Ungespeicherten Entwurf verwerfen") }
         }
-        NativeActions {
-            OutlinedButton({ edit.retain(controller); onClose() }, enabled = !busy) { Text("Zur Planung") }
-            Button({
-                busy = true
-                scope.launch {
-                    var mutationAttempted = false
-                    try {
-                        val prior = edit.pending
-                        if (prior != null) {
-                            val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", prior.getString("tool")).put("original_args", prior.getJSONObject("args")))
-                            if (proof.optString("state") == "confirmed") {
-                                controller.removeDraft(edit.key); edit.pending = null
-                                controller.message("Der bereits gespeicherte Termin wurde gefunden.")
-                                onSaved(proof.optJSONObject("result") ?: proof); return@launch
-                            }
-                            require(proof.optString("state") != "content_removed") { "Der ursprüngliche Beleg wurde entfernt. Aktuellen Termin prüfen; keine erneute Übernahme." }
-                        }
-                        require(!edit.restoreReview) { "Gespeicherten Stand und alte Aktion nach Wiederherstellung zuerst prüfen. Kein eindeutiger Speicherbeleg vorhanden." }
-                        val action = withContext(Dispatchers.IO) { edit.freeze() }
-                        if (action == null) { controller.removeDraft(edit.key); onClose(); return@launch }
-                        edit.dirty = true; edit.retain(controller); controller.flushDrafts()
-                        mutationAttempted = true
-                        val result = controller.query(action.getString("tool"), action.getJSONObject("args"))
-                        controller.removeDraft(edit.key); edit.pending = null
-                        controller.message("Termin auf diesem Gerät gespeichert. Kalenderübertragung wird gesondert geprüft."); onSaved(result)
-                    } catch (cancelled: CancellationException) { throw cancelled }
-                    catch (error: Exception) {
-                        if (mutationAttempted && error is NativeCallFailure && error.detail.optString("commit_state") == "not_committed") edit.pending = null
-                        edit.retain(controller); failure = error.message.orEmpty()
-                    } finally { busy = false }
-                }
-            }, enabled = !busy) { Text(if (edit.pending == null) "Termin speichern" else if (edit.restoreReview) "Gespeicherten Vorgang prüfen" else "Dieselbe Speicherung erneut prüfen") }
-        }
+        val hardConflict=collision?.optJSONArray("conflicts")?.planningRows()?.any{!it.optBoolean("uncertain")}==true
+        NativeActionBar(
+            primaryLabel=when {busy -> "Speichern …";edit.pending!=null -> "Ergebnis prüfen";hardConflict -> "Andere Zeit wählen";!existing && (planningText(values,"occurrences").toIntOrNull() ?: 1)>1 -> "Wiederholungen prüfen";else -> "Termin speichern"},
+            onPrimary={if(hardConflict && edit.pending==null) suggestions=true else save()},
+            secondaryLabel="Zurück",onSecondary={edit.retain(controller);onClose()},enabled=!busy,secondaryEnabled=!busy
+        )
     }
 }
 
@@ -561,8 +631,8 @@ private fun PlanningSuggestions(controller: NativeAppController, source: JSONObj
     AlertDialog(onDismissRequest = onClose, title = { Text("Vorgeschlagene Zeitfenster") }, text = {
         Column(Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             PlanningField("Dauer in Stunden (5 Minuten bis 12 Stunden)", duration, { duration = it }, !busy)
-            PlanningField("Von (JJJJ-MM-TT)", from, { from = it }, !busy)
-            PlanningField("Bis (JJJJ-MM-TT)", to, { to = it }, !busy)
+            NativeDateField("Von",from,{from=it},required=true,enabled=!busy)
+            NativeDateField("Bis",to,{to=it},required=true,enabled=!busy)
             OutlinedButton({ scope.launch {
                 busy = true
                 try {

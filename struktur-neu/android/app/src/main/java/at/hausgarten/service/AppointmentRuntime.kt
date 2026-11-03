@@ -417,12 +417,6 @@ internal object AppointmentRuntime {
         return current
     }
     private fun contains(list: JSONArray, id: String): Boolean { for (i in 0 until list.length()) if (id == list.optString(i)) return true; return false }
-    @JvmStatic @Throws(Exception::class) fun enableWeatherForAppointment(context: Context, store: PixelLocalStore) {
-        val settings = settings(store); val preferences = PlanningAccount.prefs(context); var changed = false
-        // Defaults are transactional with the first appointment, never overrides of explicit AUS.
-        for (key in arrayOf("weather_enabled", "notifications")) if (!settings.has(key) && !preferences.contains(key)) { settings.put(key, true); changed = true }
-        if (changed) saveSettings(store, settings)
-    }
     @JvmStatic @Throws(Exception::class) fun refreshWeather(context: Context, store: PixelLocalStore, now: Instant) = refreshWeather(context, store, now, PlanningWire())
     @JvmStatic @Throws(Exception::class) fun refreshWeather(context: Context, store: PixelLocalStore, now: Instant, upstream: HttpTransport.Wire) =
         refreshWeather(context, store, now, upstream, WeatherLocationResolver.Lookup { query -> WeatherLocationResolver.lookup(context, query) })

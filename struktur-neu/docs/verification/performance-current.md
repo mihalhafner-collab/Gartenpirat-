@@ -235,7 +235,7 @@ werden nicht durch Übersichten ersetzt.
 | Einstellungen, Verbindungen | Büro → Einstellungen | Standards, Unternehmensdaten; Kalender/Wetter und ChatGPT; Diagnose; weitere Fachprüfungen aufklappbar |
 | Sicherung / Wiederherstellung | Einstellungen → Sicherung und Wiederherstellung | Unveränderter Android-Dateidialog, Speichern/Zurücklesen, Vorschau, ausdrückliche Wiederherstellung, Wiederanlauf/Rückfallpfade |
 
-Die 210 semantischen Aktionen bleiben im vorhandenen Manifest erfasst. Die
+Die 170 semantischen Aktionen bleiben im vorhandenen Manifest erfasst. Die
 Quellzuordnung allein beweist keine vollständige Geräteabnahme. Die zugehörige
 Compose-Prüfung öffnet 38 Einstiege, prüft 16 fachliche Suchen und sechs
 Darstellungskombinationen; genaue Durchführung in `../entwicklung/BAU.md`.

@@ -34,19 +34,19 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
     }
 
     @Throws(Exception::class)
-    override fun preserveCurrent(requestId: String, incomingRecoveryCode: String?): JSONObject {
+    override fun preserveCurrent(requestId: String): JSONObject {
         val root = File(context.noBackupFilesDir, "before-restore/" + PixelMcpWriteTools.hash(requestId))
         if (!root.isDirectory && !root.mkdirs()) throw IOException("RESTORE_CURRENT_BACKUP_STORAGE_REQUIRED")
         val proofFile = File(root, "proof.json")
-        var archive = File(root, "generation.zip")
+        val archive = File(root, "generation.zip")
         if (proofFile.isFile) {
             val proof = read(proofFile)
-            if (proof.optString("archive_format") != "PLAIN_ZIP") archive = File(root, "generation.hgb")
+            if (proof.optString("archive_format") != "PLAIN_ZIP") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
             if (!archive.isFile || archive.length() != proof.getLong("byte_size") ||
-                EncryptedBackupArchive.sha256(archive) != proof.getString("archive_sha256")) {
+                BackupArchive.sha256(archive) != proof.getString("archive_sha256")) {
                 throw IOException("RESTORE_CURRENT_BACKUP_CHANGED")
             }
-            EncryptedBackupArchive.verifyArchive(FileInputStream(archive), incomingRecoveryCode,
+            BackupArchive.verifyPlain(FileInputStream(archive),
                 File(root, "recheck-" + UUID.randomUUID()),
                 root.usableSpace - BackupStorageBudget.BUSINESS_RESERVE_BYTES, PixelLocalStore.SCHEMA_VERSION).use { verified ->
                 LocalBackupDataset.inspectStaged(File(verified.directory, "data"), verified.manifest)
@@ -71,19 +71,19 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
                     .put("requireDatabaseBrowserCheckpoint", true), browser)
             if (archive.exists()) throw IOException("RESTORE_CURRENT_BACKUP_INCOMPLETE_REVIEW_REQUIRED")
             FileOutputStream(archive).use { out ->
-                EncryptedBackupArchive.writePlain(object : FilterOutputStream(BackupStorageBudget.guard(out, root)) {
+                BackupArchive.writePlain(object : FilterOutputStream(BackupStorageBudget.guard(out, root)) {
                     @Throws(IOException::class)
                     override fun close() { flush() }
                 }, captured.metadata, captured.sources())
                 out.fd.sync()
             }
-            EncryptedBackupArchive.verifyArchive(FileInputStream(archive), incomingRecoveryCode,
+            BackupArchive.verifyPlain(FileInputStream(archive),
                 File(root, "verified-" + UUID.randomUUID()),
                 root.usableSpace - BackupStorageBudget.BUSINESS_RESERVE_BYTES, PixelLocalStore.SCHEMA_VERSION).use { verified ->
                 LocalBackupDataset.inspectStaged(File(verified.directory, "data"), verified.manifest)
             }
             val proof = JSONObject().put("formatVersion", 1).put("verified", true).put("backup_id", backupId)
-                .put("archive_sha256", EncryptedBackupArchive.sha256(archive))
+                .put("archive_sha256", BackupArchive.sha256(archive))
                 .put("database_sha256", captured.metadata.getJSONObject("database").getString("sha256"))
                 .put("byte_size", archive.length()).put("captured_at", captured.metadata.getString("capturedAt"))
                 .put("local_verified_at", Instant.now().toString())

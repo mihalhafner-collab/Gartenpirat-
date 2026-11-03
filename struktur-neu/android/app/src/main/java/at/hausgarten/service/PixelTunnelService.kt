@@ -27,6 +27,7 @@ class PixelTunnelService : Service() {
     private var manager: ConnectivityManager? = null
     private var callback: ConnectivityManager.NetworkCallback? = null
     @Volatile private var store: PixelLocalStore? = null
+    @Volatile private var activeBinding = ""
     private val control = Executors.newSingleThreadExecutor { task -> Thread(task, "pixel-tunnel-control").apply { isDaemon = true } }
 
     override fun onCreate() {
@@ -91,8 +92,9 @@ class PixelTunnelService : Service() {
         try {
             if (recoveryStartBlocked(this) || closing.get()) return
             val initial = PixelTunnelConfig(this)
+            activeBinding = connectionBinding(initial)
             if (!initial.enabled() || !initial.configured()) {
-                status("not_configured", "Zweiten Tunnel einmalig einrichten.")
+                status("not_configured", "Pixel-Verbindung einmalig einrichten.")
                 return
             }
             PixelLocalStore(this).use { localStore ->
@@ -113,6 +115,8 @@ class PixelTunnelService : Service() {
             try {
                 val config = PixelTunnelConfig(this)
                 if (!config.enabled()) break
+                val binding = connectionBinding(config)
+                activeBinding = binding
                 if (!online()) {
                     status("offline", "Kein Internet. Verbindung wird automatisch erneut versucht.")
                     Thread.sleep(5000)
@@ -154,14 +158,15 @@ class PixelTunnelService : Service() {
                 status("connecting", "OpenAI-Tunnel wird geprüft.")
                 tunnel.verify()
                 failures = 0
-                while (!closing.get() && config.enabled()) {
+                while (!closing.get() && config.enabled() && connectionBinding(config) == binding) {
                     if (config.writeEnabled() != (allowed != null)) break
-                    tunnel.cycle()
+                    val delivered = tunnel.cycle()
                     status(
                         "ready",
-                        if (config.writeEnabled())
-                            "Tunnel erreichbar · Betriebsdaten lesen und bearbeiten"
-                        else "Tunnel erreichbar · Betriebsdaten lesen",
+                        if (delivered > 0) "Anfrageantwort an den Tunnel übergeben."
+                        else "Tunnel erreichbar · wartet auf Anfragen.",
+                        contact = true,
+                        response = delivered > 0,
                     )
                 }
             } catch (limited: PixelTunnelWire.RateLimit) {
@@ -178,7 +183,8 @@ class PixelTunnelService : Service() {
                 }
             } catch (denied: PixelTunnelWire.AccessError) {
                 status("auth_error", denied.userMessage())
-                PixelTunnelConfig(this).enabled(false)
+                val current = PixelTunnelConfig(this)
+                if (connectionBinding(current) == activeBinding) current.enabled(false)
                 break
             } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
@@ -233,13 +239,21 @@ class PixelTunnelService : Service() {
             .build()
     }
 
-    private fun status(state: String, detail: String) {
-        getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
-            .edit()
+    private fun status(state: String, detail: String, contact: Boolean = false, response: Boolean = false) {
+        val prefs = getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val edit = prefs.edit()
+        if (prefs.getString("binding", "") != activeBinding) {
+            edit.remove("last_contact_at").remove("last_response_at")
+        }
+        edit
+            .putString("binding", activeBinding)
             .putString("state", state)
             .putString("detail", detail)
-            .putLong("at", System.currentTimeMillis())
-            .apply()
+            .putLong("at", now)
+        if (contact) edit.putLong("last_contact_at", now)
+        if (response) edit.putLong("last_response_at", now)
+        edit.apply()
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(
             NOTICE,
             notice(detail),
@@ -261,7 +275,7 @@ class PixelTunnelService : Service() {
             try {
                 RevierApplication.awaitStartup(this)
                 val prefs = getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
-                if (prefs.getString("state", "") != "auth_error") prefs.edit()
+                if (prefs.getString("binding", "") == activeBinding && prefs.getString("state", "") != "auth_error") prefs.edit()
                     .putString("state", "stopped").putString("detail", "Verbindung beendet.").apply()
             } catch (_: RuntimeException) { }
         }
@@ -277,6 +291,9 @@ class PixelTunnelService : Service() {
         private const val CHANNEL = "pixel_tunnel"
         private const val NOTICE = 2810
         @Volatile private var running = false
+
+        private fun connectionBinding(config: PixelTunnelConfig): String =
+            PixelMcpWriteTools.hash(config.id() + "\n" + config.organization())
 
         @JvmStatic
         fun recoveryStartBlocked(context: Context): Boolean {
@@ -295,13 +312,17 @@ class PixelTunnelService : Service() {
             val prefs = context.getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
             val power = context.getSystemService(POWER_SERVICE) as PowerManager
             try {
-                var state = prefs.getString("state", "stopped") ?: "stopped"
+                val config = PixelTunnelConfig(context)
+                val bound = prefs.getString("binding", "") == connectionBinding(config)
+                var state = if (bound) prefs.getString("state", "stopped") ?: "stopped" else "stopped"
                 val preserve = state == "auth_error" || state == "start_blocked"
                 if (!running && !preserve) state = "stopped"
+                val contact = if (bound) prefs.getLong("last_contact_at", 0) else 0
+                val response = if (bound) prefs.getLong("last_response_at", 0) else 0
                 val stale =
                     running &&
                         state == "ready" &&
-                        System.currentTimeMillis() - prefs.getLong("at", 0) > 90000
+                        (contact == 0L || System.currentTimeMillis() - contact > 90000)
                 if (stale) state = "reconnecting"
                 result
                     .put("running", running)
@@ -310,15 +331,22 @@ class PixelTunnelService : Service() {
                         "detail",
                         if (stale) "Verbindung länger nicht bestätigt. Wird erneut geprüft."
                         else if (!running && !preserve) "Pixel-Verbindung ist beendet."
-                        else prefs.getString("detail", "Verbindung noch nicht gestartet."),
+                        else if (bound) prefs.getString("detail", "Verbindung noch nicht gestartet.")
+                        else "Für diese Verbindung liegt noch keine lokale Statusmeldung vor.",
                     )
                     .put(
                         "battery_exempt",
                         power.isIgnoringBatteryOptimizations(context.packageName),
                     )
-                    .put("configured", PixelTunnelConfig(context).configured())
-                    .put("write_enabled", PixelTunnelConfig(context).writeEnabled())
-            } catch (_: Exception) {}
+                    .put("configured", config.configured())
+                    .put("enabled", config.enabled())
+                    .put("write_enabled", config.writeEnabled())
+                    .put("last_contact_at", contact)
+                    .put("last_response_at", response)
+                    .put("transport_confirmed", config.enabled() && running && state == "ready" && !stale)
+            } catch (_: Exception) {
+                result.put("state", "status_unavailable").put("detail", "Lokaler Verbindungsstatus derzeit nicht lesbar.")
+            }
             return result
         }
     }

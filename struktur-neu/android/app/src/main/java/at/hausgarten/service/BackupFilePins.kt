@@ -25,9 +25,9 @@ object BackupFilePins {
         val children = sourceRoot.listFiles() ?: throw IOException("BACKUP_SOURCE_UNREADABLE")
         children.sortBy { it.name }
         for (source in children) {
-            EncryptedBackupArchive.checkCancelled()
+            BackupArchive.checkCancelled()
             val path = "$prefix/${source.name}"
-            EncryptedBackupArchive.Source(path, source)
+            BackupArchive.Source(path, source)
             if (Files.isSymbolicLink(source.toPath())) throw IOException("BACKUP_SOURCE_LINK_REJECTED")
             if (source.isDirectory) {
                 capture(source, privateStage, path, immutable)
@@ -40,9 +40,9 @@ object BackupFilePins {
             val parent = target.parentFile!!
             if (!parent.isDirectory && !parent.mkdirs()) throw IOException("BACKUP_STAGING_UNAVAILABLE")
             if (!immutable) {
-                val hash = EncryptedBackupArchive.sha256(source)
+                val hash = BackupArchive.sha256(source)
                 copy(source, target)
-                if (hash != EncryptedBackupArchive.sha256(source) || hash != EncryptedBackupArchive.sha256(target)) throw IOException("BACKUP_SOURCE_CHANGED")
+                if (hash != BackupArchive.sha256(source) || hash != BackupArchive.sha256(target)) throw IOException("BACKUP_SOURCE_CHANGED")
                 continue
             }
             try {
@@ -61,7 +61,7 @@ object BackupFilePins {
         BackupStorageBudget.require(volume, source.length())
         FileInputStream(source).use { input ->
             FileChannel.open(target.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use { output ->
-                EncryptedBackupArchive.copy(input, BackupStorageBudget.guard(Channels.newOutputStream(output), volume), null, source.length())
+                BackupArchive.copy(input, BackupStorageBudget.guard(Channels.newOutputStream(output), volume), null, source.length())
                 output.force(true)
             }
         }
@@ -69,22 +69,22 @@ object BackupFilePins {
 
     @JvmStatic
     @Throws(Exception::class)
-    fun sources(privateStage: File): List<EncryptedBackupArchive.Source> {
-        val result = ArrayList<EncryptedBackupArchive.Source>()
+    fun sources(privateStage: File): List<BackupArchive.Source> {
+        val result = ArrayList<BackupArchive.Source>()
         collect(privateStage, "", result)
         return result
     }
 
     /** Enumerate existing originals without copying or hardlinking their bytes. */
-    fun directSources(root: File, prefix: String): List<EncryptedBackupArchive.Source> {
+    fun directSources(root: File, prefix: String): List<BackupArchive.Source> {
         if (!root.exists()) return emptyList()
         if (Files.isSymbolicLink(root.toPath()) || !root.isDirectory) throw IOException("BACKUP_SOURCE_LINK_OR_DIRECTORY_INVALID")
-        val result = ArrayList<EncryptedBackupArchive.Source>()
+        val result = ArrayList<BackupArchive.Source>()
         collect(root, "$prefix/", result)
         return result
     }
 
-    private fun collect(directory: File, prefix: String, result: MutableList<EncryptedBackupArchive.Source>) {
+    private fun collect(directory: File, prefix: String, result: MutableList<BackupArchive.Source>) {
         val entries = directory.listFiles() ?: throw IOException("BACKUP_STAGING_UNREADABLE")
         entries.sortBy { it.name }
         for (file in entries) {
@@ -92,7 +92,7 @@ object BackupFilePins {
             val path = prefix + file.name
             when {
                 file.isDirectory -> collect(file, "$path/", result)
-                file.isFile -> result.add(EncryptedBackupArchive.Source(path, file))
+                file.isFile -> result.add(BackupArchive.Source(path, file))
                 else -> throw IOException("BACKUP_STAGING_UNREADABLE")
             }
         }

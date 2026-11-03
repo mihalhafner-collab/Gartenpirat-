@@ -170,6 +170,7 @@ class MainActivity : ComponentActivity() {
         val current = controller ?: return
         if (intent?.getBooleanExtra("open_planning", false) != true) return
         val id = intent.getStringExtra("planning_appointment_id") ?: ""
+        current.openSection("office")
         current.navigate("appointments", id, if (id.isEmpty()) "list" else "detail", JSONObject().put("action", intent.getStringExtra("planning_action") ?: ""))
         intent.removeExtra("open_planning")
     }

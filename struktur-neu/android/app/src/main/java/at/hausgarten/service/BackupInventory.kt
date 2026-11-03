@@ -90,9 +90,30 @@ object BackupInventory {
         return if (hash == sha) null else "ORIGINAL_HASH_MISMATCH"
     }
 
+    /** Short limitation belongs in the main result, with fuller details available separately. */
+    @JvmStatic
+    fun warningSummary(warnings: JSONArray?, fallbackCount: Int): String {
+        val count = maxOf(fallbackCount, warnings?.length() ?: 0)
+        if (count == 0) return ""
+        var photos = 0
+        var documents = 0
+        if (warnings != null) for (i in 0 until warnings.length()) {
+            when (warnings.optJSONObject(i)?.optString("kind")) {
+                "photo" -> photos++
+                "document" -> documents++
+            }
+        }
+        val parts = ArrayList<String>()
+        if (photos > 0) parts.add(if (photos == 1) "1 Foto fehlt oder ist ungeprüft" else "$photos Fotos fehlen oder sind ungeprüft")
+        if (documents > 0) parts.add(if (documents == 1) "1 Dokument fehlt oder ist ungeprüft" else "$documents Dokumente fehlen oder sind ungeprüft")
+        val remaining = count - photos - documents
+        if (remaining > 0) parts.add(if (parts.isEmpty()) { if (remaining == 1) "1 Hinweis" else "$remaining Hinweise" } else { if (remaining == 1) "1 weiterer Hinweis" else "$remaining weitere Hinweise" })
+        return parts.joinToString(" · ")
+    }
+
     @JvmStatic
     fun message(warnings: JSONArray?): String {
-        val count = warnings?.length() ?: 0
-        return if (count == 0) "" else " $count Hinweise zum Ausgangsbestand. Details stehen in der ZIP-Datei unter data/backup-notes.json."
+        val summary = warningSummary(warnings, 0)
+        return if (summary.isEmpty()) "" else " $summary. Details stehen in der ZIP-Datei unter data/backup-notes.json."
     }
 }

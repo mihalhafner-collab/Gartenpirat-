@@ -162,7 +162,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         }
         val restore = BackupRestoreService(context)
         val deniedSource = create(false)
-        rejects("MISSING_READ_GRANT") { restore.preview("qa_provider_preview_denied", uri(deniedSource), "") }
+        rejects("MISSING_READ_GRANT") { restore.preview("qa_provider_preview_denied", uri(deniedSource)) }
         yes(documentStats(deniedSource).getInt("reads") == 0, "DENIED_BEFORE_PROVIDER_READ")
         val revokedSource = create(false)
         control("grant", revokedSource, Bundle().apply { putBoolean("read_only", true) })
@@ -174,18 +174,18 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         control("revoke", revokedSource)
         var revokedRejected = false
         try {
-            restore.preview("qa_provider_preview_revoked", uri(revokedSource), "")
+            restore.preview("qa_provider_preview_revoked", uri(revokedSource))
         } catch (_: SecurityException) {
             revokedRejected = true
         }
         yes(revokedRejected, "REVOKED_READ_GRANT_REJECTED")
         yes(documentStats(revokedSource).getInt("reads") == readsBeforeRevocation, "REVOKED_BEFORE_PROVIDER_OPEN")
         fault(success, "READ_OPEN")
-        rejects("PREVIEW_READ_OPEN") { restore.preview("qa_provider_preview_read_error", uri(success), "") }
+        rejects("PREVIEW_READ_OPEN") { restore.preview("qa_provider_preview_read_error", uri(success)) }
         fault(success, "READ_TRUNCATED")
-        rejects("PREVIEW_SHORT_READ") { restore.preview("qa_provider_preview_short", uri(success), "") }
+        rejects("PREVIEW_SHORT_READ") { restore.preview("qa_provider_preview_short", uri(success)) }
         fault(success, "NONE")
-        yes(restore.preview("qa_provider_preview_ok", uri(success), "").getString("phase") == "VALIDATED", "PROVIDER_RESTORE_PREVIEW")
+        yes(restore.preview("qa_provider_preview_ok", uri(success)).getString("phase") == "VALIDATED", "PROVIDER_RESTORE_PREVIEW")
 
         // These actions navigate the actual Android picker. No result Intent is fabricated.
         val picked = pickerChecks()
@@ -217,7 +217,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             yes(documentStats(id).getInt("reads") == before + 1, "REOPEN_PROVIDER_READ_OCCURRED")
             yes(JSONObject(store.ownerValue("pixel_backup_success", "")).getJSONObject("archive").getString("sha256") == saved.getString("archive_sha256"), "REOPEN_ARCHIVE_PROOF")
         }
-        yes(BackupRestoreService(context).preview("qa_provider_preview_reopened", uri(id), "").getString("phase") == "VALIDATED", "REOPEN_PROVIDER_PREVIEW")
+        yes(BackupRestoreService(context).preview("qa_provider_preview_reopened", uri(id)).getString("phase") == "VALIDATED", "REOPEN_PROVIDER_PREVIEW")
         return report(true)
     }
 
@@ -331,12 +331,12 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             automation.serviceInfo = automation.serviceInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS }
             shell("wm dismiss-keyguard")
             activity = test.startActivitySync(Intent(context, FullBackupActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            waitUntil("BACKUP_ACTIVITY") { node("Sicherung speichern") != null }
+            waitUntil("BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             val before = stats().toString()
-            click("Sicherung speichern")
+            click("Jetzt sichern")
             waitUntil("CREATE_PICKER_CANCEL") { pickerVisible() }
             back()
-            waitUntil("CREATE_CANCEL_RETURNED") { node("Sicherung speichern") != null }
+            waitUntil("CREATE_CANCEL_RETURNED") { node("Jetzt sichern") != null }
             yes(stats().toString() == before, "CREATE_CANCEL_NO_PROVIDER_MUTATION")
             val state = Bundle()
             test.runOnMainSync { test.callActivityOnSaveInstanceState(requireNotNull(activity), state) }
@@ -350,7 +350,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             yes(canceled.getString("restore_uri", "").isEmpty(), "OPEN_CANCEL_NO_SOURCE")
             yes(stats().toString() == before, "OPEN_CANCEL_NO_PROVIDER_MUTATION")
 
-            click("Sicherung speichern")
+            click("Jetzt sichern")
             chooseSyntheticRoot()
             waitUntil("SYSTEM_CREATE_SAVE_BUTTON") {
                 find(automation.rootInActiveWindow) {
@@ -364,14 +364,14 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             })
             yes(save.performAction(AccessibilityNodeInfo.ACTION_CLICK), "SYSTEM_CREATE_CONFIRM")
             waitUntil("PRODUCTION_SAVE_VERIFIED", 45000) {
-                find(automation.rootInActiveWindow) { it.text?.toString()?.startsWith("Sicherung gespeichert und vollständig zurückgelesen.") == true } != null
+                find(automation.rootInActiveWindow) { it.text?.toString()?.startsWith("ZIP vollständig zurückgelesen") == true } != null
             }
             val id = stats().getString("last_created")
             yes(documentStats(id).getInt("writes") == 1 && documentStats(id).getInt("reads") == 1, "UI_PROVIDER_SAVE_READBACK")
             click("Sicherung wiederherstellen")
             chooseSyntheticRoot()
             click(documentStats(id).getString("title"))
-            waitUntil("OPEN_RETURNED") { node("Gewählte Sicherung prüfen") != null }
+            waitUntil("OPEN_RETURNED") { node("Datei prüfen") != null }
             val opened = Bundle()
             test.runOnMainSync { test.callActivityOnSaveInstanceState(requireNotNull(activity), opened) }
             yes(opened.getString("restore_uri") == uri(id).toString(), "SYSTEM_OPEN_RESULT_URI")
@@ -381,15 +381,15 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 test.runOnMainSync { previous.recreate() }
                 activity = monitor.waitForActivityWithTimeout(20000) ?: throw AssertionError("QA_PICKER_RECREATE_FAILED")
                 yes(activity !== previous, "REAL_ACTIVITY_RECREATED")
-                waitUntil("RECREATED_SOURCE") { node("Gewählte Sicherung prüfen") != null }
+                waitUntil("RECREATED_SOURCE") { node("Datei prüfen") != null }
                 val recreated = Bundle()
                 test.runOnMainSync { test.callActivityOnSaveInstanceState(requireNotNull(activity), recreated) }
                 yes(recreated.getString("restore_uri") == uri(id).toString(), "RECREATE_PRESERVES_PICKED_URI")
                 yes(recreated.keySet().none { it.contains("recovery_code") }, "RECREATE_NO_RECOVERY_CODE")
             } finally { test.removeMonitor(monitor) }
-            click("Gewählte Sicherung prüfen")
+            click("Datei prüfen")
             waitUntil("PRODUCTION_PREVIEW_VALIDATED", 45000) {
-                find(automation.rootInActiveWindow) { it.text?.toString()?.startsWith("Sicherungsdatei geprüft.") == true } != null
+                find(automation.rootInActiveWindow) { it.text?.toString()?.startsWith("Vorschau bereit.") == true } != null
             }
             yes(documentStats(id).getInt("reads") == 2, "UI_PROVIDER_RESTORE_READ")
             return id

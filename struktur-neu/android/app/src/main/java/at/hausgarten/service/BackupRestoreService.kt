@@ -13,13 +13,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.security.MessageDigest
 import java.time.Instant
 import java.util.Collections
 import java.util.Locale
 import java.util.UUID
 
-/** Fully authenticated preview, then a protected cold-start exchange. Never merges two inventories. */
+/** Fully verified local ZIP preview, then a protected cold-start exchange. Never merges inventories. */
 class BackupRestoreService @Throws(Exception::class) constructor(private val context: Context) {
     interface Protection {
         @Throws(Exception::class)
@@ -29,7 +28,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         fun activePaths(): ActivePaths
 
         @Throws(Exception::class)
-        fun preserveCurrent(requestId: String, incomingRecoveryCode: String?): JSONObject?
+        fun preserveCurrent(requestId: String): JSONObject?
 
         @Throws(Exception::class)
         fun blockBeforeActivation(requestId: String, restoredManifest: JSONObject, currentBackupProof: JSONObject)
@@ -87,25 +86,16 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     }
 
     @Throws(Exception::class)
-    fun preview(requestId: String?, archiveUri: Uri?, recoveryCode: String?): JSONObject {
+    fun preview(requestId: String?, archiveUri: Uri?): JSONObject {
         if (archiveUri == null || archiveUri.scheme != "content") throw IOException("RESTORE_DOCUMENT_REQUIRED")
-        return previewFrom(requestId, archiveUri.toString(), recoveryCode) {
+        return previewFrom(requestId, archiveUri.toString()) {
             context.contentResolver.openInputStream(archiveUri) ?: throw IOException("RESTORE_SOURCE_UNAVAILABLE")
         }
     }
 
     @Throws(Exception::class)
-    fun previewFrom(requestId: String?, sourceId: String?, recoveryCode: String?, source: Source): JSONObject {
+    fun previewFrom(requestId: String?, sourceId: String?, source: Source): JSONObject {
         request(requestId)
-        var keyHash = "PLAIN_LOCAL_ZIP"
-        if (!recoveryCode.isNullOrEmpty()) {
-            val material = BackupCrypto.recoveryKey(recoveryCode)
-            try {
-                keyHash = hex(MessageDigest.getInstance("SHA-256").digest(material))
-            } finally {
-                material.fill(0)
-            }
-        }
         val identity = BackupDeviceGuard(context).current()
         val restoreId = "restore_" + PixelMcpWriteTools.hash(
             JSONObject().put("request_id", requestId).put("installationId", identity.getString("installationId"))
@@ -113,7 +103,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         ).substring(0, 36)
         val fingerprint = PixelMcpWriteTools.hash(
             JSONObject().put("request_id", requestId).put("source", sourceId)
-                .put("recovery_binding", keyHash).put("identity", identity)
+                .put("archive_format", "PLAIN_ZIP").put("identity", identity)
         )
         return synchronized(LOCK) {
             val work = work(restoreId)
@@ -140,28 +130,24 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             val directory = "stage-" + UUID.randomUUID()
             record.put("directory", directory)
             write(info, record)
-            var staged: EncryptedBackupArchive.Verified? = null
+            var staged: BackupArchive.Verified? = null
             try {
                 BackupStorageBudget.require(work, 0)
-                staged = EncryptedBackupArchive.verifyArchive(
-                    source.open(), recoveryCode, child(work, directory),
+                staged = BackupArchive.verifyPlain(
+                    source.open(), child(work, directory),
                     Math.max(0L, work.usableSpace - BackupStorageBudget.BUSINESS_RESERVE_BYTES),
                     PixelLocalStore.SCHEMA_VERSION
                 )
-                LocalBackupDataset.inspectStaged(File(staged.directory, "data"), staged.manifest)
+                val notes = LocalBackupDataset.inspectStaged(File(staged.directory, "data"), staged.manifest)
                 write(File(work, "manifest.json"), staged.manifest)
-                val manifestHash = EncryptedBackupArchive.sha256(File(work, "manifest.json"))
+                val manifestHash = BackupArchive.sha256(File(work, "manifest.json"))
                 record.put("manifest_sha256", manifestHash).put(
                     "preview_hash", PixelMcpWriteTools.hash(
                         JSONObject().put("restore_id", restoreId).put("manifest_sha256", manifestHash)
                             .put("request_fingerprint", fingerprint)
                     )
                 ).put("phase", "VALIDATED").put("validated_at", Instant.now().toString())
-                record.put("unencrypted", staged.manifest.optString("archiveProtection") == "NONE")
-                if (!record.optBoolean("unencrypted")) {
-                    BackupRecoveryKeyStore.scoped(context, "restore_$restoreId")
-                        .confirmAndStore(requestId, recoveryCode, recoveryCode)
-                }
+                record.put("warnings", notes.optJSONArray("warnings") ?: org.json.JSONArray())
                 write(info, record)
                 previewView(record)
             } catch (failure: Exception) {
@@ -192,7 +178,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     }
 
     @Throws(Exception::class)
-    fun previewPrevious(requestId: String?, activationRequestId: String?, recoveryCode: String?): JSONObject {
+    fun previewPrevious(requestId: String?, activationRequestId: String?): JSONObject {
         request(requestId)
         request(activationRequestId)
         return synchronized(LOCK) {
@@ -206,11 +192,11 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             val proof = state.getJSONObject("current_backup_proof")
             val archive = previousArchive(activationRequestId, proof)
             if (!archive.isFile || archive.length() != proof.getLong("byte_size") ||
-                EncryptedBackupArchive.sha256(archive) != proof.getString("archive_sha256")) {
+                BackupArchive.sha256(archive) != proof.getString("archive_sha256")) {
                 throw IOException("RESTORE_PREVIOUS_ARCHIVE_CHANGED")
             }
             previewFrom(
-                requestId, "previous-preservation:$activationRequestId:${proof.getString("archive_sha256")}", recoveryCode
+                requestId, "previous-preservation:$activationRequestId:${proof.getString("archive_sha256")}"
             ) { FileInputStream(archive) }
         }
     }
@@ -218,7 +204,8 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     @Throws(Exception::class)
     private fun previousArchive(activationRequestId: String?, proof: JSONObject): File {
         validateProof(proof)
-        val name = if (proof.optString("archive_format") == "PLAIN_ZIP") "generation.zip" else "generation.hgb"
+        if (proof.optString("archive_format") != "PLAIN_ZIP") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
+        val name = "generation.zip"
         val relative = "before-restore/${PixelMcpWriteTools.hash(activationRequestId)}/$name"
         if (relative != proof.optString("private_archive_ref")) throw IOException("RESTORE_PREVIOUS_PROOF_REQUIRED")
         val archive = File(context.noBackupFilesDir, relative)
@@ -344,7 +331,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         }
         if (expected == null || Files.isSymbolicLink(browser.toPath()) || !browser.isFile ||
             browser.length() != expected.getLong("size") ||
-            EncryptedBackupArchive.sha256(browser) != expected.getString("sha256")) {
+            BackupArchive.sha256(browser) != expected.getString("sha256")) {
             throw IOException("RESTORE_STAGED_FILE_CHANGED")
         }
         return RestoredBrowserReviewRules.validate(JSONObject(readText(browser, 16 * 1024 * 1024)))
@@ -383,10 +370,11 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     @Throws(Exception::class)
     private fun validateStage(work: File, record: JSONObject): JSONObject {
         val manifestFile = File(work, "manifest.json")
-        if (!manifestFile.isFile || EncryptedBackupArchive.sha256(manifestFile) != record.getString("manifest_sha256")) {
+        if (!manifestFile.isFile || BackupArchive.sha256(manifestFile) != record.getString("manifest_sha256")) {
             throw IOException("RESTORE_PREVIEW_CHANGED")
         }
         val manifest = read(manifestFile)
+        if (manifest.optString("archiveProtection") != "NONE") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
         val stage = child(work, record.getString("directory"))
         val data = File(stage, "data")
         val expected = HashSet<String>()
@@ -394,10 +382,10 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         for (i in 0 until files.length()) {
             val entry = files.getJSONObject(i)
             val path = entry.getString("path")
-            val file = EncryptedBackupArchive.Source(path, File(data, path)).file
+            val file = BackupArchive.Source(path, File(data, path)).file
             if (!file.canonicalPath.startsWith(data.canonicalPath + File.separator) ||
                 Files.isSymbolicLink(file.toPath()) || !file.isFile || file.length() != entry.getLong("size") ||
-                EncryptedBackupArchive.sha256(file) != entry.getString("sha256")) {
+                BackupArchive.sha256(file) != entry.getString("sha256")) {
                 throw IOException("RESTORE_STAGED_FILE_CHANGED")
             }
             expected.add(path)
@@ -421,7 +409,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     @Throws(Exception::class)
     private fun previewView(record: JSONObject): JSONObject {
         val out = JSONObject().put("restore_id", record.getString("restore_id")).put("phase", record.getString("phase"))
-            .put("current_state_unchanged", true).put("invoice_release", "BLOCKED_UNTIL_CURRENT_EXTERNAL_RECONCILIATION")
+            .put("current_state_unchanged", true)
         if (record.has("preview_hash")) {
             out.put("preview_hash", record.getString("preview_hash"))
             val manifest = read(File(work(record.getString("restore_id")), "manifest.json"))
@@ -430,9 +418,25 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                     .put("app_version", manifest.getString("appVersion")).put("warning_count", manifest.optInt("warning_count"))
                     .put("schema_version", manifest.getInt("schemaVersion")).put("total_bytes", manifest.getLong("totalBytes"))
                     .put("counts", manifest.getJSONObject("counts"))
+                    .put("warnings", record.optJSONArray("warnings") ?: org.json.JSONArray())
                     .put("last_issued_document_count", manifest.getJSONArray("lastIssuedDocumentIds").length())
                     .put("media_coverage", mediaCoverage(manifest))
             )
+        }
+        if (record.optString("phase") == "VALIDATED") {
+            // Read current counts separately: the backup is a replacement, never a merge.
+            try {
+                PixelLocalStore(context).use { store ->
+                    val effective = LocalOwnerRepository(context, store).effective()
+                    val counts = JSONObject()
+                    for (collection in arrayOf("customers", "worklogs", "photos", "offers", "orders", "appointments")) {
+                        counts.put(collection, effective.optJSONArray(collection)?.length() ?: 0)
+                    }
+                    out.put("current_counts", counts).put("current_counts_at", Instant.now().toString())
+                }
+            } catch (_: Exception) {
+                out.put("current_counts_unavailable", true)
+            }
         }
         if (record.has("last_error_code")) out.put("last_error_code", record.getString("last_error_code"))
         return out
@@ -490,7 +494,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                     val record = read(File(work, "preview.json"))
                     val manifest = read(File(work, "manifest.json"))
                     if (state.getString("preview_hash") != record.getString("preview_hash") ||
-                        EncryptedBackupArchive.sha256(File(work, "manifest.json")) != record.getString("manifest_sha256")) {
+                        BackupArchive.sha256(File(work, "manifest.json")) != record.getString("manifest_sha256")) {
                         throw IOException("RESTORE_PREVIEW_CHANGED")
                     }
                     val coverage = mediaCoverage(manifest)
@@ -517,12 +521,9 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                         if (!state.has("targets")) {
                             service.requireTargetContext(record)
                             service.validateStage(work, record)
-                            val recovery = if (record.optBoolean("unencrypted")) "" else {
-                                BackupRecoveryKeyStore.scoped(context, "restore_${record.getString("restore_id")}").read()
-                            }
                             var proof = state.optJSONObject("current_backup_proof")
                             if (proof == null) {
-                                proof = protection.preserveCurrent(state.getString("request_id"), recovery)
+                                proof = protection.preserveCurrent(state.getString("request_id"))
                                 validateProof(proof)
                                 state.put("current_backup_proof", proof)
                                 journal.save(state)
@@ -671,7 +672,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                 .put("phase", if (phase == "REQUESTED") "RESTART_REQUIRED" else phase)
                 .put("preview_hash", state.optString("preview_hash")).put("restart_required", PENDING.contains(phase))
                 .put("current_state_unchanged", phase in listOf("REQUESTED", "CANCELLED", "ROLLED_BACK"))
-                .put("invoice_release", "BLOCKED_UNTIL_CURRENT_EXTERNAL_RECONCILIATION")
                 .put("last_error_code", state.optString("last_error_code"))
                 .put("media_coverage", state.optString("media_coverage", "LEGACY_NOT_PROVEN"))
                 .put("legacy_media_coverage_confirmed", state.optBoolean("legacy_media_coverage_confirmed"))
@@ -702,7 +702,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                     while (true) {
                         val read = input.read(buffer)
                         if (read == -1) break
-                        if (read > EncryptedBackupArchive.MAX_MANIFEST_BYTES - output.size()) {
+                        if (read > BackupArchive.MAX_MANIFEST_BYTES - output.size()) {
                             throw IOException("RESTORE_METADATA_TOO_LARGE")
                         }
                         output.write(buffer, 0, read)
@@ -763,12 +763,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             if (value == null || !value.matches(Regex("[0-9a-f]{64}"))) throw IOException("RESTORE_HASH_REQUIRED")
         }
 
-        private fun hex(value: ByteArray): String {
-            val result = StringBuilder()
-            for (byte in value) result.append(String.format(Locale.ROOT, "%02x", byte.toInt() and 255))
-            return result.toString()
-        }
-
         @Throws(IOException::class)
         private fun activationVersion(state: JSONObject) {
             if (state.optInt("formatVersion") != 1 || state.optString("phase") !in listOf(
@@ -787,7 +781,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
 
         private fun safeCode(failure: Exception): String {
             val value = failure.message
-            return if (value != null && value.matches(Regex("(?:RESTORE|BACKUP|RECOVERY)_[A-Z0-9_]{1,100}"))) {
+            return if (value != null && value.matches(Regex("(?:RESTORE|BACKUP)_[A-Z0-9_]{1,100}"))) {
                 value
             } else "RESTORE_OPERATION_FAILED"
         }

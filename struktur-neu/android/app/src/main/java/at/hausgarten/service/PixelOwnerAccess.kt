@@ -47,12 +47,6 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                     LAM@{
                         var changed =
                             application.perform(name, JSONObject(args.toString()), request)
-                        if (
-                            ((name == "create_appointment") ||
-                                (name == "create_appointment_series"))
-                        ) {
-                            AppointmentRuntime.enableWeatherForAppointment(context, store)
-                        }
                         return@LAM changed
                     },
                 ))

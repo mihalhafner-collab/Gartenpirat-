@@ -90,7 +90,6 @@ internal class McpErrors {
                     "BACKUP_PREFERENCE_TYPE_UNSUPPORTED",
                     "BACKUP_PREPARE_REQUIRES_OUTSIDE_TRANSACTION",
                     "BACKUP_PROVIDER_DESTINATION_REQUIRED",
-                    "BACKUP_RECOVERY_SETUP_REQUIRED",
                     "BACKUP_REQUEST_ID_REQUIRED",
                     "BACKUP_RESTORE_CONTEXT_CHANGED",
                     "BACKUP_RESTORE_REPLAY_MISMATCH",
@@ -150,18 +149,6 @@ internal class McpErrors {
                     "INVALID_DECIMAL_POSITION",
                     "LOCAL_DATABASE_CONTRACT_UNSUPPORTED",
                     "MONEY_REQUIRED",
-                    "RECOVERY_ALREADY_CONFIGURED",
-                    "RECOVERY_CODE_INVALID",
-                    "RECOVERY_CONFIRMATION_MISMATCH",
-                    "RECOVERY_EXPORT_READBACK_FAILED",
-                    "RECOVERY_EXPORT_UNAVAILABLE",
-                    "RECOVERY_KEYSTORE_UNAVAILABLE_USE_RECOVERY_CODE",
-                    "RECOVERY_NOT_CONFIGURED",
-                    "RECOVERY_READBACK_FAILED",
-                    "RECOVERY_SCOPE_INVALID",
-                    "RECOVERY_STORAGE_INVALID",
-                    "RECOVERY_STORAGE_UNAVAILABLE",
-                    "RECOVERY_STORAGE_VERSION_UNSUPPORTED",
                     "REPLAY_MISMATCH",
                     "RESTORE_ACTIVATION_REPLAY_MISMATCH",
                     "RESTORE_ACTIVE_PATH_LINK_REJECTED",
@@ -242,9 +229,7 @@ internal class McpErrors {
             if ((code.contains("DECIMAL") || code.startsWith("MONEY_"))) {
                 return "Beträge und Mengen mit exakten Dezimalwerten beziehungsweise kleinsten Währungseinheiten prüfen."
             }
-            if (code.startsWith("RECOVERY_")) {
-                return "Wiederherstellungscode und Geräteeinrichtung prüfen. Gespeicherte Daten bleiben erhalten."
-            }
+            if (code == "BACKUP_FORMAT_UNSUPPORTED") return BackupStatusRules.failureMessage(code)
             if ((code.contains("STORAGE") || code.contains("SPACE"))) {
                 return "Freien Speicher und gewähltes Sicherungsziel prüfen. Die letzte geprüfte Sicherung bleibt erhalten."
             }

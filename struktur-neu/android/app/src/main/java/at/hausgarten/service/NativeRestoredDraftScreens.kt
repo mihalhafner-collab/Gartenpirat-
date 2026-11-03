@@ -56,10 +56,12 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
     val media = restoredObjects(current?.optJSONArray("media_candidates"))
     val mediaRequired = current?.optBoolean("media_review_required") == true || current?.optBoolean("media_review_pending") == true
     val mediaReady = current?.optBoolean("media_mirror_complete") == true && current.optString("media_error_code").isEmpty()
-    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+    Column(Modifier.fillMaxSize()) {
+    LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item {
-            Text("Übernommene Formularstände prüfen", style = MaterialTheme.typography.headlineSmall)
-            Text("Wähle je Formular eine Quelle. Gespeicherte Vorgänge werden dadurch nicht erneut ausgeführt. Nicht gewählte Werte bleiben im gesicherten Quellbestand erhalten.")
+            Text("Entwürfe prüfen", style = MaterialTheme.typography.headlineSmall)
+            NativeStatus(if (reviewed) "Auswahl bestätigt" else "Prüfung erforderlich", if (reviewed) NativeStatusTone.Confirmed else NativeStatusTone.Attention)
+            Text("Wähle je Entwurf eine Quelle. Bereits gespeicherte Arbeit und Dokumente werden dadurch nicht erneut angelegt. Nicht gewählte Werte bleiben im gesicherten Quellbestand erhalten.")
             if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (current == null) Text("Formularstände werden gelesen …")
@@ -75,7 +77,7 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
                     })
                     Column(Modifier.weight(1f)) { Text(candidate.optString("label", "Formular")); Text(restoredSourceLabel(source), style = MaterialTheme.typography.bodySmall) }
                 }
-                RestoredCandidateValues(candidate.optString("value"))
+                RestoredCandidateValues(candidate.optString("value"), controller)
             } }
         }
         if (current?.optBoolean("available") == true) item {
@@ -107,8 +109,11 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
         if (!deferMedia && mediaRequired && (!locked || reviewed)) item {
             Row { Checkbox(acceptedOmissions, { acceptedOmissions = it }, enabled = !busy); Text("Ich habe die Fotoauswahl geprüft. Nicht ausgewählte Fotoentwürfe bleiben als Quelle erhalten und werden nicht aktiviert.", Modifier.weight(1f)) }
         }
-        if (current?.optBoolean("available") == true && !reviewed) item {
-            Button(enabled = !busy && (deferMedia || !mediaRequired || mediaReady && (locked || acceptedOmissions)), modifier = Modifier.fillMaxWidth(), onClick = { scope.launch {
+        item { NativeInfoRow("Erhaltene Entwürfe", "Auswahl später im Fachformular weiterbearbeiten", { controller.navigate("drafts") }) }
+        }
+        if (current?.optBoolean("available") == true && !reviewed) NativeActionBar(
+            if (locked) "Ergebnis prüfen" else "Auswahl übernehmen",
+            { scope.launch {
                 busy = true; error = ""
                 try {
                     withContext(Dispatchers.IO) {
@@ -126,10 +131,12 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
                     refresh(); controller.message("Formularauswahl gespeichert und vollständig zurückgelesen.")
                 } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure); runCatching { refresh() } }
                 finally { busy = false }
-            } }) { Text(if (locked) "Bestätigte Auswahl zurücklesen und abschließen" else "Auswahl übernehmen und zurücklesen") }
-        }
-        if (reviewed && current?.optBoolean("media_review_pending") == true && !deferMedia) item {
-            Button(enabled = !busy && mediaReady && acceptedOmissions, modifier = Modifier.fillMaxWidth(), onClick = { scope.launch {
+            } },
+            "Zurück", { controller.back() },
+            enabled = !busy && (deferMedia || !mediaRequired || mediaReady && (locked || acceptedOmissions)), secondaryEnabled = !busy
+        )
+        else if (reviewed && current?.optBoolean("media_review_pending") == true && !deferMedia) NativeActionBar(
+            "Fotoauswahl übernehmen", { scope.launch {
                 busy = true
                 try {
                     withContext(Dispatchers.IO) { RestoredBrowserCheckpoint(controller.context, controller.store).completeMedia(JSONObject()
@@ -138,9 +145,10 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
                     refresh(); error = ""; controller.message("Die geprüfte Medienauswahl wurde übernommen.")
                 } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
                 finally { busy = false }
-            } }) { Text("Geprüfte Fotoauswahl übernehmen") }
-        }
-        item { OutlinedButton(onClick = { controller.navigate("drafts") }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text("Erhaltene Entwürfe öffnen") } }
+            } },
+            "Zurück", { controller.back() }, enabled = !busy && mediaReady && acceptedOmissions, secondaryEnabled = !busy
+        )
+        else NativeActionBar("Entwürfe öffnen", { controller.navigate("drafts") }, "Zurück", { controller.back() }, enabled = !busy, secondaryEnabled = !busy)
     }
 }
 
@@ -288,6 +296,7 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
     var copyConfirmed by remember { mutableStateOf(false) }
     var legacyClosed by remember { mutableStateOf(false) }
     var proof by remember { mutableStateOf<JSONObject?>(null) }
+    var reviewConfirmed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     BackHandler(selected.isNotEmpty()) { selected = ""; content = null; proof = null }
     LaunchedEffect(offset, category) {
@@ -316,7 +325,7 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
         } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
     }
     LaunchedEffect(selected) {
-        content = null; entry = null; proof = null; copyConfirmed = false; legacyClosed = false; plan = null; action = null
+        content = null; entry = null; proof = null; copyConfirmed = false; reviewConfirmed = false; legacyClosed = false; plan = null; action = null
         if (selected.isNotEmpty()) try {
             val loaded = withContext(Dispatchers.IO) {
                 val metadata = JSONObject(controller.store.ownerValue(selected, "{}"))
@@ -334,39 +343,8 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
     val raw = content as? JSONObject
     val editor = plan
     val originalAction = action
-    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Text("Erhaltene Entwürfe", style = MaterialTheme.typography.headlineSmall)
-            Text("Öffnen übernimmt keine Geschäftsdaten. Frühere Speicheraktionen behalten ihre Kennung und werden zuerst anhand des gespeicherten Belegs geprüft.")
-            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
-            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-        }
-        if (selected.isEmpty()) {
-            item { NativeChoice("Bereich", category, listOf("" to "Alle Entwürfe", "work" to "Arbeit", "billing" to "Abrechnung")) { category = it; offset = 0 } }
-            if (rows.isEmpty()) item { Text("Keine erhaltenen Entwürfe in dieser Auswahl.") }
-            items(rows, key = { it.sqlKey }) { row -> OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
-                Text(row.label); Text(if (row.legacy) "Übernommene Formularquelle" else "Native Bearbeitung", style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = { selected = row.sqlKey }) { Text("Eingaben lesen und fortsetzen") }
-            } } }
-            item { Row { TextButton(enabled = offset > 0, onClick = { offset = (offset - 40).coerceAtLeast(0) }) { Text("Vorherige") }; TextButton(enabled = more, onClick = { offset += 40 }) { Text("Weitere") } } }
-            item { OutlinedButton(onClick = { controller.navigate("restored_drafts") }) { Text("Formular- und Medienauswahl prüfen") } }
-        } else {
-            item { TextButton(onClick = { selected = ""; content = null; proof = null }) { Text("Zur Entwurfsübersicht") }; entry?.let { Text(restoredSourceLabel(it.optString("source")), style = MaterialTheme.typography.bodySmall) } }
-            item { content?.let { RestoredValueView(it, "Erhaltene Eingaben", initiallyOpen = true) } ?: Text("Entwurf wird gelesen …") }
-            if (selected.startsWith("browser_media:") && raw != null) item { RestoredMediaDraft(controller, raw, selected) }
-            if (originalAction != null) item {
-                Text("Eine frühere Speicheraktion ist erhalten. Ihre Argumente werden beim Öffnen des Fachformulars unverändert geschützt.")
-                Button(enabled = !busy && originalAction.optString("tool").isNotBlank() && originalAction.optJSONObject("args") != null, onClick = { scope.launch {
-                    busy = true
-                    try { proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", originalAction.getString("tool")).put("original_args", originalAction.getJSONObject("args"))); error = "" }
-                    catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
-                    finally { busy = false }
-                } }) { Text("Beleg der ursprünglichen Aktion lesen") }
-                proof?.let { NativeBusinessValues(it) }
-            }
-            if (editor != null) item {
-                if (legacyClosed) Text("Diese übernommene Bearbeitung wurde bereits geschlossen. Ihre ursprünglichen Angaben bleiben lesbar; sie werden nicht erneut als alter Entwurf aktiviert.")
-                Button(enabled = !busy && !legacyClosed, modifier = Modifier.fillMaxWidth(), onClick = { scope.launch {
+    val continueEditing: () -> Unit = {
+        if (editor != null) scope.launch {
                     busy = true
                     try {
                         if (selected.startsWith("native_restored_draft:")) {
@@ -386,13 +364,9 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
                         controller.navigate(editor.section, editor.id, editor.mode, restoredCopy(editor.args).put("_draft_key", editor.key))
                     } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
                     finally { busy = false }
-                } }) { Text("Im Fachformular prüfen und fortsetzen") }
-            }
-            if ((editor == null || legacyClosed) && content != null) item {
-                Text("Diese historischen Felder bleiben vollständig in ihrer Quelle erhalten. Du kannst die lesbaren Angaben bewusst als Notiz in ein neues Fachformular kopieren; frühere Aktionen werden dabei nicht ausgeführt.")
-                NativeChoice("Ziel der Notiz", copyTo, listOf("customer" to "Kunde", "order" to "Auftrag", "worklog" to "Arbeitsaufzeichnung", "offer" to "Angebot", "property" to "Objekt", "inquiry" to "Anfrage"), { copyTo = it; copyConfirmed = false })
-                Row { Checkbox(copyConfirmed, { copyConfirmed = it }, enabled = !busy); Text("Ich möchte die angezeigten Angaben als Notiz übernehmen. Die ursprüngliche Quelle bleibt erhalten.", Modifier.weight(1f)) }
-                Button(enabled = !busy && copyConfirmed, modifier = Modifier.fillMaxWidth(), onClick = { scope.launch {
+        }
+    }
+    val copyNote: () -> Unit = { scope.launch {
                     busy = true
                     try {
                         val notes = restoredPlainText(content)
@@ -401,9 +375,64 @@ internal fun NativeDraftInbox(controller: NativeAppController) {
                         controller.navigate(copied.section, copied.id, copied.mode, restoredCopy(copied.args).put("_draft_key", copied.key))
                     } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
                     finally { busy = false }
-                } }) { Text("Angaben als Notiz im Fachformular prüfen") }
+        } }
+    Column(Modifier.fillMaxSize()) {
+    LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item {
+            Text(if (selected.isEmpty()) "Entwürfe" else "Offene Bearbeitung", style = MaterialTheme.typography.headlineSmall)
+            NativeStatus("Entwurf erhalten")
+            Text("Zurück erhält die Eingaben. Frühere Speicheraktionen werden zuerst geprüft; sie werden beim Öffnen nicht wiederholt.")
+            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+        }
+        if (selected.isEmpty()) {
+            item { NativeChoice("Bereich", category, listOf("" to "Alle Entwürfe", "work" to "Arbeit", "billing" to "Angebote")) { category = it; offset = 0 } }
+            if (rows.isEmpty()) item { Text("Keine erhaltenen Entwürfe in dieser Auswahl.") }
+            items(rows, key = { it.sqlKey }) { row ->
+                NativeInfoRow(row.label, if (row.legacy) "Übernommener Entwurf · vor Übernahme prüfen" else "Noch nicht abgeschlossen", { selected = row.sqlKey })
+            }
+            item { Row { TextButton(enabled = offset > 0, onClick = { offset = (offset - 40).coerceAtLeast(0) }) { Text("Vorherige") }; TextButton(enabled = more, onClick = { offset += 40 }) { Text("Weitere") } } }
+            item { OutlinedButton(onClick = { controller.navigate("restored_drafts") }) { Text("Formular- und Medienauswahl prüfen") } }
+        } else {
+            item { TextButton(onClick = { selected = ""; content = null; proof = null }) { Text("Zur Entwurfsübersicht") }; entry?.let { Text(restoredSourceLabel(it.optString("source")), style = MaterialTheme.typography.bodySmall) } }
+            item { content?.let { RestoredDraftSummary(it, controller); RestoredValueView(it, "Alle erhaltenen Angaben") } ?: Text("Entwurf wird gelesen …") }
+            if (selected.startsWith("browser_media:") && raw != null) item { RestoredMediaDraft(controller, raw, selected) }
+            if (originalAction != null) item {
+                Text("Eine frühere Speicheraktion ist erhalten. Ihre Argumente werden beim Öffnen des Fachformulars unverändert geschützt.")
+                Button(enabled = !busy && originalAction.optString("tool").isNotBlank() && originalAction.optJSONObject("args") != null, onClick = { scope.launch {
+                    busy = true
+                    try { proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", originalAction.getString("tool")).put("original_args", originalAction.getJSONObject("args"))); error = "" }
+                    catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
+                    finally { busy = false }
+                } }) { Text("Beleg der ursprünglichen Aktion lesen") }
+                proof?.let { result ->
+                    val confirmed = result.optString("state") == "confirmed"
+                    NativeStatus(if (confirmed) "Gespeicherter Vorgang bestätigt" else "Ergebnis noch offen", if (confirmed) NativeStatusTone.Confirmed else NativeStatusTone.Attention)
+                    Text(when (result.optString("state")) { "confirmed" -> "Der ursprüngliche Beleg wurde gefunden. Es wurde kein neuer Vorgang angelegt."; "content_removed" -> "Der frühere Eintrag wurde entfernt. Die alte Aktion wird nicht erneut ausgeführt."; else -> "Der ursprüngliche Vorgang ist noch nicht eindeutig bestätigt. Die Eingaben bleiben erhalten." })
+                    RestoredValueView(result, "Prüfdetails")
+                }
+            }
+            if (editor != null) item {
+                if (legacyClosed) Text("Diese übernommene Bearbeitung wurde bereits geschlossen. Ihre ursprünglichen Angaben bleiben lesbar; sie werden nicht erneut als alter Entwurf aktiviert.")
+                if (!legacyClosed) Row {
+                    Checkbox(reviewConfirmed, { reviewConfirmed = it }, enabled = !busy)
+                    Text("Ich habe die erhaltenen Angaben und ihre Zuordnung geprüft. Im Fachformular wird erst nach meiner Bestätigung gespeichert.", Modifier.weight(1f))
+                }
+
+            }
+            if ((editor == null || legacyClosed) && content != null) item {
+                Text("Diese historischen Felder bleiben vollständig in ihrer Quelle erhalten. Du kannst die lesbaren Angaben bewusst als Notiz in ein neues Fachformular kopieren; frühere Aktionen werden dabei nicht ausgeführt.")
+                NativeChoice("Ziel der Notiz", copyTo, listOf("customer" to "Kunde", "order" to "Auftrag", "worklog" to "Arbeitsaufzeichnung", "offer" to "Angebot", "property" to "Objekt", "inquiry" to "Anfrage"), { copyTo = it; copyConfirmed = false })
+                Row { Checkbox(copyConfirmed, { copyConfirmed = it }, enabled = !busy); Text("Ich möchte die angezeigten Angaben als Notiz übernehmen. Die ursprüngliche Quelle bleibt erhalten.", Modifier.weight(1f)) }
+
             }
         }
+    }
+        if (selected.isNotEmpty() && editor != null && !legacyClosed) NativeActionBar("Weiterbearbeiten", continueEditing,
+            "Zurück", { selected = ""; content = null; proof = null }, enabled = !busy && reviewConfirmed, secondaryEnabled = !busy)
+        else if (selected.isNotEmpty() && content != null) NativeActionBar("Notiz übernehmen", copyNote,
+            "Zurück", { selected = ""; content = null; proof = null }, enabled = !busy && copyConfirmed, secondaryEnabled = !busy)
+        else NativeActionBar("Fertig", { controller.back() }, enabled = !busy)
     }
 }
 
@@ -565,9 +594,24 @@ private fun hiddenDraftField(key: String) = key.startsWith("_") || key.endsWith(
 private fun binaryDraftField(key: String, value: Any?) = key in setOf("full_data", "thumbnail_data", "chunk_base64") || key.endsWith("_base64") || key == "data" && value is String
 
 @Composable
-private fun RestoredCandidateValues(raw: String) {
+private fun RestoredCandidateValues(raw: String, controller: NativeAppController) {
     val value by produceState<Any?>(null, raw) { value = withContext(Dispatchers.IO) { restoredParse(raw) } }
-    if (value == null) Text("Eingaben werden gelesen …") else RestoredValueView(value, "Erhaltene Eingaben")
+    if (value == null) Text("Eingaben werden gelesen …") else {
+        RestoredDraftSummary(value, controller)
+        RestoredValueView(value, "Alle erhaltenen Angaben")
+    }
+}
+
+@Composable
+private fun RestoredDraftSummary(value: Any?, controller: NativeAppController) {
+    val raw = value as? JSONObject ?: return
+    val fields = raw.optJSONObject("values") ?: raw.optJSONArray("fields")?.let(::restoredFields) ?: raw
+    NativeContext(controller, fields)
+    for ((key, label) in listOf("name" to "Bezeichnung", "title" to "Tätigkeit", "activity" to "Tätigkeit", "work_date" to "Arbeitstag", "date" to "Datum", "performed_on" to "Erledigt am", "quantity_decimal" to "Menge", "unit" to "Einheit", "caption" to "Bildunterschrift", "notes" to "Notiz", "reason" to "Grund")) {
+        val text = fields.opt(key)?.takeUnless { it == JSONObject.NULL }?.toString().orEmpty()
+        if (text.isNotBlank()) NativeInfoRow(label, nativeDisplayText(text))
+    }
+    if (fields.optString("session_id").isNotBlank()) NativeInfoRow("Zuordnung", "Erhaltene Arbeitssitzung · aktuellen Stand im Fachformular prüfen")
 }
 
 /** Structured, expandable values keep unknown fields readable without exposing a JSON editor or binary data. */

@@ -1,6 +1,8 @@
 package at.hausgarten.service
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -78,6 +80,29 @@ private fun FinanceDraftSummary(controller: NativeAppController, row: JSONObject
     FinancePositionSummary(row.optJSONArray("positions"))
 }
 
+/** UI hints lead to a field; the existing owner validation remains authoritative. */
+private fun financeOpenItems(form: JSONObject): List<Pair<Int, String>> = buildList {
+    if (form.optString("customer_id").isBlank()) add(0 to "Kunde auswählen")
+    if (form.optString("title").isBlank()) add(0 to "Titel ergänzen")
+    if (form.optString("document_type") !in OfferContract.types()) add(0 to "Dokumentart auswählen")
+    for ((field, label) in listOf("issue_date" to "Angebotsdatum", "valid_until" to "Gültigkeit", "execution_window" to "Ausführungszeitraum", "payment_terms" to "Zahlungsbedingungen", "tax_mode" to "Steuermodus", "customer_type" to "Kundentyp")) {
+        if (form.optString(field).isBlank()) add(0 to "$label ergänzen")
+    }
+    if (!form.optBoolean("binding_confirmed") || !form.optBoolean("scope_confirmed")) add(0 to "Bindungsart und Leistungsumfang prüfen")
+    if (form.optString("customer_type") == "consumer" && (form.optString("contract_channel").isBlank() || (form.optString("contract_channel") in listOf("distance", "off_premise") && (form.optString("consumer_information").isBlank() || !form.optBoolean("consumer_information_confirmed"))))) add(0 to "Verbraucherinformationen und Vertragsweg prüfen")
+    val lines = form.optJSONArray("positions") ?: JSONArray()
+    if (lines.length() == 0) add(1 to "Mindestens eine Leistung ergänzen")
+    for (index in 0 until lines.length()) {
+        val line = lines.getJSONObject(index)
+        if (line.optString("title").isBlank() || line.optString("unit").isBlank()) add(1 to "Position ${index + 1}: Leistung und Einheit ergänzen")
+        val quantity = runCatching { BigDecimal(line.optString("quantity").replace(',', '.')) }.getOrNull()
+        val price = runCatching { BigDecimal(line.optString("price").replace(',', '.')) }.getOrNull()
+        if (quantity == null || quantity.signum() <= 0 || price == null || price.signum() < 0) add(1 to "Position ${index + 1}: Menge und Preis ergänzen")
+        if (line.optString("catalog_entry_id").isBlank() && line.optString("price_source") != "user_confirmed") add(1 to "Position ${index + 1}: Preis ausdrücklich bestätigen")
+        if (form.optString("tax_mode") == "standard" && (line.isNull("tax_rate") || line.optString("tax_rate").isBlank())) add(1 to "Position ${index + 1}: Steuersatz ergänzen")
+    }
+}
+
 /** Offer and service-catalog editors use the existing local owner commands. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -109,41 +134,83 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             NativeActionForm(controller, action.first, when(action.first) {
                 "record_offer_acceptance" -> "Annahme mit Nachweis erfassen"
                 "decline_offer" -> "Ablehnung erfassen"
-                "finalize_offer" -> "Geprüftes Angebot finalisieren"
+                "finalize_offer" -> "Geprüftes Angebots-PDF erstellen"
                 "convert_offer_to_order" -> "Angenommenes Angebot in Auftrag übernehmen"
                 else -> "Angaben prüfen und bestätigen"
-            }, action.second) { result ->
+            }, action.second,
+                fixedInputs=action.first in setOf("finalize_offer","prepare_offer_share","prepare_offer_delivery","duplicate_offer","validate_offer_draft","update_catalog_entry"),
+                submitLabel=when(action.first){"finalize_offer" -> "PDF erstellen";"prepare_offer_share" -> "Android-Teilen öffnen";"prepare_offer_delivery" -> "E-Mail-Übergabe öffnen";else -> "Bestätigen"},
+                onCancel={pendingAction=null}) { result ->
                 val tool=action.first;pendingAction = null; refresh++
                 if(tool=="archive_entity") controller.navigate(section)
                 val saved=financeData(result)
+                if(tool=="finalize_offer") {
+                    controller.message("Angebots-PDF lokal gespeichert. Teilen ist ein eigener Schritt.")
+                    val finalizedId=action.second.optString("offer_id")
+                    if(finalizedId!=id) controller.navigate("offers",finalizedId)
+                }
                 if(tool=="duplicate_offer" && saved.optString("offer_id").isNotEmpty()) controller.navigate("offers",saved.getString("offer_id"))
                 if(tool=="convert_offer_to_order" && saved.optString("order_id").isNotEmpty()) controller.navigate("orders",saved.getString("order_id"))
                 if(tool in listOf("prepare_offer_delivery","prepare_offer_share")) scope.launch {try{controller.shareOffer(id,if(tool=="prepare_offer_delivery") "email" else "share")}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}
             }
             TextButton(onClick = { pendingAction = null }) { Text("Zurück zum Beleg") }
         }
-        offerReview != null -> Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        offerReview != null -> Column(Modifier.fillMaxSize()) {
             val review=offerReview!!
             val snapshot=review.getJSONObject("review_snapshot")
-            Text("Finalisierung vollständig prüfen",style=MaterialTheme.typography.headlineSmall)
-            FinanceIssuerSummary(snapshot.optJSONObject("business_settings"))
-            Text("Rechnungsempfänger",style=MaterialTheme.typography.titleMedium)
-            FinanceValues(snapshot.optJSONObject("recipient"),financePartyFields)
-            Text("Einsatzkunde",style=MaterialTheme.typography.titleMedium)
-            FinanceValues(snapshot.optJSONObject("customer"),financePartyFields)
-            FinanceValues(snapshot.optJSONObject("order"),listOf("title" to "Auftrag","location" to "Einsatzort","status" to "Status"))
-            FinanceDraftSummary(controller,review.getJSONObject("offer"),"offers")
-            val entries=snapshot.optJSONArray("service_catalog") ?: JSONArray()
-            for(i in 0 until entries.length()) FinanceValues(entries.optJSONObject(i),listOf("title" to "Bestätigter Baustein","default_price" to "Katalogpreis","price_confirmed" to "Preis bestätigt"))
             val validation=review.optJSONObject("validation") ?: JSONObject()
             val errors=validation.optJSONArray("errors") ?: JSONArray()
-            for(i in 0 until errors.length()) Text(errors.optString(i),color=MaterialTheme.colorScheme.error)
-            FinanceCheck("Ich habe Aussteller, Empfänger, Bindungsart, Leistungsumfang und alle Preise dieses Angebots geprüft.",offerReviewed) {offerReviewed=it}
-            Button(enabled=offerReviewed && validation.optBoolean("valid"),onClick={pendingAction="finalize_offer" to JSONObject().put("offer_id",id).put("expected_record_hash",review.getString("record_hash")).put("expected_context_hash",review.getString("context_hash"));offerReview=null},modifier=Modifier.fillMaxWidth()) {Text("Geprüfte Finalisierung bestätigen")}
-            TextButton(onClick={offerReview=null}) {Text("Zum Angebot zurück")}
+            fun correct(message:String) {
+                when {
+                    message.contains("Aussteller",true) || message.contains("UID") || message.contains("Steuerbefreiung") || message.contains("zentral") -> controller.navigate("settings")
+                    message.contains("Empfänger") || message.contains("Auslandsfall") -> {
+                        val recipient=snapshot.optJSONObject("recipient")?.optString("id").orEmpty().ifEmpty{review.getJSONObject("offer").optString("billing_customer_id").ifEmpty{review.getJSONObject("offer").optString("customer_id")}}
+                        if(recipient.isNotEmpty()) controller.navigate("customers",recipient,"edit") else {offerReview=null;editing=true}
+                    }
+                    else -> {
+                        val target=review.getJSONObject("offer").getString("id")
+                        offerReview=null
+                        controller.navigate("offers",target,"edit",JSONObject().put("_offer_step",if(message.contains("Position") || message.contains("Leistung erforderlich")) 1 else 0))
+                    }
+                }
+            }
+            BackHandler {offerReview=null}
+            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                Text("Angebot prüfen · 3 von 3",style=MaterialTheme.typography.headlineSmall)
+                NativeStatus(if(validation.optBoolean("valid")) "Bereit für PDF" else "Angaben ergänzen",if(validation.optBoolean("valid")) NativeStatusTone.Confirmed else NativeStatusTone.Attention)
+                Text("PDF erstellen speichert das lokale Originaldokument. Teilen bleibt ein eigener Schritt.")
+                FinanceIssuerSummary(snapshot.optJSONObject("business_settings"))
+                Text("Rechnungsempfänger",style=MaterialTheme.typography.titleMedium)
+                FinanceValues(snapshot.optJSONObject("recipient"),financePartyFields)
+                Text("Kunde",style=MaterialTheme.typography.titleMedium)
+                FinanceValues(snapshot.optJSONObject("customer"),financePartyFields)
+                FinanceValues(snapshot.optJSONObject("order"),listOf("title" to "Auftrag","location" to "Einsatzort","status" to "Status"))
+                FinanceDraftSummary(controller,review.getJSONObject("offer"),"offers")
+                val entries=snapshot.optJSONArray("service_catalog") ?: JSONArray()
+                for(index in 0 until entries.length()) FinanceValues(entries.optJSONObject(index),listOf("title" to "Bestätigter Baustein","default_price" to "Katalogpreis","price_confirmed" to "Preis bestätigt"))
+                for(index in 0 until errors.length()) NativeInfoRow(nativeDisplayText(errors.optString(index)),"Angaben ergänzen",onClick={correct(errors.optString(index))})
+                FinanceCheck("Ich habe Aussteller, Empfänger, Bindungsart, Leistungsumfang und alle Preise dieses Angebots geprüft.",offerReviewed) {offerReviewed=it}
+                if(errors.length()>0) Button(onClick={},enabled=false,modifier=Modifier.fillMaxWidth()){Text("PDF erstellen")}
+                TextButton(onClick={offerReview=null}){Text("Zum Angebot zurück")}
+            }
+            NativeActionBar(
+                primaryLabel=if(errors.length()>0) "Angaben ergänzen" else "PDF erstellen",
+                onPrimary={if(errors.length()>0) correct(errors.optString(0)) else {pendingAction="finalize_offer" to JSONObject().put("offer_id",review.getJSONObject("offer").getString("id")).put("expected_record_hash",review.getString("record_hash")).put("expected_context_hash",review.getString("context_hash"));offerReview=null}},
+                secondaryLabel="Zurück",onSecondary={offerReview=null},enabled=errors.length()>0 || offerReviewed && validation.optBoolean("valid")
+            )
         }
         editing && (fresh || row!=null || controller.route.args.optString("_draft_key").isNotEmpty()) -> FinanceEditor(section, if (fresh) null else row, if (fresh) "" else detail?.optString("record_hash").orEmpty(), controller,
-            onClose = { editing = false; fresh = false; if(controller.route.args.optString("_draft_key").isNotEmpty()) controller.navigate(section,id) else refresh++ }, onSaved = { savedId -> editing = false; fresh = false; if (savedId.isNotEmpty()) controller.navigate(section, savedId, args = controller.route.args) else refresh++ })
+            onClose = { editing=false;fresh=false;if(controller.route.mode in setOf("new","edit") || controller.route.args.optString("_draft_key").isNotEmpty()) controller.back() else refresh++ },
+            onSaved = { editing=false;fresh=false;if(controller.route.mode in setOf("new","edit") || controller.route.args.optString("_draft_key").isNotEmpty()) controller.finishAction() else refresh++ },
+            onReview = { savedId ->
+                scope.launch {
+                    try {
+                        offerReview = controller.query("get_offer", JSONObject().put("offer_id", savedId).put("include_review", true))
+                        offerReviewed = false; editing = false; fresh = false
+                    } catch (cancelled: CancellationException) { throw cancelled }
+                    catch (failure: Exception) { controller.message(failure.message.orEmpty()) }
+                }
+            })
         id.isEmpty() -> listStates.SaveableStateProvider("finance-list") { FinanceList(section, controller, onCreate = { fresh = true; editing = true }) }
         row == null -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (error.isEmpty()) CircularProgressIndicator() else Text(error, color = MaterialTheme.colorScheme.error)
@@ -153,8 +220,9 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             val editable = section == "catalog" || OfferRules.editable(row)
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(row.optString("title"), style = MaterialTheme.typography.headlineSmall)
-            Text(financeStatus(row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")))
+            NativeStatus(if (section == "offers" && !editable) "PDF gespeichert" else financeStatus(row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")), if(section == "offers" && !editable) NativeStatusTone.Confirmed else NativeStatusTone.Neutral)
             if (section != "catalog") {
+                if(!editable) NativeInfoRow("Angebotsstatus",financeStatus(row.optString("status")))
                 Text("Summe: ${financeMoney(row.opt("gross_total") ?: row.opt("amount"))}")
                 val dates = listOf("issue_date" to "Datum", "valid_until" to "Gültig bis")
                 val dateText = dates.mapNotNull { (key, label) -> row.optString(key).takeIf { it.isNotBlank() }?.let { "$label: ${nativeDisplayDate(it)}" } }.joinToString(" · ")
@@ -170,7 +238,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 if (editable) {
                     OutlinedButton(onClick = { scope.launch { try { val validation = controller.query("validate_offer", JSONObject().put("offer_id", id)); detail = validation; controller.message(validation.optJSONObject("validation")?.let { if(it.optBoolean("valid")) "Angaben sind vollständig." else it.optJSONArray("errors")?.join("; ").orEmpty() } ?: "Prüfung gelesen.") } catch(cancelled:CancellationException){throw cancelled}catch(f: Exception) { controller.message(f.message.orEmpty()) } } }, Modifier.fillMaxWidth()) { Text("Pflichtangaben prüfen") }
                     OutlinedButton(onClick = { pendingAction = "validate_offer_draft" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }, Modifier.fillMaxWidth()) { Text("Geprüften Entwurfsstand speichern") }
-                    OutlinedButton(onClick = {scope.launch {try {offerReview=controller.query("get_offer",JSONObject().put("offer_id",id).put("include_review",true));offerReviewed=false}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}, Modifier.fillMaxWidth()) { Text("Finalisierung prüfen") }
+                    OutlinedButton(onClick = {scope.launch {try {offerReview=controller.query("get_offer",JSONObject().put("offer_id",id).put("include_review",true));offerReviewed=false}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){controller.message(f.message.orEmpty())}}}, Modifier.fillMaxWidth()) { Text("Prüfen und PDF erstellen") }
                 } else {
                     Text(detail?.optJSONObject("decision")?.let { "Entscheidung: ${financeStatus(it.optString("decision"))} · ${nativeDisplayDate(it.optString("accepted_at"))}" } ?: "Annahme oder Ablehnung noch nicht erfasst.")
                     FinanceValues(detail?.optJSONObject("decision"),listOf("evidence" to "Annahmenachweis","reason" to "Begründung","recorded_at" to "Erfasst am"))
@@ -187,11 +255,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
             if (editable && section == "offers") NativeDeleteButton(controller, "offer", id, label = "Entwurf in Papierkorb") { controller.returnToList(section) }
             }
-            NativeActions {
-                TextButton(onClick = { controller.returnToList(section) }) { Text("Zur Liste") }
-                if (editable) Button(onClick = { fresh = false; editing = true }) { Text("Bearbeiten") }
-                else if (section == "offers") Button(onClick = { pendingAction = "prepare_offer_share" to JSONObject().put("offer_id", id).put("expected_record_hash", detail!!.optString("record_hash")) }) { Text("Geprüftes Original-PDF teilen") }
-            }
+            NativeActionBar(
+                primaryLabel=if(editable) "Bearbeiten" else "Über Android teilen",
+                onPrimary={if(editable) {fresh=false;editing=true} else pendingAction="prepare_offer_share" to JSONObject().put("offer_id",id).put("expected_record_hash",detail!!.optString("record_hash"))},
+                secondaryLabel="Zur Liste",onSecondary={controller.returnToList(section)}
+            )
         }
     }
 }
@@ -247,11 +315,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         }
         }
         }
-        if (!imeVisible) Surface(tonalElevation = 3.dp) {
-            Button(onClick = onCreate, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(if (section == "catalog") "Neuer Leistungsbaustein" else "Neues Angebot / Kostenvoranschlag")
-            }
-        }
+        if (!imeVisible) NativeActionBar(if (section == "catalog") "Baustein anlegen" else "Angebot anlegen",onCreate)
     }
 }
 
@@ -283,9 +347,12 @@ private fun FinancePositionSummary(positions:JSONArray?) {
 }
 
 @Composable
-private fun FinanceEditor(section:String, original:JSONObject?, recordHash:String, controller:NativeAppController, onClose:()->Unit, onSaved:(String)->Unit) {
+private fun FinanceEditor(section:String, original:JSONObject?, recordHash:String, controller:NativeAppController, onClose:()->Unit, onSaved:(String)->Unit, onReview:(String)->Unit) {
     val id=original?.optString("id").orEmpty().ifEmpty {if(controller.route.mode=="edit") controller.route.id else ""}
     val key=controller.route.args.optString("_draft_key").ifEmpty {"finance:$section:${id.ifEmpty { "new" }}"}
+    var step by rememberSaveable(key) { mutableIntStateOf(controller.route.args.optInt("_offer_step").coerceIn(0,2)) }
+    var termsOpen by rememberSaveable(key) { mutableStateOf(controller.route.args.has("_offer_step")) }
+    var discard by remember { mutableStateOf(false) }
     var form by remember(key) { mutableStateOf(original?.let(::financeCopy) ?: JSONObject()) }
     var loaded by remember(key) { mutableStateOf(false) }
     var loadRetry by remember(key) {mutableIntStateOf(0)}
@@ -346,7 +413,7 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             loaded=true
         } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {error=f.message.orEmpty();loaded=false}
     }
-    fun save(validate:Boolean=false) {
+    fun save(validate:Boolean=false, reviewAfterSave:Boolean=false) {
         if(busy || !loaded) return
         scope.launch {
             busy=true;error=""
@@ -356,11 +423,17 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 val prior = pending
                 if (prior != null) {
                     val proof = financeInspect(controller, tool, prior)
-                    if (proof != null) { controller.removeDraft(key); onSaved(proof.optString("offer_id", proof.optString("entry_id", proof.optString("entity_id", id)))); return@launch }
+                    if (proof != null) {
+                        controller.removeDraft(key)
+                        val savedId = proof.optString("offer_id", proof.optString("entry_id", proof.optString("entity_id", id)))
+                        if (reviewAfterSave) onReview(savedId) else onSaved(savedId)
+                        return@launch
+                    }
+                    throw IllegalStateException("Speichern weiterhin nicht bestätigt. Die ursprünglichen Angaben bleiben erhalten; es wird nur das Ergebnis geprüft.")
                 }
                 if (restored) throw IllegalStateException("Wiederhergestellten Entwurf und aktuellen Bestand zuerst bewusst prüfen. Der ursprüngliche Auftrag wird nicht erneut ausgeführt.")
                 val args=pending ?: run {
-                    if(!changed) { onClose();return@launch }
+                    if(!changed) { if(reviewAfterSave && id.isNotEmpty()) onReview(id) else onClose();return@launch }
                     val payload=financeFields(form,when(section) { "offers" -> OfferRules.FIELDS; else -> arrayOf("title","description","unit","pricing_type","category","legal_notes","assumptions","exclusions","default_price","default_quantity","active","price_confirmed") })
                     val numeric=if(section=="catalog") listOf("default_price","default_quantity") else emptyList()
                     numeric.forEach { name -> if(payload.has(name)) payload.put(name,if(payload.optString(name).isBlank() || payload.isNull(name)) JSONObject.NULL else BigDecimal(payload.get(name).toString().replace(',','.'))) }
@@ -389,7 +462,8 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 attemptedWrite=true
                 val result=financeData(controller.call(tool,args))
                 controller.removeDraft(key)
-                onSaved(result.optString(if(section=="catalog") "entry_id" else "offer_id",result.optString("entity_id",id)))
+                val savedId = result.optString(if(section=="catalog") "entry_id" else "offer_id",result.optString("entity_id",id))
+                if (reviewAfterSave) onReview(savedId) else onSaved(savedId)
             } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception) {
                 if (attemptedWrite && ((f as? NativeCallFailure)?.detail?.optString("commit_state") == "not_committed" || (f as? NativeCallFailure)?.detail?.optString("code") in setOf("INVALID_INPUT","WRITE_CONFLICT"))) {
                     pending=null;pendingTool="";request=UUID.randomUUID().toString()
@@ -399,10 +473,22 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             } finally { busy=false }
         }
     }
+    BackHandler { onClose() }
+    if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Entwurf verwerfen?") }, text = { Text("Nur die ungespeicherten Änderungen dieses Entwurfs werden entfernt. Gespeicherte Angebote und Dokumente bleiben erhalten.") }, dismissButton = { TextButton({ discard = false }) { Text("Abbrechen") } }, confirmButton = { TextButton({ scope.launch { controller.removeDraft(key); discard = false; onClose() } }) { Text("Entwurf verwerfen") } })
+    val openItems = if (section == "offers") financeOpenItems(form) else emptyList()
     Column(Modifier.fillMaxSize()) {
-    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        Text(if(id.isEmpty()) "Neuer Entwurf" else "Gespeicherten Entwurf bearbeiten",style=MaterialTheme.typography.headlineSmall)
-        if(!loaded) {if(error.isEmpty()) CircularProgressIndicator() else {Text(error,color=MaterialTheme.colorScheme.error);TextButton(onClick={error="";loadRetry++}) {Text("Entwurf erneut lesen")}};TextButton(onClick=onClose) {Text("Zurück")};return@Column}
+    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        Text(if (section == "catalog") "Leistungsbaustein" else listOf("Kunde und Dokumentart", "Leistungen", "Angebot prüfen")[step], style=MaterialTheme.typography.headlineSmall)
+        if (!loaded) {
+            if (error.isEmpty()) CircularProgressIndicator() else { Text(error, color=MaterialTheme.colorScheme.error); TextButton(onClick={error="";loadRetry++}) { Text("Entwurf erneut lesen") } }
+            return@Column
+        }
+        if (section == "offers") {
+            Text("${step + 1} von 3 · " + listOf("Kunde und Art", "Leistungen", "Prüfen und PDF")[step])
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                listOf("Kunde und Art", "Leistungen", "Prüfen").forEachIndexed { index, label -> FilterChip(selected=step==index, onClick={step=index}, enabled=!busy && pending==null, label={Text(label)}) }
+            }
+        }
         if (restored) Text("Dieser Entwurf stammt aus einem früheren Gerätestand. Aktuellen Beleg, Beziehungen und Eingaben vor einer neuen Aktion prüfen.")
         if (pending == null && (id.isNotEmpty() || restored)) {
             if (id.isNotEmpty()) TextButton(enabled=!busy,onClick={scope.launch {try {
@@ -426,35 +512,61 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
             Text("Der ursprüngliche Speichervorgang und seine Eingaben bleiben erhalten. Vor einer geänderten Anfrage zuerst den gespeicherten Stand lesen.")
             TextButton(onClick={scope.launch { try { if(id.isNotEmpty()) { val read=controller.call(if(section=="offers") "get_offer" else "get_offer_template",JSONObject().put(if(section=="offers") "offer_id" else "entry_id",id));controller.message("Aktueller Datensatz gelesen. Ihre Eingaben und der ursprüngliche Vergleichsstand bleiben erhalten."); if(read.optString("record_hash")==observedHash) controller.message("Der gespeicherte Vergleichsstand ist unverändert.") } else controller.message("Denselben Speichervorgang erneut prüfen; seine Kennung bleibt erhalten.") } catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()} }}) { Text("Gespeicherten Stand lesen") }
         }
-        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-            if(pending==null) {
-                if(section!="catalog") {
-                    NativeRecordPicker(controller,"customers","Einsatzkunde",form.optString("customer_id")) { field("customer_id",it) }
-                    if(section=="offers") NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger",form.optString("billing_customer_id")) { field("billing_customer_id",it) }
-                    NativeRecordPicker(controller,"orders","Zugeordneter Auftrag (optional)",form.optString("order_id"), customerId = form.optString("customer_id")) { field("order_id",it) }
-                    if(section=="offers") {
-                        NativeContext(controller, form.optJSONObject("_source_context") ?: JSONObject())
-                        NativeField("Titel",form.optString("title"),{field("title",it)},required=true)
-                        FinanceChoice("Dokumentart",form.optString("document_type"),OfferContract.types().map { it to OfferRules.label(it) }) { field("document_type",it) }
-                        NativeField("Angebotsdatum",form.optString("issue_date"),{field("issue_date",it)},required=true)
-                        NativeField("Gültig bis",form.optString("valid_until"),{field("valid_until",it)},required=true)
-                        NativeField("Ausführungszeitraum",form.optString("execution_window"),{field("execution_window",it)},required=true)
-                        NativeField("Einsatzort",form.optString("location"),{field("location",it)})
-                        NativeField("Zahlungsbedingungen",form.optString("payment_terms"),{field("payment_terms",it)},required=true,multiline=true)
+
+        if (pending == null) {
+            if (section == "catalog") {
+                for((name,label) in listOf("title" to "Bezeichnung","category" to "Kategorie","description" to "Beschreibung","unit" to "Einheit","default_quantity" to "Standardmenge (optional)","default_price" to "Einzelpreis (offen lassen, wenn unbekannt)","assumptions" to "Annahmen","exclusions" to "Ausschlüsse","legal_notes" to "Rechtliche Hinweise")) NativeField(label,if(form.isNull(name)) "" else form.optString(name),{field(name,it)},multiline=name in listOf("description","assumptions","exclusions","legal_notes"), enabled=!busy)
+                FinanceChoice("Positionsart",form.optString("pricing_type","unit"),listOf("unit" to "Einheitspreis","text" to "Text")) {field("pricing_type",it)}
+                FinanceCheck("Preis ausdrücklich bestätigt",form.optBoolean("price_confirmed")) {field("price_confirmed",it)}
+                FinanceCheck("Baustein aktiv",form.optBoolean("active",true)) {field("active",it)}
+            } else when (step) {
+                0 -> {
+                    NativeRecordPicker(controller,"customers","Kunde",form.optString("customer_id")) {field("customer_id",it)}
+                    NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger (optional)",form.optString("billing_customer_id")) {field("billing_customer_id",it)}
+                    NativeRecordPicker(controller,"orders","Auftrag (optional)",form.optString("order_id"),customerId=form.optString("customer_id")) {field("order_id",it)}
+                    NativeContext(controller,form.optJSONObject("_source_context") ?: JSONObject())
+                    NativeField("Titel",form.optString("title"),{field("title",it)},required=true,enabled=!busy)
+                    FinanceChoice("Dokumentart",form.optString("document_type"),OfferContract.types().map {it to OfferRules.label(it)}) {field("document_type",it);field("binding_confirmed",false)}
+                    NativeInfoRow("Zeitraum und Bedingungen", "Gültigkeit, Ausführung, Steuern und Hinweise prüfen", onClick={termsOpen=!termsOpen})
+                    if (termsOpen) {
+                        NativeDateField("Angebotsdatum",form.optString("issue_date"),{field("issue_date",it)},required=true,enabled=!busy)
+                        NativeDateField("Gültig bis",form.optString("valid_until"),{field("valid_until",it)},required=true,enabled=!busy)
+                        NativeField("Ausführungszeitraum",form.optString("execution_window"),{field("execution_window",it)},required=true,enabled=!busy)
+                        NativeField("Einsatzort",form.optString("location"),{field("location",it)},enabled=!busy)
+                        NativeField("Zahlungsbedingungen",form.optString("payment_terms"),{field("payment_terms",it)},required=true,multiline=true,enabled=!busy)
+                        FinanceChoice("Steuermodus",form.optString("tax_mode"),listOf("small_business" to "Kleinunternehmer","standard" to "Umsatzsteuer")) {field("tax_mode",it)}
+                        Text("Unternehmens- und Steuerangaben werden vor dem PDF gegen die gespeicherten Ausstellerdaten geprüft.",style=MaterialTheme.typography.bodySmall)
                         FinanceChoice("Kundentyp",form.optString("customer_type"),listOf("b2b" to "Unternehmen (B2B)","consumer" to "Verbraucher")) {field("customer_type",it)}
                         FinanceChoice("Vertragsweg",form.optString("contract_channel"),listOf("on_premise" to "Im Geschäft","distance" to "Fernabsatz","off_premise" to "Außerhalb der Geschäftsräume")) {field("contract_channel",it)}
-                        NativeField("Verbraucherinformationen / Rücktritt",form.optString("consumer_information"),{field("consumer_information",it)},multiline=true)
-                        FinanceCheck("Verbraucherinformationen ausdrücklich geprüft",form.optBoolean("consumer_information_confirmed")) {field("consumer_information_confirmed",it)}
-                        NativeField("Bindungshinweis",form.optString("binding_notice",OfferContract.type(form.optString("document_type")).optString("notice")),{field("binding_notice",it)},multiline=true)
-                        FinanceCheck("Bindungsart und zugehörigen Hinweistext geprüft",form.optBoolean("binding_confirmed")) {field("binding_confirmed",it)}
+                        if (form.optString("customer_type") == "consumer") {
+                            NativeField("Verbraucherinformationen / Rücktritt",form.optString("consumer_information"),{field("consumer_information",it)},multiline=true,enabled=!busy)
+                            FinanceCheck("Verbraucherinformationen ausdrücklich geprüft",form.optBoolean("consumer_information_confirmed")) {field("consumer_information_confirmed",it)}
+                        }
+                        NativeField("Bindungshinweis",form.optString("binding_notice"),{field("binding_notice",it)},multiline=true,enabled=!busy)
+                        val notice = OfferContract.type(form.optString("document_type")).optString("notice")
+                        if (notice.isNotEmpty()) NativeInfoRow("Hinweis zur gewählten Dokumentart",notice,onClick={field("binding_notice",notice)})
+                        FinanceCheck("Bindungsart und Hinweistext geprüft",form.optBoolean("binding_confirmed")) {field("binding_confirmed",it)}
+                        NativeField("Annahmen",form.optString("assumptions"),{field("assumptions",it)},multiline=true,enabled=!busy)
+                        NativeField("Ausschlüsse",form.optString("exclusions"),{field("exclusions",it)},multiline=true,enabled=!busy)
                         FinanceCheck("Leistungsumfang, Annahmen und Ausschlüsse geprüft",form.optBoolean("scope_confirmed")) {field("scope_confirmed",it)}
-                        NativeField("Annahmen",form.optString("assumptions"),{field("assumptions",it)},multiline=true)
-                        NativeField("Ausschlüsse",form.optString("exclusions"),{field("exclusions",it)},multiline=true)
+                        NativeField("Kopftext",form.optString("header_text"),{field("header_text",it)},multiline=true,enabled=!busy)
+                        NativeField("Fußtext",form.optString("footer_text"),{field("footer_text",it)},multiline=true,enabled=!busy)
+                        NativeField("Notizen",form.optString("notes"),{field("notes",it)},multiline=true,enabled=!busy)
+                        FinanceCheck("Synthetischer Testdatensatz (nur Testkunden)",form.optBoolean("test_record")) {field("test_record",it)}
                     }
-                    FinanceChoice("Steuermodus",form.optString("tax_mode"),listOf("small_business" to "Kleinunternehmer","standard" to "Umsatzsteuer")) {field("tax_mode",it)}
-                    Text("Der Steuermodus muss mit den zentral bestätigten Ausstellerdaten übereinstimmen.")
+                    if(section=="offers") {
+                        OutlinedButton(enabled=form.optString("customer_id").isNotEmpty(),onClick={scope.launch {try {offerContext=controller.query("get_offer_context",JSONObject().put("customer_id",form.getString("customer_id")))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Kundenkontext und bestätigte Preise lesen")}
+                        offerContext?.let {context ->
+                            FinanceValues(context.optJSONObject("customer"),listOf("name" to "Einsatzkunde","street" to "Straße","postal_code" to "Postleitzahl","city" to "Ort","notes" to "Hinweise","garden_area" to "Gartenfläche"))
+                            val orders=context.optJSONArray("open_orders") ?: JSONArray()
+                            for(i in 0 until orders.length()) FinanceValues(orders.optJSONObject(i),listOf("title" to "Offener Auftrag","location" to "Einsatzort"))
+                        }
+                    }
+
+                }
+                1 -> {
                     FinancePositions(form.optJSONArray("positions") ?: JSONArray()) {field("positions",it)}
-                    OutlinedButton(onClick={sourceVisible=!sourceVisible;sourceOffset=0},Modifier.fillMaxWidth()) {Text("Leistungsbausteine auswählen")}
+                    OutlinedButton(onClick={sourceVisible=true;sourceOffset=0},Modifier.fillMaxWidth(),enabled=!busy) {Text("Aus Leistungskatalog hinzufügen")}
                     if(sourceVisible) {
                         LaunchedEffect(section,sourceOffset,sourceSearch,form.optString("customer_id"),form.optJSONObject("_source_context")?.toString()) {
                             sourceRows=emptyList(); sourceLoading=true; sourceError=""
@@ -479,44 +591,42 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                     }
                         }
                         }
-                    if(section=="offers") {
-                        OutlinedButton(enabled=form.optString("customer_id").isNotEmpty(),onClick={scope.launch {try {offerContext=controller.query("get_offer_context",JSONObject().put("customer_id",form.getString("customer_id")))}catch(cancelled:CancellationException){throw cancelled}catch(f:Exception){error=f.message.orEmpty()}}},modifier=Modifier.fillMaxWidth()) {Text("Kundenkontext und bestätigte Preise lesen")}
-                        offerContext?.let {context ->
-                            FinanceValues(context.optJSONObject("customer"),listOf("name" to "Einsatzkunde","street" to "Straße","postal_code" to "Postleitzahl","city" to "Ort","notes" to "Hinweise","garden_area" to "Gartenfläche"))
-                            val orders=context.optJSONArray("open_orders") ?: JSONArray()
-                            for(i in 0 until orders.length()) FinanceValues(orders.optJSONObject(i),listOf("title" to "Offener Auftrag","location" to "Einsatzort"))
-                        }
-                    }
-                    NativeField("Kopftext",form.optString("header_text"),{field("header_text",it)},multiline=true)
-                    NativeField("Fußtext",form.optString("footer_text"),{field("footer_text",it)},multiline=true)
-                    NativeField("Notizen",form.optString("notes"),{field("notes",it)},multiline=true)
-                    FinanceCheck("Synthetischer Testdatensatz (nur Testkunden)",form.optBoolean("test_record")) {field("test_record",it)}
-                } else {
-                    for((name,label) in listOf("title" to "Bezeichnung","category" to "Kategorie","description" to "Beschreibung","unit" to "Einheit","default_quantity" to "Standardmenge (optional)","default_price" to "Einzelpreis (offen lassen, wenn unbekannt)","assumptions" to "Annahmen","exclusions" to "Ausschlüsse","legal_notes" to "Rechtliche Hinweise")) NativeField(label,if(form.isNull(name)) "" else form.optString(name),{field(name,it)},multiline=name in listOf("description","assumptions","exclusions","legal_notes"))
-                    FinanceChoice("Positionsart",form.optString("pricing_type","unit"),listOf("unit" to "Einheitspreis","text" to "Text")) {field("pricing_type",it)}
-                    FinanceCheck("Preis ausdrücklich bestätigt",form.optBoolean("price_confirmed")) {field("price_confirmed",it)}
-                    FinanceCheck("Baustein aktiv",form.optBoolean("active",true)) {field("active",it)}
+
                 }
-            } else if(section!="catalog") FinancePositionSummary(form.optJSONArray("positions"))
-        }
-        if(error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
-        if(section=="offers" && id.isEmpty() && pending==null) OutlinedButton(enabled=!busy && loaded,onClick={save(true)},modifier=Modifier.fillMaxWidth()) {Text("Entwurf erstellen und atomar prüfen")}
+                2 -> {
+                    Text(form.optString("title").ifEmpty {"Titel offen"},style=MaterialTheme.typography.titleLarge)
+                    NativeStatus(if (openItems.isEmpty()) "Bereit zur vollständigen Prüfung" else "Angaben ergänzen",if(openItems.isEmpty()) NativeStatusTone.Neutral else NativeStatusTone.Attention)
+                    FinanceDraftSummary(controller,form,section)
+                    for ((target,label) in openItems) NativeInfoRow(label,if(target==1) "Positionen ergänzen" else "Angaben ergänzen",onClick={step=target;if(target==0) termsOpen=true})
+                    if (openItems.isEmpty()) Text("Als Nächstes werden Empfänger, Unternehmensdaten, Preise und Bedingungen vollständig geprüft. Erst danach kann das lokale PDF erstellt werden.")
+                    else { Button(onClick={},enabled=false,modifier=Modifier.fillMaxWidth()) {Text("PDF erstellen")}; Text("PDF erst nach vollständiger Prüfung. Der unvollständige Entwurf bleibt speicherbar.") }
+                }
+            }
+        } else FinancePositionSummary(form.optJSONArray("positions"))
+        if (error.isNotEmpty()) Text(error,color=MaterialTheme.colorScheme.error)
         TextButton(enabled=!busy,onClick=onClose) {Text("Später weiterbearbeiten")}
+        TextButton(enabled=!busy && pending==null,onClick={discard=true}) {Text("Entwurf verwerfen")}
     }
-    NativeActions {
-        OutlinedButton(enabled=!busy && pending==null,onClick={scope.launch {controller.removeDraft(key);onClose()}}) {Text("Verwerfen")}
-        Button(enabled=!busy && loaded,onClick={save()}) {Text(if(busy) "Speichern …" else if(pending!=null) "Denselben Speichervorgang erneut prüfen" else "Entwurf speichern")}
-    }
+    NativeActionBar(
+        primaryLabel=when {busy -> "Speichern …";pending!=null -> "Ergebnis prüfen";section=="catalog" -> "Baustein speichern";step==0 -> "Weiter zu Leistungen";step==1 -> "Weiter zur Prüfung";openItems.isNotEmpty() -> "Angaben ergänzen";else -> "Vollständig prüfen"},
+        onPrimary={when {pending!=null || section=="catalog" -> save();step<2 -> step++;openItems.isNotEmpty() -> {step=openItems.first().first;termsOpen=true};else -> save(reviewAfterSave=true)}},
+        secondaryLabel=if(section=="offers") "Entwurf speichern" else "Zurück",
+        onSecondary={if(section=="offers") save() else onClose()},
+        enabled=!busy && loaded, secondaryEnabled=!busy && loaded && pending==null
+    )
     }
 }
 
 @Composable
 private fun FinancePositions(values:JSONArray,onChange:(JSONArray)->Unit) {
     var removed by remember {mutableStateOf<Pair<Int,JSONObject>?>(null)}
+    var expanded by rememberSaveable {mutableIntStateOf(-1)}
     fun update(index:Int,key:String,value:Any?) { val next=JSONArray(values.toString());val line=next.getJSONObject(index);line.put(key,value ?: JSONObject.NULL);for(name in listOf("net","tax","net_total","tax_total","gross_total")) line.remove(name);onChange(next) }
     Text("Positionen",style=MaterialTheme.typography.titleLarge)
     for(index in 0 until values.length()) {val row=values.getJSONObject(index)
-        Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        val missing=buildList {if(row.isNull("quantity") || row.optString("quantity").isBlank()) add("Menge fehlt");if(row.isNull("price") || row.optString("price").isBlank()) add("Preis fehlt")}
+        NativeInfoRow("${index+1}. ${row.optString("title").ifBlank {"Eigene Position"}}",if(missing.isEmpty()) "${nativeNumber(row.opt("quantity"))} ${row.optString("unit")} × ${financeMoney(row.opt("price"))}" else missing.joinToString(" · "),onClick={expanded=if(expanded==index) -1 else index})
+        if(expanded==index) Card(Modifier.fillMaxWidth()) {Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Text("Position ${index+1}",style=MaterialTheme.typography.titleMedium)
             NativeField("Bezeichnung",row.optString("title"),{update(index,"title",it)},required=true)
             NativeField("Beschreibung",row.optString("description"),{update(index,"description",it)},multiline=true)
@@ -543,6 +653,7 @@ private fun FinancePositions(values:JSONArray,onChange:(JSONArray)->Unit) {
         }}
     }
     removed?.let { (originalIndex,line) -> TextButton(onClick={val next=JSONArray();val position=originalIndex.coerceAtMost(values.length());for(index in 0..values.length()) {if(index==position) next.put(financeCopy(line));if(index<values.length()) next.put(values.get(index))};removed=null;onChange(next)}) {Text("Entfernen rückgängig")}}
-    OutlinedButton(onClick={onChange(JSONArray(values.toString()).put(JSONObject().put("title","").put("description","").put("quantity",JSONObject.NULL).put("price",JSONObject.NULL).put("unit","").put("tax_rate",JSONObject.NULL)))},modifier=Modifier.fillMaxWidth()) {Text("Position hinzufügen")}
-    Text("Mengen und Preise bleiben offen, bis Sie sie ausdrücklich angeben. Summen werden beim Speichern durch dieselben Fachregeln wie bei MCP geprüft.")
+    OutlinedButton(onClick={expanded=values.length();onChange(JSONArray(values.toString()).put(JSONObject().put("title","").put("description","").put("quantity",JSONObject.NULL).put("price",JSONObject.NULL).put("unit","").put("tax_rate",JSONObject.NULL)))},modifier=Modifier.fillMaxWidth()) {Text("Eigene Position hinzufügen")}
+    if((0 until values.length()).any {values.getJSONObject(it).isNull("quantity") || values.getJSONObject(it).isNull("price")}) Text("Summe noch offen")
+    Text("Unbekannte Mengen und Preise bleiben offen. Summen werden erst aus den gespeicherten Angaben berechnet.")
 }

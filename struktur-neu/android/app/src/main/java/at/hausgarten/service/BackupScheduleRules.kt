@@ -10,7 +10,7 @@ object BackupScheduleRules {
     @JvmStatic
     fun errorCode(failure: Throwable?): String {
         val code = failure?.message
-        return if (code != null && code.matches(Regex("(?:BACKUP|RESTORE|RECOVERY|DOCUMENT|BROWSER_MEDIA)_[A-Z0-9_]{1,100}"))) {
+        return if (code != null && code.matches(Regex("(?:BACKUP|RESTORE|DOCUMENT|BROWSER_MEDIA)_[A-Z0-9_]{1,100}"))) {
             code
         } else {
             "BACKUP_OPERATION_FAILED"

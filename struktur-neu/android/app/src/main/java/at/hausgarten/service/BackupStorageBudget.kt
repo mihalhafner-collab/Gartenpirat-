@@ -29,14 +29,14 @@ object BackupStorageBudget {
     fun guard(output: OutputStream, available: LongSupplier): OutputStream = object : FilterOutputStream(output) {
         @Throws(IOException::class)
         override fun write(value: Int) {
-            EncryptedBackupArchive.checkCancelled()
+            BackupArchive.checkCancelled()
             requireAvailable(available.asLong, 1)
             `out`.write(value)
         }
 
         @Throws(IOException::class)
         override fun write(bytes: ByteArray, offset: Int, length: Int) {
-            EncryptedBackupArchive.checkCancelled()
+            BackupArchive.checkCancelled()
             requireAvailable(available.asLong, length.toLong())
             `out`.write(bytes, offset, length)
         }
