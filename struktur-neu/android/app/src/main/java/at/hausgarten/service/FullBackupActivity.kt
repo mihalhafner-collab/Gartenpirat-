@@ -51,7 +51,6 @@ class FullBackupActivity : ComponentActivity() {
     private var showWarnings by mutableStateOf(false)
     private var saveFinished by mutableStateOf(false)
     private var restorePending by mutableStateOf(false)
-    private var previousActivation by mutableStateOf("")
     private var selectedName by mutableStateOf("")
     private var lastVerified by mutableStateOf("")
     private var warningCount by mutableStateOf(0)
@@ -77,6 +76,7 @@ class FullBackupActivity : ComponentActivity() {
             target = state.getString("target", "")
             restoreRequest = state.getString("restore_request", "")
             restoreUri = state.getString("restore_uri", "")
+            restoreId = state.getString("restore_id", "")
             selectedName = state.getString("selected_name", "")
         }
         showCheck = restoreUri.isNotEmpty()
@@ -130,7 +130,7 @@ class FullBackupActivity : ComponentActivity() {
                     if (backupCounts != null) NativeInfoRow("Bestand in der Datei", inventory(backupCounts))
                     if (showActivate) {
                         NativeInfoRow("Aktueller Bestand zum Prüfzeitpunkt", inventory(currentCounts))
-                        Text("Der aktuelle Bestand wird ersetzt. Neuere Arbeit kann dadurch fehlen. Vor dem Austausch wird eine geprüfte Rückfallkopie erstellt. Offene Bearbeitungen werden nach dem Neustart gesichtet.")
+                        Text("Der aktuelle Bestand wird ersetzt. Neuere Arbeit kann dadurch fehlen. Offene Bearbeitungen werden nach dem Neustart gesichtet.")
                     }
                 } else {
                     Text("Neue Sicherung als unverschlüsselte ZIP-Datei auf diesem Pixel. Wähle einen lokalen Speicherort in der Android-Dateiauswahl.")
@@ -142,22 +142,13 @@ class FullBackupActivity : ComponentActivity() {
                     OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { chooseRestore() }) {
                         Text(if (showCheck) "Andere Sicherungsdatei wählen" else "Sicherung wiederherstellen")
                     }
-                    if (previousActivation.isNotEmpty()) OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = {
-                        val id = UUID.randomUUID().toString()
-                        val activation = previousActivation
-                        clearPreview(); restoreUri = ""; target = ""; saveFinished = false
-                        restoreRequest = id
-                        selectedName = "Rückfallkopie vor letzter Wiederherstellung"
-                        showCheck = false
-                        runTask { showPreview(BackupRestoreService(this@FullBackupActivity).previewPrevious(id, activation)) }
-                    }) { Text("Rückfallkopie prüfen") }
                 }
                 Text("Eine Datei auf diesem Pixel schützt nicht gegen Geräteverlust. Manuelles Kopieren erfolgt außerhalb der App. Dateirücklesen bestätigt keine getestete Wiederherstellung.")
             }
             if (showConfirmation) AlertDialog(
                 onDismissRequest = { showConfirmation = false },
                 title = { Text("Bestand ersetzen?") },
-                text = { Text("Die Sicherung vom ${displayTime(capturedAt)} ersetzt den aktuellen Datenstand.\n\nDatei: ${inventory(backupCounts)}\nAktuell zum Prüfzeitpunkt: ${inventory(currentCounts)}\n\nEine geprüfte Rückfallkopie bleibt erhalten. Offene Bearbeitungen werden anschließend gesichtet." +
+                text = { Text("Die Sicherung vom ${displayTime(capturedAt)} ersetzt den aktuellen Datenstand.\n\nDatei: ${inventory(backupCounts)}\nAktuell zum Prüfzeitpunkt: ${inventory(currentCounts)}\n\nEs wird keine Rückfallkopie angelegt." +
                     if (legacyMedia) " Die nicht vollständig belegte Fotoabdeckung wird ausdrücklich akzeptiert." else "") },
                 dismissButton = { TextButton(onClick = { showConfirmation = false }) { Text("Abbrechen") } },
                 confirmButton = { TextButton(onClick = { showConfirmation = false; activateRestore() }) { Text("Bestand ersetzen") } }
@@ -196,7 +187,6 @@ class FullBackupActivity : ComponentActivity() {
             }
             ui { ready = true; busy = resolvingDocument; initialized.complete(Unit) }
             try {
-                val service = BackupRestoreService(this@FullBackupActivity)
                 val pending = BackupRestoreService.pendingStatus(this@FullBackupActivity)
                 if (pending.optBoolean("restart_required")) ui {
                     restorePending = true
@@ -204,8 +194,6 @@ class FullBackupActivity : ComponentActivity() {
                     statusTone = NativeStatusTone.Attention
                     status = "Der Bestand ist noch nicht ersetzt. App vollständig schließen und erneut öffnen; der geschützte Austausch erfolgt beim Neustart."
                 }
-                val previous = service.previousPreservation()
-                if (previous.optBoolean("available")) ui { previousActivation = previous.getString("activation_request_id") }
             } catch (_: Exception) { /* Historical proof never blocks a new save. */ }
         }
     }
@@ -309,6 +297,8 @@ class FullBackupActivity : ComponentActivity() {
     }
 
     private fun clearPreview() {
+        val discarded = restoreId
+        if (discarded.isNotEmpty()) WORK.launch { runCatching { BackupRestoreService.discardPreview(this@FullBackupActivity, discarded) } }
         restoreRequest = ""; restoreId = ""; previewHash = ""; showActivate = false
         showWarnings = false; showConfirmation = false; backupCounts = null; currentCounts = null
         capturedAt = ""; warnings = JSONArray(); warningCount = 0; legacyMedia = false
@@ -316,6 +306,10 @@ class FullBackupActivity : ComponentActivity() {
 
     private fun showPreview(result: JSONObject) {
         val summary = result.getJSONObject("summary")
+        if (isDestroyed || isFinishing) {
+            BackupRestoreService.discardPreview(this, result.optString("restore_id"))
+            return
+        }
         ui {
             restoreId = result.optString("restore_id"); previewHash = result.optString("preview_hash")
             legacyMedia = summary.optString("media_coverage") == "LEGACY_NOT_PROVEN"
@@ -384,10 +378,18 @@ class FullBackupActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        if (!isChangingConfigurations && restoreId.isNotEmpty()) {
+            val discarded = restoreId
+            WORK.launch { runCatching { BackupRestoreService.discardPreview(this@FullBackupActivity, discarded) } }
+        }
+        super.onDestroy()
+    }
+
     override fun onSaveInstanceState(state: Bundle) {
         super.onSaveInstanceState(state)
         state.putString("request", request); state.putString("target", target)
-        state.putString("restore_request", restoreRequest); state.putString("restore_uri", restoreUri)
+        state.putString("restore_request", restoreRequest); state.putString("restore_uri", restoreUri); state.putString("restore_id", restoreId)
         state.putString("selected_name", selectedName)
         // A preview and its replacement confirmation must be checked again after recreation.
     }

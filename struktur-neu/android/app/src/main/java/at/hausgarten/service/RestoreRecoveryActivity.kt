@@ -19,7 +19,7 @@ import java.util.UUID
 
 /** Recovery controls deliberately work without opening the business database. */
 class RestoreRecoveryActivity : ComponentActivity() {
-    private var status by mutableStateOf("Die Wiederherstellung benötigt eine Prüfung. Der bisherige Bestand oder seine Rückfallkopie bleibt erhalten. Es wurde keine Rechnungsausgabe freigegeben.")
+    private var status by mutableStateOf("Die Wiederherstellung benötigt eine Prüfung. Der unterbrochene Austausch muss abgeschlossen werden.")
     private var cold by mutableStateOf(true)
     private var busy by mutableStateOf(true)
     private var cancelled by mutableStateOf(false)
@@ -56,7 +56,7 @@ class RestoreRecoveryActivity : ComponentActivity() {
                 busy = false
             } catch (_: Exception) {
                 // Keep cancellation unavailable if the startup gate itself could not be observed.
-                status = "Abbruch ist in diesem Zustand gesperrt. Die Rückfallkopie bleibt geschützt; technischer Wiederanlauf erforderlich."
+                status = "Abbruch ist in diesem Zustand gesperrt. Der Austausch muss zuerst abgeschlossen werden."
             }
         }
     }
@@ -74,7 +74,7 @@ class RestoreRecoveryActivity : ComponentActivity() {
                 status = "Abbruch gespeichert. Schließe die App und öffne sie erneut."
                 cancelled = true
             } catch (protectedState: Exception) {
-                status = "Abbruch ist in diesem Zustand gesperrt. Die Rückfallkopie bleibt geschützt; technischer Wiederanlauf erforderlich."
+                status = "Abbruch ist in diesem Zustand gesperrt. Der Austausch muss zuerst abgeschlossen werden."
             } finally {
                 busy = false
             }

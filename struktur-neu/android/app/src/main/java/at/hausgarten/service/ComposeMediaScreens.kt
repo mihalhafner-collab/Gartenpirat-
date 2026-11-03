@@ -239,7 +239,6 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
     var busy by remember { mutableStateOf(false) }
     var picker by remember { mutableStateOf("") }
     var fullscreen by remember { mutableStateOf(false) }
-    var preview by remember { mutableStateOf<JSONObject?>(null) }
     var detailsOpen by rememberSaveable(id) { mutableStateOf(false) }
     var discardChanges by remember { mutableStateOf(false) }
     val draftKey = draftKeyOverride.ifEmpty { "photo_edit_" + id }
@@ -284,7 +283,7 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
                 if (detailsOpen) NativeInfoRow("Bilddatei", "${photo.optInt("width")} × ${photo.optInt("height")} Pixel · ${photo.optLong("byte_size") / 1024} KB")
             }
             if (draftTouched) TextButton(enabled = !busy && pending.isBlank(), onClick = { discardChanges = true }) { Text("Änderungen verwerfen") }
-            TextButton(enabled = !busy && pending.isBlank(), onClick = { scope.launch { try { preview = controller.query("preview_delete", JSONObject().put("entity", "photo").put("entity_id", id)).put("request_id", mediaRequest()) } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("In den Papierkorb") }
+            NativeDeleteButton(controller, "photo", id, enabled = !busy && pending.isBlank()) { close() }
         }
         NativeActionBar(
             primaryLabel = if (busy) "Speichert …" else if (pending.isNotBlank()) "Ergebnis prüfen" else "Fotoangaben speichern",
@@ -314,13 +313,14 @@ private fun NativePhotoDetail(id: String, controller: NativeAppController, draft
             enabled = (photo != null || pending.isNotBlank()) && !busy && draftReady, secondaryEnabled = !busy
         )
     }
-    if (discardChanges) AlertDialog(onDismissRequest = { discardChanges = false }, title = { Text("Änderungen verwerfen?") },
-        text = { Text("Nur die ungespeicherten Fotoangaben werden entfernt. Das gespeicherte Foto und die Arbeit bleiben erhalten.") },
-        dismissButton = { TextButton({ discardChanges = false }) { Text("Abbrechen") } },
-        confirmButton = { TextButton(enabled = !busy && pending.isBlank(), onClick = { scope.launch { try { controller.removeDraft(draftKey); draftTouched = false; discardChanges = false; close() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Änderungen verwerfen") } })
+    if (discardChanges) LaunchedEffect(Unit) {
+        try { controller.removeDraft(draftKey); draftTouched = false; close() }
+        catch (failure: Exception) { controller.message(mediaError(failure)) }
+        finally { discardChanges = false }
+    }
     if (picker.isNotBlank()) MediaEntityPicker(picker, controller, photo?.optString("customer_id").orEmpty(), dismiss = { picker = "" }) { row -> draftTouched = true; if (picker == "orders") { order = row.id; orderTitle = row.title } else { worklog = row.id; workTitle = row.title }; picker = "" }
     if (fullscreen) MediaZoomDialog(id, controller, close = { fullscreen = false })
-    preview?.let { p -> AlertDialog(onDismissRequest = { preview = null }, title = { Text("Foto in den Papierkorb?") }, text = { Text(p.optString("message")) }, dismissButton = { TextButton(onClick = { preview = null }) { Text("Abbrechen") } }, confirmButton = { TextButton(enabled = p.optBoolean("allowed"), onClick = { scope.launch { try { mediaWrite(controller, "archive_entity", JSONObject().put("request_id", p.getString("request_id")).put("entity", "photo").put("entity_id", id).put("expected_record_hash", p.getString("expected_record_hash")).put("expected_photo_links_hash", p.getString("expected_photo_links_hash"))); preview = null; close() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("In den Papierkorb") } }) }
+
 }
 
 private suspend fun retainImportedPhotoResult(controller: NativeAppController, draftKey: String, photoId: String) {
@@ -467,7 +467,16 @@ private fun NativePhotoImport(controller: NativeAppController, draftKeyOverride:
         )
     }
     if (picker.isNotBlank()) MediaEntityPicker(picker, controller, customer, dismiss = { picker = "" }) { row -> draftTouched = true; when (picker) { "customers" -> { customer = row.id; customerLabel = listOf(row.title, row.address).filter { it.isNotBlank() }.joinToString(" · "); order = ""; orderLabel = ""; worklog = ""; workLabel = ""; session = "" }; "orders" -> { order = row.id; orderLabel = row.title; session = "" }; else -> { worklog = row.id; workLabel = row.title; session = "" } }; picker = "" }
-    if (confirmDiscard) AlertDialog(onDismissRequest = { confirmDiscard = false }, title = { Text("Fotoauswahl verwerfen?") }, text = { Text("Die ungespeicherte Aufnahme und ihre Eingaben werden entfernt. Bereits gespeicherte Fotos und Arbeit bleiben erhalten.") }, confirmButton = { TextButton(enabled = !busy && pending.isBlank(), onClick = { scope.launch { try { controller.removeDraft(draftKey); withContext(Dispatchers.IO) { runCatching { PhotoCaptureProvider.release(controller.context, Uri.parse(selected)) } }; selected = ""; pending = ""; draftTouched = false; confirmDiscard = false; finish() } catch (failure: Exception) { controller.message(mediaError(failure)) } } }) { Text("Auswahl verwerfen") } }, dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Abbrechen") } })
+    if (confirmDiscard) LaunchedEffect(Unit) {
+        busy = true
+        try {
+            controller.removeDraft(draftKey)
+            withContext(Dispatchers.IO) { PhotoCaptureProvider.release(controller.context, Uri.parse(selected)) }
+            selected = ""; pending = ""; draftTouched = false; finish()
+        } catch (failure: Exception) { controller.message(mediaError(failure)) }
+        finally { busy = false; confirmDiscard = false }
+    }
+
 }
 
 @Composable

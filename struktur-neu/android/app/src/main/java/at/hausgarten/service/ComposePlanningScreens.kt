@@ -314,15 +314,7 @@ private fun PlanningDetail(controller: NativeAppController, repository: NativeDa
             }
             TextButton({ controller.open(PlanningConnectionActivity::class.java) }) { Text("Kalender & Wetter einrichten") }
             OutlinedButton({ confirm = Triple("cancel_appointment", JSONObject().put("appointment_id", id).put("expected_record_hash", result.getString("record_hash")), "Diesen Termin absagen? Auftrag und erfasste Arbeiten bleiben erhalten.") }, enabled = !busy && row.optString("status") != "cancelled") { Text("Termin absagen") }
-            OutlinedButton({ scope.launch {
-                try {
-                    val preview = controller.query("preview_delete", JSONObject().put("entity", "appointment").put("entity_id", id))
-                    if (!preview.optBoolean("allowed")) error(preview.optString("message", "Eintrag kann derzeit nicht entfernt werden."))
-                    val args = JSONObject().put("entity", "appointment").put("entity_id", id).put("expected_record_hash", preview.getString("expected_record_hash"))
-                    if (preview.has("expected_photo_links_hash")) args.put("expected_photo_links_hash", preview.getString("expected_photo_links_hash"))
-                    confirm = Triple("delete_entity", args, preview.optString("message", "Diesen Termin in den Papierkorb verschieben?"))
-                } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty() }
-            } }, enabled = !busy) { Text("In Papierkorb") }
+            NativeDeleteButton(controller, "appointment", id, enabled = !busy) { onBack() }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
             TextButton(onBack){Text("Zur Planung")}
         }
@@ -528,7 +520,11 @@ private fun PlanningEditor(controller: NativeAppController, repository: NativeDa
             report
         } catch (cancelled: CancellationException) { throw cancelled } catch (invalid: Exception) { null }
     }
-    if (discard) AlertDialog(onDismissRequest = { discard = false }, text = { Text("Nur diesen ungespeicherten Entwurf verwerfen? Gespeicherter Termin bleibt erhalten.") }, dismissButton = { TextButton({ discard = false }) { Text("Abbrechen") } }, confirmButton = { TextButton({ scope.launch { controller.removeDraft(edit.key); discard = false; onClose() } }) { Text("Verwerfen") } })
+    if (discard) LaunchedEffect(Unit) {
+        try { controller.removeDraft(edit.key); onClose() }
+        catch (failure: Exception) { failure.message?.let { controller.message(it) } }
+        finally { discard = false }
+    }
     if (locationConfirmation) AlertDialog(onDismissRequest = { locationConfirmation = false }, text = { Text("Bist du am Einsatzort dieses Kunden? Nur dann den aktuellen Gerätestandort übernehmen.") }, dismissButton = { TextButton({ locationConfirmation = false }) { Text("Abbrechen") } }, confirmButton = { TextButton({
         locationConfirmation = false
         scope.launch { try {

@@ -253,7 +253,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 TextButton(onClick = { pendingAction = "duplicate_offer" to JSONObject().put("offer_id", id) }) { Text("Als neue Version duplizieren") }
             }
             if (section == "catalog") OutlinedButton(onClick = { pendingAction = "update_catalog_entry" to JSONObject().put("entry_id", id).put("expected_record_hash", detail!!.optString("record_hash")).put("updates", JSONObject().put("active", !row.optBoolean("active", true))) }, Modifier.fillMaxWidth()) { Text(if(row.optBoolean("active", true)) "Baustein deaktivieren" else "Baustein reaktivieren") }
-            if (editable && section == "offers") NativeDeleteButton(controller, "offer", id, label = "Entwurf in Papierkorb") { controller.returnToList(section) }
+            if (editable && section == "offers") NativeDeleteButton(controller, "offer", id, label = "Entwurf löschen") { controller.returnToList(section) }
             }
             NativeActionBar(
                 primaryLabel=if(editable) "Bearbeiten" else "Über Android teilen",
@@ -474,7 +474,11 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
         }
     }
     BackHandler { onClose() }
-    if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text("Entwurf verwerfen?") }, text = { Text("Nur die ungespeicherten Änderungen dieses Entwurfs werden entfernt. Gespeicherte Angebote und Dokumente bleiben erhalten.") }, dismissButton = { TextButton({ discard = false }) { Text("Abbrechen") } }, confirmButton = { TextButton({ scope.launch { controller.removeDraft(key); discard = false; onClose() } }) { Text("Entwurf verwerfen") } })
+    if (discard) LaunchedEffect(Unit) {
+        try { controller.removeDraft(key); onClose() }
+        catch (failure: Exception) { controller.message(failure.message ?: "Entwurf konnte nicht gelöscht werden.") }
+        finally { discard = false }
+    }
     val openItems = if (section == "offers") financeOpenItems(form) else emptyList()
     Column(Modifier.fillMaxSize()) {
     Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {

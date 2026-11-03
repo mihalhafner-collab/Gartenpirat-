@@ -132,7 +132,7 @@ final class LocalBackupNativeTests {
         restore.requestActivation("qa_native_activate", preview.getString("restore_id"), preview.getString("preview_hash"), true);
         JSONObject activated = BackupRestoreService.activatePending(context, new RestoreStartupProtection(context));
         yes(activated.getString("phase").equals("ACTIVE"));
-        yes(restore.previousPreservation().getBoolean("available"));
+        yes(!new File(context.getNoBackupFilesDir(), "before-restore").exists());
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(database.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
             yes(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_marker", "").equals("QA before save"));
             yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_metadata", "{}")).getInt("synthetic_value") == 42);

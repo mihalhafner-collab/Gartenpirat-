@@ -10,11 +10,9 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.FilterOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.UUID
 
 /** Runs before providers and store handles exist. Completed exchanges require a fresh process. */
 class RestoreStartupProtection(private val context: Context) : BackupRestoreService.Protection {
@@ -30,73 +28,11 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
         val preferences = LinkedHashMap<String, File>()
         for (group in BackupPreferences.GROUPS) preferences[group] = File(data, "shared_prefs/$group.xml")
         return BackupRestoreService.ActivePaths(context.getDatabasePath("haus-garten-mobile.db"),
-            context.filesDir, context.cacheDir, context.noBackupFilesDir, preferences)
+            context.filesDir, context.cacheDir, preferences)
     }
 
     @Throws(Exception::class)
-    override fun preserveCurrent(requestId: String): JSONObject {
-        val root = File(context.noBackupFilesDir, "before-restore/" + PixelMcpWriteTools.hash(requestId))
-        if (!root.isDirectory && !root.mkdirs()) throw IOException("RESTORE_CURRENT_BACKUP_STORAGE_REQUIRED")
-        val proofFile = File(root, "proof.json")
-        val archive = File(root, "generation.zip")
-        if (proofFile.isFile) {
-            val proof = read(proofFile)
-            if (proof.optString("archive_format") != "PLAIN_ZIP") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
-            if (!archive.isFile || archive.length() != proof.getLong("byte_size") ||
-                BackupArchive.sha256(archive) != proof.getString("archive_sha256")) {
-                throw IOException("RESTORE_CURRENT_BACKUP_CHANGED")
-            }
-            BackupArchive.verifyPlain(FileInputStream(archive),
-                File(root, "recheck-" + UUID.randomUUID()),
-                root.usableSpace - BackupStorageBudget.BUSINESS_RESERVE_BYTES, PixelLocalStore.SCHEMA_VERSION).use { verified ->
-                LocalBackupDataset.inspectStaged(File(verified.directory, "data"), verified.manifest)
-            }
-            return proof
-        }
-        PixelLocalStore(context).use { store ->
-            // Empty business collections say nothing about editor drafts or localStorage.
-            // A failed/stale capture is never evidence that an empty checkpoint is safe.
-            val browser: JSONObject? = null
-            val identity = BackupDeviceGuard(context).current()
-            var business = store.ownerValue("backup_business_id", "")
-            if (business.isEmpty()) {
-                business = UUID.randomUUID().toString()
-                store.putOwnerValue("backup_business_id", business)
-            }
-            val backupId = "before_restore_" + PixelMcpWriteTools.hash(requestId).substring(0, 32)
-            val capture = File(root, "capture-" + UUID.randomUUID())
-            val captured = LocalBackupDataset.capture(context, store, capture,
-                JSONObject().put("backupId", backupId).put("installationId", identity.getString("installationId"))
-                    .put("restoreEpoch", identity.getString("restoreEpoch")).put("businessId", business)
-                    .put("requireDatabaseBrowserCheckpoint", true), browser)
-            if (archive.exists()) throw IOException("RESTORE_CURRENT_BACKUP_INCOMPLETE_REVIEW_REQUIRED")
-            FileOutputStream(archive).use { out ->
-                BackupArchive.writePlain(object : FilterOutputStream(BackupStorageBudget.guard(out, root)) {
-                    @Throws(IOException::class)
-                    override fun close() { flush() }
-                }, captured.metadata, captured.sources())
-                out.fd.sync()
-            }
-            BackupArchive.verifyPlain(FileInputStream(archive),
-                File(root, "verified-" + UUID.randomUUID()),
-                root.usableSpace - BackupStorageBudget.BUSINESS_RESERVE_BYTES, PixelLocalStore.SCHEMA_VERSION).use { verified ->
-                LocalBackupDataset.inspectStaged(File(verified.directory, "data"), verified.manifest)
-            }
-            val proof = JSONObject().put("formatVersion", 1).put("verified", true).put("backup_id", backupId)
-                .put("archive_sha256", BackupArchive.sha256(archive))
-                .put("database_sha256", captured.metadata.getJSONObject("database").getString("sha256"))
-                .put("byte_size", archive.length()).put("captured_at", captured.metadata.getString("capturedAt"))
-                .put("local_verified_at", Instant.now().toString())
-                .put("private_archive_ref", "before-restore/" + PixelMcpWriteTools.hash(requestId) + "/generation.zip")
-                .put("archive_format", "PLAIN_ZIP")
-            write(proofFile, proof)
-            return proof
-        }
-    }
-
-    @Throws(Exception::class)
-    override fun blockBeforeActivation(requestId: String, restoredManifest: JSONObject, currentBackupProof: JSONObject) {
-        if (!currentBackupProof.optBoolean("verified")) throw IOException("RESTORE_CURRENT_BACKUP_REQUIRED")
+    override fun blockBeforeActivation(requestId: String, restoredManifest: JSONObject) {
         val target = restoredManifest.getJSONObject("_activation_context")
         val identity = BackupDeviceGuard(context).current()
         if (identity.getString("installationId") != target.getString("installation_id")) {

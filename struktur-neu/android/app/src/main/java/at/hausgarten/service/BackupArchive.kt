@@ -287,6 +287,33 @@ object BackupArchive {
 
     @JvmStatic
     @Throws(IOException::class)
+    fun removeWorkDirectories(parent: File): Long {
+        if (Files.isSymbolicLink(parent.toPath()) || !parent.isDirectory) throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")
+        var removed = 0L
+        // Retired private work/backup trees explicitly released by the owner.
+        for (name in listOf("pixel-backup", "full-backup-work", "browser-media-upload", "before-restore",
+            "deletion-backups", "legacy-conflict-backups", "backup-key-protection", "local-authority-review", "local-authority")) {
+            val directory = File(parent, name)
+            checkCancelled()
+            removed += removeWorkTree(directory)
+        }
+        return removed
+    }
+
+    @JvmStatic
+    @Throws(IOException::class)
+    fun removeWorkTree(directory: File): Long {
+        checkCancelled()
+        if (Files.isSymbolicLink(directory.toPath())) { Files.delete(directory.toPath()); return 0 }
+        if (!directory.exists()) return 0
+        val bytes = directory.walkTopDown().onEnter { !Files.isSymbolicLink(it.toPath()) }
+            .filter { !Files.isSymbolicLink(it.toPath()) && it.isFile }.sumOf { it.length() }
+        removeOwned(directory)
+        return bytes
+    }
+
+    @JvmStatic
+    @Throws(IOException::class)
     fun removeOwned(directory: File) {
         if (Files.isSymbolicLink(directory.toPath())) throw IOException("RESTORE_STAGING_LINK_REJECTED")
         directory.listFiles()?.forEach { child ->

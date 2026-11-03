@@ -86,7 +86,7 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
             if (deferMedia) Text("Fotoentwürfe bleiben getrennt zur Prüfung erhalten. Die Formularübernahme bestätigt keine vollständige Fotoabdeckung.")
             else {
                 Text("Wähle je Fotoentwurf eine Quelle. Die vorhandenen Dateireferenzen werden vor Aktivierung geprüft.")
-                if (!mediaReady && mediaRequired) Text("Die Medienquelle ist noch nicht vollständig geprüft. Medien zurückstellen oder den gesicherten Quell- und Rückfallbestand prüfen.", color = MaterialTheme.colorScheme.error)
+                if (!mediaReady && mediaRequired) Text("Die Medienquelle ist noch nicht vollständig geprüft. Medien zurückstellen oder die gewählte Sicherungsdatei prüfen.", color = MaterialTheme.colorScheme.error)
             }
         }
         if (!deferMedia) items(media, key = { it.optString("source") + ":" + it.optString("key") + ":" + it.optString("record_id") }) { candidate ->

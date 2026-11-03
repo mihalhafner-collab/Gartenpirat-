@@ -54,8 +54,8 @@
     }
   ],
   "current_task": {
-    "name": "Sammellöschung von Arbeiten vereinfachen",
-    "status": "IMPLEMENTED; SOURCE_CHECKS_AND_ANDROID_COMPILE_PASS; NATIVE_RUNTIME_NOT_RUN",
+    "name": "Arbeitsdateien vollständig bereinigen, Rückfallkopien entfernen und Löschmenüs vereinfachen",
+    "status": "IMPLEMENTED; FINAL_BUILD_IN_PROGRESS; NATIVE_RUNTIME_NOT_RUN",
     "concept": {
       "title": "Haus und Garten NEUES Bedienkonzept – Fassung 2",
       "pages": 38,
@@ -69,23 +69,39 @@
       "version_code": 123,
       "git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
       "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
-      "verification": "LIVE_PIXEL_MCP_RUNTIME; matches production sources on starting main 0b82601"
+      "verification": "LIVE_PIXEL_MCP_RUNTIME; 1.58.1 archive changes retained from main 1f22529; all productive changes derived from verified installed Kotlin source"
     },
-    "scope": [
-      "Kompakte Bestätigung mit Tätigkeit und Datum statt Rohdatenkarten und wiederholten Prüffeldern.",
-      "Einmaliger Wiederherstellungshinweis; Fotohinweis nur bei betroffenen Zuordnungen.",
-      "Explizite Hauptaktion In den Papierkorb statt Speichern; Abbrechen links; kein zusätzlicher Bestätigungsschalter.",
-      "Aktuelle Vorschau und Hash müssen zusammenpassen; bestehende Schutz-, Konflikt-, Ergebnisprüfungs- und Transaktionspfade erhalten."
+    "owner_decisions": [
+      "Interne funktionslose Dateien und leere Unterordner löschen; full-backup-work ausdrücklich einbeziehen.",
+      "Löschen und Verwerfen ohne zusätzliche Rückfragen oder Pflichttexte; technische Versionen und Vorgangsbelege intern erhalten.",
+      "Keine Rückfallkopien mehr: Erstellen, Prüfen und Wiederherstellen entfernen; vorhandene interne Kopien dürfen gelöscht werden.",
+      "Menüs und Ergebnisse kurz auf Deutsch; keine ungefilterten Diagnose-/Kennungslisten."
     ],
-    "validation": {
-      "source": "PASS; check_current.py; 61 Python tests and source/UI/privacy checks",
-      "android": "PASS; compileReleaseKotlin and compileReleaseJavaWithJavac; BUILD SUCCESSFUL",
-      "native_ui_execution": "NOT_RUN",
-      "pixel_acceptance": "NOT_RUN",
-      "apk_build_signing_distribution": "NOT_PERFORMED for 1.58.1",
-      "installation_migration_restore": "NOT_PERFORMED"
+    "scope": [
+      "Rekursive Bereinigung von full-backup-work, pixel-backup, browser-media-upload, before-restore, alten Lösch-/Konfliktsicherungen, ausgedienten Schlüssel- und Autoritätsdateien; Symlinkziele bleiben unberührt.",
+      "Geöffnete Restore-Vorschauen und laufender Austausch werden geschützt; verworfene Vorschauen und abgeschlossene Austauschbäume werden entfernt. Keine neue Rückfallkopie.",
+      "Einzel-/Sammellöschung, endgültiges Löschen, Papierkorb-Leerung und Entwurfsverwerfen führen die beschriftete Aktion direkt aus. Unklare Antworten werden mit gespeicherten ursprünglichen Argumenten ausschließlich gelesen.",
+      "Kurze Einstellungen mit zusammengefassten Prüfergebnissen; keine internen Arbeitskennungen. Verbleibende Arbeitsordner werden einzeln gemessen.",
+      "Schema 7, Geschäftsdateien und ausdrücklich gewählte lokale ZIP-Dateien bleiben im bestehenden Speichervertrag."
+    ],
+    "observed_storage_before": {
+      "source": "Owner Pixel screenshots, 2026-11-03 19:08 local",
+      "total_display": "22,63 GB",
+      "work_and_restore_display": "22,53 GB",
+      "database_display": "2,73 MB",
+      "photos_display": "44,14 MB",
+      "other_files_display": "55,31 MB",
+      "productive_subdirectory_sizes": "NOT_AVAILABLE; category known, exact per-directory attribution not claimed"
     },
-    "updated_at_utc": "2026-11-03T17:48:51.691257+00:00"
+    "validation": {
+      "source": "PASS; 61 Python tests and source/UI/privacy gates",
+      "jvm": "PASS; 8 synthetic JVM suites, 1418 assertions; includes recursive cleanup, symlink boundaries, empty directory removal and retry",
+      "android": "PASS prior release/test APK + lint and subsequent native compile; final clean source-commit build in progress",
+      "native_ui_execution": "NOT_RUN; previous explicit emulator opt-out respected",
+      "pixel_acceptance": "NOT_RUN",
+      "installation_and_productive_cleanup": "NOT_PERFORMED; installed app remains 1.58.0/123"
+    },
+    "updated_at_utc": "2026-11-03T18:29:41.026482+00:00"
   },
   "open_checks": [
     "Native UI-/Geräteabnahme NOT_RUN; Quellreview, JVM-Prüfungen, APK-Bau und Lint ersetzen diese nicht.",
@@ -132,12 +148,12 @@
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.58.1",
-    "version_code": 124,
+    "version_name": "1.58.2",
+    "version_code": 125,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED; SOURCE_CHECKS_AND_ANDROID_COMPILE_PASS; NATIVE_RUNTIME_NOT_RUN",
-    "source_sha256": "5724e89758ca1d3eda71bfdef1a1750a590f729f50421da377ec2919a32564e1",
-    "artifact": "NOT_BUILT; compile only",
+    "status": "IMPLEMENTED; FINAL_BUILD_IN_PROGRESS; NATIVE_RUNTIME_NOT_RUN",
+    "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
+    "artifact": "LOCAL_APK_BUILD_IN_PROGRESS",
     "installation": "NOT_PERFORMED",
     "original_signing": "NOT_PERFORMED",
     "distribution": "NOT_PERFORMED"

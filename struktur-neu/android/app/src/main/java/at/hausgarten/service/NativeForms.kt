@@ -458,7 +458,24 @@ private fun NativeSchemaField(controller: NativeAppController, name: String, spe
 @Composable
 internal fun NativeActionForm(controller: NativeAppController, tool: String, title: String, initial: JSONObject = JSONObject(), fixedInputs: Boolean = false, submitLabel: String = "Speichern", onCancel: () -> Unit = { controller.back() }, detailsContent: (@Composable () -> Unit)? = null, onDone: (JSONObject) -> Unit = { controller.finishAction() }) {
     val scope = rememberCoroutineScope()
-    val worklogArchive = tool == "archive_work_records"
+    if (tool in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records")) {
+        var failure by remember(tool, initial.toString()) { mutableStateOf("") }
+        var attempt by remember(tool, initial.toString()) { mutableIntStateOf(0) }
+        LaunchedEffect(tool, attempt) {
+            failure = ""
+            try { onDone(controller.deleteDirect(tool, initial)) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (error: Exception) { failure = nativeActionError(error, "Löschen nicht bestätigt.") }
+        }
+        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (failure.isEmpty()) { LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Löschen …") }
+            else {
+                NativeStatus(failure, NativeStatusTone.Attention)
+                NativeActionBar("Ergebnis prüfen", { attempt++ }, "Zurück", onCancel)
+            }
+        }
+        return
+    }
     val draftKey = controller.actionDraftKey(tool, initial)
     var spec by remember(tool, draftKey) { mutableStateOf<JSONObject?>(null) }
     var text by rememberSaveable(tool, draftKey, initial.toString()) { mutableStateOf(initial.toString()) }
@@ -501,11 +518,6 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
             val inputSchema = spec?.getJSONObject("inputSchema") ?: throw IllegalArgumentException("Aktion ist in dieser Appversion nicht verfügbar.")
             if (pending == null && !restored && !reviewNeeded) {
                 val entered = JSONObject(text)
-                if (worklogArchive && entered.optJSONObject("_preview") == null) {
-                    val preview = controller.actionObservation(tool, entered)
-                    entered.put("_preview", preview).put("expected_preview_hash", preview.getString("preview_hash"))
-                    text = entered.toString()
-                }
                 val props = inputSchema.getJSONObject("properties")
                 if (props.keys().asSequence().any { it.startsWith("expected_") && entered.optString(it).isEmpty() && it != "expected_order_hash" }) {
                     val observed = controller.actionObservation(tool, entered)
@@ -594,13 +606,8 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
     val currentProperties = currentSchema?.optJSONObject("properties") ?: JSONObject()
     val currentArgs = JSONObject(text)
     val readOnly = spec?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) != false
-    // The explicitly labelled archive button is the confirmation; no second switch is needed.
-    val submitArgs = JSONObject(text).apply { if (worklogArchive) put("confirmed", true) }
-    val archivePreview = currentArgs.optJSONObject("_preview")
-    val archiveReady = !worklogArchive || archivePreview?.let {
-        it.optBoolean("allowed") && it.optString("preview_hash").isNotEmpty() && it.optString("preview_hash") == currentArgs.optString("expected_preview_hash")
-    } == true
-    val submitReady = loaded && !busy && !orderLoading && orderError.isEmpty() && !restored && !reviewNeeded && pending == null && archiveReady &&
+    val submitArgs = JSONObject(text)
+    val submitReady = loaded && !busy && !orderLoading && orderError.isEmpty() && !restored && !reviewNeeded && pending == null &&
         currentSchema != null && nativeProofsReady(currentSchema, submitArgs) && nativeRequiredFieldsReady(currentSchema, submitArgs)
     val submit: () -> Unit = {
         currentSchema?.let { schema ->
@@ -621,7 +628,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                 error.isNotBlank() -> NativeStatus(if (failedConfirmed) "Nicht gespeichert" else "Prüfung erforderlich", if (failedConfirmed) NativeStatusTone.Failed else NativeStatusTone.Attention)
                 busy -> NativeStatus("Wird geprüft …", NativeStatusTone.Running)
                 readOnly && response != null -> NativeStatus("Prüfung abgeschlossen", NativeStatusTone.Confirmed)
-                !readOnly && !worklogArchive -> NativeStatus("Noch nicht gespeichert", NativeStatusTone.Neutral)
+                !readOnly -> NativeStatus("Noch nicht gespeichert", NativeStatusTone.Neutral)
             }
             if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
             if (busy || orderLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -635,11 +642,11 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
             val required = schema.optJSONArray("required") ?: JSONArray()
             val args = currentArgs
             (args.optJSONObject("_preview") ?: initial.optJSONObject("_preview"))?.let {
-                if (worklogArchive) NativeWorklogArchivePreview(it) else NativeBusinessValues(it)
+                NativeBusinessValues(it)
             }
             if (restored || pending != null) {
                 Text(if (restored) "Dieser Entwurf stammt aus einer Wiederherstellung. Zuerst das ursprüngliche Ergebnis prüfen." else "Die Antwort auf diesen Speichervorgang ist noch offen. Eingaben und ursprünglicher Vorgang bleiben unverändert erhalten.")
-                if (!worklogArchive) NativeBusinessValues(pending ?: args)
+                NativeBusinessValues(pending ?: args)
             }
             if (pending != null) {
                 when (pendingState) {
@@ -662,8 +669,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                 } }) { Text("Aktuellen Stand vergleichen") }
                 comparison?.let { current ->
                     Text("Aktuell gespeicherter Stand", style = MaterialTheme.typography.titleMedium)
-                    if (worklogArchive) NativeWorklogArchivePreview(current.optJSONObject("data") ?: current)
-                    else NativeBusinessValues(current.optJSONObject("data") ?: current)
+                    NativeBusinessValues(current.optJSONObject("data") ?: current)
                     current.optJSONObject("selected_order")?.let { Text("Gewählter Auftrag", style = MaterialTheme.typography.titleMedium); NativeBusinessValues(it) }
                     Row(Modifier.fillMaxWidth()) {
                         Checkbox(comparisonAccepted, onCheckedChange = { comparisonAccepted = it })
@@ -675,7 +681,6 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                             val entered = JSONObject(text)
                             val rebased = nativeRebaseUpdates(entered, JSONObject(updateBaseText), current)
                             val reviewed = nativeResetConfirmations(schema, nativeEnrichProofs(schema, nativeWithoutExpectedProofs(schema, rebased.first), current))
-                            if (worklogArchive) reviewed.put("_preview", current.optJSONObject("data") ?: current)
                             if (!nativeProofsReady(schema, reviewed)) throw IllegalArgumentException("Der aktuelle Stand konnte noch nicht vollständig gelesen werden. Bitte den zugehörigen Eintrag erneut öffnen.")
                             if (properties.has("request_id")) reviewed.put("request_id", UUID.randomUUID().toString())
                             val adopted = JSONObject().put("values", reviewed).put("update_base", rebased.second).put("original_tool", tool).put("review_required", false)
@@ -694,7 +699,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                     else -> emptySet()
                 }
                 val editable = properties.keys().asSequence().filter { !technical(it) || referenceCollection(it) != null }.toList()
-                if (!fixedInputs && !worklogArchive) {
+                if (!fixedInputs) {
                     val mainFields = if (focusedKeys.isEmpty()) editable else editable.filter { it in focusedKeys }
                     val extraFields = if (focusedKeys.isEmpty()) emptyList() else editable.filterNot { it in focusedKeys }
                     val renderField: @Composable (String) -> Unit = { key ->
@@ -740,45 +745,37 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) { error = nativeActionError(failure, "Das Ergebnis konnte nicht gelesen werden. Bitte später erneut prüfen.") } finally { busy = false }
         } }, secondaryLabel = "Später prüfen", onSecondary = onCancel, enabled = !busy && !orderLoading, secondaryEnabled = !busy)
-        else if (loaded && !restored && !reviewNeeded) NativeActionBar(if (worklogArchive) "In den Papierkorb" else if (readOnly) "Prüfen" else submitLabel, submit,
-            if (worklogArchive) "Abbrechen" else if (tool in setOf("complete_work_session", "finish_work")) "Später abschließen" else "Zurück", onCancel, enabled = submitReady, secondaryEnabled = !busy)
+        else if (loaded && !restored && !reviewNeeded) NativeActionBar(if (readOnly) "Prüfen" else submitLabel, submit,
+            if (tool in setOf("complete_work_session", "finish_work")) "Später abschließen" else "Zurück", onCancel, enabled = submitReady, secondaryEnabled = !busy)
         else NativeActionBar("Zurück", onCancel, enabled = !busy)
     }
-}
-
-/** Only the selected work and its consequences belong in the archive confirmation. */
-@Composable
-private fun NativeWorklogArchivePreview(preview: JSONObject) {
-    val entries = preview.optJSONArray("entries") ?: JSONArray()
-    Text("Du kannst diese Arbeiten im Papierkorb wiederherstellen.")
-    var relatedPhotos = 0
-    for (index in 0 until entries.length()) {
-        val entry = entries.getJSONObject(index)
-        relatedPhotos += entry.optInt("related_photos")
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            val day = runCatching { LocalDate.parse(entry.optString("work_date")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) }.getOrDefault(entry.optString("work_date"))
-            Text(entry.optString("activity").ifBlank { "Arbeit ohne Tätigkeitsangabe" }, style = MaterialTheme.typography.titleSmall)
-            if (day.isNotBlank()) Text(day, style = MaterialTheme.typography.bodyMedium)
-            if (!entry.optBoolean("allowed")) Text(entry.optString("message").ifBlank { "Diese Arbeit kann nicht entfernt werden." }, color = MaterialTheme.colorScheme.error)
-        }
-        if (index < entries.length() - 1) HorizontalDivider()
-    }
-    if (relatedPhotos > 0) Text("Fotos bleiben erhalten. Ihre Zuordnung zu diesen Arbeiten wird gelöst.")
-    if (!preview.optBoolean("allowed")) Text("Die Auswahl enthält geschützte Arbeiten. Bitte die Auswahl ändern; es wird nichts entfernt.", color = MaterialTheme.colorScheme.error)
 }
 
 @Composable
 internal fun NativeActionMenu(controller: NativeAppController, area: String, contextArgs: JSONObject = JSONObject()) {
     var show by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     OutlinedButton({ show = true }) { Text("Weitere Aktionen") }
     if (show) AlertDialog(onDismissRequest = { show = false }, title = { Text("Aktionen") }, text = {
-        LazyColumn(Modifier.heightIn(max = 360.dp)) { items(NativeActionCatalog.forArea(area).filter { it.tools.isNotEmpty() && !it.platformOnly && !it.retired }, key = { it.id }) { action ->
+        LazyColumn(Modifier.heightIn(max = 360.dp)) { items(NativeActionCatalog.forArea(area).filter {
+            it.tools.isNotEmpty() && !it.platformOnly && !it.retired && it.tools.any { tool -> !tool.startsWith("preview_") }
+        }, key = { it.id }) { action ->
             TextButton({
                 show = false
-                when {
-                    else -> controller.action(action.label, action.tools.first(), contextArgs)
-                }
-            }, Modifier.fillMaxWidth()) { Text(action.label) }
+                val tool = action.tools.firstOrNull { it in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records") } ?: action.tools.first()
+                if (tool in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records")) {
+                    scope.launch {
+                        try { controller.deleteDirect(tool, contextArgs); controller.finishAction(); controller.message("Gelöscht.") }
+                        catch (failure: Exception) { controller.message(nativeActionError(failure, "Löschen nicht bestätigt.")) }
+                    }
+                } else controller.action(action.label, tool, contextArgs)
+            }, Modifier.fillMaxWidth()) { Text(when {
+                "empty_trash" in action.tools -> "Papierkorb leeren"
+                "purge_entity" in action.tools -> "Endgültig löschen"
+                "archive_entity" in action.tools -> "Löschen"
+                "archive_work_records" in action.tools -> "Auswahl löschen"
+                else -> action.label
+            }) }
         } }
     }, confirmButton = { TextButton({ show = false }) { Text("Abbrechen") } })
 }
@@ -901,31 +898,71 @@ private fun nativeExistingOrderProof(observation: JSONObject, chosen: String): S
     return hash
 }
 
-/** One confirmation shared by record details, documents and the trash list. */
-/** Reuse the reviewed, durable action form for archive and irreversible local deletion. */
+/** A tap starts deletion; its durable request is inspected after an uncertain response. */
+internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSONObject): JSONObject {
+    require(tool in setOf("archive_entity", "purge_entity", "empty_trash", "archive_work_records"))
+    val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
+    val legacyKey = actionDraftKey(tool, initial)
+    val legacy = draft(legacyKey)?.takeIf { it.optString("original_tool") == tool }?.optJSONObject("original_args")
+    if (legacy != null) {
+        val proof = query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", legacy))
+        if (proof.optString("state") !in setOf("confirmed", "content_removed"))
+            throw IllegalStateException("Ein früherer Löschvorgang ist noch offen. Bitte später erneut prüfen.")
+        removeDraft(legacyKey)
+        val sameTarget = when (tool) {
+            "archive_work_records" -> legacy.optJSONArray("work_record_ids")?.toString() == initial.optJSONArray("work_record_ids")?.toString()
+            "empty_trash" -> true
+            else -> legacy.optString("entity") == initial.optString("entity") && legacy.optString("entity_id") == initial.optString("entity_id")
+        }
+        if (sameTarget) return proof.optJSONObject("result") ?: JSONObject()
+    }
+    val original = draft(key)?.optJSONObject("original_args")
+    if (original != null) {
+        val proof = query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", original))
+        if (proof.optString("state") == "confirmed" || proof.optString("state") == "content_removed") {
+            removeDraft(key)
+            return proof.optJSONObject("result") ?: JSONObject()
+        }
+        throw IllegalStateException("Löschergebnis noch offen. Erneutes Antippen prüft denselben Vorgang.")
+    }
+    val schema = requireNotNull(spec(tool)).getJSONObject("inputSchema")
+    val observation = actionObservation(tool, initial)
+    val entered = nativeEnrichProofs(schema, JSONObject(initial.toString()), observation)
+        .put("request_id", UUID.randomUUID().toString()).put("confirmed", true)
+    val args = nativeFilterInput(schema, entered)
+    check(nativeProofsReady(schema, args)) { "Eintrag nicht aktuell lesbar. Bitte erneut öffnen." }
+    saveDraft(key, JSONObject().put("original_tool", tool).put("values", args).put("original_args", args))
+    flushDrafts()
+    try {
+        val result = query(tool, args)
+        removeDraft(key)
+        return result
+    } catch (failure: NativeCallFailure) {
+        if (failure.detail.optString("commit_state") == "not_committed") removeDraft(key)
+        throw failure
+    }
+}
+
 @Composable
 internal fun NativeDeleteButton(controller: NativeAppController, entity: String, id: String,
-    label: String = "In Papierkorb", permanent: Boolean = false, emptyTrash: Boolean = false,
+    label: String = "Löschen", permanent: Boolean = false, emptyTrash: Boolean = false,
     enabled: Boolean = true, onDone: () -> Unit) {
-    var showing by rememberSaveable(entity, id) { mutableStateOf(false) }
-    OutlinedButton({ showing = true }, enabled = enabled) { Text(label) }
-    if (showing) Dialog(onDismissRequest = { showing = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                Text(if (permanent || emptyTrash) "Diese Löschung lässt sich nicht rückgängig machen. Nur nicht mehr verwendete Dateien werden entfernt. Ausgestellte Belege bleiben geschützt."
-                    else "Der Eintrag kann im Papierkorb wiederhergestellt werden. Erfasste Arbeiten und Fotos bleiben erhalten; nur die optionale Zuordnung wird gelöst.", Modifier.padding(16.dp))
-                val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity"
-                val args = if (emptyTrash) JSONObject().put("confirmed", true) else JSONObject().put("entity", entity).put("entity_id", id).apply { if (permanent) put("confirmed", true) }
-                Box(Modifier.weight(1f)) {
-                    NativeActionForm(controller, tool, if (emptyTrash) "Papierkorb leeren" else label, args,
-                        fixedInputs = true, submitLabel = if (permanent || emptyTrash) "Endgültig löschen" else "In Papierkorb", onCancel = { showing = false }) { result ->
-                        showing = false
-                        onDone()
-                        val saved = result.optJSONObject("data") ?: result
-                        if (saved.optBoolean("storage_cleanup_pending")) controller.message("Eintrag gelöscht. Unbenutzte Dateien unter Einstellungen → Speicher bereinigen erneut prüfen.")
-                    }
-                }
+    var busy by remember(entity, id) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    OutlinedButton({
+        if (!busy) {
+            busy = true
+            scope.launch {
+                try {
+                    val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "archive_entity"
+                    val args = JSONObject().apply { if (!emptyTrash) put("entity", entity).put("entity_id", id) }
+                    controller.deleteDirect(tool, args)
+                    onDone()
+                    controller.message(if (emptyTrash) "Papierkorb geleert." else "Gelöscht.")
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (failure: Exception) { controller.message(nativeActionError(failure, "Löschen nicht bestätigt. Erneut antippen, um das Ergebnis zu prüfen.")) }
+                finally { busy = false }
             }
         }
-    }
+    }, enabled = enabled && !busy) { Text(if (busy) "Löschen …" else label) }
 }

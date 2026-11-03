@@ -109,7 +109,7 @@ class LocalStorageBuildTests(unittest.TestCase):
         self.assertIn('LocalBackupDataset.forStreaming(', service)
         self.assertIn('BackupDocumentTransfer.exportStream(', service)
         self.assertNotIn('BackupArchive.verifyPlain(', service)
-        for name in ('BackupRestoreService', 'RestoreStartupProtection'):
+        for name in ('BackupRestoreService',):
             self.assertIn('LocalBackupDataset.inspectStaged(', source(name))
 
 

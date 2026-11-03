@@ -366,3 +366,14 @@ nun am Listenende. Der Dialog berücksichtigt auch die tatsächliche IME-Höhe.
 Der Gesten-Dump zeigte zuerst einen inaktiven Taskbar-Handler; daraus lässt sich
 nicht auf den aktiven Navigationsleisten-Handler schließen. Der Nachtest erfasst
 alle Handler und injiziert tatsächliche Touch-Ereignisse von beiden Rändern.
+
+## Eigentümeränderung vom 03.11.2026: Speicher, Löschen und Menüs
+
+Die vorher beschriebenen Rückfallkopien und zusätzlichen Löschbestätigungen sind
+abgeschafft. Der neue Stand entfernt alte interne Arbeits-/Sicherungsverzeichnisse
+rekursiv, gibt abgeschlossene Restore-Arbeitsbäume frei und entsorgt leere
+Unterordner. `full-backup-work` gehört ausdrücklich zur Bereinigung. Einstellungen
+verwenden kompakte deutsche Ergebnisse ohne rohe Kennungs-/Protokolllisten.
+Der Pixel-Screenshot zeigte zuvor 22,53 GB Arbeits-/Wiederherstellungsdaten.
+Eine tatsächliche Freigabe dieser Bytes ist erst nach Installation und Ausführung
+am Pixel messbar. Prüfstand und Grenzen stehen in `AKTUELLER-STAND.json`.

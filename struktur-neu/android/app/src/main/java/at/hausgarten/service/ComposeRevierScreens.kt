@@ -311,8 +311,6 @@ private fun RevierDetail(
     var loadFailure by remember(id) { mutableStateOf("") }
     var archiveMode by remember { mutableStateOf("") }
     var maintenancePicker by remember { mutableStateOf(false) }
-    var archiveReason by remember { mutableStateOf("") }
-    var confirmed by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(config.kind, id, refresh) {
@@ -448,13 +446,13 @@ private fun RevierDetail(
             for (event in data?.optJSONArray("history")?.revierObjects().orEmpty()) Text(listOf(nativeDisplayDate(event.optString("at")), event.optString("reason", "Änderung gespeichert")).filter { it.isNotBlank() }.joinToString(" · "))
             if (loadFailure.isNotEmpty()) { Text(loadFailure, color = MaterialTheme.colorScheme.error); TextButton(onRefresh) { Text("Erneut lesen") } }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
-            TextButton({ archiveMode = if (row.optBoolean("archived")) "purge" else "archive"; confirmed = false }) { Text(if (row.optBoolean("archived")) "Endgültig löschen" else "Archivieren") }
+            TextButton({ archiveMode = if (row.optBoolean("archived")) "purge" else "archive" }) { Text(if (row.optBoolean("archived")) "Endgültig löschen" else "Löschen") }
         }
         NativeActionBar(
             primaryLabel = when { row.optBoolean("archived") -> "Eintrag wiederherstellen"; config.kind == "equipment" -> if (equipmentTab == 0) "Wartung erfassen" else "Zubehör bearbeiten"; else -> "Bearbeiten" },
             onPrimary = {
                 when {
-                    row.optBoolean("archived") -> { archiveMode = "restore"; confirmed = false }
+                    row.optBoolean("archived") -> { archiveMode = "restore" }
                     config.kind == "equipment" && equipmentTab == 0 -> { maintenancePicker = true }
                     config.kind == "equipment" -> onEdit("accessories", row, JSONObject())
                     else -> onEdit(config.kind, row, JSONObject())
@@ -480,18 +478,8 @@ private fun RevierDetail(
         } },
         confirmButton = { TextButton({ maintenancePicker = false }) { Text("Zurück") } }
     )
-    if (archiveMode.isNotEmpty()) AlertDialog(
-        onDismissRequest = { if (!busy) archiveMode = "" },
-        title = { Text(when (archiveMode) { "purge" -> "Endgültig löschen?"; "restore" -> "Eintrag wiederherstellen?"; else -> "Eintrag archivieren?" }) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(if (archiveMode == "purge") "Der Eintrag wird unwiederbringlich entfernt. Geschützte Bezüge werden geprüft." else "Bezüge und Verlauf bleiben erhalten.")
-                NativeField("Grund", archiveReason, { archiveReason = it }, multiline = true)
-                Row { Checkbox(confirmed, { confirmed = it }); Text("Diese Aktion ausdrücklich bestätigen", Modifier.padding(top = 12.dp)) }
-            }
-        },
-        dismissButton = { TextButton({ archiveMode = "" }, enabled = !busy) { Text("Zurück") } },
-        confirmButton = { Button({
+    LaunchedEffect(archiveMode) {
+        if (archiveMode.isNotEmpty() && !busy) {
             busy = true
             scope.launch {
                 try {
@@ -499,7 +487,7 @@ private fun RevierDetail(
                     val key = "revier:$tool:$id:$archiveMode"
                     val old = controller.draft(key)
                     val args = old?.optJSONObject("args") ?: JSONObject().put("request_id", revierRequest()).put("entity", config.kind).put("entity_id", id)
-                        .put("expected_record_hash", row.getString("record_hash")).put("confirmed", true).put("reason", archiveReason).apply { if (tool == "set_revier_archived") put("archived", archiveMode == "archive") }
+                        .put("expected_record_hash", row.getString("record_hash")).put("confirmed", true).apply { if (tool == "set_revier_archived") put("archived", archiveMode == "archive") }
                     try {
                         val proof = if (old != null) controller.query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", args)) else null
                         if (proof?.optString("state") == "content_removed") error("Dieser Vorgang wurde endgültig entfernt. Keine erneute Anlage.")
@@ -520,8 +508,8 @@ private fun RevierDetail(
                 } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { failure = error.message.orEmpty(); archiveMode = "" }
                 finally { busy = false }
             }
-        }, enabled = confirmed && !busy) { Text("Bestätigen") } }
-    )
+        }
+    }
 }
 
 private val revierDetailLabels = linkedMapOf(
@@ -803,20 +791,13 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
             enabled = !busy && !edit.mediaBusy, secondaryEnabled = !busy && !edit.mediaBusy
         )
     }
-    if (confirmDiscard) AlertDialog(
-        onDismissRequest = { confirmDiscard = false }, title = { Text("Entwurf verwerfen?") },
-        text = { Text("Nur die ungespeicherten Änderungen dieses Entwurfs werden entfernt. Bereits gespeicherte Arbeit und Dokumente bleiben erhalten.") },
-        dismissButton = { TextButton({ confirmDiscard = false }) { Text("Abbrechen") } },
-        confirmButton = { TextButton(enabled = !busy && edit.pending == null, onClick = {
-            busy = true
-            scope.launch {
-                try { revierDeleteEditPhotos(controller, edit.row()); controller.removeDraft(edit.key); confirmDiscard = false; onClose() }
-                catch (cancelled: CancellationException) { throw cancelled }
-                catch (error: Exception) { failure = error.message.orEmpty() }
-                finally { busy = false }
-            }
-        }) { Text("Entwurf verwerfen") } }
-    )
+    if (confirmDiscard) LaunchedEffect(Unit) {
+        busy = true
+        try { revierDeleteEditPhotos(controller, edit.row()); controller.removeDraft(edit.key); onClose() }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (error: Exception) { failure = error.message.orEmpty() }
+        finally { busy = false; confirmDiscard = false }
+    }
     val fresh = comparison
     if (fresh != null) AlertDialog(
         onDismissRequest = { comparison = null },

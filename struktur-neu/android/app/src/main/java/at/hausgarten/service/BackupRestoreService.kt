@@ -28,10 +28,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         fun activePaths(): ActivePaths
 
         @Throws(Exception::class)
-        fun preserveCurrent(requestId: String): JSONObject?
-
-        @Throws(Exception::class)
-        fun blockBeforeActivation(requestId: String, restoredManifest: JSONObject, currentBackupProof: JSONObject)
+        fun blockBeforeActivation(requestId: String, restoredManifest: JSONObject)
 
         @Throws(Exception::class)
         fun afterActivation(requestId: String, restoredManifest: JSONObject, restoredDatabase: File)
@@ -43,7 +40,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     }
 
     class ActivePaths @Throws(Exception::class) constructor(
-        database: File, filesDir: File, cacheDir: File, noBackupDir: File, preferenceFiles: Map<String, File>
+        database: File, filesDir: File, cacheDir: File, preferenceFiles: Map<String, File>
     ) {
         @JvmField val paths = LinkedHashMap<String, File>()
 
@@ -55,8 +52,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             paths["files"] = filesDir
             paths["photo_capture"] = File(cacheDir, "photo-capture")
             paths["invoice_share"] = File(cacheDir, "invoice-share")
-            paths["deletion_backups"] = File(noBackupDir, "deletion-backups")
-            paths["legacy_conflict_backups"] = File(noBackupDir, "legacy-conflict-backups")
             for (group in BackupPreferences.GROUPS) {
                 val file = preferenceFiles[group] ?: throw IOException("RESTORE_PREFERENCE_PATH_REQUIRED")
                 paths["preferences_${group}_bak"] = File("$file.bak")
@@ -160,60 +155,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                 throw failure
             }
         }
-    }
-
-    @Throws(Exception::class)
-    fun previousPreservation(): JSONObject = synchronized(LOCK) {
-        val state = readOptional(activationFile())
-        if (state == null || !state.has("current_backup_proof")) {
-            return@synchronized JSONObject().put("available", false)
-        }
-        activationVersion(state)
-        val proof = state.getJSONObject("current_backup_proof")
-        val archive = previousArchive(state.getString("request_id"), proof)
-        JSONObject().put("available", archive.isFile)
-            .put("activation_request_id", state.getString("request_id"))
-            .put("restore_id", state.getString("restore_id")).put("backup_id", proof.getString("backup_id"))
-            .put("captured_at", proof.getString("captured_at")).put("byte_size", proof.getLong("byte_size"))
-    }
-
-    @Throws(Exception::class)
-    fun previewPrevious(requestId: String?, activationRequestId: String?): JSONObject {
-        request(requestId)
-        request(activationRequestId)
-        return synchronized(LOCK) {
-            var state = readOptional(receipt(activationRequestId))
-            if (state == null) {
-                val current = readOptional(activationFile())
-                if (current != null && current.optString("request_id") == activationRequestId) state = current
-            }
-            if (state == null) throw IOException("RESTORE_PREVIOUS_PROOF_REQUIRED")
-            activationVersion(state)
-            val proof = state.getJSONObject("current_backup_proof")
-            val archive = previousArchive(activationRequestId, proof)
-            if (!archive.isFile || archive.length() != proof.getLong("byte_size") ||
-                BackupArchive.sha256(archive) != proof.getString("archive_sha256")) {
-                throw IOException("RESTORE_PREVIOUS_ARCHIVE_CHANGED")
-            }
-            previewFrom(
-                requestId, "previous-preservation:$activationRequestId:${proof.getString("archive_sha256")}"
-            ) { FileInputStream(archive) }
-        }
-    }
-
-    @Throws(Exception::class)
-    private fun previousArchive(activationRequestId: String?, proof: JSONObject): File {
-        validateProof(proof)
-        if (proof.optString("archive_format") != "PLAIN_ZIP") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
-        val name = "generation.zip"
-        val relative = "before-restore/${PixelMcpWriteTools.hash(activationRequestId)}/$name"
-        if (relative != proof.optString("private_archive_ref")) throw IOException("RESTORE_PREVIOUS_PROOF_REQUIRED")
-        val archive = File(context.noBackupFilesDir, relative)
-        if (Files.isSymbolicLink(archive.toPath()) ||
-            !archive.canonicalPath.startsWith(context.noBackupFilesDir.canonicalPath + File.separator)) {
-            throw IOException("RESTORE_PREVIOUS_ARCHIVE_CHANGED")
-        }
-        return archive
     }
 
     @Throws(Exception::class)
@@ -344,8 +285,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         targets["database"] = File(data, "database.sqlite")
         for (item in arrayOf(
             arrayOf("files", "files"), arrayOf("photo_capture", "cache/photo-capture"),
-            arrayOf("invoice_share", "cache/invoice-share"), arrayOf("deletion_backups", "no_backup/deletion-backups"),
-            arrayOf("legacy_conflict_backups", "no_backup/legacy-conflict-backups")
+            arrayOf("invoice_share", "cache/invoice-share")
         )) {
             val directory = File(data, item[1])
             if (!directory.isDirectory && !directory.mkdirs()) throw IOException("RESTORE_PREPARED_STORAGE_UNAVAILABLE")
@@ -424,6 +364,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             )
         }
         if (record.optString("phase") == "VALIDATED") {
+            OPEN_PREVIEWS.add(record.getString("restore_id"))
             // Read current counts separately: the backup is a replacement, never a merge.
             try {
                 PixelLocalStore(context).use { store ->
@@ -457,7 +398,38 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
 
     companion object {
         private val LOCK = Any()
+        private val OPEN_PREVIEWS = HashSet<String>()
         private val PENDING = hashSetOf("REQUESTED", "ACTIVATING", "SWAPPED", "ROLLING_BACK", "FAILED_HOLD")
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun discardPreview(context: Context, id: String) = synchronized(LOCK) {
+            if (!id.matches(Regex("restore_[a-f0-9]{36}"))) return@synchronized
+            OPEN_PREVIEWS.remove(id)
+            val state = readOptional(File(context.noBackupFilesDir, "full-restore/activation.json"))
+            if (state != null && PENDING.contains(state.optString("phase")) && state.optString("restore_id") == id) return@synchronized
+            val root = File(context.noBackupFilesDir, "full-restore")
+            BackupArchive.removeWorkTree(File(root, id))
+            if (root.listFiles()?.isEmpty() == true && !root.delete()) throw IOException("RESTORE_STAGING_CLEANUP_REQUIRED")
+        }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun cleanupUnusedWork(context: Context): Long = synchronized(LOCK) {
+            if (requiresExclusiveStartup(context) || RestoreStartupProtection.requiresColdRestart(context)) return@synchronized 0L
+            var removed = BackupArchive.removeWorkDirectories(context.noBackupFilesDir)
+            val root = File(context.noBackupFilesDir, "full-restore")
+            if (!root.exists()) return@synchronized removed
+            if (Files.isSymbolicLink(root.toPath())) throw IOException("RESTORE_STAGING_LINK_REJECTED")
+            val state = readOptional(File(root, "activation.json"))
+            if (state != null && PENDING.contains(state.optString("phase"))) return@synchronized 0L
+            for (child in root.listFiles() ?: throw IOException("RESTORE_STAGING_UNAVAILABLE")) {
+                if (child.name.matches(Regex("restore_[a-f0-9]{36}")) && child.name !in OPEN_PREVIEWS)
+                    removed += BackupArchive.removeWorkTree(child)
+            }
+            if (root.listFiles()?.isEmpty() == true && !root.delete()) throw IOException("RESTORE_STAGING_CLEANUP_REQUIRED")
+            removed
+        }
 
         @JvmStatic
         @Throws(Exception::class)
@@ -521,15 +493,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                         if (!state.has("targets")) {
                             service.requireTargetContext(record)
                             service.validateStage(work, record)
-                            var proof = state.optJSONObject("current_backup_proof")
-                            if (proof == null) {
-                                proof = protection.preserveCurrent(state.getString("request_id"))
-                                validateProof(proof)
-                                state.put("current_backup_proof", proof)
-                                journal.save(state)
-                            } else {
-                                validateProof(proof)
-                            }
                             val active = protection.activePaths()
                             val prepared = service.prepareTargets(work, record, manifest)
                             state.put("targets", BackupDatasetExchange.targets(active.paths, prepared, File(work, "rollback")))
@@ -537,7 +500,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                             journal.save(state)
                         }
                         protection.blockBeforeActivation(
-                            state.getString("request_id"), hookManifest, state.getJSONObject("current_backup_proof")
+                            state.getString("request_id"), hookManifest
                         )
                         if (state.getString("phase") == "ROLLING_BACK" || state.getString("phase") == "FAILED_HOLD") {
                             BackupDatasetExchange.rollback(journal, BackupDatasetExchange.ATOMIC)
@@ -551,8 +514,11 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                         protection.afterActivation(state.getString("request_id"), hookManifest, protection.activePaths().database())
                         state = current[0]
                         state.put("phase", "ACTIVE").put("activated_at", Instant.now().toString())
+                        state.remove("targets")
                         write(service.receipt(state.getString("request_id")), state)
                         journal.save(state)
+                        OPEN_PREVIEWS.remove(state.getString("restore_id"))
+                        runCatching { BackupArchive.removeWorkTree(work) }
                         activationView(state)
                     } catch (failure: Exception) {
                         state = current[0]
@@ -651,18 +617,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                 xml.flush()
                 output.fd.sync()
             }
-        }
-
-        @Throws(Exception::class)
-        private fun validateProof(proof: JSONObject?) {
-            if (proof == null || proof.optInt("formatVersion") != 1 || !proof.optBoolean("verified") ||
-                proof.optString("backup_id").isEmpty() || proof.optLong("byte_size") <= 0) {
-                throw IOException("RESTORE_CURRENT_BACKUP_PROOF_REQUIRED")
-            }
-            hash(proof.getString("archive_sha256"))
-            hash(proof.getString("database_sha256"))
-            Instant.parse(proof.getString("captured_at"))
-            Instant.parse(proof.getString("local_verified_at"))
         }
 
         @Throws(Exception::class)

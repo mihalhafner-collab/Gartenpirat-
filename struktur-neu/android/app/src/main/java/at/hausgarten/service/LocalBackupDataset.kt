@@ -34,9 +34,7 @@ internal object LocalBackupDataset {
         synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
             var stage = "FILES"
             try {
-                for (source in arrayOf(context.filesDir, context.cacheDir,
-                    File(context.noBackupFilesDir, "deletion-backups"),
-                    File(context.noBackupFilesDir, "legacy-conflict-backups"))) {
+                for (source in arrayOf(context.filesDir, context.cacheDir)) {
                     if (directory.canonicalFile.toPath().startsWith(source.canonicalFile.toPath())) {
                         throw IOException("BACKUP_CAPTURE_RECURSIVE_TARGET_REJECTED")
                     }
@@ -64,7 +62,6 @@ internal object LocalBackupDataset {
                 }
                 include(context.filesDir, "files")
                 for (name in arrayOf("photo-capture")) include(File(context.cacheDir, name), "cache/$name")
-                for (name in arrayOf("deletion-backups", "legacy-conflict-backups")) include(File(context.noBackupFilesDir, name), "no_backup/$name")
                 val filesRoot = if (streamOriginals) context.filesDir else File(directory, "files")
                 if (PixelMcpWriteTools.hash(preferences) != PixelMcpWriteTools.hash(BackupPreferences.capture(context))) {
                     throw IOException("BACKUP_PREFERENCES_CHANGED_RETRY")
@@ -110,7 +107,7 @@ internal object LocalBackupDataset {
                     .put("appVersion", context.packageManager.getPackageInfo(context.packageName, 0).versionName)
                     .put("capturedAt", Instant.now().toString()).put("counts", report.getJSONObject("counts"))
                     .put("numberState", JSONObject()).put("lastIssuedDocumentIds", report.getJSONArray("lastIssuedDocumentIds"))
-                    .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences_browser_storage_and_legacy_backups")
+                    .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences_browser_storage")
                     .put("media_coverage", "AVAILABLE_FILES_WITH_NOTES")
                 Captured(directory, metadata, originals, report)
             } catch (failure: Exception) {

@@ -311,9 +311,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun discardWork(confirm: Boolean = true) {
-        click("Entwurf verwerfen")
-        shown("Entwurf verwerfen?")
-        click(if (confirm) "Entwurf verwerfen" else "Abbrechen", scrollTo = false)
+        if (confirm) click("Entwurf verwerfen")
+        else yes(node("Entwurf verwerfen") != null, "DISCARD_AVAILABLE_WITHOUT_CONFIRMATION")
     }
 
     private fun primaryPosition(primary: String, secondary: String) {
@@ -640,8 +639,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(node(editedName) == null, "COMMITTED_MCP_EDIT_REPLACES_VISIBLE_ROW")
         click(flowName)
         click("Weitere Angaben")
-        click("Kunde archivieren")
-        click("In Papierkorb")
+        click("Löschen")
         waitUntil("CUSTOMER_ARCHIVED") { customers(flowName).isEmpty() || customers(flowName).all { it.opt("active") == false || it.optInt("active", 1) == 0 || it.optBoolean("archived") } }
         openCustomerList()
         enter("Suchen", "QA Native F")
@@ -1758,12 +1756,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOffice(); click("Planung"); click("Termin planen"); click("Kunde: Bitte wählen")
             keyboardSearchProof("planning-picker", "Suchen", fixturePrefix+"000", fixturePrefix+"000")
             reveal("Kunde: " + fixturePrefix+"000")
-            click("Ungespeicherten Entwurf verwerfen"); click("Verwerfen", scrollTo = false)
+            click("Ungespeicherten Entwurf verwerfen")
         }
         case("photo-assignment") {
             openOfficeGroup("Material und Pflanzen", "Fotos"); click("Foto hinzufügen"); click("Kunden auswählen")
             keyboardSearchProof("photo-assignment", "Suchen", fixturePrefix+"001", fixturePrefix+"001")
-            shown(fixturePrefix+"001"); click("Verwerfen"); click("Auswahl verwerfen", scrollTo = false)
+            shown(fixturePrefix+"001"); click("Verwerfen")
         }
         case("offer-positions") {
             openCustomerList(); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
@@ -2065,7 +2063,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(JSONObject(store.ownerValue(planningDraft, "{}")).getJSONObject("values").getString("local_start") == "2027-05-19T09:00", "PLANNING_DRAFT_AFTER_RECREATION")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() == before, "DRAFT_IS_NOT_APPOINTMENT")
         back(); shown("Entwurf fortsetzen"); click("Entwurf fortsetzen")
-        click("Ungespeicherten Entwurf verwerfen"); click("Verwerfen", scrollTo = false)
+        click("Ungespeicherten Entwurf verwerfen")
         shown("Termin planen")
         yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() == before, "PLANNING_DISCARD_DOES_NOT_CREATE_RECORD")

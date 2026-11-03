@@ -115,7 +115,7 @@ die lokalen unverschlüsselten ZIP-Dateien. Alte verschlüsselte Container werde
 als nicht unterstützt abgewiesen; vorhandene Benutzerdateien werden nicht gelöscht.
 
 Wiederherstellung benötigt eine ausdrückliche Auswahl und Bestätigung, technische
-Prüfung, Rückfallkopie, geschützten atomaren Dateiaustausch sowie Wiederanlauf und
+Prüfung, geschützten atomaren Dateiaustausch sowie Wiederanlauf und
 Rollback. Sie ist weder eine produktive Migration noch eine Rechnungsfreigabe.
 Sicherung, Restore und Schemawechsel nicht aus einem allgemeinen Entwicklungsauftrag
 ableiten. In diesem synthetischen Entwicklungs- und Prüfverfahren wird kein
@@ -248,7 +248,7 @@ Phasen auf einem frischen API35-Google-APIs-Wegwerf-Emulator in genau dieser Rei
 
 | Suite | Prüfgrenze |
 |---|---|
-| `local_backup` | Synthetischer vollständiger Bestand, ZIP, Hinweise, Fehler, Rückfallkopie und geschützter Restore |
+| `local_backup` | Synthetischer vollständiger Bestand, ZIP, Hinweise, Fehler und geschützter Restore ohne Rückfallkopie |
 | `local_backup_reopen` | Derselbe isolierte Restorebestand nach Prozessneustart |
 | `browser_checkpoint` | Dauerhafte Formularsichtung, reale SQLite-Transaktionen, aktive Medienauswahl, Fehler und Replay |
 | `browser_checkpoint_reopen` | Gespeicherte Sichtungsentscheidung und Medienbezüge im neuen Prozess |
@@ -629,3 +629,13 @@ Lint und die acht JVM-Suiten aus. Die vorhandenen nativen Prüffolgen bleiben
 unverändert verfügbar und werden ausschließlich bei einem ausdrücklich gestarteten
 `workflow_dispatch` mit `emulator=true` ausgeführt. Nicht ausgeführte Android-
 Laufzeitprüfungen sind kein Erfolgsnachweis und werden im Projektstatus benannt.
+
+## Speicherbereinigung und direkte Löschaktionen vom 03.11.2026
+
+Der bestehende JVM-Test `PixelPlainBackupTests` führt die Produktionsbereinigung
+mit tief verschachtelten synthetischen Altordnern, leeren Unterordnern, externen
+Symlinks, Symlink-Schleifen und Wiederholung aus. Er prüft die entfernten Bytezahlen
+und unveränderte aktive Dateien/Gerätekennung. Die native Backup- und Datensuite
+prüft den entfallenen Rückfallkopienpfad und die Entfernung alter interner Sicherungen.
+Native UI-Tests erwarten direkte Lösch-/Verwerfaktionen statt zusätzlicher Dialoge.
+Eine APK-Kompilierung ist weiterhin kein ausgeführter Gerätefunktionstest.

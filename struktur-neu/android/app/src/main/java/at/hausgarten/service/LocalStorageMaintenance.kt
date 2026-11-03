@@ -20,10 +20,16 @@ internal class LocalStorageMaintenance(private val context: Context, private val
         val documents = bytes(File(context.filesDir, "business-documents"))
         val other = (bytes(context.filesDir) - photos - documents).coerceAtLeast(0)
         val work = bytes(context.noBackupFilesDir)
+        val workDirectories = JSONObject()
+        context.noBackupFilesDir.listFiles()?.sortedBy { it.name }?.forEach { child ->
+            workDirectories.put(child.name, bytes(child))
+        }
         val cache = bytes(context.cacheDir)
         return JSONObject().put("database_bytes", dbBytes).put("photo_bytes", photos)
             .put("document_bytes", documents).put("other_files_bytes", other).put("work_bytes", work).put("cache_bytes", cache)
-            .put("backup_work_bytes", bytes(File(context.noBackupFilesDir, "pixel-backup")))
+            .put("work_directories", workDirectories)
+            .put("backup_work_bytes", listOf("pixel-backup", "full-backup-work", "browser-media-upload")
+                .sumOf { workDirectories.optLong(it) })
             .put("total_bytes", dbBytes + photos + documents + other + work + cache)
     }
 
@@ -117,7 +123,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                             val meta = JSONObject(rows.getString(1))
                             val recent = runCatching { Instant.parse(meta.optString("last_written_at")).toEpochMilli() > System.currentTimeMillis() - DAY }.getOrDefault(false)
                             // A currently uploading file may not yet belong to a saved form.
-                            if (meta.optString("kind") == "backup" || id in refs || (recent && !meta.has("attached_photo"))) collect(meta, refs) else uploads.add(id)
+                            if (meta.optString("kind") != "backup" && (id in refs || (recent && !meta.has("attached_photo")))) collect(meta, refs) else uploads.add(id)
                         }
                     }
                     uploads.forEach { database.delete("mcp_uploads", "id=?", arrayOf(it)) }
@@ -225,6 +231,9 @@ internal class LocalStorageMaintenance(private val context: Context, private val
             if (grace > 0 && file.lastModified() > System.currentTimeMillis() - grace) return@forEach
             if (!file.delete() && file.exists()) throw IOException("STORAGE_FILE_CLEANUP_PENDING")
             count++
+        }
+        root.walkBottomUp().onEnter { !Files.isSymbolicLink(it.toPath()) }.filter { !Files.isSymbolicLink(it.toPath()) && it.isDirectory }.forEach { directory ->
+            if (directory.listFiles()?.isEmpty() == true && !directory.delete()) throw IOException("STORAGE_FILE_CLEANUP_PENDING")
         }
         return count
     }

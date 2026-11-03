@@ -40,17 +40,7 @@ class PixelBackupService internal constructor(private val context: Context, priv
         }
 
         private fun cleanupWorkLocked(context: Context): Long {
-            val root = File(context.noBackupFilesDir, "pixel-backup")
-            if (!root.exists()) return 0L
-            if (Files.isSymbolicLink(root.toPath()) || !root.isDirectory) throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")
-            var removed = 0L
-            for (child in root.listFiles() ?: throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")) {
-                if (!Files.isSymbolicLink(child.toPath())) {
-                    removed += if (child.isDirectory) child.walkTopDown().onEnter { !Files.isSymbolicLink(it.toPath()) }.filter { it.isFile && !Files.isSymbolicLink(it.toPath()) }.sumOf { it.length() } else child.length()
-                    BackupArchive.removeOwned(child)
-                } else Files.delete(child.toPath())
-            }
-            return removed
+            return BackupRestoreService.cleanupUnusedWork(context)
         }
 
         /** The explicit Android picker grants access to the selected local backup document. */

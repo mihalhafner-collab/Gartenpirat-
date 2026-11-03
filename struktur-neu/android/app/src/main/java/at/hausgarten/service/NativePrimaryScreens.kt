@@ -482,6 +482,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     var to by rememberSaveable(collection) { mutableStateOf(controller.route.args.optString("date_to")) }
     var offset by rememberSaveable(collection) { mutableIntStateOf(0) }
     var selected by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var deleting by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
@@ -532,12 +533,14 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { if (offset > 0) OutlinedButton({ offset = maxOf(0, offset - 50) }) { Text("Vorherige 50") }; if (page.hasMore) OutlinedButton({ offset += 50 }) { Text("Weitere 50") } } }
         if (collection == "worklogs" && selected.isNotEmpty()) item {
-            Button({ scope.launch {
+            Button({ if (!deleting) { deleting = true; scope.launch {
                 try {
-                    val preview = controller.query("preview_archive_work_records", JSONObject().put("work_record_ids", JSONArray(selected)))
-                    controller.action("${selected.size} Arbeiten in den Papierkorb", "archive_work_records", JSONObject().put("work_record_ids", JSONArray(selected)).put("expected_preview_hash", preview.getString("preview_hash")).put("_preview", preview))
-                } catch (failure: Exception) { controller.message(failure.message ?: "Auswahl konnte nicht geprüft werden.") }
-            } }) { Text("Auswahl in Papierkorb (${selected.size})") }
+                    controller.deleteDirect("archive_work_records", JSONObject().put("work_record_ids", JSONArray(selected)))
+                    selected = emptyList()
+                    controller.message("Auswahl gelöscht.")
+                } catch (failure: Exception) { controller.message(failure.message ?: "Löschen nicht bestätigt.") }
+                finally { deleting = false }
+            } } }, enabled = !deleting) { Text(if (deleting) "Löschen …" else "Auswahl löschen (${selected.size})") }
         }
         }
         NativeActionBar(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
@@ -651,7 +654,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                 item { NativeInfoRow("Weitere Angaben", if (details) "Schließen" else "Zusätzliche gespeicherte Angaben", { details = !details }) }
                 if (details) item {
                     NativeBusinessValues(JSONObject(row.toString()).apply { for (key in listOf("id", "customer_id", "order_id", "billing_customer_id", "default_billing_customer_id", "_sync_base", "_mcp_base", "created_at", "updated_at", "name", "activity", "title")) remove(key) })
-                    NativeDeleteButton(controller, kind, id, label = if (kind == "customer") "Kunde archivieren" else "In Papierkorb") { controller.returnToList(collection) }
+                    NativeDeleteButton(controller, kind, id, label = "Löschen") { controller.returnToList(collection) }
                     NativeActionMenu(controller, if (kind == "customer") "kunden" else if (kind == "order") "auftraege" else "arbeiten", JSONObject().put(primaryId(kind), id).put("entity_id", id).put("entity", kind))
                 }
             }
@@ -982,14 +985,14 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
         else NativeActionBar(if (savedWorkId.isNotEmpty()) "Foto speichern" else when (kind) { "customer" -> "Kunde speichern"; "order" -> "Auftrag speichern"; else -> "Arbeit speichern" }, { save() }, "Zurück", { controller.back() },
             enabled = loaded && !busy && !conflict && pending == null && (savedWorkId.isNotEmpty() || !restored && requiredComplete), secondaryEnabled = !busy)
     }
-    if (discard) AlertDialog(onDismissRequest = { if (!busy) discard = false }, title = { Text("Entwurf verwerfen?") }, text = { Text("Nur die ungespeicherten Angaben und das ungespeicherte Foto dieses Entwurfs werden entfernt. Bereits gespeicherte Arbeit bleibt erhalten.") },
-        confirmButton = { TextButton({ scope.launch {
-            busy = true
-            try { nativeDeletePhotoDraft(controller, photoUri); controller.removeDraft(draftKey); discard = false; controller.back() }
-            catch (failure: Exception) { error = failure.message ?: "Entwurf konnte nicht verworfen werden." }
-            finally { busy = false }
-        } }, enabled = !busy) { Text("Entwurf verwerfen") } },
-        dismissButton = { TextButton({ discard = false }, enabled = !busy) { Text("Abbrechen") } })
+    if (discard) LaunchedEffect(Unit) {
+        busy = true
+        try { nativeDeletePhotoDraft(controller, photoUri); controller.removeDraft(draftKey); controller.back() }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { error = failure.message ?: "Entwurf konnte nicht gelöscht werden." }
+        finally { busy = false; discard = false }
+    }
+
 }
 
 @Composable
@@ -1038,7 +1041,6 @@ private fun NativeTimer(controller: NativeAppController) {
     var cancelledId by rememberSaveable { mutableStateOf("") }
     var cancelledReview by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
-    var discardConfirm by remember { mutableStateOf(false) }
     var discardNeedsReview by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     suspend fun refresh() { session = withContext(Dispatchers.IO) { controller.store.workSessions().current() } }
@@ -1150,27 +1152,10 @@ private fun NativeTimer(controller: NativeAppController) {
                     NativeInfoRow("Foto hinzufügen", "Zur gestoppten Arbeit · Abschluss bleibt erhalten", { controller.navigate("photos", mode = "import", args = JSONObject(resourceContext.toString()).put("_open_camera", true)) })
                     NativeInfoRow("Material", "Verbrauch zur gestoppten Arbeit buchen", { controller.navigate("materials", mode = "movement", args = resourceContext) })
                     if (error.isNotBlank()) NativeStatus(error, NativeStatusTone.Attention)
-                    OutlinedButton({
-                        if (!busy) {
-                            busy = true
-                            scope.launch {
-                                try {
-                                    val draft = controller.draft(completionKey)
-                                    if (draft?.optJSONObject("original_args") != null || draft?.optBoolean("_restore_action_review_required") == true || draft?.optBoolean("review_required") == true) discardNeedsReview = true
-                                    else discardConfirm = true
-                                } catch (cancelled: CancellationException) { throw cancelled }
-                                catch (failure: Exception) { error = failure.message ?: "Der Abschlussentwurf konnte nicht geprüft werden." }
-                                finally { busy = false }
-                            }
-                        }
-                    }, enabled = !busy) { Text("Entwurf verwerfen") }
+                    OutlinedButton({ execute("discard_work_session", sessionId) }, enabled = !busy) { Text("Entwurf verwerfen") }
                 })
             }
         }
-        if (discardConfirm) AlertDialog(onDismissRequest = { if (!busy) discardConfirm = false },
-            title = { Text("Entwurf verwerfen?") }, text = { Text("Die gestoppte, noch nicht gespeicherte Arbeit und ihre Abschlusseingaben werden verworfen. Bereits gespeicherte Arbeit bleibt erhalten.") },
-            confirmButton = { TextButton({ discardConfirm = false; execute("discard_work_session", sessionId) }, enabled = !busy) { Text("Entwurf verwerfen") } },
-            dismissButton = { TextButton({ discardConfirm = false }, enabled = !busy) { Text("Abbrechen") } })
         if (discardNeedsReview) AlertDialog(onDismissRequest = { discardNeedsReview = false },
             title = { Text("Abschluss zuerst prüfen") }, text = { Text("Der ursprüngliche Abschluss ist unbestätigt oder stammt aus einer Wiederherstellung. Er bleibt erhalten und wird nicht verworfen.") },
             confirmButton = { TextButton({ discardNeedsReview = false; controller.action("Ursprünglichen Abschluss prüfen", "complete_work_session", JSONObject().put("session_id", sessionId).put("_draft_key", completionKey)) }) { Text("Ergebnis prüfen") } },
@@ -1219,7 +1204,6 @@ private fun NativeSettings(controller: NativeAppController) {
     var info by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var testing by remember { mutableStateOf(false) }
-    var advanced by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { try { settings = controller.query("get_settings") } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = failure.message.orEmpty() } }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1229,21 +1213,21 @@ private fun NativeSettings(controller: NativeAppController) {
         item { NativeInfoRow("Arbeitsvorgaben", "Tätigkeit, Einsatzort und Fotoqualität", {
             if (settings != null) controller.action("Arbeitsvorgaben ändern", "update_settings", JSONObject().put("expected_record_hash", settings?.optString("record_hash", "")).put("updates", settings?.optJSONObject("settings") ?: JSONObject()))
         }) }
-        item { NativeInfoRow("Unternehmensdaten", "Vorhandene Ausstellerdaten ansehen und bearbeiten", { scope.launch {
+        item { NativeInfoRow("Unternehmensdaten", "Angaben für Angebote", { scope.launch {
             try { val current = controller.query("get_business_settings"); controller.action("Unternehmensdaten bearbeiten", "update_business_settings", JSONObject().put("expected_record_hash", current.optString("record_hash")).put("updates", current.optJSONObject("settings") ?: JSONObject())) }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) { error = failure.message.orEmpty() }
         } }) }
         item { Text("Verbindungen und Daten", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.titleMedium) }
         item { NativeInfoRow("Verbindungen", "Kalender, Wetter und ChatGPT · optional", { controller.navigate("connections") }) }
-        item { NativeInfoRow("Sicherung und Wiederherstellung", "Lokale ZIP-Datei, Vorschau und Rückfallkopie", { scope.launch {
+        item { NativeInfoRow("Sicherung und Wiederherstellung", "ZIP speichern oder wiederherstellen", { scope.launch {
             try { controller.flushDrafts(); controller.open(FullBackupActivity::class.java) }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) { error = failure.message.orEmpty() }
         } }) }
-        item { NativeInfoRow("Speicher", "Belegung ansehen und ungenutzte Dateien bereinigen", { controller.navigate("storage") }) }
+        item { NativeInfoRow("Speicher", "Belegung und Bereinigung", { controller.navigate("storage") }) }
         item { NativeInfoRow("Entwürfe", "Offene Formulare und übernommene Bearbeitungen", { controller.navigate("drafts") }) }
-        item { NativeInfoRow("Papierkorb", "Wiederherstellen oder ausdrücklich endgültig löschen", { controller.navigate("trash") }) }
+        item { NativeInfoRow("Papierkorb", "Wiederherstellen oder endgültig löschen", { controller.navigate("trash") }) }
         item { Text("App prüfen", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.titleMedium) }
         item { OutlinedButton({ scope.launch {
             testing = true
@@ -1256,7 +1240,10 @@ private fun NativeSettings(controller: NativeAppController) {
         info?.let { result ->
             item { Text("Prüfung abgeschlossen", style = MaterialTheme.typography.titleMedium) }
             val checks = result.optJSONArray("checks") ?: JSONArray()
-            items((0 until checks.length()).map { checks.getJSONObject(it) }) { check ->
+            val values = (0 until checks.length()).map { checks.getJSONObject(it) }
+            val passed = values.count { it.optString("status") == "PASS" }
+            item { NativeStatus("$passed von ${values.size} Prüfungen bestanden", if (passed == values.size) NativeStatusTone.Confirmed else NativeStatusTone.Neutral) }
+            items(values.filter { it.optString("status") != "PASS" }) { check ->
                 val title = when (check.optString("name")) {
                     "build_and_protocol" -> "App und lokales Protokoll"
                     "catalog_unique" -> "Eindeutige Funktionskennungen"
@@ -1273,19 +1260,12 @@ private fun NativeSettings(controller: NativeAppController) {
                     Text(title, style = MaterialTheme.typography.titleSmall)
                     val state = check.optString("status")
                     NativeStatus(when (state) { "PASS" -> "Bestanden · begrenzte lokale Prüfung"; "FAIL" -> "Prüfung erforderlich"; else -> "Nicht geprüft" }, when (state) { "PASS" -> NativeStatusTone.Confirmed; "FAIL" -> NativeStatusTone.Attention; else -> NativeStatusTone.Neutral })
-                    if (check.optString("reason").isNotBlank()) Text(nativeDisplayText(check.optString("reason")), style = MaterialTheme.typography.bodySmall)
                 }
                 HorizontalDivider()
             }
-            item { Text("Sicherung: Ein protokolliertes Rücklesen ist kein neuer Dateitest. Wiederherstellung: nicht getestet. Verbindungen und tatsächlicher Versand werden separat geprüft.", style = MaterialTheme.typography.bodySmall) }
+            item { Text("Geprüft werden lokale App-Funktionen. Verbindungen und Wiederherstellung sind getrennte Prüfungen.", style = MaterialTheme.typography.bodySmall) }
         }
-        item { NativeInfoRow("Weitere Angaben", "App-Version und gezielte Diagnose", { advanced = !advanced }) }
-        if (advanced) {
-            item { Text("Gartenpirat ${BuildConfig.VERSION_NAME} · Build ${BuildConfig.VERSION_CODE}") }
-            item { settings?.let { NativeBusinessValues(it) } }
-            item { info?.let { NativeBusinessValues(it) } }
-            item { NativeActionMenu(controller, "einstellungen") }
-        }
+        item { Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall) }
     }
 }
 
@@ -1367,9 +1347,26 @@ private fun NativeStorageSettings(controller: NativeAppController) {
             NativeInfoRow("Belegung ansehen", "Datenbank, Fotos, PDFs, Arbeitsdateien und Cache", { expanded = !expanded })
             if (expanded) usage?.let { value ->
                 for ((key, label) in listOf("database_bytes" to "Datenbank mit Journal", "photo_bytes" to "Fotos, Vorschauen und Medien", "document_bytes" to "PDF-Belege", "other_files_bytes" to "Weitere App-Dateien", "work_bytes" to "Arbeits- und Wiederherstellungsdaten", "cache_bytes" to "Zwischenspeicher")) NativeInfoRow(label, size(value.optLong(key)))
+                value.optJSONObject("work_directories")?.let { directories ->
+                    Text("Arbeits- und Wiederherstellungsordner", style = MaterialTheme.typography.titleSmall)
+                    for (name in directories.keys().asSequence().sorted()) {
+                        val label = when (name) {
+                            "full-backup-work" -> "Alte Sicherungs-Arbeitskopien"
+                            "browser-media-upload" -> "Alte Upload-Arbeitsdateien"
+                            "pixel-backup" -> "Sicherungs-Arbeitsdateien"
+                            "full-restore" -> "Wiederherstellungsvorschauen"
+                            "before-restore" -> "Alte Wiederherstellungsdateien"
+                            "deletion-backups" -> "Historische Löschsicherungen"
+                            "legacy-conflict-backups" -> "Historische Konfliktsicherungen"
+                            "backup-device-guard" -> "Lokale Gerätekennung"
+                            else -> name
+                        }
+                        NativeInfoRow(label, size(directories.optLong(name)))
+                    }
+                }
                 Text("Davon Backup-Arbeitsdateien: ${size(value.optLong("backup_work_bytes"))}", style = MaterialTheme.typography.bodySmall)
             }
-            Text("Bereinigen entfernt nur nachweislich ungenutzte Dateien. Geschäftsdaten, Papierkorb, Entwürfe und verknüpfte Originale bleiben erhalten.")
+            Text("Entfernt ungenutzte Arbeitsdateien und alte interne Sicherungskopien.")
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (result.isNotEmpty()) NativeStatus(result, NativeStatusTone.Confirmed)
             if (error.isNotEmpty()) NativeStatus(error, NativeStatusTone.Attention)

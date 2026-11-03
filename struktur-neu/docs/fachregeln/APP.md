@@ -111,8 +111,9 @@ Sicherungsvorgang wird dabei nicht abgeräumt. Es gibt keine Verbindung zur Migr
 Rechnungsfreigabe. Unverschlüsselte ZIP-Sicherungen behalten Manifestformat und
 Integritätsprüfung; verschlüsselte Container werden als nicht unterstützt abgewiesen.
 
-Wiederherstellung erfolgt ausdrücklich nach technischer Archivprüfung und mit
-einer Rückfallkopie des aktuellen Bestands. Der bestehende atomare Dateiaustausch
+Wiederherstellung erfolgt ausdrücklich nach technischer Archivprüfung ohne
+Rückfallkopie des aktuellen Bestands. Erstellen, Prüfen und Wiederherstellen solcher
+Kopien sind gemäß Eigentümerentscheidung vom 03.11.2026 entfernt. Der atomare Dateiaustausch
 mit Wiederanlauf und Rollback bleibt erhalten. Sicherungsfehler blockieren die
 Geschäftserfassung nicht. Ein echter Pixel-Nachweis ist getrennt von JVM- und
 synthetischen Emulatorprüfungen zu führen.
@@ -345,3 +346,21 @@ Bereits vorhandene Altsicherungen als Dateien oder SQLite-BLOBs bleiben auch bei
 der Speicherbereinigung bytegetreu erhalten; nur temporäre Backup-Arbeitsdateien
 werden automatisch entfernt.
 Für vollständige Sicherung und Wiederherstellung gilt allein der lokale ZIP-Pfad.
+
+## Vereinfachung vom 03.11.2026
+
+Ein Antippen führt Löschen, Sammellöschung, Papierkorb-Leerung und Verwerfen
+direkt aus. Zusätzliche Bestätigungsdialoge und Pflicht-Grundtexte entfallen.
+Fachliche Versionen und Verknüpfungen werden intern geprüft. Nach unklarer Antwort
+liest die nächste Betätigung denselben gespeicherten Vorgang, ohne ihn neu anzulegen.
+Die bestehende Unterscheidung zwischen Papierkorb, Archiv und endgültigem Löschen
+bleibt erhalten. Erneute Datenfreigaben sind nicht Teil dieser Bedienung.
+
+Die Speicherbereinigung entfernt freigegebene alte interne Sicherungen,
+Rückfallkopien, ausgediente Schlüssel-/Upload-Arbeitsdateien und verwaiste
+Restore-Arbeitsbäume einschließlich leeren Unterordnern. Geöffnete Vorschauen und
+noch laufende Austauschvorgänge bleiben bis Abschluss erhalten. Der abgeschlossene
+Austausch hinterlässt keine vollständige Kopie des vorherigen Bestands.
+Einstellungen zeigen kurze Ergebnisse; interne Datensatzkennungen und ungefilterte
+Diagnosewerte werden dort nicht mehr ausgegeben. Die Speicheransicht schlüsselt
+verbleibende Arbeitsordner einzeln auf.

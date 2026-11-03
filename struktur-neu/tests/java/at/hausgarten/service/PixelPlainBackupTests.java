@@ -146,10 +146,35 @@ public final class PixelPlainBackupTests {
             BackupDatasetExchange.rollback(journal,BackupDatasetExchange.ATOMIC);yes(journal.read().getString("phase").equals("ROLLED_BACK"));
         }
     }
+    static void workCleanupChecks(File root)throws Exception {
+        File parent=new File(root,"qa_work"),external=new File(root,"qa_kept_original");
+        yes(parent.mkdir());Files.write(external.toPath(),new byte[]{1,2,3});
+        long expected=0;
+        for(String name:new String[]{"pixel-backup","full-backup-work","browser-media-upload","before-restore","deletion-backups","legacy-conflict-backups","backup-key-protection","local-authority-review","local-authority"}){
+            File nested=new File(parent,name+"/attempt/capture/deep/old.bin");yes(nested.getParentFile().mkdirs());
+            Files.write(nested.toPath(),new byte[101]);expected+=101;
+        }
+        File identity=new File(parent,"backup-device-guard/identity.v1");yes(identity.getParentFile().mkdirs());Files.write(identity.toPath(),new byte[]{8});
+        File active=new File(parent,"full-restore/restore_active/working.bin");yes(active.getParentFile().mkdirs());Files.write(active.toPath(),new byte[]{9});
+        Files.createSymbolicLink(new File(parent,"full-backup-work/attempt/external-link").toPath(),external.toPath());
+        Files.createSymbolicLink(new File(parent,"browser-media-upload/attempt/loop").toPath(),parent.toPath());
+        yes(BackupArchive.removeWorkDirectories(parent)==expected);
+        for(String name:new String[]{"pixel-backup","full-backup-work","browser-media-upload","before-restore","deletion-backups","legacy-conflict-backups","backup-key-protection","local-authority-review","local-authority"})yes(!new File(parent,name).exists());
+        yes(identity.isFile()&&active.isFile()&&Arrays.equals(Files.readAllBytes(external.toPath()),new byte[]{1,2,3}));
+        yes(BackupArchive.removeWorkDirectories(parent)==0);
+        Files.createSymbolicLink(new File(parent,"full-backup-work").toPath(),external.toPath());
+        yes(BackupArchive.removeWorkDirectories(parent)==0&&external.isFile());
+        File alias=new File(root,"qa_parent_link");Files.createSymbolicLink(alias.toPath(),parent.toPath());
+        reject(()->BackupArchive.removeWorkDirectories(alias));yes(identity.isFile());
+        File interrupted=new File(parent,"full-backup-work/empty/deep");yes(interrupted.mkdirs());
+        Thread.currentThread().interrupt();
+        try{reject(()->BackupArchive.removeWorkDirectories(parent));yes(interrupted.isDirectory());}finally{Thread.interrupted();}
+        yes(BackupArchive.removeWorkDirectories(parent)==0&&!new File(parent,"full-backup-work").exists());
+    }
     public static void main(String[] args)throws Exception{
         diagnosticChecks();statusChecks();warningStatusChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
-            archiveSafetyChecks(root);conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
+            workCleanupChecks(root);archiveSafetyChecks(root);conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
             try(OutputStream out=new FileOutputStream(zip)){BackupArchive.writePlain(out,metadata(),Arrays.asList(new BackupArchive.Source("database.sqlite",source)));}
             try(ZipFile readable=new ZipFile(zip)){yes(readable.getEntry("data/database.sqlite")!=null&&readable.getEntry("manifest.json")!=null);}

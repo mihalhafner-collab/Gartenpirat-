@@ -65,6 +65,19 @@ Eigentümerfreigabe vom 02.11.2026 ausdrücklich akzeptiert; keine Altkompatibil
 nur für abgeschaffte Funktionspfade bewahren. Historische Geschäftsdateien und
 aktuelle lokale ZIP-Sicherungen nicht automatisch löschen.
 
+## Eigentümerentscheidung 03.11.2026: Löschen, Speicher und Menüs
+
+Löschaktionen werden mit einem Antippen ohne zusätzliche Bestätigungsdialoge
+oder Pflichttexte ausgeführt. Aktuelle Versionen, Verknüpfungen und unklare
+Vorgangsergebnisse intern prüfen; keine doppelte Ausführung. Diese Entscheidung
+ersetzt die bisherigen zusätzlichen UI-Bestätigungen beim Löschen und Verwerfen.
+Rückfallkopien einschließlich Erstellen, Prüfen und Wiederherstellen sind
+abgeschafft. Vorhandene interne Rückfallkopien und funktionslose Sicherungs-,
+Upload- und Restore-Arbeitsdateien samt leeren Unterordnern dürfen entfernt werden.
+Insbesondere `full-backup-work` nicht zurücklassen. Laufende Austauschvorgänge,
+Gerätekennung, gespeicherte Geschäftsdaten und bewusst gewählte lokale ZIP-Dateien
+bleiben getrennt. Menüs verwenden kurze deutsche Texte ohne Rohdatenwände.
+
 ## Umsetzung
 
 KISS und YAGNI: flacher, direkter Code; keine vorsorglichen Abstraktionen,
