@@ -55,7 +55,7 @@
   ],
   "current_task": {
     "name": "Arbeitsdateien vollständig bereinigen, Rückfallkopien entfernen und Löschmenüs vereinfachen",
-    "status": "IMPLEMENTED; FINAL_BUILD_IN_PROGRESS; NATIVE_RUNTIME_NOT_RUN",
+    "status": "IMPLEMENTED; ORIGINAL_SIGNED_APK_VERIFIED; INSTALLATION_AND_PIXEL_RUNTIME_NOT_RUN",
     "concept": {
       "title": "Haus und Garten NEUES Bedienkonzept – Fassung 2",
       "pages": 38,
@@ -94,17 +94,21 @@
       "productive_subdirectory_sizes": "NOT_AVAILABLE; category known, exact per-directory attribution not claimed"
     },
     "validation": {
-      "source": "PASS; 61 Python tests and source/UI/privacy gates",
-      "jvm": "PASS; 8 synthetic JVM suites, 1418 assertions; includes recursive cleanup, symlink boundaries, empty directory removal and retry",
-      "android": "PASS prior release/test APK + lint and subsequent native compile; final clean source-commit build in progress",
+      "source": "PASS; 61 Python tests, canonical source layout, UI mapping and privacy gates",
+      "jvm": "PASS; 8 synthetic JVM suites, 1418 assertions; recursive cleanup, symlink boundaries, empty directory removal, retry and existing domain regressions",
+      "android": "PASS; final clean source commit assembleRelease, assembleReleaseAndroidTest and lintRelease; 0 lint errors, 84 warnings",
       "native_ui_execution": "NOT_RUN; previous explicit emulator opt-out respected",
       "pixel_acceptance": "NOT_RUN",
-      "installation_and_productive_cleanup": "NOT_PERFORMED; installed app remains 1.58.0/123"
+      "installation_and_productive_cleanup": "NOT_PERFORMED; installed app remains 1.58.0/123",
+      "artifact": "PASS; package/version/original certificate/assets/classes/empty business seed independently read back; removed fallback-copy methods absent in release DEX",
+      "source_identity": "PASS; release DEX GIT_SHA=fadec74356a4fc63591fb94aa4850149803dae82; SOURCE_SHA256=6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8; SOURCE_DIRTY=false",
+      "original_signing": "PASS; source commit pushed and independently confirmed on GitHub before signing; original certificate a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8; temporary private signing files removed"
     },
-    "updated_at_utc": "2026-11-03T18:29:41.026482+00:00"
+    "updated_at_utc": "2026-11-03T18:39:29.980283+00:00"
   },
   "open_checks": [
-    "Native UI-/Geräteabnahme NOT_RUN; Quellreview, JVM-Prüfungen, APK-Bau und Lint ersetzen diese nicht.",
+    "1.58.2 ist nicht am Pixel installiert; tatsächliche Freigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands noch nicht gemessen.",
+    "Native UI-/Geräteabnahme NOT_RUN; APK-/Test-APK-Bau, Lint, Python- und JVM-Prüfungen ersetzen diese nicht.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
   "workflow": {
@@ -151,11 +155,15 @@
     "version_name": "1.58.2",
     "version_code": 125,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED; FINAL_BUILD_IN_PROGRESS; NATIVE_RUNTIME_NOT_RUN",
+    "status": "IMPLEMENTED; SOURCE_JVM_BUILD_LINT_AND_ORIGINAL_SIGNATURE_PASS; NATIVE_RUNTIME_NOT_RUN",
     "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
-    "artifact": "LOCAL_APK_BUILD_IN_PROGRESS",
-    "installation": "NOT_PERFORMED",
-    "original_signing": "NOT_PERFORMED",
-    "distribution": "NOT_PERFORMED"
+    "artifact": "outputs/Haus-Garten-1.58.2.apk; LOCAL_ORIGINAL_SIGNED_APK",
+    "installation": "NOT_PERFORMED; installed app last observed at 1.58.0/123",
+    "original_signing": "PASS; original certificate matches prior distribution; release DEX source identity verified",
+    "distribution": "LOCAL_ARTIFACT_PREPARED; NOT_UPLOADED_TO_DRIVE",
+    "source_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
+    "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
+    "byte_size": 88277809,
+    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8"
   }
 }
