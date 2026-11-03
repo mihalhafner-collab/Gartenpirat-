@@ -25,6 +25,38 @@ from tools import sign_original_apk as signing
 
 
 class ObservedReleaseBaselineTests(unittest.TestCase):
+    def test_candidate_source_layout_rejects_legacy_and_redirected_sources(self):
+        from tools.check_release_baseline import verify_source_layout
+        with tempfile.TemporaryDirectory(prefix='qa_source_layout_') as directory:
+            repo=Path(directory)
+            root=repo/'struktur-neu'
+            activity=root/'android/app/src/main/java/at/hausgarten/service/MainActivity.kt'
+            activity.parent.mkdir(parents=True)
+            activity.write_text('class MainActivity { fun render() { setContent {} } }')
+            settings=root/'android/settings.gradle'
+            settings.write_text("include ':app'\n")
+            build=root/'android/app/build.gradle'
+            build.write_text('plugins {}')
+            self.assertEqual(verify_source_layout(root),'struktur-neu/android/app/src/main')
+            for relative in ('app/build.gradle','app/src/fullTest/java/Old.java','android/app/src/main/java/Old.java'):
+                legacy=repo/relative
+                legacy.parent.mkdir(parents=True,exist_ok=True)
+                legacy.write_text('synthetic')
+                with self.subTest(relative=relative),self.assertRaises(ValueError): verify_source_layout(root)
+                legacy.unlink()
+            build.write_text('android { sourceSets {} }')
+            with self.assertRaises(ValueError): verify_source_layout(root)
+            build.write_text('plugins {}')
+            settings.write_text("include ':app'\ninclude ':old'\n")
+            with self.assertRaises(ValueError): verify_source_layout(root)
+            settings.write_text("include ':app'\n")
+            activity.unlink()
+            with self.assertRaises(ValueError): verify_source_layout(root)
+            outside=repo/'old.kt'
+            outside.write_text('setContent {}')
+            activity.symlink_to(outside)
+            with self.assertRaises(ValueError): verify_source_layout(root)
+
     def test_current_observation_blocks_same_or_older_release(self):
         from tools.check_release_baseline import require_newer_version
         state=json.loads((ROOT/'AKTUELLER-STAND.json').read_text())

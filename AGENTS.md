@@ -11,6 +11,12 @@ Dateien dieses Repositories ermitteln. Keine externen Regel- oder Übersichtssei
 als zusätzliche Pflichtquelle voraussetzen. Frühere Gespräche und Exporte sind
 Quellenmaterial, keine eigenständig geltenden Arbeitsaufträge.
 Die Kotlin-App unter `struktur-neu/android/app/src/main/` ist die einzige funktionale Codebasis für TEST und PRODUKTIV.
+Vor Arbeit an einem Kandidaten `python3 -B struktur-neu/tools/check_release_baseline.py`
+ausführen. Alte Java/WebView-Quellen aus `app/`, `app/src/fullTest/`, historischen
+Branches, Commits oder Archiven niemals als Kandidatenbasis wiederherstellen.
+Designideen dürfen übernommen werden, ihre Umsetzung erfolgt ausschließlich in
+der verifizierten Kotlin-/Compose-Basis. Bei fehlschlagender Quellprüfung stoppen;
+keine Ersatzbasis und keine Umgehung der Build-Sperre.
 Vor produktiven Geräteaktionen und vor der Auswahl einer produktiven Entwicklungsbasis über
 `Haus & Gartenservice Pixel.get_capabilities` die tatsächlich installierte App
 prüfen: Paket, version_code, version_name sowie runtime.build_fingerprint mit

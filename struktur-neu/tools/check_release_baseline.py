@@ -2,6 +2,35 @@
 from pathlib import Path
 import hashlib,json,re,subprocess
 ROOT=Path(__file__).resolve().parents[1]
+def verify_source_layout(root=ROOT):
+    root=Path(root).resolve()
+    repository=root.parent
+    if root.name != 'struktur-neu':
+        raise ValueError('Only struktur-neu is an approved candidate source')
+    for legacy in (repository/'app', repository/'android'):
+        candidates=[legacy/name for name in ('build.gradle','build.gradle.kts','settings.gradle','settings.gradle.kts')]
+        candidates.extend(legacy.glob('**/src/**/AndroidManifest.xml'))
+        candidates.extend(legacy.glob('**/src/**/*.java'))
+        candidates.extend(legacy.glob('**/src/**/*.kt'))
+        if any(p.is_file() for p in candidates):
+            raise ValueError('Retired app/build source detected: '+str(legacy))
+    main=root/'android/app/src/main'
+    path=main/'java/at/hausgarten/service/MainActivity.kt'
+    if not path.is_file() or not path.resolve().is_relative_to(main.resolve()):
+        raise ValueError('Canonical Kotlin activity missing or redirected')
+    if 'setContent' not in path.read_text():
+        raise ValueError('Canonical Compose entry point missing')
+    for path in (root/'android/app/src').rglob('*'):
+        if path.is_symlink():
+            raise ValueError('Redirected candidate source is not allowed: '+str(path))
+    settings=(root/'android/settings.gradle').read_text()
+    if re.findall(r"include\s+['\"](:[^'\"]+)['\"]",settings) != [':app'] or 'projectDir' in settings or 'includeBuild' in settings:
+        raise ValueError('Only the canonical :app module is allowed')
+    build=(root/'android/app/build.gradle').read_text()
+    if 'sourceSets' in build or 'srcDirs' in build or 'srcDir ' in build:
+        raise ValueError('Alternative functional source directories are not allowed')
+    return 'struktur-neu/android/app/src/main'
+
 def require_newer_version(code,state):
     observations=state.get('observed_installation_history',[])
     if not isinstance(observations,list) or not observations:raise ValueError('Observed installation evidence is required')
@@ -31,6 +60,7 @@ def verify_source_version(code, source_hash, state):
     return require_newer_version(code,state)
 
 if __name__=='__main__':
+    verify_source_layout()
     s=(ROOT/'android/app/build.gradle').read_text();code=int(re.search(r'versionCode (\d+)',s)[1]);name=re.search(r"versionName '([^']+)'",s)[1]
     sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     files=[p for p in (ROOT/'android/app/src/main').rglob('*') if p.is_file()]+[ROOT/'android/app/build.gradle']
