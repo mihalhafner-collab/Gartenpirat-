@@ -876,6 +876,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val dimensions = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
         android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, dimensions)
         yes(bytes.isNotEmpty() && dimensions.outWidth > 0 && dimensions.outHeight > 0, "CAMERA_ORIGINAL_DECODES")
+        // Saving removes the preview; reveal the confirmation before preserving its scroll position.
+        reveal("Foto gespeichert. Ein weiteres Foto kann derselben Arbeit zugeordnet werden.")
         recreate(); shown("Foto gespeichert. Ein weiteres Foto kann derselben Arbeit zugeordnet werden.")
         val reopened = PixelLocalStore(context)
         try {
