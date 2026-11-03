@@ -458,6 +458,7 @@ private fun NativeSchemaField(controller: NativeAppController, name: String, spe
 @Composable
 internal fun NativeActionForm(controller: NativeAppController, tool: String, title: String, initial: JSONObject = JSONObject(), fixedInputs: Boolean = false, submitLabel: String = "Speichern", onCancel: () -> Unit = { controller.back() }, detailsContent: (@Composable () -> Unit)? = null, onDone: (JSONObject) -> Unit = { controller.finishAction() }) {
     val scope = rememberCoroutineScope()
+    val worklogArchive = tool == "archive_work_records"
     val draftKey = controller.actionDraftKey(tool, initial)
     var spec by remember(tool, draftKey) { mutableStateOf<JSONObject?>(null) }
     var text by rememberSaveable(tool, draftKey, initial.toString()) { mutableStateOf(initial.toString()) }
@@ -500,6 +501,11 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
             val inputSchema = spec?.getJSONObject("inputSchema") ?: throw IllegalArgumentException("Aktion ist in dieser Appversion nicht verfügbar.")
             if (pending == null && !restored && !reviewNeeded) {
                 val entered = JSONObject(text)
+                if (worklogArchive && entered.optJSONObject("_preview") == null) {
+                    val preview = controller.actionObservation(tool, entered)
+                    entered.put("_preview", preview).put("expected_preview_hash", preview.getString("preview_hash"))
+                    text = entered.toString()
+                }
                 val props = inputSchema.getJSONObject("properties")
                 if (props.keys().asSequence().any { it.startsWith("expected_") && entered.optString(it).isEmpty() && it != "expected_order_hash" }) {
                     val observed = controller.actionObservation(tool, entered)
@@ -588,11 +594,17 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
     val currentProperties = currentSchema?.optJSONObject("properties") ?: JSONObject()
     val currentArgs = JSONObject(text)
     val readOnly = spec?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) != false
-    val submitReady = loaded && !busy && !orderLoading && orderError.isEmpty() && !restored && !reviewNeeded && pending == null &&
-        currentSchema != null && nativeProofsReady(currentSchema, currentArgs) && nativeRequiredFieldsReady(currentSchema, currentArgs)
+    // The explicitly labelled archive button is the confirmation; no second switch is needed.
+    val submitArgs = JSONObject(text).apply { if (worklogArchive) put("confirmed", true) }
+    val archivePreview = currentArgs.optJSONObject("_preview")
+    val archiveReady = !worklogArchive || archivePreview?.let {
+        it.optBoolean("allowed") && it.optString("preview_hash").isNotEmpty() && it.optString("preview_hash") == currentArgs.optString("expected_preview_hash")
+    } == true
+    val submitReady = loaded && !busy && !orderLoading && orderError.isEmpty() && !restored && !reviewNeeded && pending == null && archiveReady &&
+        currentSchema != null && nativeProofsReady(currentSchema, submitArgs) && nativeRequiredFieldsReady(currentSchema, submitArgs)
     val submit: () -> Unit = {
         currentSchema?.let { schema ->
-            val allowed = nativeFilterInput(schema, JSONObject(text))
+            val allowed = nativeFilterInput(schema, submitArgs)
             allowed.optJSONObject("updates")?.let { allowed.put("updates", nativeChangedUpdates(it, JSONObject(updateBaseText))) }
             scope.launch { perform(allowed) }
         }
@@ -609,7 +621,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                 error.isNotBlank() -> NativeStatus(if (failedConfirmed) "Nicht gespeichert" else "Prüfung erforderlich", if (failedConfirmed) NativeStatusTone.Failed else NativeStatusTone.Attention)
                 busy -> NativeStatus("Wird geprüft …", NativeStatusTone.Running)
                 readOnly && response != null -> NativeStatus("Prüfung abgeschlossen", NativeStatusTone.Confirmed)
-                !readOnly -> NativeStatus("Noch nicht gespeichert", NativeStatusTone.Neutral)
+                !readOnly && !worklogArchive -> NativeStatus("Noch nicht gespeichert", NativeStatusTone.Neutral)
             }
             if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
             if (busy || orderLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -622,10 +634,12 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
             val properties = currentProperties
             val required = schema.optJSONArray("required") ?: JSONArray()
             val args = currentArgs
-            (initial.optJSONObject("_preview") ?: args.optJSONObject("_preview"))?.let { NativeBusinessValues(it) }
+            (args.optJSONObject("_preview") ?: initial.optJSONObject("_preview"))?.let {
+                if (worklogArchive) NativeWorklogArchivePreview(it) else NativeBusinessValues(it)
+            }
             if (restored || pending != null) {
                 Text(if (restored) "Dieser Entwurf stammt aus einer Wiederherstellung. Zuerst das ursprüngliche Ergebnis prüfen." else "Die Antwort auf diesen Speichervorgang ist noch offen. Eingaben und ursprünglicher Vorgang bleiben unverändert erhalten.")
-                NativeBusinessValues(pending ?: args)
+                if (!worklogArchive) NativeBusinessValues(pending ?: args)
             }
             if (pending != null) {
                 when (pendingState) {
@@ -648,7 +662,8 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                 } }) { Text("Aktuellen Stand vergleichen") }
                 comparison?.let { current ->
                     Text("Aktuell gespeicherter Stand", style = MaterialTheme.typography.titleMedium)
-                    NativeBusinessValues(current.optJSONObject("data") ?: current)
+                    if (worklogArchive) NativeWorklogArchivePreview(current.optJSONObject("data") ?: current)
+                    else NativeBusinessValues(current.optJSONObject("data") ?: current)
                     current.optJSONObject("selected_order")?.let { Text("Gewählter Auftrag", style = MaterialTheme.typography.titleMedium); NativeBusinessValues(it) }
                     Row(Modifier.fillMaxWidth()) {
                         Checkbox(comparisonAccepted, onCheckedChange = { comparisonAccepted = it })
@@ -660,6 +675,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                             val entered = JSONObject(text)
                             val rebased = nativeRebaseUpdates(entered, JSONObject(updateBaseText), current)
                             val reviewed = nativeResetConfirmations(schema, nativeEnrichProofs(schema, nativeWithoutExpectedProofs(schema, rebased.first), current))
+                            if (worklogArchive) reviewed.put("_preview", current.optJSONObject("data") ?: current)
                             if (!nativeProofsReady(schema, reviewed)) throw IllegalArgumentException("Der aktuelle Stand konnte noch nicht vollständig gelesen werden. Bitte den zugehörigen Eintrag erneut öffnen.")
                             if (properties.has("request_id")) reviewed.put("request_id", UUID.randomUUID().toString())
                             val adopted = JSONObject().put("values", reviewed).put("update_base", rebased.second).put("original_tool", tool).put("review_required", false)
@@ -678,7 +694,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                     else -> emptySet()
                 }
                 val editable = properties.keys().asSequence().filter { !technical(it) || referenceCollection(it) != null }.toList()
-                if (!fixedInputs) {
+                if (!fixedInputs && !worklogArchive) {
                     val mainFields = if (focusedKeys.isEmpty()) editable else editable.filter { it in focusedKeys }
                     val extraFields = if (focusedKeys.isEmpty()) emptyList() else editable.filterNot { it in focusedKeys }
                     val renderField: @Composable (String) -> Unit = { key ->
@@ -724,10 +740,31 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) { error = nativeActionError(failure, "Das Ergebnis konnte nicht gelesen werden. Bitte später erneut prüfen.") } finally { busy = false }
         } }, secondaryLabel = "Später prüfen", onSecondary = onCancel, enabled = !busy && !orderLoading, secondaryEnabled = !busy)
-        else if (loaded && !restored && !reviewNeeded) NativeActionBar(if (readOnly) "Prüfen" else submitLabel, submit,
-            if (tool in setOf("complete_work_session", "finish_work")) "Später abschließen" else "Zurück", onCancel, enabled = submitReady, secondaryEnabled = !busy)
+        else if (loaded && !restored && !reviewNeeded) NativeActionBar(if (worklogArchive) "In den Papierkorb" else if (readOnly) "Prüfen" else submitLabel, submit,
+            if (worklogArchive) "Abbrechen" else if (tool in setOf("complete_work_session", "finish_work")) "Später abschließen" else "Zurück", onCancel, enabled = submitReady, secondaryEnabled = !busy)
         else NativeActionBar("Zurück", onCancel, enabled = !busy)
     }
+}
+
+/** Only the selected work and its consequences belong in the archive confirmation. */
+@Composable
+private fun NativeWorklogArchivePreview(preview: JSONObject) {
+    val entries = preview.optJSONArray("entries") ?: JSONArray()
+    Text("Du kannst diese Arbeiten im Papierkorb wiederherstellen.")
+    var relatedPhotos = 0
+    for (index in 0 until entries.length()) {
+        val entry = entries.getJSONObject(index)
+        relatedPhotos += entry.optInt("related_photos")
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            val day = runCatching { LocalDate.parse(entry.optString("work_date")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) }.getOrDefault(entry.optString("work_date"))
+            Text(entry.optString("activity").ifBlank { "Arbeit ohne Tätigkeitsangabe" }, style = MaterialTheme.typography.titleSmall)
+            if (day.isNotBlank()) Text(day, style = MaterialTheme.typography.bodyMedium)
+            if (!entry.optBoolean("allowed")) Text(entry.optString("message").ifBlank { "Diese Arbeit kann nicht entfernt werden." }, color = MaterialTheme.colorScheme.error)
+        }
+        if (index < entries.length() - 1) HorizontalDivider()
+    }
+    if (relatedPhotos > 0) Text("Fotos bleiben erhalten. Ihre Zuordnung zu diesen Arbeiten wird gelöst.")
+    if (!preview.optBoolean("allowed")) Text("Die Auswahl enthält geschützte Arbeiten. Bitte die Auswahl ändern; es wird nichts entfernt.", color = MaterialTheme.colorScheme.error)
 }
 
 @Composable

@@ -165,6 +165,12 @@ Umsetzungsvorlage. Die gemeinsame Gestaltung verwendet helle Flächen, dunkle
 Schrift und einen gedeckten blauen Akzent. Fachliche Listen und gezielte Details
 ersetzen Rohdatenwände und wiederholte Kartenstapel.
 
+Die Sammellöschung von Arbeiten zeigt nur Tätigkeit und Datum der Auswahl sowie
+einmal den Hinweis auf die Wiederherstellung im Papierkorb. „In den Papierkorb“
+bestätigt die Auswahl ohne zusätzlichen Schalter. Interne Prüffelder und
+Vergleichshashes bleiben unsichtbar; geschützte oder veränderte Arbeiten werden
+weiterhin durch die bestehenden Prüfungen abgefangen.
+
 Die Hauptaktion steht rechts; eine alleinige Hauptaktion darf die ganze Leiste
 belegen. Sekundäraktionen stehen links. Große Schrift darf Aktionen untereinander
 anordnen, ohne Beschriftungen zu verkleinern oder Inhalte zu verdecken. Status

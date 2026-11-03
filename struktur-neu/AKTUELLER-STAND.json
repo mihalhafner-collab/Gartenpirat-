@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-03T11:09:56Z",
-    "version_name": "1.57.3",
-    "version_code": 122,
-    "reported_base_git_sha": "a86cb5e28065b79741536677c10293fa80cb01d5",
-    "source_sha256": "2abd34e71d5c4a206c138f5e075f13684abf0dc97c548ee82701907b8cd3645b",
+    "observed_at_utc": "2026-11-03T17:46:59.588159+00:00",
+    "version_name": "1.58.0",
+    "version_code": 123,
+    "reported_base_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
+    "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; current main aabb4d2323b426866a3940dd10234fb1458508e0 has exact installed production source SHA256; GitHub compare reports main identical"
+    "repository_source_match": "PASS; main 0b82601 production source matches live installed 1.58.0/123"
   },
   "observed_installation_history": [
     {
@@ -41,11 +41,21 @@
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
       "repository_source_match": "PASS; current main aabb4d2323b426866a3940dd10234fb1458508e0 has exact installed production source SHA256; GitHub compare reports main identical"
+    },
+    {
+      "observed_at_utc": "2026-11-03T17:46:59.588159+00:00",
+      "version_name": "1.58.0",
+      "version_code": 123,
+      "reported_base_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
+      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; main 0b82601 production source matches live installed 1.58.0/123"
     }
   ],
   "current_task": {
-    "name": "Vollständige Umsetzung NEUES Bedienkonzept Fassung 2",
-    "status": "IMPLEMENTED_SOURCE_AND_BUILD_VERIFIED; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN",
+    "name": "Sammellöschung von Arbeiten vereinfachen",
+    "status": "IMPLEMENTED; SOURCE_CHECKS_AND_ANDROID_COMPILE_PASS; NATIVE_RUNTIME_NOT_RUN",
     "concept": {
       "title": "Haus und Garten NEUES Bedienkonzept – Fassung 2",
       "pages": 38,
@@ -54,128 +64,28 @@
       "sha256": "2aa51313631533d6f8674105e0893b6b2dced345bbb27569df33b39560e0e537",
       "supersedes": "Älteres 29-seitiges Bedienkonzept; nicht als Umsetzungsbasis verwenden"
     },
+    "verified_installed_base": {
+      "version_name": "1.58.0",
+      "version_code": 123,
+      "git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
+      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+      "verification": "LIVE_PIXEL_MCP_RUNTIME; matches production sources on starting main 0b82601"
+    },
     "scope": [
-      "Einheitliche blaue Gestaltung, fachliche Listen und feste Hauptaktionsposition",
-      "Heute, Kurzstart, Pause/Fortsetzen, Zeit stoppen, Abschluss und Nachtragen",
-      "Kontexterhalt, native Datum-/Zeitauswahl, Entwürfe und Textbausteine",
-      "Kunden, Planung, Angebote, offene Stunden, Geräte, Material, Fotos und Pflege",
-      "Optionale Verbindungen mit ehrlichen Prüfgrenzen, keine MCP-Katalogreparatur",
-      "Lokale ZIP-Sicherung, Vorschau/Rückfallkopie und Entfernung alter Tink-/Schlüsselpfade",
-      "KISS/YAGNI; gemeinsame Fachschreiber und SQLite-Schema/ZIP-Format erhalten"
-    ],
-    "verified": [
-      "Live-App 1.57.3/122 und Ausgangs-main aabb4d2323b426866a3940dd10234fb1458508e0 hatten denselben Produktionsquellfingerabdruck; ausschließlich daraus weiterentwickelt.",
-      "Verbindliche neue Drive-HTML vollständig gelesen und mit SHA256 gebunden; alle 38 Kapitel gegen die native Umsetzung geprüft. Das alte 29-seitige Konzept wurde nicht als Vorlage verwendet.",
-      "Einheitliche Gestaltung und Aktionsleisten; Direktstart, Pause/Fortsetzen, Stopp ohne Buchung, ausdrücklicher Abschluss, erhaltene Eingaben und lesende Ergebnisklärung umgesetzt.",
-      "Kunden, Planung, Angebote, offene Stunden, Geräte, Material, Fotos, Pflege sowie Daten-/Entwurfsansichten folgen den gemeinsamen Bedienmustern.",
-      "Optionale Verbindungen trennen Einrichtung, Freigabe, Transportkontakt und übermittelte Antwort. Kein Umbau des MCP-Werkzeugkatalogs; weiterhin 170 semantische UI-Aktionen.",
-      "Tink-Abhängigkeit, alter Entschlüsselungsleser und ausschließlich zugehörige Schlüsselpfade entfernt. Lokale ZIP-Integritätsprüfung, Schema 7, Vorschau, Rückfallkopie und geschützter Austausch erhalten; keine Benutzerdateien gelöscht.",
-      "Unabhängige Subagenten haben Konzeptabdeckung, Navigation, Ergebnisklärung, Verbindungszustände und Testquellen wiederholt gegengeprüft; konkrete Funde wurden korrigiert und erneut kontrolliert.",
-      "GitHub Actions hat denselben sauberen Quellcommit unabhängig gebaut und geprüft; Job, Schritte und vollständige Abschlussprotokolle über GitHub-Werkzeuge zurückgelesen."
-    ],
-    "remaining": [
-      "Native Laufzeitabnahme bleibt offen: große Schrift, Tastatur/System-Zurück, Kamera/Dateiauswahl, Prozessneustart und reale externe Verbindungen sind durch Quellprüfung und Kompilierung nicht belegt."
-    ],
-    "runtime_limitations": [
-      "Frühere ausdrückliche Emulator-Abwahl beachtet; keine Emulator- oder Pixel-Funktionstests ausgeführt.",
-      "Keine Installation, Migration, Wiederherstellung oder produktiven Geschäftsaktionen aus diesem Entwicklungsauftrag.",
-      "1.58.0/123 originalsigniert und auf ausdrücklichen Auftrag im Drive-Paketinstallationsordner bereitgestellt; byteidentischer Download geprüft. Keine Installation durch diesen Auftrag; zuletzt beobachtete Geräteidentität unverändert.",
-      "Arbeitsumgebung nach Unterbrechung wieder erreichbar; frühere Ausfallursache mangels Diagnoseprotokollen nicht nachweisbar."
-    ],
-    "updated_at_utc": "2026-11-03T17:34:45.134262+00:00",
-    "chapter_coverage": [
-      {
-        "chapters": "1–6",
-        "scope": "Umfang, Gestaltung, Begriffe, Status und konsistente Daten",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "7–12",
-        "scope": "Heute, Direktstart, Timer, Abschluss, Bausteine und Nachtragen",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "13–16",
-        "scope": "Navigation, Kunden und Planung",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "17–24",
-        "scope": "Angebote, offene Stunden, Geräte, Material, Fotos und Pflege",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "25–26, 29",
-        "scope": "Einstellungen und optionale Pixel-Verbindung",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "27–28",
-        "scope": "Dokumentierter MCP-Prüfanhang; keine zusätzliche Android-Funktion",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "30–34",
-        "scope": "ZIP, Hinweise, Wiederherstellung, Speicher und Entwürfe",
-        "source_review": "PASS"
-      },
-      {
-        "chapters": "35–38",
-        "scope": "Ergebnisklärung, Bedienbarkeit und gemeinsame Fachpfade",
-        "source_review": "PASS; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN"
-      }
+      "Kompakte Bestätigung mit Tätigkeit und Datum statt Rohdatenkarten und wiederholten Prüffeldern.",
+      "Einmaliger Wiederherstellungshinweis; Fotohinweis nur bei betroffenen Zuordnungen.",
+      "Explizite Hauptaktion In den Papierkorb statt Speichern; Abbrechen links; kein zusätzlicher Bestätigungsschalter.",
+      "Aktuelle Vorschau und Hash müssen zusammenpassen; bestehende Schutz-, Konflikt-, Ergebnisprüfungs- und Transaktionspfade erhalten."
     ],
     "validation": {
-      "environment": "Selected Cloud Linux; JDK 17, Gradle 9.3.1, Android SDK/Build Tools 37; synthetic fixtures only",
-      "source": {
-        "command": "python3 -B tools/check_current.py",
-        "status": "PASS",
-        "python_tests": 61,
-        "semantic_actions": 170,
-        "operational_seed_rows": 0
-      },
-      "jvm": {
-        "command": "python3 -B tools/run-followup-java.py --tables",
-        "status": "PASS",
-        "suites": 8,
-        "assertions": 1387,
-        "timer_scenarios_included": 2000,
-        "scope": "Synthetic JVM; not Android transaction/provider or UI acceptance"
-      },
-      "android": {
-        "tasks": [
-          ":app:assembleRelease",
-          ":app:assembleReleaseAndroidTest",
-          ":app:lintRelease"
-        ],
-        "status": "PASS",
-        "lint_errors": 0,
-        "lint_warnings": 86,
-        "lint_hints": 30,
-        "artifact_privacy": "PASS; operational_seed_rows=0"
-      },
-      "independent_review": "PASS; repeated source review against all 38 chapters, separate connection and native test source reviews; no unresolved concrete findings",
-      "native_ui_execution": "NOT_RUN; Android test APK compiled only",
+      "source": "PASS; check_current.py; 61 Python tests and source/UI/privacy checks",
+      "android": "PASS; compileReleaseKotlin and compileReleaseJavaWithJavac; BUILD SUCCESSFUL",
+      "native_ui_execution": "NOT_RUN",
       "pixel_acceptance": "NOT_RUN",
-      "original_signing": "PASS; original certificate verified; temporary signing material removed",
-      "installation_migration_restore_distribution": "DISTRIBUTED_BY_EXPLICIT_OWNER_REQUEST; INSTALLATION_MIGRATION_RESTORE_NOT_PERFORMED",
-      "github_ci": {
-        "status": "PASS_WITHOUT_EMULATOR_BY_OWNER_REQUEST",
-        "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41646595337",
-        "run_id": 41646595337,
-        "job_id": 125953442928,
-        "commit_sha": "0c8df71eb6372e0e314e2c84461d7fc0c925af9b",
-        "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
-        "source_dirty": false,
-        "source_and_python_checks": "PASS; 61 Python tests",
-        "release_android_test_apk_and_lint": "PASS; BUILD SUCCESSFUL in 12m 25s",
-        "jvm_regressions": "PASS; 8 suites, 1387 assertions including 2000 timer scenarios",
-        "artifact_privacy": "PASS; operational_seed_rows=0",
-        "ci_unsigned_apk_sha256": "f6de5e00119344ff0a9d4438d517183524e5b718d6fa01cf4d369e240b78b622",
-        "emulator_native_ui": "SKIPPED; NOT_RUN",
-        "evidence": "GitHub plugin workflow job, step summaries and completed job logs independently reread"
-      }
-    }
+      "apk_build_signing_distribution": "NOT_PERFORMED for 1.58.1",
+      "installation_migration_restore": "NOT_PERFORMED"
+    },
+    "updated_at_utc": "2026-11-03T17:48:51.691257+00:00"
   },
   "open_checks": [
     "Native UI-/Geräteabnahme NOT_RUN; Quellreview, JVM-Prüfungen, APK-Bau und Lint ersetzen diese nicht.",
@@ -216,39 +126,20 @@
       "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b"
     },
     "temporary_signing_material_removed": true,
-    "installation": "NOT_PERFORMED; last_observed_installed_build remains unchanged",
+    "installation": "LIVE_PIXEL_CONFIRMED; 1.58.0/123; no installation by this task",
     "native_runtime_acceptance": "NOT_RUN",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.58.0",
-    "version_code": 123,
+    "version_name": "1.58.1",
+    "version_code": 124,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED; LOCAL_AND_GITHUB_CHECKS_PASS; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN",
-    "installation": "NOT_PERFORMED; NOT_AUTHORIZED_BY_GENERAL_DEVELOPMENT_TASK",
-    "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
-    "concept_binding": "NEUES Bedienkonzept Fassung 2; 38 pages; HTML SHA256 2aa51313631533d6f8674105e0893b6b2dced345bbb27569df33b39560e0e537",
-    "artifact": "ORIGINAL_SIGNED_RELEASE_APK; DRIVE_DISTRIBUTED_BY_EXPLICIT_OWNER_REQUEST",
-    "source_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
-    "local_unsigned_apk_identity": {
-      "apk_sha256": "23b7c26a4b41d4577acad6e340c29b489877b32280efebebd4ea73f2a46b65f7",
-      "byte_size": 88266789,
-      "source_dirty": false,
-      "retired_crypto_classes": "ABSENT",
-      "original_signing": "NOT_PERFORMED"
-    },
-    "artifact_identity_note": "Historical unsigned local and CI artifacts remain recorded separately. Signed release was rebuilt from clean documentation-only successor 6c2a179 with identical production source_sha256; its exact source commit and byte checksum are recorded in signed_apk_identity.",
-    "signed_apk_identity": {
-      "apk_sha256": "7163747cd8d018fc34f0c06088e586dc291c1f3e38f6d7e215824dcec60e4f9e",
-      "byte_size": 88277809,
-      "source_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
-      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
-      "source_dirty": false,
-      "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-      "signature_valid": true,
-      "original_certificate_match": true,
-      "download_url": "https://drive.google.com/file/d/11C8o6Dw8J4W3n0imCnPTO_K24aXtf0Rp/view?usp=drivesdk"
-    }
+    "status": "IMPLEMENTED; SOURCE_CHECKS_AND_ANDROID_COMPILE_PASS; NATIVE_RUNTIME_NOT_RUN",
+    "source_sha256": "5724e89758ca1d3eda71bfdef1a1750a590f729f50421da377ec2919a32564e1",
+    "artifact": "NOT_BUILT; compile only",
+    "installation": "NOT_PERFORMED",
+    "original_signing": "NOT_PERFORMED",
+    "distribution": "NOT_PERFORMED"
   }
 }
