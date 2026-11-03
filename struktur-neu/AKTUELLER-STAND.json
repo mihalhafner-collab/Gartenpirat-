@@ -128,9 +128,10 @@
       "installation": "NOT_PERFORMED; owner-installed 1.58.3/126 verified live",
       "artifact": "PASS; package/version/original certificate/upgrade identity/assets/classes/empty seed independently read back; active deletion menus contain no archive/restore choices",
       "source_identity": "PASS; signed APK DEX {\"APPLICATION_ID\": \"at.hausgarten.service\", \"BUILD_TYPE\": \"release\", \"GIT_SHA\": \"d90d4ef45b955c25f9ca9264bb13958ce2277c52\", \"SOURCE_DIRTY\": false, \"SOURCE_SHA256\": \"ddd8adea00a64d3e8c6f959b3722e2afcfff50f314d95203e38a6120feb40a32\", \"VERSION_CODE\": 127, \"VERSION_NAME\": \"1.58.4\"}",
-      "original_signing": "PASS; checked source pushed and exact GitHub main readback before signing; temporary private signing files removed"
+      "original_signing": "PASS; checked source pushed and exact GitHub main readback before signing; temporary private signing files removed",
+      "distribution": "PASS; explicit owner request for 1.58.4; uploaded to Gartenpirat – Paketinstallation; complete authenticated readback byte-identical"
     },
-    "updated_at_utc": "2026-11-03T20:25:00.442607+00:00",
+    "updated_at_utc": "2026-11-03T20:29:52.692472+00:00",
     "operational_test_cleanup": {
       "status": "COMPLETE; live archive empty and both linked work IDs not found on readback",
       "removed_in_this_followup": {
@@ -159,22 +160,22 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "version_name": "1.58.3",
-    "version_code": 126,
+    "version_name": "1.58.4",
+    "version_code": 127,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "1a312826f0e041b303a1ea67ea633c3b2e36dd224c8bfe3af06ea06fa3c52315",
-    "source_git_sha": "eabd87dd601a0c101e8da3934e7fa1cc39286efb",
-    "apk_sha256": "10d5baea953a0025911a39db4dc958df2f5f4d1daa7930e08144495d6521e37d",
+    "source_sha256": "ddd8adea00a64d3e8c6f959b3722e2afcfff50f314d95203e38a6120feb40a32",
+    "source_git_sha": "d90d4ef45b955c25f9ca9264bb13958ce2277c52",
+    "apk_sha256": "03781ee6d11d3c2e3a9a19c5a60c2087377422cc20036df1595d3dc2e7953945",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/1GcDLdSkY5Vo_MuW9wYbEeTDEoBbjobEe/view?usp=drivesdk",
+    "download_url": "https://drive.google.com/file/d/17CQzhvCpIak9VtwMCSilY_-sOqjjIWkf/view?usp=drivesdk",
     "drive": {
-      "file_id": "1GcDLdSkY5Vo_MuW9wYbEeTDEoBbjobEe",
+      "file_id": "17CQzhvCpIak9VtwMCSilY_-sOqjjIWkf",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
-      "status": "PASS; full authenticated Drive download compared byte-for-byte to verified original-signed local APK",
-      "apk_sha256": "10d5baea953a0025911a39db4dc958df2f5f4d1daa7930e08144495d6521e37d",
+      "status": "PASS; complete authenticated Drive download compared byte-for-byte to verified original-signed local APK",
+      "apk_sha256": "03781ee6d11d3c2e3a9a19c5a60c2087377422cc20036df1595d3dc2e7953945",
       "byte_size": 88245041,
       "signature_valid": true,
       "original_certificate_match": true
@@ -183,7 +184,7 @@
     "signature_valid": true,
     "original_certificate_match": true,
     "source_binding": "PASS; clean release BuildConfig identity independently read from signed APK DEX",
-    "installation": "OWNER_INSTALLED; live Pixel 1.58.3/126 fingerprint verified",
+    "installation": "NOT_PERFORMED; explicit APK distribution only; installed Pixel last observed at 1.58.3/126",
     "native_runtime_acceptance": "NOT_RUN",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
@@ -196,13 +197,26 @@
     "source_sha256": "ddd8adea00a64d3e8c6f959b3722e2afcfff50f314d95203e38a6120feb40a32",
     "artifact": "outputs/Haus-Garten-1.58.4.apk; LOCAL_ORIGINAL_SIGNED_APK",
     "installation": "NOT_INSTALLED; live Pixel 1.58.3/126",
-    "distribution": "NOT_REQUESTED_FOR_THIS_CANDIDATE; no Drive upload",
+    "distribution": "ORIGINAL_SIGNED_APK_UPLOADED_TO_DRIVE; COMPLETE_BYTE_READBACK_PASS",
     "source_git_sha": "d90d4ef45b955c25f9ca9264bb13958ce2277c52",
     "apk_sha256": "03781ee6d11d3c2e3a9a19c5a60c2087377422cc20036df1595d3dc2e7953945",
     "byte_size": 88245041,
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
     "original_signing": "PASS; same original signer and update-compatible package identity as distributed 1.58.3",
     "temporary_signing_material_removed": true,
-    "verification": "PASS; source/JVM/release/test APK/lint/assets/classes/empty seed/active menu contract and clean signed DEX identity; no native execution"
+    "verification": "PASS; source/JVM/release/test APK/lint/assets/classes/empty seed/active menu contract and clean signed DEX identity; no native execution",
+    "download_url": "https://drive.google.com/file/d/17CQzhvCpIak9VtwMCSilY_-sOqjjIWkf/view?usp=drivesdk",
+    "drive": {
+      "file_id": "17CQzhvCpIak9VtwMCSilY_-sOqjjIWkf",
+      "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
+      "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
+    },
+    "download_readback": {
+      "status": "PASS; complete authenticated Drive download compared byte-for-byte to verified original-signed local APK",
+      "apk_sha256": "03781ee6d11d3c2e3a9a19c5a60c2087377422cc20036df1595d3dc2e7953945",
+      "byte_size": 88245041,
+      "signature_valid": true,
+      "original_certificate_match": true
+    }
   }
 }
