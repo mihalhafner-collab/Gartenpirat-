@@ -70,7 +70,8 @@
       "Kunden, Planung, Angebote, offene Stunden, Geräte, Material, Fotos, Pflege sowie Daten-/Entwurfsansichten folgen den gemeinsamen Bedienmustern.",
       "Optionale Verbindungen trennen Einrichtung, Freigabe, Transportkontakt und übermittelte Antwort. Kein Umbau des MCP-Werkzeugkatalogs; weiterhin 170 semantische UI-Aktionen.",
       "Tink-Abhängigkeit, alter Entschlüsselungsleser und ausschließlich zugehörige Schlüsselpfade entfernt. Lokale ZIP-Integritätsprüfung, Schema 7, Vorschau, Rückfallkopie und geschützter Austausch erhalten; keine Benutzerdateien gelöscht.",
-      "Unabhängige Subagenten haben Konzeptabdeckung, Navigation, Ergebnisklärung, Verbindungszustände und Testquellen wiederholt gegengeprüft; konkrete Funde wurden korrigiert und erneut kontrolliert."
+      "Unabhängige Subagenten haben Konzeptabdeckung, Navigation, Ergebnisklärung, Verbindungszustände und Testquellen wiederholt gegengeprüft; konkrete Funde wurden korrigiert und erneut kontrolliert.",
+      "GitHub Actions hat denselben sauberen Quellcommit unabhängig gebaut und geprüft; Job, Schritte und vollständige Abschlussprotokolle über GitHub-Werkzeuge zurückgelesen."
     ],
     "remaining": [
       "Native Laufzeitabnahme bleibt offen: große Schrift, Tastatur/System-Zurück, Kamera/Dateiauswahl, Prozessneustart und reale externe Verbindungen sind durch Quellprüfung und Kompilierung nicht belegt."
@@ -81,7 +82,7 @@
       "Der Kandidat ist nicht originalsigniert oder verteilt. Die zuletzt tatsächlich beobachtete Installation bleibt 1.57.3/122.",
       "Arbeitsumgebung nach Unterbrechung wieder erreichbar; frühere Ausfallursache mangels Diagnoseprotokollen nicht nachweisbar."
     ],
-    "updated_at_utc": "2026-11-03T13:40:48Z",
+    "updated_at_utc": "2026-11-03T13:57:05Z",
     "chapter_coverage": [
       {
         "chapters": "1–6",
@@ -157,7 +158,23 @@
       "native_ui_execution": "NOT_RUN; Android test APK compiled only",
       "pixel_acceptance": "NOT_RUN",
       "original_signing": "NOT_PERFORMED",
-      "installation_migration_restore_distribution": "NOT_PERFORMED"
+      "installation_migration_restore_distribution": "NOT_PERFORMED",
+      "github_ci": {
+        "status": "PASS_WITHOUT_EMULATOR_BY_OWNER_REQUEST",
+        "url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/41646595337",
+        "run_id": 41646595337,
+        "job_id": 125953442928,
+        "commit_sha": "0c8df71eb6372e0e314e2c84461d7fc0c925af9b",
+        "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+        "source_dirty": false,
+        "source_and_python_checks": "PASS; 61 Python tests",
+        "release_android_test_apk_and_lint": "PASS; BUILD SUCCESSFUL in 12m 25s",
+        "jvm_regressions": "PASS; 8 suites, 1387 assertions including 2000 timer scenarios",
+        "artifact_privacy": "PASS; operational_seed_rows=0",
+        "ci_unsigned_apk_sha256": "f6de5e00119344ff0a9d4438d517183524e5b718d6fa01cf4d369e240b78b622",
+        "emulator_native_ui": "SKIPPED; NOT_RUN",
+        "evidence": "GitHub plugin workflow job, step summaries and completed job logs independently reread"
+      }
     }
   },
   "open_checks": [
@@ -204,10 +221,19 @@
     "version_name": "1.58.0",
     "version_code": 123,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED; SOURCE_CHECKS_JVM_APK_BUILD_LINT_PASS; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN",
+    "status": "IMPLEMENTED; LOCAL_AND_GITHUB_CHECKS_PASS; NATIVE_RUNTIME_ACCEPTANCE_NOT_RUN",
     "installation": "NOT_PERFORMED; NOT_AUTHORIZED_BY_GENERAL_DEVELOPMENT_TASK",
     "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
     "concept_binding": "NEUES Bedienkonzept Fassung 2; 38 pages; HTML SHA256 2aa51313631533d6f8674105e0893b6b2dced345bbb27569df33b39560e0e537",
-    "artifact": "LOCAL_UNSIGNED_RELEASE_AND_ANDROID_TEST_APK; NOT_DISTRIBUTED"
+    "artifact": "LOCAL_UNSIGNED_RELEASE_AND_ANDROID_TEST_APK; NOT_DISTRIBUTED",
+    "source_git_sha": "0c8df71eb6372e0e314e2c84461d7fc0c925af9b",
+    "local_unsigned_apk_identity": {
+      "apk_sha256": "23b7c26a4b41d4577acad6e340c29b489877b32280efebebd4ea73f2a46b65f7",
+      "byte_size": 88266789,
+      "source_dirty": false,
+      "retired_crypto_classes": "ABSENT",
+      "original_signing": "NOT_PERFORMED"
+    },
+    "artifact_identity_note": "Local unsigned APK identity reread from DEX and manifest; source commit is pinned independently of this documentation-only status commit. GitHub built the same production source; its separately built unsigned APK checksum is recorded under github_ci."
   }
 }
