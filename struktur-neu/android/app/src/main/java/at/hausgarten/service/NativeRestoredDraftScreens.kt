@@ -25,7 +25,7 @@ import java.time.ZoneId
 import java.io.File
 import java.util.UUID
 
-/** Review and inbox share the existing checkpoint, owner_state and native editor envelopes. */
+/** Explicit restore review uses the existing checkpoint and editor envelopes. */
 @Composable
 internal fun NativeRestoredDraftReview(controller: NativeAppController) {
     var state by remember { mutableStateOf<JSONObject?>(null) }
@@ -109,7 +109,6 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
         if (!deferMedia && mediaRequired && (!locked || reviewed)) item {
             Row { Checkbox(acceptedOmissions, { acceptedOmissions = it }, enabled = !busy); Text("Ich habe die Fotoauswahl geprüft. Nicht ausgewählte Fotoentwürfe bleiben als Quelle erhalten und werden nicht aktiviert.", Modifier.weight(1f)) }
         }
-        item { NativeInfoRow("Erhaltene Entwürfe", "Auswahl später im Fachformular weiterbearbeiten", { controller.navigate("drafts") }) }
         }
         if (current?.optBoolean("available") == true && !reviewed) NativeActionBar(
             if (locked) "Ergebnis prüfen" else "Auswahl übernehmen",
@@ -148,7 +147,7 @@ internal fun NativeRestoredDraftReview(controller: NativeAppController) {
             } },
             "Zurück", { controller.back() }, enabled = !busy && mediaReady && acceptedOmissions, secondaryEnabled = !busy
         )
-        else NativeActionBar("Entwürfe öffnen", { controller.navigate("drafts") }, "Zurück", { controller.back() }, enabled = !busy, secondaryEnabled = !busy)
+        else NativeActionBar("Fertig", { controller.back() }, "Zurück", { controller.back() }, enabled = !busy, secondaryEnabled = !busy)
     }
 }
 
@@ -274,201 +273,7 @@ internal object NativeRestoredDrafts {
 }
 
 private data class RestoredEditor(val key: String, val section: String, val id: String, val mode: String, val draft: JSONObject, val args: JSONObject = JSONObject())
-private fun inboxEnvelope(plan: RestoredEditor): JSONObject = restoredCopy(plan.draft).put("_inbox_route", JSONObject().put("section", plan.section).put("id", plan.id).put("mode", plan.mode).put("args", plan.args))
-private data class DraftInboxRow(val sqlKey: String, val draftKey: String, val label: String, val legacy: Boolean)
-private data class LoadedInbox(val entry: JSONObject, val content: Any, val plan: RestoredEditor?, val action: JSONObject?, val closed: Boolean)
-
-/** Both restored browser selections and restored native edits remain reachable after completion/restart. */
-@Composable
-internal fun NativeDraftInbox(controller: NativeAppController) {
-    var category by rememberSaveable { mutableStateOf(controller.route.args.optString("scope")) }
-    var rows by remember { mutableStateOf(emptyList<DraftInboxRow>()) }
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    var more by remember { mutableStateOf(false) }
-    var selected by rememberSaveable { mutableStateOf("") }
-    var entry by remember { mutableStateOf<JSONObject?>(null) }
-    var content by remember { mutableStateOf<Any?>(null) }
-    var plan by remember { mutableStateOf<RestoredEditor?>(null) }
-    var action by remember { mutableStateOf<JSONObject?>(null) }
-    var error by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
-    var copyTo by rememberSaveable { mutableStateOf("worklog") }
-    var copyConfirmed by remember { mutableStateOf(false) }
-    var legacyClosed by remember { mutableStateOf(false) }
-    var proof by remember { mutableStateOf<JSONObject?>(null) }
-    var reviewConfirmed by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    BackHandler(selected.isNotEmpty()) { selected = ""; content = null; proof = null }
-    LaunchedEffect(offset, category) {
-        try {
-            val page = withContext(Dispatchers.IO) {
-                // Repair reachability for a review completed by an earlier native screen, without changing its decision.
-                val review = RestoredBrowserCheckpoint(controller.context, controller.store).status(true)
-                review.optJSONObject("selection")?.let { NativeRestoredDrafts.retainSelection(controller.store, it) }
-                val found = ArrayList<DraftInboxRow>()
-                val categoryField = "CASE WHEN json_valid(value) THEN coalesce(json_extract(value,'$._draft_key'),json_extract(value,'$.kind'),'') ELSE '' END"
-                val categoryFilter = when (category) {
-                    "work" -> " AND ($categoryField LIKE 'editor:worklog:%' OR $categoryField IN ('worklog','work_entry','timer_action','timer_cancelled'))"
-                    "billing" -> " AND ($categoryField LIKE 'finance:%' OR $categoryField IN ('invoice','offer','payment','offer_decision'))"
-                    else -> ""
-                }
-                controller.store.readableDatabase.rawQuery("SELECT key, CASE WHEN json_valid(value) THEN json_extract(value,'$._draft_key') END, CASE WHEN json_valid(value) THEN json_extract(value,'$.label') END FROM owner_state WHERE (key GLOB 'native_form_draft:*' OR key GLOB 'native_restored_draft:*' OR key GLOB 'browser_media:v1:active:*') AND value<>''$categoryFilter ORDER BY key LIMIT 41 OFFSET ?", arrayOf(offset.toString())).use { cursor ->
-                    while (cursor.moveToNext()) {
-                        val sql = cursor.getString(0); val key = cursor.getString(1).orEmpty()
-                        val legacy = sql.startsWith("native_restored_draft:")
-                        found.add(DraftInboxRow(sql, key, cursor.getString(2) ?: if (legacy) "Übernommener Entwurf" else if (sql.startsWith("browser_media:")) "Erhaltener Fotoentwurf" else draftKeyLabel(key), legacy))
-                    }
-                }
-                found
-            }
-            more = page.size > 40; rows = page.take(40); error = ""
-        } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
-    }
-    LaunchedEffect(selected) {
-        content = null; entry = null; proof = null; copyConfirmed = false; reviewConfirmed = false; legacyClosed = false; plan = null; action = null
-        if (selected.isNotEmpty()) try {
-            val loaded = withContext(Dispatchers.IO) {
-                val metadata = JSONObject(controller.store.ownerValue(selected, "{}"))
-                val value = if (selected.startsWith("native_restored_draft:")) NativeRestoredDrafts.source(controller.store, metadata)
-                    else if (selected.startsWith("browser_media:")) BrowserMediaRepository(controller.context, controller.store).readRecord(metadata.getString("key")).get("record")
-                    else metadata
-                val raw = value as? JSONObject
-                val mapped = if (raw == null) null else if (selected.startsWith("native_form_draft:")) nativeEditor(raw.optString("_draft_key"), raw) else legacyEditor(metadata, raw)
-                val closed = selected.startsWith("native_restored_draft:") && mapped != null && controller.store.ownerValue("native_restored_adoption:" + PixelMcpWriteTools.hash(mapped.key), "").isNotEmpty() && controller.draft(mapped.key) == null
-                LoadedInbox(metadata, value, mapped, raw?.let(::restoredAction), closed)
-            }
-            entry = loaded.entry; content = loaded.content; plan = loaded.plan; action = loaded.action; legacyClosed = loaded.closed; error = ""
-        } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
-    }
-    val raw = content as? JSONObject
-    val editor = plan
-    val originalAction = action
-    val continueEditing: () -> Unit = {
-        if (editor != null) scope.launch {
-                    busy = true
-                    try {
-                        if (selected.startsWith("native_restored_draft:")) {
-                            val existing = controller.draft(editor.key)
-                            val markerKey = "native_restored_adoption:" + PixelMcpWriteTools.hash(editor.key)
-                            if (existing == null && withContext(Dispatchers.IO) { controller.store.ownerValue(markerKey, "").isNotEmpty() }) {
-                                legacyClosed = true
-                                throw IllegalStateException("Diese Bearbeitung wurde bereits geschlossen. Die erhaltene Quelle bleibt lesbar.")
-                            }
-                            if (existing == null) { controller.saveDraft(editor.key, inboxEnvelope(editor)); controller.flushDrafts() }
-                            withContext(Dispatchers.IO) {
-                                val marker = JSONObject().put("draft_key", editor.key).put("source_index", selected)
-                                controller.store.putOwnerValue(markerKey, marker.toString())
-                                if (PixelMcpWriteTools.hash(JSONObject(controller.store.ownerValue(markerKey, "{}"))) != PixelMcpWriteTools.hash(marker)) throw IllegalStateException("Die Entwurfszuordnung konnte nicht zurückgelesen werden.")
-                            }
-                        }
-                        controller.navigate(editor.section, editor.id, editor.mode, restoredCopy(editor.args).put("_draft_key", editor.key))
-                    } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
-                    finally { busy = false }
-        }
-    }
-    val copyNote: () -> Unit = { scope.launch {
-                    busy = true
-                    try {
-                        val notes = restoredPlainText(content)
-                        val copied = legacyEditor(JSONObject().put("kind", copyTo).put("selection_hash", PixelMcpWriteTools.hash(selected)).put("item_id", PixelMcpWriteTools.hash(copyTo + selected)), JSONObject().put("kind", copyTo).put("values", JSONObject().put("notes", notes))) ?: error("Das Zielformular ist nicht verfügbar.")
-                        if (controller.draft(copied.key) == null) { controller.saveDraft(copied.key, inboxEnvelope(copied)); controller.flushDrafts() }
-                        controller.navigate(copied.section, copied.id, copied.mode, restoredCopy(copied.args).put("_draft_key", copied.key))
-                    } catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
-                    finally { busy = false }
-        } }
-    Column(Modifier.fillMaxSize()) {
-    LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), contentPadding = PaddingValues(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Text(if (selected.isEmpty()) "Entwürfe" else "Offene Bearbeitung", style = MaterialTheme.typography.headlineSmall)
-            NativeStatus("Entwurf erhalten")
-            Text("Zurück erhält die Eingaben. Frühere Speicheraktionen werden zuerst geprüft; sie werden beim Öffnen nicht wiederholt.")
-            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
-            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-        }
-        if (selected.isEmpty()) {
-            item { NativeChoice("Bereich", category, listOf("" to "Alle Entwürfe", "work" to "Arbeit", "billing" to "Angebote")) { category = it; offset = 0 } }
-            if (rows.isEmpty()) item { Text("Keine erhaltenen Entwürfe in dieser Auswahl.") }
-            items(rows, key = { it.sqlKey }) { row ->
-                NativeInfoRow(row.label, if (row.legacy) "Übernommener Entwurf · vor Übernahme prüfen" else "Noch nicht abgeschlossen", { selected = row.sqlKey })
-            }
-            item { Row { TextButton(enabled = offset > 0, onClick = { offset = (offset - 40).coerceAtLeast(0) }) { Text("Vorherige") }; TextButton(enabled = more, onClick = { offset += 40 }) { Text("Weitere") } } }
-            item { OutlinedButton(onClick = { controller.navigate("restored_drafts") }) { Text("Formular- und Medienauswahl prüfen") } }
-        } else {
-            item { TextButton(onClick = { selected = ""; content = null; proof = null }) { Text("Zur Entwurfsübersicht") }; entry?.let { Text(restoredSourceLabel(it.optString("source")), style = MaterialTheme.typography.bodySmall) } }
-            item { content?.let { RestoredDraftSummary(it, controller); RestoredValueView(it, "Alle erhaltenen Angaben") } ?: Text("Entwurf wird gelesen …") }
-            if (selected.startsWith("browser_media:") && raw != null) item { RestoredMediaDraft(controller, raw, selected) }
-            if (originalAction != null) item {
-                Text("Eine frühere Speicheraktion ist erhalten. Ihre Argumente werden beim Öffnen des Fachformulars unverändert geschützt.")
-                Button(enabled = !busy && originalAction.optString("tool").isNotBlank() && originalAction.optJSONObject("args") != null, onClick = { scope.launch {
-                    busy = true
-                    try { proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", originalAction.getString("tool")).put("original_args", originalAction.getJSONObject("args"))); error = "" }
-                    catch (cancelled: CancellationException) { throw cancelled } catch (failure: Exception) { error = restoredError(failure) }
-                    finally { busy = false }
-                } }) { Text("Beleg der ursprünglichen Aktion lesen") }
-                proof?.let { result ->
-                    val confirmed = result.optString("state") == "confirmed"
-                    NativeStatus(if (confirmed) "Gespeicherter Vorgang bestätigt" else "Ergebnis noch offen", if (confirmed) NativeStatusTone.Confirmed else NativeStatusTone.Attention)
-                    Text(when (result.optString("state")) { "confirmed" -> "Der ursprüngliche Beleg wurde gefunden. Es wurde kein neuer Vorgang angelegt."; "content_removed" -> "Der frühere Eintrag wurde entfernt. Die alte Aktion wird nicht erneut ausgeführt."; else -> "Der ursprüngliche Vorgang ist noch nicht eindeutig bestätigt. Die Eingaben bleiben erhalten." })
-                    RestoredValueView(result, "Prüfdetails")
-                }
-            }
-            if (editor != null) item {
-                if (legacyClosed) Text("Diese übernommene Bearbeitung wurde bereits geschlossen. Ihre ursprünglichen Angaben bleiben lesbar; sie werden nicht erneut als alter Entwurf aktiviert.")
-                if (!legacyClosed) Row {
-                    Checkbox(reviewConfirmed, { reviewConfirmed = it }, enabled = !busy)
-                    Text("Ich habe die erhaltenen Angaben und ihre Zuordnung geprüft. Im Fachformular wird erst nach meiner Bestätigung gespeichert.", Modifier.weight(1f))
-                }
-
-            }
-            if ((editor == null || legacyClosed) && content != null) item {
-                Text("Diese historischen Felder bleiben vollständig in ihrer Quelle erhalten. Du kannst die lesbaren Angaben bewusst als Notiz in ein neues Fachformular kopieren; frühere Aktionen werden dabei nicht ausgeführt.")
-                NativeChoice("Ziel der Notiz", copyTo, listOf("customer" to "Kunde", "order" to "Auftrag", "worklog" to "Arbeitsaufzeichnung", "offer" to "Angebot", "property" to "Objekt", "inquiry" to "Anfrage"), { copyTo = it; copyConfirmed = false })
-                Row { Checkbox(copyConfirmed, { copyConfirmed = it }, enabled = !busy); Text("Ich möchte die angezeigten Angaben als Notiz übernehmen. Die ursprüngliche Quelle bleibt erhalten.", Modifier.weight(1f)) }
-
-            }
-        }
-    }
-        if (selected.isNotEmpty() && editor != null && !legacyClosed) NativeActionBar("Weiterbearbeiten", continueEditing,
-            "Zurück", { selected = ""; content = null; proof = null }, enabled = !busy && reviewConfirmed, secondaryEnabled = !busy)
-        else if (selected.isNotEmpty() && content != null) NativeActionBar("Notiz übernehmen", copyNote,
-            "Zurück", { selected = ""; content = null; proof = null }, enabled = !busy && copyConfirmed, secondaryEnabled = !busy)
-        else NativeActionBar("Fertig", { controller.back() }, enabled = !busy)
-    }
-}
-
-private fun draftKeyLabel(key: String) = when {
-    key.startsWith("editor:customer:") -> "Kundenbearbeitung"
-    key.startsWith("editor:order:") -> "Auftragsbearbeitung"
-    key.startsWith("editor:worklog:") -> "Arbeitsaufzeichnung"
-    key.startsWith("finance:invoices:") -> "Rechnungsentwurf"
-    key.startsWith("finance:offers:") -> "Angebotsentwurf"
-    key.startsWith("planning:") -> "Terminplanung"
-    key.startsWith("photo_") -> "Fotoentwurf"
-    key.startsWith("revier:") -> "Objekt, Anfrage oder Pflege"
-    else -> "Erhaltene Bearbeitung"
-}
-
-private fun restoredAction(raw: JSONObject): JSONObject? {
-    raw.optJSONObject("original_args")?.let { args ->
-        val key = raw.optString("_draft_key")
-        val tool = raw.optString("original_tool").ifBlank { when { key.startsWith("editor:customer:") -> "saveCustomer"; key.startsWith("editor:order:") -> "saveOrder"; key.startsWith("editor:worklog:") -> "saveWorklog"; else -> "" } }
-        return JSONObject().put("tool", tool).put("args", args)
-    }
-    val envelope = raw.optJSONObject("pending") ?: raw.optJSONObject("frozen") ?: raw.optJSONObject("request")
-        ?: raw.optJSONObject("editor")?.let(::restoredAction) ?: return null
-    if (envelope.has("tool") && envelope.optJSONObject("args") != null) return restoredCopy(envelope)
-    if (envelope.opt("body") is String) {
-        val body = runCatching { JSONObject(envelope.getString("body")) }.getOrNull()
-        if (body != null) {
-            val args = body.optJSONObject("body") ?: body
-            val tool = envelope.optString("tool", body.optString("action"))
-            val frozen = restoredCopy(args)
-            if (!frozen.has("request_id") && envelope.optString("id").isNotEmpty()) frozen.put("request_id", envelope.getString("id"))
-            return JSONObject().put("tool", tool).put("args", frozen)
-        }
-    }
-    return JSONObject().put("tool", envelope.optString("tool")).put("args", envelope.optJSONObject("args") ?: envelope)
-}
+private fun restoredEditorEnvelope(plan: RestoredEditor): JSONObject = restoredCopy(plan.draft).put("_inbox_route", JSONObject().put("section", plan.section).put("id", plan.id).put("mode", plan.mode).put("args", plan.args))
 
 private fun restoredFields(fields: JSONArray): JSONObject {
     val result = JSONObject()
@@ -485,109 +290,6 @@ private fun restoredFields(fields: JSONArray): JSONObject {
         })
     }
     return result
-}
-
-private fun legacyEditor(entry: JSONObject, original: JSONObject): RestoredEditor? {
-    val raw = if (original.optJSONObject("editor") != null) restoredCopy(original.getJSONObject("editor")).apply { original.optJSONObject("request")?.let { put("pending", it) } } else original
-    val kind = raw.optString("kind").ifEmpty { entry.optString("kind") }
-    val context = raw.optJSONObject("context") ?: JSONObject()
-    var values = restoredCopy(raw.optJSONObject("values") ?: raw.optJSONObject("data") ?: raw.optJSONObject("form") ?: raw)
-    values.optJSONArray("fields")?.let { values = restoredFields(it) }
-    raw.optJSONArray("fields")?.let { values = restoredFields(it) }
-    val base = raw.optJSONObject("base") ?: context.optJSONObject("base") ?: raw.optJSONObject("baseline") ?: JSONObject()
-    val pending = restoredAction(raw) ?: if (listOf("pending", "request", "frozen").any { raw.has(it) && !raw.isNull(it) && raw.opt(it)?.toString()?.isNotEmpty() == true }) JSONObject().put("tool", "").put("args", restoredCopy(raw)) else null
-    val key = "restored:" + entry.optString("selection_hash") + ":" + entry.optString("item_id")
-    val request = pending?.optJSONObject("args")?.optString("request_id")?.ifBlank { null } ?: raw.optString("request_id").ifBlank { "restored_" + PixelMcpWriteTools.hash(key).take(32) }
-    val guarded = JSONObject().put("_restore_action_review_required", true).put("_legacy_source", JSONObject().put("selection_hash", entry.optString("selection_hash")).put("item_id", entry.optString("item_id")))
-    fun args() = JSONObject()
-    when (kind) {
-        "customer", "order", "worklog", "work_entry", "garden" -> {
-            val entity = when (kind) { "work_entry" -> "worklog"; "garden" -> "customer"; else -> kind }
-            val gardenId = context.optString("record_id").ifEmpty { entry.optString("storage_key").takeIf { it.startsWith("hausgarten.garden.draft.") }?.removePrefix("hausgarten.garden.draft.").orEmpty() }.ifEmpty { values.optString("customer_id", values.optString("id")) }
-            val id = base.optString("id").ifEmpty { if (kind == "garden") gardenId else if (entity in listOf("customer", "order")) values.optString("id") else "" }
-            if (kind == "garden" && id.isEmpty()) return null
-            if (kind == "garden") {
-                val custom = when (val old = base.opt("custom_fields")) { is JSONObject -> restoredCopy(old); is String -> runCatching { JSONObject(old) }.getOrDefault(JSONObject()); else -> JSONObject() }
-                for (field in values.keys().asSequence()) if (field != "garden_area" && !field.startsWith("_")) custom.put(field, values.get(field))
-                values = restoredCopy(base).put("garden_area", values.opt("garden_area") ?: JSONObject.NULL).put("custom_fields", custom)
-            }
-            if (entity == "worklog" && values.optString("id").isEmpty() && context.optString("record_id").isNotEmpty()) values.put("id", context.getString("record_id"))
-            val draft = restoredCopy(guarded).put("values", values).put("changes", values).put("base", base)
-            pending?.let { draft.put("original_args", it.getJSONObject("args")) }
-            return RestoredEditor(key, mapOf("customer" to "customers", "order" to "orders", "worklog" to "worklogs").getValue(entity), id, if (id.isEmpty()) "new" else "edit", draft)
-        }
-        "offer" -> {
-            val id = base.optString("id")
-            val draft = restoredCopy(guarded).put("record", values).put("record_hash", raw.optString("hash", raw.optString("record_hash"))).put("request_id", request)
-            pending?.let { draft.put("pending", it.getJSONObject("args")).put("original_tool", it.optString("tool")) }
-            return RestoredEditor(key, "offers", id, if (id.isEmpty()) "new" else "edit", draft)
-        }
-        "appointment" -> {
-            val data = values.optJSONObject("data") ?: raw.optJSONObject("data") ?: values
-            val form = restoredCopy(data)
-            for ((old, new) in listOf("localStart" to "local_start", "endOpen" to "end_open", "duration" to "duration_hours", "utcOffset" to "utc_offset", "occurrences" to "occurrences", "intervalWeeks" to "interval_weeks")) {
-                when { values.has(old) -> form.put(new, values.get(old)); raw.has(old) -> form.put(new, raw.get(old)) }
-            }
-            if (!form.has("local_start") && data.optString("starts_at").isNotEmpty()) runCatching { form.put("local_start", Instant.parse(data.getString("starts_at")).atZone(ZoneId.of("Europe/Vienna")).toLocalDateTime().toString()) }
-            val prior = base.optJSONObject("data") ?: base
-            val id = prior.optString("id")
-            val draft = restoredCopy(guarded).put("original", prior).put("values", form).put("record_hash", raw.optString("hash", raw.optString("record_hash"))).put("request_id", request).put("restore_review_required", true).put("dirty", true)
-            pending?.let { draft.put("pending", it) }
-            return RestoredEditor(key, "appointments", id, if (id.isEmpty()) "new" else "edit", draft)
-        }
-        "photo_edit" -> {
-            val id = context.optString("record_id").ifEmpty { raw.optString("photo_id", values.optString("photo_id", values.optString("id"))).ifEmpty { base.optJSONObject("photo")?.optString("id").orEmpty() } }.ifEmpty { entry.optString("storage_key").takeIf { it.startsWith("hausgarten.photo.edit.") }?.removePrefix("hausgarten.photo.edit.").orEmpty() }
-            if (id.isEmpty()) return null
-            val draft = restoredCopy(values)
-            for (field in guarded.keys()) draft.put(field, guarded.get(field))
-            pending?.let { draft.put("pending", it.getJSONObject("args").toString()) }
-            return RestoredEditor(key, "photos", id, "edit", draft)
-        }
-        "business_settings", "offer_decision" -> {
-            val tool = if (kind == "business_settings") "update_business_settings" else pending?.optString("tool").orEmpty().ifBlank { if (!raw.has("acceptance")) "" else if (raw.optBoolean("acceptance")) "record_offer_acceptance" else "decline_offer" }
-            if (tool.isEmpty()) return null
-            val body = if (kind == "business_settings") {
-                val updates = JSONObject()
-                val source = context.optJSONObject("source") ?: raw.optJSONObject("source") ?: JSONObject()
-                val allowed = listOf("business_name", "owner_name", "business_street", "business_postal_code", "business_city", "business_email", "business_phone", "business_bank", "business_iban", "business_bic", "business_legal_info", "invoice_issuer_confirmed", "tax_mode", "business_vat_id", "tax_exemption_text", "default_payment_terms", "offer_binding_text", "offer_nonbinding_text", "offer_time_material_text")
-                for (field in allowed) if (values.has(field)) updates.put(field, values.get(field))
-                JSONObject().put("expected_record_hash", source.optString("record_hash")).put("updates", updates).put("request_id", request)
-            } else {
-                JSONObject().put("offer_id", raw.optString("offer_id")).put("expected_record_hash", raw.optString("record_hash")).put("request_id", request).apply {
-                    if (tool == "record_offer_acceptance") { put("evidence", raw.optString("evidence")); if (raw.optString("accepted_at").isNotEmpty()) put("accepted_at", raw.getString("accepted_at")) }
-                    else put("reason", raw.optString("reason"))
-                }
-            }
-            val draft = restoredCopy(guarded).put("values", body).put("original_tool", tool)
-            pending?.let { draft.put("original_args", it.getJSONObject("args")) }
-            return RestoredEditor(key, "action", tool, NativeRestoredDrafts.kindLabel(kind), draft)
-        }
-    }
-    val normalized = if (kind == "care") "care_plan" else kind
-    val section = when (normalized) { "property" -> "properties"; "inquiry", "inspection", "direct_acceptance" -> "inquiries"; "care_plan", "generate" -> "care_plans"; "visit" -> "visits"; "material", "movement" -> "materials"; "equipment", "accessories", "maintenance_plan", "maintenance_done", "maintenance_adjust", "equipment_use" -> "equipment"; else -> return null }
-    val id = if (raw.optBoolean("editing")) raw.optString("record_id") else base.optString("id")
-    val prior = restoredCopy(base).apply { if (id.isNotEmpty() && !has("id")) put("id", id) }
-    val draft = restoredCopy(guarded).put("kind", normalized).put("original", prior).put("values", values).put("record_hash", raw.optString("record_hash")).put("request_id", request).put("restore_review_required", true).put("dirty", true)
-    pending?.let { draft.put("pending", it) }
-    val modes = setOf("accessories", "inspection", "direct_acceptance", "generate", "maintenance_plan", "maintenance_done", "maintenance_adjust", "movement", "equipment_use")
-    return RestoredEditor(key, section, id, if (normalized in modes) normalized else if (id.isEmpty()) "new" else "edit", draft, restoredCopy(values).apply { remove("_draft_key") })
-}
-
-private fun nativeEditor(key: String, raw: JSONObject): RestoredEditor? {
-    if (key.isEmpty()) return null
-    raw.optJSONObject("_inbox_route")?.let { route -> return RestoredEditor(key, route.getString("section"), route.optString("id"), route.optString("mode"), raw, route.optJSONObject("args") ?: JSONObject()) }
-    if (key.startsWith("restored:")) return null
-    fun target(section: String, id: String, mode: String = if (id.isEmpty()) "new" else "edit", args: JSONObject = JSONObject()) = RestoredEditor(key, section, id, mode, raw, args)
-    return when {
-        key.startsWith("editor:") -> { val parts = key.split(':'); val section = mapOf("customer" to "customers", "order" to "orders", "worklog" to "worklogs")[parts.getOrNull(1)] ?: return null; val id = parts.drop(2).joinToString(":"); if (id.startsWith("duplicate:")) target(section, id.removePrefix("duplicate:"), "duplicate") else target(section, id.takeUnless { it == "new" }.orEmpty()) }
-        key.startsWith("finance:offers:") || key.startsWith("finance:catalog:") -> { val parts = key.split(':'); val section = parts.getOrNull(1) ?: return null; target(section, parts.drop(2).joinToString(":").takeUnless { it == "new" }.orEmpty()) }
-        key.startsWith("planning:appointment:") -> target("appointments", key.removePrefix("planning:appointment:").takeUnless { it == "new" }.orEmpty())
-        key.startsWith("revier:") -> { val plan = legacyEditor(JSONObject().put("kind", raw.optString("kind")), raw) ?: return null; plan.copy(key = key, draft = raw) }
-        key == "photo_import" -> target("photos", "", "import")
-        key.startsWith("photo_edit_") -> target("photos", key.removePrefix("photo_edit_"), "edit")
-        key.startsWith("action:") -> { val tool = raw.optString("original_tool", key.removePrefix("action:").substringBefore(':')); target("action", tool, "Erhaltene Aktion") }
-        else -> null
-    }
 }
 
 private fun hiddenDraftField(key: String) = key.startsWith("_") || key.endsWith("_hash") || key.endsWith("_sha256") || key in setOf("formatVersion", "projection_version", "request_id", "session_id", "edit_id", "record_id", "hash", "contextHash", "orderHash", "dirty", "touched", "restore_review_required", "reading", "tool") || key.matches(Regex("(?i).*(password|passwd|secret|credential|recovery.?code|api.?key|authorization|access.?token|refresh.?token).*"))
@@ -649,16 +351,6 @@ private fun RestoredValueView(value: Any?, label: String, initiallyOpen: Boolean
     }
 }
 
-private fun restoredPlainText(value: Any?, prefix: String = ""): String = when (value) {
-    is JSONObject -> if (value.has("value") && value.has("type") && (value.has("name") || value.has("label"))) {
-        if (value.optString("type") == "password" || hiddenDraftField(value.optString("name"))) "" else restoredPlainText(if (value.has("checked")) value.opt("checked") else value.opt("selected") ?: value.opt("value"), value.optString("label").ifBlank { nativeLabel(value.optString("name")) })
-    } else value.keys().asSequence().filterNot { hiddenDraftField(it) || binaryDraftField(it, value.opt(it)) }.map { key -> restoredPlainText(value.opt(key), listOf(prefix, nativeLabel(key)).filter { it.isNotBlank() }.joinToString(" · ")) }.filter { it.isNotBlank() }.joinToString("\n")
-    is JSONArray -> (0 until value.length()).joinToString("\n") { restoredPlainText(value.opt(it), "$prefix · ${it + 1}") }
-    null, JSONObject.NULL -> "$prefix: Nicht erfasst"
-    else -> if (value.toString().startsWith("data:") || value.toString().startsWith("blob:")) "$prefix: Datei wird getrennt geprüft" else "$prefix: " + if (value is Boolean) { if (value) "Ja" else "Nein" } else value.toString()
-}
-
-/** Native access to already selected legacy blobs; an old submitted action is read, never replayed. */
 @Composable
 private fun RestoredMediaDraft(controller: NativeAppController, graph: JSONObject, sourceKey: String) {
     val items = restoredObjects(graph.optJSONArray("items")).ifEmpty { listOf(graph) }
@@ -729,7 +421,7 @@ private fun RestoredMediaDraft(controller: NativeAppController, graph: JSONObjec
                             val existing = controller.draft(draftKey)
                             if (existing == null) {
                                 if (withContext(Dispatchers.IO) { controller.store.ownerValue(markerKey, "").isNotEmpty() }) throw IllegalStateException("Diese übernommene Fotoauswahl wurde bereits geschlossen. Gespeicherte Fotos und die Quelle bleiben erhalten.")
-                                controller.adoptDraft(draftKey, inboxEnvelope(plan))
+                                controller.adoptDraft(draftKey, restoredEditorEnvelope(plan))
                             } else if (existing.optString("pending").isBlank()) {
                                 controller.adoptDraft(draftKey, restoredCopy(existing).put("capture_context", origin.toString()).put("selected_uri", Uri.fromFile(requireNotNull(file)).toString()))
                             }

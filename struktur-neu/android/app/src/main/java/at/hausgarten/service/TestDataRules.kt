@@ -52,23 +52,8 @@ class TestDataRules {
                 return true
             }
             if ((a.optString("kind").equals(TrashPurgeBatch.KIND))) {
-                var local: Boolean = false
-                var remote: Boolean = false
-                var entries: JSONArray = p.getJSONArray("entries")
-                run {
-                    var i: Int = 0
-                    while ((i < entries.length())) {
-                        var e: JSONObject = entries.getJSONObject(i)
-                        var test: Boolean = localOnly(JSONObject().put("kind", "purge_v1").put("payload", JSONObject().put("entity", e.getString("entity")).put("id", e.getString("entity_id"))), s)
-                        local = local or test
-                        remote = remote or !test
-                        i++
-                    }
-                }
-                if (((local && remote))) {
-                    throw PixelMcpWriteTools.Rejected("TEST_DATA_ISOLATION", "Lokale Testeinträge im Papierkorb zuerst einzeln endgültig löschen. Keine gemischte Test-/Drive-Löschaktion gespeichert.")
-                }
-                return local
+                // Storage contract 3 keeps the whole deletion on this device.
+                return true
             }
             if ((((p.optBoolean("_local_only") || marked(p)) || (a.optString("kind").equals("customer") && customer(p))))) {
                 return true

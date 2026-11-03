@@ -128,7 +128,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun canGoBack(): Boolean = history.isNotEmpty() || route.section != route.area || route.id.isNotEmpty() || route.mode != "list"
     private fun routeValue(entry: NativeRoute): JSONObject = JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)
     private fun readRoute(value: JSONObject): NativeRoute {
-        val section = value.optString("section", "today")
+        val section = value.optString("section", "today").let { if (it == "drafts") "office" else it }
         return NativeRoute(section, value.optString("id"), value.optString("mode", "list"), value.optJSONObject("args") ?: JSONObject(), value.optString("area", nativeMainSection(section)))
     }
     fun restoreRoute(saved: String?) {

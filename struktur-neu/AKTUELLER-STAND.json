@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-03T17:46:59.588159+00:00",
-    "version_name": "1.58.0",
-    "version_code": 123,
-    "reported_base_git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
-    "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
+    "observed_at_utc": "2026-11-03T19:05:48.835409+00:00",
+    "version_name": "1.58.2",
+    "version_code": 125,
+    "reported_base_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
+    "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; main 0b82601 production source matches live installed 1.58.0/123"
+    "repository_source_match": "PASS; installed source matches main 03e7351 before changes"
   },
   "observed_installation_history": [
     {
@@ -51,11 +51,21 @@
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
       "repository_source_match": "PASS; main 0b82601 production source matches live installed 1.58.0/123"
+    },
+    {
+      "observed_at_utc": "2026-11-03T19:05:48.835409+00:00",
+      "version_name": "1.58.2",
+      "version_code": 125,
+      "reported_base_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
+      "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; installed source matches main 03e7351 before changes"
     }
   ],
   "current_task": {
-    "name": "Arbeitsdateien vollständig bereinigen, Rückfallkopien entfernen und Löschmenüs vereinfachen",
-    "status": "IMPLEMENTED; ORIGINAL_SIGNED_APK_VERIFIED; INSTALLATION_AND_PIXEL_RUNTIME_NOT_RUN",
+    "name": "Entwürfe-Menü entfernen und Testdaten samt Verknüpfungen endgültig löschen",
+    "status": "IMPLEMENTED; SOURCE_AND_JVM_PASS; FINAL_CLEAN_BUILD_PENDING",
     "concept": {
       "title": "Haus und Garten NEUES Bedienkonzept – Fassung 2",
       "pages": 38,
@@ -65,24 +75,29 @@
       "supersedes": "Älteres 29-seitiges Bedienkonzept; nicht als Umsetzungsbasis verwenden"
     },
     "verified_installed_base": {
-      "version_name": "1.58.0",
-      "version_code": 123,
-      "git_sha": "6c2a179f400a219b3189956e9127ba458ba1b0fc",
-      "source_sha256": "4b953245027d99fdd9f52cd327ec09b0886411630e0fb27390e600035d40359b",
-      "verification": "LIVE_PIXEL_MCP_RUNTIME; 1.58.1 archive changes retained from main 1f22529; all productive changes derived from verified installed Kotlin source"
+      "observed_at_utc": "2026-11-03T19:05:48.835409+00:00",
+      "version_name": "1.58.2",
+      "version_code": 125,
+      "reported_base_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
+      "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; installed source matches main 03e7351 before changes"
     },
     "owner_decisions": [
       "Interne funktionslose Dateien und leere Unterordner löschen; full-backup-work ausdrücklich einbeziehen.",
       "Löschen und Verwerfen ohne zusätzliche Rückfragen oder Pflichttexte; technische Versionen und Vorgangsbelege intern erhalten.",
       "Keine Rückfallkopien mehr: Erstellen, Prüfen und Wiederherstellen entfernen; vorhandene interne Kopien dürfen gelöscht werden.",
-      "Menüs und Ergebnisse kurz auf Deutsch; keine ungefilterten Diagnose-/Kennungslisten."
+      "Menüs und Ergebnisse kurz auf Deutsch; keine ungefilterten Diagnose-/Kennungslisten.",
+      "Eigenständiges Entwürfe-Menü entfernen; Papierkorb auf direkte Tasten und kurze deutsche Angaben reduzieren.",
+      "Markierte Testeinträge einschließlich verknüpfter Test-Arbeiten und Testfotos ohne zusätzliche Rückfragen endgültig löschen."
     ],
     "scope": [
-      "Rekursive Bereinigung von full-backup-work, pixel-backup, browser-media-upload, before-restore, alten Lösch-/Konfliktsicherungen, ausgedienten Schlüssel- und Autoritätsdateien; Symlinkziele bleiben unberührt.",
-      "Geöffnete Restore-Vorschauen und laufender Austausch werden geschützt; verworfene Vorschauen und abgeschlossene Austauschbäume werden entfernt. Keine neue Rückfallkopie.",
-      "Einzel-/Sammellöschung, endgültiges Löschen, Papierkorb-Leerung und Entwurfsverwerfen führen die beschriftete Aktion direkt aus. Unklare Antworten werden mit gespeicherten ursprünglichen Argumenten ausschließlich gelesen.",
-      "Kurze Einstellungen mit zusammengefassten Prüfergebnissen; keine internen Arbeitskennungen. Verbleibende Arbeitsordner werden einzeln gemessen.",
-      "Schema 7, Geschäftsdateien und ausdrücklich gewählte lokale ZIP-Dateien bleiben im bestehenden Speichervertrag."
+      "Entwürfe-Einstiege in Büro, Arbeit und Einstellungen sowie die ungenutzte Inbox entfernen; gespeicherte alte Menürouten auf Büro umleiten.",
+      "Papierkorb zeigt nur Bezeichnung und Datum mit Löschen und Wiederherstellen; Rohdatenwand, Detailseite und widersprüchliche Bestätigungstexte entfernen.",
+      "Markierte Testeinträge samt zugehörigen aktiven/archivierten Geschäfts-Testdaten mit Versionsschutz gemeinsam entfernen; nicht zugehörige Referenzen und laufende Zeiterfassung weiter prüfen.",
+      "Gemischten Papierkorb vollständig lokal löschen; ausgediente Test-/Drive-Sperre entfernen.",
+      "Löschung erst nach wirksamer Bestandsprüfung bestätigen. Überholte Aktionen gelöschter IDs und ungeteilte Dateien entfernen; minimale Fingerabdrücke ohne Geschäftsinhalte verhindern alte Wiederholungen."
     ],
     "observed_storage_before": {
       "source": "Owner Pixel screenshots, 2026-11-03 19:08 local",
@@ -94,22 +109,28 @@
       "productive_subdirectory_sizes": "NOT_AVAILABLE; category known, exact per-directory attribution not claimed"
     },
     "validation": {
-      "source": "PASS; 61 Python tests, canonical source layout, UI mapping and privacy gates",
-      "jvm": "PASS; 8 synthetic JVM suites, 1418 assertions; recursive cleanup, symlink boundaries, empty directory removal, retry and existing domain regressions",
-      "android": "PASS; final clean source commit assembleRelease, assembleReleaseAndroidTest and lintRelease; 0 lint errors, 84 warnings",
-      "native_ui_execution": "NOT_RUN; previous explicit emulator opt-out respected",
-      "pixel_acceptance": "NOT_RUN",
-      "installation_and_productive_cleanup": "NOT_PERFORMED; installed app remains 1.58.0/123",
-      "artifact": "PASS; package/version/original certificate/assets/classes/empty business seed independently read back; removed fallback-copy methods absent in release DEX",
-      "source_identity": "PASS; release DEX GIT_SHA=fadec74356a4fc63591fb94aa4850149803dae82; SOURCE_SHA256=6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8; SOURCE_DIRTY=false",
-      "original_signing": "PASS; source commit pushed and independently confirmed on GitHub before signing; original certificate a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8; temporary private signing files removed",
-      "distribution": "PASS; explicit owner request; original-signed 1.58.2/125 uploaded to Gartenpirat – Paketinstallation; complete authenticated download reread byte-for-byte"
+      "source": "PASS; 61 Python tests, source/layout/privacy gates and reviewed native UI mapping",
+      "jvm": "PASS; 8 synthetic suites, 1440 assertions including dependency cascade, CAS, mixed trash, replay and false-acknowledgement readback",
+      "android": "PRELIMINARY PASS; release/test APK and lint 0 errors/84 warnings; final clean-commit rebuild pending",
+      "native_ui_execution": "NOT_RUN; prior owner emulator opt-out retained",
+      "pixel_acceptance": "NOT_RUN for 1.58.3; installed 1.58.2 identity verified",
+      "installation": "NOT_PERFORMED by agent; owner installed 1.58.2/125 independently, verified live",
+      "artifact": "PENDING original signing after checked source commit and GitHub readback"
     },
-    "updated_at_utc": "2026-11-03T18:50:53.502548+00:00"
+    "updated_at_utc": "2026-11-03T19:20:48.611217+00:00",
+    "operational_test_cleanup": {
+      "verified_removed_test_archive_entries": 5,
+      "remaining_marked_test_customers": 2,
+      "remaining_linked_test_worklogs": 2,
+      "archive_batch_receipt": "confirmed; effective work records remain active; no full-cleanup success claimed",
+      "unrelated_archive_entries_unchanged": 2,
+      "source": "LIVE_PIXEL_MCP; operational owner-authorized cleanup, no productive records used as development fixtures"
+    }
   },
   "open_checks": [
-    "Installation von 1.58.2 am Pixel noch nicht bestätigt; tatsächliche Freigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands noch nicht gemessen.",
-    "Native UI-/Geräteabnahme NOT_RUN; APK-/Test-APK-Bau, Lint, Python- und JVM-Prüfungen ersetzen diese nicht.",
+    "Native UI-/Geräteabnahme für 1.58.3 nicht ausgeführt; Build/Lint/JVM ersetzen diese nicht.",
+    "Zwei markierte Testkunden und zwei zugehörige Test-Arbeiten bleiben in installierter 1.58.2 gesperrt; neue Löschlogik erst nach separatem Geräteupdate verfügbar.",
+    "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
   "workflow": {
@@ -142,37 +163,19 @@
       "original_certificate_match": true
     },
     "temporary_signing_material_removed": true,
-    "installation": "NOT_PERFORMED; upload/distribution only; live installation must be checked separately",
+    "installation": "OWNER_INSTALLED; live Pixel 1.58.2/125 fingerprint verified 2026-11-03",
     "native_runtime_acceptance": "NOT_RUN",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.58.2",
-    "version_code": 125,
+    "version_name": "1.58.3",
+    "version_code": 126,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED; SOURCE_JVM_BUILD_LINT_AND_ORIGINAL_SIGNATURE_PASS; NATIVE_RUNTIME_NOT_RUN",
-    "source_sha256": "6c3a40a8d1816adb8e8bd288e24dcb483495841bb640f95ab8ba2077aa423ff8",
-    "artifact": "outputs/Haus-Garten-1.58.2.apk; LOCAL_ORIGINAL_SIGNED_APK",
-    "installation": "NOT_PERFORMED; installed app last observed at 1.58.0/123",
-    "original_signing": "PASS; original certificate matches prior distribution; release DEX source identity verified",
-    "distribution": "ORIGINAL_SIGNED_APK_UPLOADED_TO_DRIVE; COMPLETE_BYTE_READBACK_PASS",
-    "source_git_sha": "fadec74356a4fc63591fb94aa4850149803dae82",
-    "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
-    "byte_size": 88277809,
-    "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/12ngcyTmVw5AzEbB_exqIJgjx5jRtTAwx/view?usp=drivesdk",
-    "drive": {
-      "file_id": "12ngcyTmVw5AzEbB_exqIJgjx5jRtTAwx",
-      "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
-      "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
-    },
-    "download_readback": {
-      "status": "PASS; complete Drive APK streamed back and compared byte-for-byte to verified local original-signed APK",
-      "apk_sha256": "97908e9a2e52729cd02fad69ab16f009b7e063057db16cacdf4e0fbe6b3548fc",
-      "byte_size": 88277809,
-      "signature_valid": true,
-      "original_certificate_match": true
-    }
+    "status": "SOURCE_AND_JVM_PASS; FINAL_CLEAN_BUILD_PENDING",
+    "installation": "NOT_INSTALLED; live Pixel 1.58.2/125",
+    "distribution": "NOT_REQUESTED_FOR_THIS_CANDIDATE; no Drive upload",
+    "artifact": "PENDING original-signed local APK",
+    "source_sha256": "1a312826f0e041b303a1ea67ea633c3b2e36dd224c8bfe3af06ea06fa3c52315"
   }
 }

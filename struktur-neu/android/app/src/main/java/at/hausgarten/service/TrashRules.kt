@@ -3,7 +3,7 @@ package at.hausgarten.service
 import org.json.*
 import java.util.*
 
-/** Shared local UI/MCP trash policy. No cascade deletion, no filesystem side effects. */
+/** Shared local UI/MCP trash policy. Test cleanup includes owned test dependencies. */
 class TrashRules {
     private constructor() {
     }
@@ -264,6 +264,82 @@ class TrashRules {
             }
             return false
         }
+        private val collections = linkedMapOf("customer" to "customers", "order" to "orders", "worklog" to "worklogs", "photo" to "photos", "invoice" to "invoices", "offer" to "offers", "appointment" to "appointments", "service_template" to "service_catalog")
+
+        @JvmStatic fun testRecord(s: JSONObject, entity: String, row: JSONObject): Boolean {
+            if (row.optBoolean("test_record") || listOf("name", "title", "activity", "caption").any { row.optString(it).startsWith("[TEST]") }) return true
+            if (entity == "customer") return TestDataRules.customer(row)
+            val customerId = row.optString("customer_id")
+            val customer = OwnerJournalRules.findOrNull(s.optJSONArray("customers"), customerId)
+                ?: existingArchive(s).optJSONObject("customer:$customerId")?.optJSONObject("record")
+            return TestDataRules.customer(customer)
+        }
+
+        private fun refers(row: JSONObject, entity: String, id: String): Boolean = when (entity) {
+            "customer" -> listOf("customer_id", "billing_customer_id", "default_billing_customer_id").any { row.optString(it) == id }
+            "worklog" -> row.optString("worklog_id") == id || containsWork(row, id)
+            "order", "appointment", "offer" -> row.optString("${entity}_id") == id
+            else -> false
+        }
+
+        /** Exact current versions of the test descendants; ancestors are never selected. */
+        @JvmStatic fun testTargets(s: JSONObject, entity: String, id: String): JSONArray {
+            val archive = existingArchive(s)
+            val rootKey = "$entity:$id"
+            val root = archive.optJSONObject(rootKey)?.optJSONObject("record") ?: return JSONArray()
+            if (!testRecord(s, entity, root)) return JSONArray()
+            val records = sortedMapOf<String, JSONObject>()
+            val proofs = sortedMapOf<String, JSONObject>()
+            for ((type, group) in collections) {
+                val rows = s.optJSONArray(group) ?: JSONArray()
+                for (i in 0 until rows.length()) {
+                    val row = rows.getJSONObject(i)
+                    val key = "$type:${row.getString("id")}"
+                    records[key] = row
+                    proofs[key] = JSONObject().put("entity", type).put("entity_id", row.getString("id")).put("location", "active").put("hash", OwnerJournalRules.version(row))
+                }
+            }
+            for (key in archive.keys().asSequence().sorted()) {
+                val saved = archive.getJSONObject(key)
+                val row = saved.optJSONObject("record") ?: continue
+                if (saved.optBoolean("purged") || key.substringBefore(':') !in collections) continue
+                records[key] = row
+                proofs[key] = JSONObject().put("entity", key.substringBefore(':')).put("entity_id", key.substringAfter(':')).put("location", "archive").put("hash", OwnerJournalRules.version(saved))
+                    .put("active_hash", OwnerJournalRules.version(OwnerJournalRules.findOrNull(s.optJSONArray(collections[key.substringBefore(':')]), key.substringAfter(':'))))
+            }
+            val selected = sortedSetOf(rootKey)
+            var changed: Boolean
+            do {
+                changed = false
+                for ((key, row) in records) {
+                    if (key in selected) continue
+                    val linked = selected.any { target -> refers(row, target.substringBefore(':'), target.substringAfter(':')) }
+                    // Archiving a parent detaches photos; its unchanged link proof still identifies ownership.
+                    val detachedPhoto = key.startsWith("photo:") && selected.any { target ->
+                        val links = archive.optJSONObject(target)?.optJSONArray("photo_links") ?: JSONArray()
+                        (0 until links.length()).any { index ->
+                            val link = links.getJSONObject(index)
+                            link.optString("id") == row.optString("id") && link.optString("detached_hash") == proofs[key]!!.optString("hash")
+                        }
+                    }
+                    if ((linked && testRecord(s, key.substringBefore(':'), row)) || detachedPhoto) {
+                        selected.add(key); changed = true
+                    }
+                }
+            } while (changed)
+            return JSONArray(selected.filter { it != rootKey }.map { proofs.getValue(it) })
+        }
+
+        @JvmStatic fun removeTestTargets(s: JSONObject, targets: JSONArray) {
+            for (i in 0 until targets.length()) {
+                val target = targets.getJSONObject(i)
+                val entity = target.getString("entity")
+                val id = target.getString("entity_id")
+                OwnerJournalRules.replace(s, OwnerJournalRules.group(entity), id, null)
+                OwnerJournalRules.archives(s).remove("$entity:$id")
+            }
+        }
+
         @Throws(Exception::class)
         @JvmStatic fun purge(s: JSONObject, action: JSONObject) {
             var p: JSONObject = action.getJSONObject("payload")
@@ -280,9 +356,24 @@ class TrashRules {
             }
             OwnerJournalRules.checkHash(saved, p.getString("expected_record_hash"))
             var record: JSONObject = saved!!.getJSONObject("record")
-            OwnerJournalRules.validateArchive(entity, record, s)
-            detachOptionalParent(s, entity, id, action.getString("created_at"))
-            requireUnreferenced(s, entity, id)
+            val targets = if (p.has("expected_test_dependencies_hash")) testTargets(s, entity, id) else JSONArray()
+            if (p.has("expected_test_dependencies_hash") && p.getString("expected_test_dependencies_hash") != PixelMcpWriteTools.hash(targets)) {
+                throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Verknüpfte Testdaten wurden geändert. Erneut löschen.")
+            }
+            if (p.has("test_dependencies") && PixelMcpWriteTools.hash(p.getJSONArray("test_dependencies")) != PixelMcpWriteTools.hash(targets)) {
+                throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Die Testauswahl wurde geändert. Erneut löschen.")
+            }
+            val view = JSONObject(s.toString())
+            removeTestTargets(view, targets)
+            if (!testRecord(s, entity, record)) OwnerJournalRules.validateArchive(entity, record, view)
+            detachOptionalParent(view, entity, id, action.getString("created_at"))
+            requireUnreferenced(view, entity, id)
+            OwnerJournalRules.replace(view, OwnerJournalRules.group(entity), id, null)
+            OwnerJournalRules.archives(view).remove(key)
+            for (i in 0 until targets.length()) {
+                val target = targets.getJSONObject(i)
+                requireUnreferenced(view, target.getString("entity"), target.getString("entity_id"))
+            }
             var current: JSONObject? = OwnerJournalRules.findOrNull(s.getJSONArray(OwnerJournalRules.group(entity)), id)
             if (((entity.equals("customer") || entity.equals("service_template")))) {
                 OwnerJournalRules.checkHash(current, saved!!.getString("archived_record_hash"))
@@ -291,6 +382,7 @@ class TrashRules {
                     throw IllegalArgumentException("Die ID ist inzwischen wieder aktiv. Nichts gelöscht.")
                 }
             }
+            removeTestTargets(s, targets)
             commitPurge(s, action, entity, id, saved)
         }
         @Throws(Exception::class)

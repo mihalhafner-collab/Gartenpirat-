@@ -69,6 +69,10 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                         if (action.getString("client_id") !in applied) continue
                         val payload = action.getJSONObject("payload")
                         if (action.optString("kind") == "purge_v1") deleted.add(payload.optString("entity") + ":" + payload.optString("id"))
+                        if (action.optString("kind") in setOf("purge_v1", TrashPurgeBatch.KIND)) {
+                            val targets = payload.optJSONArray("test_dependencies") ?: JSONArray()
+                            for (j in 0 until targets.length()) targets.getJSONObject(j).let { deleted.add(it.getString("entity") + ":" + it.getString("entity_id")) }
+                        }
                         if (action.optString("kind") == TrashPurgeBatch.KIND) {
                             val entries = payload.getJSONArray("entries")
                             for (j in 0 until entries.length()) entries.getJSONObject(j).let { deleted.add(it.getString("entity") + ":" + it.getString("entity_id")) }
@@ -79,13 +83,17 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                     for (i in 0 until pending.length()) {
                         val action = pending.getJSONObject(i)
                         val id = action.getString("client_id")
-                        if (id in applied) {
+                        val superseded = deleted.any { target ->
+                            LocalTestCleanup.sameTarget(action, target.substringBefore(':'), target.substringAfter(':')) &&
+                                OwnerJournalRules.findOrNull(effective.optJSONArray(OwnerJournalRules.group(target.substringBefore(':'))), target.substringAfter(':')) == null &&
+                                !OwnerJournalRules.archives(effective).has(target)
+                        }
+                        if (id in applied || superseded) {
                             removedActions += database.delete("pending", "id=?", arrayOf(id))
-                            if (deleted.any { target -> LocalTestCleanup.sameTarget(action, target.substringBefore(':'), target.substringAfter(':')) } || action.optString("kind") == TrashPurgeBatch.KIND) removedRequests.add(id)
+                            if (superseded || action.optString("kind") == TrashPurgeBatch.KIND) removedRequests.add(id)
                         } else remaining.put(action)
                     }
-                    // Retain dependencies of unresolved local work. Successfully materialized
-                    // actions no longer require an ever-growing distributed replay history.
+                    // Unresolved work outside the explicitly purged IDs keeps its dependencies.
                     val dependencies = mutableSetOf<String>()
                     for (i in 0 until remaining.length()) {
                         val refs = remaining.getJSONObject(i).getJSONObject("payload").optJSONArray("_sync_predecessors") ?: continue
@@ -187,7 +195,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
     }
 
     private fun pruneReceipts(database: SQLiteDatabase, requests: Set<String>, deleted: Set<String>) {
-        val remove = mutableListOf<String>()
+        val redact = mutableListOf<Pair<String, JSONObject>>()
         database.rawQuery("SELECT key FROM owner_state WHERE key GLOB 'receipt:*'", null).use { rows ->
             while (rows.moveToNext()) {
                 val key = rows.getString(0)
@@ -199,10 +207,15 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                     val field = if (entity == "worklog") "work_record_id" else "${entity}_id"
                     result.optString(field) == id || result.optJSONObject("record")?.let { it.optString("id") == id && (it.optString("kind", entity) == entity) } == true
                 }
-                if (key.removePrefix("receipt:") in requests || target in deleted || removedEntity || result.optBoolean("_result_content_removed")) remove.add(key)
+                if (key.removePrefix("receipt:") in requests || target in deleted || removedEntity || result.optBoolean("_result_content_removed")) {
+                    receipt.put("result", JSONObject().put("_result_content_removed", true))
+                    redact.add(key to receipt)
+                }
             }
         }
-        remove.forEach { database.delete("owner_state", "key=?", arrayOf(it)) }
+        // Fingerprints prevent an old create/edit request from recreating removed content.
+        // They retain no business body or file reference.
+        redact.forEach { (key, receipt) -> store.putOwnerValue(key, receipt.toString()) }
         val nativeReceipts = mutableListOf<String>()
         database.rawQuery("SELECT id,payload FROM pending WHERE kind='mcp_receipt'", null).use { rows ->
             while (rows.moveToNext()) {

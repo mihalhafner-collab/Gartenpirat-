@@ -77,6 +77,12 @@ Upload- und Restore-Arbeitsdateien samt leeren Unterordnern dürfen entfernt wer
 Insbesondere `full-backup-work` nicht zurücklassen. Laufende Austauschvorgänge,
 Gerätekennung, gespeicherte Geschäftsdaten und bewusst gewählte lokale ZIP-Dateien
 bleiben getrennt. Menüs verwenden kurze deutsche Texte ohne Rohdatenwände.
+Das eigenständige Entwürfe-Menü ist entfernt. Laufende Formularbearbeitung und
+Vorgangskennungen bleiben intern erhalten. Endgültiges Löschen markierter Testdaten
+schließt ihre verknüpften Test-Arbeiten, Testfotos und übrigen Testdatensätze ein.
+Keine zusätzlichen Bestätigungen. Nicht zugehörige Geschäftsdaten und laufende
+Zeiterfassung bleiben geschützt; erfolgreiche Löschung anhand des wirksamen
+Datenstands prüfen, eine Queue-Quittung allein genügt nicht.
 
 ## Umsetzung
 

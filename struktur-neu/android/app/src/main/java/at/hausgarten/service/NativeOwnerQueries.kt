@@ -112,7 +112,7 @@ throw IllegalArgumentException("Eintrag nicht im Papierkorb.")
 var out = JSONObject().put("expected_record_hash", OwnerJournalRules.version(entry)).put("allowed", true)
 try {
 
-TrashRules.purge(JSONObject(all.toString()), JSONObject().put("kind", "purge_v1").put("client_id", "read-only-preview").put("created_at", java.time.Instant.now().toString()).put("payload", JSONObject().put("entity", args.getString("entity")).put("id", args.getString("entity_id")).put("confirmed", true).put("expected_record_hash", OwnerJournalRules.version(entry))))
+TrashRules.purge(JSONObject(all.toString()), JSONObject().put("kind", "purge_v1").put("client_id", "read-only-preview").put("created_at", java.time.Instant.now().toString()).put("payload", JSONObject().put("entity", args.getString("entity")).put("id", args.getString("entity_id")).put("confirmed", true).put("expected_record_hash", OwnerJournalRules.version(entry)).put("expected_test_dependencies_hash", PixelMcpWriteTools.hash(TrashRules.testTargets(all, args.getString("entity"), args.getString("entity_id"))))))
 
 } catch (e: IllegalArgumentException) {
 out.put("allowed", false).put("message", e.message)

@@ -337,6 +337,14 @@ var db = store!!.getWritableDatabase()
 store!!.beginBusinessTransaction(db)
 try {
 
+if (kind == "purge_v1" && payload.has("expected_test_dependencies_hash")) {
+val targets = TrashRules.testTargets(effective(), payload.getString("entity"), payload.getString("id"))
+for (i in 0 until targets.length()) {
+val target = targets.getJSONObject(i)
+ActiveWorkProtection.require(state(), target.getString("entity"), target.getString("entity_id"))
+revier().protectParent(target.getString("entity"), target.getString("entity_id"))
+}
+}
 if (Arrays.asList("archive", "delete", "purge_v1").contains(kind)) {
 revier().protectParent(payload.optString("entity"), payload.optString("id"))
 revier().detachOptionalParent(payload.optString("entity"), payload.optString("id"), request)
@@ -346,6 +354,12 @@ revier().protectParent("photo", payload.optString("id"))
 }
 if ((kind == TrashPurgeBatch.KIND)) {
 var entries = payload.getJSONArray("entries")
+val targets = TrashPurgeBatch.testTargets(effective(), entries)
+for (i in 0 until targets.length()) {
+val target = targets.getJSONObject(i)
+ActiveWorkProtection.require(state(), target.getString("entity"), target.getString("entity_id"))
+revier().protectParent(target.getString("entity"), target.getString("entity_id"))
+}
 run {
 var i: Int = 0
 var firstIteration23 = true

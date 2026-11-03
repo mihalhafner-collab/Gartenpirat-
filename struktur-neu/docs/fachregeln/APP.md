@@ -27,10 +27,9 @@ ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksicht
 Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
 nicht unbeabsichtigt wieder aktivieren.
 
-Die lokale Einzelnutzer-Oberfläche verwendet zum Archivieren oder endgültigen
-Löschen einen verständlichen Bestätigungsdialog mit demselben dauerhaften
-Aktionsbeleg und Vergleichsschutz wie die übrigen Schreibvorgänge. Technische
-Kennungen bleiben ausgeblendet. Es gibt keine vorab einzuholenden
+Die lokale Einzelnutzer-Oberfläche löscht oder archiviert direkt mit einem
+Antippen. Aktionsbeleg und Vergleichsschutz bleiben intern erhalten; zusätzliche
+Bestätigungsdialoge und Pflichttexte entfallen. Technische Kennungen bleiben ausgeblendet. Es gibt keine vorab einzuholenden
 Vorschau- oder Fotoverknüpfungs-Hashes. Fachliche Sperren für ausgestellte
 Rechnungen, abgeschlossene Angebote und laufende Zeiterfassung bleiben bestehen.
 Beim Entfernen von Auftrag oder Termin werden optionale Bezüge an Arbeiten,
@@ -39,8 +38,10 @@ vorhanden. Endgültiges Löschen entfernt den Archivdatensatz wirklich.
 
 Die anschließende lokale Bereinigung schreibt den bereits wirksamen Datenstand
 transaktional fest und entfernt nur erfolgreich übernommene Journalaktionen,
-alte Snapshot-Duplikate und Löschbelege. Ungeklärte lokale Aktionen bleiben
-vorhanden. Dateien werden gegen aktive Datensätze, Papierkorb, Entwürfe und
+alte Snapshot-Duplikate und Löschbelege. Ungeklärte lokale Aktionen außerhalb ausdrücklich endgültig gelöschter IDs
+bleiben vorhanden. Überholte Aktionen der entfernten Datensätze werden mit entfernt;
+minimale Vorgangsfingerabdrücke verhindern eine Wiederanlage ohne Geschäftsinhalte
+oder Dateiverweise aufzubewahren. Dateien werden gegen aktive Datensätze, Papierkorb, Entwürfe und
 verbliebene Aktionen geprüft. Erst nach dem Datenbank-Commit werden ungenutzte
 Originale, Vorschauen, Medien und Entwurfs-PDFs entfernt. Gerade veröffentlichte
 Formular-Fotodateien und laufende Uploads erhalten höchstens einen Tag Schonfrist,
@@ -62,15 +63,29 @@ Medien und Kernzustand werden weiterhin gemeinsam übernommen; zurückgestellte
 Medien bleiben getrennt prüfbar. Ungültige oder wiederholte Bestätigungen dürfen
 keine zusätzliche Übernahme auslösen.
 
-Native Entwürfe und lesbare bekannte Formularhüllen aus älteren Sicherungen werden
-zur ausdrücklichen Sichtung den passenden nativen Editoren zugeordnet. Die
-Quellhülle und unklare Vorgangsbelege bleiben erhalten. Unbekannte Hüllen dürfen
+Lesbare Formularhüllen aus älteren Sicherungen bleiben in der ausdrücklichen
+Wiederherstellungssichtung lesbar. Die Quellhülle und unklare Vorgangsbelege bleiben
+erhalten; ein eigenständiges Entwürfe-Menü zur späteren Zuordnung entfällt. Unbekannte Hüllen dürfen
 nicht als abgeschlossene Geschäftsaktionen oder automatisch ausführbare Entwürfe
 ausgelegt werden. Archivierte rohe IndexedDB-/LevelDB-Dateien bleiben erhalten;
 die native Oberfläche kann daraus keinen vollständigen Browserdatenbank-Inhalt
 ableiten. Diese Grenze muss sichtbar bleiben. Medien ohne vollständigen lesbaren
 Spiegel oder erforderliche Nachweise werden ausdrücklich zurückgestellt oder ihre
 Aktivierung bleibt gesperrt; ihre bloße Dateierhaltung ist kein Übernahmenachweis.
+
+Das eigenständige Entwürfe-Menü samt Inbox ist entfernt. Automatische Zwischenstände
+laufender Formulare und Vorgangsprüfungen bleiben im jeweiligen Fachformular.
+Der Papierkorb zeigt Name und Datum mit direkten Tasten für Löschen und Wiederherstellen;
+keine Rohdatenansicht oder zusätzliche Detailseite.
+
+Bei eindeutig markierten Testeinträgen umfasst endgültiges Löschen auch die zugehörigen
+aktiven oder archivierten Test-Arbeiten, Testfotos und weiteren Testdatensätze. Die
+Abhängigkeitsmenge wird mit aktuellen Versionen geprüft und gemeinsam übernommen.
+Unveränderte Fotozuordnungsbelege erfassen auch zuvor beim Archivieren gelöste Testfotos.
+Gemeinsam genutzte, nicht zum Test gehörende Daten werden nicht beiläufig mitgelöscht;
+laufende Arbeit bleibt geschützt. Gemischte Papierkörbe bleiben vollständig lokal,
+die alte Test-/Drive-Sperre ist entfernt. Eine Löschquittung setzt voraus, dass der
+wirksame Datenstand die Entfernung bestätigt.
 
 ## Sicherung
 

@@ -149,10 +149,124 @@ public final class KotlinMcpRegressionTests {
         rejected("WRITE_DISABLED", () -> read.call("create_customer", new JSONObject()));
     }
 
+    private static JSONObject trashFixture() throws Exception {
+        JSONObject customer = new JSONObject().put("id", "qa_trash_customer").put("name", "[TEST] QA fictional cleanup").put("test_record", true).put("active", 0);
+        JSONObject snapshot = master(customer);
+        JSONObject archived = new JSONObject().put("record", new JSONObject(customer.toString()).put("active", 1))
+                .put("archived_record_hash", OwnerJournalRules.version(customer));
+        snapshot.put("owner_archive", new JSONObject().put("customer:qa_trash_customer", archived));
+        snapshot.getJSONArray("worklogs").put(new JSONObject().put("id", "qa_trash_work").put("customer_id", customer.getString("id")).put("activity", "Synthetic work"));
+        snapshot.getJSONArray("photos").put(new JSONObject().put("id", "qa_trash_photo").put("customer_id", customer.getString("id")).put("worklog_id", "qa_trash_work").put("storage_name", "qa-synthetic-only.png"));
+        return snapshot;
+    }
+
+    private static JSONObject purgeAction(JSONObject snapshot) throws Exception {
+        JSONArray targets = TrashRules.testTargets(snapshot, "customer", "qa_trash_customer");
+        return new JSONObject().put("kind", "purge_v1").put("client_id", "qa_cascade_request").put("created_at", "2026-11-03T20:00:00Z")
+                .put("payload", new JSONObject().put("entity", "customer").put("id", "qa_trash_customer").put("confirmed", true)
+                    .put("expected_record_hash", OwnerJournalRules.version(snapshot.getJSONObject("owner_archive").getJSONObject("customer:qa_trash_customer")))
+                    .put("expected_test_dependencies_hash", PixelMcpWriteTools.hash(targets)).put("test_dependencies", targets));
+    }
+
+    private static void testTrashCleanup() throws Exception {
+        JSONObject snapshot = trashFixture();
+        JSONObject action = purgeAction(snapshot);
+        yes(action.getJSONObject("payload").getJSONArray("test_dependencies").length() == 2, "Active work and its photo belong to the test cleanup");
+        TrashRules.purge(snapshot, action);
+        for (String group : new String[]{"customers", "worklogs", "photos"}) yes(snapshot.getJSONArray(group).length() == 0, "No orphan test row in " + group);
+        yes(snapshot.getJSONObject("owner_archive").length() == 0, "Test parent is physically removed from trash");
+
+        JSONObject changed = trashFixture();
+        JSONObject old = purgeAction(changed);
+        changed.getJSONArray("worklogs").getJSONObject(0).put("activity", "Changed synthetic work");
+        String before = PixelMcpWriteTools.hash(changed);
+        rejected("WRITE_CONFLICT", () -> TrashRules.purge(changed, old));
+        yes(PixelMcpWriteTools.hash(changed).equals(before), "A stale dependent version changes nothing");
+
+        JSONObject blocked = trashFixture();
+        blocked.getJSONArray("customers").put(new JSONObject().put("id", "qa_other_customer").put("name", "QA unrelated customer"));
+        blocked.getJSONArray("offers").put(new JSONObject().put("id", "qa_other_offer").put("customer_id", "qa_other_customer").put("worklog_ids", new JSONArray().put("qa_trash_work")));
+        String intact = PixelMcpWriteTools.hash(blocked);
+        try { TrashRules.purge(blocked, purgeAction(blocked)); throw new AssertionError("Shared unrelated record must protect its reference"); }
+        catch (IllegalArgumentException expected) { checks++; }
+        yes(PixelMcpWriteTools.hash(blocked).equals(intact), "Unrelated dependencies reject the whole cleanup without partial removal");
+
+        JSONObject archived = trashFixture();
+        JSONObject photo = archived.getJSONArray("photos").getJSONObject(0);
+        archived.put("photos", new JSONArray());
+        archived.getJSONObject("owner_archive").put("photo:qa_trash_photo", new JSONObject().put("record", photo));
+        TrashRules.purge(archived, purgeAction(archived));
+        yes(archived.getJSONObject("owner_archive").length() == 0, "Archived descendants are removed with the test parent");
+
+        JSONObject detached = trashFixture();
+        JSONObject detachedPhoto = detached.getJSONArray("photos").getJSONObject(0);
+        detachedPhoto.put("customer_id", "").put("worklog_id", "");
+        detached.getJSONObject("owner_archive").getJSONObject("customer:qa_trash_customer").put("photo_links", new JSONArray().put(new JSONObject().put("id", "qa_trash_photo").put("detached_hash", OwnerJournalRules.version(detachedPhoto))));
+        TrashRules.purge(detached, purgeAction(detached));
+        yes(detached.getJSONArray("photos").length() == 0, "Unchanged detached photo ownership remains covered");
+
+        JSONObject mixed = trashFixture();
+        mixed.getJSONObject("owner_archive").put("photo:qa_unrelated_archived_photo", new JSONObject().put("record", new JSONObject().put("id", "qa_unrelated_archived_photo").put("caption", "QA ordinary trash photo")));
+        JSONObject preview = TrashPurgeBatch.preview(mixed);
+        yes(preview.getInt("count") == 2 && preview.getInt("linked_test_count") == 2, "Mixed trash includes test descendants without a Drive restriction");
+        JSONObject payload = TrashPurgeBatch.payload(mixed, preview.getString("preview_hash"), true);
+        yes(TestDataRules.localOnly(new JSONObject().put("kind", TrashPurgeBatch.KIND).put("payload", payload), mixed), "The complete mixed deletion stays local");
+        JSONObject batch = new JSONObject().put("kind", TrashPurgeBatch.KIND).put("client_id", "qa_mixed_request").put("created_at", "2026-11-03T20:00:00Z").put("payload", payload);
+        JSONObject stale = new JSONObject(mixed.toString());
+        stale.getJSONArray("photos").getJSONObject(0).put("caption", "Changed");
+        rejected("WRITE_CONFLICT", () -> TrashPurgeBatch.apply(stale, batch));
+        TrashPurgeBatch.apply(mixed, batch);
+        yes(mixed.getJSONObject("owner_archive").length() == 0 && mixed.getJSONArray("worklogs").length() == 0 && mixed.getJSONArray("photos").length() == 0, "One mixed batch leaves no test descendants");
+
+        JSONObject replay = trashFixture();
+        JSONArray events = new JSONArray().put(purgeAction(replay));
+        yes(LocalJournalRules.apply(replay, events).length() == 0, "Cascade journal commits once");
+        String committed = PixelMcpWriteTools.hash(replay);
+        yes(LocalJournalRules.apply(replay, events).length() == 0 && PixelMcpWriteTools.hash(replay).equals(committed), "Exact cascade replay never recreates a descendant");
+
+        JSONObject real = trashFixture();
+        real.getJSONArray("customers").getJSONObject(0).put("name", "QA ordinary customer").remove("test_record");
+        real.getJSONObject("owner_archive").getJSONObject("customer:qa_trash_customer").getJSONObject("record").put("name", "QA ordinary customer").remove("test_record");
+        yes(TrashRules.testTargets(real, "customer", "qa_trash_customer").length() == 0, "Ordinary customer deletion never cascades");
+    }
+
+    private static void deletionReadback() throws Exception {
+        for (String operation : new String[]{"purge_entity", "archive_work_records"}) for (boolean enqueueWorks : new boolean[]{false, true}) {
+            JSONObject state = new JSONObject().put("master", trashFixture()).put("pending", new JSONArray()).put("work_session", new JSONObject().put("state", "IDLE"));
+            OwnerRepository repository = (OwnerRepository) java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, (proxy, method, args) -> {
+                switch (method.getName()) {
+                    case "state": return state;
+                    case "effective": return SnapshotProjection.effective(state);
+                    case "enqueue":
+                        if (enqueueWorks) state.getJSONArray("pending").put(new JSONObject().put("kind", args[0]).put("payload", args[1]).put("client_id", args[2]).put("created_at", "2026-11-03T20:00:00Z"));
+                        return new JSONObject().put("local_state", "local_saved");
+                    default: throw new UnsupportedOperationException(method.getName());
+                }
+            });
+            JSONObject payload = purgeAction(state.getJSONObject("master")).getJSONObject("payload");
+            JSONObject args = new JSONObject().put("entity", "customer").put("entity_id", "qa_trash_customer").put("expected_record_hash", payload.getString("expected_record_hash")).put("confirmed", true);
+            if (operation.equals("archive_work_records")) {
+                JSONArray ids = new JSONArray().put("qa_trash_work");
+                args = new JSONObject().put("work_record_ids", ids).put("expected_preview_hash", WorklogArchiveBatch.preview(state.getJSONObject("master"), ids).getString("preview_hash")).put("confirmed", true);
+            }
+            final JSONObject supplied = args;
+            ArchiveApplicationService service = new ArchiveApplicationService(repository);
+            if (!enqueueWorks) rejected("DELETE_NOT_APPLIED", () -> service.perform(operation, supplied, "qa_readback_failed"));
+            else {
+                service.perform(operation, supplied, "qa_readback_ok");
+                JSONObject actual = repository.effective();
+                if (operation.equals("purge_entity")) yes(actual.getJSONArray("customers").length() == 0 && actual.getJSONArray("worklogs").length() == 0 && actual.getJSONArray("photos").length() == 0, "Deletion success is based on the applied business state");
+                else yes(actual.getJSONArray("worklogs").length() == 0 && actual.getJSONObject("owner_archive").has("worklog:qa_trash_work") && actual.getJSONArray("photos").getJSONObject(0).optString("worklog_id").isEmpty(), "Batch archive reads back removal and detached photo relations");
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         optionalJsonBoundaries();
         guardedCustomerJournal();
         readAndWriteCatalog();
+        testTrashCleanup();
+        deletionReadback();
         System.out.println("PASS " + checks + " Kotlin MCP nullable-JSON/journal/catalog regression checks; synthetic only");
     }
 }

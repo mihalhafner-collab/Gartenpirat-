@@ -164,7 +164,7 @@ internal class PixelMcpOwnerTools {
                     return "Prüft endgültige Entfernung eines Papierkorbeintrags ohne Änderung; zeigt Abhängigkeiten und aktuellen Archivhash."
                 }
                 "purge_entity" -> {
-                    return ("Löscht ausschließlich einen ausdrücklich bestätigten Papierkorbeintrag mit aktuellem Archivhash endgültig aus dem aktiven App-/Archivbestand. Kein Restore; minimale Löschquittung verhindert Wiederbelebung. Ungeteilte Mediendateien erst nach dauerhafter Sync-Übernahme bereinigen. Historische Sicherungen/Journale werden nicht überschrieben. " +
+                    return ("Löscht einen bestätigten Papierkorbeintrag mit aktuellem Archivhash endgültig. Eindeutige Testeinträge schließen zugehörige aktive und archivierte Testdaten mit Versionsprüfung ein. Nicht zugehörige Daten und laufende Arbeit bleiben geschützt. Entfernung im wirksamen Bestand prüfen; ungeteilte Dateien nach lokalem Commit bereinigen. Gewählte ZIP-Dateien bleiben erhalten. " +
                         common)
                 }
                 "preview_delete" -> {

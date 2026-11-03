@@ -40,7 +40,7 @@ private val nativeSections = linkedMapOf(
     "today" to "Heute", "worklogs" to "Arbeitsaufzeichnungen", "timer" to "Zeiterfassung", "customers" to "Kunden", "properties" to "Objekte",
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
     "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote",
-    "billing" to "Offene Stunden", "drafts" to "Entwürfe", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
+    "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
     "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
@@ -103,7 +103,6 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "action" -> NativeActionForm(controller, route.id, route.mode, route.args)
                 "settings" -> NativeSettings(controller)
                 "storage" -> NativeStorageSettings(controller)
-                "drafts" -> NativeDraftInbox(controller)
                 "trash" -> NativeTrash(controller)
                 "connections" -> NativeConnections(controller)
                 "backup" -> Column(Modifier.fillMaxSize()) {
@@ -171,7 +170,7 @@ private fun NativeOffice(controller: NativeAppController) {
     val groups = linkedMapOf(
         "Aufträge und Anfragen" to listOf("orders", "inquiries", "properties", "care_plans"),
         "Material und Pflanzen" to listOf("materials", "plants", "photos", "catalog"),
-        "Weitere Verwaltung" to listOf("drafts", "revier_search", "revier_archive", "trash")
+        "Weitere Verwaltung" to listOf("revier_search", "revier_archive", "trash")
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
         item { Text("Organisieren", style = MaterialTheme.typography.titleMedium) }
@@ -465,7 +464,6 @@ private fun NativeWorkOverview(controller: NativeAppController) {
         if (active) NativeStatus(when(session?.optString("state")) { "RUNNING" -> "Zeit läuft"; "PAUSED" -> "Pausiert"; else -> "Zeit gestoppt · Abschluss offen" }, when (session?.optString("state")) { "STOPPED_PENDING_REVIEW" -> NativeStatusTone.Attention; "PAUSED" -> NativeStatusTone.Neutral; else -> NativeStatusTone.Running })
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             OutlinedButton({ controller.navigate("timer", args = controller.route.args) }) { Text(if (active) "Laufende Arbeit öffnen" else "Zeiterfassung öffnen") }
-            TextButton({ controller.navigate("drafts", args = JSONObject().put("scope", "work")) }) { Text("Arbeitsentwürfe") }
         }
     }
 }
@@ -1226,7 +1224,6 @@ private fun NativeSettings(controller: NativeAppController) {
             catch (failure: Exception) { error = failure.message.orEmpty() }
         } }) }
         item { NativeInfoRow("Speicher", "Belegung und Bereinigung", { controller.navigate("storage") }) }
-        item { NativeInfoRow("Entwürfe", "Offene Formulare und übernommene Bearbeitungen", { controller.navigate("drafts") }) }
         item { NativeInfoRow("Papierkorb", "Wiederherstellen oder endgültig löschen", { controller.navigate("trash") }) }
         item { Text("App prüfen", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.titleMedium) }
         item { OutlinedButton({ scope.launch {
@@ -1272,7 +1269,6 @@ private fun NativeSettings(controller: NativeAppController) {
 @Composable
 private fun NativeTrash(controller: NativeAppController) {
     var offset by rememberSaveable { mutableIntStateOf(0) }
-    var selected by rememberSaveable { mutableStateOf("") }
     var data by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var refresh by remember { mutableIntStateOf(0) }
@@ -1283,28 +1279,7 @@ private fun NativeTrash(controller: NativeAppController) {
     }
     val rows = data?.optJSONArray("items") ?: data?.optJSONArray("archive") ?: data?.optJSONArray("entries") ?: JSONArray()
     val entries = (0 until rows.length()).map { rows.getJSONObject(it) }
-    val focused = entries.firstOrNull { it.optString("archive_key") == selected }
-    if (focused != null) {
-        val archived = focused.optJSONObject("entry") ?: focused
-        val record = archived.optJSONObject("record") ?: archived.optJSONObject("_archive_record") ?: JSONObject()
-        val entity = selected.substringBefore(':')
-        val id = selected.substringAfter(':')
-        BackHandler { selected = "" }
-        Column(Modifier.fillMaxSize()) {
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(record.optString("name", record.optString("title", record.optString("activity", nativeValue(entity)))), style = MaterialTheme.typography.headlineSmall)
-                NativeStatus("Im Papierkorb")
-                Text("Entfernt am " + nativeDisplayDate(archived.optString("archived_at")))
-                Text("Du kannst diesen Eintrag wiederherstellen. Endgültiges Löschen benötigt eine eigene Bestätigung.")
-                NativeBusinessValues(JSONObject(record.toString()).apply { for (key in listOf("id", "customer_id", "order_id", "billing_customer_id", "_sync_base", "_mcp_base", "created_at", "updated_at")) remove(key) })
-                NativeDeleteButton(controller, entity, id, label = "Endgültig löschen", permanent = true) { selected = ""; refresh++ }
-            }
-            NativeActionBar("Eintrag wiederherstellen", { controller.action("Eintrag wiederherstellen", "restore_entity", JSONObject().put("entity", entity).put("entity_id", id).put("expected_record_hash", focused.optString("record_hash"))) }, "Zurück", { selected = "" })
-        }
-        return
-    }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { Text("Archivieren erhält einen Eintrag. Endgültiges Löschen entfernt ihn nach eigener Bestätigung.", style = MaterialTheme.typography.bodySmall) }
         if (error.isNotEmpty()) item { NativeStatus(error, NativeStatusTone.Failed) }
         else if (data == null) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         else if (rows.length() == 0) item { Text("Der Papierkorb ist leer.") }
@@ -1312,8 +1287,23 @@ private fun NativeTrash(controller: NativeAppController) {
             val archived = row.optJSONObject("entry") ?: row
             val record = archived.optJSONObject("record") ?: archived.optJSONObject("_archive_record") ?: JSONObject()
             val key = row.optString("archive_key")
-            NativeInfoRow(record.optString("name", record.optString("title", record.optString("activity", nativeValue(key.substringBefore(':'))))),
-                nativeDisplayDate(archived.optString("archived_at")) + " · Im Papierkorb", { selected = key })
+            val entity = key.substringBefore(':')
+            val id = key.substringAfter(':')
+            val fallback = when (entity) {
+                "customer" -> "Kunde"; "order" -> "Auftrag"; "worklog" -> "Arbeit"
+                "photo" -> "Foto"; "invoice" -> "Rechnung"; "offer" -> "Angebot"
+                "appointment" -> "Termin"; "service_template" -> "Leistung"; else -> "Eintrag"
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(listOf("name", "title", "activity", "caption").firstNotNullOfOrNull { field -> record.optString(field).takeIf { it.isNotBlank() } } ?: fallback,
+                    style = MaterialTheme.typography.titleMedium)
+                Text(nativeDisplayDate(archived.optString("archived_at")), style = MaterialTheme.typography.bodySmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NativeDeleteButton(controller, entity, id, label = "Löschen", permanent = true) { refresh++ }
+                    TextButton({ controller.action("Wiederherstellen", "restore_entity", JSONObject().put("entity", entity).put("entity_id", id).put("expected_record_hash", row.optString("record_hash"))) }) { Text("Wiederherstellen") }
+                }
+                HorizontalDivider()
+            }
         }
         item { Row {
             if (offset > 0) OutlinedButton({ offset = maxOf(0, offset - 40) }) { Text("Vorherige") }
