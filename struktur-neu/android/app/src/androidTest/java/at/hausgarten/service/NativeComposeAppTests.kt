@@ -304,17 +304,35 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun openCustomerList() {
         click("Kunden")
         repeat(12) {
-            if (field("Suchen") != null && node("Kunde anlegen")?.let(::clickable) != null) return
+            fun ready() = field("Suchen")?.isEditable == true && node("Kunde anlegen")?.let(::clickable) != null
+            var listReady = false
+            waitUntil("CUSTOMER_LIST_OR_DETAIL_ROUTE") {
+                if (!selectedArea("Kunden")) false
+                else if (ready()) { listReady = true; true }
+                else node("‹ Zurück")?.let(::clickable) != null
+            }
+            if (listReady) return
             click("‹ Zurück")
         }
         throw AssertionError("QA_NATIVE_COMPOSE_CUSTOMER_LIST_BACK_PATH")
     }
 
+    private fun selectedArea(label: String) = nodes().any {
+        it.isVisibleToUser && matches(it, label) && clickable(it)?.stateDescription?.toString() == "Ausgewählter Bereich"
+    }
+
     private fun openOffice() {
         click("Büro")
         repeat(12) {
+            fun ready() = node("Einstellungen und Daten")?.let(::clickable) != null || node("Organisieren") != null
+            waitUntil("OFFICE_AREA_SELECTED") { selectedArea("Büro") }
             scrollTop()
-            if (node("Einstellungen und Daten")?.let(::clickable) != null || node("Organisieren") != null) return
+            var rootReady = false
+            waitUntil("OFFICE_ROOT_OR_DETAIL_ROUTE") {
+                if (ready()) { rootReady = true; true }
+                else node("‹ Zurück")?.let(::clickable) != null
+            }
+            if (rootReady) return
             click("‹ Zurück")
         }
         throw AssertionError("QA_NATIVE_COMPOSE_OFFICE_BACK_PATH")
@@ -1301,7 +1319,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 waitUntil("PAUSED_TIMER_200_PERCENT_RESOURCES") {
                     (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f
                 }
-                shown("Pausiert"); shown(frozenClock)
+                reveal("Pausiert"); reveal(frozenClock)
                 primaryPosition("Fortsetzen", "Zeit stoppen")
                 val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
                 val clockBounds = Rect().also { requireNotNull(node(frozenClock)).getBoundsInScreen(it) }
@@ -1341,7 +1359,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(read("get_active_work_session").getString("id") == id &&
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "COMPACT_TIMER_REOPENS_WITHOUT_DUPLICATE_OR_WORKLOG")
         click("Arbeit"); enter("Suchen", ""); click("Laufende Arbeit öffnen")
-        reveal("Arbeit läuft"); shown("Arbeitszeit ohne Pause")
+        reveal("Arbeit läuft"); reveal("Arbeitszeit ohne Pause")
         val minimumSeconds = (read("get_active_work_session").getLong("worked_ms") / 1000 - 1).coerceAtLeast(0)
         waitUntil("TIMER_HAS_READABLE_PERSISTED_DURATION") {
             val maximumSeconds = read("get_active_work_session").getLong("worked_ms") / 1000 + 1
@@ -1357,9 +1375,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Textbausteine ▾"); click("Rasen gemäht")
         reveal("Tätigkeit · optional bis zum Abschluss")
         yes(field("Tätigkeit · optional bis zum Abschluss")?.text?.toString() == "[TEST] QA native Timer\nRasen gemäht", "TIMER_SNIPPET_RETAINS_OWN_TEXT")
-        click("Pause"); shown("Arbeit pausiert"); recreate(); shown("Arbeit pausiert")
+        click("Pause"); reveal("Arbeit pausiert"); recreate(); reveal("Arbeit pausiert")
         yes(read("get_active_work_session").getString("id") == id, "RECREATION_PRESERVES_TIMER_ID")
-        click("Fortsetzen"); shown("Arbeit läuft")
+        click("Fortsetzen"); reveal("Arbeit läuft")
         // A positive rounded duration is required by the real work writer.
         waitUntil("TIMER_HAS_POSITIVE_SAVEABLE_DURATION", 30000) { read("get_active_work_session").optDouble("hours") > 0.0 }
         captureSyntheticScreen("timer-actions")
@@ -1380,7 +1398,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(completed.getString("state") == "FINALIZED", "TIMER_EXPLICIT_SAVE_FINALIZES_EXACT_SESSION")
         val saved = read("get_work_record", JSONObject().put("work_record_id", completed.getString("finalized_worklog_id")))
         yes(saved.optString("activity") == "[TEST] QA native Timer\nRasen gemäht" && saved.optString("customer_id") == session.getString("customer_id"), "TIMER_SAVED_TEXT_AND_CUSTOMER")
-        click("Heute"); shown("Arbeit gespeichert")
+        click("Heute"); reveal("Arbeit gespeichert")
         val summary = read("get_work_record_summary", todayArgs)
         yes(summary.optInt("work_records") == todayBefore.optInt("work_records") + 1 &&
             kotlin.math.abs(summary.optDouble("hours") - todayBefore.optDouble("hours") - saved.optDouble("hours")) <= 0.01,
@@ -1392,6 +1410,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Zeit stoppen"); shown("Arbeit abschließen")
         enter("Tätigkeit *", "[TEST] QA verworfener Abschluss")
         click("Weitere Angaben (optional)")
+        reveal("Entwurf verwerfen")
         discardWork(confirm = false)
         yes(read("get_active_work_session").optString("state") == "STOPPED_PENDING_REVIEW", "CANCEL_TIMER_DISCARD_RETAINS_STOPPED_SESSION")
         val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
@@ -1415,7 +1434,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before + 1, "DISCARD_PRESERVES_CONFIRMED_WORK")
         click("Letzte verworfene Sitzung zurückholen")
         waitUntil("TIMER_RESTORED") { read("get_active_work_session").optString("id") == discardedId && read("get_active_work_session").optString("state") == "PAUSED" }
-        shown("Arbeit pausiert"); primaryPosition("Fortsetzen", "Zeit stoppen"); click("Zeit stoppen")
+        reveal("Arbeit pausiert"); primaryPosition("Fortsetzen", "Zeit stoppen"); click("Zeit stoppen")
         shown("Arbeit abschließen"); click("Weitere Angaben (optional)"); discardWork()
         waitUntil("RESTORED_TIMER_DISCARDED") { read("get_active_work_session").optString("state") == "IDLE" }
     }
@@ -2318,7 +2337,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Termin planen")
         yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() == before, "PLANNING_DISCARD_DOES_NOT_CREATE_RECORD")
-        click("Heute"); shown("Heute gespeichert")
+        click("Heute"); reveal("Heute gespeichert")
         click("Arbeit nachtragen"); shown("Arbeit speichern"); reveal("Datum *")
         openWorkCustomerPicker(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         chooseTime("Beginn", "08:00"); chooseTime("Ende", "12:00")
