@@ -293,9 +293,10 @@ private fun NativeTimeCard(value: JSONObject) {
             HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (value.optLong("started_at_ms") > 0) Column {
+                    val start = java.time.Instant.ofEpochMilli(value.getLong("started_at_ms")).atZone(ZoneId.of("Europe/Vienna"))
+                    val pattern = if (start.toLocalDate().toString() == value.optString("work_date")) "HH:mm" else "dd.MM.yyyy · HH:mm"
                     Text("Beginn", style = MaterialTheme.typography.bodySmall)
-                    Text(java.time.Instant.ofEpochMilli(value.getLong("started_at_ms")).atZone(ZoneId.of("Europe/Vienna"))
-                        .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) + " Uhr", fontWeight = FontWeight.SemiBold)
+                    Text(start.format(java.time.format.DateTimeFormatter.ofPattern(pattern)) + " Uhr", fontWeight = FontWeight.SemiBold)
                 }
                 Column {
                     Text("Pausen gesamt", style = MaterialTheme.typography.bodySmall)

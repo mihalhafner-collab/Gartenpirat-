@@ -639,3 +639,16 @@ und unveränderte aktive Dateien/Gerätekennung. Die native Backup- und Datensui
 prüft den entfallenen Rückfallkopienpfad und die Entfernung alter interner Sicherungen.
 Native UI-Tests erwarten direkte Lösch-/Verwerfaktionen statt zusätzlicher Dialoge.
 Eine APK-Kompilierung ist weiterhin kein ausgeführter Gerätefunktionstest.
+
+## Gezielte Grafikabnahme ohne Sicherungs-Vorbereitung
+
+`workflow_dispatch` mit `emulator=true` und `graphics_only=true` führt die
+Suite `native_graphics` auf einem frisch geleerten API35-Wegwerf-Emulator aus.
+Der Test prüft den Emulator und den leeren Appbestand, bevor er ausschließlich
+synthetische Daten anlegt. Er prüft Heute, Kunden, Planung, Angebote, Zubehörfoto,
+Timer und große Schrift und erzeugt die zugehörigen Bildschirmbilder.
+Backup-, Provider- und Wiederherstellungspfade sind keine Voraussetzung dieser
+Grafikprüfung. Die bisherige vollständige native Suite bleibt unverändert
+über `emulator=true`, `graphics_only=false` verfügbar. Bekannte Fehlschläge
+und tatsächliche Nachweise stehen in `AKTUELLER-STAND.json`. Die Grafikprüfung
+bestätigt keine Backup-Abnahme und keine Prüfung auf dem physischen Pixel.

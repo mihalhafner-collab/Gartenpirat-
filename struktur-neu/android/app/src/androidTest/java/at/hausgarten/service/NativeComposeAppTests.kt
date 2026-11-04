@@ -39,6 +39,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     companion object {
         /** Run only after document_provider_reopen, on the same disposable API 35 emulator. */
         @JvmStatic fun run(test: Instrumentation): JSONObject = NativeComposeAppTests(test).execute()
+        /** Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider prerequisite. */
+        @JvmStatic fun runGraphics(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeGraphics()
     }
 
     private val context = test.targetContext
@@ -383,6 +385,164 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes((0 until rows.length()).count { rows.getJSONObject(it).optString("name").startsWith(fixturePrefix) } == 55, "REAL_WRITER_CREATED_PAGING_ROWS")
     }
 
+    private fun guardGraphicsFixture() {
+        // Reject physical devices before inspecting any app storage. This suite never clears data.
+        yes(test.context.packageName == "at.hausgarten.service.test" && context.packageName == "at.hausgarten.service", "GRAPHICS_TEST_AND_TARGET_PACKAGES")
+        yes(Build.VERSION.SDK_INT == 35 && Build.HARDWARE in listOf("ranchu", "goldfish") &&
+            shell("getprop ro.kernel.qemu") == "1", "GRAPHICS_DISPOSABLE_API35_EMULATOR_REQUIRED")
+        yes(!context.isDeviceProtectedStorage, "GRAPHICS_CREDENTIAL_SANDBOX_REQUIRED")
+        RevierApplication.awaitStartup(context, 20000)
+        val files = context.filesDir
+        val noBackup = context.noBackupFilesDir
+        val updatedAt = context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+        fun profileMetadata(file: File): Boolean = try {
+            if (java.nio.file.Files.isSymbolicLink(file.toPath()) || !file.isFile || file.canonicalFile.parentFile != files.canonicalFile) false
+            else when (file.name) {
+                "profileinstaller_profileWrittenFor_lastUpdateTime.dat" -> file.length() == 8L &&
+                    java.io.DataInputStream(file.inputStream()).use { it.readLong() == updatedAt && it.read() == -1 }
+                "profileInstalled" -> file.length() == 24L && java.io.DataInputStream(file.inputStream()).use {
+                    val schema = it.readInt(); val result = it.readInt(); val packageUpdatedAt = it.readLong(); val profileSize = it.readLong()
+                    schema == 1 && result in setOf(0, 1, 2, 3, 65536, 131072, 196608, 262144, 327680) &&
+                        packageUpdatedAt == updatedAt && profileSize >= 0 && it.read() == -1
+                }
+                else -> false
+            }
+        } catch (_: java.io.IOException) { false }
+        yes(!java.nio.file.Files.isSymbolicLink(files.toPath()) && files.listFiles()?.all(::profileMetadata) == true,
+            "GRAPHICS_FRESH_FILES_OR_VERIFIED_ANDROIDX_PROFILE_METADATA_REQUIRED")
+        yes(!java.nio.file.Files.isSymbolicLink(noBackup.toPath()) && noBackup.listFiles()?.isEmpty() == true,
+            "GRAPHICS_FRESH_NO_BACKUP_REQUIRED")
+        val databaseDirectory = context.getDatabasePath("haus-garten-mobile.db").parentFile!!
+        yes(!java.nio.file.Files.isSymbolicLink(databaseDirectory.toPath()) &&
+            (!databaseDirectory.exists() || databaseDirectory.listFiles()?.isEmpty() == true), "GRAPHICS_NO_EXISTING_DATABASE_REQUIRED")
+        val preferenceDirectory = File(context.dataDir, "shared_prefs")
+        yes(!java.nio.file.Files.isSymbolicLink(preferenceDirectory.toPath()) &&
+            (!preferenceDirectory.exists() || preferenceDirectory.listFiles()?.all { file ->
+                !java.nio.file.Files.isSymbolicLink(file.toPath()) && file.isFile && file.name.endsWith(".xml") &&
+                    file.canonicalFile.parentFile == preferenceDirectory.canonicalFile &&
+                    context.getSharedPreferences(file.name.removeSuffix(".xml"), Context.MODE_PRIVATE).all.isEmpty()
+            } == true), "GRAPHICS_NO_CONFIGURED_PREFERENCES_REQUIRED")
+        // The exact public profile is written only after every fresh-sandbox assertion passed.
+        val fixture = SyntheticBusinessData.profile("minimal")
+        File(noBackup, "qa-native-graphics-fixture.json").writeText(JSONObject().put("fixture", "synthetic-native-graphics-v1")
+            .put("source_sha256", PixelMcpWriteTools.hash(fixture)).toString())
+        store = PixelLocalStore(context)
+        store.putOwnerValue("snapshot", fixture.toString())
+        store.putOwnerValue("qa_graphics_marker", "QA independent synthetic graphics fixture")
+        tools = PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
+        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("customers")) ==
+            PixelMcpWriteTools.hash(fixture.getJSONArray("customers")), "GRAPHICS_EXACT_SYNTHETIC_CUSTOMERS")
+        yes(read("get_active_work_session").optString("state") == "IDLE", "GRAPHICS_NO_EXISTING_TIMER")
+        yes(context.getSharedPreferences("planning_private", Context.MODE_PRIVATE).edit().putBoolean("weather_enabled", false)
+            .putBoolean("notifications", false).commit(), "GRAPHICS_OFFLINE_PLANNING")
+    }
+
+    private fun executeGraphics(): JSONObject {
+        guardGraphicsFixture()
+        val previousInfo = automation.serviceInfo
+        val previousFlags = previousInfo.flags
+        val oldFont = shell("settings get system font_scale")
+        val passed = JSONArray()
+        val failures = ArrayList<Throwable>()
+        try {
+            automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
+            shell("settings put system font_scale 1.0")
+            seedPaging()
+            launch()
+            fun journey(name: String, body: () -> Unit) {
+                test.sendStatus(0, Bundle().apply { putString("journey_start", name) })
+                try { body(); passed.put(name) }
+                catch (failure: Throwable) {
+                    test.sendStatus(0, Bundle().apply { putString("journey_failure", "$name: " + failure.stackTraceToString()) })
+                    runCatching { captureSyntheticScreen("failure-$name"); logVisibleActions("failure_$name") }
+                    failures.add(AssertionError("QA_NATIVE_GRAPHICS_JOURNEY_$name", failure))
+                }
+                // Keep later screenshot groups reachable after an unrelated failed UI case.
+                activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
+                shell("settings put system font_scale 1.0")
+                launch()
+            }
+            journey("graphics_today", ::todayJourney)
+            journey("graphics_navigation", ::graphicsNavigationJourney)
+            journey("graphics_accessories", ::accessoryJourney)
+            journey("graphics_timer") { timerJourney(largeFontScreenshot = true) }
+            journey("graphics_large_text", ::largeTextJourney)
+            if (failures.isNotEmpty()) {
+                val failure = AssertionError("QA_NATIVE_GRAPHICS_JOURNEYS_FAILED_${failures.size}")
+                failures.forEach(failure::addSuppressed)
+                throw failure
+            }
+            return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
+                .put("independent_fresh_fixture", true).put("backup_provider_prerequisite", false)
+                .put("real_main_activity", true).put("native_compose_ui", true).put("graphics_cases", passed)
+                .put("today_hub", true).put("timer_state_transitions", true).put("machine_accessory_roundtrip", true)
+                .put("font_scale_200_percent", true).put("physical_pixel_tested", false).put("drive_account_tested", false)
+        } finally {
+            shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
+            activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
+            automation.serviceInfo = previousInfo.apply { flags = previousFlags }
+            store.close()
+        }
+    }
+
+    private fun graphicsNavigationJourney() {
+        openCustomerList(); enter("Suchen", fixturePrefix)
+        shown("55 Treffer · 1–50"); shown(fixturePrefix + "000")
+        captureSyntheticScreen("graphics-customers")
+        enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
+        shown(fixturePrefix + "000"); primaryPosition("Arbeit starten", "Bearbeiten")
+        captureSyntheticScreen("graphics-customer")
+        val customerId = customers(fixturePrefix + "000").single().getString("id")
+        val start = LocalDate.now(ZoneId.of("Europe/Vienna")).atTime(10, 0).atZone(ZoneId.of("Europe/Vienna")).toInstant()
+        read("create_appointment", JSONObject().put("request_id", "qa_graphics_appointment")
+            .put("customer_id", customerId).put("title", "[TEST] QA Grafik Gartenpflege")
+            .put("starts_at", start.toString()).put("ends_at", start.plusSeconds(3600).toString())
+            .put("timezone", "Europe/Vienna").put("weather_profile", "indoor").put("status", "tentative"))
+        openOffice(); click("Planung"); shown("Termin planen")
+        reveal("[TEST] QA Grafik Gartenpflege"); scrollTop()
+        captureSyntheticScreen("graphics-planning")
+        val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers"))
+        openOffice(); click("Angebote"); shown("Angebot anlegen")
+        captureSyntheticScreen("graphics-offers")
+        click("Angebot anlegen"); shown("Weiter zu Leistungen"); reveal("Empfänger und Auftrag")
+        click("Kunde: Nicht zugeordnet")
+        enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
+        shown("Kunde: " + fixturePrefix + "000")
+        enter("Titel *", "[TEST] QA Grafik Gartenpflege")
+        scrollTop(); shown("Kunde: " + fixturePrefix + "000")
+        captureSyntheticScreen("graphics-offer-customer")
+        click("Weiter zu Leistungen"); shown("Positionen"); shown("Eigene Position hinzufügen")
+        click("Eigene Position hinzufügen")
+        enter("Bezeichnung *", "[TEST] QA Grafik Rasenpflege")
+        enter("Menge *", "2")
+        enter("Einheit *", "Std.")
+        enter("Einzelpreis in EUR *", "35,00")
+        enter("Steuersatz in %", "0")
+        click("Diesen Einzelpreis ausdrücklich bestätigt")
+        val offerDraftKey = "native_form_draft:" + PixelMcpWriteTools.hash("finance:offers:new")
+        waitUntil("GRAPHICS_OFFER_HAS_REAL_SELECTED_CUSTOMER_AND_POSITION") {
+            val record = runCatching { JSONObject(store.ownerValue(offerDraftKey, "")).getJSONObject("record") }.getOrNull()
+            val positions = record?.optJSONArray("positions")
+            val position = positions?.optJSONObject(0)
+            if (record == null || positions == null || position == null) return@waitUntil false
+            record.optString("customer_id") == customerId && positions.length() == 1 &&
+                position.optString("title") == "[TEST] QA Grafik Rasenpflege" &&
+                position.optString("quantity") == "2" && position.optString("unit") == "Std." &&
+                position.optString("price").replace(',', '.').toDoubleOrNull() == 35.0 &&
+                position.optString("price_source") == "user_confirmed"
+        }
+        click("1. [TEST] QA Grafik Rasenpflege")
+        scrollTop(); shown("1. [TEST] QA Grafik Rasenpflege")
+        captureSyntheticScreen("graphics-offer-positions")
+        click("Entwurf verwerfen")
+        shown("Angebot anlegen")
+        waitUntil("GRAPHICS_OFFER_DISCARD_REMOVES_DRAFT") { store.ownerValue(offerDraftKey, "").isEmpty() }
+        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("offers")) == before,
+            "GRAPHICS_OFFER_PREVIEW_DOES_NOT_SAVE")
+        openOffice(); click("Geräte"); shown("Gerät anlegen")
+        captureSyntheticScreen("graphics-equipment")
+    }
+
     private fun launch(planning: Boolean = false, appointment: String = "", action: String = "") {
         shell("wm dismiss-keyguard")
         // Each launch intentionally starts a fresh synthetic task. Without CLEAR_TASK,
@@ -456,7 +616,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("pending_result_read_only", ::pendingResultJourney)
             journey("usability", ::usabilityJourney)
             journey("accessories", ::accessoryJourney)
-            journey("timer", ::timerJourney)
+            journey("timer") { timerJourney() }
             journey("today_older_work_commit", ::todayOlderWorkJourney)
             journey("notification", ::notificationJourney)
             journey("customer_context", ::customerContextJourney)
@@ -1088,7 +1248,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Heute")
     }
 
-    private fun timerJourney() {
+    private fun timerJourney(largeFontScreenshot: Boolean = false) {
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         openCustomerList()
         val before = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
@@ -1122,7 +1282,39 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         recreate(); shown("Pausiert")
         yes(read("get_active_work_session").getLong("worked_ms") == frozen, "PAUSED_TIME_DOES_NOT_GROW_DURING_RECREATION")
         val frozenSeconds = frozen.coerceAtLeast(0) / 1000
-        shown("%02d:%02d:%02d".format(frozenSeconds / 3600, frozenSeconds / 60 % 60, frozenSeconds % 60))
+        val frozenClock = "%02d:%02d:%02d".format(frozenSeconds / 3600, frozenSeconds / 60 % 60, frozenSeconds % 60)
+        shown(frozenClock)
+        if (largeFontScreenshot) {
+            val priorFont = shell("settings get system font_scale")
+            try {
+                activity?.let { current -> test.runOnMainSync { current.finish() } }
+                shell("settings put system font_scale 2.0"); launch()
+                waitUntil("PAUSED_TIMER_200_PERCENT_RESOURCES") {
+                    (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f
+                }
+                shown("Pausiert"); shown(frozenClock)
+                primaryPosition("Fortsetzen", "Zeit stoppen")
+                val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                val clockBounds = Rect().also { requireNotNull(node(frozenClock)).getBoundsInScreen(it) }
+                yes(screen.contains(clockBounds) && clockBounds.height() > 0 &&
+                    screen.contains(actionBounds("Fortsetzen")) && screen.contains(actionBounds("Zeit stoppen")),
+                    "LARGE_TEXT_TIMER_CLOCK_AND_ACTIONS_FULLY_VISIBLE")
+                val paused = read("get_active_work_session")
+                yes(paused.getString("id") == id && paused.getString("state") == "PAUSED" && paused.getLong("worked_ms") == frozen,
+                    "LARGE_TEXT_TIMER_PRESERVES_EXACT_PAUSED_SESSION")
+                yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before,
+                    "LARGE_TEXT_TIMER_DOES_NOT_SAVE_WORK")
+                captureSyntheticScreen("timer-large-font")
+            } finally {
+                activity?.let { current -> test.runOnMainSync { current.finish() } }
+                shell(if (priorFont == "null") "settings delete system font_scale" else "settings put system font_scale $priorFont")
+                launch()
+            }
+            shown("Pausiert"); shown(frozenClock)
+            val restored = read("get_active_work_session")
+            yes(restored.getString("id") == id && restored.getString("state") == "PAUSED" && restored.getLong("worked_ms") == frozen,
+                "RESTORED_FONT_PRESERVES_EXACT_PAUSED_SESSION")
+        }
         click("Fortsetzen")
         waitUntil("TODAY_RESUMED") { read("get_active_work_session").optString("state") == "RUNNING" }
         primaryPosition("Zeit stoppen", "Pause")
@@ -2093,6 +2285,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(plan.height() >= minimumTouch && check.height() >= minimumTouch, "LARGE_TEXT_TOUCH_TARGETS")
         yes(plan.bottom <= frame.bottom && check.bottom <= frame.bottom, "ACTIONS_WITHIN_VISIBLE_FRAME")
         yes(safe.contains(plan) && safe.contains(check), "ACTIONS_CLEAR_SYSTEM_BARS")
+        captureSyntheticScreen("planning-large-font")
         val before = PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length()
         click("Termin planen"); shown("Termin speichern")
         chooseDateTime("Geplanter Beginn *", "2027-05-19T09:00")

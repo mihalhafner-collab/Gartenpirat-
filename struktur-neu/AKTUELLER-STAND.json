@@ -118,13 +118,14 @@
     ],
     "validation": {
       "source": "PASS; 61 selected Python tests and exact native UI registry review",
-      "android": "Kotlin production and androidTest compilation PASS; final clean build and lint pending",
+      "android": "PASS clean ac7233f build/release/androidTest/lint/artifact privacy; final date-display correction and independent test-harness build pending",
       "jvm": "PASS; 8 synthetic JVM suites, 1469 assertions",
-      "graphic_review": "PASS_STATIC; independent visual-reference/source review with two correction rounds; actual Android screenshots pending",
-      "native_ui_execution": "NOT_RUN",
+      "graphic_review": "PASS_STATIC; independent repeated PDF/source review including timer hierarchy, font-scaled avatars, navigation icons and retained differing start date. Actual screenshots pending.",
+      "native_ui_execution": "PENDING; independent native_graphics suite on fresh API35 emulator, no backup/provider prerequisite",
       "installation": "NOT_PERFORMED",
       "distribution": "PENDING",
-      "backup_changes": "NONE; implementation, format and user flows unchanged"
+      "backup_changes": "NONE; implementation, format and user flows unchanged",
+      "native_full_regression": "FAIL; run41917494315 on ac7233f: unchanged legacy backup/provider tests require retained empty work folders; native_data expects retained marked test photos. UI prerequisite failed. No backup production change."
     }
   },
   "open_checks": [
