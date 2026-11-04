@@ -118,10 +118,10 @@
     ],
     "validation": {
       "source": "PASS; 61 selected Python tests and exact native UI registry review",
-      "android": "PASS clean ac7233f build/release/androidTest/lint/artifact privacy; final date-display correction and independent test-harness build pending",
+      "android": "PASS; c294ccb clean release/androidTest build, lint and APK privacy. Production source SHA256 1288a8b9dbc1104aa3d9c979c96e2d90b65516f2774d811398d4cad1a3eb8b26; test-helper-only rerun pending.",
       "jvm": "PASS; 8 synthetic JVM suites, 1469 assertions",
-      "graphic_review": "PASS_STATIC; independent repeated PDF/source review including timer hierarchy, font-scaled avatars, navigation icons and retained differing start date. Actual screenshots pending.",
-      "native_ui_execution": "PENDING; independent native_graphics suite on fresh API35 emulator, no backup/provider prerequisite",
+      "graphic_review": "PASS_VISUAL; two agents inspected real API35 screenshots against PDF. No mandatory new graphic defect; 200-percent paused timer image still pending. Differing start-date preservation fixed in c294ccb.",
+      "native_ui_execution": "RUN41921377031: actual API35 UI screenshots captured; graphics_navigation and graphics_accessories PASS; 3 automation navigation failures (Notizen offscreen, forward-only context lookup, no scroll without initial geometry candidate). Helpers corrected; strict rerun pending.",
       "installation": "NOT_PERFORMED",
       "distribution": "PENDING",
       "backup_changes": "NONE; implementation, format and user flows unchanged",

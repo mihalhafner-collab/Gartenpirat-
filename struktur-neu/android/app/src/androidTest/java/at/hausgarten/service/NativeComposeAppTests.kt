@@ -105,7 +105,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         var lastScroll = 0L
         waitUntil("REVEAL_$label") {
             if (node(label) != null) return@waitUntil true
-            if (SystemClock.uptimeMillis() - lastScroll > 250) { scroll(); lastScroll = SystemClock.uptimeMillis() }
+            if (SystemClock.uptimeMillis() - lastScroll > 250) { if (!scroll()) scrollTop(); lastScroll = SystemClock.uptimeMillis() }
             false
         }
         checks++
@@ -116,7 +116,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         var lastScroll = 0L
         waitUntil("REVEAL_CONTAINS_$fragment") {
             if (visibleTexts().any { it.contains(fragment) }) return@waitUntil true
-            if (SystemClock.uptimeMillis() - lastScroll > 250) { scroll(); lastScroll = SystemClock.uptimeMillis() }
+            if (SystemClock.uptimeMillis() - lastScroll > 250) { if (!scroll()) scrollTop(); lastScroll = SystemClock.uptimeMillis() }
             false
         }
         checks++
@@ -140,8 +140,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.id else AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.id
         return nodes().filter { node ->
             node.isVisibleToUser && !node.isEditable &&
-                node.actionList.any { it.id == action } && node.actionList.any { it.id == vertical }
+                node.actionList.any { it.id == vertical }
         }
+    }
+
+    private fun performVerticalScroll(node: AccessibilityNodeInfo, forward: Boolean): Boolean {
+        val direction = if (forward) AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.id
+            else AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.id
+        val generic = if (forward) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+        // A nested horizontal week strip must never consume a vertical page search.
+        return node.performAction(direction) || node.actionList.any { it.id == generic } && node.performAction(generic)
     }
 
     private fun settleUi() {
@@ -151,7 +159,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun scroll(): Boolean {
         val moved = scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
-            .any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) }
+            .any { performVerticalScroll(it, forward = true) }
         if (moved) settleUi()
         return moved
     }
@@ -671,7 +679,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             } else {
                 boundarySince = 0L
                 if (now - lastScroll >= 350) {
-                    if (targets.any { it.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) }) settleUi()
+                    if (targets.any { performVerticalScroll(it, forward = false) }) settleUi()
                     lastScroll = now
                 }
                 false
@@ -1144,7 +1152,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val originalNotes = noteCustomer.optString("notes")
         val workBeforeNote = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs"))
         openCustomerList(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000"); click("Bearbeiten")
-        shown("Notizen")
+        reveal("Notizen")
         yes(!keyboardVisible(), "CUSTOMER_NOTE_HAS_NO_FORCED_IME")
         val note = listOf(originalNotes, "[TEST] QA Heute Kundennotiz").filter { it.isNotBlank() }.joinToString("\n")
         enter("Notizen", note); click("Kunde speichern")
@@ -1272,6 +1280,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val titleBounds = Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
         yes(activeTimeBounds.top >= titleBounds.bottom && activeTimeBounds.height() > 0, "TODAY_ACTIVE_TIME_VISIBLE_WITHOUT_SCROLL")
         primaryPosition("Zeit stoppen", "Pause")
+        shown("Kunde: " + fixturePrefix + "000")
         captureSyntheticScreen("today-running")
         reveal("Kunde: " + fixturePrefix + "000")
         reveal("Foto hinzufügen"); shown("Material")
@@ -1661,7 +1670,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         var geometry = "No candidate"
         var lastScroll = 0L
         try { waitUntil("SEARCH_RESULT_BOUNDS_$label") {
-            val textNode = nodes().firstOrNull { matches(it, label) && clickable(it) != null } ?: return@waitUntil false
+            val textNode = nodes().firstOrNull { matches(it, label) && clickable(it) != null }
+            if (textNode == null) {
+                if (scrollIntoView && SystemClock.uptimeMillis()-lastScroll > 300) {
+                    if (!scroll()) scrollTop()
+                    lastScroll = SystemClock.uptimeMillis()
+                }
+                return@waitUntil false
+            }
             val candidate = clickable(textNode) ?: return@waitUntil false
             val bounds = Rect().also { candidate.getBoundsInScreen(it) }
             val screen = Rect()
