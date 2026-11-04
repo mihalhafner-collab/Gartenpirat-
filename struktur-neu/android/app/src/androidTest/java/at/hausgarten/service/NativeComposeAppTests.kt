@@ -1385,7 +1385,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(read("get_active_work_session").getString("state") == "STOPPED_PENDING_REVIEW", "UI_STOPS_WITHOUT_FINALIZING")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "STOP_DOES_NOT_CREATE_WORKLOG")
         val stoppedMs = read("get_active_work_session").getLong("worked_ms")
-        primaryPosition("Arbeit speichern", "Zurück")
+        primaryPosition("Arbeit speichern", "Später abschließen")
         click("Heute"); shown("Arbeit noch abschließen"); shown("Zeit gestoppt · Abschluss offen")
         primaryPosition("Abschluss prüfen", "Arbeit nachtragen")
         yes(read("get_active_work_session").getLong("worked_ms") == stoppedMs, "STOPPED_TIME_DOES_NOT_GROW")
