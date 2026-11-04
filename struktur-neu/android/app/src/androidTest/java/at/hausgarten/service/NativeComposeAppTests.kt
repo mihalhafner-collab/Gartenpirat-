@@ -847,7 +847,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Speichern")
         reveal("Übersicht")
         click("Zubehör")
-        click("Zubehör bearbeiten")
+        click("Zubehör hinzufügen")
         click("Zubehör hinzufügen")
         click("Anderes Zubehör")
         click("Kette", scrollTo = false)
@@ -898,8 +898,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal("Aktuell verwendete Kette")
             recreate()
             reveal("QA Kette B")
-            click("QA Kette B"); reveal("Gerätefoto")
+            val photoLabel = "Foto von QA Kette B · zum Vergrößern antippen"
+            reveal(photoLabel)
+            reveal("Foto ändern")
             captureSyntheticScreen("accessory")
+            click(photoLabel)
+            shown("Foto von QA Kette B"); shown("Schließen")
+            captureSyntheticScreen("accessory-enlarged")
+            click("Schließen")
+            val beforePhotoShortcut = machine().getString("record_hash")
+            click("Foto ändern")
+            reveal("Bezeichnung")
+            yes(field("Bezeichnung")?.text?.toString() == "QA Kette B", "ACCESSORY_PHOTO_SHORTCUT_FOCUSES_OWN_ACCESSORY")
+            reveal("Foto aufnehmen"); shown("Foto auswählen")
+            captureSyntheticScreen("accessory-editor")
+            back(); reveal("Foto ändern")
+            yes(machine().getString("record_hash") == beforePhotoShortcut, "ACCESSORY_PHOTO_PREVIEW_AND_EDITOR_DO_NOT_SAVE")
             click("Übersicht")
             reveal("Wartung einrichten")
         } finally { source.delete() }
@@ -1092,23 +1106,51 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val session = read("get_active_work_session")
         val id = session.getString("id")
         yes(session.optString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "TIMER_SYNTHETIC_CUSTOMER")
-        click("Heute"); shown("Arbeit läuft")
+        click("Heute"); shown("Zeit läuft"); shown("Arbeitszeit ohne Pause")
+        yes(node("Einsätze geplant") == null && node("Heute gespeichert") == null, "TODAY_PRIORITIZES_ACTIVE_TIME_OVER_STATISTICS")
+        val activeTimeBounds = Rect().also { requireNotNull(node("Arbeitszeit ohne Pause")).getBoundsInScreen(it) }
+        val titleBounds = Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
+        yes(activeTimeBounds.top >= titleBounds.bottom && activeTimeBounds.height() > 0, "TODAY_ACTIVE_TIME_VISIBLE_WITHOUT_SCROLL")
         primaryPosition("Zeit stoppen", "Pause")
-        reveal("Kunde: " + fixturePrefix + "000")
-        shown("Foto hinzufügen"); shown("Material")
         captureSyntheticScreen("today-running")
+        reveal("Kunde: " + fixturePrefix + "000")
+        reveal("Foto hinzufügen"); shown("Material")
         click("Pause")
         waitUntil("TODAY_PAUSED") { read("get_active_work_session").optString("state") == "PAUSED" }
         primaryPosition("Fortsetzen", "Zeit stoppen")
         val frozen = read("get_active_work_session").getLong("worked_ms")
-        recreate(); shown("Arbeit pausiert")
+        recreate(); shown("Pausiert")
         yes(read("get_active_work_session").getLong("worked_ms") == frozen, "PAUSED_TIME_DOES_NOT_GROW_DURING_RECREATION")
+        val frozenSeconds = frozen.coerceAtLeast(0) / 1000
+        shown("%02d:%02d:%02d".format(frozenSeconds / 3600, frozenSeconds / 60 % 60, frozenSeconds % 60))
         click("Fortsetzen")
         waitUntil("TODAY_RESUMED") { read("get_active_work_session").optString("state") == "RUNNING" }
         primaryPosition("Zeit stoppen", "Pause")
+        click("Kunden")
+        val compactClock = Regex("Arbeit läuft · ([0-9]{2,}):([0-9]{2}):([0-9]{2}) ›")
+        waitUntil("COMPACT_TIMER_IS_VISIBLE_AND_ACTIONABLE") {
+            nodes().any { it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) } && clickable(it) != null }
+        }
+        captureSyntheticScreen("timer-compact")
+        waitUntil("COMPACT_TIMER_OPENS_EXISTING_SESSION") {
+            val label = nodes().firstOrNull { it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) } }?.let(::clickable)
+            label != null && label.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        }
+        shown("Arbeitszeit ohne Pause")
+        yes(read("get_active_work_session").getString("id") == id &&
+            PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "COMPACT_TIMER_REOPENS_WITHOUT_DUPLICATE_OR_WORKLOG")
         click("Arbeit"); enter("Suchen", ""); click("Laufende Arbeit öffnen")
-        reveal("Arbeit läuft"); shown("Reine Arbeitszeit")
-        yes(visibleTexts().any { it.matches(Regex("[0-9]+ Std\\. [0-9]+ Min\\. [0-9]+ Sek\\.")) }, "TIMER_HAS_READABLE_DURATION")
+        reveal("Arbeit läuft"); shown("Arbeitszeit ohne Pause")
+        val minimumSeconds = (read("get_active_work_session").getLong("worked_ms") / 1000 - 1).coerceAtLeast(0)
+        waitUntil("TIMER_HAS_READABLE_PERSISTED_DURATION") {
+            val maximumSeconds = read("get_active_work_session").getLong("worked_ms") / 1000 + 1
+            visibleTexts().any { text ->
+                val clock = Regex("([0-9]{2,}):([0-9]{2}):([0-9]{2})").matchEntire(text)
+                clock != null && clock.groupValues[2].toInt() < 60 && clock.groupValues[3].toInt() < 60 &&
+                    clock.groupValues.let { it[1].toLong() * 3600 + it[2].toLong() * 60 + it[3].toLong() } in minimumSeconds..maximumSeconds
+            }
+        }
+        checks++
         yes(visibleTexts().none { it.startsWith("State:") || it.startsWith("Worked ms:") || it.startsWith("Started at ms:") }, "TIMER_HIDES_RAW_CLOCK_FIELDS")
         enter("Tätigkeit · optional bis zum Abschluss", "[TEST] QA native Timer")
         click("Textbausteine ▾"); click("Rasen gemäht")
@@ -1125,7 +1167,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "STOP_DOES_NOT_CREATE_WORKLOG")
         val stoppedMs = read("get_active_work_session").getLong("worked_ms")
         primaryPosition("Arbeit speichern", "Zurück")
-        click("Heute"); shown("Arbeit noch abschließen"); shown("Zeit gestoppt · noch nicht gespeichert")
+        click("Heute"); shown("Arbeit noch abschließen"); shown("Zeit gestoppt · Abschluss offen")
         primaryPosition("Abschluss prüfen", "Arbeit nachtragen")
         yes(read("get_active_work_session").getLong("worked_ms") == stoppedMs, "STOPPED_TIME_DOES_NOT_GROW")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "LEAVING_COMPLETION_DOES_NOT_SAVE")

@@ -1,6 +1,7 @@
 package at.hausgarten.service
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.onStart
@@ -140,7 +144,9 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     NativeSearchList("Suche", search, { search = it; offset = 0 },
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
-        if (!imeVisible) Column(Modifier.padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!imeVisible) item { Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            Text(day.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.GERMAN)), style=MaterialTheme.typography.titleLarge)
             NativeDateField("Datum",anchor,{anchor=it;offset=0},required=true)
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
                 TextButton({anchor=day.minusDays(if(week) 7 else 1).toString();offset=0}) {Text("‹")}
@@ -149,31 +155,27 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                 TextButton({anchor=day.plusDays(if(week) 7 else 1).toString();offset=0}) {Text("›")}
                 TextButton({anchor=planningDay().toString();offset=0}) {Text("Heute")}
             }
-            if (week) {
-                Text("${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}",style=MaterialTheme.typography.bodySmall)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    for (index in 0..6) {
-                        val date=from.plusDays(index.toLong())
-                        FilterChip(selected=date==day,onClick={anchor=date.toString();week=false;offset=0},label={Text(date.format(DateTimeFormatter.ofPattern("EE d",Locale.GERMAN)))})
+            if (week) Text("${nativeDisplayDate(from.toString())} – ${nativeDisplayDate(to.toString())}",style=MaterialTheme.typography.bodySmall)
+            val weekStart = day.minusDays((day.dayOfWeek.value - 1).toLong())
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                for (index in 0..6) {
+                    val date=weekStart.plusDays(index.toLong())
+                    val selectedDay = date == day
+                    Surface(onClick={anchor=date.toString();week=false;offset=0}, modifier=Modifier.semantics { selected=selectedDay },
+                        shape=MaterialTheme.shapes.medium,
+                        color=if(selectedDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
+                        contentColor=if(selectedDay) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface) {
+                        Column(Modifier.widthIn(min=48.dp).heightIn(min=56.dp).padding(horizontal=8.dp,vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) {
+                            Text(date.format(DateTimeFormatter.ofPattern("EE",Locale.GERMAN)),style=MaterialTheme.typography.labelSmall)
+                            Text(date.dayOfMonth.toString(),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.Bold)
+                        }
                     }
                 }
             }
-        }
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        } }
           if (!imeVisible && search.isBlank()) item {
               NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer))
-              NativeInfoRow("Tagestour", "Reihenfolge und Zeitfenster für ${nativeDisplayDate(day.toString())}",onClick={controller.navigate("tour",args=JSONObject().put("date",anchor).put("customer_id",customer))})
-              NativeInfoRow("Wiederholungen", "Konkrete Vorschläge vor dem Anlegen prüfen",onClick={onNew(true,anchor)})
-              NativeInfoRow("Kalender prüfen","Abgleich und Belegtzeiten gesondert prüfen",onClick={scope.launch {
-                  busy=true
-                  try {
-                      val result=controller.query("request_calendar_sync",JSONObject().put("request_id",planningRequest()))
-                      controller.message(if(result.optString("state")=="configuration_required") "Kalender zuerst einrichten." else "Kalenderprüfung angefordert. Der Abgleich ist erst nach bestätigtem Ergebnis abgeschlossen.")
-                      refresh++
-                  } catch(cancelled:CancellationException){throw cancelled} catch(error:Exception){failure=error.message.orEmpty()} finally{busy=false}
-              }})
-              NativeInfoRow(if(weatherView) "Termine ansehen" else "Wetter",if(weatherView) "Zur lokalen Planung" else "Optional · zuletzt geprüfte Angaben ansehen",onClick={onWeather(!weatherView)})
-              Text("Geplante Einsätze sind keine geleisteten Stunden.",style=MaterialTheme.typography.bodySmall)
+              Text(if(week) "Termine dieser Woche" else day.format(DateTimeFormatter.ofPattern("EEEE, d. MMMM", Locale.GERMAN)),style=MaterialTheme.typography.titleMedium)
           }
           if (!imeVisible && search.isBlank()) item { NativeRelatedList(controller, "visits", "Geplante Einsätze", JSONObject().put("customer_id", customer).put("date_from", from.toString()).put("date_to", to.toString())) }
           if (filtersOpen) item(key = "native-list-filters") { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -191,10 +193,13 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
             if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!listLoading && failure.isEmpty() && page.rows.isEmpty()) item { Text("Keine Termine in diesem Zeitraum. Zeitraum und Filter prüfen.") }
             items(page.rows.sortedBy { it.workDate }, key = { it.id }) { row ->
-                OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(row.title, style = MaterialTheme.typography.titleMedium)
-                        Text(nativeDisplayText(row.subtitle))
+                OutlinedCard(Modifier.fillMaxWidth().clickable { onSelect(row.id) }, colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface), border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)) {
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                    Surface(Modifier.width(4.dp).fillMaxHeight(),color=MaterialTheme.colorScheme.primary) {}
+                    Column(Modifier.weight(1f).padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if(row.workDate.isNotBlank()) Text(nativeDisplayDate(row.workDate),style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary)
+                        Text(row.title, style = MaterialTheme.typography.titleMedium, fontWeight=FontWeight.Bold)
+                        Text(nativeDisplayText(row.subtitle),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
                         NativeStatus(planningStatuses[row.status] ?: row.status)
                         val entry = risks[row.id]; val risk = entry?.optJSONObject("weather")
                         if (weatherView) {
@@ -205,7 +210,25 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
                         if (entry?.optJSONObject("calendar")?.optString("state") == "review_required") Text("Kalenderänderung prüfen", color = MaterialTheme.colorScheme.error)
                         if ((entry?.optJSONObject("collisions")?.optJSONArray("conflicts")?.length() ?: 0) > 0) Text("Mögliche Terminkollision prüfen", color = MaterialTheme.colorScheme.error)
                     }
+                    }
                 }
+            }
+            if (!imeVisible && search.isBlank()) item {
+                Text("Planung organisieren",Modifier.padding(top=8.dp,bottom=8.dp),style=MaterialTheme.typography.titleMedium)
+                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    OutlinedButton({controller.navigate("tour",args=JSONObject().put("date",anchor).put("customer_id",customer))}) {Text("Tagestour")}
+                    OutlinedButton({onNew(true,anchor)}) {Text("Wiederholungen")}
+                    OutlinedButton({scope.launch {
+                        busy=true
+                        try {
+                            val result=controller.query("request_calendar_sync",JSONObject().put("request_id",planningRequest()))
+                            controller.message(if(result.optString("state")=="configuration_required") "Kalender zuerst einrichten." else "Kalenderprüfung angefordert. Der Abgleich ist erst nach bestätigtem Ergebnis abgeschlossen.")
+                            refresh++
+                        } catch(cancelled:CancellationException){throw cancelled} catch(error:Exception){failure=error.message.orEmpty()} finally{busy=false}
+                    }},enabled=!busy) {Text("Kalender prüfen")}
+                    OutlinedButton({onWeather(!weatherView)}) {Text(if(weatherView) "Termine ansehen" else "Wetter")}
+                }
+                Text("Geplante Einsätze sind keine geleisteten Stunden.",Modifier.padding(top=8.dp),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (!imeVisible && search.isNotBlank()) item { planningActions() }
             item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

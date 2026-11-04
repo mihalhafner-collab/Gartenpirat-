@@ -176,13 +176,16 @@ Gerätefotos gehören zum Gerät. Abgebrochene Auswahl und verworfene Bearbeitun
 dürfen keine Geschäftsdaten erzeugen. Bestehende Wartungsintervalle und ihr Verlauf
 bleiben erhalten. Der Wortlautkatalog wird über das vorhandene Werkzeug erzeugt.
 
-## Verbindliche Oberfläche: neues Bedienkonzept Fassung 2
+## Verbindliche Oberfläche: grafisches Konzept vom 04.11.2026
 
-Die Umsetzung folgt dem in `AKTUELLER-STAND.json` mit Drive-URL und SHA256
-gebundenen neuen 38-seitigen Konzept. Das frühere 29-seitige Konzept ist keine
-Umsetzungsvorlage. Die gemeinsame Gestaltung verwendet helle Flächen, dunkle
-Schrift und einen gedeckten blauen Akzent. Fachliche Listen und gezielte Details
-ersetzen Rohdatenwände und wiederholte Kartenstapel.
+Die grafische Umsetzung folgt dem vom Eigentümer angehängten 24-seitigen PDF
+`Haus_und_Garten_App_Konzept.pdf` (Konzept 1.0, 04.11.2026). Diese ausdrückliche
+Gestaltungsentscheidung ersetzt die frühere blaue Gestaltung: Waldgrün,
+hellgraugrüner Hintergrund, weiße gerundete Karten mit feinem Rand, klare
+Überschriften und grüne Icon-Pills in der Navigation. Der bestehende Funktionsumfang
+bleibt maßgeblich; Rechnung, Zahlungsverwaltung und neue Buchhaltungsfunktionen
+werden nicht aus den Mockups übernommen. Backup-Logik, Format und Bedienabläufe
+bleiben unverändert. Fachliche Listen und gezielte Details ersetzen Rohdatenwände.
 
 Die Sammellöschung von Arbeiten zeigt nur Tätigkeit und Datum der Auswahl sowie
 einmal den Hinweis auf die Wiederherstellung im Papierkorb. „In den Papierkorb“
@@ -193,7 +196,7 @@ weiterhin durch die bestehenden Prüfungen abgefangen.
 Die Hauptaktion steht rechts; eine alleinige Hauptaktion darf die ganze Leiste
 belegen. Sekundäraktionen stehen links. Große Schrift darf Aktionen untereinander
 anordnen, ohne Beschriftungen zu verkleinern oder Inhalte zu verdecken. Status
-verwenden Text und Zeichen: laufend blau, pausiert beziehungsweise eingerichtet
+verwenden Text und Zeichen: laufend grün, pausiert beziehungsweise eingerichtet
 neutral, bestätigt grün, Prüfbedarf orange und nachgewiesen fehlgeschlagen rot.
 Ein Erfolg mit Einschränkung nennt diese bereits in seiner Hauptaussage.
 
@@ -300,9 +303,11 @@ keinen entsprechenden Nachweis auf dem Pixel.
 ## Vereinfachte native Bedienung und Arbeitszubehör
 
 Heute, Arbeitsaufzeichnungen, Kunden und Büro sind die vier festen Hauptbereiche.
-Heute folgt der am 02.11.2026 zusätzlich beauftragten Bildvorlage: lokale
-Speicher-/Sicherungsangabe, nächster geplanter Einsatz, Tagestour und gespeicherte
-Tagesstunden. Während einer Arbeit zeigt die Ansicht die persistente Nettozeit,
+Heute folgt der grafischen Bildvorlage vom 04.11.2026: geplante Einsätze und
+gespeicherte Tagesstunden als kompakte Karten, nächster Einsatz, offene Arbeiten
+und die vorhandenen Tageshinweise. Bestehende lokale Sicherungsangaben und deren
+Bedienung bleiben erhalten. Während einer Arbeit steht die grüne Karte mit
+persistenter Nettozeit vor den übrigen Informationen; die Ansicht bietet
 Pause/Fortsetzen und Beenden. Beenden öffnet die vorhandene Zeitprüfung und erzeugt
 keine ungeprüfte Arbeitsaufzeichnung. Foto und Material verwenden die bestehende
 Erfassung mit dem tatsächlichen Kunden-/Auftrags-/Sitzungsbezug. Das unten geöffnete
@@ -341,7 +346,11 @@ eine Kette derselben Maschine zeigen. Bezeichnung oder Hersteller/Modell identif
 das Zubehör; unbekannte Spezifikationen bleiben leer. Kettenteilung, Treibgliedstärke,
 Treibgliederzahl, Artikelnummer, Zahntyp, Feilengröße und weitere Angaben bleiben
 optional. Zubehörfotos verwenden den vorhandenen Gerätefotopfad und behalten ihren
-Maschinenbezug. Keine neue Datenbank, Lagerverwaltung oder Wartungsautomatik.
+Maschinenbezug. Zubehörkarten zeigen die Fotovorschau direkt; Foto hinzufügen/ändern
+öffnet die vorhandene Erfassung mit Kamera oder Dateiauswahl. Gespeicherte Geräte-
+und Zubehörfotos lassen sich groß ansehen. Keine neue Datenbank, Lagerverwaltung
+oder Wartungsautomatik. Außerhalb der Timeransicht macht eine kompakte rein lesende
+Leiste die laufende oder pausierte Zeit erreichbar; sie öffnet denselben Timer.
 
 Aus der Kundenakte begrenzt die Übersicht offener Stunden die Arbeitsaufzeichnungen
 auf den gewählten Einsatzkunden, auch wenn weitere Kunden denselben

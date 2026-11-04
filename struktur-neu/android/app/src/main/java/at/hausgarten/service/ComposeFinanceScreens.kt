@@ -1,6 +1,7 @@
 package at.hausgarten.service
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.math.BigDecimal
@@ -64,6 +66,35 @@ private fun FinanceIssuerSummary(issuer:JSONObject?) {
     Text("Aussteller und Belegkonfiguration",style=MaterialTheme.typography.titleMedium)
     if(issuer==null) Text("Aussteller fehlt",color=MaterialTheme.colorScheme.error)
     else FinanceValues(issuer,listOf("business_name" to "Betrieb","owner_name" to "Inhaber","business_street" to "Straße","business_postal_code" to "Postleitzahl","business_city" to "Ort","business_legal_info" to "Rechtliche Angaben","business_vat_id" to "UID","tax_mode" to "Steuermodus","tax_exemption_text" to "Steuerbefreiung","business_iban" to "IBAN","business_bank" to "Bank","business_bic" to "BIC","business_email" to "E-Mail","business_phone" to "Telefon"))
+}
+
+@Composable
+private fun FinancePartySummary(label: String, party: JSONObject?) {
+    party ?: return
+    fun text(key: String) = if(party.isNull(key)) "" else party.optString(key).trim()
+    val person = listOf(text("first_name"),text("last_name")).filter { it.isNotBlank() }.joinToString(" ")
+    val names = listOf(text("name"),text("company"),person).filter { it.isNotBlank() }.distinct()
+    val locality = listOf(text("postal_code"),text("city")).filter { it.isNotBlank() }.joinToString(" ")
+    OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+            Text(label,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            names.forEachIndexed { index, name -> Text(name,style=if(index==0) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium,fontWeight=if(index==0) FontWeight.Bold else FontWeight.Normal) }
+            if(text("street").isNotBlank()) Text(text("street"),style=MaterialTheme.typography.bodyMedium)
+            if(locality.isNotBlank()) Text(locality,style=MaterialTheme.typography.bodyMedium)
+            FinanceValues(party,financePartyFields.filter { it.first in listOf("country","email","phone") })
+        }
+    }
+}
+
+/** Display the saved offer total; editing and authoritative price calculation stay unchanged. */
+@Composable
+private fun FinanceOfferTotal(offer: JSONObject) {
+    Surface(Modifier.fillMaxWidth(),shape=MaterialTheme.shapes.large,color=MaterialTheme.colorScheme.secondaryContainer,contentColor=MaterialTheme.colorScheme.onSecondaryContainer) {
+        Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+            Text(if(offer.optString("document_type") in listOf("time_material","estimate_nonbinding")) "Geschätzter Gesamtbetrag" else "Angebotssumme",style=MaterialTheme.typography.labelLarge)
+            Text(financeMoney(offer.opt("gross_total") ?: offer.opt("amount")),style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold)
+        }
+    }
 }
 
 @Composable
@@ -180,12 +211,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 NativeStatus(if(validation.optBoolean("valid")) "Bereit für PDF" else "Angaben ergänzen",if(validation.optBoolean("valid")) NativeStatusTone.Confirmed else NativeStatusTone.Attention)
                 Text("PDF erstellen speichert das lokale Originaldokument. Teilen bleibt ein eigener Schritt.")
                 FinanceIssuerSummary(snapshot.optJSONObject("business_settings"))
-                Text("Rechnungsempfänger",style=MaterialTheme.typography.titleMedium)
-                FinanceValues(snapshot.optJSONObject("recipient"),financePartyFields)
-                Text("Kunde",style=MaterialTheme.typography.titleMedium)
-                FinanceValues(snapshot.optJSONObject("customer"),financePartyFields)
+                FinancePartySummary("Rechnungsempfänger",snapshot.optJSONObject("recipient"))
+                FinancePartySummary("Kunde",snapshot.optJSONObject("customer"))
                 FinanceValues(snapshot.optJSONObject("order"),listOf("title" to "Auftrag","location" to "Einsatzort","status" to "Status"))
                 FinanceDraftSummary(controller,review.getJSONObject("offer"),"offers")
+                FinanceOfferTotal(review.getJSONObject("offer"))
                 val entries=snapshot.optJSONArray("service_catalog") ?: JSONArray()
                 for(index in 0 until entries.length()) FinanceValues(entries.optJSONObject(index),listOf("title" to "Bestätigter Baustein","default_price" to "Katalogpreis","price_confirmed" to "Preis bestätigt"))
                 for(index in 0 until errors.length()) NativeInfoRow(nativeDisplayText(errors.optString(index)),"Angaben ergänzen",onClick={correct(errors.optString(index))})
@@ -223,11 +253,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             NativeStatus(if (section == "offers" && !editable) "PDF gespeichert" else financeStatus(row.optString("status", if(section == "catalog") "Leistungsbaustein" else "draft")), if(section == "offers" && !editable) NativeStatusTone.Confirmed else NativeStatusTone.Neutral)
             if (section != "catalog") {
                 if(!editable) NativeInfoRow("Angebotsstatus",financeStatus(row.optString("status")))
-                Text("Summe: ${financeMoney(row.opt("gross_total") ?: row.opt("amount"))}")
                 val dates = listOf("issue_date" to "Datum", "valid_until" to "Gültig bis")
                 val dateText = dates.mapNotNull { (key, label) -> row.optString(key).takeIf { it.isNotBlank() }?.let { "$label: ${nativeDisplayDate(it)}" } }.joinToString(" · ")
                 if (dateText.isNotEmpty()) Text(dateText)
                 FinancePositionSummary(row.optJSONArray("positions"))
+                FinanceOfferTotal(row)
                 for ((key, label) in listOf("header_text" to "Kopftext", "footer_text" to "Fußtext", "notes" to "Notizen", "binding_notice" to "Bindungshinweis", "payment_terms" to "Zahlungsbedingungen", "assumptions" to "Annahmen", "exclusions" to "Ausschlüsse")) if(row.optString(key).isNotEmpty()) Text("$label: ${row.optString(key)}")
             } else {
                 Text(row.optString("description")); Text("Einheit: ${row.optString("unit")} · Preis: ${financeMoney(row.opt("default_price"))}")
@@ -336,13 +366,20 @@ private fun FinanceCheck(label:String,value:Boolean,onChange:(Boolean)->Unit) {
 @Composable
 private fun FinancePositionSummary(positions:JSONArray?) {
     positions ?: return
-    for(index in 0 until positions.length()) { val row=positions.optJSONObject(index) ?: continue
-        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-            Text("${index+1}. ${row.optString("title",row.optString("description"))}",style=MaterialTheme.typography.titleSmall)
-            Text("${if(!row.has("quantity") || row.isNull("quantity")) "Menge offen" else row.optString("quantity")} ${row.optString("unit")} × ${financeMoney(row.opt("price"))} · USt ${if(!row.has("tax_rate") || row.isNull("tax_rate")) "offen" else row.optString("tax_rate")+" %"}")
-            if(row.optString("description").isNotEmpty()) Text(row.optString("description"))
-            if(row.has("net")) Text("Netto ${financeMoney(row.opt("net"))} · Steuer ${financeMoney(row.opt("tax"))}")
-        } }
+    if(positions.length()==0) return
+    Text("Leistungen",style=MaterialTheme.typography.titleMedium)
+    OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(horizontal=16.dp)) {
+            for(index in 0 until positions.length()) { val row=positions.optJSONObject(index) ?: continue
+                if(index>0) HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
+                Column(Modifier.padding(vertical=12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    Text("${index+1}. ${row.optString("title",row.optString("description"))}",style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.Bold)
+                    Text("${if(!row.has("quantity") || row.isNull("quantity")) "Menge offen" else nativeNumber(row.opt("quantity"))} ${row.optString("unit")} × ${financeMoney(row.opt("price"))} · USt ${if(!row.has("tax_rate") || row.isNull("tax_rate")) "offen" else nativeNumber(row.opt("tax_rate"))+" %"}",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                    if(row.optString("description").isNotEmpty()) Text(row.optString("description"),style=MaterialTheme.typography.bodyMedium)
+                    if(row.has("net")) Text("Netto ${financeMoney(row.opt("net"))} · Steuer ${financeMoney(row.opt("tax"))}",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
     }
 }
 
@@ -525,9 +562,14 @@ private fun FinanceEditor(section:String, original:JSONObject?, recordHash:Strin
                 FinanceCheck("Baustein aktiv",form.optBoolean("active",true)) {field("active",it)}
             } else when (step) {
                 0 -> {
-                    NativeRecordPicker(controller,"customers","Kunde",form.optString("customer_id")) {field("customer_id",it)}
-                    NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger (optional)",form.optString("billing_customer_id")) {field("billing_customer_id",it)}
-                    NativeRecordPicker(controller,"orders","Auftrag (optional)",form.optString("order_id"),customerId=form.optString("customer_id")) {field("order_id",it)}
+                    OutlinedCard(Modifier.fillMaxWidth(),colors=CardDefaults.outlinedCardColors(containerColor=MaterialTheme.colorScheme.surface),border=BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant)) {
+                        Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                            Text("Empfänger und Auftrag",style=MaterialTheme.typography.titleMedium)
+                            NativeRecordPicker(controller,"customers","Kunde",form.optString("customer_id")) {field("customer_id",it)}
+                            NativeRecordPicker(controller,"customers","Abweichender Rechnungsempfänger (optional)",form.optString("billing_customer_id")) {field("billing_customer_id",it)}
+                            NativeRecordPicker(controller,"orders","Auftrag (optional)",form.optString("order_id"),customerId=form.optString("customer_id")) {field("order_id",it)}
+                        }
+                    }
                     NativeContext(controller,form.optJSONObject("_source_context") ?: JSONObject())
                     NativeField("Titel",form.optString("title"),{field("title",it)},required=true,enabled=!busy)
                     FinanceChoice("Dokumentart",form.optString("document_type"),OfferContract.types().map {it to OfferRules.label(it)}) {field("document_type",it);field("binding_confirmed",false)}

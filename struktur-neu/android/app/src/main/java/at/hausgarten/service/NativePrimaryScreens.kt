@@ -5,12 +5,14 @@ import android.net.Uri
 import coil3.compose.AsyncImage
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,6 +26,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.map
@@ -70,18 +74,21 @@ internal fun NativeApplication(controller: NativeAppController) {
     BackHandler(reviewChecked && controller.canGoBack() && route.section != "restore_review") { controller.back() }
     Row(Modifier.fillMaxSize()) {
     if (reviewChecked && route.section != "restore_review" && landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
-    Scaffold(modifier = Modifier.weight(1f),
+    Scaffold(modifier = Modifier.weight(1f), containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 if (route.section != "today") Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     if (reviewChecked && controller.canGoBack() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
-                    Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.titleLarge)
+                    Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
                 }
                 if (notice.isNotBlank()) Text(notice, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MaterialTheme.typography.bodySmall)
             }
         },
         bottomBar = {
-            if (reviewChecked && route.section != "restore_review" && !imeVisible && !landscape) NativeMainNavigation(controller)
+            if (reviewChecked && route.section != "restore_review" && !imeVisible) Column {
+                if (route.section !in listOf("today", "timer", "work", "backup", "restore_review")) NativeRunningWorkBar(controller)
+                if (!landscape) NativeMainNavigation(controller)
+            }
         }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
@@ -140,8 +147,9 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
         }
         return
     }
-    Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 3.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 4.dp, vertical = 2.dp)) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             entries.chunked(if (large) 2 else 4).forEach { group ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     group.forEach { (section, label) ->
@@ -150,16 +158,42 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen" },
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                             colors = ButtonDefaults.textButtonColors(
-                                containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                                contentColor = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)) {
+                                containerColor = if (large && active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                                contentColor = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                if (!large) NativeAreaIcon(section)
+                                if (!large) Surface(color = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent, shape = CircleShape) {
+                                    Box(Modifier.width(56.dp).height(30.dp), contentAlignment = Alignment.Center) { NativeAreaIcon(section) }
+                                }
                                 Text(label, style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+/** Shows the existing persisted timer outside its detail, without introducing another writer. */
+@Composable
+private fun NativeRunningWorkBar(controller: NativeAppController) {
+    var session by remember(controller) { mutableStateOf<JSONObject?>(null) }
+    LaunchedEffect(controller) {
+        while (isActive) {
+            session = try { withContext(Dispatchers.IO) { controller.store.workSessions().current() } }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { null }
+            delay(1000)
+        }
+    }
+    val current = session ?: return
+    if (current.optString("state") !in listOf("RUNNING", "PAUSED")) return
+    val seconds = current.optLong("worked_ms").coerceAtLeast(0) / 1000
+    Surface(onClick = { controller.navigate("timer") }, color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+        Column(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text((if (current.optString("state") == "PAUSED") "Arbeit pausiert" else "Arbeit läuft") + " · " +
+                "%02d:%02d:%02d".format(seconds / 3600, seconds / 60 % 60, seconds % 60) + " ›", style = MaterialTheme.typography.labelLarge)
         }
     }
 }
@@ -236,6 +270,40 @@ internal fun NativeContext(controller: NativeAppController, args: JSONObject, cu
 private fun nativeDuration(hours: Double): String {
     val minutes = kotlin.math.round(hours * 60).toLong().coerceAtLeast(0)
     return "${minutes / 60} Std. ${minutes % 60} Min."
+}
+
+/** The PDF's timer treatment uses the same persisted intervals as every other view. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun NativeTimeCard(value: JSONObject) {
+    val state = value.optString("state")
+    val stopped = state == "STOPPED_PENDING_REVIEW"
+    val seconds = value.optLong("worked_ms").coerceAtLeast(0) / 1000
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Surface(color = Color.White.copy(alpha = 0.14f), contentColor = Color.White, shape = CircleShape) {
+                Text(when { stopped -> "Zeit gestoppt · Abschluss offen"; state == "PAUSED" -> "Pausiert"; else -> "Zeit läuft" },
+                    Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelLarge)
+            }
+            Text("%02d:%02d:%02d".format(seconds / 3600, seconds / 60 % 60, seconds % 60),
+                Modifier.fillMaxWidth(), style = if (LocalDensity.current.fontScale > 1.3f) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text("Arbeitszeit ohne Pause", Modifier.fillMaxWidth(), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (value.optLong("started_at_ms") > 0) Column {
+                    Text("Beginn", style = MaterialTheme.typography.bodySmall)
+                    Text(java.time.Instant.ofEpochMilli(value.getLong("started_at_ms")).atZone(ZoneId.of("Europe/Vienna"))
+                        .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")) + " Uhr", fontWeight = FontWeight.SemiBold)
+                }
+                Column {
+                    Text("Pausen gesamt", style = MaterialTheme.typography.bodySmall)
+                    Text(nativeNumber(value.opt("break_minutes")) + " Minuten", fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
 }
 
 /** Existing report supplies only locally open work, across all dates by default. */
@@ -390,19 +458,35 @@ private fun NativeToday(controller: NativeAppController) {
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                Text(if (active && !stopped) if (state == "PAUSED") "Arbeit pausiert" else "Arbeit läuft" else "Heute", style = MaterialTheme.typography.headlineLarge)
-                Text(LocalDate.parse(day).format(java.time.format.DateTimeFormatter.ofPattern("EEE, d. MMMM", java.util.Locale.GERMAN)))
-                Text("Arbeitsdaten auf diesem Pixel", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Heute", style = MaterialTheme.typography.headlineLarge)
+                Text(LocalDate.parse(day).format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", java.util.Locale.GERMAN)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (!active) item {
+                val large = LocalDensity.current.fontScale > 1.3f
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val statModifier = if (large) Modifier.fillMaxWidth() else Modifier.weight(1f)
+                    Surface(statModifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(if (overview == null) "…" else visits.size.toString(), style = MaterialTheme.typography.headlineSmall)
+                            Text("Einsätze geplant", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Surface(statModifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(summary?.let { nativeNumber(it.opt("hours")) + " Std." } ?: "…", style = MaterialTheme.typography.headlineSmall)
+                            Text("Heute gespeichert", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
             if (error.isNotBlank()) item { NativeStatus(error, NativeStatusTone.Attention); TextButton({ controller.navigate("timer") }) { Text("Ursprüngliches Ergebnis prüfen") } }
             if (active) item {
                 Text(if (stopped) "Arbeit noch abschließen" else "Aktuelle Arbeit", style = MaterialTheme.typography.titleMedium)
                 NativeContext(controller, context)
                 session!!.optString("activity").takeIf { it.isNotBlank() }?.let { Text(it) }
-                val seconds = session!!.optLong("worked_ms").coerceAtLeast(0) / 1000
-                Text(if (stopped) nativeDuration(seconds / 3600.0) else "%02d:%02d".format(seconds / 3600, seconds / 60 % 60), style = MaterialTheme.typography.headlineLarge)
-                NativeStatus(when { stopped -> "Zeit gestoppt · noch nicht gespeichert"; state == "PAUSED" -> "Pausiert"; else -> "Zeit läuft" }, when { stopped -> NativeStatusTone.Attention; state == "PAUSED" -> NativeStatusTone.Neutral; else -> NativeStatusTone.Running })
-                Text("Pause: ${nativeNumber(session!!.opt("break_minutes"))} Min. · zählt nicht als Arbeitszeit", style = MaterialTheme.typography.bodySmall)
+                NativeTimeCard(session!!)
                 if (stopped) Text("Die Zeit läuft nicht weiter. Deine Eingaben bleiben erhalten.")
                 if (session!!.optBoolean("review_required")) NativeStatus("Zeit vor dem Speichern ausdrücklich prüfen", NativeStatusTone.Attention)
                 if (!stopped) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -411,20 +495,31 @@ private fun NativeToday(controller: NativeAppController) {
                     if (session!!.optString("activity").isBlank()) TextButton({ controller.navigate("timer") }) { Text("Tätigkeit ergänzen") }
                 }
             }
-            item {
-                if (!active && works.rows.isNotEmpty()) NativeStatus("Arbeit gespeichert", NativeStatusTone.Confirmed)
-                Text("Heute gespeichert", style = MaterialTheme.typography.titleMedium)
-                Text(summary?.let { nativeDuration(it.optDouble("hours")) + " · " + it.optInt("work_records") + " Arbeiten" } ?: "Gespeicherte Arbeiten werden gelesen …", style = MaterialTheme.typography.titleLarge)
-                works.rows.forEach { row -> NativeInfoRow(row.title, nativeDisplayText(row.subtitle), { controller.navigate("worklogs", row.id) }) }
-                if (works.hasMore) TextButton({ controller.navigate("worklogs", args = JSONObject().put("date_from", day).put("date_to", day)) }) { Text("Alle heutigen Arbeiten") }
-            }
             if (!stopped) item {
                 Text("Nächster Einsatz" + (next?.optString("window_start")?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""), style = MaterialTheme.typography.titleMedium)
                 if (next == null) Text(if (overview == null) "Planung wird gelesen …" else "Heute kein weiterer Einsatz geplant.") else {
-                    NativeContext(controller, JSONObject(next.toString()))
-                    NativeInfoRow(next.optString("title", "Einsatz"), listOf(next.optString("location"), next.optString("window_start"), next.optString("window_end")).filter { it.isNotBlank() }.joinToString(" · "), { controller.navigate("visits", next.optString("id")) })
-                    NativeStatus("Geplant")
+                    Surface(onClick = { controller.navigate("visits", next.optString("id")) }, shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            NativeStatus("Geplant", NativeStatusTone.Confirmed)
+                            Text(next.optString("title", "Einsatz"), style = MaterialTheme.typography.titleLarge)
+                            NativeContext(controller, JSONObject(next.toString()))
+                            listOf(next.optString("location"), listOf(next.optString("window_start"), next.optString("window_end")).filter { it.isNotBlank() }.joinToString("–"))
+                                .filter { it.isNotBlank() }.joinToString(" · ").takeIf { it.isNotBlank() }?.let { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        }
+                    }
                 }
+            }
+            item {
+                Text("Noch zu erledigen", style = MaterialTheme.typography.titleMedium)
+                NativeInfoRow("Offene Arbeiten prüfen", "Arbeitsaufzeichnungen für sevDesk", { controller.navigate("billing") })
+            }
+            item {
+                if (!active && works.rows.isNotEmpty()) NativeStatus("Arbeit gespeichert", NativeStatusTone.Confirmed)
+                Text("Gespeicherte Arbeiten", style = MaterialTheme.typography.titleMedium)
+                Text(summary?.let { nativeDuration(it.optDouble("hours")) + " · " + it.optInt("work_records") + " Arbeiten" } ?: "Gespeicherte Arbeiten werden gelesen …", style = MaterialTheme.typography.bodySmall)
+                works.rows.forEach { row -> NativeInfoRow(row.title, nativeDisplayText(row.subtitle), { controller.navigate("worklogs", row.id) }) }
+                if (works.hasMore) TextButton({ controller.navigate("worklogs", args = JSONObject().put("date_from", day).put("date_to", day)) }) { Text("Alle heutigen Arbeiten") }
             }
             item { NativeInfoRow("Weitere Tageshinweise", if (hints) "Schließen" else "Planung, Wartung und Sicherung", { hints = !hints }) }
             if (hints) {
@@ -523,7 +618,13 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 Column(Modifier.weight(1f)) {
                     NativeInfoRow(row.title, listOf(row.address, nativeDisplayText(row.subtitle)).filter { it.isNotBlank() }.distinct().joinToString(" · "), {
                         controller.navigate(collection, row.id, mode = if (collection == "customers" && controller.route.args.optBoolean("_note_first")) "edit" else "list", args = JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
-                    })
+                    }, leading = if (collection == "customers") ({
+                        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+                            Box(Modifier.sizeIn(minWidth = 40.dp, minHeight = 40.dp).padding(8.dp), contentAlignment = Alignment.Center) {
+                                Text(row.title.split(Regex("\\s+")).filter { it.isNotBlank() }.take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString(""), style = MaterialTheme.typography.labelLarge, maxLines = 1, softWrap = false)
+                            }
+                        }
+                    }) else null)
                     if (row.status.isNotBlank() && collection != "customers") NativeStatus(nativeValue(row.status))
                     if (collection == "worklogs") NativeDeleteButton(controller, "worklog", row.id, enabled = !deleting) {
                         selected = selected - row.id
@@ -582,15 +683,31 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             if (row != null) {
                 item {
                     Text(row.optString("name", row.optString("title", row.optString("activity", "Eintrag"))), style = MaterialTheme.typography.headlineSmall)
-                    if (kind == "customer") Text(listOf(row.optString("street"), listOf(row.optString("postal_code"), row.optString("city")).filter { it.isNotBlank() }.joinToString(" ")).filter { it.isNotBlank() }.joinToString(" · "))
+                    if (kind == "customer") Text(row.optString("company").ifBlank { "Kundenakte" }, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     else NativeContext(controller, context)
                 }
                 if (kind == "customer") {
                     item {
-                        Text("Kontakt", style = MaterialTheme.typography.titleMedium)
-                        if (row.optString("phone").isNotBlank()) NativeInfoRow("Anrufen", row.optString("phone"), { controller.context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(row.getString("phone"))))) })
-                        if (row.optString("email").isNotBlank()) NativeInfoRow("E-Mail", row.optString("email"), { controller.context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + Uri.encode(row.getString("email"))))) })
+                        val address = listOf(row.optString("street"), listOf(row.optString("postal_code"), row.optString("city")).filter { it.isNotBlank() }.joinToString(" ")).filter { it.isNotBlank() }
+                        if (address.isNotEmpty()) NativeInfoRow(address.first(), address.drop(1).joinToString("\n"))
+                        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (row.optString("phone").isNotBlank()) OutlinedButton({ controller.context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(row.getString("phone"))))) }, Modifier.heightIn(min = 48.dp)) { Text("Anrufen") }
+                            if (row.optString("email").isNotBlank()) OutlinedButton({ controller.context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + Uri.encode(row.getString("email"))))) }, Modifier.heightIn(min = 48.dp)) { Text("E-Mail") }
+                            if (row.optString("street").isNotBlank()) OutlinedButton({
+                                val destination = (address + row.optString("country")).filter { it.isNotBlank() }.joinToString(", ")
+                                try { controller.context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(destination)))) }
+                                catch (_: android.content.ActivityNotFoundException) { controller.message("Keine Karten-App zum Öffnen der Adresse vorhanden.") }
+                            }, Modifier.heightIn(min = 48.dp)) { Text("Route") }
+                        }
                         if (row.optString("phone").isBlank() && row.optString("email").isBlank()) Text("Noch keine Telefonnummer oder E-Mail hinterlegt.")
+                    }
+                    if (row.optString("notes").isNotBlank()) item {
+                        Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = Color(0xfffff2d4), contentColor = Color(0xff493c21)) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Hinweise zum Einsatz", style = MaterialTheme.typography.titleSmall)
+                                Text(row.optString("notes"))
+                            }
+                        }
                     }
                     item {
                         Text("Letzte Arbeit", style = MaterialTheme.typography.titleMedium)
@@ -614,7 +731,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                             OutlinedButton({ controller.navigate("offers", args = context) }) { Text("Angebote") }
                         }
                     }
-                    item { Text("Notiz", style = MaterialTheme.typography.titleMedium); Text(row.optString("notes").ifBlank { "Noch keine Notiz hinterlegt." }) }
+                    if (row.optString("notes").isBlank()) item { Text("Notiz", style = MaterialTheme.typography.titleMedium); Text("Noch keine Notiz hinterlegt.") }
                     item { NativeRelatedList(controller, "appointments", "Nächste Termine", JSONObject().put("customer_id", id).put("date_from", nativeDay())) }
                     item { NativeRelatedList(controller, "visits", "Einsätze", JSONObject().put("customer_id", id).put("date_from", nativeDay())) }
                     item { NativeInfoRow("Aufträge", "Vorhandene Aufträge dieses Kunden", { controller.navigate("orders", args = context) }) }
@@ -1014,21 +1131,19 @@ private fun NativeCustomerExtras(raw: Any?, change: (JSONObject) -> Unit) {
 @Composable
 private fun NativeTimerValues(controller: NativeAppController, value: JSONObject) {
     Text(when (value.optString("state")) { "RUNNING" -> "Arbeit läuft"; "PAUSED" -> "Arbeit pausiert"; "STOPPED_PENDING_REVIEW" -> "Arbeit abschließen"; "CANCELLED" -> "Verworfene Arbeit"; else -> "Zeiterfassung" }, style = MaterialTheme.typography.headlineSmall)
-    val seconds = value.optLong("worked_ms").coerceAtLeast(0) / 1000
-    NativeStatus(when (value.optString("state")) { "RUNNING" -> "Zeit läuft"; "PAUSED" -> "Pausiert"; "STOPPED_PENDING_REVIEW" -> "Zeit gestoppt · noch nicht gespeichert"; else -> "Zeitmessung beendet" }, when (value.optString("state")) { "STOPPED_PENDING_REVIEW" -> NativeStatusTone.Attention; "RUNNING" -> NativeStatusTone.Running; else -> NativeStatusTone.Neutral })
-    Text("Reine Arbeitszeit", style = MaterialTheme.typography.titleSmall)
-    Text("${seconds / 3600} Std. ${seconds / 60 % 60} Min. ${seconds % 60} Sek.", style = MaterialTheme.typography.headlineSmall)
+    if (value.optString("state") in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) NativeTimeCard(value)
+    else NativeStatus("Zeitmessung beendet")
     NativeContext(controller, JSONObject().apply {
         for (key in listOf("customer_id", "property_id", "order_id")) put(key, value.optString(key))
     })
     for (key in listOf("activity", "location")) if (value.optString(key).isNotBlank()) Text(nativeLabel(key) + ": " + value.getString(key))
     Text("Arbeitsdatum: " + nativeDisplayDate(value.optString("work_date")))
-    if (value.optLong("started_at_ms") > 0) {
+    if (value.optLong("started_at_ms") > 0 && value.optString("state") !in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) {
         val start = java.time.Instant.ofEpochMilli(value.getLong("started_at_ms")).atZone(java.time.ZoneId.of("Europe/Vienna"))
         val pattern = if (start.toLocalDate().toString() == value.optString("work_date")) "HH:mm" else "dd.MM.yyyy · HH:mm"
         Text("Beginn: " + start.format(java.time.format.DateTimeFormatter.ofPattern(pattern)))
     }
-    Text("Pause: " + nativeNumber(value.opt("break_minutes")) + " Min.")
+    if (value.optString("state") !in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) Text("Pause: " + nativeNumber(value.opt("break_minutes")) + " Min.")
     if (value.optString("time_origin") == "manual_review") Text("Zeit wurde manuell geprüft.")
     if (value.optString("correction_reason").isNotBlank()) Text("Zeitkorrektur: " + value.getString("correction_reason"))
     if (value.optBoolean("review_required")) Text("Die Zeitmessung muss vor dem Speichern ausdrücklich geprüft werden.", color = MaterialTheme.colorScheme.error)

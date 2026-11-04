@@ -3,6 +3,7 @@ package at.hausgarten.service
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,7 +23,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -41,26 +44,37 @@ internal fun android.view.Window.nativeLightSystemBars() {
 fun HausGartenTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = Color(0xff31566f), onPrimary = Color.White,
-            primaryContainer = Color(0xffe6eef3), onPrimaryContainer = Color(0xff23313a),
-            secondary = Color(0xff54616a), onSecondary = Color.White,
-            secondaryContainer = Color(0xffedf0f2), onSecondaryContainer = Color(0xff23313a),
-            tertiary = Color(0xff626e76), onTertiary = Color.White,
-            tertiaryContainer = Color(0xffedf1f2), onTertiaryContainer = Color(0xff23313a),
-            background = Color(0xfffbfaf7), onBackground = Color(0xff23313a),
-            surface = Color(0xffffffff), onSurface = Color(0xff23313a),
-            surfaceVariant = Color(0xffedf1f2), onSurfaceVariant = Color(0xff626e76),
-            surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xfffbfaf7),
-            surfaceContainer = Color(0xfff4f5f3), surfaceContainerHigh = Color(0xffedf0ef),
-            surfaceContainerHighest = Color(0xffe6eae9), surfaceTint = Color(0xff31566f),
-            outline = Color(0xff7b878c), outlineVariant = Color(0xffdce0df),
+            primary = Color(0xff17634f), onPrimary = Color.White,
+            primaryContainer = Color(0xffe2f0e8), onPrimaryContainer = Color(0xff12543f),
+            secondary = Color(0xff52645d), onSecondary = Color.White,
+            secondaryContainer = Color(0xffe2f0e8), onSecondaryContainer = Color(0xff12543f),
+            tertiary = Color(0xff52645d), onTertiary = Color.White,
+            tertiaryContainer = Color(0xffeaf0ec), onTertiaryContainer = Color(0xff1d302a),
+            background = Color(0xfff4f7f4), onBackground = Color(0xff1d302a),
+            surface = Color.White, onSurface = Color(0xff1d302a),
+            surfaceVariant = Color(0xffeaf0ec), onSurfaceVariant = Color(0xff52645d),
+            surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xfff4f7f4),
+            surfaceContainer = Color(0xfff4f7f4), surfaceContainerHigh = Color(0xffeaf0ec),
+            surfaceContainerHighest = Color(0xffe2ebe5), surfaceTint = Color(0xff17634f),
+            outline = Color(0xff77877e), outlineVariant = Color(0xffdce4de),
             error = Color(0xff963d36), onError = Color.White,
             errorContainer = Color(0xfff7e9e7), onErrorContainer = Color(0xff6d2420),
-            inverseSurface = Color(0xff23313a), inverseOnSurface = Color(0xfffbfaf7), inversePrimary = Color(0xffb8d0df)
+            inverseSurface = Color(0xff1d302a), inverseOnSurface = Color(0xfff4f7f4), inversePrimary = Color(0xffa8d9c0)
         ),
-        typography = Typography(),
-        shapes = Shapes(extraSmall = RoundedCornerShape(4.dp), small = RoundedCornerShape(8.dp),
-            medium = RoundedCornerShape(12.dp), large = RoundedCornerShape(16.dp), extraLarge = RoundedCornerShape(24.dp)),
+        typography = Typography().let { base -> base.copy(
+            headlineLarge = base.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            headlineMedium = base.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            headlineSmall = base.headlineSmall.copy(fontSize = 26.sp, fontWeight = FontWeight.Bold),
+            titleLarge = base.titleLarge.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+            titleMedium = base.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
+            titleSmall = base.titleSmall.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
+            bodyLarge = base.bodyLarge.copy(fontSize = 17.sp, lineHeight = 25.sp),
+            bodyMedium = base.bodyMedium.copy(fontSize = 16.sp, lineHeight = 23.sp),
+            bodySmall = base.bodySmall.copy(fontSize = 14.sp, lineHeight = 20.sp),
+            labelLarge = base.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+        ) },
+        shapes = Shapes(extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),
+            medium = RoundedCornerShape(14.dp), large = RoundedCornerShape(18.dp), extraLarge = RoundedCornerShape(24.dp)),
         content = content
     )
 }
@@ -110,14 +124,14 @@ internal enum class NativeStatusTone { Neutral, Running, Confirmed, Attention, F
 internal fun NativeStatus(label: String, tone: NativeStatusTone = NativeStatusTone.Neutral) {
     if (label.isBlank()) return
     val (background, foreground, symbol) = when (tone) {
-        NativeStatusTone.Running -> Triple(Color(0xffe6eef5), Color(0xff28516c), "●")
-        NativeStatusTone.Confirmed -> Triple(Color(0xffe7f0e9), Color(0xff245d4c), "✓")
-        NativeStatusTone.Attention -> Triple(Color(0xfff8ebda), Color(0xff8a4b10), "!")
+        NativeStatusTone.Running -> Triple(Color(0xffe2f0e8), Color(0xff12543f), "●")
+        NativeStatusTone.Confirmed -> Triple(Color(0xffe2f0e8), Color(0xff12543f), "✓")
+        NativeStatusTone.Attention -> Triple(Color(0xfffff1d0), Color(0xff79510b), "!")
         NativeStatusTone.Failed -> Triple(Color(0xfff7e9e7), Color(0xff963d36), "×")
-        NativeStatusTone.Neutral -> Triple(Color(0xffedf0f2), Color(0xff54616a), "·")
+        NativeStatusTone.Neutral -> Triple(Color(0xffeaf0ec), Color(0xff52645d), "·")
     }
-    Surface(color = background, contentColor = foreground, shape = MaterialTheme.shapes.extraSmall) {
-        Text("$symbol $label", Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+    Surface(color = background, contentColor = foreground, shape = RoundedCornerShape(50)) {
+        Text("$symbol $label", Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelLarge)
     }
 }
@@ -146,10 +160,10 @@ internal fun NativeActionBar(
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (secondaryLabel != null && onSecondary != null) {
                         OutlinedButton(onSecondary, Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                            enabled = secondaryEnabled) { Text(secondaryLabel) }
+                            enabled = secondaryEnabled, shape = MaterialTheme.shapes.medium) { Text(secondaryLabel) }
                     }
                     Button(onPrimary, Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        enabled = enabled, colors = primaryColors) { Text(primaryLabel) }
+                        enabled = enabled, colors = primaryColors, shape = MaterialTheme.shapes.medium) { Text(primaryLabel) }
                 }
             } else {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -157,10 +171,10 @@ internal fun NativeActionBar(
                     verticalAlignment = Alignment.CenterVertically) {
                     if (secondaryLabel != null && onSecondary != null) {
                         OutlinedButton(onSecondary, Modifier.weight(1f).heightIn(min = 56.dp),
-                            enabled = secondaryEnabled) { Text(secondaryLabel) }
+                            enabled = secondaryEnabled, shape = MaterialTheme.shapes.medium) { Text(secondaryLabel) }
                     }
                     Button(onPrimary, Modifier.weight(if (secondaryLabel == null) 1f else 1.25f)
-                        .heightIn(min = 56.dp), enabled = enabled, colors = primaryColors) {
+                        .heightIn(min = 56.dp), enabled = enabled, colors = primaryColors, shape = MaterialTheme.shapes.medium) {
                         Text(primaryLabel)
                     }
                 }
@@ -169,29 +183,32 @@ internal fun NativeActionBar(
     }
 }
 
-/** Plain feature rows keep the same hierarchy without repeated card stacks. */
+/** White outlined cards match the concept while retaining the existing row actions. */
 @Composable
 internal fun NativeInfoRow(
     title: String,
     detail: String = "",
     onClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    leading: (@Composable () -> Unit)? = null
 ) {
-    Column(modifier.fillMaxWidth().then(
-        if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
-    )) {
-        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(vertical = 10.dp),
+    Surface(modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+        shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Row(Modifier.fillMaxWidth().then(
+            if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+        ).heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            leading?.invoke()
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge)
+                Text(title, style = MaterialTheme.typography.titleSmall)
                 if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (onClick != null) Text("›", style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -208,12 +225,19 @@ internal fun NativeAreaIcon(section: String) {
                 drawPath(Path().apply { moveTo(3*unit,11*unit); lineTo(12*unit,3*unit); lineTo(21*unit,11*unit) }, color, style = Stroke(1.8f*unit))
                 line(6,9,6,21); line(6,21,18,21); line(18,21,18,9); line(10,21,10,14); line(10,14,14,14); line(14,14,14,21)
             }
-            "worklogs" -> { drawCircle(color, 9*unit, p(12,12), style = Stroke(1.8f*unit)); line(12,6,12,12); line(12,12,16,15) }
+            "worklogs" -> {
+                drawRoundRect(color, p(4,7), Size(16*unit,14*unit), androidx.compose.ui.geometry.CornerRadius(2*unit,2*unit), style = Stroke(1.8f*unit))
+                line(8,7,8,4); line(8,4,16,4); line(16,4,16,7); line(4,12,20,12)
+            }
             "customers" -> {
                 drawCircle(color, 3*unit, p(9,7), style = Stroke(1.8f*unit)); drawArc(color,180f,180f,false,p(2,12),Size(14*unit,14*unit),style=Stroke(1.8f*unit))
                 drawArc(color,-90f,180f,false,p(15,4),Size(6*unit,6*unit),style=Stroke(1.8f*unit)); line(18,13,21,18)
             }
-            else -> { drawRect(color,p(4,7),Size(16*unit,14*unit),style=Stroke(1.8f*unit)); line(8,7,8,3); line(8,3,16,3); line(16,3,16,7); line(4,12,20,12) }
+            else -> {
+                drawRoundRect(color, p(5,3), Size(14*unit,18*unit), androidx.compose.ui.geometry.CornerRadius(2*unit,2*unit), style = Stroke(1.8f*unit))
+                drawRect(color, p(8,6), Size(8*unit,4*unit), style = Stroke(1.4f*unit))
+                for (x in listOf(8,12,16)) for (y in listOf(14,18)) drawCircle(color, 0.9f*unit, p(x,y))
+            }
         }
     }
 }
