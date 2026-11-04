@@ -160,10 +160,12 @@ internal fun NativeActionBar(
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (secondaryLabel != null && onSecondary != null) {
                         OutlinedButton(onSecondary, Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                            enabled = secondaryEnabled, shape = MaterialTheme.shapes.medium) { Text(secondaryLabel) }
+                            enabled = secondaryEnabled, shape = MaterialTheme.shapes.medium,
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) { Text(secondaryLabel) }
                     }
                     Button(onPrimary, Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        enabled = enabled, colors = primaryColors, shape = MaterialTheme.shapes.medium) { Text(primaryLabel) }
+                        enabled = enabled, colors = primaryColors, shape = MaterialTheme.shapes.medium,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) { Text(primaryLabel) }
                 }
             } else {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -171,10 +173,12 @@ internal fun NativeActionBar(
                     verticalAlignment = Alignment.CenterVertically) {
                     if (secondaryLabel != null && onSecondary != null) {
                         OutlinedButton(onSecondary, Modifier.weight(1f).heightIn(min = 56.dp),
-                            enabled = secondaryEnabled, shape = MaterialTheme.shapes.medium) { Text(secondaryLabel) }
+                            enabled = secondaryEnabled, shape = MaterialTheme.shapes.medium,
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) { Text(secondaryLabel) }
                     }
                     Button(onPrimary, Modifier.weight(if (secondaryLabel == null) 1f else 1.25f)
-                        .heightIn(min = 56.dp), enabled = enabled, colors = primaryColors, shape = MaterialTheme.shapes.medium) {
+                        .heightIn(min = 56.dp), enabled = enabled, colors = primaryColors, shape = MaterialTheme.shapes.medium,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
                         Text(primaryLabel)
                     }
                 }

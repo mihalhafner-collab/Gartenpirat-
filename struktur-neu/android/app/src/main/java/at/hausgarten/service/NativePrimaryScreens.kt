@@ -1245,6 +1245,15 @@ private fun NativeTimer(controller: NativeAppController) {
         activityReady = true
     }
     if (state == "STOPPED_PENDING_REVIEW" && value != null) {
+        // Finish reading the timer's draft before creating the action form.
+        // A late activity prefill would reset its inputs and generated request ID.
+        if (!activityReady) {
+            Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Abschluss wird vorbereitet …")
+                CircularProgressIndicator()
+            }
+            return
+        }
         val args = JSONObject().put("session_id", sessionId).put("activity", activity).put("_draft_key", completionKey)
             .put("_preview", JSONObject().put("work_date", value.optString("work_date"))
                 .put("nettoarbeitszeit", nativeDuration(value.optLong("worked_ms") / 3600000.0)).put("break_minutes", value.opt("break_minutes"))

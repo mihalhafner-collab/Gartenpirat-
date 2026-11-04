@@ -1094,6 +1094,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Schließen")
             val beforePhotoShortcut = machine().getString("record_hash")
             click("Foto ändern")
+            // Wait for the selected accessory's photo geometry before locating
+            // duplicated field labels; a lower A card is not the focused B card.
+            reveal("Zubehörfoto · zum Vergrößern antippen")
+            scrollTop()
             reveal("Bezeichnung")
             yes(field("Bezeichnung")?.text?.toString() == "QA Kette B", "ACCESSORY_PHOTO_SHORTCUT_FOCUSES_OWN_ACCESSORY")
             reveal("Foto aufnehmen"); shown("Foto auswählen")
@@ -1392,6 +1396,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "LEAVING_COMPLETION_DOES_NOT_SAVE")
         click("Abschluss prüfen"); shown("Arbeit abschließen")
         enter("Tätigkeit *", "[TEST] QA native Timer\nRasen gemäht")
+        awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
+        captureSyntheticScreen("timer-completion")
         click("Arbeit speichern")
         waitUntil("TIMER_EXPLICIT_SAVE_CREATES_ONE_WORKLOG") { PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before + 1 }
         val completed = store.workSessions().current(id)
@@ -1409,6 +1415,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val discardedId = read("get_active_work_session").getString("id")
         click("Zeit stoppen"); shown("Arbeit abschließen")
         enter("Tätigkeit *", "[TEST] QA verworfener Abschluss")
+        awaitTimerCompletionReady(discardedId, "[TEST] QA verworfener Abschluss")
         click("Weitere Angaben (optional)")
         reveal("Entwurf verwerfen")
         discardWork(confirm = false)
@@ -1437,6 +1444,35 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Arbeit pausiert"); primaryPosition("Fortsetzen", "Zeit stoppen"); click("Zeit stoppen")
         shown("Arbeit abschließen"); click("Weitere Angaben (optional)"); discardWork()
         waitUntil("RESTORED_TIMER_DISCARDED") { read("get_active_work_session").optString("state") == "IDLE" }
+    }
+
+    private fun awaitTimerCompletionReady(sessionId: String, expectedActivity: String) {
+        val key = "native_form_draft:" + PixelMcpWriteTools.hash("action:complete_work_session:$sessionId")
+        var observed = JSONObject()
+        var readySince = 0L
+        try {
+            waitUntil("TIMER_COMPLETION_HAS_EXACT_DURABLE_INPUTS_AND_ENABLED_SAVE") {
+                val draft = runCatching { JSONObject(store.ownerValue(key, "")) }.getOrNull()
+                val values = draft?.optJSONObject("values")
+                val entered = field("Tätigkeit *")?.text?.toString()
+                val enabled = runCatching { actionEnabled("Arbeit speichern") }.getOrDefault(false)
+                observed = JSONObject().put("draft", draft ?: JSONObject.NULL).put("visible_activity", entered ?: JSONObject.NULL)
+                    .put("save_enabled", enabled).put("expected_session_id", sessionId)
+                val ready = values != null && entered == expectedActivity && values.optString("activity") == expectedActivity &&
+                    values.optString("session_id") == sessionId && values.optString("request_id").isNotBlank() && enabled
+                val now = SystemClock.uptimeMillis()
+                if (!ready) readySince = 0L else if (readySince == 0L) readySince = now
+                // NativeTimer refreshes its parent state every second. Readiness
+                // must survive that refresh rather than expose a transient button.
+                ready && now - readySince >= 1100
+            }
+            checks++
+        } catch (failure: Throwable) {
+            // The emulator fixture is already verified synthetic. Preserve exact
+            // inputs to distinguish lost form metadata from an automation race.
+            test.sendStatus(0, Bundle().apply { putString("timer_completion_form", observed.toString()) })
+            throw failure
+        }
     }
 
     private fun todayOlderWorkJourney() {
@@ -2338,6 +2374,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() == before, "PLANNING_DISCARD_DOES_NOT_CREATE_RECORD")
         click("Heute"); reveal("Heute gespeichert")
+        val workBefore = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         click("Arbeit nachtragen"); shown("Arbeit speichern"); reveal("Datum *")
         openWorkCustomerPicker(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         chooseTime("Beginn", "08:00"); chooseTime("Ende", "12:00")
@@ -2353,5 +2390,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(!Rect.intersects(saveWork, returnWork) && safe.contains(saveWork) && safe.contains(returnWork), "LARGE_TEXT_WORK_ACTIONS_CLEAR_SYSTEM_BARS")
         yes(saveWork.height() >= minimumTouch && returnWork.height() >= minimumTouch, "LARGE_TEXT_WORK_TOUCH_TARGETS")
         captureSyntheticScreen("work-large-font"); discardWork()
+        waitUntil("LARGE_TEXT_DISCARD_REMOVES_WORK_DRAFT") {
+            store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new"), "").isEmpty()
+        }
+        yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == workBefore,
+            "LARGE_TEXT_DISCARD_DOES_NOT_SAVE_WORK")
     }
 }
