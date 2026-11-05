@@ -95,7 +95,7 @@
   ],
   "current_task": {
     "name": "Arbeitsaufzeichnungen mit nativer Gestenauswahl, unterer Suche und direkter Feldbearbeitung",
-    "status": "IMPLEMENTED; VALIDATION_IN_PROGRESS; NO_INSTALLATION_OR_DISTRIBUTION",
+    "status": "APK_DISTRIBUTED; NATIVE_UI_CHECKS_OPEN; NO_INSTALLATION",
     "verified_installed_base": {
       "observed_at_utc": "2026-11-05T21:48:21.879210+00:00",
       "version_name": "1.59.0",
@@ -113,19 +113,23 @@
       "Zeiterfassungsoption aus der Liste der Arbeitsaufzeichnungen entfernen.",
       "Rot markierte Arbeitsauswahl aus der lokalen Abrechnungsmarkierung entfernen; vorhandene Arbeit intern gebunden halten.",
       "Bearbeiten-Aktion bei gespeicherten Arbeiten entfernen; Felder einzeln antippbar und gezielt bearbeitbar machen.",
-      "Code überarbeiten und danach auf weitere Anweisungen warten; keine Installation oder APK-Verteilung."
+      "Code überarbeiten und danach auf weitere Anweisungen warten; keine Installation oder APK-Verteilung.",
+      "Anschlussauftrag: APK erstellen und in Drive Paketinstallation bereitstellen. Dieser ausdrückliche Auftrag ersetzt die vorherige Beschränkung auf reine Codearbeit; keine Pixel-Installation beauftragt."
     ],
     "validation": {
-      "source": "PASS; check_current.py and 61 selected Python tests",
-      "android": "PASS; local final Kotlin app/test compilation and lint; CI clean release/test APK build and lint on 55b74f5",
-      "jvm": "PASS; CI JVM regressions on 55b74f5",
-      "native_ui_execution": "FIRST_RUN_FAILED; Run42116470089: filter-sheet footer unreachable; timer test still expected intentionally removed timer button, causing later large-text follow-up failure. Sticky footer and fully expanded sheet corrected; timer test uses existing compact running-time bar. Rerun pending.",
-      "installation": "NOT_PERFORMED",
-      "distribution": "NOT_PERFORMED"
+      "source": "PASS; check_current.py and 61 selected Python tests; preserved clean source commit 701046b1fc0a13da8362067242faa9eaedca3ee2",
+      "android": "PASS; corrected Kotlin app/test compilation and lint; clean CI release/test APK build and lint on 701046b; local assembleRelease, APK privacy, packaged assets and empty seed checks passed.",
+      "jvm": "PASS; synthetic JVM regressions on 701046b in workflow 42119487017.",
+      "native_ui_execution": "FAIL; workflow 42119487017: graphics_work exceeded 20-second wait for verified selected deletion; graphics_timer timed out in customer-list navigation helper. Today/navigation/accessories/large-text journeys passed. No physical Pixel test.",
+      "native_ui_partial": "PASS before deletion timeout: bottom search and keyboard, filter footer, isolated activity/note edits preserving times, pause duration recalculation, hidden billing reference, long-press selection and recreation. Full targeted suite remains failed.",
+      "installation": "NOT_PERFORMED; live Pixel remains 1.59.0/128.",
+      "distribution": "PASS; original-signed 1.59.1/129 uploaded to existing Drive Paketinstallation. Complete download byte-equal; readback signature, original certificate and DEX BuildConfig verified.",
+      "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
+      "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c"
     }
   },
   "open_checks": [
-    "Pixel 1.59.0/128 über Live-MCP bestätigt; aktueller Quellkandidat 1.59.1/129 nicht installiert oder verteilt. Vollständige alte native Backup-/Cleanup-Suite bleibt wegen veralteter Prüfannahmen aus Run41917494315 offen.",
+    "Pixel 1.59.0/128 erneut live bestätigt. Originalsignierte 1.59.1/129 in Drive Paketinstallation verteilt, nicht installiert. Gezielte Emulatorprüfung 42119487017 bleibt fehlgeschlagen: Zeitlimit bei Sammellöschungsprüfung und Navigationshelfer. Ältere vollständige native Backup-/Cleanup-Suite aus Run41917494315 bleibt offen.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
@@ -135,23 +139,23 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "distributed_at_utc": "2026-11-05T00:54:13.905832+00:00",
-    "version_name": "1.59.0",
-    "version_code": 128,
+    "distributed_at_utc": "2026-11-05T22:47:01.289423+00:00",
+    "version_name": "1.59.1",
+    "version_code": 129,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
-    "source_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
-    "apk_sha256": "e50a1419e1406ec0e7556e57bb6197c3dee91b0cda086b7340fd077d09c6baca",
+    "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
+    "source_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
+    "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/1CIM1prybvu6zK2XPKjFtmRIAnpk6OsXx/view?usp=drivesdk",
+    "download_url": "https://drive.google.com/file/d/1OtoCD8k9h5tu_R4R-p2U9ev7Fg2IJp_g/view?usp=drivesdk",
     "drive": {
-      "file_id": "1CIM1prybvu6zK2XPKjFtmRIAnpk6OsXx",
+      "file_id": "1OtoCD8k9h5tu_R4R-p2U9ev7Fg2IJp_g",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
       "status": "PASS; complete authenticated Drive download byte-equal to verified original-signed local APK",
-      "apk_sha256": "e50a1419e1406ec0e7556e57bb6197c3dee91b0cda086b7340fd077d09c6baca",
+      "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c",
       "byte_size": 88277809,
       "signature_valid": true,
       "original_certificate_match": true
@@ -159,9 +163,10 @@
     "temporary_signing_material_removed": true,
     "signature_valid": true,
     "original_certificate_match": true,
-    "source_binding": "PASS; clean release BuildConfig independently read from signed APK and full Drive readback DEX",
-    "installation": "NOT_PERFORMED; explicit APK distribution only; installed Pixel last observed 1.58.4/127",
-    "native_runtime_acceptance": "PASS_TARGETED_GRAPHICS_UI; API35 emulator, 465 checks, workflow 41941435222, fresh synthetic fixture. Physical Pixel NOT_RUN. Full native suite remains FAIL for earlier unchanged legacy backup/cleanup expectations; see current_task.validation.native_full_regression.",
+    "original_apk_identity_comparison": "PASS; compared to the complete, SHA256-verified original-signed 1.59.0 APK from Drive.",
+    "source_binding": "PASS; clean release BuildConfig independently read from signed APK and full Drive readback DEX; source_dirty=false; Git 701046b1fc0a13da8362067242faa9eaedca3ee2",
+    "installation": "NOT_PERFORMED; explicit APK distribution only; live Pixel 1.59.0/128 reconfirmed in this task.",
+    "native_runtime_acceptance": "FAIL_TARGETED_UI; workflow 42119487017: selected-deletion verification timeout and customer-list navigation helper timeout. Four other graphics journeys passed; physical Pixel NOT_RUN. Older full native backup/cleanup suite remains open.",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
@@ -169,8 +174,10 @@
     "version_name": "1.59.1",
     "version_code": 129,
     "package_name": "at.hausgarten.service",
-    "status": "SOURCE_ONLY; VALIDATION_IN_PROGRESS",
+    "status": "ORIGINAL_SIGNED_AND_DISTRIBUTED; NATIVE_UI_CHECKS_OPEN",
     "installation": "NOT_INSTALLED",
-    "distribution": "NOT_DISTRIBUTED"
+    "distribution": "DRIVE_PAKETINSTALLATION",
+    "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
+    "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c"
   }
 }
