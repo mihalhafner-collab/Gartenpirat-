@@ -489,6 +489,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 launch()
             }
             journey("graphics_today", ::todayJourney)
+            journey("graphics_work", ::workInteractionJourney)
             journey("graphics_navigation", ::graphicsNavigationJourney)
             journey("graphics_accessories", ::accessoryJourney)
             journey("graphics_timer") { timerJourney(largeFontScreenshot = true) }
@@ -527,7 +528,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("work_date", day).put("activity", prefix + index).put("start_time", "08:00")
             .put("end_time", "12:00").put("break_minutes", 30).put("notes", "[TEST] Ursprüngliche Notiz")) }
         click("Arbeit"); enter("Suchen", prefix); shown(prefix + "1"); shown(prefix + "2")
-        yes(node("Zeiterfassung öffnen") == null && node("Löschen") == null && nodes().none { it.isCheckable }, "WORK_LIST_WITHOUT_TIMER_CHECKBOXES_OR_ROW_DELETE")
+        yes(node("Zeiterfassung öffnen") == null && node("Löschen") == null && nodes().none { it.className?.toString() == "android.widget.CheckBox" }, "WORK_LIST_WITHOUT_TIMER_CHECKBOXES_OR_ROW_DELETE")
         val searchBounds = Rect().also { requireNotNull(field("Suchen")).getBoundsInScreen(it) }
         yes(searchBounds.top > actionBounds(prefix + "1").bottom, "WORK_SEARCH_BELOW_RESULTS")
         showKeyboard("Suchen"); visibleResult(prefix + "1", requireKeyboard = true)
@@ -576,7 +577,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun graphicsNavigationJourney() {
-        workInteractionJourney()
         openCustomerList(); enter("Suchen", fixturePrefix)
         shown("55 Treffer · 1–50"); shown(fixturePrefix + "000")
         captureSyntheticScreen("graphics-customers")
