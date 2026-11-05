@@ -179,7 +179,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
         result
     }
     internal fun actionDraftKey(tool: String, initial: JSONObject): String {
-        val defaultKey = "action:$tool:" + initial.optString("entity_id", initial.optString("customer_id", initial.optString("offer_id")))
+        val defaultKey = "action:$tool:" + initial.optString("entity_id", initial.optString("work_record_id", initial.optString("customer_id", initial.optString("offer_id"))))
         return route.args.optString("_draft_key", initial.optString("_draft_key", defaultKey))
     }
 

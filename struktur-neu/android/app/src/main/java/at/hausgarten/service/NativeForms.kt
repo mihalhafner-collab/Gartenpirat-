@@ -178,8 +178,8 @@ internal const val NATIVE_LIST_READ_ERROR = "Die Einträge konnten nicht geladen
 /** Same remaining-space layout for real lists and selection windows. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithoutIme: Boolean = false, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val sideBySide = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0 || sideBySideWithoutIme)
+internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithoutIme: Boolean = false, bottomControls: Boolean = false, controlsVisible: Boolean = true, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    val sideBySide = controlsVisible && LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0 || sideBySideWithoutIme)
     Layout(modifier = modifier, content = { controls(); Column(Modifier.fillMaxSize(), content = content) }) { children, limits ->
         val gap = if (sideBySide) 12.dp.roundToPx() else 0
         val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
@@ -188,8 +188,8 @@ internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithout
         val bodyHeight = if (sideBySide) limits.maxHeight else (limits.maxHeight-head.height).coerceAtLeast(0)
         val body = children[1].measure(Constraints.fixed(bodyWidth, bodyHeight))
         layout(limits.maxWidth, limits.maxHeight) {
-            head.placeRelative(0, 0)
-            body.placeRelative(if (sideBySide) controlWidth+gap else 0, if (sideBySide) 0 else head.height)
+            head.placeRelative(0, if (bottomControls) limits.maxHeight - head.height else 0)
+            body.placeRelative(if (sideBySide) controlWidth+gap else 0, if (sideBySide || bottomControls) 0 else head.height)
         }
     }
 }
@@ -198,6 +198,7 @@ internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithout
 @Composable
 internal fun NativeSearchList(label: String, query: String, onQuery: (String) -> Unit, count: String,
     onFilters: (() -> Unit)? = null, onFocus: () -> Unit = {}, onSearch: (() -> Unit)? = null,
+    bottomSearch: Boolean = false, controlsVisible: Boolean = true,
     content: @Composable ColumnScope.() -> Unit) {
     val ime = WindowInsets.isImeVisible
     val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -205,19 +206,21 @@ internal fun NativeSearchList(label: String, query: String, onQuery: (String) ->
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val shortCount = count.substringBefore(" ·")
-    NativeSearchLayout(Modifier.fillMaxSize(), sideBySideWithoutIme = true, controls = {
+    NativeSearchLayout(Modifier.fillMaxSize(), sideBySideWithoutIme = true, bottomControls = bottomSearch, controlsVisible = controlsVisible, controls = {
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                NativeField(label, query, onQuery, search = true, onSearch = onSearch,
-                    modifier = Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() }, showLabel = !large)
-                if (ime || large && !landscape) Column(Modifier.widthIn(max = 128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (ime) IconButton({ keyboard?.hide(); focus.clearFocus() }, Modifier.semantics { contentDescription = "Eingabe beenden" }) { Text("×") }
-                    else if (onFilters != null) TextButton(onFilters) { Text("Filter") }
-                    if (large && !landscape) Text(shortCount, style = MaterialTheme.typography.labelLarge)
+            if (controlsVisible) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    NativeField(label, query, onQuery, search = true, onSearch = onSearch,
+                        modifier = Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() }, showLabel = !large)
+                    if (ime || large && !landscape) Column(Modifier.widthIn(max = 128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (ime) IconButton({ keyboard?.hide(); focus.clearFocus() }, Modifier.semantics { contentDescription = "Eingabe beenden" }) { Text("×") }
+                        else if (onFilters != null) TextButton(onFilters) { Text("Filter") }
+                        if (large && !landscape) Text(shortCount, style = MaterialTheme.typography.labelLarge)
+                    }
                 }
+                if (!ime && !(large && !landscape)) NativeSearchSummary(count, onFilters)
+                else if (ime && (!large || landscape)) Text(shortCount, Modifier.padding(horizontal = 12.dp, vertical = if (large) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
             }
-            if (!ime && !(large && !landscape)) NativeSearchSummary(count, onFilters)
-            else if (ime && (!large || landscape)) Text(shortCount, Modifier.padding(horizontal = 12.dp, vertical = if (large) 0.dp else 2.dp), style = MaterialTheme.typography.labelLarge)
         }
     }, content = content)
 }
@@ -698,7 +701,8 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                     "complete_work_session", "finish_work" -> setOf("activity")
                     else -> emptySet()
                 }
-                val editable = properties.keys().asSequence().filter { !technical(it) || referenceCollection(it) != null }.toList()
+                val editable = properties.keys().asSequence().filter { !technical(it) || referenceCollection(it) != null }
+                    .filterNot { tool == "set_work_record_billed" && it == "work_record_id" && initial.optString("work_record_id").isNotBlank() }.toList()
                 if (!fixedInputs) {
                     val mainFields = if (focusedKeys.isEmpty()) editable else editable.filter { it in focusedKeys }
                     val extraFields = if (focusedKeys.isEmpty()) emptyList() else editable.filterNot { it in focusedKeys }

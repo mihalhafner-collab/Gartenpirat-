@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-04T21:26:15.849886+00:00",
-    "version_name": "1.58.4",
-    "version_code": 127,
-    "reported_base_git_sha": "d90d4ef45b955c25f9ca9264bb13958ce2277c52",
-    "source_sha256": "ddd8adea00a64d3e8c6f959b3722e2afcfff50f314d95203e38a6120feb40a32",
+    "observed_at_utc": "2026-11-05T21:48:21.879210+00:00",
+    "version_name": "1.59.0",
+    "version_code": 128,
+    "reported_base_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
+    "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; GitHub main and local HEAD 7de52589953e579445486d7492081e10552afc9a have exact installed source SHA256"
+    "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main d659696 before this task"
   },
   "observed_installation_history": [
     {
@@ -81,57 +81,50 @@
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
       "repository_source_match": "PASS; GitHub main and local HEAD 7de52589953e579445486d7492081e10552afc9a have exact installed source SHA256"
+    },
+    {
+      "observed_at_utc": "2026-11-05T21:48:21.879210+00:00",
+      "version_name": "1.59.0",
+      "version_code": 128,
+      "reported_base_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
+      "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main d659696 before this task"
     }
   ],
   "current_task": {
-    "name": "Grafisches PDF-Konzept übernehmen und Zubehörfotos direkt erreichbar machen",
-    "status": "COMPLETED_AND_DISTRIBUTED; TARGETED_GRAPHICS_UI_ACCEPTANCE_PASS",
-    "concept": {
-      "title": "Haus & Garten – Produkt- und Bedienkonzept 1.0",
-      "date": "2026-11-04",
-      "pages": 24,
-      "source": "Vom Eigentümer in diesem Auftrag angehängtes Haus_und_Garten_App_Konzept.pdf",
-      "scope": "Grafischer Aufbau und vorhandene Fachfunktionen; keine Rechnung, Zahlung, neue Buchhaltung oder Backup-Überarbeitung",
-      "sha256": "c8a1776eed1239e9227d12294697381fa74c4d9e57429fc85e5cfc1f2262e199"
-    },
+    "name": "Arbeitsaufzeichnungen mit nativer Gestenauswahl, unterer Suche und direkter Feldbearbeitung",
+    "status": "IMPLEMENTED; VALIDATION_IN_PROGRESS; NO_INSTALLATION_OR_DISTRIBUTION",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-04T21:26:15.849886+00:00",
-      "version_name": "1.58.4",
-      "version_code": 127,
-      "reported_base_git_sha": "d90d4ef45b955c25f9ca9264bb13958ce2277c52",
-      "source_sha256": "ddd8adea00a64d3e8c6f959b3722e2afcfff50f314d95203e38a6120feb40a32",
+      "observed_at_utc": "2026-11-05T21:48:21.879210+00:00",
+      "version_name": "1.59.0",
+      "version_code": 128,
+      "reported_base_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
+      "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; GitHub main and local HEAD 7de52589953e579445486d7492081e10552afc9a have exact installed source SHA256"
+      "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main d659696 before this task"
     },
     "owner_decisions": [
-      "Grafisches Konzept aus dem PDF übernehmen; unabhängige Subagenten prüfen Abweichungen und weisen sie zur Überarbeitung zurück.",
-      "Zubehörfotos wie bei Geräten direkt erreichbar; vorhandene Fotopfade und Zuordnungen erhalten.",
-      "Backup-Funktion einschließlich Format und Bedienablauf unverändert.",
-      "Keine neue sevDesk-Anbindung, keine eigenen Rechnungen, keine unnötige Funktionserweiterung.",
-      "Nach erfolgreicher Prüfung originalsignierte APK erstellen und im vorhandenen Drive-Ordner Paketinstallation bereitstellen; keine Pixel-Installation."
-    ],
-    "scope": [
-      "Waldgrüne Farbpalette, helle Fläche, weiße gerundete Karten, klare Typografie und Aktionshierarchie.",
-      "Heute, Timer, Kunden, Planung, Angebote und Geräte/Zubehör anhand des PDF gestalten.",
-      "Laufende Zeit außerhalb des Timerdetails kompakt lesend anzeigen.",
-      "Bestehenden Timerabschluss nach erneutem Öffnen zuverlässig laden; fehlerhaften Fußleisten-Wortumbruch korrigieren.",
-      "Heute-Leseaktualisierungen bei kurzfristiger SQLite-Sperre ohne Absturz fortsetzen; keine Schreibwiederholung."
+      "Kartenoptik aus dem Kundenmenü übernehmen; linke Checkboxen und einzelne Löschbuttons entfernen.",
+      "Langes Drücken aktiviert eine Auswahl mit passenden Aktionen am unteren Rand.",
+      "Suche unten mit Tastaturanpassung; Filter als natives unteres Blatt.",
+      "Zeiterfassungsoption aus der Liste der Arbeitsaufzeichnungen entfernen.",
+      "Rot markierte Arbeitsauswahl aus der lokalen Abrechnungsmarkierung entfernen; vorhandene Arbeit intern gebunden halten.",
+      "Bearbeiten-Aktion bei gespeicherten Arbeiten entfernen; Felder einzeln antippbar und gezielt bearbeitbar machen.",
+      "Code überarbeiten und danach auf weitere Anweisungen warten; keine Installation oder APK-Verteilung."
     ],
     "validation": {
-      "source": "PASS; 61 selected Python tests, source/privacy/contracts and reviewed 170-action native UI inventory",
-      "android": "PASS; clean release/androidTest builds, lint and APK verification. Production source SHA256 954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99; APK BuildConfig source_dirty=false, Git 67b7b473f82e0095af0f96f7aab87b7175907e39.",
-      "jvm": "PASS; 8 synthetic JVM suites, 1469 assertions",
-      "graphic_review": "PASS_RELEASE_VISUAL; independent subagent renewed actual screenshot review after successful run 41941435222: timer actions, paused Today 200%, work form 200%, opaque enlarged accessory dialog. No mandatory graphic deviation. Completion footer also verified against previous actual image on identical production SHA 954; fresh completion image was not included in workflow artifact collection.",
-      "native_ui_execution": "PASS; GitHub Actions 41941435222 on 67b7b473f82e0095af0f96f7aab87b7175907e39. Native API35 real MainActivity:465 checks, all 5 graphics journeys passed (Today, navigation/planning/offers, accessories, timer finalize/discard/restore, large text 200%). Only fresh synthetic fixture; productive_data_read=false, physical_pixel_tested=false.",
-      "installation": "NOT_PERFORMED; explicit APK distribution only; Pixel last observed 1.58.4/127",
-      "distribution": "PASS; original-signed 1.59.0/128 uploaded to existing Drive Paketinstallation and fully downloaded, byte-equal and signature/DEX identity verified.",
-      "backup_changes": "NONE; production backup implementation, schema, archive format and user flows unchanged",
-      "native_full_regression": "FAIL; run41917494315 on ac7233f: unchanged legacy backup/provider tests require retained empty work folders; native_data expects retained marked test photos. UI prerequisite failed. No backup production change."
+      "source": "PENDING final source check",
+      "android": "PENDING final Kotlin compilation and lint",
+      "native_ui_execution": "PENDING isolated synthetic emulator acceptance",
+      "installation": "NOT_PERFORMED",
+      "distribution": "NOT_PERFORMED"
     }
   },
   "open_checks": [
-    "Produktives Pixel-Update mit Datenerhalt für 1.59.0 nicht ausgeführt. Gezielte API35-Grafik-/UI-Abnahme bestanden; ältere vollständige native Backup-/Cleanup-Suite bleibt wegen veralteter Prüfannahmen aus Run41917494315 offen, unverändert und nicht als bestanden ausgegeben.",
+    "Pixel 1.59.0/128 über Live-MCP bestätigt; aktueller Quellkandidat 1.59.1/129 nicht installiert oder verteilt. Vollständige alte native Backup-/Cleanup-Suite bleibt wegen veralteter Prüfannahmen aus Run41917494315 offen.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
@@ -172,11 +165,11 @@
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.59.0",
-    "version_code": 128,
+    "version_name": "1.59.1",
+    "version_code": 129,
     "package_name": "at.hausgarten.service",
-    "status": "ORIGINAL_SIGNED_AND_DISTRIBUTED; TARGETED_GRAPHICS_UI_PASS",
+    "status": "SOURCE_ONLY; VALIDATION_IN_PROGRESS",
     "installation": "NOT_INSTALLED",
-    "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99"
+    "distribution": "NOT_DISTRIBUTED"
   }
 }

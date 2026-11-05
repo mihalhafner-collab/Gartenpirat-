@@ -511,7 +511,72 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
+    /** Real gesture/keyboard actions plus durable readback of isolated field edits and batch deletion. */
+    private fun workInteractionJourney() {
+        val customer = customers(fixturePrefix + "000").single().getString("id")
+        fun works(): List<JSONObject> {
+            val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+            return (0 until rows.length()).map { rows.getJSONObject(it) }
+        }
+        val originalIds = works().map { it.getString("id") }.toSet()
+        val originalHash = PixelMcpWriteTools.hash(JSONArray(works()))
+        val prefix = "[TEST] QA Arbeitsbedienung "
+        val day = LocalDate.now(ZoneId.of("Europe/Vienna")).minusDays(1).toString()
+        val ids = (1..2).map { index -> store.saveEditorRecord("worklog", JSONObject()
+            .put("_request_id", "qa_work_interaction_$index").put("customer_id", customer)
+            .put("work_date", day).put("activity", prefix + index).put("start_time", "08:00")
+            .put("end_time", "12:00").put("break_minutes", 30).put("notes", "[TEST] Ursprüngliche Notiz")) }
+        click("Arbeit"); enter("Suchen", prefix); shown(prefix + "1"); shown(prefix + "2")
+        yes(node("Zeiterfassung öffnen") == null && node("Löschen") == null && nodes().none { it.isCheckable }, "WORK_LIST_WITHOUT_TIMER_CHECKBOXES_OR_ROW_DELETE")
+        val searchBounds = Rect().also { requireNotNull(field("Suchen")).getBoundsInScreen(it) }
+        yes(searchBounds.top > actionBounds(prefix + "1").bottom, "WORK_SEARCH_BELOW_RESULTS")
+        showKeyboard("Suchen"); visibleResult(prefix + "1", requireKeyboard = true)
+        captureSyntheticScreen("work-search", requireKeyboard = true)
+        back(); waitUntil("WORK_SEARCH_IME_CLOSED") { !keyboardVisible() }
+        click("Filter"); shown("Arbeiten filtern"); chooseDate("Ab Datum", day)
+        click("Ergebnisse anzeigen"); shown(prefix + "1")
+        captureSyntheticScreen("work-list")
+        click(prefix + "1"); shown("Gespeicherte Arbeit")
+        yes(node("Arbeit bearbeiten") == null && node("Bearbeiten") == null, "WORK_DETAIL_DIRECT_FIELD_EDITING")
+        click("Tätigkeit"); shown("Was wurde erledigt? *")
+        yes(node("Datum *") == null && node("Beginn") == null && node("Kunde") == null, "WORK_ACTIVITY_EDITOR_ISOLATED")
+        enter("Was wurde erledigt? *", prefix + "1 korrigiert"); click("Arbeit speichern")
+        waitUntil("WORK_ACTIVITY_SAVED") { works().first { it.getString("id") == ids.first() }.getString("activity") == prefix + "1 korrigiert" }
+        fun first() = works().first { it.getString("id") == ids.first() }
+        yes(first().getDouble("hours") == 3.5 && first().getString("start_time") == "08:00" && first().getString("end_time") == "12:00" && first().getInt("break_minutes") == 30, "WORK_TEXT_EDIT_PRESERVES_TIMING")
+        click("Notizen"); shown("Notizen")
+        yes(node("Was wurde erledigt? *") == null && node("Beginn") == null, "WORK_NOTE_EDITOR_ISOLATED")
+        enter("Notizen", "[TEST] Einzelne Notiz korrigiert"); click("Arbeit speichern")
+        waitUntil("WORK_NOTE_SAVED") { first().optString("notes") == "[TEST] Einzelne Notiz korrigiert" }
+        click("Pause"); shown("Pause (Minuten)"); enter("Freie Minuten", "15"); click("Arbeit speichern")
+        waitUntil("WORK_PAUSE_RECALCULATES_DURATION") { first().getInt("break_minutes") == 15 && first().getDouble("hours") == 3.75 }
+        click("Abgerechnet / offen markieren"); shown("Begründung *")
+        yes(visibleTexts().none { it.contains("Work record id", true) || it.startsWith("Arbeitsaufzeichnung:") }, "WORK_BILLING_REFERENCE_HIDDEN")
+        captureSyntheticScreen("work-billing")
+        click("Zurück")
+        click("Arbeit"); shown(prefix + "1 korrigiert")
+        fun hold(label: String) {
+            var candidate: AccessibilityNodeInfo? = requireNotNull(node(label))
+            while (candidate != null && candidate.actionList.none { it.id == AccessibilityNodeInfo.ACTION_LONG_CLICK }) candidate = candidate.parent
+            yes(requireNotNull(candidate).performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK), "WORK_LONG_PRESS_SELECTION")
+            settleUi()
+        }
+        hold(prefix + "1 korrigiert"); shown("1 ausgewählt")
+        yes(node("Duplizieren") != null && node("Löschen") != null && field("Suchen") == null, "WORK_CONTEXTUAL_ACTIONS")
+        recreate(); shown("1 ausgewählt")
+        click(prefix + "2"); shown("2 ausgewählt")
+        captureSyntheticScreen("work-selection")
+        back(); shown("Suchen")
+        yes(node("Löschen") == null && works().map { it.getString("id") }.toSet() == originalIds + ids, "WORK_BACK_CANCELS_SELECTION_WITHOUT_WRITING")
+        hold(prefix + "1 korrigiert"); click("Seite auswählen"); shown("2 ausgewählt"); click("Löschen")
+        waitUntil("WORK_SELECTED_DELETE_VERIFIED") { works().map { it.getString("id") }.toSet() == originalIds }
+        shown("Keine Treffer. Suchtext oder Filter ändern.")
+        yes(PixelMcpWriteTools.hash(JSONArray(works())) == originalHash, "WORK_DELETE_PRESERVES_UNSELECTED_RECORDS")
+        yes(node("Löschen") == null, "WORK_DELETE_RETURNS_TO_SEARCH")
+    }
+
     private fun graphicsNavigationJourney() {
+        workInteractionJourney()
         openCustomerList(); enter("Suchen", fixturePrefix)
         shown("55 Treffer · 1–50"); shown(fixturePrefix + "000")
         captureSyntheticScreen("graphics-customers")
@@ -880,7 +945,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(row.getInt("break_minutes") == 23 && row.getDouble("hours") == 3.62, "PAUSE_DEDUCTED_ONCE")
         yes(row.getDouble("disposal_cost") == 73.4 && row.getString("activity") == ownText + "\nRasen gemäht", "DISPOSAL_AND_OWN_TEXT_AND_PHRASE_SAVED")
         click(row.getString("activity")); reveal("[TEST] QA sofort sichtbare Notiz")
-        click("Arbeit bearbeiten"); enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
+        click("Tätigkeit"); enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
         discardWork(confirm = false)
         reveal("Was wurde erledigt? *")
         yes(field("Was wurde erledigt? *")?.text?.toString()?.contains("ungespeichert") == true, "CANCEL_DISCARD_RETAINS_INPUT")
@@ -2198,6 +2263,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Arbeit"); click("Filter")
         chooseDate("Ab Datum", "2020-01-01")
         revealContaining("1. Jan. 2020")
+        click("Ergebnisse anzeigen")
         showKeyboard("Suchen")
         waitUntil("WORK_SEARCH_CLOSES_FILTERS") { node("Ab Datum") == null }
         back(); waitUntil("WORK_FILTER_IME_CLOSED") { !keyboardVisible() }

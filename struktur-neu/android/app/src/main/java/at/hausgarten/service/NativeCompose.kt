@@ -5,6 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -194,13 +195,16 @@ internal fun NativeInfoRow(
     detail: String = "",
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    leading: (@Composable () -> Unit)? = null
+    leading: (@Composable () -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    isSelected: Boolean = false
 ) {
     Surface(modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
-        shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        shape = MaterialTheme.shapes.large, color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
         Row(Modifier.fillMaxWidth().then(
-            if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+            if (onClick != null && onLongClick != null) Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = "Auswählen")
+            else if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
         ).heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {

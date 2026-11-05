@@ -76,9 +76,11 @@ Aktivierung bleibt gesperrt; ihre bloße Dateierhaltung ist kein Übernahmenachw
 
 Das eigenständige Entwürfe-Menü samt Inbox ist entfernt. Automatische Zwischenstände
 laufender Formulare und Vorgangsprüfungen bleiben im jeweiligen Fachformular.
-Arbeitsaufzeichnungen haben eine direkte Löschtaste je Listeneintrag und eine
-Sammellöschung. Fotos, Termine und Revier-Einträge verwenden dieselbe eindeutige
-Bedienung. Historische Papierkorbeinträge bleiben nur zum endgültigen Entfernen
+Arbeitsaufzeichnungen aktivieren die Auswahl durch langes Drücken auf eine Karte.
+Weitere Karten werden durch Antippen ausgewählt; die untere Aktionsleiste bietet
+Abbrechen, Seitenauswahl, bei einer Arbeit Duplizieren sowie endgültiges Löschen.
+Es gibt keine linke Checkbox und keine eigene Löschtaste je Arbeit. Fotos, Termine
+und Revier-Einträge behalten ihre eindeutige direkte Löschbedienung. Historische Papierkorbeinträge bleiben nur zum endgültigen Entfernen
 erreichbar; die Oberfläche zeigt keine Wiederherstellungswahl.
 
 Bei eindeutig markierten Testeinträgen umfasst endgültiges Löschen auch die zugehörigen
@@ -187,9 +189,9 @@ bleibt maßgeblich; Rechnung, Zahlungsverwaltung und neue Buchhaltungsfunktionen
 werden nicht aus den Mockups übernommen. Backup-Logik, Format und Bedienabläufe
 bleiben unverändert. Fachliche Listen und gezielte Details ersetzen Rohdatenwände.
 
-Die Sammellöschung von Arbeiten zeigt nur Tätigkeit und Datum der Auswahl sowie
-einmal den Hinweis auf die Wiederherstellung im Papierkorb. „In den Papierkorb“
-bestätigt die Auswahl ohne zusätzlichen Schalter. Interne Prüffelder und
+Die Sammellöschung von Arbeiten zeigt die markierten Karten und die Anzahl der
+Auswahl. „Löschen“ entfernt die Auswahl endgültig ohne zusätzlichen Dialog oder
+Papierkorbstufe. Android-Zurück beendet den Auswahlmodus ohne Datenänderung. Interne Prüffelder und
 Vergleichshashes bleiben unsichtbar; geschützte oder veränderte Arbeiten werden
 weiterhin durch die bestehenden Prüfungen abgefangen.
 
@@ -301,6 +303,17 @@ Eigenschaften der App. Ein Quellcheck oder synthetischer Emulatorlauf ersetzt
 keinen entsprechenden Nachweis auf dem Pixel.
 
 ## Vereinfachte native Bedienung und Arbeitszubehör
+
+Arbeitsaufzeichnungen folgen der Kartenoptik des Kundenmenüs. Suche und Trefferzahl
+stehen am unteren Bildschirmrand und bleiben oberhalb der Tastatur erreichbar;
+bei Texteingabe wird „Arbeit nachtragen“ ausgeblendet. Im Querformat teilen sich
+Suche und Liste den verfügbaren Platz. Filter öffnen als natives unteres Blatt.
+Die Liste enthält keinen eigenen Einstieg in die Zeiterfassung. Gespeicherte
+Arbeiten öffnen ihre bearbeitbaren Angaben einzeln durch Antippen; eine allgemeine
+Bearbeiten-Aktion entfällt. Texte und Datum ändern die gespeicherte Zeit nicht.
+Zeitkorrekturen verwenden weiterhin die gemeinsame Dauer-/Pausenprüfung. Die
+Abrechnungsmarkierung hält die bereits gewählte Arbeit intern fest und zeigt
+keine erneute Arbeitsauswahl.
 
 Heute, Arbeitsaufzeichnungen, Kunden und Büro sind die vier festen Hauptbereiche.
 Heute folgt der grafischen Bildvorlage vom 04.11.2026: geplante Einsätze und
