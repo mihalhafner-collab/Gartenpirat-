@@ -85,7 +85,7 @@
   ],
   "current_task": {
     "name": "Grafisches PDF-Konzept übernehmen und Zubehörfotos direkt erreichbar machen",
-    "status": "IMPLEMENTED; TIMER_AND_TRANSIENT_TODAY_READ_FIXES; FINAL_UI_RERUN_PENDING",
+    "status": "COMPLETED_AND_DISTRIBUTED; TARGETED_GRAPHICS_UI_ACCEPTANCE_PASS",
     "concept": {
       "title": "Haus & Garten – Produkt- und Bedienkonzept 1.0",
       "date": "2026-11-04",
@@ -119,19 +119,19 @@
       "Heute-Leseaktualisierungen bei kurzfristiger SQLite-Sperre ohne Absturz fortsetzen; keine Schreibwiederholung."
     ],
     "validation": {
-      "source": "PASS; 61 selected Python tests and exact native UI registry review",
-      "android": "PASS clean local and central release/androidTest/lint; production source SHA256 954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99 unchanged by test-only followup.",
+      "source": "PASS; 61 selected Python tests, source/privacy/contracts and reviewed 170-action native UI inventory",
+      "android": "PASS; clean release/androidTest builds, lint and APK verification. Production source SHA256 954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99; APK BuildConfig source_dirty=false, Git 67b7b473f82e0095af0f96f7aab87b7175907e39.",
       "jvm": "PASS; 8 synthetic JVM suites, 1469 assertions",
-      "graphic_review": "PASS earlier real API35 images except newly observed narrow completion-footer word break. Shared button horizontal padding reduced to16dp, preserving56dp targets and weighting; renewed screenshot pending. Timer Today at200 percent and detail atnormalfont independently checked.",
-      "native_ui_execution": "RUN41939251256: Today/navigation/accessories PASS, no crash. Reopened completion now retains exact visible+durable session/activity and save_enabled=true. New helper falsely required request_id persisted in retained draft, although NativeActionForm generates it only in memory until a changed input/save; independently verified against source. Incorrect persistence assumption removed, stable enabled-save/schema proof and actual finalization/record-count/idempotency checks retained. Strict rerun pending; large_text previously cascaded from test-interrupted stopped session.",
-      "installation": "NOT_PERFORMED",
-      "distribution": "PENDING",
-      "backup_changes": "NONE; implementation, format and user flows unchanged",
+      "graphic_review": "PASS_RELEASE_VISUAL; independent subagent renewed actual screenshot review after successful run 41941435222: timer actions, paused Today 200%, work form 200%, opaque enlarged accessory dialog. No mandatory graphic deviation. Completion footer also verified against previous actual image on identical production SHA 954; fresh completion image was not included in workflow artifact collection.",
+      "native_ui_execution": "PASS; GitHub Actions 41941435222 on 67b7b473f82e0095af0f96f7aab87b7175907e39. Native API35 real MainActivity:465 checks, all 5 graphics journeys passed (Today, navigation/planning/offers, accessories, timer finalize/discard/restore, large text 200%). Only fresh synthetic fixture; productive_data_read=false, physical_pixel_tested=false.",
+      "installation": "NOT_PERFORMED; explicit APK distribution only; Pixel last observed 1.58.4/127",
+      "distribution": "PASS; original-signed 1.59.0/128 uploaded to existing Drive Paketinstallation and fully downloaded, byte-equal and signature/DEX identity verified.",
+      "backup_changes": "NONE; production backup implementation, schema, archive format and user flows unchanged",
       "native_full_regression": "FAIL; run41917494315 on ac7233f: unchanged legacy backup/provider tests require retained empty work folders; native_data expects retained marked test photos. UI prerequisite failed. No backup production change."
     }
   },
   "open_checks": [
-    "Native UI-/Geräteabnahme für 1.58.4 nicht ausgeführt; Build/Lint/JVM ersetzen diese nicht.",
+    "Produktives Pixel-Update mit Datenerhalt für 1.59.0 nicht ausgeführt. Gezielte API35-Grafik-/UI-Abnahme bestanden; ältere vollständige native Backup-/Cleanup-Suite bleibt wegen veralteter Prüfannahmen aus Run41917494315 offen, unverändert und nicht als bestanden ausgegeben.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
@@ -141,32 +141,33 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "version_name": "1.58.4",
-    "version_code": 127,
+    "distributed_at_utc": "2026-11-05T00:54:13.905832+00:00",
+    "version_name": "1.59.0",
+    "version_code": 128,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "ddd8adea00a64d3e8c6f959b3722e2afcfff50f314d95203e38a6120feb40a32",
-    "source_git_sha": "d90d4ef45b955c25f9ca9264bb13958ce2277c52",
-    "apk_sha256": "03781ee6d11d3c2e3a9a19c5a60c2087377422cc20036df1595d3dc2e7953945",
+    "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
+    "source_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
+    "apk_sha256": "e50a1419e1406ec0e7556e57bb6197c3dee91b0cda086b7340fd077d09c6baca",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/17CQzhvCpIak9VtwMCSilY_-sOqjjIWkf/view?usp=drivesdk",
+    "download_url": "https://drive.google.com/file/d/1CIM1prybvu6zK2XPKjFtmRIAnpk6OsXx/view?usp=drivesdk",
     "drive": {
-      "file_id": "17CQzhvCpIak9VtwMCSilY_-sOqjjIWkf",
+      "file_id": "1CIM1prybvu6zK2XPKjFtmRIAnpk6OsXx",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
-      "status": "PASS; complete authenticated Drive download compared byte-for-byte to verified original-signed local APK",
-      "apk_sha256": "03781ee6d11d3c2e3a9a19c5a60c2087377422cc20036df1595d3dc2e7953945",
-      "byte_size": 88245041,
+      "status": "PASS; complete authenticated Drive download byte-equal to verified original-signed local APK",
+      "apk_sha256": "e50a1419e1406ec0e7556e57bb6197c3dee91b0cda086b7340fd077d09c6baca",
+      "byte_size": 88277809,
       "signature_valid": true,
       "original_certificate_match": true
     },
     "temporary_signing_material_removed": true,
     "signature_valid": true,
     "original_certificate_match": true,
-    "source_binding": "PASS; clean release BuildConfig identity independently read from signed APK DEX",
-    "installation": "NOT_PERFORMED; explicit APK distribution only; installed Pixel last observed at 1.58.3/126",
-    "native_runtime_acceptance": "NOT_RUN",
+    "source_binding": "PASS; clean release BuildConfig independently read from signed APK and full Drive readback DEX",
+    "installation": "NOT_PERFORMED; explicit APK distribution only; installed Pixel last observed 1.58.4/127",
+    "native_runtime_acceptance": "PASS_TARGETED_GRAPHICS_UI; API35 emulator, 465 checks, workflow 41941435222, fresh synthetic fixture. Physical Pixel NOT_RUN. Full native suite remains FAIL for earlier unchanged legacy backup/cleanup expectations; see current_task.validation.native_full_regression.",
     "productive_migration": "NOT_PERFORMED",
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
@@ -174,7 +175,8 @@
     "version_name": "1.59.0",
     "version_code": 128,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTING_AND_REVIEWING",
-    "installation": "NOT_INSTALLED"
+    "status": "ORIGINAL_SIGNED_AND_DISTRIBUTED; TARGETED_GRAPHICS_UI_PASS",
+    "installation": "NOT_INSTALLED",
+    "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99"
   }
 }

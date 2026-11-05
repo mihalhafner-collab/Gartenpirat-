@@ -16,4 +16,6 @@ Sicherungspflicht bei der Umstellung auf lokalen Betrieb.
 
 Die einzige für Google Drive vorgesehene Veröffentlichung ist die ausdrücklich
 freigegebene, originalsignierte [Paketinstallation](https://drive.google.com/drive/folders/1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua).
-Aktuell installierte Version: 1.57.2 / Build 121. Keine automatische Installation.
+Zuletzt auf dem Pixel beobachtet: 1.58.4 / Build 127.
+Bereitgestellt: 1.59.0 / Build 128, originalsigniert und gezielt im Emulator geprüft.
+Keine automatische Installation.
