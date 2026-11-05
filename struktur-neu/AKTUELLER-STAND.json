@@ -120,10 +120,10 @@
     ],
     "validation": {
       "source": "PASS; 61 selected Python tests and exact native UI registry review",
-      "android": "PASS clean local and central release/androidTest/lint on23c49bb; read-flow-only followup pending clean build. Candidate production source SHA256 954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99.",
+      "android": "PASS clean local and central release/androidTest/lint; production source SHA256 954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99 unchanged by test-only followup.",
       "jvm": "PASS; 8 synthetic JVM suites, 1469 assertions",
       "graphic_review": "PASS earlier real API35 images except newly observed narrow completion-footer word break. Shared button horizontal padding reduced to16dp, preserving56dp targets and weighting; renewed screenshot pending. Timer Today at200 percent and detail atnormalfont independently checked.",
-      "native_ui_execution": "RUN41936485732: Today/navigation/accessories completed without journey failure, then real process crash early in timer journey. Captured FATAL SQLiteDatabaseLockedException at NativeDataRepository.awaitCommit through Today watchCommittedChanges. Existing unguarded UI observer (also present in installed baseline) now resubscribes only on exact transient SQLite lock using cancellable75ms delay, then nativeErrors handles other errors; both Today read flows covered, initial version-1 ensures first successful read refreshes. No writer/repository/schema/backup change. Prior timer activityReady fix still requires successful finalization proof. Strict rerun pending.",
+      "native_ui_execution": "RUN41939251256: Today/navigation/accessories PASS, no crash. Reopened completion now retains exact visible+durable session/activity and save_enabled=true. New helper falsely required request_id persisted in retained draft, although NativeActionForm generates it only in memory until a changed input/save; independently verified against source. Incorrect persistence assumption removed, stable enabled-save/schema proof and actual finalization/record-count/idempotency checks retained. Strict rerun pending; large_text previously cascaded from test-interrupted stopped session.",
       "installation": "NOT_PERFORMED",
       "distribution": "PENDING",
       "backup_changes": "NONE; implementation, format and user flows unchanged",

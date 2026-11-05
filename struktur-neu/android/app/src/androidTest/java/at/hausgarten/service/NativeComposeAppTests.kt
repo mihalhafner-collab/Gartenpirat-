@@ -1458,8 +1458,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val enabled = runCatching { actionEnabled("Arbeit speichern") }.getOrDefault(false)
                 observed = JSONObject().put("draft", draft ?: JSONObject.NULL).put("visible_activity", entered ?: JSONObject.NULL)
                     .put("save_enabled", enabled).put("expected_session_id", sessionId)
+                // Opening a retained timer draft adds request_id to form memory;
+                // enabled submit proves required fields, while the unchanged
+                // retained draft legitimately contains only context and activity.
                 val ready = values != null && entered == expectedActivity && values.optString("activity") == expectedActivity &&
-                    values.optString("session_id") == sessionId && values.optString("request_id").isNotBlank() && enabled
+                    values.optString("session_id") == sessionId && enabled
                 val now = SystemClock.uptimeMillis()
                 if (!ready) readySince = 0L else if (readySince == 0L) readySince = now
                 // NativeTimer refreshes its parent state every second. Readiness
