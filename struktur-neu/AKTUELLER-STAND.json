@@ -116,9 +116,10 @@
       "Code überarbeiten und danach auf weitere Anweisungen warten; keine Installation oder APK-Verteilung."
     ],
     "validation": {
-      "source": "PENDING final source check",
-      "android": "PENDING final Kotlin compilation and lint",
-      "native_ui_execution": "PENDING isolated synthetic emulator acceptance",
+      "source": "PASS; check_current.py and 61 selected Python tests",
+      "android": "PASS; local final Kotlin app/test compilation and lint; CI clean release/test APK build and lint on 55b74f5",
+      "jvm": "PASS; CI JVM regressions on 55b74f5",
+      "native_ui_execution": "FIRST_RUN_FAILED; Run42116470089: filter-sheet footer unreachable; timer test still expected intentionally removed timer button, causing later large-text follow-up failure. Sticky footer and fully expanded sheet corrected; timer test uses existing compact running-time bar. Rerun pending.",
       "installation": "NOT_PERFORMED",
       "distribution": "NOT_PERFORMED"
     }

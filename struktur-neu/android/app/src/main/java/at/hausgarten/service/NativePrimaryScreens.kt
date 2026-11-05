@@ -671,17 +671,20 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     }
                 }
             }
-        } else if (!imeVisible) NativeActionBar(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
+        } else if (!imeVisible || collection != "worklogs") NativeActionBar(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
             controller.navigate(collection, mode = "new", args = JSONObject().apply { if (collection != "customers" && customer.isNotBlank()) put("customer_id", customer) })
         })
     }
-    if (collection == "worklogs" && filtersOpen) ModalBottomSheet(onDismissRequest = { filtersOpen = false }) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Arbeiten filtern", style = MaterialTheme.typography.titleLarge)
-            NativeRecordPicker(controller, "customers", "Kunde", customer, onValueChange = { customer = it; offset = 0 })
-            NativeDateField("Ab Datum", from, { from = it; offset = 0 })
-            NativeDateField("Bis Datum", to, { to = it; offset = 0 })
-            TextButton({ controller.action("Wochen, Arbeitszeiten und Qualität prüfen", "get_work_record_summary", JSONObject().apply { if (customer.isNotEmpty()) put("customer_id", customer); if (from.isNotEmpty()) put("date_from", from); if (to.isNotEmpty()) put("date_to", to) }); filtersOpen = false }) { Text("Zusammenfassung / Qualität") }
+    if (collection == "worklogs" && filtersOpen) ModalBottomSheet(onDismissRequest = { filtersOpen = false },
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Arbeiten filtern", style = MaterialTheme.typography.titleLarge)
+                NativeRecordPicker(controller, "customers", "Kunde", customer, onValueChange = { customer = it; offset = 0 })
+                NativeDateField("Ab Datum", from, { from = it; offset = 0 })
+                NativeDateField("Bis Datum", to, { to = it; offset = 0 })
+                TextButton({ controller.action("Wochen, Arbeitszeiten und Qualität prüfen", "get_work_record_summary", JSONObject().apply { if (customer.isNotEmpty()) put("customer_id", customer); if (from.isNotEmpty()) put("date_from", from); if (to.isNotEmpty()) put("date_to", to) }); filtersOpen = false }) { Text("Zusammenfassung / Qualität") }
+            }
             NativeActionBar("Ergebnisse anzeigen", { filtersOpen = false }, "Zurücksetzen", { customer = ""; from = ""; to = ""; offset = 0 })
         }
     }
@@ -801,6 +804,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                             NativeInfoRow(nativeLabel(field), nativeDisplayText(value), { editWorkField(field) })
                         }
                     }
+                    item { NativeInfoRow("Fotos", "Dokumentation dieser Arbeit", { controller.navigate("photos", args = JSONObject(context.toString()).put("worklog_id", id).put("order_id", row.optString("order_id"))) }) }
                     item { NativeInfoRow("Als Vorlage duplizieren", "Neue vergangene Arbeit vorbereiten", { controller.navigate("worklogs", id, "duplicate", controller.route.args) }) }
                     item { NativeInfoRow("Zuordnung ändern", "Arbeitskunde und Rechnungsempfänger bewusst prüfen", { controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) }
                     item { NativeInfoRow("Abgerechnet / offen markieren", "Ändert nur die lokale Markierung", { controller.action("Lokale Abrechnungsmarkierung", "set_work_record_billed", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) }

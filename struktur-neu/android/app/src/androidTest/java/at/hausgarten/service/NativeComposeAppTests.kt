@@ -1427,7 +1427,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Arbeitszeit ohne Pause")
         yes(read("get_active_work_session").getString("id") == id &&
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "COMPACT_TIMER_REOPENS_WITHOUT_DUPLICATE_OR_WORKLOG")
-        click("Arbeit"); enter("Suchen", ""); click("Laufende Arbeit öffnen")
+        click("Arbeit"); enter("Suchen", "")
+        yes(node("Laufende Arbeit öffnen") == null, "WORK_LIST_HAS_NO_TIMER_MENU_ENTRY")
+        waitUntil("WORK_COMPACT_TIMER_OPENS_EXISTING_SESSION") {
+            val label = nodes().firstOrNull { it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) } }?.let(::clickable)
+            label != null && label.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        }
         reveal("Arbeit läuft"); reveal("Arbeitszeit ohne Pause")
         val minimumSeconds = (read("get_active_work_session").getLong("worked_ms") / 1000 - 1).coerceAtLeast(0)
         waitUntil("TIMER_HAS_READABLE_PERSISTED_DURATION") {
