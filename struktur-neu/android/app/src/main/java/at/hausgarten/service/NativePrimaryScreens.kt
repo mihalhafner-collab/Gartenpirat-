@@ -1,6 +1,7 @@
 package at.hausgarten.service
 
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabaseLockedException
 import android.net.Uri
 import coil3.compose.AsyncImage
 import androidx.activity.compose.BackHandler
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.retryWhen
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
@@ -394,7 +396,12 @@ private fun NativeToday(controller: NativeAppController) {
     var hints by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val day = nativeDay()
-    val workFlow = remember(day) { controller.store.nativeData().watchList("worklogs", dateFrom = day, dateTo = day, limit = 3).nativeErrors(controller) }
+    val workFlow = remember(day) {
+        controller.store.nativeData().watchList("worklogs", dateFrom = day, dateTo = day, limit = 3)
+            .retryWhen { failure, _ ->
+                if (failure !is SQLiteDatabaseLockedException) false else { delay(75); true }
+            }.nativeErrors(controller)
+    }
     val works by workFlow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, 0, 3))
     suspend fun refresh() {
         try {
@@ -404,8 +411,13 @@ private fun NativeToday(controller: NativeAppController) {
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { error = failure.message ?: "Heute konnte nicht gelesen werden." }
     }
-    val changes = remember(controller) { controller.store.nativeData().watchCommittedChanges() }
-    val committedVersion by changes.collectAsStateWithLifecycle(0L)
+    val changes = remember(controller) {
+        controller.store.nativeData().watchCommittedChanges()
+            .retryWhen { failure, _ ->
+                if (failure !is SQLiteDatabaseLockedException) false else { delay(75); true }
+            }.nativeErrors(controller)
+    }
+    val committedVersion by changes.collectAsStateWithLifecycle(-1L)
     LaunchedEffect(day, committedVersion) { refresh() }
     LaunchedEffect(day) {
         while (isActive) {

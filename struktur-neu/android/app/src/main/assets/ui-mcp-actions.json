@@ -2639,7 +2639,7 @@
     "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "42850947592b714687d3ba9605e47c5ace98cca029d627970050484186b1c9a0",
     "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "dcf0f8daa0cbed9d725fdae07193c01727c0c71985919bdc65b7027a785302e4",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "e8879b6e1936f20803dda1faad2200a1b9cc771c803cc65fc9dfb70a1da71bc4",
-    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "ec459f5126208061811536ebb407e81199fbf0a75ab3d108b212d42904905748",
+    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "43e93660d298744b37662a098d324d82f903f3d2c745d8a3bdb26ef3a149ee25",
     "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "da391f39efbc6a33a848d4fd5981138468be2b220054c13fb9543f7ea7ef3bad",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "33c4c3447dfb6a9d80c2e2fd72e264f3e835a7c11cc91e2bf2d67f045676dcb0",
     "android/app/src/main/java/at/hausgarten/service/OfferFileProvider.kt": "5dcfe2b3dd18c9e4546c2ccd77e42ca002c405b14f88c344b328038683df7dc9",

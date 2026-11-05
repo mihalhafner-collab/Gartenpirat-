@@ -85,7 +85,7 @@
   ],
   "current_task": {
     "name": "Grafisches PDF-Konzept übernehmen und Zubehörfotos direkt erreichbar machen",
-    "status": "IMPLEMENTED; TARGETED_TIMER_REOPEN_FIX; FINAL_UI_AND_RENDERING_RERUN_PENDING",
+    "status": "IMPLEMENTED; TIMER_AND_TRANSIENT_TODAY_READ_FIXES; FINAL_UI_RERUN_PENDING",
     "concept": {
       "title": "Haus & Garten – Produkt- und Bedienkonzept 1.0",
       "date": "2026-11-04",
@@ -115,14 +115,15 @@
       "Waldgrüne Farbpalette, helle Fläche, weiße gerundete Karten, klare Typografie und Aktionshierarchie.",
       "Heute, Timer, Kunden, Planung, Angebote und Geräte/Zubehör anhand des PDF gestalten.",
       "Laufende Zeit außerhalb des Timerdetails kompakt lesend anzeigen.",
-      "Bestehenden Timerabschluss nach erneutem Öffnen zuverlässig laden; fehlerhaften Fußleisten-Wortumbruch korrigieren."
+      "Bestehenden Timerabschluss nach erneutem Öffnen zuverlässig laden; fehlerhaften Fußleisten-Wortumbruch korrigieren.",
+      "Heute-Leseaktualisierungen bei kurzfristiger SQLite-Sperre ohne Absturz fortsetzen; keine Schreibwiederholung."
     ],
     "validation": {
       "source": "PASS; 61 selected Python tests and exact native UI registry review",
-      "android": "PASS earlier release/androidTest/lint; final targeted changes pending clean build. Candidate production source SHA256 604a5cef0da18a7a3696e4fb40740b5e573ec3016a122d0b2f973fa01e014c7e.",
+      "android": "PASS clean local and central release/androidTest/lint on23c49bb; read-flow-only followup pending clean build. Candidate production source SHA256 954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99.",
       "jvm": "PASS; 8 synthetic JVM suites, 1469 assertions",
       "graphic_review": "PASS earlier real API35 images except newly observed narrow completion-footer word break. Shared button horizontal padding reduced to16dp, preserving56dp targets and weighting; renewed screenshot pending. Timer Today at200 percent and detail atnormalfont independently checked.",
-      "native_ui_execution": "RUN41932801363 FAIL: Today/navigation PASS; accessory shortcut read second same-named field after image layout shift (prior successful exact B proof exists); test now waits decoded photo and returns to first card. Timer reopened completion became permanently disabled: parent asynchronously loaded activity after NativeActionForm mounted, resetting initial input and request_id. Targeted NativeTimer fix mounts completion only after activityReady, independently source-reviewed; generic forms/backup untouched. LargeText failure cascaded from remaining stopped session. Strict rerun includes stable exact durable form inputs and enabled save proof; no test data injection.",
+      "native_ui_execution": "RUN41936485732: Today/navigation/accessories completed without journey failure, then real process crash early in timer journey. Captured FATAL SQLiteDatabaseLockedException at NativeDataRepository.awaitCommit through Today watchCommittedChanges. Existing unguarded UI observer (also present in installed baseline) now resubscribes only on exact transient SQLite lock using cancellable75ms delay, then nativeErrors handles other errors; both Today read flows covered, initial version-1 ensures first successful read refreshes. No writer/repository/schema/backup change. Prior timer activityReady fix still requires successful finalization proof. Strict rerun pending.",
       "installation": "NOT_PERFORMED",
       "distribution": "PENDING",
       "backup_changes": "NONE; implementation, format and user flows unchanged",
