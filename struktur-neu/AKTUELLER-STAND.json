@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T10:51:36Z",
+    "observed_at_utc": "2026-11-06T14:30:58Z",
     "version_name": "1.60.0",
     "version_code": 130,
     "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
     "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; live installed 1.60.0/130 matches exact Kotlin source fingerprint of bfd63ca and current main 037515d. Candidate extends this verified source; no installation authorized."
+    "repository_source_match": "PASS; live Pixel130 still matches original bfd63ca/dbaa6402 source. Signed131 APK is provided separately; not installed."
   },
   "observed_installation_history": [
     {
@@ -26,11 +26,12 @@
   ],
   "current_task": {
     "name": "Lokale Rechnungen und interne Labor-Abschlüsse mit erhaltener Abrechnung",
-    "status": "IMPLEMENTED_AND_ISOLATED_VALIDATED; NOT_INSTALLED_OR_DISTRIBUTED",
+    "status": "IMPLEMENTED_VALIDATED_AND_APK_DISTRIBUTED; NOT_INSTALLED",
     "owner_decisions": [
       "Auftrag 06.11.2026 ersetzt sevDesk-exklusive Begrenzung für gewöhnliche österreichische EUR-Kleinunternehmer-Abrechnung.",
       "Abrechnung behält Auftragseinheiten, getrennte Arten, Filter und Arbeitsdatumsbezug; bestätigte Rechnungs- und Laborbeträge ergeben gemeinsam die Gesamtsumme.",
-      "Entwicklung und isolierte synthetische Validierung; keine produktive Installation, Ausgabe, Migration oder APK-Verteilung."
+      "Entwicklung und isolierte synthetische Validierung; keine produktive Installation, Ausgabe, Migration oder APK-Verteilung.",
+      "Folgeauftrag06.11.2026: originalsignierte Installations-APK wie gewohnt bereitstellen; keine automatische Installation."
     ],
     "validation": {
       "source": "PASS; check_current.py: 61 Python checks, source/privacy/seed gates, 184 semantic UI actions; Kotlin-only basis retained.",
@@ -54,9 +55,10 @@
       },
       "limits": "Synthetic emulator/JVM only, no physical Pixel function test. Austrian domestic EUR/KU only; actual issuer/legal data, services/prices/tax status and restore audit require operator review. Plain PDF max100 pages/20MiB; no PDF/A/federal structured-invoice claim. New series does not reconstruct absent later transactions.",
       "installation": "NOT_PERFORMED",
-      "distribution": "NOT_PERFORMED",
+      "distribution": "PASS; original-signed131 APK in existing Drive installation folder, full byte-equal authenticated download verified.",
       "productive_migration": "NOT_PERFORMED",
-      "tested_app_commit": "8750f70be3c3043b902bd06385ba3845f7e29bbb; App hash unchanged since6240652;659e062/8750f70 changed tests only."
+      "tested_app_commit": "8750f70be3c3043b902bd06385ba3845f7e29bbb; App hash unchanged since6240652;659e062/8750f70 changed tests only.",
+      "apk_distribution": "PASS; package/version/original certificate compared to downloaded130 APK; empty seeds/assets/classes verified. Clean source fingerprint read directly from signed APK and Drive readback. No device installation."
     }
   },
   "open_checks": [
@@ -71,17 +73,17 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "distributed_at_utc": "2026-11-06T09:04:58.085582+00:00",
-    "version_name": "1.60.0",
-    "version_code": 130,
+    "distributed_at_utc": "2026-11-06T14:30:58Z",
+    "version_name": "1.61.0",
+    "version_code": 131,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
-    "source_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
-    "apk_sha256": "796ea19df8f5ab6867b791deda676aa7b7dc219009d549ea53f2f3b65765fda6",
+    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
+    "source_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
+    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/14zpUqOneIoyKMat6N9zUl3FY6USZWdn9/view?usp=drivesdk",
+    "download_url": "https://drive.google.com/file/d/1xF0x0Ja-wzFt4RlShtXNreP3RZb5QB7R/view?usp=drivesdk",
     "drive": {
-      "file_id": "14zpUqOneIoyKMat6N9zUl3FY6USZWdn9",
+      "file_id": "1xF0x0Ja-wzFt4RlShtXNreP3RZb5QB7R",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
@@ -89,22 +91,23 @@
     "original_certificate_match": true,
     "download_readback": {
       "status": "PASS; complete authenticated Drive download byte-equal to verified original-signed local APK",
-      "apk_sha256": "796ea19df8f5ab6867b791deda676aa7b7dc219009d549ea53f2f3b65765fda6",
-      "byte_size": 88326961,
+      "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
+      "byte_size": 88408881,
       "signature_valid": true,
       "original_certificate_match": true
     },
     "temporary_signing_material_removed": true,
-    "source_binding": "PASS; clean release BuildConfig independently read from signed APK and full Drive readback DEX; source_dirty=false; Git bfd63caab7709ee804e7f8900f310e4ff66e8876",
-    "native_runtime_acceptance": "PASS_TARGETED_ACCOUNTING; CI 42190358855 with 132 real MainActivity/SQLite/Compose checks and 6 new-process persistence checks; synthetic disposable emulator. No physical Pixel function test. Unrelated older open checks remain listed separately."
+    "source_binding": "PASS; clean release BuildConfig read from signed APK and full Drive readback DEX; source_dirty=false; Git7e3b045d1975c407885a85bb9da1edb167c395e9.",
+    "native_runtime_acceptance": "PASS_ISOLATED; identical source and executed proofs in current_task.validation; no physical Pixel function test.",
+    "installation": "NOT_PERFORMED; live Pixel remains1.60.0/130."
   },
   "current_test_candidate": {
     "version_name": "1.61.0",
     "version_code": 131,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED_AND_ISOLATED_VALIDATED; NOT_INSTALLED_OR_DISTRIBUTED",
+    "status": "IMPLEMENTED_VALIDATED_AND_ORIGINAL_APK_DISTRIBUTED; NOT_INSTALLED",
     "installation": "NOT_INSTALLED",
-    "distribution": "NOT_AUTHORIZED",
+    "distribution": "AUTHORIZED_AND_COMPLETED",
     "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38"
   }
 }
