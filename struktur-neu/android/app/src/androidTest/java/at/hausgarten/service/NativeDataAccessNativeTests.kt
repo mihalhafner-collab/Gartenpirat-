@@ -228,11 +228,11 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             val bitmap = android.graphics.Bitmap.createBitmap(2, 2, android.graphics.Bitmap.Config.ARGB_8888)
             val encoded = java.io.ByteArrayOutputStream().use { output -> bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output); output.toByteArray() }
             bitmap.recycle()
-            fun photo(request: String): String = store.savePhoto(JSONObject().put("customer_id", "qa_customer_1").put("order_id", "qa_order_1")
+            fun photo(request: String, order: String = "qa_order_1"): String = store.savePhoto(JSONObject().put("customer_id", "qa_customer_1").apply { if (order.isNotEmpty()) put("order_id", order) }
                 .put("_photo_request_id", request).put("_capture_context", JSONObject().put("installation_id", "old-device").put("restore_epoch", "old-epoch"))
                 .put("data", "data:image/png;base64," + android.util.Base64.encodeToString(encoded, android.util.Base64.NO_WRAP)))
-            val first = photo("qa_photo_cleanup_first")
-            val second = photo("qa_photo_cleanup_second")
+            var first = photo("qa_photo_cleanup_first")
+            var second = photo("qa_photo_cleanup_second")
             val access = PixelOwnerAccess(context, store)
             var sequence = 0
             fun command(name: String, entity: String, id: String): JSONObject = access.execute(name,
@@ -257,6 +257,11 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             yes(current.getJSONArray("photos").getJSONObject(0).optString("order_id").isEmpty(), "PHOTO_ORDER_DETACHED")
             command("purge_entity", "order", "qa_order_1")
             yes(!OwnerJournalRules.archives(PixelMcpReadTools.effective(store.getState())).has("order:qa_order_1"), "NO_ORDER_TOMBSTONE")
+            // Owner decision 03.11.2026: purging marked test data also removes the photos it detached.
+            val photosAfterOrder = PixelMcpReadTools.effective(store.getState()).getJSONArray("photos")
+            yes(listOf(first, second).all { OwnerJournalRules.findOrNull(photosAfterOrder, it) == null && store.photoAttachment(it) == null }, "TEST_ORDER_PURGE_REMOVES_ITS_PHOTOS")
+            first = photo("qa_photo_cleanup_kept_first", "")
+            second = photo("qa_photo_cleanup_kept_second", "")
             command("archive_entity", "appointment", "qa_appointment")
             yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").getJSONObject(0).optString("appointment_id").isEmpty(), "COMPLETED_WORK_APPOINTMENT_DETACHED")
             command("purge_entity", "appointment", "qa_appointment")
@@ -272,7 +277,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             command("purge_entity", "photo", first)
             yes(keptPhoto.isFile, "ACTIVE_SHARED_PHOTO_RETAINED")
             val removedReceipt = JSONObject(store.ownerValue("receipt:qa_deleted_photo", "{}"))
-            yes(removedReceipt.getJSONObject("result").optBoolean("_result_content_removed") && !removedReceipt.getJSONObject("result").has("photo_id") && store.ownerValue("photo-ui:qa_photo_cleanup_first", "").isEmpty(), "DELETED_PHOTO_CONTENT_REMOVED")
+            yes(removedReceipt.getJSONObject("result").optBoolean("_result_content_removed") && !removedReceipt.getJSONObject("result").has("photo_id") && store.ownerValue("photo-ui:qa_photo_cleanup_kept_first", "").isEmpty(), "DELETED_PHOTO_CONTENT_REMOVED")
             db.rawQuery("SELECT count(*) FROM pending WHERE id='receipt_qa_deleted_photo'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "DELETED_NATIVE_RECEIPT_REMOVED") }
             command("archive_entity", "invoice", "qa_draft")
             yes(draft.isFile, "TRASH_RETAINS_DRAFT_PDF")
