@@ -1,6 +1,7 @@
 package at.hausgarten.service;
 
 import java.util.*;
+import java.lang.reflect.*;
 import org.json.*;
 
 /** Financial invariants against the actual production rules, with synthetic records only. */
@@ -23,6 +24,80 @@ public final class AccountingTests {
         long sum=0;
         for (JSONObject row:rows) if(row.getString("issue").isEmpty() && (route.isEmpty() || row.getString("route").equals(route))) sum=Math.addExact(sum,row.getLong("amount_minor"));
         return sum;
+    }
+    /** Real journal projection/transaction algorithm; only the storage port is in memory. */
+    private static final class Memory implements InvocationHandler, OwnerRequestTransactions.Store {
+        final JSONObject master;
+        JSONArray pending = new JSONArray();
+        final Map<String,String> owner = new HashMap<>();
+        Map<String,String> ownerBefore;
+        String pendingBefore;
+        boolean committed, ignoreFinalOrder;
+        final OwnerRepository repository;
+        Memory() throws Exception {
+            master=SyntheticBusinessData.profile("minimal"); LocalBusinessState.prepare(master);
+            master.getJSONArray("customers").getJSONObject(0).put("name","[TEST] QA Abrechnung Kunde");
+            JSONObject order=master.getJSONArray("orders").getJSONObject(0);
+            order.put("status","Abgerechnet").put("accounting_amount","900.00").put("billing_customer_id","qa_customer_1").put("updated_at","2026-11-01T10:00:00Z");
+            JSONObject work=master.getJSONArray("worklogs").getJSONObject(0);
+            work.put("billed",1).put("accounting_amount","900.00").put("updated_at","2026-11-01T10:00:00Z");
+            owner.put("personal_paid_migrated","1");
+            owner.put("personal_paid",new JSONArray().put(work.getString("id")).toString());
+            repository=(OwnerRepository)Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(),new Class<?>[]{OwnerRepository.class},this);
+        }
+        JSONObject effective() throws Exception { return SnapshotProjection.effective(new JSONObject().put("master",new JSONObject(master.toString())).put("pending",new JSONArray(pending.toString()))); }
+        Set<String> personal() { return AccountingRules.INSTANCE.ids(new JSONArray(owner.get("personal_paid"))); }
+        JSONObject args(String request,String route) throws Exception {
+            return new JSONObject().put("request_id",request).put("collection","orders").put("entity_id","qa_order_1").put("route",route)
+                .put("expected_record_hash",AccountingRules.INSTANCE.hash(effective(),personal(),"orders","qa_order_1"));
+        }
+        JSONObject run(JSONObject args) throws Exception {
+            String request="owner_"+args.getString("request_id");
+            return OwnerRequestTransactions.runRequest(this,request,PixelMcpWriteTools.hash(args),()->new WorkApplicationService(repository).perform("set_accounting_record",args,request),"2026-11-06T10:00:00Z");
+        }
+        public Object invoke(Object target,Method method,Object[] a) throws Throwable {
+            switch(method.getName()) {
+                case "effective": return effective();
+                case "ownerValue": return owner.getOrDefault((String)a[0],(String)a[1]);
+                case "putOwnerValue": owner.put((String)a[0],(String)a[1]); return null;
+                case "replaceWorklog": {
+                    JSONObject value=(JSONObject)a[0],old=PixelMcpWriteTools.find(effective().getJSONArray("worklogs"),value.getString("id"));
+                    WorklogRules.validate(value,false);
+                    ManualChangeRules.prepare("worklog",value,old,java.time.Instant.now().toString());
+                    return null;
+                }
+                case "enqueue": {
+                    String kind=(String)a[0],request=(String)a[2]; JSONObject value=(JSONObject)a[1];
+                    if (!(ignoreFinalOrder && request.endsWith("_order"))) pending.put(new JSONObject().put("client_id",request).put("kind",kind).put("payload",new JSONObject(value.toString())).put("created_at",java.time.Instant.now().toString()));
+                    return new JSONObject().put("local_state","local_saved");
+                }
+                default: throw new AssertionError("Unexpected accounting storage port: "+method.getName());
+            }
+        }
+        public void begin() { pendingBefore=pending.toString();ownerBefore=new HashMap<>(owner);committed=false; }
+        public String read(String key) { return owner.getOrDefault(key,""); }
+        public void write(String key,String value) { owner.put(key,value); }
+        public void successful() { committed=true; }
+        public void end() { if(!committed){pending=new JSONArray(pendingBefore);owner.clear();owner.putAll(ownerBefore);} }
+    }
+    private static void writes() throws Exception {
+        Memory memory=new Memory(); JSONObject change=memory.args("qa_accounting_switch","labor");
+        memory.run(change);
+        JSONObject saved=memory.effective();
+        yes(saved.getJSONArray("drive_journal_errors").length()==0,"Accounting updates carry valid journal version guards");
+        yes(AccountingRules.INSTANCE.orderRoute(saved.getJSONArray("orders").getJSONObject(0)).equals("labor") && saved.getJSONArray("worklogs").getJSONObject(0).getInt("billed")==0 && memory.personal().contains("qa_work_1"),"Whole-order correction is effective, not merely queued");
+        yes(saved.getJSONArray("orders").getJSONObject(0).getString("accounting_amount").equals("900.00"),"Changing route preserves read-only invoice amount");
+        int count=memory.pending.length();
+        yes(memory.run(change).getBoolean("replayed") && memory.pending.length()==count,"Receipt replay never duplicates assignment writes");
+        try { memory.run(new JSONObject(change.toString()).put("request_id","qa_accounting_stale"));throw new AssertionError("Stale accounting hash accepted"); }
+        catch(PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("WRITE_CONFLICT"),"Stale group version is rejected"); }
+        memory.run(memory.args("qa_accounting_remove","open"));
+        yes(project(memory.effective()).isEmpty() && memory.personal().isEmpty(),"Removing assignment really excludes the order while preserving its amount");
+        Memory aborted=new Memory();aborted.ignoreFinalOrder=true;
+        String before=PixelMcpWriteTools.hash(aborted.effective()),marks=aborted.owner.get("personal_paid");
+        try { aborted.run(aborted.args("qa_accounting_unapplied","labor"));throw new AssertionError("Unapplied order update acknowledged"); }
+        catch(PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("WRITE_CONFLICT"),"No success acknowledgement without effective order state"); }
+        yes(PixelMcpWriteTools.hash(aborted.effective()).equals(before) && aborted.owner.get("personal_paid").equals(marks) && aborted.pending.length()==0,"Failed effective-state verification rolls back all marks and journal changes");
     }
     public static void main(String[] args) throws Exception {
         JSONObject a=order("a","Abgerechnet","900.00"), b=order("b","labor clandestinus","200.00"), c=order("c","Offen","400.00");
@@ -69,6 +144,7 @@ public final class AccountingTests {
         JSONObject schema=PixelMcpOwnerTools.schema("set_accounting_record");
         McpSchema.validate(new JSONObject().put("request_id","qa_accounting_request").put("collection","orders").put("entity_id","a").put("route","billed").put("expected_record_hash",proof),schema); checks++;
         yes(!schema.getJSONObject("properties").has("amount_decimal") && !Arrays.asList(PixelMcpWriteTools.EDITABLE).contains("accounting_amount") && !Arrays.asList(EntityContract.ORDER_FIELDS).contains("accounting_amount"),"Phase 1 exposes no manual invoice amount writer");
+        writes();
         System.out.println("PASS "+checks+" accounting amount, routes, grouping, conflict, reload and schema checks");
     }
 }

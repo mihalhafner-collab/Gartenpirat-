@@ -481,6 +481,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         guardGraphicsFixture()
         val source = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
         val customer = source.getJSONArray("customers").getJSONObject(0).getString("id")
+        source.getJSONArray("customers").getJSONObject(0).put("name", "[TEST] QA Abrechnung Kunde")
         fun order(id: String, status: String, amount: String, property: String) = JSONObject().put("id", id).put("title", "QA Abrechnung " + id.takeLast(1).uppercase())
             .put("customer_id", customer).put("billing_customer_id", customer).put("status", status).put("accounting_amount", amount).put("property_id", property)
             .put("scheduled_date", "2026-11-01").put("test_record", true).put("created_at", "2026-11-01T10:00:00Z").put("updated_at", "2026-11-01T10:00:00Z")
@@ -575,6 +576,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false).put("new_process_readback", false)
                 .put("real_main_activity", true).put("exact_amounts", true).put("filters_and_navigation", true).put("conflict_correction", true).put("viewport_and_large_text", true)
         } catch (failure: Throwable) {
+            runCatching {
+                val state = PixelMcpReadTools.effective(store.getState())
+                test.sendStatus(0, Bundle().apply { putString("accounting_readback", JSONObject().put("overview", overview())
+                    .put("journal_errors", state.opt("drive_journal_errors")).put("marks", JSONArray(store.ownerValue("personal_paid", "[]"))).toString()) })
+            }
             runCatching { captureSyntheticScreen("accounting-failure") }
             throw failure
         } finally {

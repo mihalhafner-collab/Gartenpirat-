@@ -42,6 +42,7 @@ paths.update(native_source(name) for name in (
     'RevierLocalRepository', 'RevierSnapshotRepository', 'LocalWorkflowTools',
     'PlanningApplicationService', 'OfferApplicationService',
     'OwnerRequestTransactions', 'McpErrors', 'CalendarSetupRules', 'FullBackupActivity',
+    'AccountingRules', 'WorkApplicationService', 'OwnerApplicationService', 'OwnerToolSchemas',
     'RestoreRecoveryActivity',
 ))
 paths.add(ROOT / 'android/app/src/main/assets/offer-contract.json')

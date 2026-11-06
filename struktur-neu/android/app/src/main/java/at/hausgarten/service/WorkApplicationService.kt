@@ -81,6 +81,7 @@ class WorkApplicationService : OwnerCommand {
         repository.putOwnerValue("personal_paid", JSONArray(personal).toString())
         if (collection == "orders" && AccountingRules.orderRoute(record).isNotEmpty()) {
             val clear = LocalJournalRules.clean(record).put("status", "Erledigt")
+            ManualChangeRules.prepare("order", clear, record, java.time.Instant.now().toString())
             repository.enqueue("order", clear, request + "_clear")
         }
         for (work in works) {
@@ -91,10 +92,20 @@ class WorkApplicationService : OwnerCommand {
         if (route == AccountingRules.LABOR) personal.addAll(works.map { it.getString("id") })
         repository.putOwnerValue("personal_paid", JSONArray(personal).toString())
         if (collection == "orders") {
-            val changed = LocalJournalRules.clean(record)
+            val previous = PixelMcpWriteTools.find(repository.effective().getJSONArray("orders"), id)
+            val changed = LocalJournalRules.clean(previous)
                 .put("status", if (route.isNotEmpty()) AccountingRules.label(route) else if (AccountingRules.orderRoute(record).isNotEmpty()) "Erledigt" else record.optString("status"))
+            ManualChangeRules.prepare("order", changed, previous, java.time.Instant.now().toString())
             repository.enqueue("order", changed, request + "_order")
         }
+        val effective = repository.effective()
+        val stored = AccountingRules.canonical(effective, collection, id).second
+        val savedWorks = AccountingRules.works(effective, collection, id)
+        val savedPersonal = AccountingRules.ids(JSONArray(repository.ownerValue("personal_paid", "[]")))
+        val complete = (collection != "orders" || AccountingRules.orderRoute(stored) == route) &&
+            savedWorks.map { it.getString("id") }.toSet() == works.map { it.getString("id") }.toSet() &&
+            savedWorks.all { (it.optInt("billed") != 0) == (route == AccountingRules.BILLED) && (it.getString("id") in savedPersonal) == (route == AccountingRules.LABOR) }
+        if (!complete) throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Die Abrechnungszuordnung ist nicht vollständig wirksam. Keine Änderung gespeichert; Auftrag erneut öffnen.")
         return JSONObject().put("collection", collection).put("entity_id", id).put("route", route).put("local_state", "local_saved")
     }
 }

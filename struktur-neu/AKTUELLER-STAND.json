@@ -105,7 +105,7 @@
   ],
   "current_task": {
     "name": "Abrechnung mit getrennten Wegen, Filtern und Phase-2-Rechnungsbeträgen",
-    "status": "TEST_HARNESS_RETRY_PENDING; APP_SOURCE_UNCHANGED",
+    "status": "EFFECTIVE_STATE_FIX_VALIDATED; REBUILD_AND_NATIVE_ACCEPTANCE_PENDING",
     "verified_installed_base": {
       "observed_at_utc": "2026-11-06T06:49:17.664Z",
       "version_name": "1.59.1",
@@ -125,12 +125,12 @@
       "APK erstellen und originalsigniert in Gartenpirat – Paketinstallation bereitstellen. Keine Pixel-Installation beauftragt."
     ],
     "validation": {
-      "source": "PASS; current source check, 61 Python checks, 173 semantic actions and diff whitespace check.",
-      "jvm": "PASS; 9 clean CI JVM suites including AccountingTests and actual SQLite table checks on 7f8b0ca; production domain code unchanged.",
-      "android": "PASS; local release rebuild, Android test compilation and lint; full clean CI build/test APK/lint on 7f8b0ca. Production source remains cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283.",
-      "native_ui_execution": "FAIL 42183426206 at SEARCH_IME_VISIBLE: new independent harness omitted FLAG_RETRIEVE_INTERACTIVE_WINDOWS, so visible IME was not observable. Copied existing graphics harness flags and restoration; app source unchanged. Focused rerun pending; completed production-source JVM/lint evidence retained.",
+      "source": "PASS; 61 selected Python checks, canonical source/privacy gates and 173 action fingerprints; accounting rules/service/schema now covered by native source-review fingerprints.",
+      "jvm": "PASS; all 8 local JVM suites on current compiled production code, including 33 accounting checks exercising the real journal/version guards, replay, stale proof, effective-state confirmation and rollback. Clean CI with table suite pending for this source.",
+      "android": "PENDING rebuild/lint after effective-state fix; earlier clean baseline passed on 7f8b0ca.",
+      "native_ui_execution": "FAIL 42186322810 reached successful IME/recreation, amount refresh, replay, stale rejection and receipt-abort rollback, then found ineffective conflict correction. Order journal updates lacked version guards. Both order writes now use existing ManualChangeRules with the current record; success requires actual canonical order/work/mark readback. Synthetic customer fixture now explicitly uses [TEST] prefix required by TestDataRules. Focused rerun pending.",
       "installation": "NOT_PERFORMED; user requested APK distribution only",
-      "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283"
+      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82"
     },
     "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
   },
@@ -180,11 +180,9 @@
     "version_name": "1.60.0",
     "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "ORIGINAL_SIGNED; APP_CHECKS_PASS; NATIVE_ACCEPTANCE_PENDING; NOT_DISTRIBUTED",
+    "status": "EFFECTIVE_STATE_FIX_REBUILD_PENDING; NOT_DISTRIBUTED",
     "installation": "NOT_INSTALLED",
     "distribution": "REQUESTED_DRIVE_PAKETINSTALLATION",
-    "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283",
-    "source_git_sha": "7f8b0ca77980ef3c82028e88aec9d8e6162a73f0",
-    "apk_sha256": "0df527429b48a501c179c68e20b9b88c49b2300579371f9e449f26ec6eb3dc44"
+    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82"
   }
 }
