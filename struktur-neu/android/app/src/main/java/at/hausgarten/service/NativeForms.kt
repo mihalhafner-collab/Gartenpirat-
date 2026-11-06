@@ -623,6 +623,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) content@{
             Text(title, style = MaterialTheme.typography.headlineSmall)
+            if (tool == "set_accounting_record") Text("Der Abrechnungsweg gilt für den gesamten Auftrag einschließlich seiner Arbeitseinträge. Offen entfernt die Zuordnung. Rechnungsbeträge sind hier nicht bearbeitbar.", style = MaterialTheme.typography.bodySmall)
             when {
                 pending != null -> NativeStatus(when (pendingState) {
                     "content_removed" -> "Gespeichert · Eintrag später entfernt"

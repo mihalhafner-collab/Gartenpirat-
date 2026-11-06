@@ -164,7 +164,7 @@ jobs:
             timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
             if [ "$suite" = native_accounting ]; then
-              for image in accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape; do
+              for image in accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape accounting-editor-100-portrait accounting-editor-100-landscape accounting-editor-200-portrait accounting-editor-200-landscape; do
                 "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
               done
             fi

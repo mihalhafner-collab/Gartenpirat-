@@ -105,7 +105,7 @@
   ],
   "current_task": {
     "name": "Abrechnung mit getrennten Wegen, Filtern und Phase-2-Rechnungsbeträgen",
-    "status": "SOURCE_COMMITTED_FOR_NATIVE_ACCEPTANCE; APK_DISTRIBUTION_PENDING",
+    "status": "NATIVE_ACCEPTANCE_RETRY_PENDING; NO_DISTRIBUTION",
     "verified_installed_base": {
       "observed_at_utc": "2026-11-06T06:49:17.664Z",
       "version_name": "1.59.1",
@@ -125,12 +125,12 @@
       "APK erstellen und originalsigniert in Gartenpirat – Paketinstallation bereitstellen. Keine Pixel-Installation beauftragt."
     ],
     "validation": {
-      "source": "PASS; current check_current.py, 173 semantic actions, privacy/source gates, 61 selected Python tests and git diff --check.",
-      "jvm": "PASS; 8 local JVM suites including 25 accounting invariants after phase-2 clarification; clean CI rerun with SQLite table suite pending.",
-      "android": "PASS previous app/test Kotlin compilation and lint; final source compilation/lint and clean CI acceptance pending.",
-      "native_ui_execution": "PENDING; scoped native_accounting and new-process readback on disposable API35 emulator",
+      "source": "PASS; current source check, 61 Python checks, 173 semantic actions and diff whitespace check.",
+      "jvm": "PASS; all 9 clean CI JVM suites including AccountingTests and actual SQLite BusinessTableStore tests on 4d792ff; domain code unchanged in UI/test follow-up.",
+      "android": "PASS; clean CI production/test APK build and lint on 4d792ff. Scrollable correction form follow-up awaiting rebuild.",
+      "native_ui_execution": "FAIL first run 42180610884: acceptance sums, SQL date/object/title filters, path filter, empty values and original detail roundtrip passed; test then sent system Back without guaranteeing visible IME and returned to Office before recreation. Explicit IME focus/hide assertion added; rerun pending. New-process phase had no completion marker because first phase failed.",
       "installation": "NOT_PERFORMED; user requested APK distribution only",
-      "source_sha256": "e157c0681e3c17af7afeab76d5b56338b96ac20148a55f81203a1ed617b18f80"
+      "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283"
     },
     "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
   },
@@ -180,9 +180,9 @@
     "version_name": "1.60.0",
     "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "SOURCE_VALIDATED; NATIVE_ACCEPTANCE_AND_APK_PENDING",
+    "status": "REBUILD_AND_NATIVE_ACCEPTANCE_PENDING; NOT_DISTRIBUTED",
     "installation": "NOT_INSTALLED",
     "distribution": "REQUESTED_DRIVE_PAKETINSTALLATION",
-    "source_sha256": "e157c0681e3c17af7afeab76d5b56338b96ac20148a55f81203a1ed617b18f80"
+    "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283"
   }
 }

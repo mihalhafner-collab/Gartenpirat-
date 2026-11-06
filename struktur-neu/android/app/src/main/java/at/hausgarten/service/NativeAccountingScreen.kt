@@ -148,12 +148,7 @@ internal fun NativeAccountingEditor(controller: NativeAppController, collection:
     }
     if (initial != null) {
         val values = JSONObject(initial!!)
-        Column(Modifier.fillMaxSize()) {
-            Text(values.getString("_accounting_title"), Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
-            Text("Der Abrechnungsweg gilt für den gesamten Auftrag einschließlich seiner Arbeitseinträge. Offen entfernt die Zuordnung. Rechnungsbeträge sind hier nicht bearbeitbar.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-            values.remove("_accounting_title")
-            Box(Modifier.weight(1f)) { NativeActionForm(controller, "set_accounting_record", "Abrechnung bearbeiten", values, submitLabel = "Abrechnung speichern") }
-        }
+        NativeActionForm(controller, "set_accounting_record", values.getString("_accounting_title"), values, submitLabel = "Abrechnung speichern")
     } else Column(Modifier.padding(16.dp)) {
         if (error.isEmpty()) LinearProgressIndicator(Modifier.fillMaxWidth()) else {
             NativeStatus(error, NativeStatusTone.Failed)

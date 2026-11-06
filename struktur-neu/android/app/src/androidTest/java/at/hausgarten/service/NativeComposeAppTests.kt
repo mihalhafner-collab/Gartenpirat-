@@ -510,7 +510,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             launch(); openOffice(); click("Abrechnung"); shown("1100,00 €")
             click("Abgerechnet"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
             click("‹ Zurück"); shown("900,00 €")
-            enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
+            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
+            yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW")
             recreate(); shown("900,00 €"); yes(field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true, "ACCOUNTING_FILTERS_SURVIVE_DETAIL_AND_RECREATION")
             // Simulate the later invoice module's committed source update, never a manual price editor.
             val invoiceUpdate = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
@@ -542,7 +543,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Abrechnung speichern")
             waitUntil("ACCOUNTING_EXPLICIT_CONFLICT_CORRECTION") { val value = overview(); value.getInt("review_total") == 0 && value.getLong("labor_minor") == 115025L }
             // Return to the same filtered overview; clear only search for viewport checks.
-            enter("Auftragsbezeichnung", ""); back(); waitUntil("ACCOUNTING_FINAL_IME_HIDDEN") { !keyboardVisible() }
+            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); waitUntil("ACCOUNTING_FINAL_IME_HIDDEN") { !keyboardVisible() }
             scrollTop(); click("Gesamt"); shown("1150,25 €")
             for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
@@ -552,6 +553,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 settleUi(); reveal("Gesamt"); shown("1150,25 €")
                 captureSyntheticScreen("accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
                 yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_SEARCH_ACCESSIBLE_${font}_$wide")
+                reveal("QA Abrechnung A"); click("QA Abrechnung A"); click("Abrechnung")
+                shown("Abrechnung speichern"); reveal("Abrechnungsweg: labor clandestinus")
+                captureSyntheticScreen("accounting-editor-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
+                click("Zurück")
             }
             val current = read("get_accounting_record", JSONObject().put("collection", "orders").put("entity_id", "qa_accounting_a"))
             read("set_accounting_record", JSONObject().put("request_id", "qa_accounting_remove_assignment").put("collection", "orders").put("entity_id", "qa_accounting_a")
