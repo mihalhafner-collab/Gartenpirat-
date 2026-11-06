@@ -56,7 +56,9 @@ internal object SettlementTools {
             .put("customers", master.optJSONArray("customers") ?: JSONArray()).put("orders", master.optJSONArray("orders") ?: JSONArray())
             .put("worklogs", master.optJSONArray("worklogs") ?: JSONArray()).put("restored_sources", ledger.optJSONArray("restored_sources") ?: JSONArray())
             .put("sources_requiring_review", JSONArray((SettlementRules.rows(ledger.optJSONArray("restored_sources")) + SettlementRules.externalSources(master)).distinctBy(SettlementRules::sourceKey)))
-        if (name == "list_settlements") return JSONObject().put("records", ledger.optJSONArray("records") ?: JSONArray())
+        if (name == "list_settlements") return JSONObject().put("records", JSONArray(SettlementRules.records(ledger).map {
+            JSONObject(it.toString()).put("paid_minor", SettlementRules.paid(ledger, it.getString("id")))
+        }))
         if (name == "get_settlement" || name == "get_settlement_pdf") {
             val row = SettlementRules.find(ledger, a.getString("settlement_id"))
             if (name == "get_settlement_pdf") {

@@ -31,13 +31,13 @@
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
-    "source_sha256": "e346a141945c0a3360df237a244ad951969799de50ed0b796b4e33bd90667fc5",
+    "source_sha256": "031b94822c54264817614734eea01ddc2b922c92bf9e874f019bb2b7c5d57678",
     "status": "Quelle geändert; Build und Emulator-Prüfung über CI ausstehend. Installation und Verteilung nicht freigegeben.",
-    "content": "Korrekturen QA06 und C04; Oberfläche Schritt 1 (Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino), Schritt 2 (Benachrichtigung mit Pause, Foto, Stopp), Schritt 3 (Abrechnen aus offenen Stunden mit vorbefüllten Positionen und zuletzt verwendetem Stundensatz)."
+    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–4: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden mit vorbefüllten Positionen; Bezahlt mit einem Tippen."
   },
   "current_task": {
     "name": "Neue Oberfläche auf bestehendem Kern",
-    "status": "Schritte 1 bis 3 umgesetzt; CI ausstehend. Nächster Schritt: Bezahlt mit einem Tippen."
+    "status": "Schritte 1 bis 4 umgesetzt; CI ausstehend. Nächster Schritt: Plus-Knopf und Suche für alles."
   },
   "open_checks": [
     "Pixel-Nachtest von QA06 und C04 braucht freigegebene Installation von 132.",
