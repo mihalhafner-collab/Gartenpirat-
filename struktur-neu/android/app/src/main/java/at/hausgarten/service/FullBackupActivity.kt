@@ -158,7 +158,7 @@ class FullBackupActivity : ComponentActivity() {
             if (!startupReady()) return@launch
             try {
                 PixelBackupService.cancelRetiredJobs(this@FullBackupActivity)
-                val initial = PixelLocalStore.shared(this@FullBackupActivity).let { store ->
+                val initial = PixelLocalStore(this@FullBackupActivity).use { store ->
                     PixelBackupService(this@FullBackupActivity, store).status(JSONObject().put("limit", 1))
                 }
                 ui {
@@ -272,7 +272,7 @@ class FullBackupActivity : ComponentActivity() {
         val current = request
         val destination = target
         runTask {
-            PixelLocalStore.shared(this).let { store ->
+            PixelLocalStore(this).use { store ->
                 val result = PixelBackupService(this, store).save(current, Uri.parse(destination)) { message -> ui { status = message } }
                 if (!result.optBoolean("verified")) throw IOException("BACKUP_LOCAL_READBACK_FAILED")
                 ui {

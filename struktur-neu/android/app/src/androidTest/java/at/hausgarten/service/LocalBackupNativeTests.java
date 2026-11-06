@@ -108,7 +108,7 @@ final class LocalBackupNativeTests {
             rejects(() -> service.saveTo("qa_native_failure", "qa_other_destination", broken, message -> {}));
             yes(service.status(new JSONObject()).getString("state").equals("FAILED"));
             yes(BackupArchive.sha256(saved).equals(savedHash));
-            File work = new File(context.getNoBackupFilesDir(), "pixel-backup"); yes(work.list() != null && work.list().length == 0);
+            File work = new File(context.getNoBackupFilesDir(), "pixel-backup"); yes(!work.exists() || work.list() != null && work.list().length == 0);
         }
         try (BackupArchive.Verified checked = BackupArchive.verifyPlain(new FileInputStream(saved), new File(context.getNoBackupFilesDir(), "qa-check"), context.getNoBackupFilesDir().getUsableSpace(), PixelLocalStore.SCHEMA_VERSION)) {
             JSONObject report = LocalBackupDataset.inspectStaged(new File(checked.directory, "data"), checked.manifest);

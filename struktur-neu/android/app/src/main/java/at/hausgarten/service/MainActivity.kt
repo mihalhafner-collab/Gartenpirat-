@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.CancellableContinuation
@@ -138,11 +139,13 @@ class MainActivity : ComponentActivity() {
             }
         }
         lifecycleScope.launch {
+            var openingStore: PixelLocalStore? = null
             try {
                 val opened = withContext(Dispatchers.IO) {
                     RestoreStartupGuard.assertStoreMayOpen(this@MainActivity)
                     preferences = getSharedPreferences("haus_garten", MODE_PRIVATE)
-                    PixelLocalStore.shared(this@MainActivity).also {
+                    PixelLocalStore(this@MainActivity).also { local ->
+                        openingStore = local
                         if (!BuildConfig.UI_PREVIEW) {
                             try { if (PlanningAccount.connected(this@MainActivity) || PlanningAccount.prefs(this@MainActivity).getBoolean("weather_enabled", false)) PlanningJob.install(this@MainActivity) }
                             catch (_: RuntimeException) { android.util.Log.w("HausGartenPlanning", "BACKGROUND_SCHEDULING_FAILED") }
@@ -154,8 +157,10 @@ class MainActivity : ComponentActivity() {
                 handleLaunch(intent)
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) resumeRuntime()
             } catch (cancelled: CancellationException) {
+                withContext(NonCancellable + Dispatchers.IO) { openingStore?.close() }
                 throw cancelled
             } catch (_: Exception) {
+                withContext(Dispatchers.IO) { openingStore?.close() }
                 startupError = "Der lokale Bestand benötigt eine Prüfung. Bestehende Daten bleiben erhalten; es wurde nichts automatisch übernommen."
             }
         }
@@ -293,6 +298,7 @@ class MainActivity : ComponentActivity() {
         photoWaiter?.cancel(); photoWaiter = null
         speechResult = null
         val current = controller
+        val local = store
         controller = null
         store = null
         super.onDestroy()
@@ -300,6 +306,7 @@ class MainActivity : ComponentActivity() {
             maintenance.coroutineContext[Job]?.cancelAndJoin()
             try { current?.close() }
             catch (_: Exception) { android.util.Log.w("HausGartenDrafts", "DRAFT_FLUSH_FAILED") }
+            finally { local?.close() }
         }
     }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }

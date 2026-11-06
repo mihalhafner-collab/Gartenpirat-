@@ -1733,12 +1733,6 @@ database.endTransaction()
 }
 companion object {
 @JvmField val SCHEMA_VERSION: Int = 7
-@Volatile private var sharedStore: PixelLocalStore? = null
-/** One connection pool per process, never closed by callers. A completed restore always requires a cold restart. */
-@JvmStatic fun shared(context: Context): PixelLocalStore =
-    sharedStore ?: synchronized(PixelLocalStore::class.java) {
-        sharedStore ?: PixelLocalStore(context.applicationContext).also { sharedStore = it }
-    }
 private val OPEN_STORES: java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger> = java.util.concurrent.ConcurrentHashMap()
 private val OPEN_DATABASES = java.util.WeakHashMap<SQLiteDatabase, String>()
 @JvmStatic @Throws(Exception::class) fun assertNoOpenStores(context: Context): Unit {

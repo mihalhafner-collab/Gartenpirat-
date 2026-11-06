@@ -136,7 +136,11 @@ Pixel-Prüfungen laufen über die vorhandene App-Oberfläche oder Pixel-Werkzeug
 
 Alle für die Änderung notwendigen Prüfungen ausführen.
 `python3 -B struktur-neu/tools/check_current.py` prüft den aktuellen Quellstand,
-ersetzt aber keine erforderliche Laufzeitprüfung. Geräteidentität und Quellfingerabdruck sind kein
+ersetzt aber keine erforderliche Laufzeitprüfung.
+Vor Übernahme nach `main` muss `qa-apk.yml` auf dem Arbeitsstand grün sein: bei
+Speicher-, Sicherungs-, Wiederherstellungs-, Lösch- oder Startänderungen die
+Standard-Emulatorsuite, sonst der passende gezielte Lauf. Veraltete Testerwartungen
+an das geltende Fachverhalten anpassen; Prüfungen nicht abschwächen oder abschalten. Geräteidentität und Quellfingerabdruck sind kein
 Beleg für einen Gerätefunktionstest. Fehlende oder fehlgeschlagene Prüfungen nennen.
 Nur eigene geprüfte Änderungen nach `main` committen, pushen und zurücklesen.
 Ergebnisse und Einschränkungen kurz melden; keine zusätzlichen Prüfberichte anlegen.

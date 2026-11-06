@@ -37,7 +37,7 @@
     ],
     "validation": {
       "source": "PASS; check_current.py: 61 Python checks, source/privacy/seed gates, 184 semantic UI actions.",
-      "jvm": "PASS; all12 suites actually run locally and in CI42227034080, including Settlement142, SettlementAccounting38, SourceProtection42, MCP666, JDBC102 and existing finance/work/ZIP regressions.",
+      "jvm": "PASS; 12 suites locally and in CI, incl. Settlement, SourceProtection, MCP, JDBC and finance/work/ZIP regressions.",
       "mcp_catalog": "PASS; seven freshly compiled catalog/description checks;156 MCP tools,184 separate semantic UI actions.",
       "android": "PASS; assembleRelease, assembleReleaseAndroidTest, lintRelease, release privacy locally and in CI; BuildConfig matches source_sha256.",
       "native_settlement_data": "PASS; 60+24: real SQLite, 900+200=1100 after new process, multipage original PDF, parallel reservations, PDF failure/retry, SQLite abort, payments/corrections, ZIP/restore/series/source audit.",
@@ -55,7 +55,7 @@
         "graphics": 42227036533,
         "graphics_repeat": 42228290232
       },
-      "limits": "Synthetic emulator/JVM only, no physical Pixel function test. Austrian domestic EUR/KU only; actual issuer/legal data, services/prices/tax status and restore audit require operator review. Plain PDF max100 pages/20MiB; no PDF/A/federal structured-invoice claim. New series does not reconstruct absent later transactions.",
+      "limits": "Synthetic emulator/JVM only, no Pixel function test. Austrian EUR/KU only; issuer data, prices, tax status and restore audit need operator review. PDF max 100 pages/20 MiB, no PDF/A or e-invoice claim.",
       "installation": "NOT_PERFORMED_IN_RELEASE_TASK; LATER_OBSERVED_VIA_ADB",
       "distribution": "PASS; original-signed 131 APK in Drive installation folder, byte-equal download verified.",
       "productive_migration": "NOT_PERFORMED",
@@ -68,25 +68,13 @@
     "environment": "Physischer Pixel über USB-ADB am Windows-Laptop",
     "installed_version_code": 131,
     "evidence": "docs/verification/performance-current.md",
-    "ui_cases": {
-      "passed": 49,
-      "failed": 2,
-      "blocked": 9
-    },
-    "catalog": {
-      "active": 178,
-      "passed": 14,
-      "failed": 2,
-      "blocked": 5,
-      "not_executed": 157,
-      "retired_not_applicable": 6
-    },
     "findings": [
       "QA06. Großes Zubehörfoto wird gespeichert, der gesperrte Formularzustand hat keine aktuelle Beschäftigtmeldung.",
       "C04. Synthetischer Kunde wird gelöscht, die Detailansicht bleibt mit Fehlanzeige offen."
     ],
     "pixel_retest": "BLOCKIERT. Beide Korrekturen brauchen eine gesondert freigegebene Installation.",
-    "cleanup": "Eigene Testdaten und Download-JPEGs entfernt und zurückgelesen; Timer IDLE; Schrift/Drehung zurückgesetzt. Geprüfte ZIP bleibt lokal auf dem Pixel."
+    "cleanup": "Eigene Testdaten und Download-JPEGs entfernt und zurückgelesen; Timer IDLE; Schrift/Drehung zurückgesetzt. Geprüfte ZIP bleibt lokal auf dem Pixel.",
+    "summary": "Gerätefälle 49/2/9 bestanden/fehlgeschlagen/blockiert; Katalog 14 von 178 aktiv bestanden, Details im Nachweis."
   },
   "open_checks": [
     "Build 131 per ADB, signierter Release-Referenz und Laufzeitselbstbericht bestätigt; die physische Prüfung ist eine Teilabnahme (Kamera, offene Katalog-/Zusatzfälle, zwei Nachtests) laut Gerätenachweis.",
@@ -113,16 +101,8 @@
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
-    "signature_valid": true,
-    "original_certificate_match": true,
-    "download_readback": {
-      "status": "PASS; full authenticated download byte-equal to apk_sha256",
-      "byte_size": 88408881
-    },
-    "temporary_signing_material_removed": true,
-    "source_binding": "PASS; clean release BuildConfig in signed APK and Drive readback; source_dirty=false.",
-    "native_runtime_acceptance": "PASS_ISOLATED; see current_task.validation; no physical Pixel function test.",
-    "installation": "NOT_PERFORMED_IN_RELEASE_TASK; EXACT_INSTALLED_APK_LATER_OBSERVED_VIA_ADB"
+    "installation": "NOT_PERFORMED_IN_RELEASE_TASK; EXACT_INSTALLED_APK_LATER_OBSERVED_VIA_ADB",
+    "verification": "PASS; Signatur gültig, Originalzertifikat, Drive-Download byte-gleich (88408881 Byte), BuildConfig source_dirty=false, Testschlüssel entfernt; kein Pixel-Funktionstest."
   },
   "current_test_candidate": {
     "version_name": "1.61.1",
@@ -133,12 +113,9 @@
     "distribution": "NOT_AUTHORIZED",
     "source_sha256": "8a8f3dcbbc5e1de78ddeeb17a595c6dfb2fa087269980835bd76fb62b7bbf4d7",
     "validation": {
-      "build": "BESTANDEN. assembleRelease, assembleReleaseAndroidTest, Release-Vital-Lint, Quell- und APK-Datenschutzprüfungen.",
-      "jvm_sqlite": "11 Suiten bestanden. PixelPlainBackupTests wegen fehlender Windows-Symlink-Berechtigung blockiert.",
-      "source_suite": "Quell- und Katalogprüfung bestanden. Signaturtests von check_current.py unter Windows mangels POSIX/Symlink nicht ausführbar.",
-      "instrumentation_runtime": "NICHT AUSGEFÜHRT. Test-APK gebaut.",
-      "pixel_retest": "BLOCKIERT. Die Freigabe für eine produktive Installation fehlt."
+      "local": "Build, Lint, Datenschutz und 11 JVM-Suiten bestanden; unter Windows blockiert: PixelPlainBackupTests und Signaturtests (Symlink).",
+      "runtime": "Instrumentation nicht ausgeführt; Pixel-Nachtest ohne Installationsfreigabe blockiert."
     },
-    "pending_refactor": "Branch ccr-8451aac8-rd8ctm: gemeinsame SQLite-Instanz pro Prozess; 12 bisher stille Fehlerpfade protokolliert (Code+Fehlerklasse). CI ausstehend; nicht auf main."
+    "pending_refactor": "Branch ccr-8451aac8-rd8ctm: 12 stille Fehlerpfade protokolliert; Testerwartung pixel-backup (seit fadec74 gelöscht) korrigiert. Gemeinsame SQLite-Instanz verworfen."
   }
 }

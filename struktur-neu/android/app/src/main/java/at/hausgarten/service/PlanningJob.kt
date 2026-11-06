@@ -17,7 +17,7 @@ class PlanningJob : JobService() {
             try {
                 RevierApplication.awaitStartup(this)
                 if (params.jobId == ONCE) PlanningAccount.prefs(this).edit().remove("job_due_at").apply()
-                PixelLocalStore.shared(this).let { store -> AppointmentRuntime.refresh(this, store) }
+                PixelLocalStore(this).use { store -> AppointmentRuntime.refresh(this, store) }
             }
             catch (unavailable: RuntimeException) { retry.set(true) }
             null
@@ -51,7 +51,7 @@ class PlanningJob : JobService() {
         @JvmStatic fun schedule(context: Context, delay: Long) = synchronized(PlanningJob::class.java) {
             val scheduler = context.getSystemService(JobScheduler::class.java) ?: return@synchronized
             try {
-                PixelLocalStore.shared(context).let { store ->
+                PixelLocalStore(context).use { store ->
                     if (!AppointmentRuntime.calendarEnabled(context, store) && !AppointmentRuntime.flag(context, store, "weather_enabled")) {
                         scheduler.cancel(ONCE); scheduler.cancel(PERIODIC); PlanningAccount.prefs(context).edit().remove("job_due_at").apply()
                         return@synchronized
