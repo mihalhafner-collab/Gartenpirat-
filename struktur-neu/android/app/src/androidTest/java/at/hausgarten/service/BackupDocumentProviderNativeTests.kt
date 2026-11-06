@@ -155,7 +155,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 yes(store.ownerValue("pixel_backup_success", "") == good, "PRIOR_VERIFIED_PROOF_$mode")
                 yes(documentStats(id).getInt("writes") == 1, "WRITE_ATTEMPT_$mode")
                 yes(documentStats(id).getInt("reads") == if (mode.startsWith("READ_")) 1 else 0, "READ_ATTEMPT_$mode")
-                yes(File(context.noBackupFilesDir, "pixel-backup").listFiles()?.isEmpty() == true, "WORK_CLEANED_$mode")
+                yes(!File(context.noBackupFilesDir, "pixel-backup").exists(), "WORK_CLEANED_$mode")
             }
             service.save(request, uri(success)) {}
             yes(documentStats(success).getInt("writes") == 1, "RETRY_READS_WITHOUT_REWRITE")
