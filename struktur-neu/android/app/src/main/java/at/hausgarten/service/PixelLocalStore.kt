@@ -228,8 +228,8 @@ return
 recordSnapshotPhotoAttachments(snapshot)
 preferences.edit().putString("drive_snapshot", snapshot.toString()).commit()
 
-} catch (ignored: Exception) {
-
+} catch (failure: Exception) {
+android.util.Log.w("HausGartenStore", "LEGACY_SNAPSHOT_PHOTO_MIGRATION_FAILED; type=" + failure.javaClass.simpleName)
 }
 }
 override fun onCreate(database: SQLiteDatabase): Unit {
@@ -360,8 +360,8 @@ continue
 var prepared = photoAttachments.prepareLegacy(payload)
 saveAttachmentMetadata(database, payload.getString("id"), prepared.metadata, "legacy_inline")
 
-} catch (ignored: Exception) {
-
+} catch (failure: Exception) {
+android.util.Log.w("HausGartenStore", "LEGACY_PENDING_PHOTO_MIGRATION_FAILED; type=" + failure.javaClass.simpleName)
 }
 }
 
@@ -1241,8 +1241,8 @@ photoAttachments.discardCreated(prepared.metadata)
 }
 
 }
-} catch (ignored: Exception) {
-
+} catch (failure: Exception) {
+android.util.Log.w("HausGartenStore", "ORPHAN_ATTACHMENT_CLEANUP_FAILED; type=" + failure.javaClass.simpleName)
 }
 }
 }
@@ -1362,8 +1362,8 @@ confirmed.add(keys.next())
 }
 }
 
-} catch (ignored: Exception) {
-
+} catch (failure: Exception) {
+android.util.Log.w("HausGartenStore", "CONFIRMED_IDS_READ_FAILED; type=" + failure.javaClass.simpleName)
 }
 return confirmed
 }
@@ -1653,8 +1653,8 @@ remaining = Math.max(remaining, payload.optLong("_undo_until", 0) - System.curre
 }
 
 }
-} catch (ignored: Exception) {
-
+} catch (failure: Exception) {
+android.util.Log.w("HausGartenStore", "UNDO_WINDOW_READ_FAILED; type=" + failure.javaClass.simpleName)
 }
 return Math.max(0, remaining)
 }

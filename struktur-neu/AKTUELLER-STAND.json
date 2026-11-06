@@ -139,6 +139,6 @@
       "instrumentation_runtime": "NICHT AUSGEFÜHRT. Test-APK gebaut.",
       "pixel_retest": "BLOCKIERT. Die Freigabe für eine produktive Installation fehlt."
     },
-    "pending_refactor": "Branch ccr-8451aac8-rd8ctm: eine gemeinsame SQLite-Instanz pro Prozess. Nicht kompiliert, CI ohne Runner; nicht auf main."
+    "pending_refactor": "Branch ccr-8451aac8-rd8ctm: gemeinsame SQLite-Instanz pro Prozess; 12 bisher stille Fehlerpfade protokolliert (Code+Fehlerklasse). CI ausstehend; nicht auf main."
   }
 }

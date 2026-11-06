@@ -264,8 +264,8 @@ internal object AppointmentRuntime {
         val weatherNext = adapter(context, store, "weather", weatherEnabled, now, AdapterTask { refreshWeather(context, store, now) })
         if (Thread.currentThread().isInterrupted) return@synchronized
         var weatherCadence = Long.MAX_VALUE
-        if (weatherEnabled) try { weatherCadence = FreeWeatherSource.nextDelayMillis(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"), now) } catch (ignored: Exception) {}
-        try { notifyRisks(context, store, now); store.putOwnerValue("planning:status", JSONObject().put("last_check_at", now.toString()).put("background_best_effort", true).toString()) } catch (ignored: Exception) {}
+        if (weatherEnabled) try { weatherCadence = FreeWeatherSource.nextDelayMillis(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments"), now) } catch (failure: Exception) { android.util.Log.w("HausGartenPlanning", "WEATHER_CADENCE_FAILED; type=" + failure.javaClass.simpleName) }
+        try { notifyRisks(context, store, now); store.putOwnerValue("planning:status", JSONObject().put("last_check_at", now.toString()).put("background_best_effort", true).toString()) } catch (failure: Exception) { android.util.Log.w("HausGartenPlanning", "RISK_NOTIFY_FAILED; type=" + failure.javaClass.simpleName) }
         MainActivity.refreshPlanningView()
         var next = minOf(calendarNext, weatherNext, weatherCadence)
         if (calendarEnabled(context, store)) next = minOf(next, 15 * 60 * 1000L)

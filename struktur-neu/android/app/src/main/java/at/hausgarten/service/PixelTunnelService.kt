@@ -68,7 +68,7 @@ class PixelTunnelService : Service() {
                 try {
                     RevierApplication.awaitStartup(this)
                     PixelTunnelConfig(this).enabled(false)
-                } catch (_: RuntimeException) { }
+                } catch (failure: RuntimeException) { android.util.Log.w("HausGartenTunnel", "TUNNEL_DISABLE_FAILED; type=" + failure.javaClass.simpleName) }
                 finally { stopSelf(startId) }
             }
             return START_NOT_STICKY
@@ -277,7 +277,7 @@ class PixelTunnelService : Service() {
                 val prefs = getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
                 if (prefs.getString("binding", "") == activeBinding && prefs.getString("state", "") != "auth_error") prefs.edit()
                     .putString("state", "stopped").putString("detail", "Verbindung beendet.").apply()
-            } catch (_: RuntimeException) { }
+            } catch (failure: RuntimeException) { android.util.Log.w("HausGartenTunnel", "TUNNEL_STATUS_WRITE_FAILED; type=" + failure.javaClass.simpleName) }
         }
         control.shutdown()
         stopForeground(STOP_FOREGROUND_REMOVE)

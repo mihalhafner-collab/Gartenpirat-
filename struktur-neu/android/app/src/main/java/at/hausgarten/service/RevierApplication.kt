@@ -34,9 +34,9 @@ class RevierApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         startupExecutor.execute {
-            try { PixelBackupService.cleanupWork(this) } catch (_: Exception) { }
+            try { PixelBackupService.cleanupWork(this) } catch (failure: Exception) { android.util.Log.w("HausGartenStartup", "BACKUP_WORK_CLEANUP_FAILED; type=" + failure.javaClass.simpleName) }
             if (recoveryRequired) return@execute
-            try { PixelBackupService.cancelRetiredJobs(this) } catch (_: RuntimeException) { }
+            try { PixelBackupService.cancelRetiredJobs(this) } catch (failure: RuntimeException) { android.util.Log.w("HausGartenStartup", "RETIRED_JOBS_CANCEL_FAILED; type=" + failure.javaClass.simpleName) }
         }
     }
 
