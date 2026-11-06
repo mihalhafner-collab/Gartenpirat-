@@ -1,142 +1,117 @@
-# Gartenpirat: verbindliche Arbeitsregeln
+# Gartenpirat: Arbeitsregeln
 
-## Verbindlicher Ausgangspunkt
+## Grundsatz: KISS und YAGNI
 
-Dieses GitHub-Repository ist der einzige verbindliche Einstiegspunkt und die
-alleinige aktuelle Quelle für Projektregeln, Arbeitsstand und Entwicklungsaufträge.
-Bei jedem neuen Chat und vor jeder Entwicklungsaufgabe zuerst den aktuellen Stand
-von `main`, danach diese `AGENTS.md` und `struktur-neu/AKTUELLER-STAND.json` lesen.
-Benötigte Fachregeln und Nachweise ausschließlich über die dort referenzierten
-Dateien dieses Repositories ermitteln. Keine externen Regel- oder Übersichtsseiten
-als zusätzliche Pflichtquelle voraussetzen. Frühere Gespräche und Exporte sind
-Quellenmaterial, keine eigenständig geltenden Arbeitsaufträge.
-Die Kotlin-App unter `struktur-neu/android/app/src/main/` ist die einzige funktionale Codebasis für TEST und PRODUKTIV.
-Vor Arbeit an einem Kandidaten `python3 -B struktur-neu/tools/check_release_baseline.py`
-ausführen. Alte Java/WebView-Quellen aus `app/`, `app/src/fullTest/`, historischen
-Branches, Commits oder Archiven niemals als Kandidatenbasis wiederherstellen.
-Designideen dürfen übernommen werden, ihre Umsetzung erfolgt ausschließlich in
-der verifizierten Kotlin-/Compose-Basis. Bei fehlschlagender Quellprüfung stoppen;
-keine Ersatzbasis und keine Umgehung der Build-Sperre.
-Vor produktiven Geräteaktionen und vor der Auswahl einer produktiven Entwicklungsbasis über
-`Haus & Gartenservice Pixel.get_capabilities` die tatsächlich installierte App
-prüfen: Paket, version_code, version_name sowie runtime.build_fingerprint mit
-Git-Commit und source_sha256 abgleichen. Die installierte Version ist maßgeblich;
-keine feste Buildnummer aus Erinnerungen, alten Chats oder Prüfprotokollen ableiten.
-Bei fehlender Verbindung, unvollständiger Identität oder abweichendem Quellstand
-keine Geräteänderung und keine Entwicklung auf einer vermuteten Ersatzbasis beginnen.
-Die Lücke benennen und die passende aktuelle Quelle ermitteln.
-Produktive Entwicklungsänderungen ausschließlich von der verifizierten installierten Quelle
-ableiten; geänderten Code niemals als bereits installierten Build ausgeben.
-Nach einem Geräteupdate die Identität erneut lesen und den vorhandenen Arbeitsstand
-aktualisieren. Keine neuen Branches, Tags oder Verweisdateien ohne Nutzerauftrag.
+Jede Entscheidung folgt zuerst diesen beiden Regeln:
 
-## Gemeinsame Build- und Ablageregel
+- **KISS:** die einfachste Lösung, die die konkrete Aufgabe vollständig löst.
+  Flacher, direkter Code; wenige Dateien; kurze Texte; wenige Tipps.
+- **YAGNI:** nur bauen, was jetzt gebraucht wird. Keine vorsorglichen
+  Abstraktionen, Optionen, Abhängigkeiten, Dateien, Berichte oder Prüfrunden.
 
-TEST und PRODUKTIV entstehen ausschließlich aus dem identischen Kotlin-/Compose-
-Quellcode unter `struktur-neu/android/app/src/main/`. Der Testkanal verwendet
-eine getrennte Paketkennung, eigene Testdaten und seine bisherige Signatur.
-Produktive Änderungen werden aus der verifizierten installierten Quelle abgeleitet,
-niemals aus historischen APKs oder anderen Implementierungen.
+Bestehendes erweitern statt Neues anlegen. Bestehende Dokumente aktualisieren.
+Steht eine Regel dieser Datei einer deutlich einfacheren Bedienung im Weg,
+den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 
-Geschäftsdaten und vollständige ZIP-Sicherungen werden nur lokal auf dem Pixel
-geschrieben. Es gibt keine verpflichtende Cloud- oder externe Sicherung für die
-Umstellung auf lokalen Betrieb. Historische Drive-Schreiber und versuchsweise importierte sevDesk-Rechnungen
-begründen keine Freigabe- oder Nachweispflicht für den übrigen App-Betrieb.
-Der gesonderte Auftrag vom 06.11.2026 erlaubt die nachfolgend begrenzte lokale Rechnungsfunktion.
-Manuelles Kopieren von Sicherungen liegt außerhalb der App. Google Drive wird nur
-für die ausdrücklich freigegebene Verteilung originalsignierter Installations-APKs
-verwendet; keine automatische Übertragung von Geschäfts- oder Sicherungsdaten.
-Die Verteilung benötigt jeweils einen eigenen ausdrücklichen Auftrag.
+## Ausgangspunkt
 
-## Lokale Abrechnung und Rechnungen (Eigentümerauftrag 06.11.2026)
+- Vor jeder Aufgabe `main`, diese Datei und `struktur-neu/AKTUELLER-STAND.json`
+  lesen. Das Repository ist die einzige verbindliche Quelle; frühere Chats sind
+  nur Material.
+- Einzige Codebasis für TEST und PRODUKTIV: Kotlin/Compose unter
+  `struktur-neu/android/app/src/main/`. Vorher
+  `python3 -B struktur-neu/tools/check_release_baseline.py` ausführen; schlägt
+  sie fehl, stoppen. Alte Java/WebView-Quellen nie wiederherstellen.
+- Vor Geräteaktionen über `Haus & Gartenservice Pixel.get_capabilities` Paket,
+  Version, Git-Commit und `source_sha256` der installierten App prüfen. Die
+  installierte Version ist maßgeblich. Bei Lücken keine Geräteänderung.
 
-Der Auftrag ersetzt die bisherige Beschränkung auf sevDesk für gewöhnliche
-österreichische Inlandsabrechnungen in Euro mit Kleinunternehmerbefreiung ohne
-Umsatzsteuerausweis. Abrechnung behält die getrennten Arten Rechnung und Labor
-clandestino, markierte Aufträge, gemeinsame Filter und die Gesamtsumme beider
-Arten. Sie ist keine bloße Rechnungsliste. Benutzerzuordnung, aktive
-Leistungsbindung, Belegstatus und Zahlungsstand bleiben getrennt.
+## Feste Grenzen
 
-Beide Arten verwenden dieselben tatsächlichen Leistungen, Mengen und bewusst
-bestätigten Preise. Rechnung erhält nach Vorschauprüfung eine eigene lokale
-Nummer und ein unveränderliches Original-PDF; Labor wird intern nachvollziehbar
-bestätigt, ohne Rechnung, Rechnungsnummer oder künstlichen Beleg. Abschluss,
-Wiederholung, Parallelität, Korrekturen, Zahlungen, lokaler Export und ZIP-Sicherung
-müssen beide Arten berücksichtigen. Die Kategorie begründet keine steuerliche
-Befreiung. Steuerstatus nicht aus App-Umsätzen ableiten oder selbstständig ändern.
+- Paketkennung `at.hausgarten.service`, Originalsignatur und Backup-Format
+  erhalten. SQLite-Schema nur mit ausdrücklichem Auftrag ändern.
+- TEST: eigene Paketkennung, eigene Testdaten, bisherige Signatur.
+- Geschäftsdaten, Fotos und ZIP-Sicherungen bleiben lokal auf dem Pixel. Keine
+  Cloud-Pflicht. Google Drive nur für die beauftragte Verteilung originalsignierter APKs.
+- Nur mit ausdrücklichem Auftrag: Installation, Migration, Wiederherstellung,
+  Rechnungsausstellung mit echten Daten, APK-Verteilung, neue Branches oder Tags.
+- Subagenten nur auf ausdrücklichen Auftrag.
 
-Historische sevDesk-Umsätze und Versuchsdaten nicht neu ausstellen oder automatisch
-übernehmen. Alte Rechnungs-, WebView-, Cloud- und Migrationsimplementierungen
-bleiben stillgelegt. Keine Pflichtcloud, sevDesk-/Bankanbindung, automatischen
-Mahnungen, Anzahlungsrechnungen oder allgemeine Steuerverwaltung ergänzen.
-Ausgestellte Originale, abgeschlossene interne Vorgänge, Zahlungen und notwendige
-Historien vor gewöhnlichem Löschen und Speicherbereinigung schützen; keine
-Alterslöschung. Die allgemeine direkte Löschbedienung bleibt für zulässige Daten
-erhalten. Nach Restore neue eindeutige Nummernserie verwenden und restaurierte
-Quellen vor erneuter Abrechnung bewusst gegen den aktuellen Belegstand prüfen.
+## Abrechnung
 
-Der Auftrag umfasst Entwicklung und isolierte synthetische Validierung mit
-unabhängiger technischer und fachlicher Gegenprüfung durch Subagenten. Er erlaubt
-keine produktive Installation, Rechnungsausstellung, Geschäftsdatenmigration oder
-APK-Verteilung. Bestehende Angebote, Originale und lokale ZIP-Dateien erhalten.
+- Zwei Arten auf denselben tatsächlichen Leistungen, Mengen und Preisen:
+  **Rechnung** und **Labor clandestino** (nur diese Schreibweise).
+- Rechnung: gewöhnliche österreichische Inlandsrechnung in Euro mit
+  Kleinunternehmerbefreiung. Nach der Vorschau eigene lokale Nummer und
+  unveränderliches Original-PDF. Labor: intern bestätigt, ohne Nummer und PDF.
+- Der Abschluss ist die einzige Quelle für den Abrechnungsstand. Alte manuelle
+  Markierungen bleiben als Altdaten lesbar.
+- Ein Rechnungsentwurf wird aus den offenen Arbeiten des Empfängers vorbefüllt,
+  Preise aus Stundensatz bzw. Leistungskatalog. In der Vorschau sichtbar und
+  änderbar; „Ausstellen“ ist ein Knopf. Die Zustimmung zur elektronischen
+  Rechnung wird einmal pro Kunde gespeichert.
+- „Bezahlt“ mit einem Tippen (offener Betrag, heutiges Datum). Anzeige
+  fertig → abgerechnet → bezahlt; Zuordnung, Beleg und Zahlung bleiben getrennt gespeichert.
+- Steuerstatus nie aus Umsätzen ableiten oder selbst ändern. Keine sevDesk-
+  oder Bankanbindung, keine automatischen Mahnungen, keine Anzahlungsrechnungen.
+  Historische sevDesk-Daten nicht neu ausstellen.
+- Originale, Abschlüsse, Zahlungen und nötige Historie vor Löschen schützen;
+  keine Alterslöschung. Nach Restore neue Nummernserie; restaurierte Quellen
+  vor erneuter Abrechnung gegen den Belegstand prüfen.
 
-## Eigentümerentscheidung 03.11.2026: Löschen, Speicher und Menüs
+## Löschen und Speicher
 
-„Löschen“ bedeutet endgültiges Entfernen mit einem Antippen, einschließlich
-zugehöriger ungeteilter Dateien. Kein neuer Papierkorbeintrag, keine zusätzliche
-Wahl zwischen Archivieren, Wiederherstellen und endgültigem Löschen. Zuordnungen
-intern bereinigen. Löschaktionen haben keine Bestätigungsdialoge oder Pflichttexte. Aktuelle Versionen, Verknüpfungen und unklare
-Vorgangsergebnisse intern prüfen; keine doppelte Ausführung. Diese Entscheidung
-ersetzt die bisherigen zusätzlichen UI-Bestätigungen beim Löschen und Verwerfen.
-Rückfallkopien einschließlich Erstellen, Prüfen und Wiederherstellen sind
-abgeschafft. Vorhandene interne Rückfallkopien und funktionslose Sicherungs-,
-Upload- und Restore-Arbeitsdateien samt leeren Unterordnern dürfen entfernt werden.
-Insbesondere `full-backup-work` nicht zurücklassen. Laufende Austauschvorgänge,
-Gerätekennung, gespeicherte Geschäftsdaten und bewusst gewählte lokale ZIP-Dateien
-bleiben getrennt. Menüs verwenden kurze deutsche Texte ohne Rohdatenwände.
-Das eigenständige Entwürfe-Menü ist entfernt. Laufende Formularbearbeitung und
-Vorgangskennungen bleiben intern erhalten. Endgültiges Löschen markierter Testdaten
-schließt ihre verknüpften Test-Arbeiten, Testfotos und übrigen Testdatensätze ein.
-Keine zusätzlichen Bestätigungen. Nicht zugehörige Geschäftsdaten und laufende
-Zeiterfassung bleiben geschützt; erfolgreiche Löschung anhand des wirksamen
-Datenstands prüfen, eine Queue-Quittung allein genügt nicht.
+- Löschen: ein Tippen, keine Rückfrage, kein Papierkorb. 5 Sekunden
+  „Rückgängig“, danach endgültig samt ungeteilter Dateien. Zuordnungen intern
+  bereinigen; Erfolg am wirksamen Datenstand prüfen.
+- Keine Rückfallkopien. Funktionslose Arbeitsdateien (z. B. `full-backup-work`)
+  entfernen. Laufende Zeiterfassung und fremde Geschäftsdaten bleiben geschützt.
 
-## Umsetzung
+## Oberfläche
 
-KISS und YAGNI: flacher, direkter Code; keine vorsorglichen Abstraktionen,
-Abhängigkeiten oder zusätzlichen Dateien. Bestehende Dokumente aktualisieren.
-Paketkennung `at.hausgarten.service`, Originalsignatur, SQLite-Schema und bestehendes
-Backup-Format erhalten.
-Autorisierte Aufträge direkt vollständig ausführen; bereits erteilte Freigaben
-nicht erneut erfragen. Subagenten nur bei ausdrücklichem Auftrag einsetzen.
-Keine Installation, Migration, Wiederherstellung oder Rechnungsfreigabe aus einem
-allgemeinen Entwicklungsauftrag ableiten. Produktive Gerätearbeiten über die
-aktuelle Pixel-Verbindung; ADB nur über die tatsächlich erreichbare Geräteverbindung.
+Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
-## Testumfang (Eigentümerentscheidung 06.11.2026)
+- **Roter Faden:** Kunde → Objekt → Anfrage → Angebot → Auftrag → Einsatz →
+  Arbeit → Abrechnung → Zahlung. Jede Detailseite zeigt oben „Gehört zu“
+  (Kunde, Objekt, Auftrag, Einsatz) als antippbare Chips; Verknüpfungen in beide Richtungen.
+- **Objekt als Anker:** Arbeiten gehören zu einem Objekt. Das Objekt zeigt
+  seinen Verlauf von der Anfrage bis zur Zahlung.
+- **Planung:** ein Objekt „Einsatz“. Termin, Tour und Pflegeplan sind Ansichten
+  (Tag, Woche, Karte); verschieben durch Ziehen.
+- **Navigation:** Heute · Planung · Kunden · Abrechnung. Ein „+“-Knopf für
+  alles Neue, eine Suche für alles.
+- **Heute:** Einsätze des Tages mit Uhrzeit und „Start“, darunter nur Punkte
+  mit Handlungsbedarf.
+- **Abrechnung:** ein Bereich mit Offen, Abschlüsse, Summen.
+- **Laufende Zeit:** Benachrichtigung mit Pause, Foto und Stopp; Schnellkachel
+  und App-Verknüpfungen.
+- **Farben im Theme:** Waldgrün = Handeln, Bernstein = Geld, Gelb = Prüfen,
+  Ziegelrot nur für Löschen und Fehler. Keine Farbwerte im Feature-Code.
+- **Bausteine:** Material-3-Standardkomponenten statt Nachbauten. Große Schrift
+  muss funktionieren.
+- **Texte:** kurz und deutsch. Keine technischen Zustände, keine Textwände;
+  Hinweise einmal zeigen, danach als ⓘ.
+- **Rückmeldung:** Erfolg als kurze Snackbar, Fehler am Ort. Leere Listen
+  nennen die erste Aktion.
+- **Eingabe:** passende Tastatur (Telefon, E-Mail, Zahl), Spracheingabe in
+  Textfeldern, zuletzt Verwendetes oben.
+- **Prüfungen:** unklare Vorgänge automatisch intern prüfen, ohne doppelte
+  Ausführung. Nur echte Konflikte zeigen. Wiederherstellung als Hinweis, nicht als Sperre.
 
-Ziel ist die bestehende App eines Einzelunternehmers auf seinem konkreten Pixel.
-Testprogramme erzeugen grundsätzlich eigene synthetische Daten und prüfen die
-betroffenen Fach-, Speicher- und Bedienwege einschließlich Fehlern, Wiederholung
-und erneutem Lesen ausreichend gründlich. Keine zusätzliche Plattformmatrix.
-Notwendige Tests im beauftragten Umfang direkt ausführen; keine erneute Freigabe
-nur für Emulatorlauf oder vorhandene Betriebsdaten verlangen.
+## Tests
 
-Gezielte Funktionstests auf dem Pixel dürfen vorhandene Betriebsdaten lesen und
-im Testumfang verändern. Der Eigentümer bestätigt deren Sicherung und
-Rekonstruierbarkeit und akzeptiert solche Änderungen. Keine zusätzliche
-Sicherung, Rückfallkopie oder Bestätigungsrunde als Testvoraussetzung einführen.
-Testdaten bevorzugen, eigenes Testergebnis wirksam zurücklesen und eigene
-Testdaten anschließend entfernen. Betriebsdaten, Fotos und ZIP-Sicherungen bleiben
-auf dem Pixel; keine Übernahme in Repository, Cloud-Testbestände oder CI-Artefakte.
-Vorhandene Emulator-Suiten bleiben isoliert; ihre Geräteprüfung nicht abschalten.
-Pixel-Prüfungen laufen über die vorhandene App-Oberfläche oder Pixel-Werkzeuge.
+- Testprogramme erzeugen eigene synthetische Daten und prüfen Fach-, Speicher-
+  und Bedienwege samt Fehler, Wiederholung und erneutem Lesen.
+- Notwendige Tests direkt ausführen. Emulator-Suiten bleiben isoliert.
+- Auf dem Pixel dürfen gezielte Tests Betriebsdaten lesen und im Testumfang
+  ändern; keine zusätzliche Sicherung als Voraussetzung. Eigene Testdaten
+  danach entfernen. Betriebsdaten nie ins Repository, die Cloud oder CI.
 
-## Prüfung und Abschluss
+## Abschluss
 
-Alle für die Änderung notwendigen Prüfungen ausführen.
-`python3 -B struktur-neu/tools/check_current.py` prüft den aktuellen Quellstand,
-ersetzt aber keine erforderliche Laufzeitprüfung. Geräteidentität und Quellfingerabdruck sind kein
-Beleg für einen Gerätefunktionstest. Fehlende oder fehlgeschlagene Prüfungen nennen.
-Nur eigene geprüfte Änderungen nach `main` committen, pushen und zurücklesen.
-Ergebnisse und Einschränkungen kurz melden; keine zusätzlichen Prüfberichte anlegen.
+- `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
+  nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.
+- Fehlende oder fehlgeschlagene Prüfungen nennen. Geänderten Code nie als
+  installiert ausgeben.
+- Nur eigene geprüfte Änderungen committen, pushen und zurücklesen. Ergebnis
+  kurz melden; keine zusätzlichen Prüfberichte.
