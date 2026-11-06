@@ -51,7 +51,7 @@ private val nativeSections = linkedMapOf(
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
     "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote",
     "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
-    "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher"
+    "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher", "accounting" to "Abrechnung", "accounting_edit" to "Abrechnung bearbeiten"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
 private fun primaryKind(collection: String) = when (collection) { "customers" -> "customer"; "orders" -> "order"; else -> "worklog" }
@@ -103,6 +103,8 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "today" -> NativeToday(controller)
                 "more", "office" -> NativeOffice(controller)
                 "billing" -> NativeBillingOverview(controller)
+                "accounting" -> NativeAccounting(controller)
+                "accounting_edit" -> NativeAccountingEditor(controller, route.mode, route.id)
                 "customers", "orders", "worklogs" -> when {
                     route.mode in listOf("new", "edit", "duplicate") -> NativeEntityEditor(controller, route.section, route.id, route.mode)
                     route.id.isNotEmpty() -> NativeEntityDetail(controller, route.section, route.id)
@@ -215,6 +217,7 @@ private fun NativeOffice(controller: NativeAppController) {
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
         item { Text("Organisieren", style = MaterialTheme.typography.titleMedium) }
         items(listOf(Triple("billing", "Offene Stunden", "Alle noch offenen Arbeiten · für sevDesk"),
+            Triple("accounting", "Abrechnung", "Abgerechnet und labor clandestinus"),
             Triple("offers", "Angebote", "Entwürfe und fertige Dokumente"),
             Triple("planning", "Planung", "Tag, Woche und Tagestour"),
             Triple("equipment", "Geräte", "Wartung, Zubehör und aktuelle Kette"))) { (section,title,subtitle) ->
@@ -729,6 +732,10 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                     if (kind == "customer") Text(row.optString("company").ifBlank { "Kundenakte" }, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     else NativeContext(controller, context)
                 }
+                if (kind != "customer") item {
+                    NativeInfoRow("Abrechnung", row.opt(AccountingRules.AMOUNT)?.takeUnless { it == JSONObject.NULL }?.let(::financeMoney) ?: "Gesamtbetrag und Abrechnungsweg",
+                        { controller.navigate("accounting_edit", id, collection) })
+                }
                 if (kind == "customer") {
                     item {
                         val address = listOf(row.optString("street"), listOf(row.optString("postal_code"), row.optString("city")).filter { it.isNotBlank() }.joinToString(" ")).filter { it.isNotBlank() }
@@ -1148,7 +1155,8 @@ private fun NativeEntityEditor(controller: NativeAppController, collection: Stri
                 item {
                     NativeDateField("Geplantes Datum", v.optString("scheduled_date"), { change("scheduled_date", it) })
                     NativeRecordPicker(controller, "customers", "Rechnungsempfänger · optional", v.optString("billing_customer_id"), onValueChange = { change("billing_customer_id", it) })
-                    NativeChoice("Status", v.optString("status", "Geplant"), listOf("Geplant" to "Geplant", "In Arbeit" to "In Arbeit", "Wartet auf Material" to "Wartet auf Material", "Erledigt" to "Erledigt", "Abgerechnet" to "Abgerechnet"), { change("status", it) })
+                    NativeRecordPicker(controller, "properties", "Objekt / Haus / Garten", v.optString("property_id"), customerId = v.optString("customer_id"), onValueChange = { change("property_id", it) })
+                    NativeChoice("Status", v.optString("status", "Geplant"), listOf("Geplant" to "Geplant", "In Arbeit" to "In Arbeit", "Wartet auf Material" to "Wartet auf Material", "Erledigt" to "Erledigt", "Abgerechnet" to "Abgerechnet", "labor clandestinus" to "labor clandestinus"), { change("status", it) })
                     Row { Text("In Kundenansicht zeigen", Modifier.weight(1f)); Switch(v.optBoolean("customer_visible", v.optInt("customer_visible", 1) != 0), { change("customer_visible", if (it) 1 else 0) }) }
                 }
             }

@@ -130,6 +130,91 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         changes.collect { version -> awaitCommit(); emit(version) }
     }.flowOn(Dispatchers.IO)
 
+    internal fun accountingRecord(args: JSONObject): JSONObject = readCurrent { db ->
+        val requested = args.getString("collection")
+        require(requested in setOf("orders", "worklogs"))
+        val first = record(db, requested, args.getString("entity_id")) ?: throw IllegalArgumentException("Der Auftrag ist nicht mehr vorhanden.")
+        val parent = if (requested == "worklogs" && first.optString("order_id").isNotEmpty()) record(db, "orders", first.getString("order_id")) else null
+        val collection = if (parent != null) "orders" else requested
+        val root = parent ?: first
+        val works = JSONArray()
+        if (collection == "worklogs") works.put(root)
+        else db.rawQuery("SELECT id FROM native_read_rows WHERE collection='worklogs' AND order_id=? ORDER BY id", arrayOf(root.getString("id"))).use { cursor ->
+            while (cursor.moveToNext()) works.put(record(db, "worklogs", cursor.getString(0)))
+        }
+        val master = JSONObject().put("orders", if (collection == "orders") JSONArray().put(root) else JSONArray()).put("worklogs", works)
+        val personal = db.rawQuery("SELECT value FROM owner_state WHERE key='personal_paid'", null).use { if (it.moveToFirst()) AccountingRules.ids(JSONArray(it.getString(0))) else emptySet() }
+        val properties = JSONArray()
+        val propertyIds = (listOf(root) + (0 until works.length()).map { works.getJSONObject(it) }).map { it.optString("property_id") }.filter { it.isNotEmpty() }.distinct()
+        for (id in propertyIds) record(db, "properties", id)?.let { properties.put(it) }
+        val row = AccountingRules.project(master, personal, properties).firstOrNull() ?: JSONObject()
+            .put("collection", collection).put("id", root.getString("id")).put("title", root.optString(if (collection == "orders") "title" else "activity"))
+            .put("route", "").put("issue", "").put("expected_record_hash", AccountingRules.hash(master, personal, collection, root.getString("id")))
+        row.put("amount_decimal", root.opt(AccountingRules.AMOUNT) ?: if (!row.isNull("amount_minor") && row.has("amount_minor")) OfferMoney.decimal(row.getLong("amount_minor")) else JSONObject.NULL)
+            .put("work_count", works.length())
+    }
+
+    /** Amounts, counts and both pages use one current derived generation. */
+    internal fun accounting(args: JSONObject): JSONObject = readCurrent { db ->
+        val from = args.optString("date_from")
+        val to = args.optString("date_to")
+        for (day in listOf(from, to).filter { it.isNotEmpty() }) java.time.LocalDate.parse(day)
+        require(from.isEmpty() || to.isEmpty() || from <= to) { "Das Bis-Datum muss am oder nach dem Ab-Datum liegen." }
+        val route = args.optString("route")
+        require(route in setOf("", AccountingRules.BILLED, AccountingRules.LABOR))
+        val offset = args.optInt("offset")
+        val reviewOffset = args.optInt("review_offset")
+        val limit = args.optInt("limit", 40)
+        require(offset in 0..1_000_000 && reviewOffset in 0..1_000_000 && limit in 1..100)
+        val where = StringBuilder("1=1")
+        val values = arrayListOf<String>()
+        if (from.isNotEmpty()) { where.append(" AND work_date>=?"); values.add(from) }
+        if (to.isNotEmpty()) { where.append(" AND work_date<=?"); values.add(to) }
+        if (args.optString("property_id").isNotEmpty()) {
+            where.append(" AND EXISTS(SELECT 1 FROM native_read_accounting_properties p WHERE p.accounting_key=a.key AND p.property_id=?)")
+            values.add(args.getString("property_id"))
+        }
+        for (term in SnapshotReadSupport.fold(args.optString("query")).trim().split(Regex("\\s+")).filter { it.isNotEmpty() }) {
+            where.append(" AND instr(title_search,?)>0"); values.add(term)
+        }
+        val valid = "$where AND issue=''" + if (route.isEmpty()) "" else " AND route=?"
+        val listed = "$where AND issue_code IN ('','pending_amount')" + if (route.isEmpty()) "" else " AND route=?"
+        val validValues = if (route.isEmpty()) values else ArrayList(values).apply { add(route) }
+        var billed = 0L
+        var labor = 0L
+        var pendingBilled = 0
+        var pendingLabor = 0
+        db.rawQuery("SELECT route,SUM(amount_minor) FROM native_read_accounting a WHERE $valid GROUP BY route", validValues.toTypedArray()).use { cursor ->
+            while (cursor.moveToNext()) when (cursor.getString(0)) {
+                AccountingRules.BILLED -> billed = cursor.getLong(1)
+                AccountingRules.LABOR -> labor = cursor.getLong(1)
+            }
+        }
+        db.rawQuery("SELECT route,COUNT(*) FROM native_read_accounting a WHERE $listed AND issue<>'' GROUP BY route", validValues.toTypedArray()).use { cursor ->
+            while (cursor.moveToNext()) when (cursor.getString(0)) {
+                AccountingRules.BILLED -> pendingBilled = cursor.getInt(1)
+                AccountingRules.LABOR -> pendingLabor = cursor.getInt(1)
+            }
+        }
+        fun count(filter: String, parameters: List<String>): Int = db.rawQuery("SELECT COUNT(*) FROM native_read_accounting a WHERE $filter", parameters.toTypedArray()).use { it.moveToFirst(); it.getInt(0) }
+        fun page(filter: String, parameters: List<String>, start: Int): JSONArray {
+            val result = JSONArray()
+            db.rawQuery("SELECT key,collection,id,title,work_date,date_label,object_label,route,issue,amount_minor,expected_record_hash FROM native_read_accounting a WHERE $filter ORDER BY work_date DESC,key LIMIT ? OFFSET ?", (parameters + listOf(limit.toString(), start.toString())).toTypedArray()).use { cursor ->
+                while (cursor.moveToNext()) result.put(JSONObject().put("key", cursor.getString(0)).put("collection", cursor.getString(1)).put("id", cursor.getString(2))
+                    .put("title", cursor.getString(3)).put("work_date", cursor.getString(4)).put("date_label", cursor.getString(5)).put("object_label", cursor.getString(6))
+                    .put("route", cursor.getString(7)).put("issue", cursor.getString(8)).put("amount_minor", if (cursor.isNull(9)) JSONObject.NULL else cursor.getLong(9))
+                    .put("expected_record_hash", cursor.getString(10)))
+            }
+            return result
+        }
+        val reviewWhere = "$where AND issue_code NOT IN ('','pending_amount')" + if (route.isEmpty()) "" else " AND (route=? OR route='')"
+        JSONObject().put("billed_minor", billed).put("labor_minor", labor).put("total_minor", Math.addExact(billed, labor))
+            .put("records", page(listed, validValues, offset)).put("total", count(listed, validValues))
+            .put("pending_billed", pendingBilled).put("pending_labor", pendingLabor).put("pending_amounts", pendingBilled + pendingLabor)
+            .put("reviews", page(reviewWhere, validValues, reviewOffset)).put("review_total", count(reviewWhere, validValues))
+            .put("offset", offset).put("review_offset", reviewOffset).put("limit", limit)
+    }
+
     suspend fun detail(collection: String, id: String): JSONObject? = withContext(Dispatchers.IO) {
         requireCollection(collection)
         readCurrent { db -> record(db, collection, id) }
@@ -323,6 +408,10 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         definitions["native_read_meta"] = "CREATE TABLE IF NOT EXISTS native_read_meta(id INTEGER PRIMARY KEY CHECK(id=1),source_revision INTEGER NOT NULL,cached_revision INTEGER NOT NULL)"
         definitions["native_read_rows"] = "CREATE TABLE IF NOT EXISTS native_read_rows(collection TEXT NOT NULL,id TEXT NOT NULL,title TEXT NOT NULL,subtitle TEXT NOT NULL,address TEXT NOT NULL,status TEXT NOT NULL,delivery_status TEXT NOT NULL,customer_id TEXT NOT NULL,billing_customer_id TEXT NOT NULL,billed INTEGER NOT NULL,is_open INTEGER NOT NULL,mcp_search_text TEXT NOT NULL,phone_digits TEXT NOT NULL,property_id TEXT NOT NULL,material_id TEXT NOT NULL,equipment_id TEXT NOT NULL,order_id TEXT NOT NULL,worklog_id TEXT NOT NULL,session_id TEXT NOT NULL,role TEXT NOT NULL,work_date TEXT NOT NULL,thumbnail_reference TEXT NOT NULL,active INTEGER NOT NULL,billing_type TEXT NOT NULL,sort_key TEXT NOT NULL,search_text TEXT NOT NULL,PRIMARY KEY(collection,id))"
         definitions["native_read_records"] = "CREATE TABLE IF NOT EXISTS native_read_records(collection TEXT NOT NULL,id TEXT NOT NULL,record_json TEXT NOT NULL,PRIMARY KEY(collection,id))"
+        definitions["native_read_accounting"] = "CREATE TABLE IF NOT EXISTS native_read_accounting(key TEXT PRIMARY KEY,collection TEXT NOT NULL,id TEXT NOT NULL,title TEXT NOT NULL,title_search TEXT NOT NULL,work_date TEXT NOT NULL,date_label TEXT NOT NULL,object_label TEXT NOT NULL,route TEXT NOT NULL,issue TEXT NOT NULL,issue_code TEXT NOT NULL,amount_minor INTEGER,expected_record_hash TEXT NOT NULL)"
+        definitions["native_read_accounting_properties"] = "CREATE TABLE IF NOT EXISTS native_read_accounting_properties(accounting_key TEXT NOT NULL,property_id TEXT NOT NULL,PRIMARY KEY(accounting_key,property_id))"
+        definitions["ix_native_read_accounting_date"] = "CREATE INDEX IF NOT EXISTS ix_native_read_accounting_date ON native_read_accounting(route,work_date DESC,key)"
+        definitions["ix_native_read_accounting_property"] = "CREATE INDEX IF NOT EXISTS ix_native_read_accounting_property ON native_read_accounting_properties(property_id,accounting_key)"
         for ((name, columns) in mapOf(
             "sort" to "collection,active DESC,sort_key,id",
             "mcp_sort" to "collection,sort_key,id",
@@ -341,7 +430,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         for (table in arrayOf("pending", "owner_state", "work_sessions", "work_session_events", "photo_attachments")) for (action in arrayOf("INSERT", "UPDATE", "DELETE")) {
             val row = if (action == "DELETE") "OLD" else "NEW"
             val condition = when (table) {
-                "owner_state" -> " WHEN $row.key='snapshot' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1'"
+                "owner_state" -> " WHEN $row.key='snapshot' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1' OR $row.key='personal_paid' OR $row.key='personal_paid_migrated'"
                 "pending" -> " WHEN $row.kind<>'mcp_receipt'"
                 else -> ""
             }
@@ -412,6 +501,8 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         val master = SnapshotProjection.effective(store.getState())
         db.delete("native_read_rows", null, null)
         db.delete("native_read_records", null, null)
+        db.delete("native_read_accounting", null, null)
+        db.delete("native_read_accounting_properties", null, null)
         val customers = HashMap<String, String>()
         val customerRows = master.optJSONArray("customers") ?: JSONArray()
         for (i in 0 until customerRows.length()) { val row = customerRows.getJSONObject(i); customers[row.optString("id")] = row.optString("name") }
@@ -431,11 +522,27 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             }
             for ((position, row) in ordered.withIndex()) insert(db, collection, row, customers, customerSearch, orderTitles, position)
         }
+        val accountingProperties = JSONArray()
         for ((collection, kind) in ownerCollections) {
             val prefix = "revier:v1:entity:$kind:"
             db.rawQuery("SELECT value FROM owner_state WHERE key>=? AND key<? ORDER BY key", arrayOf(prefix, prefix + '\uffff')).use { cursor ->
-                while (cursor.moveToNext()) { val row = JSONObject(cursor.getString(0)); if (!row.optBoolean("deleted")) insert(db, collection, row, customers, customerSearch, orderTitles, null) }
+                while (cursor.moveToNext()) { val row = JSONObject(cursor.getString(0)); if (!row.optBoolean("deleted")) {
+                    insert(db, collection, row, customers, customerSearch, orderTitles, null)
+                    if (collection == "properties") accountingProperties.put(row)
+                } }
             }
+        }
+        val personal = db.rawQuery("SELECT value FROM owner_state WHERE key='personal_paid'", null).use { if (it.moveToFirst()) AccountingRules.ids(JSONArray(it.getString(0))) else emptySet() }
+        for (row in AccountingRules.project(master, personal, accountingProperties)) {
+            val values = ContentValues()
+            for (field in listOf("key", "collection", "id", "title", "work_date", "date_label", "object_label", "route", "issue", "issue_code", "expected_record_hash")) values.put(field, row.getString(field))
+            values.put("title_search", SnapshotReadSupport.fold(row.getString("title")))
+            if (row.isNull("amount_minor")) values.putNull("amount_minor") else values.put("amount_minor", row.getLong("amount_minor"))
+            db.insertOrThrow("native_read_accounting", null, values)
+            val ids = row.getJSONArray("property_ids")
+            for (i in 0 until ids.length()) db.insertOrThrow("native_read_accounting_properties", null, ContentValues().apply {
+                put("accounting_key", row.getString("key")); put("property_id", ids.getString(i))
+            })
         }
         db.execSQL("UPDATE native_read_meta SET cached_revision=source_revision WHERE id=1")
         rebuilds.incrementAndGet()

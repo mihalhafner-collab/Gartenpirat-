@@ -55,6 +55,8 @@ if (LocalWorkflowTools.offerDecision(name)) {
 return OfferDecisionService(repository).query(name, args)
 }
 when (name) {
+"get_accounting_overview" -> return store.nativeData().accounting(args)
+"get_accounting_record" -> return store.nativeData().accountingRecord(args)
 "run_self_test" -> {
 return selfTest()
 }

@@ -41,6 +41,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         @JvmStatic fun run(test: Instrumentation): JSONObject = NativeComposeAppTests(test).execute()
         /** Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider prerequisite. */
         @JvmStatic fun runGraphics(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeGraphics()
+        @JvmStatic fun runAccounting(test: Instrumentation, reopen: Boolean): JSONObject = NativeComposeAppTests(test).executeAccounting(reopen)
     }
 
     private val context = test.targetContext
@@ -461,6 +462,114 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(read("get_active_work_session").optString("state") == "IDLE", "GRAPHICS_NO_EXISTING_TIMER")
         yes(context.getSharedPreferences("planning_private", Context.MODE_PRIVATE).edit().putBoolean("weather_enabled", false)
             .putBoolean("notifications", false).commit(), "GRAPHICS_OFFLINE_PLANNING")
+    }
+
+    private fun executeAccounting(reopen: Boolean): JSONObject {
+        yes(test.context.packageName == "at.hausgarten.service.test" && context.packageName == "at.hausgarten.service" && Build.VERSION.SDK_INT == 35 && Build.HARDWARE in listOf("ranchu", "goldfish") && shell("getprop ro.kernel.qemu") == "1", "ACCOUNTING_DISPOSABLE_EMULATOR_BEFORE_STORAGE")
+        val marker = File(context.noBackupFilesDir, "qa-native-accounting.json")
+        if (reopen) {
+            yes(test.context.packageName == "at.hausgarten.service.test" && Build.VERSION.SDK_INT == 35 && Build.HARDWARE in listOf("ranchu", "goldfish") && shell("getprop ro.kernel.qemu") == "1", "ACCOUNTING_REOPEN_EMULATOR_REQUIRED")
+            yes(marker.isFile && JSONObject(marker.readText()).optString("fixture") == "synthetic-accounting-v1", "ACCOUNTING_REOPEN_SYNTHETIC_MARKER")
+            store = PixelLocalStore(context)
+            tools = PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
+            val saved = JSONObject(marker.readText())
+            yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == saved.getString("snapshot_hash"), "ACCOUNTING_NEW_PROCESS_IDENTICAL_SOURCE")
+            val result = read("get_accounting_overview")
+            yes(result.getLong("total_minor") == 0L && result.getInt("total") == 1 && result.getInt("pending_amounts") == 1 && result.getInt("review_total") == 0, "ACCOUNTING_NEW_PROCESS_PERSISTED_ASSIGNMENT_AND_PHASE2_DEFERRAL")
+            return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false).put("new_process_readback", true)
+        }
+        guardGraphicsFixture()
+        val source = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
+        val customer = source.getJSONArray("customers").getJSONObject(0).getString("id")
+        fun order(id: String, status: String, amount: String, property: String) = JSONObject().put("id", id).put("title", "QA Abrechnung " + id.takeLast(1).uppercase())
+            .put("customer_id", customer).put("billing_customer_id", customer).put("status", status).put("accounting_amount", amount).put("property_id", property)
+            .put("scheduled_date", "2026-11-01").put("test_record", true).put("created_at", "2026-11-01T10:00:00Z").put("updated_at", "2026-11-01T10:00:00Z")
+        fun work(id: String, parent: String, billed: Int, amount: String, day: String) = JSONObject().put("id", id).put("order_id", parent).put("customer_id", customer).put("billing_customer_id", customer)
+            .put("activity", "QA Abrechnung Arbeit $id").put("billed", billed).put("accounting_amount", amount).put("work_date", day).put("hours", 2).put("test_record", true)
+            .put("created_at", "2026-11-01T10:00:00Z").put("updated_at", "2026-11-01T10:00:00Z")
+        source.put("orders", JSONArray().put(order("qa_accounting_a", "Abgerechnet", "900.00", "qa_accounting_property")).put(order("qa_accounting_b", "Erledigt", "200.00", ""))
+            .put(order("qa_accounting_c", "Offen", "400.00", "").put("paid", true)))
+        source.put("worklogs", JSONArray().put(work("qa_accounting_a1", "qa_accounting_a", 1, "500.00", "2026-11-01"))
+            .put(work("qa_accounting_a2", "qa_accounting_a", 1, "400.00", "2026-11-02"))
+            .put(work("qa_accounting_b1", "qa_accounting_b", 0, "200.00", "2026-11-03"))
+            .put(work("qa_accounting_c1", "qa_accounting_c", 0, "400.00", "2026-11-04")))
+        store.putOwnerValue("snapshot", source.toString())
+        store.putOwnerValue("personal_paid_migrated", "1")
+        store.putOwnerValue("personal_paid", JSONArray().put("qa_accounting_b1").toString())
+        store.putOwnerValue("revier:v1:entity:property:qa_accounting_property", JSONObject().put("id", "qa_accounting_property").put("name", "QA Haus und Garten").put("customer_id", customer).toString())
+        fun overview(extra: JSONObject = JSONObject()) = read("get_accounting_overview", extra)
+        var data = overview()
+        yes(data.getLong("billed_minor") == 90000L && data.getLong("labor_minor") == 20000L && data.getLong("total_minor") == 110000L && data.getInt("total") == 2, "ACCOUNTING_ACCEPTANCE_EXAMPLE_AND_NO_DOUBLE_COUNT")
+        val filters = JSONObject().put("date_from", "2026-11-02").put("date_to", "2026-11-02").put("property_id", "qa_accounting_property").put("query", "Abrechnung A")
+        data = overview(filters)
+        yes(data.getLong("total_minor") == 90000L && data.getInt("total") == 1, "ACCOUNTING_SHARED_DATE_OBJECT_SEARCH_FILTERS")
+        yes(overview(JSONObject(filters.toString()).put("route", "labor")).getLong("total_minor") == 0L, "ACCOUNTING_PATH_FILTER_APPLIES_TO_SUMS_AND_LIST")
+        yes(overview(JSONObject().put("query", "QA no matching accounting")).getLong("total_minor") == 0L, "ACCOUNTING_EMPTY_ZERO_TOTALS")
+        val oldFont = shell("settings get system font_scale")
+        try {
+            launch(); openOffice(); click("Abrechnung"); shown("1100,00 €")
+            click("Abgerechnet"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
+            click("‹ Zurück"); shown("900,00 €")
+            enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
+            recreate(); shown("900,00 €"); yes(field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true, "ACCOUNTING_FILTERS_SURVIVE_DETAIL_AND_RECREATION")
+            // Simulate the later invoice module's committed source update, never a manual price editor.
+            val invoiceUpdate = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
+            PixelMcpWriteTools.find(invoiceUpdate.getJSONArray("orders"), "qa_accounting_a").put("accounting_amount", "950.25")
+            store.putOwnerValue("snapshot", invoiceUpdate.toString()); shown("950,25 €")
+            val observed = read("get_accounting_record", JSONObject().put("collection", "orders").put("entity_id", "qa_accounting_a"))
+            val update = JSONObject().put("request_id", "qa_accounting_amount_change").put("collection", "orders").put("entity_id", "qa_accounting_a")
+                .put("expected_record_hash", observed.getString("expected_record_hash")).put("route", "billed")
+            val beforeAbort = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            val marksBeforeAbort = store.ownerValue("personal_paid", "[]")
+            val receiptKey = "receipt:mcp_owner_" + PixelMcpWriteTools.hash("qa_accounting_abort")
+            store.writableDatabase.execSQL("CREATE TRIGGER qa_accounting_abort BEFORE INSERT ON owner_state WHEN NEW.key='$receiptKey' BEGIN SELECT RAISE(ABORT,'QA accounting receipt failure'); END")
+            try {
+                val abort = runCatching { tools.call("set_accounting_record", JSONObject(update.toString()).put("request_id", "qa_accounting_abort").put("route", "labor")) }
+                yes(abort.isFailure || abort.getOrNull()?.optBoolean("ok") == false, "ACCOUNTING_INJECTED_RECEIPT_FAILURE")
+                yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == beforeAbort && store.ownerValue("personal_paid", "[]") == marksBeforeAbort, "ACCOUNTING_TRANSACTION_ROLLBACK_HAS_NO_PARTIAL_MARKS_OR_AMOUNTS")
+            } finally { store.writableDatabase.execSQL("DROP TRIGGER qa_accounting_abort") }
+            read("set_accounting_record", update); shown("950,25 €")
+            yes(read("set_accounting_record", update).getBoolean("replayed"), "ACCOUNTING_IDENTICAL_REPLAY")
+            yes(overview().getLong("total_minor") == 115025L, "ACCOUNTING_REAL_WRITER_EXACT_AMOUNT_REFRESH")
+            val stale = JSONObject(update.toString()).put("request_id", "qa_accounting_stale_change")
+            val failed = runCatching { tools.call("set_accounting_record", stale) }
+            yes(failed.isFailure || failed.getOrNull()?.optBoolean("ok") == false, "ACCOUNTING_STALE_HASH_REJECTED")
+            store.putOwnerValue("personal_paid", JSONArray().put("qa_accounting_b1").put("qa_accounting_a1").toString())
+            data = overview()
+            yes(data.getInt("review_total") == 1 && data.getLong("total_minor") == 20000L, "ACCOUNTING_LEGACY_CONFLICT_VISIBLE_AND_EXCLUDED")
+            reveal("Zuordnung ändern"); click("Zuordnung ändern")
+            shown("Abrechnungsweg: Auswählen"); click("Abrechnungsweg: Auswählen"); click("labor clandestinus")
+            click("Abrechnung speichern")
+            waitUntil("ACCOUNTING_EXPLICIT_CONFLICT_CORRECTION") { val value = overview(); value.getInt("review_total") == 0 && value.getLong("labor_minor") == 115025L }
+            // Return to the same filtered overview; clear only search for viewport checks.
+            enter("Auftragsbezeichnung", ""); back(); waitUntil("ACCOUNTING_FINAL_IME_HIDDEN") { !keyboardVisible() }
+            scrollTop(); click("Gesamt"); shown("1150,25 €")
+            for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
+                activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
+                shell("settings put system font_scale $font")
+                launch(); openOffice(); click("Abrechnung")
+                test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+                settleUi(); reveal("Gesamt"); shown("1150,25 €")
+                captureSyntheticScreen("accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
+                yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_SEARCH_ACCESSIBLE_${font}_$wide")
+            }
+            val current = read("get_accounting_record", JSONObject().put("collection", "orders").put("entity_id", "qa_accounting_a"))
+            read("set_accounting_record", JSONObject().put("request_id", "qa_accounting_remove_assignment").put("collection", "orders").put("entity_id", "qa_accounting_a")
+                .put("expected_record_hash", current.getString("expected_record_hash")).put("route", "open"))
+            yes(overview().getLong("total_minor") == 20000L, "ACCOUNTING_REMOVED_ASSIGNMENT_EXCLUDED_WITH_AMOUNT_RETAINED")
+            val missingInvoice = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
+            PixelMcpWriteTools.find(missingInvoice.getJSONArray("orders"), "qa_accounting_b").put("accounting_amount", JSONObject.NULL)
+            PixelMcpWriteTools.find(missingInvoice.getJSONArray("worklogs"), "qa_accounting_b1").put("accounting_amount", JSONObject.NULL)
+            store.putOwnerValue("snapshot", missingInvoice.toString())
+            data = overview()
+            yes(data.getInt("total") == 1 && data.getInt("pending_amounts") == 1 && data.getLong("total_minor") == 0L && data.getJSONArray("records").getJSONObject(0).isNull("amount_minor"), "ACCOUNTING_MISSING_PHASE2_AMOUNT_REMAINS_VISIBLE_AND_UNKNOWN")
+            marker.writeText(JSONObject().put("fixture", "synthetic-accounting-v1").put("snapshot_hash", PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))).toString())
+            return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false).put("new_process_readback", false)
+                .put("real_main_activity", true).put("exact_amounts", true).put("filters_and_navigation", true).put("conflict_correction", true).put("viewport_and_large_text", true)
+        } finally {
+            shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
+            activity?.let { current -> test.runOnMainSync { current.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED; if (!current.isFinishing) current.finish() } }
+        }
     }
 
     private fun executeGraphics(): JSONObject {

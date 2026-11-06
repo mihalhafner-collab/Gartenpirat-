@@ -15,6 +15,43 @@ Auftragslose Arbeiten bleiben möglich. Persönliches
 Rechnungsstatus getrennt. Fehlende Daten, Preise, Zeiten, Beziehungen und
 Belegnummern nicht erfinden.
 
+## Abrechnung
+
+Unter Büro → Organisieren steht Abrechnung direkt nach Offene Stunden und vor
+Angebote. Abgerechnet und labor clandestinus sind gleichwertige, gegenseitig
+ausschließende lokale Abrechnungswege. Eine Zahlung oder ein Bezahlt-Feld allein
+ist keine Zuordnung. Die Übersicht erstellt keine Rechnungen und verwaltet keine
+Zahlungen; sevDesk bleibt dafür zuständig.
+
+Die für Beträge erforderlichen Daten kommen erst aus der Rechnungsfunktion in
+Phase 2 (Eigentümerentscheidung 06.11.2026). Es gibt keine manuelle Betragseingabe
+und keine Ableitung aus Stunden oder Auslagen. Fehlende Rechnungsbeträge sind
+unbekannt, nicht null Euro. Die zugeordneten Aufträge bleiben sichtbar; ihre
+Summenkarten kennzeichnen ausstehende oder unvollständige Beträge ausdrücklich.
+Historische sevDesk-Versuchsdaten werden dafür nicht als Rechnungsquelle verwendet.
+
+Ein Auftrag erscheint höchstens einmal. Die reservierte, ausschließlich gelesene
+`accounting_amount`-Gesamtsumme hat Vorrang vor Beträgen seiner Arbeitseinträge.
+Ohne Auftragssumme werden ausschließlich eindeutig zugeordnete Eintragsbeträge
+zusammengerechnet. Offene Eintragsbeträge werden nie zugeschlagen. Enthält eine
+nur über Arbeitseinträge zugeordnete Gruppe noch offene Einträge, darf ihre
+Auftragssumme nicht als vollständig abgerechnet gelten. Auftragslose Arbeiten
+bleiben eigene Einträge. Unlesbare Gesamtbeträge sowie widersprüchliche Wege
+werden separat zur Prüfung gezeigt und nicht summiert. Die Betragsquelle wird
+in Phase 2 befüllt; die aktuelle Funktion ändert keine Rechnungsbeträge.
+Die Berechnung erfolgt centgenau.
+
+Zeitraum, Objekt und Bezeichnungssuche gelten für Summen und Liste gemeinsam.
+Das Datum ist das letzte berücksichtigte Arbeitsdatum, bei Aufträgen ohne
+Arbeitseintrag das geplante Auftragsdatum; jede Zeile bezeichnet das Datum.
+Summenkarten setzen nur den Wegefilter. Die übrigen Filter bleiben erhalten.
+Ein Antippen öffnet die ursprüngliche Detailansicht. Die vorhandene persistente
+Aktion Abrechnung bearbeitet den Weg für den gesamten Auftrag mit
+Versionsprüfung und atomarer Aktualisierung seiner vorhandenen Markierungen.
+Eine widersprüchliche Altzuordnung erfordert eine ausdrückliche Auswahl.
+Die lokalen Felder `billed`, Auftragsstatus und `personal_paid` bleiben erhalten;
+Abgerechnet und labor clandestinus dürfen nicht neu kombiniert werden.
+
 ## Speichern und Löschen
 
 Ein unberührtes Formular erzeugt keinen Entwurf. Bearbeitung ist ein Entwurf;

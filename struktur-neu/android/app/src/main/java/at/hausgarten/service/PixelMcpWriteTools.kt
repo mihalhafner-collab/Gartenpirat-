@@ -65,6 +65,7 @@ class PixelMcpWriteTools {
                 "material",
                 "material_cost",
                 "disposal_cost",
+                "accounting_amount",
                 "allow_overnight",
                 "kilometers",
                 "notes",

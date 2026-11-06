@@ -183,7 +183,8 @@ internal class NativeAppController(private val activity: MainActivity, val store
         result
     }
     internal fun actionDraftKey(tool: String, initial: JSONObject): String {
-        val defaultKey = "action:$tool:" + initial.optString("entity_id", initial.optString("work_record_id", initial.optString("customer_id", initial.optString("offer_id"))))
+        val identity = initial.optString("entity_id", initial.optString("work_record_id", initial.optString("customer_id", initial.optString("offer_id"))))
+        val defaultKey = "action:$tool:" + if (tool == "set_accounting_record") initial.optString("collection") + ":" + identity else identity
         return route.args.optString("_draft_key", initial.optString("_draft_key", defaultKey))
     }
 
@@ -520,6 +521,7 @@ private fun nativeFailure(failure: Exception): NativeCallFailure {
 internal suspend fun NativeAppController.actionObservation(tool: String, arguments: JSONObject): JSONObject {
     fun id(field: String) = arguments.optString(field)
     return when {
+        tool == "set_accounting_record" -> call("get_accounting_record", JSONObject().put("collection", id("collection")).put("entity_id", id("entity_id")))
         tool == "update_settings" -> call("get_settings")
         tool == "update_business_settings" -> call("get_business_settings")
         tool == "delete_entity" -> call("preview_delete", JSONObject().put("entity", id("entity")).put("entity_id", id("entity_id")))

@@ -17,6 +17,8 @@ internal class PixelMcpOwnerTools {
                 arrayOf(
                     "run_self_test",
                     "get_ui_action_catalog",
+                    "get_accounting_overview",
+                    "get_accounting_record",
                     "get_capabilities",
                     "preview_empty_trash",
                     "preview_archive_work_records",
@@ -56,6 +58,7 @@ internal class PixelMcpOwnerTools {
                     "update_settings",
                     "update_business_settings",
                     "set_personal_paid",
+                    "set_accounting_record",
 
                 ),
                 LocalWorkflowTools.WRITES,
@@ -130,6 +133,9 @@ internal class PixelMcpOwnerTools {
             var common =
                 " Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden."
             when (n) {
+                "get_accounting_overview" -> return "Liest Abgerechnet und labor clandestinus mit Cent-Summen, gemeinsamen Datums-/Objekt-/Bezeichnungsfiltern und getrennten Korrekturhinweisen. Offene oder nur bezahlte Arbeiten sind ausgeschlossen."
+                "get_accounting_record" -> return "Liest den ursprünglichen Auftrag mit Arbeitseinträgen, Gesamtbetrag, Abrechnungsweg und versionsgebundenem Korrekturhash." + common
+                "set_accounting_record" -> return "Ordnet den gesamten Auftrag ausdrücklich einem Abrechnungsweg zu oder entfernt die Zuordnung. Markierungen, Arbeitseinträge und Wiederholungsbeleg werden atomar gespeichert. Rechnungsbeträge sind hier nicht bearbeitbar; sie kommen in Phase 2." + common
                 "get_ui_action_catalog" -> {
                     return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert."
                 }

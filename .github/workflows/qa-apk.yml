@@ -13,6 +13,11 @@ on:
         type: boolean
         default: false
         required: false
+      accounting_only:
+        description: 'Nur Abrechnung mit synthetischer Datenbank, echter Oberfläche und Prozessneustart prüfen'
+        type: boolean
+        default: false
+        required: false
   push:
     branches: [main]
     paths:
@@ -101,6 +106,7 @@ jobs:
         timeout-minutes: 50
         env:
           GRAPHICS_ONLY: ${{ inputs.graphics_only }}
+          ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -135,7 +141,11 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
           native_suite_failures=0
-          if [ "$GRAPHICS_ONLY" = true ]; then
+          if [ "$ACCOUNTING_ONLY" = true ]; then
+            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
+            suites=(native_accounting native_accounting_reopen)
+          elif [ "$GRAPHICS_ONLY" = true ]; then
             test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
             test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
             test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
@@ -149,9 +159,15 @@ jobs:
             "$ADB" -s emulator-5580 logcat -c
             instrumentation_status=0
             suite_timeout=360
+            if [ "$suite" = native_accounting ]; then suite_timeout=900; fi
             if [ "$suite" = native_compose ] || [ "$suite" = native_graphics ]; then suite_timeout=2100; fi
             timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
+            if [ "$suite" = native_accounting ]; then
+              for image in accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape; do
+                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
+              done
+            fi
             if [ "$suite" = native_compose ] || [ "$suite" = native_graphics ]; then
               for image in work-list work-search work-selection work-billing graphics-customers graphics-customer graphics-planning graphics-offers graphics-offer-customer graphics-offer-positions graphics-equipment planning-large-font today-hints failure-graphics_today failure-graphics_work failure-graphics_navigation failure-graphics_accessories failure-graphics_timer failure-graphics_large_text camera-scene camera-selected failure-camera_capture today-idle today-running today-capture today-large-font failure-today-large-font failure-today_hub list-customers-portrait failure-list-customers-portrait list-customers-landscape failure-list-customers-landscape list-work-portrait failure-list-work-portrait list-work-landscape failure-list-work-landscape list-orders-portrait failure-list-orders-portrait list-offers-portrait failure-list-offers-portrait list-offers-landscape failure-list-offers-landscape list-planning-portrait failure-list-planning-portrait list-equipment-portrait failure-list-equipment-portrait list-photos-portrait failure-list-photos-portrait list-catalog-portrait failure-list-catalog-portrait list-catalog-landscape failure-list-catalog-landscape list-plants-portrait failure-list-plants-portrait list-local-portrait failure-list-local-portrait list-local-landscape failure-list-local-landscape failure-list_viewports timer-actions detail-offers detail-catalog filter-work-date filter-local-date failure-filter_keyboard back-gesture failure-back-gesture-active failure-back_gesture failure-surface-today failure-surface-work failure-surface-timer failure-surface-customers failure-surface-office failure-surface-properties failure-surface-inquiries failure-surface-orders failure-surface-care-plans failure-surface-planning failure-surface-visits failure-surface-tour failure-surface-weather failure-surface-billing failure-surface-offers failure-surface-equipment failure-surface-accessories failure-surface-maintenance failure-surface-materials failure-surface-photos failure-surface-plants failure-surface-catalog failure-surface-drafts failure-surface-restored-drafts failure-surface-local-search failure-surface-archive failure-surface-trash failure-surface-settings failure-surface-connections failure-surface-calendar failure-surface-chatgpt failure-surface-backup failure-surface-settings-200 failure-surface-calendar-200 failure-surface-backup-200 surface-today surface-office surface-planning surface-billing surface-accessories surface-settings surface-calendar surface-backup surface-settings-200 surface-calendar-200 surface-backup-200 failure-surfaces domain-planning-picker failure-domain-planning-picker domain-photo-assignment failure-domain-photo-assignment domain-offer-positions failure-domain-offer-positions domain-maintenance-phrases failure-domain-maintenance-phrases domain-work failure-domain-work domain-offers failure-domain-offers domain-planning failure-domain-planning domain-equipment failure-domain-equipment domain-photos failure-domain-photos domain-catalog failure-domain-catalog domain-plants failure-domain-plants domain-local failure-domain-local domain-phrases failure-domain-phrases domain-duplicate-customers failure-domain-duplicate-customers domain-equipment-picker failure-domain-equipment-picker failure-domain_search customer-overview customer-billing search-no-results search-customer-list failure-search_keyboard search-100-normal-portrait failure-search-100-normal-portrait search-100-normal-landscape failure-search-100-normal-landscape search-130-normal-portrait failure-search-130-normal-portrait search-130-normal-landscape failure-search-130-normal-landscape search-200-compact-portrait failure-search-200-compact-portrait search-200-compact-landscape failure-search-200-compact-landscape customer-photos customer-offers failure-customer_context work-keyboard accessory accessory-enlarged accessory-editor timer-compact timer-large-font work-large-font failure-customer failure-usability failure-accessories failure-timer failure-notification failure-office_opening failure-large_text; do
                 "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
@@ -183,6 +199,11 @@ jobs:
               assert result['performance_claim'] is False and result['plans'], result
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
+          elif sys.argv[1].startswith('native_accounting'):
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
+              if not result['new_process_readback']:
+                  for proof in ('real_main_activity','exact_amounts','filters_and_navigation','conflict_correction','viewport_and_large_text'):
+                      assert result[proof] is True, result
           elif sys.argv[1]=='native_graphics':
               for proof in ('independent_fresh_fixture','real_main_activity','native_compose_ui','today_hub',
                             'timer_state_transitions','machine_accessory_roundtrip','font_scale_200_percent'):
@@ -243,6 +264,7 @@ jobs:
             struktur-neu/outputs/native_data*.txt
             struktur-neu/outputs/native_compose*.txt
             struktur-neu/outputs/native_graphics*.txt
+            struktur-neu/outputs/native_accounting*.txt
             struktur-neu/outputs/qa-native-*.png
             struktur-neu/outputs/qa-test-package-identity.txt
             struktur-neu/outputs/emulator*.txt

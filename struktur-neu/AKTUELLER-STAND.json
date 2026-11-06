@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T06:37:28.286Z",
+    "observed_at_utc": "2026-11-06T06:49:17.664Z",
     "version_name": "1.59.1",
     "version_code": 129,
     "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
     "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; live fingerprint matches verified release source 701046b1fc0a13da8362067242faa9eaedca3ee2 and identical main source at 3dc7146; current main extends that source with the authorized Labor Clandestinus changes."
+    "repository_source_match": "PASS; live Pixel identity matches verified source 701046b and identical main source at 3dc7146; candidate extends that installed Kotlin source with the authorized Labor Clandestinus, Back and Abrechnung changes."
   },
   "observed_installation_history": [
     {
@@ -104,30 +104,35 @@
     }
   ],
   "current_task": {
-    "name": "Zurück aus den vier Hauptmenüs führt zu Heute",
-    "status": "SOURCE_AND_ANDROID_COMPILATION_VALIDATED; NO_INSTALLATION",
+    "name": "Abrechnung mit getrennten Wegen, Filtern und Phase-2-Rechnungsbeträgen",
+    "status": "SOURCE_COMMITTED_FOR_NATIVE_ACCEPTANCE; APK_DISTRIBUTION_PENDING",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-06T06:37:28.286Z",
+      "observed_at_utc": "2026-11-06T06:49:17.664Z",
       "version_name": "1.59.1",
       "version_code": 129,
       "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
       "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; live fingerprint matches verified release source 701046b1fc0a13da8362067242faa9eaedca3ee2 and identical main source at 3dc7146; current main extends that source with the authorized Labor Clandestinus changes."
+      "repository_source_match": "PASS; live Pixel identity matches verified source 701046b and identical main source at 3dc7146; candidate extends that installed Kotlin source with the authorized Labor Clandestinus, Back and Abrechnung changes."
     },
     "owner_decisions": [
       "Die im Screenshot markierte Bezeichnung „Persönlich bezahlt / b.b.“ in „Labor Clandestinus“ umbenennen.",
       "Labor Clandestinus im Menü nach langem Drücken auf eine Arbeitsaufzeichnung ergänzen; bei Einzelauswahl dieselbe vorhandene Aktion mit der ausgewählten Arbeit öffnen.",
-      "Zurück aus den vier Hauptmenüs führt auf den Heute-Bildschirm; auf Heute bleibt die App dort. Unterseiten gehen zunächst zum Aufrufer zurück."
+      "Zurück aus den vier Hauptmenüs führt auf den Heute-Bildschirm; auf Heute bleibt die App dort. Unterseiten gehen zunächst zum Aufrufer zurück.",
+      "Abrechnung unter Büro/Organisieren zwischen Offene Stunden und Angebote: getrennte Wege Abgerechnet und labor clandestinus; gemeinsame Filter, Summen und ursprüngliche Details; keine offenen oder nur bezahlten Aufträge.",
+      "Beträge kommen erst aus der Rechnungsfunktion in Phase 2 (Antwort im aktuellen Auftrag). Keine manuelle Betragseingabe und keine erfundenen Preise. Fehlende Beträge sichtbar als ausstehend behandeln.",
+      "APK erstellen und originalsigniert in Gartenpirat – Paketinstallation bereitstellen. Keine Pixel-Installation beauftragt."
     ],
     "validation": {
-      "source": "PASS; check_current.py, native UI/MCP fingerprints and 61 selected Python tests; git diff --check passed.",
-      "android": "PASS; compileReleaseKotlin, compileReleaseJavaWithJavac and compileReleaseAndroidTestKotlin with configured proxy. Initial offline attempt lacked Compose plugin cache; network retry succeeded.",
-      "native_ui_execution": "NOT_RUN; no isolated emulator available. Existing navigation journeys cover all four roots, recreation and preserved caller/area navigation.",
-      "installation": "NOT_PERFORMED; live installed 1.59.1/129 unchanged.",
-      "source_sha256": "29329e3c53b16f30e6b94dbf2f7a302b1215ccec480d11233718bb61e55689f3"
-    }
+      "source": "PASS; current check_current.py, 173 semantic actions, privacy/source gates, 61 selected Python tests and git diff --check.",
+      "jvm": "PASS; 8 local JVM suites including 25 accounting invariants after phase-2 clarification; clean CI rerun with SQLite table suite pending.",
+      "android": "PASS previous app/test Kotlin compilation and lint; final source compilation/lint and clean CI acceptance pending.",
+      "native_ui_execution": "PENDING; scoped native_accounting and new-process readback on disposable API35 emulator",
+      "installation": "NOT_PERFORMED; user requested APK distribution only",
+      "source_sha256": "e157c0681e3c17af7afeab76d5b56338b96ac20148a55f81203a1ed617b18f80"
+    },
+    "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
   },
   "open_checks": [
     "Pixel 1.59.1/129 live bestätigt; Quellfingerabdruck stimmt exakt mit main 3dc7146 und Releasequelle 701046b überein. Frühere gezielte Emulatorprüfung 42119487017 bleibt fehlgeschlagen: Zeitlimit bei Sammellöschungsprüfung und Navigationshelfer. Ältere vollständige native Backup-/Cleanup-Suite aus Run41917494315 bleibt offen.",
@@ -172,12 +177,12 @@
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.59.2",
+    "version_name": "1.60.0",
     "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "SOURCE_AND_ANDROID_COMPILATION_VALIDATED; APK_NOT_BUILT",
+    "status": "SOURCE_VALIDATED; NATIVE_ACCEPTANCE_AND_APK_PENDING",
     "installation": "NOT_INSTALLED",
-    "distribution": "NOT_DISTRIBUTED",
-    "source_sha256": "29329e3c53b16f30e6b94dbf2f7a302b1215ccec480d11233718bb61e55689f3"
+    "distribution": "REQUESTED_DRIVE_PAKETINSTALLATION",
+    "source_sha256": "e157c0681e3c17af7afeab76d5b56338b96ac20148a55f81203a1ed617b18f80"
   }
 }

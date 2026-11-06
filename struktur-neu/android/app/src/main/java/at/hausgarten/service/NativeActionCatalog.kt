@@ -13,6 +13,9 @@ internal data class NativeAction(
 internal object NativeActionCatalog {
     val actions: List<NativeAction> =
         listOf(
+            NativeAction("abrechnung.overview", "abrechnung", "Abrechnung / Summen / Filter", listOf("get_accounting_overview")),
+            NativeAction("abrechnung.detail", "abrechnung", "Abrechnungszuordnung lesen", listOf("get_accounting_record")),
+            NativeAction("abrechnung.edit", "abrechnung", "Abrechnungsweg ändern", listOf("get_accounting_record", "set_accounting_record")),
             NativeAction("kunden.1", "kunden", "Suchen / Liste", listOf("search_customers")),
             NativeAction("kunden.2", "kunden", "Kundenakte lesen", listOf("get_customer")),
             NativeAction("kunden.3", "kunden", "Anlegen", listOf("create_customer")),

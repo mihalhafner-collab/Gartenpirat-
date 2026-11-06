@@ -14,6 +14,7 @@ class WorkApplicationService : OwnerCommand {
         var all: JSONObject = repository.effective()
         var stamp: String = java.time.Instant.now().toString()
         when ((name)) {
+            "set_accounting_record" -> return setAccounting(all, a, request)
             "set_work_record_billed", "reassign_work_record" -> {
                 run {
                     var old: JSONObject = PixelMcpWriteTools.find(all.getJSONArray("worklogs"), a.getString("work_record_id"))
@@ -52,6 +53,7 @@ class WorkApplicationService : OwnerCommand {
                     } else {
                         ids.remove(id)
                     }
+                    AccountingRules.requireConsistentChange(all, all, AccountingRules.ids(old), ids)
                     repository.putOwnerValue("personal_paid", JSONArray(ids).toString())
                     return JSONObject().put("work_record_id", id).put("paid", a.getBoolean("paid")).put("scope", "device_only")
                 }
@@ -60,5 +62,39 @@ class WorkApplicationService : OwnerCommand {
                 throw IllegalArgumentException("Eigentümerfunktion fehlt.")
             }
         }
+    }
+
+    private fun setAccounting(master: JSONObject, args: JSONObject, request: String): JSONObject {
+        require(repository.ownerValue("personal_paid_migrated", "") == "1") { "App einmal öffnen, damit vorhandene Markierungen übernommen werden." }
+        val personal = AccountingRules.ids(JSONArray(repository.ownerValue("personal_paid", "[]"))).toMutableSet()
+        val (collection, record) = AccountingRules.canonical(master, args.getString("collection"), args.getString("entity_id"))
+        val id = record.getString("id")
+        if (AccountingRules.hash(master, personal, collection, id) != args.getString("expected_record_hash")) {
+            throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Auftrag oder Markierungen wurden verändert. Abrechnung erneut öffnen.")
+        }
+        val route = args.getString("route").let { if (it == "open") "" else it }
+        require(route in setOf("", AccountingRules.BILLED, AccountingRules.LABOR)) { "Abrechnungsweg auswählen." }
+        val works = AccountingRules.works(master, collection, id)
+        // Clear opposite marks before applying the selected route. The owner request
+        // transaction commits all records, marks and its replay receipt together.
+        personal.removeAll(works.map { it.getString("id") }.toSet())
+        repository.putOwnerValue("personal_paid", JSONArray(personal).toString())
+        if (collection == "orders" && AccountingRules.orderRoute(record).isNotEmpty()) {
+            val clear = LocalJournalRules.clean(record).put("status", "Erledigt")
+            repository.enqueue("order", clear, request + "_clear")
+        }
+        for (work in works) {
+            val changed = LocalJournalRules.clean(work).put("billed", if (route == AccountingRules.BILLED) 1 else 0)
+            repository.replaceWorklog(changed)
+            repository.enqueue("worklog", changed, request + "_" + PixelMcpWriteTools.hash(work.getString("id")).take(16))
+        }
+        if (route == AccountingRules.LABOR) personal.addAll(works.map { it.getString("id") })
+        repository.putOwnerValue("personal_paid", JSONArray(personal).toString())
+        if (collection == "orders") {
+            val changed = LocalJournalRules.clean(record)
+                .put("status", if (route.isNotEmpty()) AccountingRules.label(route) else if (AccountingRules.orderRoute(record).isNotEmpty()) "Erledigt" else record.optString("status"))
+            repository.enqueue("order", changed, request + "_order")
+        }
+        return JSONObject().put("collection", collection).put("entity_id", id).put("route", route).put("local_state", "local_saved")
     }
 }

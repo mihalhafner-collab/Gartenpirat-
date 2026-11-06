@@ -13,6 +13,9 @@ internal class OwnerToolSchemas {
         private val BUILDERS: MutableMap<String, Fields> = HashMap()
 
         init {
+            BUILDERS.put("get_accounting_overview", OwnerToolSchemas::accounting)
+            BUILDERS.put("get_accounting_record", OwnerToolSchemas::accounting)
+            BUILDERS.put("set_accounting_record", OwnerToolSchemas::accounting)
             BUILDERS.put("get_ui_action_catalog", OwnerToolSchemas::getUiActionCatalog)
             BUILDERS.put(
                 "preview_archive_work_records",
@@ -42,6 +45,23 @@ internal class OwnerToolSchemas {
             BUILDERS.put("update_business_settings", OwnerToolSchemas::updateBusinessSettings)
             BUILDERS.put("update_settings", OwnerToolSchemas::updateSettings)
             BUILDERS.put("set_personal_paid", OwnerToolSchemas::setPersonalPaid)
+        }
+
+        private fun accounting(name: String, p: JSONObject, required: MutableList<String>) {
+            if (name == "get_accounting_overview") {
+                p.put("query", McpFields.text(500)).put("date_from", McpFields.text(10)).put("date_to", McpFields.text(10))
+                    .put("review_offset", JSONObject().put("type", "integer").put("minimum", 0).put("maximum", 1000000))
+                    .put("property_id", McpFields.id()).put("route", McpFields.text(20).put("enum", JSONArray().put("").put("billed").put("labor")))
+                    .put("offset", JSONObject().put("type", "integer").put("minimum", 0).put("maximum", 1000000))
+                    .put("limit", JSONObject().put("type", "integer").put("minimum", 1).put("maximum", 100))
+                return
+            }
+            p.put("collection", McpFields.text(20).put("enum", JSONArray().put("orders").put("worklogs"))).put("entity_id", McpFields.id())
+            required.addAll(listOf("collection", "entity_id"))
+            if (name == "set_accounting_record") {
+                p.put("expected_record_hash", McpFields.hash()).put("route", McpFields.text(20).put("enum", JSONArray().put("open").put("billed").put("labor")))
+                required.addAll(listOf("expected_record_hash", "route"))
+            }
         }
 
         @JvmStatic

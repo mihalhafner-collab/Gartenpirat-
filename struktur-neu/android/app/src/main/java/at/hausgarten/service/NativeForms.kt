@@ -340,6 +340,7 @@ internal fun NativeRecordPicker(controller: NativeAppController, collection: Str
 }
 
 private val nativeLabels = mapOf(
+    "route" to "Abrechnungsweg", "accounting_amount" to "Gesamtbetrag (€)",
     "name" to "Name", "title" to "Bezeichnung", "description" to "Beschreibung", "notes" to "Notizen", "reason" to "Begründung",
     "existing_order_id" to "Vorhandener Auftrag (optional)", "customer_id" to "Kunde", "billing_customer_id" to "Rechnungsempfänger", "order_id" to "Auftrag", "property_id" to "Objekt", "visit_id" to "Einsatz",
     "equipment_id" to "Gerät", "material_id" to "Material", "care_plan_id" to "Pflegeplan", "appointment_id" to "Termin", "worklog_id" to "Tätigkeit",
@@ -359,7 +360,7 @@ private val nativeLabels = mapOf(
     "window_start" to "Von Uhrzeit", "window_end" to "Bis Uhrzeit", "scheduled_date" to "Geplant am", "billing_mode" to "Abrechnungsweg", "query" to "Suche"
 )
 internal fun nativeLabel(key: String): String = nativeLabels[key] ?: key.replace('_', ' ').replaceFirstChar { it.uppercase() }
-internal fun nativeValue(value: String): String = mapOf("marked_open" to "Offen markiert", "marked_billed" to "Abgerechnet markiert", "active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
+internal fun nativeValue(value: String): String = mapOf("billed" to "Abgerechnet", "labor" to "labor clandestinus", "marked_open" to "Offen markiert", "marked_billed" to "Abgerechnet markiert", "active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
 private fun technical(key: String) = key.startsWith("_") || key.startsWith("expected_") || key.endsWith("_id") || key.endsWith("_ids") || key.endsWith("_hash") || key.endsWith("_sha256") || key in setOf("id", "source", "created_at", "updated_at", "formatVersion", "schema_version", "local_revision", "test_record", "revision", "deleted_at", "device_id", "cloud_confirmed", "untrusted_business_data", "security_notice", "pdf_base64", "data_base64", "chunk_base64", "token", "installation_id", "restore_epoch", "protocol_version", "prerequisites", "requirements", "request_id")
 
 /** Read-only business values, never a raw JSON editor or a binary payload dump. */
@@ -702,6 +703,7 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
                     else -> emptySet()
                 }
                 val editable = properties.keys().asSequence().filter { !technical(it) || referenceCollection(it) != null }
+                    .filterNot { tool == "set_accounting_record" && it in setOf("collection", "entity_id") }
                     .filterNot { tool == "set_work_record_billed" && it == "work_record_id" && initial.optString("work_record_id").isNotBlank() }.toList()
                 if (!fixedInputs) {
                     val mainFields = if (focusedKeys.isEmpty()) editable else editable.filter { it in focusedKeys }

@@ -7,7 +7,7 @@ import java.util.*
 class EntityContract {
     companion object {
         @JvmField val CUSTOMER_FIELDS: Array<String> = arrayOf("test_record", "name", "company", "first_name", "last_name", "street", "postal_code", "city", "country", "phone", "email", "notes", "active", "garden_area", "sevdesk_customer_number", "custom_fields", "billing_mode", "default_billing_customer_id")
-        @JvmField val ORDER_FIELDS: Array<String> = arrayOf("test_record", "customer_id", "billing_customer_id", "title", "description", "location", "scheduled_date", "status", "customer_visible")
+        @JvmField val ORDER_FIELDS: Array<String> = arrayOf("test_record", "customer_id", "billing_customer_id", "title", "description", "location", "scheduled_date", "status", "customer_visible", "property_id")
         @Throws(Exception::class)
         @JvmStatic fun validateCustomFields(fields: JSONObject) {
             if (((fields.length() > 50))) {

@@ -179,7 +179,7 @@ python3 -B tools/check_current.py
 Der Befehl prüft aktuelle Quellen, Originalidentität, Datenschutz, generierte
 Verträge, synthetische Fixtures, Pflanzenressourcen und Wartungstexte. Er baut
 keine APK, signiert nicht und greift auf kein Gerät zu.
-`tools/verify_ui_mcp_inventory.py` prüft die 170 semantischen Aktionen gegen den
+`tools/verify_ui_mcp_inventory.py` prüft die 173 semantischen Aktionen gegen den
 nativen Katalog und die geprüften Kotlin-Quellfingerabdrücke. Plattformausnahmen
 und stillgelegte Geschäftsabgleich-Aktionen bleiben ausdrücklich erkennbar. Nach tatsächlicher
 Quellsichtung mit `--record-reviewed` aufzeichnen und anschließend ohne Schalter
@@ -652,3 +652,10 @@ Grafikprüfung. Die bisherige vollständige native Suite bleibt unverändert
 über `emulator=true`, `graphics_only=false` verfügbar. Bekannte Fehlschläge
 und tatsächliche Nachweise stehen in `AKTUELLER-STAND.json`. Die Grafikprüfung
 bestätigt keine Backup-Abnahme und keine Prüfung auf dem physischen Pixel.
+
+Die Abrechnung kann gezielt mit `workflow_dispatch`, `emulator=true` und
+`accounting_only=true` geprüft werden. Die frische synthetische API35-Umgebung
+prüft Cent-Summen, gemeinsame Filter, CAS, atomaren Rollback, Konfliktkorrektur,
+fehlende Phase-2-Beträge, echte Compose-Navigation, Hoch-/Querformat und 200-%-Schrift.
+`native_accounting_reopen` liest den unveränderten synthetischen Bestand in einem
+neuen Prozess zurück. Keine produktiven Daten oder Geräte werden verwendet.

@@ -375,6 +375,9 @@ revier().detachOptionalParent(entry.getString("entity"), entry.getString("entity
 }
 }
 var prior = store!!.pendingActions()
+if (kind == "order" || kind == "worklog") {
+AccountingRules.requireRecordChange(effective(), AccountingRules.ids(JSONArray(ownerValue("personal_paid", "[]"))), if (kind == "order") "orders" else "worklogs", payload)
+}
 val removal = kind in setOf("archive", "delete", "purge_v1")
 var predecessors = LocalActionOrder.predecessors(kind, payload, prior, if (removal) effective() else null)
 if (predecessors.length() > 0) payload.put("_sync_predecessors", predecessors)
@@ -634,6 +637,7 @@ PixelMcpWriteTools.find(all.getJSONArray("worklogs"), ids.getString(i))
 
 }
 }
+AccountingRules.requireConsistentChange(all, all, AccountingRules.ids(JSONArray(store!!.ownerValue("personal_paid", "[]"))), AccountingRules.ids(ids))
 store!!.putOwnerValue("personal_paid", ids.toString())
 return "OK"
 

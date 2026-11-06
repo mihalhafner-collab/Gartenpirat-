@@ -507,6 +507,7 @@ if (payload.optString("source").trim().isEmpty()) {
 payload.put("source", (if (previous == null) "Pixel offline" else previous.optString("source", "Pixel offline")))
 }
 prepareManualChange("worklog", payload, previous)
+AccountingRules.requireRecordChange(master, AccountingRules.ids(JSONArray(ownerValue("personal_paid", "[]"))), "worklogs", payload)
 var actionId = "worklog_change_" + UUID.randomUUID().toString().replace("-", "")
 var database = getWritableDatabase()
 beginBusinessTransaction(database)
@@ -1075,6 +1076,7 @@ var payload = payload
 var current = PixelMcpReadTools.effective(getState())
 payload = ManualChangeRules.editor(payload, findById(current.getJSONArray("orders"), payload.optString("id")), "order")
 BillingRules.order(payload, current)
+validateRevierContext(payload, false)
 if (payload.optString("customer_id").isEmpty() || payload.optString("title").trim().isEmpty()) {
 throw IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.")
 }
@@ -1103,6 +1105,7 @@ entityId = "ord_mobile_" + UUID.randomUUID().toString().replace("-", "")
 payload.put("id", entityId)
 payload.put("source", "Pixel offline")
 prepareManualChange("order", payload, findById(master.getJSONArray("orders"), entityId))
+AccountingRules.requireRecordChange(master, AccountingRules.ids(JSONArray(ownerValue("personal_paid", "[]"))), "orders", payload)
 var saved = saveAction("order", "ord_mobile_", payload)
 database.setTransactionSuccessful()
 return saved
