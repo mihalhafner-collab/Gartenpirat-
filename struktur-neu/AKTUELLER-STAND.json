@@ -31,13 +31,13 @@
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
-    "source_sha256": "8911c1bf2a1fcb96f759f34564b2e89995de4051caba2fefb3f37a94bbebaba5",
+    "source_sha256": "5f21cb93169f798296f3a3149c4e4a24201e3e4dfa89c045c8eb509a92324603",
     "status": "Quelle geändert; Build und Emulator-Prüfung über CI ausstehend. Installation und Verteilung nicht freigegeben.",
-    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–5: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile."
+    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–6: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag)."
   },
   "current_task": {
     "name": "Neue Oberfläche auf bestehendem Kern",
-    "status": "Schritte 1 bis 5 umgesetzt; CI ausstehend. Nächster Schritt: Navigation Heute · Planung · Kunden · Abrechnung und Heute als Tagesliste."
+    "status": "Schritte 1 bis 6 umgesetzt; CI ausstehend. Danach: Navigation Heute · Planung · Kunden · Abrechnung und Heute als Tagesliste."
   },
   "open_checks": [
     "Pixel-Nachtest von QA06 und C04 braucht freigegebene Installation von 132.",

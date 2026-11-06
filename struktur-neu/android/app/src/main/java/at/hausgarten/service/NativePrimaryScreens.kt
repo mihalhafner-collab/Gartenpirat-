@@ -289,24 +289,34 @@ internal fun NativeRelatedList(controller: NativeAppController, section: String,
     }
 }
 
-/** Context is resolved from existing records, never inferred from a display name. */
+/** Context is resolved from existing records, never inferred from a display name. Each known record is a tappable chip. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeContext(controller: NativeAppController, args: JSONObject, customerLabel: String = "Kunde") {
     val encoded = args.toString()
-    var label by remember(encoded) { mutableStateOf("") }
+    var links by remember(encoded) { mutableStateOf(emptyList<Triple<String, String, String>>()) }
+    var period by remember(encoded) { mutableStateOf("") }
     LaunchedEffect(encoded) {
-        val labels = ArrayList<String>()
+        val found = ArrayList<Triple<String, String, String>>()
         for ((key, collection, title) in listOf(Triple("customer_id", "customers", customerLabel), Triple("property_id", "properties", "Objekt"), Triple("inquiry_id", "inquiries", "Anfrage"), Triple("order_id", "orders", "Auftrag"))) {
             val id = args.optString(key)
             if (id.isNotEmpty()) {
                 val row = try { controller.store.nativeData().detail(collection, id) } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
-                labels.add(title + ": " + (row?.optString("name")?.ifBlank { row.optString("title") }?.ifBlank { "Eintrag prüfen" } ?: "Eintrag prüfen"))
+                val name = row?.optString("name")?.ifBlank { row.optString("title") }?.ifBlank { null }
+                found.add(Triple(title + ": " + (name ?: "Eintrag prüfen"), collection, if (name == null) "" else id))
             }
         }
-        if (args.optString("date_from").isNotEmpty() || args.optString("date_to").isNotEmpty()) labels.add(listOf(args.optString("date_from"), args.optString("date_to")).filter { it.isNotEmpty() }.map(::nativeDisplayDate).joinToString(" – "))
-        label = labels.joinToString(" · ")
+        links = found
+        period = if (args.optString("date_from").isNotEmpty() || args.optString("date_to").isNotEmpty()) listOf(args.optString("date_from"), args.optString("date_to")).filter { it.isNotEmpty() }.map(::nativeDisplayDate).joinToString(" – ") else ""
     }
-    if (label.isNotEmpty()) Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    if (links.isEmpty() && period.isEmpty()) return
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        for ((label, collection, id) in links) {
+            if (id.isEmpty() || controller.route.section == collection && controller.route.id == id) Text(label, Modifier.align(Alignment.CenterVertically), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            else AssistChip(onClick = { controller.navigate(collection, id, if (collection in setOf("customers", "orders")) "list" else "detail") }, label = { Text(label) })
+        }
+        if (period.isNotEmpty()) Text(period, Modifier.align(Alignment.CenterVertically), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 private fun nativeDuration(hours: Double): String {
