@@ -220,7 +220,7 @@ private fun NativeOffice(controller: NativeAppController) {
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
         item { Text("Organisieren", style = MaterialTheme.typography.titleMedium) }
-        items(listOf(Triple("billing", "Offene Stunden", "Alle noch offenen Arbeiten · für sevDesk"),
+        items(listOf(Triple("billing", "Offene Stunden", "Alle noch offenen Arbeiten"),
             Triple("accounting", "Abrechnung", "Abgerechnet und labor clandestinus"),
             Triple("offers", "Angebote", "Entwürfe und fertige Dokumente"),
             Triple("planning", "Planung", "Tag, Woche und Tagestour"),
@@ -363,7 +363,7 @@ private fun NativeOpenHours(controller: NativeAppController, customer: String, f
                         { controller.navigate("worklogs", row.optString("id")) }, modifier = Modifier.padding(start = 12.dp))
                 }
             }
-            Text("Die Markierung gilt nur in dieser App. Rechnungen und Zahlungen werden in sevDesk verwaltet.", style = MaterialTheme.typography.bodySmall)
+            Text("Die Markierung ist eine Zuordnung. Bestätigte Abrechnungen und tatsächliche Zahlungen werden getrennt erfasst.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -536,7 +536,7 @@ private fun NativeToday(controller: NativeAppController) {
             }
             item {
                 Text("Noch zu erledigen", style = MaterialTheme.typography.titleMedium)
-                NativeInfoRow("Offene Arbeiten prüfen", "Arbeitsaufzeichnungen für sevDesk", { controller.navigate("billing") })
+                NativeInfoRow("Offene Arbeiten prüfen", "Tatsächliche Leistungen und Abrechnungszuordnung", { controller.navigate("billing") })
             }
             item {
                 if (!active && works.rows.isNotEmpty()) NativeStatus("Arbeit gespeichert", NativeStatusTone.Confirmed)
@@ -584,6 +584,53 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     var offset by rememberSaveable(collection) { mutableIntStateOf(0) }
     var selected by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var deleting by remember { mutableStateOf(false) }
+    var pendingDeletion by rememberSaveable { mutableStateOf<String?>(null) }
+    // A committed write can outlive this Activity before its selection is cleared.
+    // Keep the exact request even after deleteDirect has removed its durable draft.
+    suspend fun inspectPendingDeletion(): Boolean {
+        val initial = JSONObject().put("work_record_ids", JSONArray(selected))
+        val key = "delete:delete_work_records:" + PixelMcpWriteTools.hash(initial)
+        val original = pendingDeletion?.let(::JSONObject)
+            ?: controller.draft(key)?.optJSONObject("original_args") ?: return false
+        pendingDeletion = original.toString()
+        val proof = controller.query("inspect_edit_action", JSONObject().put("original_tool", "delete_work_records").put("original_args", original))
+        if (proof.optString("state") !in setOf("confirmed", "content_removed")) {
+            controller.message("Löschergebnis weiterhin offen. Der ursprüngliche Vorgang bleibt erhalten; Ergebnis erneut prüfen.")
+            return false
+        }
+        val ids = original.getJSONArray("work_record_ids")
+        val completed = (0 until ids.length()).map { ids.getString(it) }.toSet()
+        val completedInitial = JSONObject().put("work_record_ids", ids)
+        val draftKeys = listOf("delete:delete_work_records:" + PixelMcpWriteTools.hash(completedInitial),
+            controller.actionDraftKey("delete_work_records", completedInitial)).distinct()
+        for (draftKey in draftKeys) {
+            val saved = controller.draft(draftKey)
+            val savedArgs = saved?.optJSONObject("original_args")
+            if (saved?.optString("original_tool") == "delete_work_records" && savedArgs != null &&
+                PixelMcpWriteTools.hash(savedArgs) == PixelMcpWriteTools.hash(original)) controller.removeDraft(draftKey)
+        }
+        selected = selected.filterNot { it in completed }
+        pendingDeletion = null
+        return true
+    }
+    LaunchedEffect(controller) {
+        if (collection == "worklogs" && (selected.isNotEmpty() || pendingDeletion != null)) {
+            var inspecting = false
+            try {
+                // Ordinary selection restoration must not enter a deleting state.
+                if (pendingDeletion == null) {
+                    val initial = JSONObject().put("work_record_ids", JSONArray(selected))
+                    val saved = controller.draft("delete:delete_work_records:" + PixelMcpWriteTools.hash(initial))
+                        ?.optJSONObject("original_args")?.toString()
+                    if (pendingDeletion == null) pendingDeletion = saved
+                }
+                if (pendingDeletion != null && !deleting) { inspecting = true; deleting = true; inspectPendingDeletion() }
+            }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (failure: Exception) { controller.message(failure.message ?: "Löschergebnis noch nicht bestätigt.") }
+            finally { if (inspecting) deleting = false }
+        }
+    }
     val listState = rememberLazyListState()
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
@@ -668,14 +715,21 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                         if (selected.size == 1) TextButton({ controller.navigate("worklogs", selected.single(), "duplicate", controller.route.args) }, enabled = !deleting) { Text("Duplizieren") }
                         Button({ if (!deleting) { deleting = true; scope.launch {
                             try {
-                                controller.deleteDirect("delete_work_records", JSONObject().put("work_record_ids", JSONArray(selected)))
-                                if (page.rows.all { it.id in selected }) offset = maxOf(0, offset - 50)
-                                selected = emptyList()
-                                controller.message("Auswahl gelöscht.")
+                                if (pendingDeletion != null) inspectPendingDeletion()
+                                else {
+                                    controller.deleteDirect("delete_work_records", JSONObject().put("work_record_ids", JSONArray(selected))) { pendingDeletion = it.toString() }
+                                    if (page.rows.all { it.id in selected }) offset = maxOf(0, offset - 50)
+                                    selected = emptyList()
+                                    pendingDeletion = null
+                                    controller.message("Auswahl gelöscht.")
+                                }
                             } catch (cancelled: CancellationException) { throw cancelled }
-                            catch (failure: Exception) { controller.message(failure.message ?: "Löschen nicht bestätigt.") }
+                            catch (failure: Exception) {
+                                if (failure is NativeCallFailure && failure.detail.optString("commit_state") == "not_committed") pendingDeletion = null
+                                controller.message(failure.message ?: "Löschen nicht bestätigt.")
+                            }
                             finally { deleting = false }
-                        } } }, enabled = !deleting) { Text(if (deleting) "Löschen …" else "Löschen") }
+                        } } }, enabled = !deleting) { Text(if (deleting) "Löschen …" else if (pendingDeletion != null) "Ergebnis prüfen" else "Löschen") }
                     }
                 }
             }
@@ -806,7 +860,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                             controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", "")))
                         })
                         NativeStatus(if (row.optInt("billed") != 0) "Lokal als abgerechnet markiert" else "Lokal offen markiert")
-                        Text("Die lokale Markierung bestätigt weder Rechnung noch Zahlung in sevDesk.", style = MaterialTheme.typography.bodySmall)
+                        Text("Die Zuordnung bestätigt weder einen ausgestellten Beleg noch einen Zahlungseingang.", style = MaterialTheme.typography.bodySmall)
                         for (field in listOf("order_id", "material", "material_cost", "disposal_cost", "kilometers", "location", "notes", "customer_visible")) {
                             val value = when (field) {
                                 "order_id" -> envelope?.optString("order_title").orEmpty().ifBlank { if (row.optString(field).isBlank()) "Nicht zugeordnet" else "Zugeordneter Auftrag" }

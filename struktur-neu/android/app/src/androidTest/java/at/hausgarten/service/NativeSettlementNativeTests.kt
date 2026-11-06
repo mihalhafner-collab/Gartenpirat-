@@ -103,9 +103,9 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 yes(repository.settlementSeries() != marker.getString("series"), "NEW_SERIES_OUTSIDE_RESTORED_COUNTERS")
                 val restored = SettlementRules.ledger(repository)
                 yes(SettlementRules.rows(restored.optJSONArray("restored_sources")).any { it.optString("id") == "qa_settlement_old_unbound" }, "RESTORED_UNBOUND_SOURCE_REQUIRES_REVIEW")
-                val old = save(repository, draft("billed", "1", "qa_settlement_old_unbound"), "qa_native_settlement_old_restore_draft")
+                val old = save(repository, draft("labor", "1", "qa_settlement_old_unbound"), "qa_native_settlement_old_restore_draft")
                 val review = get(repository, old)
-                yes(!review.getJSONObject("validation").getBoolean("valid"), "RESTORED_UNBOUND_SOURCE_NOT_AUTOMATICALLY_BILLABLE")
+                yes(!review.getJSONObject("validation").getBoolean("valid") && review.getJSONObject("validation").getJSONArray("errors").toString().contains("Restaurierte Quelle"), "RESTORED_UNBOUND_SOURCE_NOT_AUTOMATICALLY_BILLABLE")
                 rejects("RESTORED_SOURCE_REQUIRES_REVIEW") { call(repository, "prepare_settlement", JSONObject().put("settlement_id", old).put("expected_review_hash", review.getString("review_hash"))
                     .put("confirmed", true).put("domestic_eur_confirmed", true).put("issuer_details_confirmed", true).put("electronic_delivery_accepted", true), "qa_native_settlement_old_restore_prepare") }
                 val master = JSONObject(repository.effective().toString())
@@ -160,14 +160,20 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             yes(store.nativeData().accounting(JSONObject().put("route", "labor")).getLong("total_minor") == 20000L, "ROUTE_FILTER_SAME_TOTAL")
             yes(store.nativeData().accounting(JSONObject().put("date_from", "2026-11-03")).getLong("total_minor") == 0L, "WORK_DATE_NOT_INVOICE_DATE")
             yes(hash(repository.effective()) == initial && store.ownerValue("personal_paid", "[]") == marks, "CLOSURES_PRESERVE_ALL_USER_ASSIGNMENTS")
+            // Export must retain the existing marked accounting units even before
+            // a priced closure exists; a document-only list would lose this work.
+            store.putOwnerValue("personal_paid", JSONArray(marks).put("qa_settlement_old_unbound").toString())
             val queries = NativeOwnerQueries(context, store, repository)
             val fullExport = queries.query("export_settlements", JSONObject())!!
             yes(!fullExport.getBoolean("filtered") && fullExport.getJSONObject("overview").getLong("total_minor") == 110000L, "FULL_EXPORT_BOTH_ROUTES_AND_TOTAL")
             yes(fullExport.getJSONArray("records").length() == 2 && fullExport.getJSONObject("series_counters").length() == 1, "FULL_EXPORT_RECORDS_AND_SERIES")
+            val exportedUnits = SettlementRules.rows(fullExport.getJSONArray("accounting_units"))
+            yes(exportedUnits.size == 3 && exportedUnits.single { it.getString("id") == "qa_settlement_old_unbound" }.isNull("amount_minor"), "EXPORT_RETAINS_MARKED_UNPRICED_UNIT_WITHOUT_INVENTED_ZERO")
             val missingDraft = save(repository, draft("billed", "1", "qa_missing_draft_source"), "qa_native_settlement_missing_draft")
             yes(!get(repository, missingDraft).getJSONObject("validation").getBoolean("valid"), "MISSING_DRAFT_SOURCE_REMAINS_REVIEWABLE")
             val filteredExport = queries.query("export_settlements", JSONObject().put("route", "labor"))!!
             yes(filteredExport.getBoolean("filtered") && filteredExport.getJSONObject("overview").getLong("total_minor") == 20000L, "FILTERED_EXPORT_SAME_SELECTION_AND_LABEL")
+            yes(filteredExport.getJSONArray("accounting_units").length() == 2 && filteredExport.getJSONObject("overview").getInt("pending_amounts") == 1, "FILTERED_EXPORT_RETAINS_PENDING_LABOR_AND_CONFIRMED_AMOUNT")
             yes(filteredExport.getJSONArray("records").length() == 1 && filteredExport.getJSONArray("records").getJSONObject(0).getString("id") == labor, "UNRELATED_MISSING_DRAFT_DOES_NOT_BREAK_FILTERED_EXPORT")
             val replay = complete(repository, invoice, "qa_native_settlement_invoice_complete")
             yes(replay.getBoolean("replayed"), "SAME_REQUEST_REPLAY")

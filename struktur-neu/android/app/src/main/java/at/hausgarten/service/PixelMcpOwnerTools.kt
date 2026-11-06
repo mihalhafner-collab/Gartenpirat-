@@ -136,9 +136,9 @@ internal class PixelMcpOwnerTools {
             var common =
                 " Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden."
             when (n) {
-                "get_accounting_overview" -> return "Liest Abgerechnet und labor clandestinus mit Cent-Summen, gemeinsamen Datums-/Objekt-/Bezeichnungsfiltern und getrennten Korrekturhinweisen. Offene oder nur bezahlte Arbeiten sind ausgeschlossen."
+                "get_accounting_overview" -> return "Liest Rechnung und Labor clandestino mit getrennten bestätigten Beträgen, gemeinsamer Gesamtsumme und identischen Datums-/Objekt-/Suchfiltern. Markierte Einheiten mit fehlenden oder teilweise bekannten Beträgen bleiben sichtbar; Zahlungen sind keine Abrechnungsbeträge."
                 "get_accounting_record" -> return "Liest den ursprünglichen Auftrag mit Arbeitseinträgen, Gesamtbetrag, Abrechnungsweg und versionsgebundenem Korrekturhash." + common
-                "set_accounting_record" -> return "Ordnet den gesamten Auftrag ausdrücklich einem Abrechnungsweg zu oder entfernt die Zuordnung. Markierungen, Arbeitseinträge und Wiederholungsbeleg werden atomar gespeichert. Rechnungsbeträge sind hier nicht bearbeitbar; sie kommen in Phase 2." + common
+                "set_accounting_record" -> return "Ordnet den gesamten Auftrag ausdrücklich einer Abrechnungsart zu oder entfernt die Zuordnung. Markierungen, Arbeitseinträge und Wiederholungsbeleg werden atomar gespeichert. Bestätigte Beträge entstehen getrennt durch lokale Rechnungs- oder Laborabschlüsse. Aktive Bindungen vor einem Artenwechsel ausdrücklich stornieren oder intern aufheben." + common
                 "get_ui_action_catalog" -> {
                     return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert."
                 }
@@ -197,7 +197,7 @@ internal class PixelMcpOwnerTools {
                         common)
                 }
                 "set_work_record_billed" -> {
-                    return ("Ändert ausdrücklich die manuelle Abrechnungsmarkierung mit get_work_record.record_hash und Begründung. Kein Nachweis tatsächlicher Rechnungsstellung. Ausgestellte Leistungsdaten bleiben geschützt; persönliche b.b.-Markierung bleibt separat." +
+                    return ("Ändert ausdrücklich die manuelle Abrechnungsmarkierung mit get_work_record.record_hash und Begründung. Kein Nachweis tatsächlicher Rechnungsstellung. Ausgestellte Leistungsdaten bleiben geschützt; persönliche Zuordnung Labor clandestino bleibt separat." +
                         common)
                 }
                 "reassign_work_record" -> {
@@ -205,11 +205,11 @@ internal class PixelMcpOwnerTools {
                         common)
                 }
                 "set_personal_paid" -> {
-                    return ("Ändert ausschließlich die persönliche Geräteübersicht b.b.; keine Änderung an billed oder Rechnungen." +
+                    return ("Ändert ausschließlich die persönliche Zuordnung Labor clandestino; keine Rechnung und keine Zahlungserfassung. Aktive Bindungen vor einem Artenwechsel bewusst korrigieren." +
                         common)
                 }
                 "update_business_settings" -> {
-                    return ("Ändert ausschließlich nicht geheime Aussteller- und Rechnungskonfiguration anhand get_business_settings.record_hash. Nummernkreis/externen Nummernstand nur nach tatsächlicher Prüfung bestätigen. Keine Zugangsdaten oder externen Kontorechte." +
+                    return ("Ändert nicht geheime Ausstellerangaben, Steuerstatus und Zahlungsvorgaben anhand get_business_settings.record_hash. Der Steuerstatus wird nicht aus Umsatzsummen bestimmt. Lokale Nummernreservierungen und ausgestellte Originale bleiben getrennt und unverändert; keine Zugangsdaten oder externen Kontorechte." +
                         common)
                 }
                 "update_settings" -> {

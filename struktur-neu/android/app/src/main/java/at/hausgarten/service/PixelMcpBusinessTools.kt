@@ -196,7 +196,7 @@ internal class PixelMcpBusinessTools {
                     .put("timezone", "Europe/Vienna")
                     .put(
                         "billing_notice",
-                        "Die Übersicht verwendet die lokalen Abrechnungsmarkierungen. Rechnungen und Zahlungen werden ausschließlich in sevDesk verwaltet.",
+                        "Diese Übersicht verwendet die lokalen Abrechnungsmarkierungen. Bestätigte Beträge beider Abrechnungsarten stehen getrennt und gemeinsam in get_accounting_overview; Zahlungen werden als eigene Einträge geführt.",
                     )
             return result
         }

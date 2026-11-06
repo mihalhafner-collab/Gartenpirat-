@@ -906,7 +906,7 @@ private fun nativeExistingOrderProof(observation: JSONObject, chosen: String): S
 }
 
 /** A tap starts deletion; its durable request is inspected after an uncertain response. */
-internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSONObject): JSONObject {
+internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSONObject, onPrepared: (JSONObject) -> Unit = {}): JSONObject {
     require(tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records"))
     val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
     val legacyKey = actionDraftKey(tool, initial)
@@ -915,16 +915,18 @@ internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSO
         val proof = query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", legacy))
         if (proof.optString("state") !in setOf("confirmed", "content_removed"))
             throw IllegalStateException("Ein früherer Löschvorgang ist noch offen. Bitte später erneut prüfen.")
-        removeDraft(legacyKey)
         val sameTarget = when (tool) {
             "delete_work_records" -> legacy.optJSONArray("work_record_ids")?.toString() == initial.optJSONArray("work_record_ids")?.toString()
             "empty_trash" -> true
             else -> legacy.optString("entity") == initial.optString("entity") && legacy.optString("entity_id") == initial.optString("entity_id")
         }
+        if (sameTarget) onPrepared(JSONObject(legacy.toString()))
+        removeDraft(legacyKey)
         if (sameTarget) return proof.optJSONObject("result") ?: JSONObject()
     }
     val original = draft(key)?.optJSONObject("original_args")
     if (original != null) {
+        onPrepared(JSONObject(original.toString()))
         val proof = query("inspect_edit_action", JSONObject().put("original_tool", tool).put("original_args", original))
         if (proof.optString("state") == "confirmed" || proof.optString("state") == "content_removed") {
             removeDraft(key)
@@ -940,6 +942,7 @@ internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSO
     check(nativeProofsReady(schema, args)) { "Eintrag nicht aktuell lesbar. Bitte erneut öffnen." }
     saveDraft(key, JSONObject().put("original_tool", tool).put("values", args).put("original_args", args))
     flushDrafts()
+    onPrepared(JSONObject(args.toString()))
     try {
         val result = query(tool, args)
         removeDraft(key)

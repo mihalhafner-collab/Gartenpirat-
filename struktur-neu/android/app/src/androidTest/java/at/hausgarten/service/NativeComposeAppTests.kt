@@ -827,9 +827,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         test.sendStatus(0, Bundle().apply { putLong("work_selected_delete_ms", SystemClock.uptimeMillis() - deleteStarted) })
         shown("Keine Treffer. Suchtext oder Filter ändern.")
         yes(PixelMcpWriteTools.hash(JSONArray(works())) == originalHash, "WORK_DELETE_PRESERVES_UNSELECTED_RECORDS")
-        yes(node("Löschen") == null, "WORK_DELETE_RETURNS_TO_SEARCH")
+        test.sendStatus(0, Bundle().apply { putBoolean("work_delete_ui_still_finishing_before_recreation", node("Löschen …") != null) })
+        yes(node("Löschen") == null, "WORK_DELETE_NO_NEW_WRITE_AFTER_COMMIT")
         recreate(); shown("Keine Treffer. Suchtext oder Filter ändern.")
-        yes(works().map { it.getString("id") }.toSet() == originalIds && node("Löschen") == null, "WORK_DELETE_DURABLE_AFTER_RECREATION")
+        val restoredWorks = works()
+        yes(restoredWorks.map { it.getString("id") }.toSet() == originalIds, "WORK_DELETE_IDS_DURABLE_AFTER_RECREATION")
+        yes(PixelMcpWriteTools.hash(JSONArray(restoredWorks)) == originalHash, "WORK_DELETE_UNSELECTED_HASH_DURABLE_AFTER_RECREATION")
+        waitUntil("WORK_DELETE_SELECTION_CLEARED_AFTER_RECREATION") {
+            visibleTexts().none { it in setOf("2 ausgewählt", "Löschen", "Löschen …", "Ergebnis prüfen") }
+        }
+        yes(node("Löschen") == null, "WORK_DELETE_DURABLE_AFTER_RECREATION")
     }
 
     private fun graphicsNavigationJourney() {
@@ -2070,6 +2077,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun showKeyboard(label: String) {
+        if (field(label) == null) scrollTop()
+        var lastScroll = 0L
+        waitUntil("SEARCH_FIELD_READY_$label") {
+            val selected = field(label)
+            if (selected != null && selected.refresh() && selected.isVisibleToUser && selected.isEnabled && selected.isEditable) return@waitUntil true
+            if (SystemClock.uptimeMillis() - lastScroll > 250) { scroll(); lastScroll = SystemClock.uptimeMillis() }
+            false
+        }
         yes(requireNotNull(field(label)).performAction(AccessibilityNodeInfo.ACTION_CLICK), "SEARCH_FOCUS_$label")
         waitUntil("SEARCH_IME_VISIBLE") { keyboardVisible() }
         settleUi()

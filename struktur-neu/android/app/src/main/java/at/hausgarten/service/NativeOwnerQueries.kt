@@ -23,13 +23,16 @@ try {
     val ledger = SettlementRules.ledger(repository)
     val master = repository.effective()
     val selectedKeys = linkedSetOf<String>()
+    val units = JSONArray()
     var offset = 0
     var reviewOffset = 0
     var overview: JSONObject? = null
     do {
         val page = store.nativeData().accounting(JSONObject(args.toString()).put("limit", 100).put("offset", offset).put("review_offset", reviewOffset))
         if (overview == null) overview = JSONObject(page.toString()).apply { remove("records"); remove("reviews") }
-        for (row in SettlementRules.rows(page.getJSONArray("records")) + SettlementRules.rows(page.getJSONArray("reviews"))) selectedKeys.add(row.getString("key"))
+        for (row in SettlementRules.rows(page.getJSONArray("records")) + SettlementRules.rows(page.getJSONArray("reviews"))) {
+            if (selectedKeys.add(row.getString("key"))) units.put(row)
+        }
         offset += 100; reviewOffset += 100
     } while (offset < overview!!.getInt("total") || reviewOffset < overview!!.getInt("review_total"))
     val filtered = args.keys().asSequence().any { args.optString(it).isNotEmpty() }
@@ -46,7 +49,7 @@ try {
     val ids = selected.map { it.getString("id") }.toSet()
     val result = JSONObject(ledger.toString()).put("format", "gartenpirat.local-settlement-export.v1")
         .put("exported_at", java.time.Instant.now().toString()).put("filtered", filtered).put("filters", JSONObject(args.toString()))
-        .put("records", JSONArray(selected)).put("overview", overview).put("selection_keys", JSONArray(selectedKeys))
+        .put("records", JSONArray(selected)).put("overview", overview).put("accounting_units", units).put("selection_keys", JSONArray(selectedKeys))
         .put("payments", JSONArray(SettlementRules.rows(ledger.optJSONArray("payments")).filter { it.optString("settlement_id") in ids }))
         .put("delivery_evidence", JSONArray(SettlementRules.rows(ledger.optJSONArray("delivery_evidence")).filter { it.optString("settlement_id") in ids }))
         .put("notice", "Beide Abrechnungsarten sind nachvollziehbar. Summen sind bestätigte Abrechnungsbeträge, keine Zahlungseingänge. Gefilterte Auswahl ist kein vollständiger Betriebsbestand. PDF, Hash und ZIP garantieren keine Rechtskonformität.")
