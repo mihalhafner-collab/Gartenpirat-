@@ -717,7 +717,8 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                             try {
                                 if (pendingDeletion != null) inspectPendingDeletion()
                                 else {
-                                    controller.deleteDirect("delete_work_records", JSONObject().put("work_record_ids", JSONArray(selected))) { pendingDeletion = it.toString() }
+                                    controller.deleteDirect("delete_work_records", JSONObject().put("work_record_ids", JSONArray(selected)),
+                                        onPrepared = { pendingDeletion = it.toString() }, onNotCommitted = { pendingDeletion = null })
                                     if (page.rows.all { it.id in selected }) offset = maxOf(0, offset - 50)
                                     selected = emptyList()
                                     pendingDeletion = null
@@ -725,7 +726,6 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                 }
                             } catch (cancelled: CancellationException) { throw cancelled }
                             catch (failure: Exception) {
-                                if (failure is NativeCallFailure && failure.detail.optString("commit_state") == "not_committed") pendingDeletion = null
                                 controller.message(failure.message ?: "Löschen nicht bestätigt.")
                             }
                             finally { deleting = false }

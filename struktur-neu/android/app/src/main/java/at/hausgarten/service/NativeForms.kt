@@ -906,7 +906,7 @@ private fun nativeExistingOrderProof(observation: JSONObject, chosen: String): S
 }
 
 /** A tap starts deletion; its durable request is inspected after an uncertain response. */
-internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSONObject, onPrepared: (JSONObject) -> Unit = {}): JSONObject {
+internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSONObject, onPrepared: (JSONObject) -> Unit = {}, onNotCommitted: () -> Unit = {}): JSONObject {
     require(tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records"))
     val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
     val legacyKey = actionDraftKey(tool, initial)
@@ -948,7 +948,10 @@ internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSO
         removeDraft(key)
         return result
     } catch (failure: NativeCallFailure) {
-        if (failure.detail.optString("commit_state") == "not_committed") removeDraft(key)
+        if (failure.detail.optString("commit_state") == "not_committed") {
+            removeDraft(key)
+            onNotCommitted()
+        }
         throw failure
     }
 }
