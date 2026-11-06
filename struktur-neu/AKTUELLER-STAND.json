@@ -31,13 +31,13 @@
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
-    "source_sha256": "9902b96b03009e93fc0c0561437e8bfc53fe92fb11897e1614726a18c34af88b",
+    "source_sha256": "ad096cf3381745497ef3ba9e02b3a23209852113ed87e06f688632f6ca33c13b",
     "status": "Quelle geändert; Build und Emulator-Prüfung über CI ausstehend. Installation und Verteilung nicht freigegeben.",
-    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–7: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag); App-Verknüpfungen Arbeit starten, Foto, Arbeit nachtragen."
+    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–7: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag); App-Verknüpfungen Arbeit starten, Foto, Arbeit nachtragen; ChatGPT-Schreibfreigabe direkt in der Verbindungsansicht schaltbar."
   },
   "current_task": {
-    "name": "Neue Oberfläche auf bestehendem Kern",
-    "status": "Schritte 1 bis 7 umgesetzt; CI ausstehend. Danach: Navigation Heute · Planung · Kunden · Abrechnung und Heute als Tagesliste."
+    "name": "Neue Oberfläche auf bestehendem Kern; Projekt an Claude übergeben",
+    "status": "Schritte 1 bis 7 umgesetzt; veraltete Emulator-Tests und Hook-Größe repariert; volle CI ausstehend. Danach Merge nach main, dann Navigation und Heute als Tagesliste."
   },
   "open_checks": [
     "Pixel-Nachtest von QA06 und C04 braucht freigegebene Installation von 132.",

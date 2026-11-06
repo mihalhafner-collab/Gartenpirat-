@@ -135,6 +135,11 @@ class PixelTunnelActivity : ComponentActivity() {
                     enabled = !busy,
                 )
             }
+            Row {
+                Text("ChatGPT darf Daten ändern", Modifier.weight(1f))
+                Switch(write, ::changeWrite, enabled = !busy)
+            }
+            Text("Kunden, Arbeitszeiten, Angebote, Abrechnung und Fotos. Ausgeschaltet kann ChatGPT nur lesen.", style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { advanced = !advanced }) {
                 Text(if (advanced) "Einrichtung und Diagnose schließen" else "Einrichtung und Diagnose")
             }
@@ -186,16 +191,6 @@ class PixelTunnelActivity : ComponentActivity() {
                         ),
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth(),
-                )
-                Row {
-                    Text(
-                        "ChatGPT darf fachliche Eigentümerfunktionen lesen und schreiben",
-                        Modifier.weight(1f),
-                    )
-                    Switch(write, { write = it }, enabled = !busy)
-                }
-                Text(
-                    "Lokale Freigabe für die aktuell unterstützten Eigentümerfunktionen, etwa Kunden, Arbeitszeiten, Angebote und Fotos. Sie bestätigt keine erfolgreiche Schreibprobe und erweitert keine Android- oder fremden Kontoberechtigungen. Die Auswahl gilt nach dem Übernehmen."
                 )
                 Button(onClick = ::startConnection, enabled = !busy) { Text("Einrichtung und Freigabe übernehmen") }
                 TextButton(onClick = ::stopConnection, enabled = !busy) {
@@ -298,6 +293,19 @@ class PixelTunnelActivity : ComponentActivity() {
             } finally {
                 busy = false
             }
+        }
+    }
+
+    /** Takes effect at once: a running connection restarts with the new access, otherwise only the choice is saved. */
+    private fun changeWrite(permitted: Boolean) {
+        if (busy) return
+        write = permitted
+        busy = true
+        lifecycleScope.launch {
+            try {
+                if (enabled && configured) requestConnection(permitted)
+                else { withContext(Dispatchers.IO) { config.writeEnabled(permitted) }; refreshStatus() }
+            } finally { busy = false }
         }
     }
 
