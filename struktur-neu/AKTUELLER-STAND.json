@@ -26,35 +26,44 @@
   ],
   "current_task": {
     "name": "Lokale Rechnungen und interne Labor-Abschlüsse mit erhaltener Abrechnung",
-    "status": "FINAL_CANDIDATE_LOCAL_SOURCE_JVM_ANDROID_LINT_PASSED; NATIVE_RERUN_PENDING; NOT_INSTALLED_OR_DISTRIBUTED",
+    "status": "IMPLEMENTED_AND_ISOLATED_VALIDATED; NOT_INSTALLED_OR_DISTRIBUTED",
     "owner_decisions": [
       "Auftrag 06.11.2026 ersetzt sevDesk-exklusive Begrenzung für gewöhnliche österreichische EUR-Kleinunternehmer-Abrechnung.",
       "Abrechnung behält Auftragseinheiten, getrennte Arten, Filter und Arbeitsdatumsbezug; bestätigte Rechnungs- und Laborbeträge ergeben gemeinsam die Gesamtsumme.",
       "Entwicklung und isolierte synthetische Validierung; keine produktive Installation, Ausgabe, Migration oder APK-Verteilung."
     ],
     "validation": {
-      "source": "PASS; check_current.py: 61 Python tests, source/seed/privacy and 184 exact action mappings.",
-      "jvm": "PASS; all 12 suites after final ArchiveApplicationService fix; MCP666 including ineffective archive/purge/dependent-delete rejections, Settlement142, SettlementAccounting38, SettlementProtection42, SQLite/JDBC102 and existing regressions.",
-      "android": "PASS; exact current source bd3e747e284f3b81573b65a68790630f0206e0ed56f246dca50cdc45aed7320e matches generated BuildConfig; assembleRelease, assembleReleaseAndroidTest, lintRelease and release artifact privacy passed locally.",
-      "native_ui_execution": "NOT_YET_PASSED; full monetary visibility assertions now explicitly scroll while preserving app viewport state. Startup assertions await actual loaded fields and retained values. Labor date label corrected to neutral Datum. Rerun scheduled.",
+      "source": "PASS; check_current.py: 61 Python checks, source/privacy/seed gates, 184 semantic UI actions; Kotlin-only basis retained.",
+      "jvm": "PASS; all12 suites actually run locally and in CI42227034080, including Settlement142, SettlementAccounting38, SourceProtection42, MCP666, JDBC102 and existing finance/work/ZIP regressions.",
+      "mcp_catalog": "PASS; seven freshly compiled catalog/description checks;156 MCP tools,184 separate semantic UI actions.",
+      "android": "PASS; assembleRelease, assembleReleaseAndroidTest, lintRelease and release privacy actually executed locally and in CI; BuildConfig matches source_sha256. Latest test-only wait compiled locally.",
+      "native_settlement_data": "PASS;60+24 in CI42227087386: real SQLite,900+200=1100 after new process, multipage original PDF, parallel reservations, PDF failure/retry and post-PDF SQLite abort, payments/corrections, ZIP/restore/series/source audit. Later original UI stage failed separately.",
+      "native_settlement_ui": "PASS; focused163 in CI42230261664: both completions, exact totals, filters/back, draft save/recreation and200% portrait/landscape. Five images independently checked. Test-only save wait now requires actual review action and persisted title; same20s limit. Data/restore proofs are separate.",
+      "native_accounting": "PASS;145+6 in CI42227092709: grouping/marks, routes, same-selection sums, filters, corrections, source detail/back. Eight100/200% portrait/landscape images independently checked. Counter includes navigation/read actions.",
+      "native_graphics": "PASS twice;692/690 in CI42227036533/42228290232: six journeys covering Today/work/offers/navigation/accessories/timer/200%. IDs/hash and selection recovery after rotation during Busy passed twice. Eleven images checked.6404/3368ms are emulator/harness measurements, no performance guarantee.",
+      "investigated_failures": "Harness now waits completed UI/record and polls actual empty-list UI before one full snapshot, with original assertions and20s budget. Back action and root readiness checked together. Earlier unretained list exception remains documented in open_checks.",
+      "independent_reviews": "PASS; technical and Austrian domestic KU domain reviews; concrete findings corrected. USP/BMF primary sources checked, UGB14 official excerpt only. Sources/limits in APP.md; no guaranteed legal compliance.",
+      "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
+      "ci_runs": {
+        "source_build_jvm_lint": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227034080",
+        "settlement_data_restore": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227087386",
+        "settlement_ui": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42230261664",
+        "accounting": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227092709",
+        "graphics": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227036533",
+        "graphics_repeat": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42228290232"
+      },
+      "limits": "Synthetic emulator/JVM only, no physical Pixel function test. Austrian domestic EUR/KU only; actual issuer/legal data, services/prices/tax status and restore audit require operator review. Plain PDF max100 pages/20MiB; no PDF/A/federal structured-invoice claim. New series does not reconstruct absent later transactions.",
       "installation": "NOT_PERFORMED",
       "distribution": "NOT_PERFORMED",
-      "source_sha256": "bd3e747e284f3b81573b65a68790630f0206e0ed56f246dca50cdc45aed7320e",
-      "ci_baseline_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210669073",
-      "second_native_runs": [
-        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210674795",
-        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210679595",
-        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210684595"
-      ],
-      "native_test_harness_followup": "Accounting second run reached recreation but asserted a field during the actual startup-loading screen; screenshot confirmed. Test now awaits the loaded field and retained search value, with all original monetary and UI assertions preserved. Android test compilation PASS; app source fingerprint unchanged e0853295816c68687047801a4d2b966f527c06de2c78709fe1ccf6b596d22964.",
-      "native_data_execution": "PASS; native_settlement58 + native_settlement_reopen24 in CI42210674795 on prior UI-label/test revision a5c2a79 (settlement domain, PDF and ZIP/restore implementations unchanged). Final source rerun scheduled.",
-      "graphics_execution": "FAIL in CI42210679595 at work-selection delete timeout; minimal further ArchiveApplicationService snapshot reuse added with new negative JVM checks. Native rerun scheduled; timeout unchanged."
+      "productive_migration": "NOT_PERFORMED",
+      "tested_app_commit": "8750f70be3c3043b902bd06385ba3845f7e29bbb; App hash unchanged since6240652;659e062/8750f70 changed tests only."
     }
   },
   "open_checks": [
     "Pixel live 1.60.0/130 mit Quellfingerabdruck dbaa6402 bestätigt. Ältere unvollständige native Backup-/Cleanup-Abnahmen bleiben getrennt offen; neue Abrechnung wird isoliert geprüft, keine produktive Installation.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
-    "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
+    "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet.",
+    "Ein früherer Listenlesefehler nach Rotation hatte keine erhaltene Exception; beide finalen Graphics-Wiederholungen bestanden einschließlich Rotation während Busy. Seine damalige Ursache bleibt ungeklärt; bei Wiederauftreten werden Fehlerklasse und Codepositionen ohne Geschäftsdaten protokolliert."
   ],
   "workflow": {
     "code": "android/app/src/main",
@@ -93,9 +102,9 @@
     "version_name": "1.61.0",
     "version_code": 131,
     "package_name": "at.hausgarten.service",
-    "status": "FINAL_LOCAL_PASSED; NATIVE_RERUN_PENDING",
+    "status": "IMPLEMENTED_AND_ISOLATED_VALIDATED; NOT_INSTALLED_OR_DISTRIBUTED",
     "installation": "NOT_INSTALLED",
     "distribution": "NOT_AUTHORIZED",
-    "source_sha256": "bd3e747e284f3b81573b65a68790630f0206e0ed56f246dca50cdc45aed7320e"
+    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38"
   }
 }

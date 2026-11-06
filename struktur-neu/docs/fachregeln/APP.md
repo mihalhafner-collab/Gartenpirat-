@@ -270,8 +270,10 @@ Ausgestellte Originale, interne Abschlüsse und wesentliche Historien sind vor
 gewöhnlicher Löschung und Speicherbereinigung geschützt. Grundsätzlich sieben
 Jahre ab Jahresende, gegebenenfalls länger aufbewahren; keine automatische
 Alterslöschung. Lokaler Export umfasst beide Arten, getrennte Summen,
-Gesamtsumme, Positionen, Zahlungen und Korrekturen. Filter müssen im Export
-sichtbar bezeichnet sein. PDF, Hash und ZIP allein garantieren keine
+Gesamtsumme, Positionen, Zahlungen und Korrekturen. Die ausgewählten
+Übersichtseinheiten einschließlich markierter Einträge ohne bekannten Betrag
+bleiben mit ausstehendem Betrag enthalten. Filter müssen im Export sichtbar
+bezeichnet sein. PDF, Hash und ZIP allein garantieren keine
 Rechtskonformität.
 
 Ausland, Reverse Charge, abweichender Steuerstatus und strukturierte Rechnungen
@@ -500,9 +502,9 @@ Leiste die laufende oder pausierte Zeit erreichbar; sie öffnet denselben Timer.
 
 Aus der Kundenakte begrenzt die Übersicht offener Stunden die Arbeitsaufzeichnungen
 auf den gewählten Einsatzkunden, auch wenn weitere Kunden denselben
-Rechnungsempfänger verwenden. „Arbeitsaufzeichnungen für sevDesk prüfen“ öffnet
-dieselbe gefilterte Arbeitsliste. Die Abrechnungsmarkierung bleibt unabhängig von
-sevDesk-Belegen. Angebote und Kostenvoranschläge sind außerdem direkt aus Büro
+Rechnungsempfänger verwenden. „Offene Stunden“ öffnet dieselbe gefilterte
+Arbeitsliste. Die Abrechnungsmarkierung bleibt unabhängig von Belegstatus und
+Zahlungen. Angebote und Kostenvoranschläge sind außerdem direkt aus Büro
 zugänglich. Geplante Einsätze erzeugen keine Arbeitsaufzeichnungen.
 
 Die lokale Aktionsprojektion hat einen einzigen Ausführungspfad. Sie verwendet
