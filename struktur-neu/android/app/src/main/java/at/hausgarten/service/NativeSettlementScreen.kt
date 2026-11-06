@@ -79,7 +79,8 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
 /** Native working copy is durable, including exact pending save arguments. */
 @Composable
 internal fun NativeSettlementEditor(controller: NativeAppController, id: String) {
-    val key = "settlement-editor:$id"
+    val recipient = if (id.isEmpty()) controller.route.args.optString("billing_customer_id") else ""
+    val key = "settlement-editor:$id" + if (recipient.isNotEmpty()) ":$recipient" else ""
     var raw by rememberSaveable(id) { mutableStateOf<String?>(null) }
     var savedHash by rememberSaveable(id) { mutableStateOf("") }
     var pending by rememberSaveable(id) { mutableStateOf<String?>(null) }
@@ -112,7 +113,7 @@ internal fun NativeSettlementEditor(controller: NativeAppController, id: String)
                 require(row.optString("status") == "draft") { "Dieser Abschluss ist bereits eingefroren. Bitte die Vorschau öffnen." }
                 raw = row.toString(); savedHash = data.getString("record_hash")
             }
-            if (raw == null) raw = JSONObject().put("route", AccountingRules.BILLED).put("positions", JSONArray()).toString()
+            if (raw == null) raw = SettlementRules.prefill(controller.route.args, context!!.optJSONArray("worklogs"), priorRecords).toString()
             ready = true
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { error = failure.message ?: "Entwurf nicht lesbar." }

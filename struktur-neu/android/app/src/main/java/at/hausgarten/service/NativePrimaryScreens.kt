@@ -363,6 +363,8 @@ private fun NativeOpenHours(controller: NativeAppController, customer: String, f
                     nativeDuration(group.optDouble("hours")) + " · ${rows.length()} Arbeiten · Rechnungsempfänger",
                     { expanded = if (expanded == recipient) "" else recipient })
                 if (!group.optBoolean("valid")) NativeStatus("Zuordnung vor der Übertragung prüfen", NativeStatusTone.Attention)
+                else if (recipient.isNotEmpty() && rows.length() > 0) Button({ controller.navigate("settlement_edit", args = JSONObject().put("billing_customer_id", recipient)
+                    .put("work_record_ids", JSONArray((0 until rows.length()).map { rows.getJSONObject(it).optString("id") }))) }) { Text("Abrechnen") }
                 if (expanded == recipient) for (j in 0 until rows.length()) {
                     val row = rows.getJSONObject(j)
                     NativeInfoRow(row.optString("work_customer_name"),
