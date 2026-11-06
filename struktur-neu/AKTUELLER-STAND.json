@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T06:30:24.528Z",
+    "observed_at_utc": "2026-11-06T06:32:48.483Z",
     "version_name": "1.59.1",
     "version_code": 129,
     "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
@@ -104,10 +104,10 @@
     }
   ],
   "current_task": {
-    "name": "Umbenennung der persönlichen Markierung in Labor Clandestinus",
+    "name": "Labor Clandestinus im Auswahlmenü bei langem Drücken",
     "status": "SOURCE_VALIDATED; NO_INSTALLATION",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-06T06:30:24.528Z",
+      "observed_at_utc": "2026-11-06T06:32:48.483Z",
       "version_name": "1.59.1",
       "version_code": 129,
       "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
@@ -117,13 +117,14 @@
       "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
     },
     "owner_decisions": [
-      "Die im Screenshot markierte Bezeichnung „Persönlich bezahlt / b.b.“ in „Labor Clandestinus“ umbenennen."
+      "Die im Screenshot markierte Bezeichnung „Persönlich bezahlt / b.b.“ in „Labor Clandestinus“ umbenennen.",
+      "Labor Clandestinus im Menü nach langem Drücken auf eine Arbeitsaufzeichnung ergänzen; bei Einzelauswahl dieselbe vorhandene Aktion mit der ausgewählten Arbeit öffnen."
     ],
     "validation": {
-      "source": "PASS; check_current.py including source/privacy gates, UI/MCP action mapping and 61 selected Python tests; git diff --check passed.",
-      "android": "NOT_RUN; text-only rename",
-      "installation": "NOT_PERFORMED; live installed 1.59.1/129 remains the verified baseline.",
-      "source_sha256": "c3751cd025848a32dabd8470b66bd6e7aac888f6273cc30a3894fd8526aa0bdc"
+      "source": "PASS; check_current.py with source/privacy gates, native UI/MCP mapping and 61 selected Python tests; git diff --check passed.",
+      "android": "NOT_RUN; menu shortcut to existing single-record action",
+      "installation": "NOT_PERFORMED; installed 1.59.1/129 unchanged.",
+      "source_sha256": "bd669c069e3a0ba25f21adecb785c865689c39c6ef0d14845b3ef68e21739d00"
     }
   },
   "open_checks": [
@@ -175,6 +176,6 @@
     "status": "SOURCE_VALIDATED; APK_NOT_BUILT",
     "installation": "NOT_INSTALLED",
     "distribution": "NOT_DISTRIBUTED",
-    "source_sha256": "c3751cd025848a32dabd8470b66bd6e7aac888f6273cc30a3894fd8526aa0bdc"
+    "source_sha256": "bd669c069e3a0ba25f21adecb785c865689c39c6ef0d14845b3ef68e21739d00"
   }
 }

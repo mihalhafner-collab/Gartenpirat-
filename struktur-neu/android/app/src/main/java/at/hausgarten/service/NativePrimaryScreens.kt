@@ -657,6 +657,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     NativeActions {
                         TextButton({ selected = emptyList() }, enabled = !deleting) { Text("Abbrechen") }
                         TextButton({ selected = (selected + page.rows.map { it.id }).distinct().take(200) }, enabled = !deleting && !listLoading) { Text("Seite auswählen") }
+                        if (selected.size == 1) TextButton({ controller.action("Labor Clandestinus", "set_personal_paid", JSONObject().put("work_record_id", selected.single())) }, enabled = !deleting) { Text("Labor Clandestinus") }
                         if (selected.size == 1) TextButton({ controller.navigate("worklogs", selected.single(), "duplicate", controller.route.args) }, enabled = !deleting) { Text("Duplizieren") }
                         Button({ if (!deleting) { deleting = true; scope.launch {
                             try {
