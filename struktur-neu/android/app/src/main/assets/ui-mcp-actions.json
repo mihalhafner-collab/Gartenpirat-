@@ -457,7 +457,7 @@
     {
       "id": "arbeiten.33",
       "area": "arbeiten",
-      "action": "Persönlich bezahlt / b.b. setzen und entfernen",
+      "action": "Labor Clandestinus setzen und entfernen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "set_personal_paid"
@@ -2633,13 +2633,13 @@
     "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.kt": "698dd9623078bc336289dc06fd5311998a562ecedf21152f385992b270e684bd",
     "android/app/src/main/java/at/hausgarten/service/MainActivity.kt": "2f3015669397fa2619b62fb6393d4878d6ee71809cc71601128ff523fd2823c6",
     "android/app/src/main/java/at/hausgarten/service/McpErrors.kt": "d0318544dff6b554e74b3a63c37679d0d6e920b70759d509e4dc3a19e12934ec",
-    "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "5c451e994a970c500b38245aed64131b9519deb5b909e0e1403ada6313321e22",
+    "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "e4c4cc6125dbb6a52057ad2fea2613ecaf8ad0fc57c988c8dbac8eda790bb35d",
     "android/app/src/main/java/at/hausgarten/service/NativeAppController.kt": "ccea721864c6537e4a77eeb0694d4ed5e3d5ee261f535e8ed8d5f1f278456cb9",
     "android/app/src/main/java/at/hausgarten/service/NativeCompose.kt": "8049deedd712b5df594e9cf62df9a07fb82e046aee5676847d7ba8559728e072",
     "android/app/src/main/java/at/hausgarten/service/NativeDataRepository.kt": "42850947592b714687d3ba9605e47c5ace98cca029d627970050484186b1c9a0",
     "android/app/src/main/java/at/hausgarten/service/NativeForms.kt": "946a0754540de12fd54f146c549293e678b0da145b32fc8bf435c9867a50e267",
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "e8879b6e1936f20803dda1faad2200a1b9cc771c803cc65fc9dfb70a1da71bc4",
-    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "0992ced8ea9f8b635692de97b3b2897854a03b9384e114a83fefdd436b17d9e5",
+    "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "ef65531b7dc3a2d7e690792a8ec7084d3539a0c35b724eecf33fe32598d8a96e",
     "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "da391f39efbc6a33a848d4fd5981138468be2b220054c13fb9543f7ea7ef3bad",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "33c4c3447dfb6a9d80c2e2fd72e264f3e835a7c11cc91e2bf2d67f045676dcb0",
     "android/app/src/main/java/at/hausgarten/service/OfferFileProvider.kt": "5dcfe2b3dd18c9e4546c2ccd77e42ca002c405b14f88c344b328038683df7dc9",

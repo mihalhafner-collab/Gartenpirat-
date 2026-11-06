@@ -808,7 +808,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                     item { NativeInfoRow("Als Vorlage duplizieren", "Neue vergangene Arbeit vorbereiten", { controller.navigate("worklogs", id, "duplicate", controller.route.args) }) }
                     item { NativeInfoRow("Zuordnung ändern", "Arbeitskunde und Rechnungsempfänger bewusst prüfen", { controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) }
                     item { NativeInfoRow("Abgerechnet / offen markieren", "Ändert nur die lokale Markierung", { controller.action("Lokale Abrechnungsmarkierung", "set_work_record_billed", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) }
-                    item { NativeInfoRow("Persönlich bezahlt / b.b.", "Vorhandene lokale Angabe ändern", { controller.action("Persönlich bezahlt", "set_personal_paid", JSONObject().put("work_record_id", id)) }) }
+                    item { NativeInfoRow("Labor Clandestinus", "Vorhandene lokale Angabe ändern", { controller.action("Labor Clandestinus", "set_personal_paid", JSONObject().put("work_record_id", id)) }) }
                 } else {
                     item {
                         if (row.optString("status").isNotBlank()) NativeStatus(nativeValue(row.optString("status")))

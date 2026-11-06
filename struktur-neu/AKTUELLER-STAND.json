@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-05T21:48:21.879210+00:00",
-    "version_name": "1.59.0",
-    "version_code": 128,
-    "reported_base_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
-    "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
+    "observed_at_utc": "2026-11-06T06:30:24.528Z",
+    "version_name": "1.59.1",
+    "version_code": 129,
+    "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
+    "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main d659696 before this task"
+    "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
   },
   "observed_installation_history": [
     {
@@ -91,45 +91,43 @@
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
       "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main d659696 before this task"
+    },
+    {
+      "observed_at_utc": "2026-11-06T06:30:24.528Z",
+      "version_name": "1.59.1",
+      "version_code": 129,
+      "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
+      "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
     }
   ],
   "current_task": {
-    "name": "Arbeitsaufzeichnungen mit nativer Gestenauswahl, unterer Suche und direkter Feldbearbeitung",
-    "status": "APK_DISTRIBUTED; NATIVE_UI_CHECKS_OPEN; NO_INSTALLATION",
+    "name": "Umbenennung der persönlichen Markierung in Labor Clandestinus",
+    "status": "SOURCE_VALIDATED; NO_INSTALLATION",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-05T21:48:21.879210+00:00",
-      "version_name": "1.59.0",
-      "version_code": 128,
-      "reported_base_git_sha": "67b7b473f82e0095af0f96f7aab87b7175907e39",
-      "source_sha256": "954d55ca6044f6133684321ba0930ef8a3f71e5b293230fcc86d14d019b7eb99",
+      "observed_at_utc": "2026-11-06T06:30:24.528Z",
+      "version_name": "1.59.1",
+      "version_code": 129,
+      "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
+      "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main d659696 before this task"
+      "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
     },
     "owner_decisions": [
-      "Kartenoptik aus dem Kundenmenü übernehmen; linke Checkboxen und einzelne Löschbuttons entfernen.",
-      "Langes Drücken aktiviert eine Auswahl mit passenden Aktionen am unteren Rand.",
-      "Suche unten mit Tastaturanpassung; Filter als natives unteres Blatt.",
-      "Zeiterfassungsoption aus der Liste der Arbeitsaufzeichnungen entfernen.",
-      "Rot markierte Arbeitsauswahl aus der lokalen Abrechnungsmarkierung entfernen; vorhandene Arbeit intern gebunden halten.",
-      "Bearbeiten-Aktion bei gespeicherten Arbeiten entfernen; Felder einzeln antippbar und gezielt bearbeitbar machen.",
-      "Code überarbeiten und danach auf weitere Anweisungen warten; keine Installation oder APK-Verteilung.",
-      "Anschlussauftrag: APK erstellen und in Drive Paketinstallation bereitstellen. Dieser ausdrückliche Auftrag ersetzt die vorherige Beschränkung auf reine Codearbeit; keine Pixel-Installation beauftragt."
+      "Die im Screenshot markierte Bezeichnung „Persönlich bezahlt / b.b.“ in „Labor Clandestinus“ umbenennen."
     ],
     "validation": {
-      "source": "PASS; check_current.py and 61 selected Python tests; preserved clean source commit 701046b1fc0a13da8362067242faa9eaedca3ee2",
-      "android": "PASS; corrected Kotlin app/test compilation and lint; clean CI release/test APK build and lint on 701046b; local assembleRelease, APK privacy, packaged assets and empty seed checks passed.",
-      "jvm": "PASS; synthetic JVM regressions on 701046b in workflow 42119487017.",
-      "native_ui_execution": "FAIL; workflow 42119487017: graphics_work exceeded 20-second wait for verified selected deletion; graphics_timer timed out in customer-list navigation helper. Today/navigation/accessories/large-text journeys passed. No physical Pixel test.",
-      "native_ui_partial": "PASS before deletion timeout: bottom search and keyboard, filter footer, isolated activity/note edits preserving times, pause duration recalculation, hidden billing reference, long-press selection and recreation. Full targeted suite remains failed.",
-      "installation": "NOT_PERFORMED; live Pixel remains 1.59.0/128.",
-      "distribution": "PASS; original-signed 1.59.1/129 uploaded to existing Drive Paketinstallation. Complete download byte-equal; readback signature, original certificate and DEX BuildConfig verified.",
-      "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
-      "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c"
+      "source": "PASS; check_current.py including source/privacy gates, UI/MCP action mapping and 61 selected Python tests; git diff --check passed.",
+      "android": "NOT_RUN; text-only rename",
+      "installation": "NOT_PERFORMED; live installed 1.59.1/129 remains the verified baseline.",
+      "source_sha256": "c3751cd025848a32dabd8470b66bd6e7aac888f6273cc30a3894fd8526aa0bdc"
     }
   },
   "open_checks": [
-    "Pixel 1.59.0/128 erneut live bestätigt. Originalsignierte 1.59.1/129 in Drive Paketinstallation verteilt, nicht installiert. Gezielte Emulatorprüfung 42119487017 bleibt fehlgeschlagen: Zeitlimit bei Sammellöschungsprüfung und Navigationshelfer. Ältere vollständige native Backup-/Cleanup-Suite aus Run41917494315 bleibt offen.",
+    "Pixel 1.59.1/129 live bestätigt; Quellfingerabdruck stimmt exakt mit main 3dc7146 und Releasequelle 701046b überein. Frühere gezielte Emulatorprüfung 42119487017 bleibt fehlgeschlagen: Zeitlimit bei Sammellöschungsprüfung und Navigationshelfer. Ältere vollständige native Backup-/Cleanup-Suite aus Run41917494315 bleibt offen.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
@@ -171,13 +169,12 @@
     "invoice_authority": "REMOVED; SEVDESK_ONLY"
   },
   "current_test_candidate": {
-    "version_name": "1.59.1",
-    "version_code": 129,
+    "version_name": "1.59.2",
+    "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "ORIGINAL_SIGNED_AND_DISTRIBUTED; NATIVE_UI_CHECKS_OPEN",
+    "status": "SOURCE_VALIDATED; APK_NOT_BUILT",
     "installation": "NOT_INSTALLED",
-    "distribution": "DRIVE_PAKETINSTALLATION",
-    "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
-    "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c"
+    "distribution": "NOT_DISTRIBUTED",
+    "source_sha256": "c3751cd025848a32dabd8470b66bd6e7aac888f6273cc30a3894fd8526aa0bdc"
   }
 }

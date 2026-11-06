@@ -11,8 +11,9 @@ Weboberfläche wird nicht mehr gepflegt.
 
 Kunden, Einsatzobjekte und Rechnungsempfänger sind unterschiedliche Beziehungen.
 Auftragslose Arbeiten bleiben möglich. Persönliches
-„b.b./bezahlt“ ist vom Rechnungsstatus getrennt. Fehlende Daten, Preise, Zeiten,
-Beziehungen und Belegnummern nicht erfinden.
+„b.b./bezahlt“ heißt in der Oberfläche „Labor Clandestinus“ und ist vom
+Rechnungsstatus getrennt. Fehlende Daten, Preise, Zeiten, Beziehungen und
+Belegnummern nicht erfinden.
 
 ## Speichern und Löschen
 
