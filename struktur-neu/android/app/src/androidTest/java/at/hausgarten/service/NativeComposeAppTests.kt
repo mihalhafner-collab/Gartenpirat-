@@ -548,7 +548,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung", "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND")
             openOffice(); click("Abrechnung"); click("Abschlüsse"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
             reveal("Bezeichnung"); yes(field("Bezeichnung")?.text?.toString()?.contains("[TEST] Erste manuelle Abrechnung") == true, "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT")
-            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft"); click("Entwurf speichern und prüfen"); reveal("[TEST] Erste manuelle Abrechnung geprüft"); shown("[TEST] Erste manuelle Abrechnung geprüft")
+            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft"); click("Entwurf speichern und prüfen")
+            var lastSaveScroll = 0L
+            waitUntil("SETTLEMENT_UI_EXISTING_DRAFT_SAVE_COMPLETED") {
+                // The edited text already exists in the busy editor. Require the
+                // distinct review action before reading the persisted result.
+                if (node("Entwurf bearbeiten")?.let(::clickable) != null) {
+                    SettlementRules.rows(read("list_settlements").getJSONArray("records")).singleOrNull { it.getString("id") == firstNew.getString("id") }
+                        ?.optString("title") == "[TEST] Erste manuelle Abrechnung geprüft"
+                } else {
+                    if (SystemClock.uptimeMillis() - lastSaveScroll > 250) { scroll(); lastSaveScroll = SystemClock.uptimeMillis() }
+                    false
+                }
+            }
+            reveal("[TEST] Erste manuelle Abrechnung geprüft"); shown("[TEST] Erste manuelle Abrechnung geprüft")
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung geprüft", "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH")
             yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks, "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED")
             openOffice(); click("Abrechnung")
