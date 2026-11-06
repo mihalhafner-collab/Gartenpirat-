@@ -82,7 +82,9 @@ internal object LocalBackupDataset {
                     // Diagnostic only. Raw SQLite and every readable file have already been captured.
                     try {
                         val state = BackupSnapshotState.read(snapshot, BackupPreferences.values(preferences, "haus_garten"), initial, catalog)
-                        report = BackupInventory.inspect(SnapshotProjection.effective(state)) { kind, row ->
+                        val effective = SnapshotProjection.effective(state)
+                        effective.put("settlements", JSONObject(DatabaseBackupSnapshot.ownerValue(snapshot, "settlement:v1", "{}")!!).optJSONArray("records") ?: JSONArray())
+                        report = BackupInventory.inspect(effective) { kind, row ->
                             val metadata = if (kind == "photo")
                                 BackupSnapshotState.photo(snapshot, row.optString("id")) ?: row else row
                             BackupInventory.originalProblem(filesRoot, kind, metadata)

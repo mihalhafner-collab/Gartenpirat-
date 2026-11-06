@@ -15,6 +15,7 @@ internal class PixelMcpOwnerTools {
         val READS: Array<String> =
             LocalWorkflowTools.concat(
                 arrayOf(
+                    "list_settlements", "get_settlement", "get_settlement_context", "get_settlement_pdf", "export_settlements",
                     "run_self_test",
                     "get_ui_action_catalog",
                     "get_accounting_overview",
@@ -40,6 +41,7 @@ internal class PixelMcpOwnerTools {
         val WRITES: Array<String> =
             LocalWorkflowTools.concat(
                 arrayOf(
+                    "save_settlement_draft", "prepare_settlement", "complete_settlement", "correct_settlement", "add_settlement_payment", "review_restored_sources", "record_settlement_delivery",
                     "empty_trash",
                     "archive_work_records",
                     "delete_work_records",
@@ -80,7 +82,7 @@ internal class PixelMcpOwnerTools {
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
 
-            return OwnerToolSchemas.schema(name, write(name))
+            return if (name in SettlementTools.READS || name in SettlementTools.WRITES) SettlementTools.schema(name) else OwnerToolSchemas.schema(name, write(name))
         }
 
         @JvmStatic
@@ -127,6 +129,7 @@ internal class PixelMcpOwnerTools {
 
         private @JvmStatic fun description(n: String): String {
 
+            if (n in SettlementTools.READS || n in SettlementTools.WRITES) return SettlementTools.description(n)
             if (LocalWorkflowTools.handles(n)) {
                 return LocalWorkflowTools.description(n)
             }

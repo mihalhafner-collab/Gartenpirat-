@@ -17,13 +17,15 @@ object BackupInventory {
         val warnings = JSONArray()
         val issued = JSONArray()
         val inspected = HashSet<String>()
-        for (collection in arrayOf("customers", "orders", "worklogs", "photos", "offers", "invoices", "appointments")) {
+        for (collection in arrayOf("customers", "orders", "worklogs", "photos", "offers", "invoices", "appointments", "settlements")) {
             val rows = effective.optJSONArray(collection)
             counts.put(collection, rows?.length() ?: 0)
             var i = 0
             while (rows != null && i < rows.length()) {
                 val row = rows.optJSONObject(i++) ?: continue
-                val document = collection == "offers" && row.optString("finalized_at").isNotEmpty()
+                val issuedSettlement = collection == "settlements" && row.optString("status") in setOf("confirmed", "cancelled") && row.optString("kind") in setOf("invoice", "cancellation")
+                val document = collection == "offers" && row.optString("finalized_at").isNotEmpty() || issuedSettlement
+                if (issuedSettlement) issued.put(row.getString("id"))
                 if (collection == "photos" || document) {
                     inspectRow(if (collection == "photos") "photo" else "document", row, originals, warnings, inspected)
                 }
@@ -66,9 +68,10 @@ object BackupInventory {
     @JvmStatic
     fun originalProblem(filesRoot: java.io.File, kind: String, row: JSONObject): String? {
         val photo = kind == "photo"
-        val name = row.optString(if (photo) "storage_name" else "pdf_storage_name")
-        val sha = row.optString(if (photo) "content_sha256" else "pdf_sha256")
-        val bytes = row.optLong(if (photo) "byte_size" else "pdf_byte_size", -1)
+        val metadata = if (photo) row else row.optJSONObject("pdf") ?: row
+        val name = metadata.optString(if (photo) "storage_name" else "pdf_storage_name")
+        val sha = metadata.optString(if (photo) "content_sha256" else "pdf_sha256")
+        val bytes = metadata.optLong(if (photo) "byte_size" else "pdf_byte_size", -1)
         val allowed = if (photo) Regex("[a-f0-9]{64}\\.[A-Za-z0-9]{1,8}")
             else Regex("[a-f0-9]{64}\\.pdf")
         if (!allowed.matches(name) || !Regex("[a-f0-9]{64}").matches(sha) || bytes < 0)

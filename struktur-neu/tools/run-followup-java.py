@@ -30,6 +30,7 @@ names = ['SnapshotProjection', 'OwnerCommand', 'EntityContract', 'EntityApplicat
 names += ['WorkSessionTimingRules','OwnerRequestTransactions','LocalTestTombstone','ActiveWorkProtection','CatalogSemanticHash','CalendarRecoveryRules','OpenMeteoWeatherSource','CalendarSetupRules','PlanningWire']
 names += ['BackupArchive', 'ServiceCatalogBootstrap', 'BackupFilePins', 'BackupScheduleRules', 'BackupStatusRules', 'BackupInventory', 'BackupStorageBudget']
 names += ['OfferMoney','LocalBusinessState','LocalWorkflowTools','LocalWorkflowApplicationService','RevierRepository','RevierRules','RevierApplicationService','OfferDecisionRules','OfferDecisionService','BackupDocumentTransfer','BackupDatasetExchange','OfferDecisionValidation']
+names += ['SettlementRules','SettlementTools','SettlementApplicationService','SettlementSourceProtection']
 names += ['RestoredBrowserReviewRules', 'BrowserMediaFiles', 'BrowserMediaRepositoryRules', 'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules', 'AccountingRules']
 table_tests = '--tables' in sys.argv
 tests = sorted(p for p in (ROOT/'tests/java/at/hausgarten/service').glob('*Tests.java')

@@ -41,6 +41,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         @JvmStatic fun run(test: Instrumentation): JSONObject = NativeComposeAppTests(test).execute()
         /** Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider prerequisite. */
         @JvmStatic fun runGraphics(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeGraphics()
+        @JvmStatic fun runSettlement(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeSettlement()
         @JvmStatic fun runAccounting(test: Instrumentation, reopen: Boolean): JSONObject = NativeComposeAppTests(test).executeAccounting(reopen)
     }
 
@@ -464,6 +465,98 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .putBoolean("notifications", false).commit(), "GRAPHICS_OFFLINE_PLANNING")
     }
 
+    private fun executeSettlement(): JSONObject {
+        guardGraphicsFixture()
+        store.putOwnerValue("snapshot", NativeSettlementNativeTests.fixture().toString())
+        store.putOwnerValue("personal_paid_migrated", "1")
+        store.putOwnerValue("personal_paid", JSONArray().put("qa_settlement_labor").toString())
+        val originalMaster = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        val originalMarks = store.ownerValue("personal_paid", "[]")
+        val invoice = read("save_settlement_draft", JSONObject().put("request_id", "qa_settlement_ui_invoice_draft").put("draft", NativeSettlementNativeTests.draft("billed", "900", "qa_settlement_invoice"))).getString("settlement_id")
+        val labor = read("save_settlement_draft", JSONObject().put("request_id", "qa_settlement_ui_labor_draft").put("draft", NativeSettlementNativeTests.draft("labor", "200", "qa_settlement_labor"))).getString("settlement_id")
+        val previous = automation.serviceInfo
+        val previousFlags = previous.flags
+        val oldFont = shell("settings get system font_scale")
+        try {
+            automation.serviceInfo = previous.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
+            launch(); openOffice(); click("Abrechnung"); reveal("Abschlüsse"); click("Abschlüsse")
+            shown("[TEST] Rechnung 900"); click("[TEST] Rechnung 900")
+            shown("Entwurf")
+            for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
+            click("Rechnung verbindlich vorbereiten")
+            shown("Abschluss vorbereitet – fortsetzen")
+            yes(read("get_settlement", JSONObject().put("settlement_id", invoice)).getJSONObject("record").getString("status") == "prepared", "SETTLEMENT_UI_REAL_PREPARATION")
+            recreate(); shown("Abschluss vorbereitet – fortsetzen")
+            click("Original-PDF prüfen und ausstellen"); shown("Bestätigt"); reveal("Original-PDF öffnen")
+            val original = read("get_settlement", JSONObject().put("settlement_id", invoice)).getJSONObject("record")
+            yes(original.has("pdf") && original.has("invoice_number"), "SETTLEMENT_UI_ORIGINAL_AFTER_CONFIRMATION")
+            captureSyntheticScreen("settlement-invoice-confirmed")
+            openOffice(); click("Abrechnung"); click("Abschlüsse"); click("[TEST] Labor 200")
+            for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
+            click("Labor-Abrechnung bestätigen"); shown("Abschluss vorbereitet – fortsetzen")
+            click("Internen Abschluss fertigstellen"); shown("Bestätigt")
+            val internal = read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record")
+            yes(!internal.has("invoice_number") && !internal.has("pdf"), "SETTLEMENT_UI_INTERNAL_NO_INVOICE")
+            captureSyntheticScreen("settlement-labor-confirmed")
+            openOffice(); click("Abrechnung"); shown("1100,00 €")
+            yes(read("get_accounting_overview").getLong("total_minor") == 110000L, "SETTLEMENT_UI_900_PLUS_200")
+            click("Rechnung"); shown("900,00 €")
+            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "qa_settlement_invoice"); back()
+            recreate(); shown("900,00 €")
+            yes(field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") == true, "SETTLEMENT_UI_FILTER_RECREATION")
+            captureSyntheticScreen("settlement-overview-filter")
+            openOffice(); click("Abrechnung"); reveal("Leistungen abrechnen"); click("Leistungen abrechnen")
+            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung")
+            click("Position hinzufügen"); enter("Leistung", "[TEST] Synthetische manuelle Leistung A")
+            enter("Tatsächlich geleistete Menge", "1"); enter("Einheit", "Leistung"); enter("Preis je Einheit (€)", "3,00")
+            click("Entwurf speichern und prüfen"); shown("[TEST] Erste manuelle Abrechnung"); shown("Entwurf")
+            val firstNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Erste manuelle Abrechnung" }
+            yes(firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 300L, "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT")
+            openOffice(); click("Abrechnung"); click("Leistungen abrechnen")
+            reveal("Bezeichnung")
+            yes(field("Bezeichnung")?.text?.toString().orEmpty().isEmpty(), "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_EMPTY")
+            yes(node("Abrechnungsart: Rechnung") != null, "SETTLEMENT_UI_NEW_EDITOR_DEFAULT_ROUTE")
+            enter("Bezeichnung", "[TEST] Zweite manuelle Abrechnung")
+            click("Abrechnungsart: Rechnung"); click("Labor clandestino")
+            click("Position hinzufügen"); enter("Leistung", "[TEST] Synthetische manuelle Leistung B")
+            enter("Tatsächlich geleistete Menge", "2"); enter("Einheit", "Stück"); enter("Preis je Einheit (€)", "2,00")
+            click("Entwurf speichern und prüfen"); shown("[TEST] Zweite manuelle Abrechnung"); shown("Entwurf")
+            val secondNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Zweite manuelle Abrechnung" }
+            yes(secondNew.getString("id") != firstNew.getString("id") && secondNew.getString("route") == "labor" && secondNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 400L, "SETTLEMENT_UI_NEW_OPERATION_DISTINCT_ID_ROUTE_AND_AMOUNT")
+            yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung", "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND")
+            openOffice(); click("Abrechnung"); click("Abschlüsse"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
+            reveal("Bezeichnung"); yes(field("Bezeichnung")?.text?.toString()?.contains("[TEST] Erste manuelle Abrechnung") == true, "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT")
+            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft"); click("Entwurf speichern und prüfen"); shown("[TEST] Erste manuelle Abrechnung geprüft")
+            yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung geprüft", "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH")
+            yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks, "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED")
+            openOffice(); click("Abrechnung")
+            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); scrollTop(); click("Gesamt"); shown("1100,00 €")
+            for (wide in listOf(false, true)) {
+                activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
+                shell("settings put system font_scale 2.0")
+                launch(); openOffice(); click("Abrechnung")
+                test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+                waitUntil("SETTLEMENT_APPLIED_200_FONT_$wide") {
+                    var applied = false
+                    test.runOnMainSync { val configuration = activity?.resources?.configuration; applied = configuration != null && configuration.fontScale >= 1.99f && configuration.orientation == if (wide) android.content.res.Configuration.ORIENTATION_LANDSCAPE else android.content.res.Configuration.ORIENTATION_PORTRAIT }
+                    applied
+                }
+                settleUi(); reveal("Gesamt"); shown("1100,00 €")
+                captureSyntheticScreen("settlement-overview-200-${if (wide) "landscape" else "portrait"}")
+            }
+            return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false).put("real_main_activity", true)
+                .put("both_completion_routes", true).put("exact_amounts", true).put("filters_and_navigation", true).put("font_scale_200_percent", true).put("draft_recreation", true)
+                .put("physical_pixel_tested", false)
+        } catch (failure: Throwable) {
+            runCatching { captureSyntheticScreen("settlement-failure") }
+            throw failure
+        } finally {
+            previous.flags = previousFlags; automation.serviceInfo = previous
+            shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
+            activity?.let { current -> test.runOnMainSync { current.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED; if (!current.isFinishing) current.finish() } }
+        }
+    }
+
     private fun executeAccounting(reopen: Boolean): JSONObject {
         yes(test.context.packageName == "at.hausgarten.service.test" && context.packageName == "at.hausgarten.service" && Build.VERSION.SDK_INT == 35 && Build.HARDWARE in listOf("ranchu", "goldfish") && shell("getprop ro.kernel.qemu") == "1", "ACCOUNTING_DISPOSABLE_EMULATOR_BEFORE_STORAGE")
         val marker = File(context.noBackupFilesDir, "qa-native-accounting.json")
@@ -512,7 +605,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         try {
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
             launch(); openOffice(); click("Abrechnung"); shown("1100,00 €")
-            click("Abgerechnet"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
+            click("Rechnung"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
             click("‹ Zurück"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
             yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW")

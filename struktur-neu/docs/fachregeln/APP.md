@@ -11,46 +11,57 @@ Weboberfläche wird nicht mehr gepflegt.
 
 Kunden, Einsatzobjekte und Rechnungsempfänger sind unterschiedliche Beziehungen.
 Auftragslose Arbeiten bleiben möglich. Persönliches
-„b.b./bezahlt“ heißt in der Oberfläche „Labor Clandestinus“ und ist vom
+„b.b./bezahlt“ wird intern verlustfrei weitergeführt und gehört zur Art
+„Labor clandestino“; es bleibt vom
 Rechnungsstatus getrennt. Fehlende Daten, Preise, Zeiten, Beziehungen und
 Belegnummern nicht erfinden.
 
 ## Abrechnung
 
 Unter Büro → Organisieren steht Abrechnung direkt nach Offene Stunden und vor
-Angebote. Abgerechnet und labor clandestinus sind gleichwertige, gegenseitig
-ausschließende lokale Abrechnungswege. Eine Zahlung oder ein Bezahlt-Feld allein
-ist keine Zuordnung. Die Übersicht erstellt keine Rechnungen und verwaltet keine
-Zahlungen; sevDesk bleibt dafür zuständig.
+Angebote. Rechnung und Labor clandestino bleiben getrennte Abrechnungsarten mit
+jeweiliger Summe und gemeinsamer Gesamtsumme: 900 € Rechnung plus 200 € Labor
+sind 1.100 €. Die Übersicht bleibt eine Sicht auf zugeordnete Aufträge und
+Arbeiten, nicht nur auf ausgestellte Rechnungen. Bestätigte Rechnungs- und
+interne Laborbeträge liefern dieselbe Betragsgrundlage. Persönliche Markierungen
+sind weder Zahlungen noch Leistungsbindungen; Abschluss, Zahlung und Korrektur
+ändern sie nicht automatisch. Die bisherigen internen Werte `billed`,
+`personal_paid`, Auftragsstatus und IDs bleiben erhalten.
 
-Die für Beträge erforderlichen Daten kommen erst aus der Rechnungsfunktion in
-Phase 2 (Eigentümerentscheidung 06.11.2026). Es gibt keine manuelle Betragseingabe
-und keine Ableitung aus Stunden oder Auslagen. Fehlende Rechnungsbeträge sind
-unbekannt, nicht null Euro. Die zugeordneten Aufträge bleiben sichtbar; ihre
-Summenkarten kennzeichnen ausstehende oder unvollständige Beträge ausdrücklich.
-Historische sevDesk-Versuchsdaten werden dafür nicht als Rechnungsquelle verwendet.
+Ein Auftrag erscheint innerhalb der Übersicht höchstens einmal; auftragslose
+Arbeiten bleiben eigene Einheiten. Manuelle Abrechnungen ohne Quellarbeit sind
+bewusst angelegte eigene Einheiten, keine künstlichen Arbeiten oder Aufträge.
+Positionsbeträge zählen genau einmal und werden ihrer tatsächlichen Quelle
+zugeordnet. Auftrag und zugehörige Arbeiten dürfen nicht gleichzeitig als
+Betragsquellen addiert werden. Bei Sammelrechnungen wird nur der jeweilige
+Positionsanteil je Auftrag zugerechnet. Mehrere Positionen derselben Arbeit sind
+zulässig, während ihre aktive Bindung pro Vorgang nur einmal geführt wird.
+Weitere nicht ausgewählte Arbeiten bleiben offen.
 
-Ein Auftrag erscheint höchstens einmal. Die reservierte, ausschließlich gelesene
-`accounting_amount`-Gesamtsumme hat Vorrang vor Beträgen seiner Arbeitseinträge.
-Ohne Auftragssumme werden ausschließlich eindeutig zugeordnete Eintragsbeträge
-zusammengerechnet. Offene Eintragsbeträge werden nie zugeschlagen. Enthält eine
-nur über Arbeitseinträge zugeordnete Gruppe noch offene Einträge, darf ihre
-Auftragssumme nicht als vollständig abgerechnet gelten. Auftragslose Arbeiten
-bleiben eigene Einträge. Unlesbare Gesamtbeträge sowie widersprüchliche Wege
-werden separat zur Prüfung gezeigt und nicht summiert. Die Betragsquelle wird
-in Phase 2 befüllt; die aktuelle Funktion ändert keine Rechnungsbeträge.
-Die Berechnung erfolgt centgenau.
+Fehlende Beträge sind unbekannt, nicht 0 €. Bekannte Teilbeträge dürfen mit
+sichtbarer Kennzeichnung des unvollständigen Umfangs einfließen. Widersprüchliche
+Benutzerzuordnungen sind zur Prüfung sichtbar und dürfen nicht willkürlich einer
+Art zugerechnet werden. Das bestehende Feld `accounting_amount` bezeichnet
+weiterhin einen dezimalen Eurobetrag; Centinteger gehören nicht in dieses Feld.
+Keine Preise aus Stunden, Angeboten oder Auslagen erfinden.
 
 Zeitraum, Objekt und Bezeichnungssuche gelten für Summen und Liste gemeinsam.
-Das Datum ist das letzte berücksichtigte Arbeitsdatum, bei Aufträgen ohne
-Arbeitseintrag das geplante Auftragsdatum; jede Zeile bezeichnet das Datum.
-Summenkarten setzen nur den Wegefilter. Die übrigen Filter bleiben erhalten.
-Ein Antippen öffnet die ursprüngliche Detailansicht. Die vorhandene persistente
-Aktion Abrechnung bearbeitet den Weg für den gesamten Auftrag mit
-Versionsprüfung und atomarer Aktualisierung seiner vorhandenen Markierungen.
+Das Datum bleibt das letzte berücksichtigte Arbeitsdatum, bei Aufträgen ohne
+berücksichtigte Arbeit das geplante Auftragsdatum. Rechnungsdatum ersetzt diesen
+Zeitbezug nicht. Summenkarten setzen nur den Artenfilter; übrige Filter,
+Scrollpositionen, ursprüngliche Detailaufrufe und Rücksprünge bleiben erhalten.
+Die vorhandene persistente Zuordnungsaktion bearbeitet den Weg für den gesamten
+Auftrag mit Versionsprüfung und atomarer Aktualisierung seiner Markierungen.
 Eine widersprüchliche Altzuordnung erfordert eine ausdrückliche Auswahl.
-Die lokalen Felder `billed`, Auftragsstatus und `personal_paid` bleiben erhalten;
-Abgerechnet und labor clandestinus dürfen nicht neu kombiniert werden.
+
+`AccountingRules` und `NativeDataRepository.accounting` bleiben die gemeinsame
+Grundlage der Übersicht. `SettlementRules`, `SettlementApplicationService` und
+`SettlementTools` ergänzen die gemeinsame Erfassung und den Abschluss für Compose
+und MCP. Eigenständige aktive Bindungen verhindern parallele oder erneute
+Abrechnung derselben Leistungen. Solange eine Bindung der anderen Art aktiv ist,
+muss zuerst der bisherige Vorgang bewusst korrigiert oder aufgehoben werden.
+Die Benutzerzuordnung wird danach gesondert geändert; Ausstellung, Zahlung oder
+Storno erledigen das nicht nebenbei.
 
 ## Speichern und Löschen
 
@@ -166,7 +177,7 @@ Sicherungslauf darf dieselbe ausdrücklich gewählte Zieldatei überschreiben.
 Verwaiste Inhalte des ausschließlich temporären Verzeichnisses `pixel-backup`
 werden beim Start sowie vor und nach jedem Sicherungslauf entfernt. Ein laufender
 Sicherungsvorgang wird dabei nicht abgeräumt. Es gibt keine Verbindung zur Migrationsprüfung oder zur
-Rechnungsfreigabe. Unverschlüsselte ZIP-Sicherungen behalten Manifestformat und
+automatischen Rechnungsfreigabe. Unverschlüsselte ZIP-Sicherungen behalten Manifestformat und
 Integritätsprüfung; verschlüsselte Container werden als nicht unterstützt abgewiesen.
 
 Wiederherstellung erfolgt ausdrücklich nach technischer Archivprüfung ohne
@@ -183,27 +194,109 @@ beweist keinen laufenden Worker. Der Selbsttest unterscheidet fehlende Nachweise
 Fehler und protokolliertes Dateirücklesen; letzteres ist keine neue Dateiprüfung
 und kein Restore-Test. Fehlercodes dürfen keine Finanzdaten ausgeben.
 
-## Rechnungen: ausschließlich sevDesk
+## Lokale Rechnungen und interne Abschlüsse
 
-Rechnungen werden ausschließlich über sevDesk erstellt, nummeriert, freigegeben
-und versendet; auch die Zahlungsverwaltung erfolgt dort. Gartenpirat stellt
-keine neuen Rechnungen aus, erzeugt keine Rechnungsentwürfe, vergibt keine
-Rechnungsnummern und bearbeitet keine Zahlungen. Altlogik und ehemalige
-Freigabe-/Migrationsnachweise sind entfernt.
+Der Eigentümerauftrag vom 06.11.2026 ersetzt den früheren sevDesk-exklusiven
+Umfang. Unterstützt wird gewöhnliche österreichische Inlandsabrechnung in Euro
+mit bewusst bestätigter Kleinunternehmerbefreiung. Keine Umsatzsteuer berechnen
+oder ausweisen. Rechnungen tragen genau den Hinweis
+„Umsatzsteuerbefreit gemäß § 6 Abs. 1 Z 27 UStG“, weder „inklusive Umsatzsteuer“
+noch lediglich „0 % USt“. Die App bestimmt oder ändert den Steuerstatus nicht
+selbstständig anhand ihrer Summen. Labor ist keine automatische steuerliche
+Ausnahme und bleibt mit Rechnung gemeinsam nachvollziehbar exportierbar.
 
-Arbeitsaufzeichnungen mit Abrechnungsmarkierungen, Auftraggebern und
-Rechnungsempfängern bleiben lokal zugänglich. Sie dienen als fachliche
-Arbeitsgrundlage für eine manuelle Rechnungserstellung in sevDesk.
-Historische Belege in vorhandenen Sicherungen und Geschäftsdaten werden nicht
-aufgrund dieser Codebereinigung gelöscht. Die Wiederherstellung ist eine
-technische Datensicherung, keine Freigabe zur Rechnungsausstellung.
+Entwürfe dürfen unvollständig sein. Ein Abschluss benötigt tatsächliche
+Aussteller- und Empfängerangaben, Leistungsdatum oder -zeitraum, verständliche
+Positionen, positive Mengen, bewusst bestätigte Preise und Zahlungsangaben.
+Mengen und Preise werden mit `BigDecimal` berechnet; jede Position wird auf Cent
+mit `HALF_UP` gerundet, anschließend werden die Centbeträge exakt addiert.
+Deutsches Dezimalkomma ist zulässig; Geld wird nicht mit `Double` berechnet.
+Empfänger und eindeutige Nummer sind einheitliche Produktregeln auch bei
+vereinfachter Kleinunternehmer-Rechnungslegung. UID und Steuernummer nicht
+pauschal erzwingen. Tatsächliche rechtsformabhängige Angaben sind bewusst zu
+prüfen; ein Geschäftsname ersetzt bei Bedarf nicht den rechtlichen Aussteller.
 
-Die Eigentümerfreigabe vom 02.11.2026 akzeptiert, dass alte und nicht mehr
-gebrauchte Drive-, Rechnungs- oder Migrationsverknüpfungen nach der
-Verschlankung unlesbar werden können. Aus diesem Grund keine
-Kompatibilitätsschicht oder Ersatzmigration für abgeschaffte Funktionen bauen.
-Der aktuelle Betrieb, lokale Sicherungen und die Wiederherstellung bleiben
-erhalten.
+Einsatzkunde, Objekt, Auftrag und rechtlicher Rechnungsempfänger bleiben getrennt.
+Alle Quellen einer Sammelrechnung müssen denselben rechtlichen Empfänger haben.
+Material, Fahrt und Entsorgung werden bewusst übernommen. Ein Angebot beweist
+keine tatsächlich ausgeführte Leistung und wird nicht automatisch abgerechnet.
+Historische sevDesk-Umsätze oder Versuchsdaten werden nicht neu ausgestellt oder
+automatisch zu gültigen lokalen Belegen erklärt. Alte Implementierungen und
+Migrationsformulare bleiben stillgelegt.
+
+Der Abschluss besteht aus zwei dauerhaften Schritten: `prepare_settlement` prüft
+die bestätigte Vorschau, friert Stammdaten und Leistungsinhalt ein, reserviert
+aktive Quellenbindungen und bei Rechnung eine lokale Nummer. Erst
+`complete_settlement` erzeugt und prüft das Original-PDF und bestätigt den
+Geschäftsabschluss. Labor wird intern ohne PDF-Rechnung und ohne Nummer bestätigt.
+SQLite und Dateisystem bilden keine gemeinsame Transaktion; ein PDF-Fehler lässt
+die zuvor bestätigte Reservierung zum Fortsetzen bestehen. Die `settlement_id`
+bleibt über beide Schritte gleich; jeder Schritt behält bei Wiederholung seine
+eigene `request_id` und dieselben Argumente. Andere Argumente unter derselben
+Anfragekennung werden abgewiesen. Reservierte Nummern werden nicht neu vergeben.
+Der GP-Nummernkreis ist von sevDesk getrennt; lokale Kalendertage verwenden
+`Europe/Vienna`. Spätere Stammdatenänderungen ändern eingefrorene Belege nicht.
+
+`BusinessDocumentStore` verwendet den vorhandenen lokalen Dokumentenspeicher;
+Rechnungen erhalten einen eigenen mehrseitigen Renderer mit langen Texten und
+Umlauten sowie Android-PDF-Leseprüfung. Der Angebotsrenderer wird nicht als
+fachlich unveränderte Rechnungsvorlage verwendet. Gespeicherte Originale bleiben
+unverändert und werden lokal geöffnet oder per Android-Teilen übergeben.
+Elektronische Übermittlung erfordert die akzeptierte Übermittlungsart. Teilen
+beweist weder Versand noch Zugang; tatsächliche Zugangsnachweise werden gesondert
+erfasst und bei Berichtigung beziehungsweise Storno erhalten.
+
+Ein vollständiges Rechnungsstorno besitzt eine eigene Nummer und Originalverweis.
+Erst sein abgeschlossener Beleg neutralisiert den Originalbetrag und dessen
+aktive Bindungen. Ersatzrechnungen können auf den korrigierten Vorgang verweisen.
+Labor wird mit begründetem internem Gegenvorgang aufgehoben, ohne erfundene
+Stornorechnung. Andere Abrechnungen und persönliche Markierungen bleiben erhalten.
+Zahlungen sind einzelne datierte Beträge. Teilzahlungen, Überzahlungen und
+begründete Gegenbuchungen bleiben nachvollziehbar; Storno oder interne Aufhebung
+löscht keine Zahlung und behauptet keine Rückzahlung. Die Abrechnungsgesamtsumme
+zeigt bestätigte Abrechnungsbeträge und ist keine Zahlungseingangssumme.
+
+Der Ledger liegt in `owner_state` unter `settlement:v1`; SQLite-Schema7 bleibt
+erhalten. Die vollständige lokale ZIP-Sicherung enthält Ledger, eingefrorene
+Inhalte, Nummernserien, Vorgangsbelege, Korrekturen, Zahlungen und Originaldateien.
+Die Serienidentität wird zusätzlich aus Installation und Restore-Epoche außerhalb
+des restaurierten Zählerstands gebildet. Nach Restore läuft die alte Serie nicht
+ungeprüft weiter. Restaurierte Quellen benötigen vor erneuter Abrechnung eine
+bewusste dokumentierte Prüfung des aktuellen Belegstands. Neue nach Restore
+erfasste Leistungen bleiben nutzbar. Die neue Serie stellt fehlende spätere
+Rechnungen, interne Vorgänge, Zahlungen oder Bindungen nicht wieder her.
+
+Ausgestellte Originale, interne Abschlüsse und wesentliche Historien sind vor
+gewöhnlicher Löschung und Speicherbereinigung geschützt. Grundsätzlich sieben
+Jahre ab Jahresende, gegebenenfalls länger aufbewahren; keine automatische
+Alterslöschung. Lokaler Export umfasst beide Arten, getrennte Summen,
+Gesamtsumme, Positionen, Zahlungen und Korrekturen. Filter müssen im Export
+sichtbar bezeichnet sein. PDF, Hash und ZIP allein garantieren keine
+Rechtskonformität.
+
+Ausland, Reverse Charge, abweichender Steuerstatus und strukturierte Rechnungen
+an Bundesdienststellen gehören nicht zum unterstützten Abschluss. Keine
+sevDesk-/Bankanbindung, Pflichtcloud, automatischen Mahnungen, Anzahlungsrechnungen
+oder allgemeine Steuerverwaltung ergänzen. Manuelle Zahlungserfassung ersetzt
+keine Registrierkasse. Der Entwicklungsauftrag autorisiert weder produktive
+Rechnungsausstellung noch Migration, Installation oder APK-Verteilung.
+
+### Österreichische Primärquellen
+
+Am 06.11.2026 fachlich gelesen; die Quellen bestimmen keine automatische
+Steuerstatusumschaltung:
+
+- [USP/BMF: Kleinunternehmen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html): Befreiung ohne Umsatzsteuerausweis; UID nicht pauschal erforderlich.
+- [USP/BMF: Kleinbetragsrechnungen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/kleinbetragsrechnungen.html) und [Formerfordernisse](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html): vereinfachte Rechnungslegung auch für steuerbefreite Kleinunternehmen; strengere Empfänger-/Nummernregel hier bewusst als Produktregel.
+- [USP/BMF: e-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung.html): akzeptierte elektronische Übermittlung, Lesbarkeit und nachvollziehbarer Prüfpfad; Bundesdienststellen benötigen strukturierte Rechnungen.
+- [BMF: UStR 2000](https://findok.bmf.gv.at/volltext?dokumentId=e24c9c94-4cc7-4241-a016-524f51f880e3), Rz1533/1534, Fassung seit 10.12.2025 im [amtlichen XML-ZIP](https://findok.bmf.gv.at/iwg/19/19969/19969.zip) gelesen: Berichtigung mit Originalverweis und Zugangsnachweis.
+- [USP/BMF: Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html): sieben Jahre ab Jahresende und gegebenenfalls längere Fristen.
+- [USP/BMF: Registrierkassenpflicht](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-rechte-und-pflichten/registrierkassen.html): Zahlungseinträge ersetzen erforderliche Kassen-/Barzahlungsbelege nicht.
+
+[RIS: UGB §14](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10001702&Paragraf=14)
+zu rechtsformabhängigen Angaben wurde nur im amtlichen Suchauszug bestätigt;
+der RIS-Volltext war beim Abruf mit HTTP503 nicht zugänglich. Keine vollständige
+Volltextprüfung dieses Paragraphen behaupten.
 
 ## Pflanzen und Geräte
 
@@ -223,8 +316,8 @@ Die grafische Umsetzung folgt dem vom Eigentümer angehängten 24-seitigen PDF
 Gestaltungsentscheidung ersetzt die frühere blaue Gestaltung: Waldgrün,
 hellgraugrüner Hintergrund, weiße gerundete Karten mit feinem Rand, klare
 Überschriften und grüne Icon-Pills in der Navigation. Der bestehende Funktionsumfang
-bleibt maßgeblich; Rechnung, Zahlungsverwaltung und neue Buchhaltungsfunktionen
-werden nicht aus den Mockups übernommen. Backup-Logik, Format und Bedienabläufe
+bleibt maßgeblich; die lokale Rechnungs- und Zahlungsfunktion folgt dem
+ausdrücklichen Auftrag vom 06.11.2026, nicht allein den Mockups. Backup-Logik, Format und Bedienabläufe
 bleiben unverändert. Fachliche Listen und gezielte Details ersetzen Rohdatenwände.
 
 Die Sammellöschung von Arbeiten zeigt die markierten Karten und die Anzahl der

@@ -42,6 +42,7 @@ paths.update(native_source(name) for name in (
     'RevierLocalRepository', 'RevierSnapshotRepository', 'LocalWorkflowTools',
     'PlanningApplicationService', 'OfferApplicationService',
     'OwnerRequestTransactions', 'McpErrors', 'CalendarSetupRules', 'FullBackupActivity',
+    'SettlementRules', 'SettlementTools', 'SettlementApplicationService', 'SettlementSourceProtection', 'BusinessDocumentStore', 'WorklogRelationRules',
     'AccountingRules', 'WorkApplicationService', 'OwnerApplicationService', 'OwnerToolSchemas',
     'RestoreRecoveryActivity',
 ))

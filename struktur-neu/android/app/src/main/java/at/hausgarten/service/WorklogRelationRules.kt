@@ -82,9 +82,7 @@ class WorklogRelationRules {
                             throw IllegalArgumentException("Abgerechnete Leistungsdaten bleiben unverändert. Interne Notizen können ergänzt werden.")
                         }
                     }
-                    if (((payload.optInt("billed", old!!.optInt("billed", 0)) == 0))) {
-                        throw IllegalArgumentException("Diese Arbeit ist bereits einer abgeschlossenen Rechnung zugeordnet.")
-                    }
+                    // User markings are independent of retained invoice evidence and payments.
                     i++
                 }
             }

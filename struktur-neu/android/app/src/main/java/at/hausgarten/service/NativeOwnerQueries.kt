@@ -15,10 +15,52 @@ this.context = context
 this.store = store
 this.repository = repository
 }
+private fun exportSettlements(args: JSONObject): JSONObject {
+McpSchema.validate(args, SettlementTools.schema("export_settlements"))
+val db = store.getWritableDatabase()
+store.beginBusinessTransaction(db)
+try {
+    val ledger = SettlementRules.ledger(repository)
+    val master = repository.effective()
+    val selectedKeys = linkedSetOf<String>()
+    var offset = 0
+    var reviewOffset = 0
+    var overview: JSONObject? = null
+    do {
+        val page = store.nativeData().accounting(JSONObject(args.toString()).put("limit", 100).put("offset", offset).put("review_offset", reviewOffset))
+        if (overview == null) overview = JSONObject(page.toString()).apply { remove("records"); remove("reviews") }
+        for (row in SettlementRules.rows(page.getJSONArray("records")) + SettlementRules.rows(page.getJSONArray("reviews"))) selectedKeys.add(row.getString("key"))
+        offset += 100; reviewOffset += 100
+    } while (offset < overview!!.getInt("total") || reviewOffset < overview!!.getInt("review_total"))
+    val filtered = args.keys().asSequence().any { args.optString(it).isNotEmpty() }
+    val all = SettlementRules.records(ledger)
+    val selected = if (!filtered) all else all.filter { row ->
+        "settlements:" + row.getString("id") in selectedKeys || SettlementRules.rows(row.optJSONArray("sources")).any { ref ->
+            SettlementRules.rows(master.optJSONArray(ref.getString("collection"))).any { it.optString("id") == ref.getString("id") } &&
+                SettlementRules.group(master, ref.getString("collection"), ref.getString("id")) in selectedKeys
+        }
+    }.toMutableList().apply {
+        val ids = map { it.getString("id") }.toSet()
+        for (row in all) if (row.optString("corrects") in ids || row.optString("corrected_by") in ids) if (none { it.getString("id") == row.getString("id") }) add(row)
+    }
+    val ids = selected.map { it.getString("id") }.toSet()
+    val result = JSONObject(ledger.toString()).put("format", "gartenpirat.local-settlement-export.v1")
+        .put("exported_at", java.time.Instant.now().toString()).put("filtered", filtered).put("filters", JSONObject(args.toString()))
+        .put("records", JSONArray(selected)).put("overview", overview).put("selection_keys", JSONArray(selectedKeys))
+        .put("payments", JSONArray(SettlementRules.rows(ledger.optJSONArray("payments")).filter { it.optString("settlement_id") in ids }))
+        .put("delivery_evidence", JSONArray(SettlementRules.rows(ledger.optJSONArray("delivery_evidence")).filter { it.optString("settlement_id") in ids }))
+        .put("notice", "Beide Abrechnungsarten sind nachvollziehbar. Summen sind bestätigte Abrechnungsbeträge, keine Zahlungseingänge. Gefilterte Auswahl ist kein vollständiger Betriebsbestand. PDF, Hash und ZIP garantieren keine Rechtskonformität.")
+    // Replay internals are retained by full backups; the human export keeps business histories.
+    result.remove("operations")
+    db.setTransactionSuccessful()
+    return result
+} finally { db.endTransaction() }
+}
+
 private fun storageContract(): JSONObject =
     JSONObject().put("storage_contract_version", 3)
         .put("business_sync_allowed", false)
-        .put("invoice_finalization", "DISABLED_SEVDESK_ONLY")
+        .put("invoice_finalization", "LOCAL_KU_EUR_PREPARE_COMPLETE")
 
 private @Throws(Exception::class) fun withStorageContract(result: JSONObject): JSONObject {
 
@@ -39,6 +81,8 @@ return result
 }
 override @Throws(Exception::class) fun query(name: String, args: JSONObject): JSONObject? {
 
+if (name == "export_settlements") return exportSettlements(args)
+if (name in SettlementTools.READS && name != "export_settlements") return SettlementTools.query(name, args, repository)
 if (AppointmentTools.read(name)) {
 return AppointmentRuntime.query(context, store, name, args)
 }
@@ -96,7 +140,7 @@ var current = repository.effective()
 var caps = current.optJSONObject("capabilities")
 withStorageContract(data)
 data.put("inventory_processing_engine", current.optString("processing_engine")).put("offers_local_ready", caps != null && caps.optBoolean("offers_v1")).put("service_catalog_local_ready", caps != null && caps.optBoolean("service_catalog_v1"))
-data.put("capabilities", ((if (caps == null) JSONObject() else JSONObject(caps.toString()))).put("local_payment_ledger_v1", false).put("native_editor_storage_v1", true).put("business_drive_sync", false).put("encrypted_drive_backup", false).put("local_plaintext_backup", true))
+data.put("capabilities", ((if (caps == null) JSONObject() else JSONObject(caps.toString()))).put("local_settlements_v1", true).put("local_payment_ledger_v1", true).put("native_editor_storage_v1", true).put("business_drive_sync", false).put("encrypted_drive_backup", false).put("local_plaintext_backup", true))
 var backup = JSONObject()
 var target: Boolean = true
 data.put("local_workflows_contract", 1).put("backup_contract", JSONObject().put("format_version", 3).put("inventory_issues_block_backup", false).put("encrypted_streaming", false).put("daily_deferrable", false).put("setup_requires_device", true).put("remote_readback_sha256", false).put("mode", "PIXEL_PLAINTEXT_ZIP").put("automatic_enabled", false).put("key_required", false))

@@ -147,10 +147,11 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         val properties = JSONArray()
         val propertyIds = (listOf(root) + (0 until works.length()).map { works.getJSONObject(it) }).map { it.optString("property_id") }.filter { it.isNotEmpty() }.distinct()
         for (id in propertyIds) record(db, "properties", id)?.let { properties.put(it) }
-        val row = AccountingRules.project(master, personal, properties).firstOrNull() ?: JSONObject()
+        val ledger = JSONObject(store.ownerValue("settlement:v1", "{}"))
+        val row = AccountingRules.project(master, personal, properties, ledger).firstOrNull { it.optString("collection") == collection && it.optString("id") == root.getString("id") } ?: JSONObject()
             .put("collection", collection).put("id", root.getString("id")).put("title", root.optString(if (collection == "orders") "title" else "activity"))
             .put("route", "").put("issue", "").put("expected_record_hash", AccountingRules.hash(master, personal, collection, root.getString("id")))
-        row.put("amount_decimal", root.opt(AccountingRules.AMOUNT) ?: if (!row.isNull("amount_minor") && row.has("amount_minor")) OfferMoney.decimal(row.getLong("amount_minor")) else JSONObject.NULL)
+        row.put("amount_decimal", if (!row.isNull("amount_minor") && row.has("amount_minor")) OfferMoney.decimal(row.getLong("amount_minor")) else JSONObject.NULL)
             .put("work_count", works.length())
     }
 
@@ -177,8 +178,8 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         for (term in SnapshotReadSupport.fold(args.optString("query")).trim().split(Regex("\\s+")).filter { it.isNotEmpty() }) {
             where.append(" AND instr(title_search,?)>0"); values.add(term)
         }
-        val valid = "$where AND issue=''" + if (route.isEmpty()) "" else " AND route=?"
-        val listed = "$where AND issue_code IN ('','pending_amount')" + if (route.isEmpty()) "" else " AND route=?"
+        val valid = "$where AND issue_code IN ('','partial_amount')" + if (route.isEmpty()) "" else " AND route=?"
+        val listed = "$where AND issue_code IN ('','pending_amount','partial_amount')" + if (route.isEmpty()) "" else " AND route=?"
         val validValues = if (route.isEmpty()) values else ArrayList(values).apply { add(route) }
         var billed = 0L
         var labor = 0L
@@ -207,7 +208,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             }
             return result
         }
-        val reviewWhere = "$where AND issue_code NOT IN ('','pending_amount')" + if (route.isEmpty()) "" else " AND (route=? OR route='')"
+        val reviewWhere = "$where AND issue_code NOT IN ('','pending_amount','partial_amount')" + if (route.isEmpty()) "" else " AND (route=? OR route='')"
         JSONObject().put("billed_minor", billed).put("labor_minor", labor).put("total_minor", Math.addExact(billed, labor))
             .put("records", page(listed, validValues, offset)).put("total", count(listed, validValues))
             .put("pending_billed", pendingBilled).put("pending_labor", pendingLabor).put("pending_amounts", pendingBilled + pendingLabor)
@@ -430,7 +431,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         for (table in arrayOf("pending", "owner_state", "work_sessions", "work_session_events", "photo_attachments")) for (action in arrayOf("INSERT", "UPDATE", "DELETE")) {
             val row = if (action == "DELETE") "OLD" else "NEW"
             val condition = when (table) {
-                "owner_state" -> " WHEN $row.key='snapshot' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1' OR $row.key='personal_paid' OR $row.key='personal_paid_migrated'"
+                "owner_state" -> " WHEN $row.key='snapshot' OR $row.key='settlement:v1' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1' OR $row.key='personal_paid' OR $row.key='personal_paid_migrated'"
                 "pending" -> " WHEN $row.kind<>'mcp_receipt'"
                 else -> ""
             }
@@ -486,7 +487,12 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                     while (rows.moveToNext()) { columns[rows.getString(1)] = rows.getString(2).uppercase(Locale.ROOT); primary[rows.getString(1)] = rows.getInt(5) }
                 }
                 if (columns != required) return false
-                val expectedKey = if (name == "native_read_meta") mapOf("id" to 1) else mapOf("collection" to 1, "id" to 2)
+                val expectedKey = when (name) {
+                    "native_read_meta" -> mapOf("id" to 1)
+                    "native_read_accounting" -> mapOf("key" to 1)
+                    "native_read_accounting_properties" -> mapOf("accounting_key" to 1, "property_id" to 2)
+                    else -> mapOf("collection" to 1, "id" to 2)
+                }
                 if (primary.filterValues { it > 0 } != expectedKey) return false
             } else if (normalized(found) != normalized(sql)) return false
         }
@@ -533,7 +539,8 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             }
         }
         val personal = db.rawQuery("SELECT value FROM owner_state WHERE key='personal_paid'", null).use { if (it.moveToFirst()) AccountingRules.ids(JSONArray(it.getString(0))) else emptySet() }
-        for (row in AccountingRules.project(master, personal, accountingProperties)) {
+        val ledger = JSONObject(store.ownerValue("settlement:v1", "{}"))
+        for (row in AccountingRules.project(master, personal, accountingProperties, ledger)) {
             val values = ContentValues()
             for (field in listOf("key", "collection", "id", "title", "work_date", "date_label", "object_label", "route", "issue", "issue_code", "expected_record_hash")) values.put(field, row.getString(field))
             values.put("title_search", SnapshotReadSupport.fold(row.getString("title")))

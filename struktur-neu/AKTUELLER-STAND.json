@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T06:49:17.664Z",
-    "version_name": "1.59.1",
-    "version_code": 129,
-    "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
-    "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
+    "observed_at_utc": "2026-11-06 10:51:36 UTC",
+    "version_name": "1.60.0",
+    "version_code": 130,
+    "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; live Pixel identity matches verified source 701046b and identical main source at 3dc7146; candidate extends that installed Kotlin source with the authorized Labor Clandestinus, Back and Abrechnung changes."
+    "repository_source_match": "PASS; live installed 1.60.0/130 matches exact Kotlin source fingerprint of bfd63ca and current main 037515d. Candidate extends this verified source; no installation authorized."
   },
   "observed_installation_history": [
     {
@@ -101,47 +101,48 @@
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
       "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
+    },
+    {
+      "observed_at_utc": "2026-11-06 10:51:36 UTC",
+      "version_name": "1.60.0",
+      "version_code": 130,
+      "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; live installed 1.60.0/130 matches exact Kotlin source fingerprint of bfd63ca and current main 037515d. Candidate extends this verified source; no installation authorized."
     }
   ],
   "current_task": {
-    "name": "Abrechnung mit getrennten Wegen, Filtern und Phase-2-Rechnungsbeträgen",
-    "status": "COMPLETED; ORIGINAL_SIGNED_APK_DISTRIBUTED_AND_BYTE_VERIFIED; NOT_INSTALLED",
+    "name": "Lokale Rechnungen und interne Labor-Abschlüsse mit erhaltener Abrechnung",
+    "status": "LOCAL_SOURCE_JVM_ANDROID_LINT_PASSED; NATIVE_CI_PENDING; NOT_INSTALLED_OR_DISTRIBUTED",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-06T06:49:17.664Z",
-      "version_name": "1.59.1",
-      "version_code": 129,
-      "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
-      "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
+      "observed_at_utc": "2026-11-06 10:51:36 UTC",
+      "version_name": "1.60.0",
+      "version_code": 130,
+      "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; live Pixel identity matches verified source 701046b and identical main source at 3dc7146; candidate extends that installed Kotlin source with the authorized Labor Clandestinus, Back and Abrechnung changes."
+      "repository_source_match": "PASS; live installed 1.60.0/130 matches exact Kotlin source fingerprint of bfd63ca and current main 037515d. Candidate extends this verified source; no installation authorized."
     },
     "owner_decisions": [
-      "Die im Screenshot markierte Bezeichnung „Persönlich bezahlt / b.b.“ in „Labor Clandestinus“ umbenennen.",
-      "Labor Clandestinus im Menü nach langem Drücken auf eine Arbeitsaufzeichnung ergänzen; bei Einzelauswahl dieselbe vorhandene Aktion mit der ausgewählten Arbeit öffnen.",
-      "Zurück aus den vier Hauptmenüs führt auf den Heute-Bildschirm; auf Heute bleibt die App dort. Unterseiten gehen zunächst zum Aufrufer zurück.",
-      "Abrechnung unter Büro/Organisieren zwischen Offene Stunden und Angebote: getrennte Wege Abgerechnet und labor clandestinus; gemeinsame Filter, Summen und ursprüngliche Details; keine offenen oder nur bezahlten Aufträge.",
-      "Beträge kommen erst aus der Rechnungsfunktion in Phase 2 (Antwort im aktuellen Auftrag). Keine manuelle Betragseingabe und keine erfundenen Preise. Fehlende Beträge sichtbar als ausstehend behandeln.",
-      "APK erstellen und originalsigniert in Gartenpirat – Paketinstallation bereitstellen. Keine Pixel-Installation beauftragt."
+      "Auftrag 06.11.2026 ersetzt sevDesk-exklusive Begrenzung für gewöhnliche österreichische EUR-Kleinunternehmer-Abrechnung.",
+      "Abrechnung behält Auftragseinheiten, getrennte Arten, Filter und Arbeitsdatumsbezug; bestätigte Rechnungs- und Laborbeträge ergeben gemeinsam die Gesamtsumme.",
+      "Entwicklung und isolierte synthetische Validierung; keine produktive Installation, Ausgabe, Migration oder APK-Verteilung."
     ],
     "validation": {
-      "source": "PASS; 61 selected Python checks, canonical source/privacy gates and 173 action fingerprints; accounting rules/service/schema covered by source-review fingerprints.",
-      "jvm": "PASS; clean CI 42190191870 passed all 9 JVM suites, including 33 accounting checks and 102 SQLite/JDBC checks. Real journal/version guards, replay, stale proof, effective-state confirmation and rollback covered.",
-      "android": "PASS; local release, Android test compilation and lintRelease; clean CI 42190191870 release/test build and lint passed on bfd63ca.",
-      "native_ui_execution": "PASS; focused CI 42190358855: 132 native accounting checks plus 6 force-stop/new-process checks. Real MainActivity, exact amounts, filters/navigation, live refresh, replay/stale rejection, receipt-abort transaction rollback, explicit conflict correction, removal and missing Phase-2 amounts. Synthetic emulator only, no productive data read.",
-      "visual_review": "PASS; 8 synthetic screenshots captured at 100/200 percent font in portrait/landscape; overview and correction editor visually reviewed with existing native design.",
-      "apk": "PASS; original signature, version 1.60.0/130, 636 unchanged source assets and empty business seed; clean BuildConfig independently read from signed APK DEX and identical Drive readback.",
-      "distribution": "PASS; uploaded to the existing Paketinstallation folder; complete 88326961-byte Drive download byte-equal to verified local original-signed APK.",
-      "installation": "NOT_PERFORMED; user requested APK distribution only",
-      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
-      "source_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
-      "ci_baseline_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42190191870",
-      "ci_native_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42190358855"
-    },
-    "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
+      "source": "PASS; check_current.py: 61 Python tests, canonical source/privacy checks and 183 exact semantic UI/MCP action mappings.",
+      "jvm": "PASS; 12 JVM suites with --tables on unchanged input fingerprint 9a00b1df3506899a7b3fbaea2e8e47d65f92b661d6954a50becf0df2afc11f14; includes JDBC102, Accounting33, SettlementAccounting32, SettlementProtection42, Settlement119 and existing work/timer/offer/domain regressions.",
+      "android": "PASS; local assembleRelease, assembleReleaseAndroidTest and lintRelease; actual final build successful after fixing the reported indentation finding.",
+      "native_ui_execution": "NOT_RUN; pending isolated API35 CI native_settlement/native_settlement_reopen/native_settlement_ui and existing graphics regressions.",
+      "installation": "NOT_PERFORMED",
+      "distribution": "NOT_PERFORMED",
+      "source_sha256": "ee5da3808fbcd540e57678cea3d7ca9abdd9aa6e888f1187009ed8982bb649de"
+    }
   },
   "open_checks": [
-    "Pixel 1.59.1/129 live bestätigt; Quellfingerabdruck stimmt exakt mit main 3dc7146 und Releasequelle 701046b überein. Frühere gezielte Emulatorprüfung 42119487017 bleibt fehlgeschlagen: Zeitlimit bei Sammellöschungsprüfung und Navigationshelfer. Ältere vollständige native Backup-/Cleanup-Suite aus Run41917494315 bleibt offen.",
+    "Pixel live 1.60.0/130 mit Quellfingerabdruck dbaa6402 bestätigt. Ältere unvollständige native Backup-/Cleanup-Abnahmen bleiben getrennt offen; neue Abrechnung wird isoliert geprüft, keine produktive Installation.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet."
   ],
@@ -183,15 +184,12 @@
     "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
   },
   "current_test_candidate": {
-    "version_name": "1.60.0",
-    "version_code": 130,
+    "version_name": "1.61.0",
+    "version_code": 131,
     "package_name": "at.hausgarten.service",
-    "status": "PASS_TARGETED_ACCEPTANCE; ORIGINAL_SIGNED_APK_DISTRIBUTED_AND_BYTE_VERIFIED",
+    "status": "LOCAL_VALIDATION_PASSED; NATIVE_CI_PENDING",
     "installation": "NOT_INSTALLED",
-    "distribution": "COMPLETED_DRIVE_PAKETINSTALLATION",
-    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
-    "source_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
-    "apk_sha256": "796ea19df8f5ab6867b791deda676aa7b7dc219009d549ea53f2f3b65765fda6",
-    "download_url": "https://drive.google.com/file/d/14zpUqOneIoyKMat6N9zUl3FY6USZWdn9/view?usp=drivesdk"
+    "distribution": "NOT_AUTHORIZED",
+    "source_sha256": "ee5da3808fbcd540e57678cea3d7ca9abdd9aa6e888f1187009ed8982bb649de"
   }
 }

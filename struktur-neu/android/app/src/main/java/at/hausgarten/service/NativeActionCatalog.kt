@@ -13,6 +13,16 @@ internal data class NativeAction(
 internal object NativeActionCatalog {
     val actions: List<NativeAction> =
         listOf(
+            NativeAction("abrechnung.closures", "abrechnung", "Abschlüsse lesen", listOf("list_settlements", "get_settlement", "get_settlement_context")),
+            NativeAction("abrechnung.draft", "abrechnung", "Leistungen erfassen", listOf("save_settlement_draft")),
+            NativeAction("abrechnung.prepare", "abrechnung", "Vorschau prüfen und reservieren", listOf("get_settlement", "prepare_settlement")),
+            NativeAction("abrechnung.complete", "abrechnung", "Rechnung oder Labor abschließen", listOf("complete_settlement")),
+            NativeAction("abrechnung.correction", "abrechnung", "Storno oder interne Aufhebung", listOf("correct_settlement", "complete_settlement")),
+            NativeAction("abrechnung.payment", "abrechnung", "Zahlung und Gegenbuchung", listOf("add_settlement_payment")),
+            NativeAction("abrechnung.delivery", "abrechnung", "Zugangsnachweis erfassen", listOf("record_settlement_delivery")),
+            NativeAction("abrechnung.restore_review", "abrechnung", "Restaurierten Belegstand prüfen", listOf("review_restored_sources")),
+            NativeAction("abrechnung.original", "abrechnung", "Original öffnen und teilen", listOf("get_settlement_pdf")),
+            NativeAction("abrechnung.export", "abrechnung", "Beide Arten lokal exportieren", listOf("export_settlements")),
             NativeAction("abrechnung.overview", "abrechnung", "Abrechnung / Summen / Filter", listOf("get_accounting_overview")),
             NativeAction("abrechnung.detail", "abrechnung", "Abrechnungszuordnung lesen", listOf("get_accounting_record")),
             NativeAction("abrechnung.edit", "abrechnung", "Abrechnungsweg ändern", listOf("get_accounting_record", "set_accounting_record")),

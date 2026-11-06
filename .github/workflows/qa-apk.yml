@@ -13,6 +13,11 @@ on:
         type: boolean
         default: false
         required: false
+      settlement_only:
+        description: 'Lokale Rechnungen und Laborabschlüsse mit SQLite, PDF, ZIP/Restore, Prozessneustart und Compose prüfen'
+        type: boolean
+        default: false
+        required: false
       accounting_only:
         description: 'Nur Abrechnung mit synthetischer Datenbank, echter Oberfläche und Prozessneustart prüfen'
         type: boolean
@@ -113,6 +118,7 @@ jobs:
         env:
           GRAPHICS_ONLY: ${{ inputs.graphics_only }}
           ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
+          SETTLEMENT_ONLY: ${{ inputs.settlement_only }}
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -147,7 +153,11 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
           native_suite_failures=0
-          if [ "$ACCOUNTING_ONLY" = true ]; then
+          if [ "$SETTLEMENT_ONLY" = true ]; then
+            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
+            suites=(native_settlement native_settlement_reopen native_settlement_ui)
+          elif [ "$ACCOUNTING_ONLY" = true ]; then
             test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
             test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_accounting native_accounting_reopen)
@@ -165,10 +175,15 @@ jobs:
             "$ADB" -s emulator-5580 logcat -c
             instrumentation_status=0
             suite_timeout=360
-            if [ "$suite" = native_accounting ]; then suite_timeout=900; fi
+            if [ "$suite" = native_accounting ] || [ "$suite" = native_settlement ] || [ "$suite" = native_settlement_ui ]; then suite_timeout=900; fi
             if [ "$suite" = native_compose ] || [ "$suite" = native_graphics ]; then suite_timeout=2100; fi
             timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
+            if [ "$suite" = native_settlement_ui ]; then
+              for image in settlement-invoice-confirmed settlement-labor-confirmed settlement-overview-filter settlement-overview-200-landscape settlement-overview-200-portrait settlement-failure; do
+                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
+              done
+            fi
             if [ "$suite" = native_accounting ]; then
               for image in accounting-failure accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape accounting-editor-100-portrait accounting-editor-100-landscape accounting-editor-200-portrait accounting-editor-200-landscape; do
                 "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
@@ -205,6 +220,19 @@ jobs:
               assert result['performance_claim'] is False and result['plans'], result
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
+          elif sys.argv[1]=='native_settlement_ui':
+              for proof in ('real_main_activity','both_completion_routes','exact_amounts','filters_and_navigation','font_scale_200_percent','draft_recreation'):
+                  assert result[proof] is True, result
+              assert result['physical_pixel_tested'] is False, result
+          elif sys.argv[1].startswith('native_settlement'):
+              for proof in ('real_sqlite_transactions','isolated_context_paths','native_pdf_verified','native_backup_roundtrip'):
+                  assert result[proof] is True, result
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
+              if not result['new_process_readback']:
+                  for proof in ('parallel_reservations','pdf_failure_resume','payment_correction'):
+                      assert result[proof] is True, result
+              else:
+                  assert result['restore_guard'] is True, result
           elif sys.argv[1].startswith('native_accounting'):
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
               if not result['new_process_readback']:
@@ -271,6 +299,7 @@ jobs:
             struktur-neu/outputs/native_compose*.txt
             struktur-neu/outputs/native_graphics*.txt
             struktur-neu/outputs/native_accounting*.txt
+            struktur-neu/outputs/native_settlement*.txt
             struktur-neu/outputs/qa-native-*.png
             struktur-neu/outputs/qa-test-package-identity.txt
             struktur-neu/outputs/emulator*.txt

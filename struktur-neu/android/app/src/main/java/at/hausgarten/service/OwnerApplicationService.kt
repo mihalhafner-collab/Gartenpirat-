@@ -8,6 +8,7 @@ class OwnerApplicationService {
     private val commands: MutableMap<String, OwnerCommand> = LinkedHashMap()
     constructor(repository: OwnerRepository) {
         register(OfferApplicationService(repository), OfferTools.WRITES)
+        register(SettlementApplicationService(repository), SettlementTools.WRITES)
         register(WorkApplicationService(repository), arrayOf("set_work_record_billed", "reassign_work_record", "set_personal_paid", "set_accounting_record"))
         register(PhotoApplicationService(repository), arrayOf("begin_file_upload", "write_file_chunk", "create_photo", "update_photo"))
         register(ArchiveApplicationService(repository), arrayOf("empty_trash", "archive_work_records", "delete_work_records", "purge_entity", "delete_entity", "archive_entity", "restore_entity"))

@@ -497,6 +497,7 @@ validateRevierContext(payload, false)
 if (payload.has("material_cost") && payload.optString("material_cost").isBlank()) payload.remove("material_cost")
 PixelMcpWriteTools.applyMaterialCost(payload)
 WorklogRules.validate(payload, isNew)
+SettlementSourceProtection.requireMutable(master, JSONObject(ownerValue("settlement:v1", "{}")), "worklogs", payload.optString("id"), previous, payload)
 WorklogRelationRules.validate(payload, previous, master.getJSONArray("photos"), master.getJSONArray("invoices"))
 var entityId = payload.optString("id")
 if (entityId.isEmpty()) {
@@ -1099,6 +1100,7 @@ throw IllegalArgumentException("Bitte ein gültiges Auftragsdatum auswählen.")
 }
 var entityId = payload.optString("id")
 EntityProtectionRules.validateOrderChange(payload, findById(master.getJSONArray("orders"), entityId), master.getJSONArray("worklogs"), master.getJSONArray("invoices"), master.getJSONArray("photos"))
+SettlementSourceProtection.requireMutable(master, JSONObject(ownerValue("settlement:v1", "{}")), "orders", entityId, findById(master.getJSONArray("orders"), entityId), payload)
 if (entityId.isEmpty()) {
 entityId = "ord_mobile_" + UUID.randomUUID().toString().replace("-", "")
 }

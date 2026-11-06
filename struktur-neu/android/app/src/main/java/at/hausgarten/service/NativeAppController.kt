@@ -437,6 +437,81 @@ internal class NativeAppController(private val activity: MainActivity, val store
         }
     }
 
+    /** Persist the exact action before sending it; uncertain results always replay it. */
+    suspend fun settlementAction(key: String, tool: String, args: JSONObject): JSONObject {
+        val draftKey = "settlement-action:$key"
+        val prior = draft(draftKey)
+        val original = prior?.optJSONObject("original_args")
+        // The UI's durable operation key survives even the narrow window after a
+        // successful receipt read and before its outer form has been cleared.
+        val frozen = original ?: JSONObject(args.toString()).put("request_id", "native_settlement_" + PixelMcpWriteTools.hash(key))
+        if (original != null) {
+            require(requireNotNull(prior).optString("original_tool") == tool) { "Zuerst den ursprünglichen Abschluss prüfen." }
+            val compared = JSONObject(original.toString()).apply { remove("request_id") }
+            require(PixelMcpWriteTools.hash(compared) == PixelMcpWriteTools.hash(args)) {
+                "Ein früherer Vorgang ist noch ungeklärt. Zuerst mit den ursprünglichen Angaben erneut prüfen."
+            }
+        } else {
+            saveDraft(draftKey, JSONObject().put("original_tool", tool).put("original_args", frozen))
+            flushDrafts()
+        }
+        val result = try { query(tool, frozen) }
+        catch (failure: NativeCallFailure) {
+            if (failure.detail.optString("commit_state") == "not_committed") removeDraft(draftKey)
+            throw failure
+        }
+        removeDraft(draftKey)
+        return result
+    }
+
+    suspend fun settlementDocument(id: String, share: Boolean) {
+        val intent = withContext(Dispatchers.IO) {
+            val result = query("get_settlement", JSONObject().put("settlement_id", id))
+            val record = result.getJSONObject("record")
+            require(record.optString("route") == "billed" && record.optString("status") in setOf("confirmed", "cancelled")) { "Ein ausgestelltes Original auswählen." }
+            require(!share || record.optBoolean("electronic_delivery_accepted")) { "Elektronische Übermittlung wurde für diesen Abschluss nicht als vereinbart bestätigt. Original lokal öffnen; Teilen bleibt gesperrt." }
+            val bytes = BusinessDocumentStore(context).read(record.getJSONObject("pdf"))
+            val directory = File(context.cacheDir, "offer-share")
+            if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Freigabeordner fehlt.")
+            val file = File(directory, "Rechnung-${UUID.randomUUID()}.pdf").apply { writeBytes(bytes) }
+            val uri = Uri.parse("content://${context.packageName}.offerfiles/${file.name}")
+            if (share) Intent(Intent.ACTION_SEND).setType("application/pdf").putExtra(Intent.EXTRA_STREAM, uri)
+                .putExtra(Intent.EXTRA_SUBJECT, record.optString("invoice_number"))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION).apply { clipData = ClipData.newRawUri("Original-PDF", uri) }
+            else Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/pdf").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                .apply { clipData = ClipData.newRawUri("Original-PDF", uri) }
+        }
+        withContext(Dispatchers.Main) { activity.startActivity(Intent.createChooser(intent, if (share) "Original-PDF teilen" else "Original-PDF öffnen")) }
+        if (share) message("Original-PDF übergeben. Teilen bestätigt weder Versand noch Zugang.")
+    }
+
+    suspend fun shareSettlementExport(filters: JSONObject) {
+        val intent = withContext(Dispatchers.IO) {
+            val data = query("export_settlements", filters)
+            val directory = File(context.cacheDir, "offer-share")
+            if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Freigabeordner fehlt.")
+            val file = File(directory, "Abrechnung-${UUID.randomUUID()}.zip")
+            try {
+                java.util.zip.ZipOutputStream(file.outputStream()).use { output ->
+                    output.putNextEntry(java.util.zip.ZipEntry("export.json")); output.write(data.toString(2).toByteArray(Charsets.UTF_8)); output.closeEntry()
+                    val records = data.optJSONArray("records") ?: JSONArray()
+                    val included = mutableSetOf<String>()
+                    for (index in 0 until records.length()) {
+                        val meta = records.getJSONObject(index).optJSONObject("pdf") ?: continue
+                        val name = meta.getString("pdf_storage_name")
+                        if (!included.add(name)) continue
+                        val bytes = BusinessDocumentStore(context).read(meta)
+                        output.putNextEntry(java.util.zip.ZipEntry("originals/$name")); output.write(bytes); output.closeEntry()
+                    }
+                }
+            } catch (failure: Exception) { file.delete(); throw failure }
+            val uri = Uri.parse("content://${context.packageName}.offerfiles/${file.name}")
+            Intent(Intent.ACTION_SEND).setType("application/zip").putExtra(Intent.EXTRA_STREAM, uri)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION).apply { clipData = ClipData.newRawUri("Abrechnungsexport", uri) }
+        }
+        withContext(Dispatchers.Main) { activity.startActivity(Intent.createChooser(intent, "Lokalen Abrechnungsexport übergeben")) }
+    }
+
     suspend fun shareOffer(id: String, channel: String = "share") {
         val send = withContext(Dispatchers.IO) {
             require(channel in listOf("share", "email", "whatsapp")) { "Unbekannter Versandweg." }

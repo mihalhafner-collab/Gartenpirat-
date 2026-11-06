@@ -18,13 +18,13 @@ open class OfferFileProvider : ContentProvider() {
     private fun file(uri: Uri): File {
         RestoreStartupGuard.assertStoreMayOpen(requireNotNull(context))
         val name = uri.lastPathSegment
-        if (name == null || !name.matches(Regex("Angebot-[a-f0-9-]{36}\\.pdf"))) throw FileNotFoundException()
+        if (name == null || !name.matches(Regex("(?:(?:Angebot|Rechnung)-[a-f0-9-]{36}\\.pdf|Abrechnung-[a-f0-9-]{36}\\.zip)"))) throw FileNotFoundException()
         val value = File(File(context!!.cacheDir, "offer-share"), name)
         if (!value.isFile) throw FileNotFoundException()
         return value
     }
 
-    override fun getType(uri: Uri) = "application/pdf"
+    override fun getType(uri: Uri) = if (uri.lastPathSegment?.endsWith(".zip") == true) "application/zip" else "application/pdf"
 
     @Throws(FileNotFoundException::class)
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {

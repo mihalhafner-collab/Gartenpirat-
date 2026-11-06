@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,6 +32,8 @@ internal fun NativeAccounting(controller: NativeAppController) {
     var result by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var attempt by remember { mutableIntStateOf(0) }
+    var exporting by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val changes = remember(controller) { controller.store.nativeData().watchCommittedChanges().nativeErrors(controller) }
     val latest by changes.collectAsStateWithLifecycle(-1L)
     fun changed() { offset = 0; reviewOffset = 0 }
@@ -43,7 +46,7 @@ internal fun NativeAccounting(controller: NativeAppController) {
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { error = failure.message ?: "Abrechnung konnte nicht geladen werden." }
     }
-    NativeSearchList("Auftragsbezeichnung", search, { search = it; changed() }, result?.let { "${it.optInt("total")} Aufträge" } ?: if (error.isEmpty()) "Wird geladen …" else "Nicht geladen",
+    NativeSearchList("Auftragsbezeichnung", search, { search = it; changed() }, result?.let { "${it.optInt("total")} Einträge" } ?: if (error.isEmpty()) "Wird geladen …" else "Nicht geladen",
         onFilters = { filters = !filters }, bottomSearch = true) {
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
@@ -56,14 +59,27 @@ internal fun NativeAccounting(controller: NativeAppController) {
                                 Text(if (path.isEmpty()) "Gesamt" else AccountingRules.label(path), style = MaterialTheme.typography.titleMedium)
                                 val pending = result?.optInt(when (path) { AccountingRules.BILLED -> "pending_billed"; AccountingRules.LABOR -> "pending_labor"; else -> "pending_amounts" }) ?: 0
                                 Text(result?.let { if (pending > 0 && it.getLong(field) == 0L) "Betrag ausstehend" else financeMoney(OfferMoney.decimal(it.getLong(field))) } ?: "…", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                                if (pending > 0) Text("$pending Rechnungsbeträge fehlen", style = MaterialTheme.typography.bodySmall)
+                                if (pending > 0) Text("$pending Beträge fehlen oder sind unvollständig", style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
                 }
             }
             item {
-                Text("Die Beträge folgen der Übernahme aus der Rechnungsfunktion. Fehlende Beträge werden nicht als 0 € gewertet.", style = MaterialTheme.typography.bodySmall)
+                NativeActions {
+                    Button({ controller.navigate("settlement_edit") }) { Text("Leistungen abrechnen") }
+                    TextButton({ controller.navigate("settlements") }) { Text("Abschlüsse") }
+                }
+                Text("Bestätigte Rechnungen und interne Labor-Abrechnungen liefern ihre Beträge. Fehlende Beträge bleiben ausstehend; Zahlungen sind davon getrennt.", style = MaterialTheme.typography.bodySmall)
+                TextButton({
+                    scope.launch {
+                        exporting = true
+                        try { controller.shareSettlementExport(JSONObject().put("query", search).put("date_from", from).put("date_to", to).put("property_id", property).put("route", route)) }
+                        catch (cancelled: CancellationException) { throw cancelled }
+                        catch (failure: Exception) { error = failure.message ?: "Export nicht möglich." }
+                        finally { exporting = false }
+                    }
+                }, enabled = !exporting) { Text(if (search.isNotBlank() || from.isNotBlank() || to.isNotBlank() || property.isNotBlank() || route.isNotBlank()) "Gefilterte Abrechnung exportieren" else "Vollständige Abrechnung exportieren") }
                 Text("Zeitraum: letztes berücksichtigtes Arbeitsdatum; ohne Arbeitseintrag das geplante Auftragsdatum.", style = MaterialTheme.typography.bodySmall)
                 NativeStatus(if (route.isEmpty()) "Beide Abrechnungswege" else AccountingRules.label(route))
                 if (from.isNotEmpty() || to.isNotEmpty()) Text("${from.takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Ohne Beginn"} – ${to.takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Ohne Ende"}", style = MaterialTheme.typography.bodySmall)
@@ -101,7 +117,7 @@ internal fun NativeAccounting(controller: NativeAppController) {
                 NativeDateField("Ab Datum", from, { from = it; changed() })
                 NativeDateField("Bis Datum", to, { to = it; changed() })
                 NativeRecordPicker(controller, "properties", "Objekt / Haus / Garten", property, onValueChange = { property = it; changed() })
-                NativeChoice("Abrechnungsweg", route, listOf("" to "Beide", AccountingRules.BILLED to "Abgerechnet", AccountingRules.LABOR to "labor clandestinus"), ::selectRoute)
+                NativeChoice("Abrechnungsweg", route, listOf("" to "Beide", AccountingRules.BILLED to "Rechnung", AccountingRules.LABOR to "Labor clandestino"), ::selectRoute)
             }
             NativeActionBar("Ergebnisse anzeigen", { filters = false }, "Zurücksetzen", { from = ""; to = ""; property = ""; route = ""; search = ""; changed() })
         }
@@ -125,7 +141,7 @@ private fun AccountingRow(controller: NativeAppController, row: JSONObject) {
         row.optString("object_label"),
         if (row.isNull("amount_minor")) AccountingRules.PENDING_AMOUNT else financeMoney(OfferMoney.decimal(row.getLong("amount_minor"))),
         row.optString("route").takeIf { it.isNotEmpty() }?.let(AccountingRules::label) ?: "Zuordnung prüfen"
-    ).joinToString("\n"), { controller.navigate(row.getString("collection"), row.getString("id")) })
+    ).joinToString("\n"), { if (row.getString("collection") == "settlements") controller.navigate("settlement_review", row.getString("id")) else controller.navigate(row.getString("collection"), row.getString("id")) })
 }
 
 /** Reuse the existing persistent action form, conflict handling and replay flow. */

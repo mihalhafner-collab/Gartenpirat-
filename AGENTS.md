@@ -42,28 +42,43 @@ Geschäftsdaten und vollständige ZIP-Sicherungen werden nur lokal auf dem Pixel
 geschrieben. Es gibt keine verpflichtende Cloud- oder externe Sicherung für die
 Umstellung auf lokalen Betrieb. Historische Drive-Schreiber und versuchsweise importierte sevDesk-Rechnungen
 begründen keine Freigabe- oder Nachweispflicht für den übrigen App-Betrieb.
-Eine spätere eigene App-Rechnungsfunktion erfordert einen gesonderten Auftrag.
+Der gesonderte Auftrag vom 06.11.2026 erlaubt die nachfolgend begrenzte lokale Rechnungsfunktion.
 Manuelles Kopieren von Sicherungen liegt außerhalb der App. Google Drive wird nur
 für die ausdrücklich freigegebene Verteilung originalsignierter Installations-APKs
 verwendet; keine automatische Übertragung von Geschäfts- oder Sicherungsdaten.
 Die Verteilung benötigt jeweils einen eigenen ausdrücklichen Auftrag.
 
-## Vereinfachter Rechnungsumfang (Eigentümerentscheidung 02.11.2026)
+## Lokale Abrechnung und Rechnungen (Eigentümerauftrag 06.11.2026)
 
-sevDesk erstellt und versendet sämtliche Rechnungen. Die Gartenpirat-Rechnungsfunktion ist vollständig stillgelegt; es gibt keine
-Rechnungserstellung, Nummernvergabe, Rechnungsfreigabe, Zahlungsverwaltung
-oder Rechnungsversendung in der App. Veraltete Implementierung wird entfernt. Historische aus
-sevDesk übernommene Rechnungen sind unverbindliche Versuchsdaten; ihre Übernahme,
-Wiederherstellung, Nummernabstimmung oder Fremdschreiber-Nachweise sind keine
-Voraussetzung für die übrige App. Alte Cloud-Geschäftsverbindungen und
-Migrationsmasken entfernen. Bestehende Rechnungsansichten dürfen rein informativ
-bleiben. Kein automatisches Löschen auf dem installierten Pixel durch
-Quellcode-Bereinigung, keine Änderungen an bereits ausgestellten sevDesk-Belegen.
-Die erhaltenen Angebote einschließlich PDF und die Arbeitsgrundlage für sevDesk bleiben lokal.
-Eine Unlesbarkeit ehemaliger Drive-/Rechnungs-/Migrationsverknüpfungen ist nach
-Eigentümerfreigabe vom 02.11.2026 ausdrücklich akzeptiert; keine Altkompatibilität
-nur für abgeschaffte Funktionspfade bewahren. Historische Geschäftsdateien und
-aktuelle lokale ZIP-Sicherungen nicht automatisch löschen.
+Der Auftrag ersetzt die bisherige Beschränkung auf sevDesk für gewöhnliche
+österreichische Inlandsabrechnungen in Euro mit Kleinunternehmerbefreiung ohne
+Umsatzsteuerausweis. Abrechnung behält die getrennten Arten Rechnung und Labor
+clandestino, markierte Aufträge, gemeinsame Filter und die Gesamtsumme beider
+Arten. Sie ist keine bloße Rechnungsliste. Benutzerzuordnung, aktive
+Leistungsbindung, Belegstatus und Zahlungsstand bleiben getrennt.
+
+Beide Arten verwenden dieselben tatsächlichen Leistungen, Mengen und bewusst
+bestätigten Preise. Rechnung erhält nach Vorschauprüfung eine eigene lokale
+Nummer und ein unveränderliches Original-PDF; Labor wird intern nachvollziehbar
+bestätigt, ohne Rechnung, Rechnungsnummer oder künstlichen Beleg. Abschluss,
+Wiederholung, Parallelität, Korrekturen, Zahlungen, lokaler Export und ZIP-Sicherung
+müssen beide Arten berücksichtigen. Die Kategorie begründet keine steuerliche
+Befreiung. Steuerstatus nicht aus App-Umsätzen ableiten oder selbstständig ändern.
+
+Historische sevDesk-Umsätze und Versuchsdaten nicht neu ausstellen oder automatisch
+übernehmen. Alte Rechnungs-, WebView-, Cloud- und Migrationsimplementierungen
+bleiben stillgelegt. Keine Pflichtcloud, sevDesk-/Bankanbindung, automatischen
+Mahnungen, Anzahlungsrechnungen oder allgemeine Steuerverwaltung ergänzen.
+Ausgestellte Originale, abgeschlossene interne Vorgänge, Zahlungen und notwendige
+Historien vor gewöhnlichem Löschen und Speicherbereinigung schützen; keine
+Alterslöschung. Die allgemeine direkte Löschbedienung bleibt für zulässige Daten
+erhalten. Nach Restore neue eindeutige Nummernserie verwenden und restaurierte
+Quellen vor erneuter Abrechnung bewusst gegen den aktuellen Belegstand prüfen.
+
+Der Auftrag umfasst Entwicklung und isolierte synthetische Validierung mit
+unabhängiger technischer und fachlicher Gegenprüfung durch Subagenten. Er erlaubt
+keine produktive Installation, Rechnungsausstellung, Geschäftsdatenmigration oder
+APK-Verteilung. Bestehende Angebote, Originale und lokale ZIP-Dateien erhalten.
 
 ## Eigentümerentscheidung 03.11.2026: Löschen, Speicher und Menüs
 

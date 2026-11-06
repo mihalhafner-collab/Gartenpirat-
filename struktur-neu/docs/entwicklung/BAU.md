@@ -11,10 +11,13 @@ auch für die Gradle-JVM verwenden. Ein vollständiger Cache erlaubt Offline-Bau
 
 Die Anwendung bleibt ein Update von `at.hausgarten.service` mit Originalsignatur
 und höherer Versionsnummer.
-Die integrierte Rechnungsstellung und Zahlungsverwaltung werden in dieser
-Ausbaustufe nicht mehr angeboten. Rechnungen entstehen ausschließlich in sevDesk.
-Veraltete Drive-/Rechnungs-/Migrationsklassen sowie ausschließlich zugehörige
-Tests sind entfernt. Arbeitsaufzeichnungen und Angebote bleiben testbar. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
+Der Auftrag vom 06.11.2026 ergänzt lokale Rechnungen und interne Labor-Abschlüsse
+mit Zahlungen und Korrekturen. Die Abrechnung behält ihre getrennten Arten und
+Gesamtsumme. `SettlementRules`, `SettlementApplicationService` und
+`SettlementTools` werden gemeinsam von Compose und MCP verwendet. Historische
+Drive-/Rechnungs-/Migrationsimplementierungen bleiben entfernt; keine
+sevDesk-Schnittstelle wird reaktiviert. Arbeitsaufzeichnungen und Angebote bleiben
+testbar. Alle Anwendungseinträge, Speicher- und Fachpfade sowie
 die Android-Oberfläche liegen als Kotlin im bestehenden `:app`-Modul. Der
 Quellordner heißt weiterhin `android/app/src/main/java/at/hausgarten/service`;
 das ist kein Java-Anwendungspfad. Java-Dateien in den synthetischen Tests sind
@@ -337,8 +340,9 @@ der Kamera- oder Systempickerbedienung; diese bleiben getrennte Prüfungen.
 `native_data.office_reads` misst die erhaltenen Arbeitslisten. Die Compose-Messung
 `office_opening` öffnet offene Arbeitsstunden und Angebote vom Büro aus; je Pfad
 zwei Aufwärmläufe und 40 Messungen mit Mittelwert, P95 und langsamsten 5 %.
-Es gibt keine Zahlungsledger- oder Rechnungserfassungsprüfung mehr. Synthetische
-Kunden mit gemeinsamem Rechnungsempfänger prüfen weiterhin den getrennten
+Diese Büromessung ist keine Prüfung der neuen lokalen Rechnungsabschlüsse oder
+des Zahlungsledgers. Synthetische Kunden mit gemeinsamem Rechnungsempfänger
+prüfen weiterhin den getrennten
 Einsatzkundenfilter und unveränderte historische Belegdaten. UI-Zeiten enthalten
 Semantik-Abfrage und Polling; Hostlast ist nicht kontrolliert. Aus diesen Messungen
 keinen Geschwindigkeitsgewinn auf dem physischen Pixel ableiten.
@@ -656,7 +660,7 @@ bestätigt keine Backup-Abnahme und keine Prüfung auf dem physischen Pixel.
 Die Abrechnung kann gezielt mit `workflow_dispatch`, `emulator=true` und
 `accounting_only=true` geprüft werden. Die frische synthetische API35-Umgebung
 prüft Cent-Summen, gemeinsame Filter, CAS, atomaren Rollback, Konfliktkorrektur,
-fehlende Phase-2-Beträge, echte Compose-Navigation, Hoch-/Querformat und 200-%-Schrift.
+fehlende Beträge, echte Compose-Navigation, Hoch-/Querformat und 200-%-Schrift.
 `native_accounting_reopen` liest den unveränderten synthetischen Bestand in einem
 neuen Prozess zurück. Keine produktiven Daten oder Geräte werden verwendet.
 
@@ -664,3 +668,29 @@ Der gezielte `accounting_only`-Lauf baut Release- und Test-APK und führt die
 Android-Abnahme aus; Lint und allgemeine JVM-Suiten laufen weiterhin bei jedem
 normalen Code-Push. Bei einer reinen Korrektur des Prüfharness dürfen deren bereits
 bestandene Nachweise für denselben unveränderten App-Quellfingerabdruck gelten.
+
+## Lokale Abrechnungsabschlüsse prüfen
+
+Die automatisch entdeckten JVM-Suiten `SettlementTests` und
+`SettlementProtectionTests` prüfen die neuen Fachpfade mit synthetischen
+Speicher-/PDF-Adaptern. Der gezielte `workflow_dispatch` mit `emulator=true` und
+`settlement_only=true` führt auf dem synthetischen Wegwerf-Emulator nacheinander
+`native_settlement`, `native_settlement_reopen` und `native_settlement_ui` aus:
+Daten-/Restorepfade, Rücklesen im neuen Prozess und echte Compose-Bedienung.
+Die Laufdefinition allein ist kein bestandener Android-Nachweis. `prepare_settlement` und `complete_settlement` sind zwei
+getrennte dauerhafte Schritte mit unveränderter `settlement_id` und jeweils
+stabiler eigener `request_id`. PDF-Fehler müssen die Reservierung erhalten;
+Wiederholung darf weder neu nummerieren noch doppelt binden. Ein JVM-PDF-Adapter
+beweist kein lesbares Android-Original und keine echte Dateisystem-Atomarität.
+
+Nach funktionalen Änderungen `check_current.py`, `run-followup-java.py --tables`,
+Release-/Android-Testbau und `lintRelease` gemäß den bestehenden Befehlen
+ausführen. Betroffene native Abrechnungspfade im isolierten Emulator tatsächlich
+bedienen. Beide Abschlussarten, 900 € plus 200 € gleich 1.100 € vor/nach Neustart,
+unveränderte Benutzerzuordnungen, Filter/Datumsbezug, Teilbeträge, Mehrfachpositionen,
+Sammelrechnungen, Korrekturen, Zahlungen, konkurrierende Abschlüsse, Abbruch,
+PDF-Fehler, ZIP und Restore prüfen. Schutzregeln gegen gewöhnliches Löschen,
+Speicherbereinigung und erneute Abrechnung restaurierter Quellen getrennt prüfen.
+Ein vorhandener Test oder grüner Bau ersetzt keinen ausgeführten Bedienablauf.
+Tatsächliche Ergebnisse und offene Grenzen stehen ausschließlich in
+`AKTUELLER-STAND.json`; dieser Abschnitt behauptet keine Prüferfolge.

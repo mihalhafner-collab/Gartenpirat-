@@ -37,7 +37,7 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
         }
         var request = ("mcp_owner_" + PixelMcpWriteTools.hash(args.getString("request_id")))
         var fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", name).put("args", args))
-        var result =
+        var result = try {
             (if (LocalWorkflowTools.backup(name))
                 application.perform(name, JSONObject(args.toString()), request)
             else
@@ -50,6 +50,12 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                         return@LAM changed
                     },
                 ))
+        } catch (failure: IllegalArgumentException) {
+            if (name in SettlementTools.WRITES && failure !is PixelMcpWriteTools.Rejected) {
+                throw PixelMcpWriteTools.Rejected("SETTLEMENT_VALIDATION", failure.message ?: "Abrechnungsangaben prüfen.")
+            }
+            throw failure
+        }
         if (name == "begin_file_upload" || name == "write_file_chunk" || name == "create_photo") {
             try {
                 repository.pruneUnreferencedPhotoUploads()

@@ -27,6 +27,7 @@ class WorkApplicationService : OwnerCommand {
                     } else {
                         p.put("customer_id", a.getString("customer_id")).put("billing_customer_id", a.getString("billing_customer_id")).put("order_id", a.optString("order_id"))
                     }
+                    SettlementSourceProtection.requireMutable(all, JSONObject(repository.ownerValue("settlement:v1", "{}")), "worklogs", old.getString("id"), old, p)
                     repository.replaceWorklog(p)
                     p.put("_owner_reason", a.getString("reason"))
                     return repository.enqueue("worklog", p, request)
@@ -49,6 +50,8 @@ class WorkApplicationService : OwnerCommand {
                         }
                     }
                     if ((a.getBoolean("paid"))) {
+                        val (collection, record) = AccountingRules.canonical(all, "worklogs", id)
+                        SettlementSourceProtection.requireRouteChange(all, JSONObject(repository.ownerValue("settlement:v1", "{}")), collection, record.getString("id"), AccountingRules.LABOR)
                         ids.add(id)
                     } else {
                         ids.remove(id)
@@ -74,12 +77,13 @@ class WorkApplicationService : OwnerCommand {
         }
         val route = args.getString("route").let { if (it == "open") "" else it }
         require(route in setOf("", AccountingRules.BILLED, AccountingRules.LABOR)) { "Abrechnungsweg auswählen." }
+        SettlementSourceProtection.requireRouteChange(master, JSONObject(repository.ownerValue("settlement:v1", "{}")), collection, id, route)
         val works = AccountingRules.works(master, collection, id)
         // Clear opposite marks before applying the selected route. The owner request
         // transaction commits all records, marks and its replay receipt together.
         personal.removeAll(works.map { it.getString("id") }.toSet())
         repository.putOwnerValue("personal_paid", JSONArray(personal).toString())
-        if (collection == "orders" && AccountingRules.orderRoute(record).isNotEmpty()) {
+        if (collection == "orders" && AccountingRules.orderRoute(record).isNotEmpty() && AccountingRules.orderRoute(record) != route) {
             val clear = LocalJournalRules.clean(record).put("status", "Erledigt")
             ManualChangeRules.prepare("order", clear, record, java.time.Instant.now().toString())
             repository.enqueue("order", clear, request + "_clear")
@@ -94,7 +98,7 @@ class WorkApplicationService : OwnerCommand {
         if (collection == "orders") {
             val previous = PixelMcpWriteTools.find(repository.effective().getJSONArray("orders"), id)
             val changed = LocalJournalRules.clean(previous)
-                .put("status", if (route.isNotEmpty()) AccountingRules.label(route) else if (AccountingRules.orderRoute(record).isNotEmpty()) "Erledigt" else record.optString("status"))
+                .put("status", if (route.isNotEmpty()) AccountingRules.orderStatus(route) else if (AccountingRules.orderRoute(record).isNotEmpty()) "Erledigt" else record.optString("status"))
             ManualChangeRules.prepare("order", changed, previous, java.time.Instant.now().toString())
             repository.enqueue("order", changed, request + "_order")
         }

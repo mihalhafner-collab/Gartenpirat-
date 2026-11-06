@@ -55,6 +55,12 @@ return PixelMcpReadTools.effective(state())
 
 return JSONObject(store!!.ownerValue("settings", "{}"))
 }
+override fun settlementSeries(): String {
+val identity = BackupDeviceGuard(context!!).current()
+return "GP-" + PixelMcpWriteTools.hash(identity.getString("installationId") + ":" + identity.getString("restoreEpoch")).take(32)
+}
+override fun settlementRestoreEpoch(): String = BackupDeviceGuard(context!!).current().getString("restoreEpoch")
+override fun createSettlementDocument(record: JSONObject): JSONObject = BusinessDocumentStore(context!!).createSettlement(record)
 @Throws(Exception::class) override fun fileMeta(id: String): JSONObject {
 
 store!!.getReadableDatabase().rawQuery("SELECT metadata FROM mcp_uploads WHERE id=?", arrayOf(id)).use { row ->
@@ -337,10 +343,24 @@ var db = store!!.getWritableDatabase()
 store!!.beginBusinessTransaction(db)
 try {
 
+val settlementMaster by lazy { effective() }
+val settlementLedger by lazy { JSONObject(ownerValue("settlement:v1", "{}")) }
+fun protectSettlement(entity: String, id: String) {
+SettlementSourceProtection.requireDeletable(settlementMaster, settlementLedger, entity, id)
+}
+if (kind in setOf("archive", "delete", "purge_v1")) protectSettlement(payload.optString("entity"), payload.optString("id"))
+if (kind == "order" || kind == "worklog") {
+val collection = if (kind == "order") "orders" else "worklogs"
+val id = payload.optString("id")
+val previous = OwnerJournalRules.findOrNull(settlementMaster.getJSONArray(collection), id)
+SettlementSourceProtection.requireMutable(settlementMaster, settlementLedger, collection, id, previous, payload)
+}
+
 if (kind == "purge_v1" && payload.has("expected_test_dependencies_hash")) {
 val targets = TrashRules.testTargets(effective(), payload.getString("entity"), payload.getString("id"))
 for (i in 0 until targets.length()) {
 val target = targets.getJSONObject(i)
+protectSettlement(target.getString("entity"), target.getString("entity_id"))
 ActiveWorkProtection.require(state(), target.getString("entity"), target.getString("entity_id"))
 revier().protectParent(target.getString("entity"), target.getString("entity_id"))
 }
@@ -357,6 +377,7 @@ var entries = payload.getJSONArray("entries")
 val targets = TrashPurgeBatch.testTargets(effective(), entries)
 for (i in 0 until targets.length()) {
 val target = targets.getJSONObject(i)
+protectSettlement(target.getString("entity"), target.getString("entity_id"))
 ActiveWorkProtection.require(state(), target.getString("entity"), target.getString("entity_id"))
 revier().protectParent(target.getString("entity"), target.getString("entity_id"))
 }
@@ -368,6 +389,7 @@ if (firstIteration23) firstIteration23 = false else { i++ }
 if (!(i < entries.length())) break
 
 var entry = entries.getJSONObject(i)
+protectSettlement(entry.getString("entity"), entry.getString("entity_id"))
 revier().protectParent(entry.getString("entity"), entry.getString("entity_id"))
 revier().detachOptionalParent(entry.getString("entity"), entry.getString("entity_id"), request)
 
@@ -456,6 +478,18 @@ return store!!.ownerValue(key, fallback)!!
 }
 override fun putOwnerValue(key: String, value: String): Unit {
 
+if (key == "personal_paid") {
+val before = AccountingRules.ids(JSONArray(store!!.ownerValue("personal_paid", "[]")))
+val added = AccountingRules.ids(JSONArray(value)) - before
+if (added.isNotEmpty()) {
+val master = effective()
+val ledger = JSONObject(store!!.ownerValue("settlement:v1", "{}"))
+for (id in added) {
+val (collection, record) = AccountingRules.canonical(master, "worklogs", id)
+SettlementSourceProtection.requireRouteChange(master, ledger, collection, record.getString("id"), AccountingRules.LABOR)
+}
+}
+}
 store!!.putOwnerValue(key, value)
 }
 override @Throws(Exception::class) fun savePhoto(payload: JSONObject): String {
@@ -638,7 +672,7 @@ PixelMcpWriteTools.find(all.getJSONArray("worklogs"), ids.getString(i))
 }
 }
 AccountingRules.requireConsistentChange(all, all, AccountingRules.ids(JSONArray(store!!.ownerValue("personal_paid", "[]"))), AccountingRules.ids(ids))
-store!!.putOwnerValue("personal_paid", ids.toString())
+putOwnerValue("personal_paid", ids.toString())
 return "OK"
 
 } catch (e: Exception) {

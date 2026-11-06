@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Process
 import android.util.AtomicFile
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -88,6 +89,26 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
                     }
                 }
                 if (mediaWarning.isNotEmpty()) put(db, "restore_media_warning", mediaWarning)
+                // A new number series cannot reconstruct later documents lost by an old
+                // backup. Retain the restored source set for deliberate evidence review.
+                val ledger = JSONObject(DatabaseBackupSnapshot.ownerValue(db, "settlement:v1", "{}")!!)
+                val preferences = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE)
+                val initial = context.assets.open("initial-data.json").bufferedReader().use { it.readText() }
+                val restored = SnapshotProjection.effective(BackupSnapshotState.read(db,
+                    JSONObject().put("drive_snapshot", preferences.getString("drive_snapshot", initial)), initial,
+                    context.assets.open("service-catalog.json").bufferedReader().use { it.readText() }))
+                val restoredSources = JSONArray()
+                for (collection in arrayOf("orders", "worklogs")) {
+                    val rows = restored.optJSONArray(collection) ?: JSONArray()
+                    for (i in 0 until rows.length()) {
+                        val id = rows.optJSONObject(i)?.optString("id").orEmpty()
+                        if (id.isNotBlank()) restoredSources.put(JSONObject().put("collection", collection).put("id", id))
+                    }
+                }
+                ledger.put("restored_sources", restoredSources)
+                    .put("restore_epoch", BackupDeviceGuard(context).current().getString("restoreEpoch"))
+                    .put("restore_request_id", requestId)
+                put(db, "settlement:v1", ledger.toString())
                 RestoredBrowserCheckpoint.install(db, requestId, restoredManifest,
                     restoredManifest.getJSONObject("_restored_browser_checkpoint"), BackupDeviceGuard(context).current())
                 db.version = PixelLocalStore.SCHEMA_VERSION
@@ -134,8 +155,12 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
                     val block = ByteArray(4096)
                     while (true) {
                         val count = input.read(block)
-                        if (count == -1) break
-                        if (out.size() + count > 256 * 1024) throw IOException("RESTORE_SAFETY_PROOF_INVALID")
+                        if (count == -1) {
+                            break
+                        }
+                        if (out.size() + count > 256 * 1024) {
+                            throw IOException("RESTORE_SAFETY_PROOF_INVALID")
+                        }
                         out.write(block, 0, count)
                     }
                     return JSONObject(String(out.toByteArray(), StandardCharsets.UTF_8))

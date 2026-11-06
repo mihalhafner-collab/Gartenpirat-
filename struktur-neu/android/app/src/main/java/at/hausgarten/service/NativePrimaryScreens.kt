@@ -51,7 +51,8 @@ private val nativeSections = linkedMapOf(
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
     "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote",
     "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
-    "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher", "accounting" to "Abrechnung", "accounting_edit" to "Abrechnung bearbeiten"
+    "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher", "accounting" to "Abrechnung", "accounting_edit" to "Abrechnung bearbeiten",
+    "settlements" to "Abschlüsse", "settlement_edit" to "Leistungen abrechnen", "settlement_review" to "Abschluss prüfen"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
 private fun primaryKind(collection: String) = when (collection) { "customers" -> "customer"; "orders" -> "order"; else -> "worklog" }
@@ -105,6 +106,9 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "billing" -> NativeBillingOverview(controller)
                 "accounting" -> NativeAccounting(controller)
                 "accounting_edit" -> NativeAccountingEditor(controller, route.mode, route.id)
+                "settlements" -> NativeSettlements(controller, route.id)
+                "settlement_edit" -> NativeSettlementEditor(controller, route.id)
+                "settlement_review" -> NativeSettlementReview(controller, route.id)
                 "customers", "orders", "worklogs" -> when {
                     route.mode in listOf("new", "edit", "duplicate") -> NativeEntityEditor(controller, route.section, route.id, route.mode)
                     route.id.isNotEmpty() -> NativeEntityDetail(controller, route.section, route.id)

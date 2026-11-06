@@ -24,6 +24,12 @@ fun putOwnerValue(key: String, value: String): Unit
 @Throws(Exception::class) fun replaceWorklog(payload: JSONObject): Unit
 @Throws(Exception::class) fun createDocument(record: JSONObject): JSONObject
 @Throws(Exception::class) fun readDocument(record: JSONObject): Unit
+/** Local series identity lives outside restored backup counters. */
+fun settlementSeries(): String = throw UnsupportedOperationException("Local settlement series required")
+fun settlementRestoreEpoch(): String = throw UnsupportedOperationException("Local restore epoch required")
+@Throws(Exception::class) fun createSettlementDocument(record: JSONObject): JSONObject {
+throw UnsupportedOperationException("Local settlement document store required")
+}
 @Throws(Exception::class) fun verifyDelivery(messageId: String, offer: JSONObject): JSONObject
 @Throws(Exception::class) fun planningSettings(): JSONObject
 fun calendarConnected(): Boolean
