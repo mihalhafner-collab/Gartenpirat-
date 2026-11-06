@@ -2848,7 +2848,7 @@
     "android/app/src/main/java/at/hausgarten/service/LocalOwnerRepository.kt": "23d0665ed413932ab1dd3c2d62bdc550b863200b7d631bb32cb38adfb03a9d52",
     "android/app/src/main/java/at/hausgarten/service/LocalStorageMaintenance.kt": "43144f3804cdaae7466f333afa2bb5dc7c754175318c7ab4a4d83c2116f273d2",
     "android/app/src/main/java/at/hausgarten/service/LocalWorkflowTools.kt": "698dd9623078bc336289dc06fd5311998a562ecedf21152f385992b270e684bd",
-    "android/app/src/main/java/at/hausgarten/service/MainActivity.kt": "6c5d3e96fb7174ec728c5d9d4d7c126c4a1d0b60ddebee67477c17940fa59592",
+    "android/app/src/main/java/at/hausgarten/service/MainActivity.kt": "83cf4f8143e59a115a86740442ad2903a96e221f7ef46472ceb4ea6dc7fc9073",
     "android/app/src/main/java/at/hausgarten/service/McpErrors.kt": "d0318544dff6b554e74b3a63c37679d0d6e920b70759d509e4dc3a19e12934ec",
     "android/app/src/main/java/at/hausgarten/service/NativeAccountingScreen.kt": "101770cfabd211fe45f40c79481132cf6440c61250fa73933e48379f56dfd3cb",
     "android/app/src/main/java/at/hausgarten/service/NativeActionCatalog.kt": "9c0fb2357b22191d7dc57cfee78c660d5921918c5f56ed0fe6f47f024274fdaf",
