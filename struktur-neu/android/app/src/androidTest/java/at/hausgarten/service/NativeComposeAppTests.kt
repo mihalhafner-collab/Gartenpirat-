@@ -505,8 +505,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(data.getLong("total_minor") == 90000L && data.getInt("total") == 1, "ACCOUNTING_SHARED_DATE_OBJECT_SEARCH_FILTERS")
         yes(overview(JSONObject(filters.toString()).put("route", "labor")).getLong("total_minor") == 0L, "ACCOUNTING_PATH_FILTER_APPLIES_TO_SUMS_AND_LIST")
         yes(overview(JSONObject().put("query", "QA no matching accounting")).getLong("total_minor") == 0L, "ACCOUNTING_EMPTY_ZERO_TOTALS")
+        val previousInfo = automation.serviceInfo
+        val previousFlags = previousInfo.flags
         val oldFont = shell("settings get system font_scale")
         try {
+            automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
             launch(); openOffice(); click("Abrechnung"); shown("1100,00 €")
             click("Abgerechnet"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
             click("‹ Zurück"); shown("900,00 €")
@@ -571,7 +574,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             marker.writeText(JSONObject().put("fixture", "synthetic-accounting-v1").put("snapshot_hash", PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))).toString())
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false).put("new_process_readback", false)
                 .put("real_main_activity", true).put("exact_amounts", true).put("filters_and_navigation", true).put("conflict_correction", true).put("viewport_and_large_text", true)
+        } catch (failure: Throwable) {
+            runCatching { captureSyntheticScreen("accounting-failure") }
+            throw failure
         } finally {
+            previousInfo.flags = previousFlags; automation.serviceInfo = previousInfo
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
             activity?.let { current -> test.runOnMainSync { current.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED; if (!current.isFinishing) current.finish() } }
         }

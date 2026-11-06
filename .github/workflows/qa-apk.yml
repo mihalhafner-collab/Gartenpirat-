@@ -63,8 +63,14 @@ jobs:
           "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools'
       - name: Build production sources and native test APK without release signing
         working-directory: struktur-neu/android
-        run: gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease
+        env:
+          ACCOUNTING_FOCUSED: ${{ github.event_name == 'workflow_dispatch' && inputs.accounting_only }}
+        run: |
+          tasks=(:app:assembleRelease :app:assembleReleaseAndroidTest)
+          if [ "$ACCOUNTING_FOCUSED" != true ]; then tasks+=(:app:lintRelease); fi
+          gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 "${tasks[@]}"
       - name: Run JVM archive, warning, rollback and related regressions
+        if: github.event_name != 'workflow_dispatch' || !inputs.accounting_only
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/gp-deps"
@@ -164,7 +170,7 @@ jobs:
             timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
             if [ "$suite" = native_accounting ]; then
-              for image in accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape accounting-editor-100-portrait accounting-editor-100-landscape accounting-editor-200-portrait accounting-editor-200-landscape; do
+              for image in accounting-failure accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape accounting-editor-100-portrait accounting-editor-100-landscape accounting-editor-200-portrait accounting-editor-200-landscape; do
                 "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
               done
             fi

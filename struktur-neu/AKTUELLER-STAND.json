@@ -105,7 +105,7 @@
   ],
   "current_task": {
     "name": "Abrechnung mit getrennten Wegen, Filtern und Phase-2-Rechnungsbeträgen",
-    "status": "NATIVE_ACCEPTANCE_RETRY_PENDING; NO_DISTRIBUTION",
+    "status": "TEST_HARNESS_RETRY_PENDING; APP_SOURCE_UNCHANGED",
     "verified_installed_base": {
       "observed_at_utc": "2026-11-06T06:49:17.664Z",
       "version_name": "1.59.1",
@@ -126,9 +126,9 @@
     ],
     "validation": {
       "source": "PASS; current source check, 61 Python checks, 173 semantic actions and diff whitespace check.",
-      "jvm": "PASS; all 9 clean CI JVM suites including AccountingTests and actual SQLite BusinessTableStore tests on 4d792ff; domain code unchanged in UI/test follow-up.",
-      "android": "PASS; clean CI production/test APK build and lint on 4d792ff. Scrollable correction form follow-up awaiting rebuild.",
-      "native_ui_execution": "FAIL first run 42180610884: acceptance sums, SQL date/object/title filters, path filter, empty values and original detail roundtrip passed; test then sent system Back without guaranteeing visible IME and returned to Office before recreation. Explicit IME focus/hide assertion added; rerun pending. New-process phase had no completion marker because first phase failed.",
+      "jvm": "PASS; 9 clean CI JVM suites including AccountingTests and actual SQLite table checks on 7f8b0ca; production domain code unchanged.",
+      "android": "PASS; local release rebuild, Android test compilation and lint; full clean CI build/test APK/lint on 7f8b0ca. Production source remains cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283.",
+      "native_ui_execution": "FAIL 42183426206 at SEARCH_IME_VISIBLE: new independent harness omitted FLAG_RETRIEVE_INTERACTIVE_WINDOWS, so visible IME was not observable. Copied existing graphics harness flags and restoration; app source unchanged. Focused rerun pending; completed production-source JVM/lint evidence retained.",
       "installation": "NOT_PERFORMED; user requested APK distribution only",
       "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283"
     },
@@ -180,9 +180,11 @@
     "version_name": "1.60.0",
     "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "REBUILD_AND_NATIVE_ACCEPTANCE_PENDING; NOT_DISTRIBUTED",
+    "status": "ORIGINAL_SIGNED; APP_CHECKS_PASS; NATIVE_ACCEPTANCE_PENDING; NOT_DISTRIBUTED",
     "installation": "NOT_INSTALLED",
     "distribution": "REQUESTED_DRIVE_PAKETINSTALLATION",
-    "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283"
+    "source_sha256": "cccd7f03cf676ea50a1d489537a66c8352db9e72c93c78c0bf32e401a735d283",
+    "source_git_sha": "7f8b0ca77980ef3c82028e88aec9d8e6162a73f0",
+    "apk_sha256": "0df527429b48a501c179c68e20b9b88c49b2300579371f9e449f26ec6eb3dc44"
   }
 }

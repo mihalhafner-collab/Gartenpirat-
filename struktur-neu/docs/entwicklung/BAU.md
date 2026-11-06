@@ -659,3 +659,8 @@ prüft Cent-Summen, gemeinsame Filter, CAS, atomaren Rollback, Konfliktkorrektur
 fehlende Phase-2-Beträge, echte Compose-Navigation, Hoch-/Querformat und 200-%-Schrift.
 `native_accounting_reopen` liest den unveränderten synthetischen Bestand in einem
 neuen Prozess zurück. Keine produktiven Daten oder Geräte werden verwendet.
+
+Der gezielte `accounting_only`-Lauf baut Release- und Test-APK und führt die
+Android-Abnahme aus; Lint und allgemeine JVM-Suiten laufen weiterhin bei jedem
+normalen Code-Push. Bei einer reinen Korrektur des Prüfharness dürfen deren bereits
+bestandene Nachweise für denselben unveränderten App-Quellfingerabdruck gelten.
