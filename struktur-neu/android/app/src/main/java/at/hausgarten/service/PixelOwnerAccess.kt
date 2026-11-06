@@ -55,6 +55,15 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                 throw PixelMcpWriteTools.Rejected("SETTLEMENT_VALIDATION", failure.message ?: "Abrechnungsangaben prüfen.")
             }
             throw failure
+        } catch (failure: java.io.IOException) {
+            // Only a verified still-prepared row without a committed receipt permits
+            // clearing the UI's uncertain request. A failed state read stays uncertain.
+            val notCommitted = name == "complete_settlement" && runCatching {
+                store.ownerValue("receipt:$request", "").isEmpty() &&
+                    SettlementRules.find(SettlementRules.ledger(repository), args.getString("settlement_id")).optString("status") == "prepared"
+            }.getOrDefault(false)
+            if (notCommitted) throw PixelMcpWriteTools.Rejected("SETTLEMENT_DOCUMENT_FAILED", "Original-PDF konnte nicht fertiggestellt werden. Die geprüfte Vorbereitung und ihre Nummer bleiben erhalten. Erneut versuchen oder die Vorbereitung bewusst aufheben.")
+            throw failure
         }
         if (name == "begin_file_upload" || name == "write_file_chunk" || name == "create_photo") {
             try {

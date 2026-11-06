@@ -41,7 +41,7 @@ internal class PixelMcpOwnerTools {
         val WRITES: Array<String> =
             LocalWorkflowTools.concat(
                 arrayOf(
-                    "save_settlement_draft", "prepare_settlement", "complete_settlement", "correct_settlement", "add_settlement_payment", "review_restored_sources", "record_settlement_delivery",
+                    "save_settlement_draft", "prepare_settlement", "complete_settlement", "correct_settlement", "abandon_prepared_settlement", "add_settlement_payment", "review_restored_sources", "record_settlement_delivery",
                     "empty_trash",
                     "archive_work_records",
                     "delete_work_records",

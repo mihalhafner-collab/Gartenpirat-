@@ -343,21 +343,24 @@ var db = store!!.getWritableDatabase()
 store!!.beginBusinessTransaction(db)
 try {
 
-val settlementMaster by lazy { effective() }
+// All guards before Revier's optional detach see the same journal version.
+// Replaying it for every guard made even a two-work selection needlessly slow.
+val currentBeforeRevier by lazy { effective() }
 val settlementLedger by lazy { JSONObject(ownerValue("settlement:v1", "{}")) }
+val hasSettlementRecords by lazy { (settlementLedger.optJSONArray("records")?.length() ?: 0) > 0 }
 fun protectSettlement(entity: String, id: String) {
-SettlementSourceProtection.requireDeletable(settlementMaster, settlementLedger, entity, id)
+if (hasSettlementRecords) SettlementSourceProtection.requireDeletable(currentBeforeRevier, settlementLedger, entity, id)
 }
 if (kind in setOf("archive", "delete", "purge_v1")) protectSettlement(payload.optString("entity"), payload.optString("id"))
-if (kind == "order" || kind == "worklog") {
+if ((kind == "order" || kind == "worklog") && hasSettlementRecords) {
 val collection = if (kind == "order") "orders" else "worklogs"
 val id = payload.optString("id")
-val previous = OwnerJournalRules.findOrNull(settlementMaster.getJSONArray(collection), id)
-SettlementSourceProtection.requireMutable(settlementMaster, settlementLedger, collection, id, previous, payload)
+val previous = OwnerJournalRules.findOrNull(currentBeforeRevier.getJSONArray(collection), id)
+SettlementSourceProtection.requireMutable(currentBeforeRevier, settlementLedger, collection, id, previous, payload)
 }
 
 if (kind == "purge_v1" && payload.has("expected_test_dependencies_hash")) {
-val targets = TrashRules.testTargets(effective(), payload.getString("entity"), payload.getString("id"))
+val targets = TrashRules.testTargets(currentBeforeRevier, payload.getString("entity"), payload.getString("id"))
 for (i in 0 until targets.length()) {
 val target = targets.getJSONObject(i)
 protectSettlement(target.getString("entity"), target.getString("entity_id"))
@@ -374,7 +377,7 @@ revier().protectParent("photo", payload.optString("id"))
 }
 if ((kind == TrashPurgeBatch.KIND)) {
 var entries = payload.getJSONArray("entries")
-val targets = TrashPurgeBatch.testTargets(effective(), entries)
+val targets = TrashPurgeBatch.testTargets(currentBeforeRevier, entries)
 for (i in 0 until targets.length()) {
 val target = targets.getJSONObject(i)
 protectSettlement(target.getString("entity"), target.getString("entity_id"))
@@ -397,11 +400,17 @@ revier().detachOptionalParent(entry.getString("entity"), entry.getString("entity
 }
 }
 var prior = store!!.pendingActions()
+// Only order/appointment detach and a mixed trash batch can change Revier state.
+// Re-read after those paths; ordinary work deletion has no intervening mutation.
+val currentAfterRevier by lazy {
+if (kind == TrashPurgeBatch.KIND || kind in setOf("archive", "delete", "purge_v1") && payload.optString("entity") in setOf("order", "appointment")) effective()
+else currentBeforeRevier
+}
 if (kind == "order" || kind == "worklog") {
-AccountingRules.requireRecordChange(effective(), AccountingRules.ids(JSONArray(ownerValue("personal_paid", "[]"))), if (kind == "order") "orders" else "worklogs", payload)
+AccountingRules.requireRecordChange(currentAfterRevier, AccountingRules.ids(JSONArray(ownerValue("personal_paid", "[]"))), if (kind == "order") "orders" else "worklogs", payload)
 }
 val removal = kind in setOf("archive", "delete", "purge_v1")
-var predecessors = LocalActionOrder.predecessors(kind, payload, prior, if (removal) effective() else null)
+var predecessors = LocalActionOrder.predecessors(kind, payload, prior, if (removal) currentAfterRevier else null)
 if (predecessors.length() > 0) payload.put("_sync_predecessors", predecessors)
 if ((kind == "appointment") || (kind == "offer_convert")) {
 var parentProjection = JSONObject(state().getJSONObject("master").toString())

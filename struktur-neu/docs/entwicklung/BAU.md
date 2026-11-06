@@ -182,7 +182,7 @@ python3 -B tools/check_current.py
 Der Befehl prüft aktuelle Quellen, Originalidentität, Datenschutz, generierte
 Verträge, synthetische Fixtures, Pflanzenressourcen und Wartungstexte. Er baut
 keine APK, signiert nicht und greift auf kein Gerät zu.
-`tools/verify_ui_mcp_inventory.py` prüft die 173 semantischen Aktionen gegen den
+`tools/verify_ui_mcp_inventory.py` prüft die 184 semantischen Aktionen gegen den
 nativen Katalog und die geprüften Kotlin-Quellfingerabdrücke. Plattformausnahmen
 und stillgelegte Geschäftsabgleich-Aktionen bleiben ausdrücklich erkennbar. Nach tatsächlicher
 Quellsichtung mit `--record-reviewed` aufzeichnen und anschließend ohne Schalter

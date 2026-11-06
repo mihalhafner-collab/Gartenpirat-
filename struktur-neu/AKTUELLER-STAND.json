@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06 10:51:36 UTC",
+    "observed_at_utc": "2026-11-06T10:51:36Z",
     "version_name": "1.60.0",
     "version_code": 130,
     "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
@@ -103,7 +103,7 @@
       "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
     },
     {
-      "observed_at_utc": "2026-11-06 10:51:36 UTC",
+      "observed_at_utc": "2026-11-06T10:51:36Z",
       "version_name": "1.60.0",
       "version_code": 130,
       "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
@@ -115,9 +115,9 @@
   ],
   "current_task": {
     "name": "Lokale Rechnungen und interne Labor-Abschlüsse mit erhaltener Abrechnung",
-    "status": "LOCAL_SOURCE_JVM_ANDROID_LINT_PASSED; NATIVE_CI_PENDING; NOT_INSTALLED_OR_DISTRIBUTED",
+    "status": "SECOND_CANDIDATE_LOCAL_SOURCE_JVM_ANDROID_LINT_PASSED; NATIVE_RERUN_PENDING; NOT_INSTALLED_OR_DISTRIBUTED",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-06 10:51:36 UTC",
+      "observed_at_utc": "2026-11-06T10:51:36Z",
       "version_name": "1.60.0",
       "version_code": 130,
       "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
@@ -132,13 +132,19 @@
       "Entwicklung und isolierte synthetische Validierung; keine produktive Installation, Ausgabe, Migration oder APK-Verteilung."
     ],
     "validation": {
-      "source": "PASS; check_current.py: 61 Python tests, canonical source/privacy checks and 183 exact semantic UI/MCP action mappings.",
-      "jvm": "PASS; 12 JVM suites with --tables on unchanged input fingerprint 9a00b1df3506899a7b3fbaea2e8e47d65f92b661d6954a50becf0df2afc11f14; includes JDBC102, Accounting33, SettlementAccounting32, SettlementProtection42, Settlement119 and existing work/timer/offer/domain regressions.",
-      "android": "PASS; local assembleRelease, assembleReleaseAndroidTest and lintRelease; actual final build successful after fixing the reported indentation finding.",
-      "native_ui_execution": "NOT_RUN; pending isolated API35 CI native_settlement/native_settlement_reopen/native_settlement_ui and existing graphics regressions.",
+      "source": "PASS; check_current.py with 61 Python tests and 184 action mappings on second candidate.",
+      "jvm": "PASS; 12 suites incl SQLite/JDBC102, Settlement142, SettlementAccounting38, SettlementProtection42 and existing regressions; unchanged input hash 93e4ddb9d50c89e48dad0d01f5fcfa6c1487b08803cf18b67f77be1e26500c66.",
+      "android": "PASS; second-candidate local assembleRelease, assembleReleaseAndroidTest and lintRelease. Includes verified PDF error recovery, source-display corrections and transaction-local journal projection reuse.",
+      "native_ui_execution": "FIRST_RUN_FAILED on 7524d51: accounting and settlement UI visibility assertions failed at preserved scroll offsets; exact values persisted. Settlement ZIP check used wrong test extraction path (missing data/). Graphics work deletion timed out while repeatedly materializing journal; minimal transaction-local reuse implemented without increasing timeout. All affected native suites require rerun on second candidate.",
       "installation": "NOT_PERFORMED",
       "distribution": "NOT_PERFORMED",
-      "source_sha256": "ee5da3808fbcd540e57678cea3d7ca9abdd9aa6e888f1187009ed8982bb649de"
+      "source_sha256": "e0853295816c68687047801a4d2b966f527c06de2c78709fe1ccf6b596d22964",
+      "ci_baseline_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206727508",
+      "first_native_runs": [
+        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206740312",
+        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206745428",
+        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206752675"
+      ]
     }
   },
   "open_checks": [
@@ -187,9 +193,9 @@
     "version_name": "1.61.0",
     "version_code": 131,
     "package_name": "at.hausgarten.service",
-    "status": "LOCAL_VALIDATION_PASSED; NATIVE_CI_PENDING",
+    "status": "SECOND_CANDIDATE_LOCAL_PASSED; NATIVE_RERUN_PENDING",
     "installation": "NOT_INSTALLED",
     "distribution": "NOT_AUTHORIZED",
-    "source_sha256": "ee5da3808fbcd540e57678cea3d7ca9abdd9aa6e888f1187009ed8982bb649de"
+    "source_sha256": "e0853295816c68687047801a4d2b966f527c06de2c78709fe1ccf6b596d22964"
   }
 }

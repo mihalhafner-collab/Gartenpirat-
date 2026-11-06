@@ -140,8 +140,9 @@ private fun AccountingRow(controller: NativeAppController, row: JSONObject) {
         "${row.optString("date_label")}: ${row.optString("work_date").takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Nicht hinterlegt"}",
         row.optString("object_label"),
         if (row.isNull("amount_minor")) AccountingRules.PENDING_AMOUNT else financeMoney(OfferMoney.decimal(row.getLong("amount_minor"))),
-        row.optString("route").takeIf { it.isNotEmpty() }?.let(AccountingRules::label) ?: "Zuordnung prüfen"
-    ).joinToString("\n"), { if (row.getString("collection") == "settlements") controller.navigate("settlement_review", row.getString("id")) else controller.navigate(row.getString("collection"), row.getString("id")) })
+        row.optString("route").takeIf { it.isNotEmpty() }?.let(AccountingRules::label) ?: "Zuordnung prüfen",
+        row.optString("issue")
+    ).filter { it.isNotBlank() }.joinToString("\n"), { if (row.getString("collection") == "settlements") controller.navigate("settlement_review", row.getString("id")) else controller.navigate(row.getString("collection"), row.getString("id")) })
 }
 
 /** Reuse the existing persistent action form, conflict handling and replay flow. */

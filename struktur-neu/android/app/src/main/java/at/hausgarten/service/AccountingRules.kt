@@ -90,7 +90,7 @@ internal object AccountingRules {
         val workById = allWorks.associateBy { it.getString("id") }
         val groups = orders.map { "orders" to it } + allWorks.filter { it.optString("order_id") !in orderIds }.map { "worklogs" to it }
         val output = arrayListOf<JSONObject>()
-        val originals = SettlementRules.records(ledger).distinctBy { it.getString("id") }.filter { it.optString("kind") in setOf("invoice", "internal") && it.optString("status") in setOf("prepared", "confirmed", "cancelled") }
+        val originals = SettlementRules.records(ledger).distinctBy { it.getString("id") }.filter { it.optString("kind") in setOf("invoice", "internal") && it.optString("status") in setOf("prepared", "confirmed", "cancelled", "abandoned") }
         fun sourceGroup(collection: String, id: String): String? {
             val source = when (collection) { "orders" -> orderById[id]; "worklogs" -> workById[id]; else -> null } ?: return null
             val parent = source.optString("order_id")
@@ -170,6 +170,7 @@ internal object AccountingRules {
         }
         // Manual lines form an intentional unit; no synthetic order or worklog is created.
         for (settlement in originals) {
+            if (settlement.optString("status") == "abandoned") continue
             val lines = SettlementRules.rows(settlement.optJSONArray("positions")).distinctBy { it.getString("id") }
             val manual = lines.filter { it.optString("source_collection").isEmpty() }
             val missing = lines.filter { it.optString("source_collection").isNotEmpty() && sourceGroup(it.optString("source_collection"), it.optString("source_id")) == null }

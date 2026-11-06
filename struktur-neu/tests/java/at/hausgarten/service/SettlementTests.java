@@ -370,6 +370,58 @@ public final class SettlementTests {
         JSONObject missingValidation = validation(readable, master(), ledger());
         yes(!missingValidation.getBoolean("valid") && error(missingValidation, "Leistungsquelle fehlt"), "Readable missing-source draft is blocked from final closure");
     }
+    private static void abandonPreparedRecovery() throws Exception {
+        for (String route : new String[]{"billed", "labor"}) {
+            Memory memory = new Memory();
+            String id = memory.save(draft(route, new JSONArray().put(line("worklogs", "work-a", "1", "90"))), "abandon-draft-" + route);
+            memory.prepare(id, "abandon-prepare-" + route);
+            String reservedNumber = memory.record(id).optString("invoice_number");
+            String frozenLines = memory.record(id).getJSONArray("positions").toString();
+            String frozenSources = memory.record(id).getJSONArray("source_snapshots").toString();
+            if (route.equals("billed")) {
+                memory.failPdf = true;
+                try { memory.complete(id, "abandon-failed-pdf"); throw new AssertionError("Permanent synthetic PDF error accepted"); }
+                catch (java.io.IOException expected) { checks++; }
+            }
+            JSONObject abandoned = memory.run("abandon_prepared_settlement", memory.proof(id).put("reason", "Synthetisch dauerhaft nicht erzeugbares Original; reservierten Vorgang bewusst beenden.")
+                .put("confirmed", true), "abandon-reservation-" + route);
+            yes(abandoned.getString("status").equals("abandoned") && memory.record(id).getString("status").equals("abandoned"),
+                "Unfinishable prepared operation has an explicit retained abandonment outcome");
+            yes(memory.record(id).optString("invoice_number").equals(reservedNumber)
+                && memory.record(id).getJSONArray("positions").toString().equals(frozenLines)
+                && memory.record(id).getJSONArray("source_snapshots").toString().equals(frozenSources),
+                "Abandonment preserves frozen content, source evidence and any already reserved invoice number");
+            yes(memory.documentWrites == 0 && !memory.record(id).has("pdf") && !RULES.active(memory.record(id)),
+                "Abandonment releases the active reservation without inventing a Storno PDF or issued invoice");
+            invalid(() -> memory.complete(id, "abandon-old-complete-" + route), "abandoned reservation cannot later complete");
+            String replacement = memory.save(draft(route, new JSONArray().put(line("worklogs", "work-a", "1", "90"))), "abandon-new-draft-" + route);
+            memory.prepare(replacement, "abandon-new-prepare-" + route);
+            if (route.equals("billed")) {
+                yes(!memory.record(replacement).getString("invoice_number").equals(reservedNumber)
+                    && memory.record(replacement).getLong("sequence") == memory.record(id).getLong("sequence") + 1L,
+                    "A new draft may use the freed service but never reuses the abandoned reserved invoice number");
+            } else yes(!memory.record(id).has("invoice_number") && !memory.record(replacement).has("invoice_number"),
+                "Abandoned and replacement Labor operations remain without invoice numbers");
+            memory.failPdf = false;
+            memory.complete(replacement, "abandon-new-complete-" + route);
+            invalid(() -> memory.run("abandon_prepared_settlement", memory.proof(replacement).put("reason", "Unzulässiges Aufgeben bestätigten Vorgangs")
+                .put("confirmed", true), "abandon-confirmed-" + route), "confirmed originals require normal cancellation or internal void");
+            yes(memory.record(replacement).getString("status").equals("confirmed") && memory.documentWrites == (route.equals("billed") ? 1 : 0),
+                "Recovery produces only the chosen new final document and never alters an already confirmed original");
+            Memory oldBackup = new Memory();
+            String restoredId = oldBackup.save(draft(route, new JSONArray().put(line("", "", "1", "10"))), "abandon-restored-draft-" + route);
+            oldBackup.prepare(restoredId, "abandon-restored-prepare-" + route);
+            Memory restored = new Memory(oldBackup.master, oldBackup.owner); restored.epoch = "synthetic-abandon-restore-2";
+            JSONObject abandonArgs = restored.proof(restoredId).put("reason", "Synthetischer vorbereiteter Altvorgang soll aufgegeben werden").put("confirmed", true);
+            invalid(() -> restored.run("abandon_prepared_settlement", abandonArgs, "abandon-restored-action-" + route),
+                "restored preparation cannot be abandoned without current actual-state reconciliation");
+            restored.run("review_restored_sources", new JSONObject().put("settlement_id", restoredId).put("sources", new JSONArray())
+                .put("confirmed", true).put("evidence", "Synthetischer aktueller Abgleich: kein ausgestelltes Original und kein Geschäftsabschluss zum vorbereiteten Vorgang."), "abandon-restored-review-" + route);
+            restored.run("abandon_prepared_settlement", abandonArgs, "abandon-restored-action-" + route);
+            yes(restored.record(restoredId).getString("status").equals("abandoned") && restored.documentWrites == 0,
+                "Conscious current reconciliation permits abandoning even a manual restored preparation without fabricated documents");
+        }
+    }
     private static void simultaneousReservations() throws Exception {
         Memory memory = new Memory();
         String a = memory.save(draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "30"))), "synthetic-concurrent-draft-a");
@@ -396,6 +448,7 @@ public final class SettlementTests {
         restoredReservations();
         groupedOverviewAndLaterWork();
         legacyReferencesAndMissingDraftSources();
+        abandonPreparedRecovery();
         System.out.println("PASS " + checks + " synthetic settlement assertions: decimal EUR, drafts, snapshots, legal recipients, unique bindings, route protection and restored-source review");
     }
 }

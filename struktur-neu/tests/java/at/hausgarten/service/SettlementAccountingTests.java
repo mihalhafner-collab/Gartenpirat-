@@ -51,6 +51,16 @@ public final class SettlementAccountingTests {
         JSONObject pending=row(rows(master,ledger(prepared,internal),"w2"),"orders:o1");
         yes(pending.isNull("amount_minor")&&pending.getString("issue_code").equals("pending_amount"),"reserved invoice has no confirmed amount and does not revive legacy amount");
         yes(total(rows(master,ledger(prepared,internal),"w2"),"")==20000,"only internal confirmed amount summed before PDF completion");
+        JSONObject abandoned=copy(invoice).put("status","abandoned");
+        List<JSONObject> abandonedRows=rows(master,ledger(abandoned,internal),"w2");
+        yes(row(abandonedRows,"orders:o1").isNull("amount_minor")&&row(abandonedRows,"orders:o1").getString("issue_code").equals("pending_amount"),"abandoned reservation must not resurrect legacy accounting_amount");
+        yes(abandonedRows.size()==2&&total(abandonedRows,"")==20000,"marked abandoned source remains pending while unrelated internal amount survives");
+        yes(rows(unmarked,ledger(abandoned)).isEmpty(),"abandoned source binding does not create an unmarked overview unit");
+        JSONObject abandonedMixed=copy(abandoned);abandonedMixed.getJSONArray("positions").put(line("abandoned-manual","","",10000));
+        yes(rows(master,ledger(abandonedMixed,internal),"w2").size()==2,"abandoned mixed reservation creates no artificial manual overview unit");
+        JSONObject abandonedManual=settlement("abandoned-manual-only","abandoned","billed",line("abandoned-manual-only-line","","",10000));
+        yes(rows(new JSONObject().put("orders",new JSONArray()).put("worklogs",new JSONArray()),ledger(abandonedManual)).isEmpty(),"abandoned purely manual reservation contributes no pending unit or amount");
+        yes(total(rows(master,ledger(abandoned,copy(invoice).put("id","recovered-invoice"),internal),"w2"),"")==110000,"new confirmed operation may use released source without reviving legacy amount");
 
         JSONObject cancelled=copy(invoice).put("status","cancelled");
         JSONObject correction=copy(invoice).put("id","correction").put("kind","cancellation").put("positions",new JSONArray().put(line("negative","worklogs","w1",-90000)));

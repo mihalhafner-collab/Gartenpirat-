@@ -36,7 +36,7 @@ private fun settlementDraftInput(value: JSONObject): JSONObject {
     return result
 }
 private fun settlementStatus(value: JSONObject) = when (value.optString("status")) {
-    "draft" -> "Entwurf"; "prepared" -> "Abschluss vorbereitet – fortsetzen"; "confirmed" -> "Bestätigt"; "cancelled" -> "Korrigiert / aufgehoben"; else -> "Status prüfen"
+    "draft" -> "Entwurf"; "prepared" -> "Abschluss vorbereitet – fortsetzen"; "confirmed" -> "Bestätigt"; "cancelled" -> "Korrigiert / aufgehoben"; "abandoned" -> "Vorbereitung aufgehoben – nicht ausgestellt"; else -> "Status prüfen"
 }
 
 @Composable
@@ -249,6 +249,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
     var electronic by rememberSaveable(id) { mutableStateOf(false) }
     var correction by rememberSaveable(id) { mutableStateOf(false) }
     var reason by rememberSaveable(id) { mutableStateOf("") }
+    var abandonmentReason by rememberSaveable(id) { mutableStateOf("") }
     var evidence by rememberSaveable(id) { mutableStateOf("") }
     var payment by rememberSaveable(id) { mutableStateOf(false) }
     var amount by rememberSaveable(id) { mutableStateOf("") }
@@ -373,6 +374,15 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     SettlementCheck("Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft", issuerConfirmed, !busy && original == null) { issuerConfirmed = it }
                     if (invoice) SettlementCheck("Elektronische Übermittlung ist mit dem Empfänger vereinbart", electronic, !busy && original == null) { electronic = it }
                     Text("Beim bewussten Abschluss werden Inhalt und Quellen eingefroren. Die Rechnung erhält eine lokale, von sevDesk getrennte Nummer. Interne Labor-Abrechnungen erhalten keine Rechnungsnummer und kein Rechnungs-PDF.", style = MaterialTheme.typography.bodySmall)
+                }
+                if (status == "prepared") {
+                    SettlementText("Grund für das Aufheben der Vorbereitung", abandonmentReason, !busy && original == null, true) { abandonmentReason = it }
+                    Text(if (invoice) "Die reservierte Rechnungsnummer bleibt dauerhaft belegt. Originalvorgänge und Zahlungen bleiben erhalten."
+                        else "Die Vorbereitung und ihre Historie bleiben nachvollziehbar. Andere Abrechnungen und Zahlungen bleiben erhalten.", style = MaterialTheme.typography.bodySmall)
+                    TextButton({
+                        act("abandon_prepared_settlement", JSONObject().put("settlement_id", id).put("expected_record_hash", current.getString("record_hash"))
+                            .put("reason", abandonmentReason).put("confirmed", true))
+                    }, enabled = !busy && original == null && abandonmentReason.isNotBlank() && !current.optBoolean("requires_restore_review")) { Text("Vorbereitung aufheben") }
                 }
                 if (status in setOf("confirmed", "cancelled")) {
                     if (invoice) NativeActions {

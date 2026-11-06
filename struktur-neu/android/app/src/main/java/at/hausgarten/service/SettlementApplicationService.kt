@@ -72,11 +72,20 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                     result(completed)
                 }
             }
+            "abandon_prepared_settlement" -> {
+                val row = SettlementRules.find(ledger, id); expected(row, a)
+                require(row.getString("status") == "prepared") { "Nur eine noch nicht abgeschlossene Vorbereitung aufheben. Bestätigte Belege benötigen Storno oder interne Korrektur." }
+                require(!requiresRestoreReview(ledger, row, repository.settlementRestoreEpoch())) { "Restaurierten Vorgang zuerst mit dem aktuellen Belegstand abgleichen." }
+                require(a.getBoolean("confirmed") && a.getString("reason").isNotBlank()) { "Aufhebung der Vorbereitung bewusst begründen und bestätigen." }
+                val abandoned = JSONObject(row.toString()).put("status", "abandoned").put("abandoned_at", java.time.Instant.now().toString()).put("abandon_reason", a.getString("reason"))
+                replace(records, abandoned)
+                result(abandoned)
+            }
             "correct_settlement" -> {
                 val old = SettlementRules.find(ledger, id); expected(old, a)
                 require(old.getString("status") == "confirmed" && old.getString("kind") in setOf("invoice", "internal")) { "Nur bestätigte Originalvorgänge vollständig korrigieren." }
                 require(a.getBoolean("confirmed") && a.getString("reason").isNotBlank()) { "Vollständige Korrektur mit Begründung bestätigen." }
-                require(SettlementRules.records(ledger).none { it.optString("corrects") == id }) { "Vorhandene Korrektur fortsetzen." }
+                require(SettlementRules.records(ledger).none { it.optString("corrects") == id && it.optString("status") != "abandoned" }) { "Vorhandene Korrektur fortsetzen." }
                 val correctionId = "st_" + PixelMcpWriteTools.hash(request).take(32)
                 val correction = JSONObject(old.toString())
                 for (key in listOf("pdf", "invoice_number", "series", "sequence", "confirmed_at", "prepared_at", "corrected_by", "replacement_for")) correction.remove(key)

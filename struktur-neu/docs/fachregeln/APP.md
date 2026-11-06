@@ -542,3 +542,11 @@ Automatische Vorgängerbezüge von Löschaktionen enthalten nur bereits übernom
 Änderungen. Eine ältere fehlgeschlagene Änderung wird nicht zur künstlichen
 Löschvoraussetzung; aktuelle Versions- und Referenzprüfungen bleiben bestehen.
 Ausdrücklich angegebene Vorgänger und normale Bearbeitungen behalten ihre Prüfungen.
+
+Eine noch nicht abgeschlossene Vorbereitung darf nach bewusster Begründung
+aufgehoben werden, etwa bei einem dauerhaft nicht erzeugbaren PDF. Snapshot und
+reservierte Nummer bleiben im Vorgang mit Status `abandoned`; die Nummer wird
+niemals wiederverwendet. Quellen werden erst durch diese ausdrückliche Aufhebung
+wieder frei. Nach Restore ist zuvor der aktuelle Belegstand zu prüfen. Bereits
+bestätigte Rechnungen und interne Abschlüsse benötigen weiterhin ihren eigenen
+Storno- beziehungsweise Aufhebungsablauf.

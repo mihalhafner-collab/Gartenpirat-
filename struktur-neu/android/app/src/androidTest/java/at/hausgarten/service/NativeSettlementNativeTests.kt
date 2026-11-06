@@ -160,6 +160,15 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             yes(store.nativeData().accounting(JSONObject().put("route", "labor")).getLong("total_minor") == 20000L, "ROUTE_FILTER_SAME_TOTAL")
             yes(store.nativeData().accounting(JSONObject().put("date_from", "2026-11-03")).getLong("total_minor") == 0L, "WORK_DATE_NOT_INVOICE_DATE")
             yes(hash(repository.effective()) == initial && store.ownerValue("personal_paid", "[]") == marks, "CLOSURES_PRESERVE_ALL_USER_ASSIGNMENTS")
+            val queries = NativeOwnerQueries(context, store, repository)
+            val fullExport = queries.query("export_settlements", JSONObject())!!
+            yes(!fullExport.getBoolean("filtered") && fullExport.getJSONObject("overview").getLong("total_minor") == 110000L, "FULL_EXPORT_BOTH_ROUTES_AND_TOTAL")
+            yes(fullExport.getJSONArray("records").length() == 2 && fullExport.getJSONObject("series_counters").length() == 1, "FULL_EXPORT_RECORDS_AND_SERIES")
+            val missingDraft = save(repository, draft("billed", "1", "qa_missing_draft_source"), "qa_native_settlement_missing_draft")
+            yes(!get(repository, missingDraft).getJSONObject("validation").getBoolean("valid"), "MISSING_DRAFT_SOURCE_REMAINS_REVIEWABLE")
+            val filteredExport = queries.query("export_settlements", JSONObject().put("route", "labor"))!!
+            yes(filteredExport.getBoolean("filtered") && filteredExport.getJSONObject("overview").getLong("total_minor") == 20000L, "FILTERED_EXPORT_SAME_SELECTION_AND_LABEL")
+            yes(filteredExport.getJSONArray("records").length() == 1 && filteredExport.getJSONArray("records").getJSONObject(0).getString("id") == labor, "UNRELATED_MISSING_DRAFT_DOES_NOT_BREAK_FILTERED_EXPORT")
             val replay = complete(repository, invoice, "qa_native_settlement_invoice_complete")
             yes(replay.getBoolean("replayed"), "SAME_REQUEST_REPLAY")
             rejects("SAME_REQUEST_ARGUMENT_MISMATCH") { call(repository, "complete_settlement", JSONObject().put("settlement_id", labor), "qa_native_settlement_invoice_complete") }
@@ -185,7 +194,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 yes(ledger.getJSONArray("payments").length() == 3, "ZIP_PRESERVES_ALL_PAYMENT_ENTRIES")
                 yes(ledger.getJSONObject("series_counters").length() == 1, "ZIP_PRESERVES_COUNTERS")
             }
-            val pdf = File(verified.directory, "files/business-documents/" + marker.getString("pdf_sha256") + ".pdf")
+            val pdf = verified.file("files/business-documents/" + marker.getString("pdf_sha256") + ".pdf")
             yes(pdf.isFile && PhotoAttachmentStore.sha256(pdf.readBytes()) == marker.getString("pdf_sha256"), "ZIP_PRESERVES_ORIGINAL_BYTES")
         }
         val restore = BackupRestoreService(context)
@@ -229,6 +238,15 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             repository.runRequest("qa_native_settlement_pdf_retry", hash(args)) { SettlementApplicationService(broken).perform("complete_settlement", args, "qa_native_settlement_pdf_retry") }
         }
         yes(get(repository, id).getJSONObject("record").getString("status") == "prepared" && get(repository, id).getJSONObject("record").getString("invoice_number") == before.getString("invoice_number"), "PDF_FAILURE_RETAINS_NUMBER_AND_FROZEN_CONTENT")
+        val staging = File(context.cacheDir, "immutable-document-staging")
+        yes(!staging.exists() || staging.isDirectory && staging.listFiles()?.isEmpty() == true, "OWNED_EMPTY_DOCUMENT_STAGING")
+        if (staging.exists()) yes(staging.delete(), "REMOVE_OWNED_EMPTY_STAGING")
+        staging.writeText("[TEST] Synthetischer Dateifehler")
+        try {
+            val failure = runCatching { PixelOwnerAccess(context, store).execute("complete_settlement", JSONObject().put("request_id", "qa_native_settlement_ui_pdf_failure").put("settlement_id", id)) }.exceptionOrNull()
+            yes(failure is PixelMcpWriteTools.Rejected && failure.code == "SETTLEMENT_DOCUMENT_FAILED", "PDF_FAILURE_HAS_VERIFIED_PREPARED_STATE")
+            yes(McpErrors.bridge(failure as Exception).getJSONObject("error").getString("commit_state") == "not_committed", "UI_CAN_RETRY_OR_EXPLICITLY_ABANDON_FAILED_PREPARATION")
+        } finally { yes(staging.delete() && staging.mkdirs(), "RESTORE_OWNED_STAGING") }
         store.writableDatabase.execSQL("CREATE TRIGGER qa_settlement_receipt_abort BEFORE INSERT ON owner_state WHEN NEW.key='receipt:qa_native_settlement_pdf_retry' BEGIN SELECT RAISE(ABORT,'QA settlement commit abort after PDF publication'); END")
         try {
             rejects("COMMIT_ABORT_AFTER_PDF") { repository.runRequest("qa_native_settlement_pdf_retry", hash(args)) { SettlementApplicationService(repository).perform("complete_settlement", args, "qa_native_settlement_pdf_retry") } }

@@ -6,7 +6,7 @@ import org.json.JSONObject
 /** One explicit contract used by native Compose and MCP. No remote accounting service. */
 internal object SettlementTools {
     val READS = arrayOf("list_settlements", "get_settlement", "get_settlement_context", "get_settlement_pdf", "export_settlements")
-    val WRITES = arrayOf("save_settlement_draft", "prepare_settlement", "complete_settlement", "correct_settlement", "add_settlement_payment", "review_restored_sources", "record_settlement_delivery")
+    val WRITES = arrayOf("save_settlement_draft", "prepare_settlement", "complete_settlement", "correct_settlement", "abandon_prepared_settlement", "add_settlement_payment", "review_restored_sources", "record_settlement_delivery")
     private fun string() = JSONObject().put("type", "string").put("maxLength", 20000)
     private fun boolean() = JSONObject().put("type", "boolean")
     private fun obj(properties: JSONObject, vararg required: String) = JSONObject().put("type", "object").put("properties", properties).put("required", JSONArray(required.toList())).put("additionalProperties", false)
@@ -15,8 +15,8 @@ internal object SettlementTools {
     fun schema(name: String): JSONObject {
         val p = JSONObject(); val required = arrayListOf<String>()
         if (name in WRITES) { p.put("request_id", McpFields.text(128).put("minLength", 8)); required.add("request_id") }
-        if (name in setOf("get_settlement", "get_settlement_pdf", "prepare_settlement", "complete_settlement", "correct_settlement", "add_settlement_payment", "record_settlement_delivery")) { p.put("settlement_id", McpFields.id()); required.add("settlement_id") }
-        if (name in setOf("correct_settlement", "add_settlement_payment", "record_settlement_delivery")) { p.put("expected_record_hash", McpFields.hash()); required.add("expected_record_hash") }
+        if (name in setOf("get_settlement", "get_settlement_pdf", "prepare_settlement", "complete_settlement", "correct_settlement", "abandon_prepared_settlement", "add_settlement_payment", "record_settlement_delivery")) { p.put("settlement_id", McpFields.id()); required.add("settlement_id") }
+        if (name in setOf("correct_settlement", "abandon_prepared_settlement", "add_settlement_payment", "record_settlement_delivery")) { p.put("expected_record_hash", McpFields.hash()); required.add("expected_record_hash") }
         when (name) {
             "save_settlement_draft" -> {
                 p.put("settlement_id", string()).put("expected_record_hash", McpFields.hash())
@@ -28,6 +28,7 @@ internal object SettlementTools {
                 p.put("expected_review_hash", McpFields.hash()); required.add("expected_review_hash")
                 for (key in listOf("confirmed", "domestic_eur_confirmed", "issuer_details_confirmed", "electronic_delivery_accepted")) { p.put(key, boolean()); required.add(key) }
             }
+            "abandon_prepared_settlement" -> { p.put("reason", string()).put("confirmed", boolean()); required.addAll(listOf("reason", "confirmed")) }
             "correct_settlement" -> { p.put("reason", string()).put("access_evidence", string()).put("confirmed", boolean()); required.addAll(listOf("reason", "confirmed")) }
             "add_settlement_payment" -> { for (key in listOf("amount", "date", "note", "reversal_of")) p.put(key, string()); required.addAll(listOf("amount", "date")) }
             "record_settlement_delivery" -> { p.put("date", string()).put("evidence", string()); required.addAll(listOf("date", "evidence")) }
@@ -37,6 +38,7 @@ internal object SettlementTools {
         return obj(p, *required.toTypedArray())
     }
     fun description(name: String) = when (name) {
+        "abandon_prepared_settlement" -> "Hebt ausdrücklich nur eine noch nicht abgeschlossene Vorbereitung mit Begründung auf. Reservierte Nummer und eingefrorene Historie bleiben erhalten und werden nie wiederverwendet. Kein künstlicher Stornobeleg. Bestätigte Belege nur über Storno oder interne Korrektur berichtigen; restaurierte Vorbereitungen zuvor aktuell abgleichen."
         "prepare_settlement" -> "Reserviert nach bewusster Vorschauprüfung eingefrorene tatsächliche Leistungen, aktive Quellenbindungen und bei Rechnung eine eigene lokale Nummer. Noch kein abgeschlossener Beleg. Gewöhnlicher österreichischer EUR-Inlandsfall, Kleinunternehmerbefreiung und rechtsformabhängige Ausstellerangaben bewusst prüfen. Danach complete_settlement mit derselben settlement_id und eigener stabiler request_id fortsetzen."
         "complete_settlement" -> "Setzt einen dauerhaft vorbereiteten Vorgang fort. Rechnung erst nach geprüftem unveränderlichem Original-PDF abschließen; Labor intern ohne Rechnung oder Nummer bestätigen. PDF-Fehler bewahren die Reservierung. Keine Änderung der Benutzerzuordnung."
         "correct_settlement" -> "Vollständiges Storno mit eigener Nummer und Originalverweis vorbereiten, anschließend complete_settlement. Labor intern nachvollziehbar aufheben ohne Rechnungsbeleg. Zahlungen bleiben erhalten; keine behauptete Rückzahlung. Vorhandene Zugangsnachweise berücksichtigen."

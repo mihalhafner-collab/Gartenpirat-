@@ -13,6 +13,7 @@ internal data class NativeAction(
 internal object NativeActionCatalog {
     val actions: List<NativeAction> =
         listOf(
+            NativeAction("abrechnung.abandon", "abrechnung", "Vorbereitung bewusst aufheben", listOf("abandon_prepared_settlement")),
             NativeAction("abrechnung.closures", "abrechnung", "Abschlüsse lesen", listOf("list_settlements", "get_settlement", "get_settlement_context")),
             NativeAction("abrechnung.draft", "abrechnung", "Leistungen erfassen", listOf("save_settlement_draft")),
             NativeAction("abrechnung.prepare", "abrechnung", "Vorschau prüfen und reservieren", listOf("get_settlement", "prepare_settlement")),

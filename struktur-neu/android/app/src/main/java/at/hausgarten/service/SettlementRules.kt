@@ -99,9 +99,9 @@ internal object SettlementRules {
         if (issuer.optString("tax_mode", "small_business") != "small_business") errors.add("Abweichender Steuerstatus wird nicht unterstützt; Steuerstatus bewusst in den Stammdaten prüfen.")
         if (issuer.optBoolean("reverse_charge") || recipient.optBoolean("reverse_charge") || recipient.optBoolean("federal_structured_invoice_required")) errors.add("Reverse Charge und strukturierte Rechnungen an Bundesdienststellen werden nicht unterstützt.")
         if (issuer.optString("business_name").isBlank() && issuer.optString("owner_name").isBlank()) errors.add("Tatsächlicher Aussteller fehlt.")
-        for (key in listOf("business_street", "business_postal_code", "business_city")) needed(issuer.optString(key), "Ausstelleradresse ist unvollständig ($key).")
+        for ((key, label) in listOf("business_street" to "Straße", "business_postal_code" to "Postleitzahl", "business_city" to "Ort")) needed(issuer.optString(key), "Ausstelleradresse: $label fehlt.")
         if (recipient.optString("name").isBlank() && recipient.optString("company").isBlank()) errors.add("Rechtlicher Rechnungsempfänger fehlt.")
-        for (key in listOf("street", "postal_code", "city")) needed(recipient.optString(key), "Empfängeradresse ist unvollständig ($key).")
+        for ((key, label) in listOf("street" to "Straße", "postal_code" to "Postleitzahl", "city" to "Ort")) needed(recipient.optString(key), "Empfängeradresse: $label fehlt.")
         for (party in listOf(issuer, recipient)) {
             val country = party.optString("country", party.optString("business_country", "AT")).trim().uppercase(java.util.Locale.ROOT)
             if (country !in setOf("", "AT", "ÖSTERREICH", "AUSTRIA")) errors.add("Unterstützt wird nur gewöhnliche Inlandsabrechnung in Österreich.")
