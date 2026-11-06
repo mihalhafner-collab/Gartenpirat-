@@ -57,7 +57,8 @@ for action in manifest['actions']:
 for path in SOURCE.glob('*'):
     if path.suffix in ('.java', '.kt') and re.search(r'@(?:android\.webkit\.)?JavascriptInterface\b|\bWebView\s*\(', path.read_text()):
         raise SystemExit('Unexpected WebView UI source: ' + str(path.relative_to(ROOT)))
-observed = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(paths)}
+observed = {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(paths, key=lambda path: path.relative_to(ROOT).parts)}
 
 # Check every executed menu entry against the current semantic inventory.
 pattern = re.compile(r'NativeAction\s*\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*listOf\(([^)]*)\)\s*,?([^)]*)\)', re.S)

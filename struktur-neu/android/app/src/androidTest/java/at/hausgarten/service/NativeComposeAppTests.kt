@@ -1184,7 +1184,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Weitere Angaben")
         click("Löschen")
         waitUntil("CUSTOMER_ARCHIVED") { customers(flowName).isEmpty() || customers(flowName).all { it.opt("active") == false || it.optInt("active", 1) == 0 || it.optBoolean("archived") } }
-        openCustomerList()
+        waitUntil("CUSTOMER_DELETE_RETURNS_TO_LIST") {
+            selectedArea("Kunden") && field("Suchen")?.isEditable == true && node("Kunde anlegen")?.let(::clickable) != null
+        }
         enter("Suchen", "QA Native F")
         shown("0 Treffer · 0–0")
         yes(node(flowName) == null, "ARCHIVED_CUSTOMER_NOT_IN_ACTIVE_LIST")

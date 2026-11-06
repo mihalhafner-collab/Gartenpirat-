@@ -377,3 +377,250 @@ verwenden kompakte deutsche Ergebnisse ohne rohe Kennungs-/Protokolllisten.
 Der Pixel-Screenshot zeigte zuvor 22,53 GB Arbeits-/Wiederherstellungsdaten.
 Eine tatsächliche Freigabe dieser Bytes ist erst nach Installation und Ausführung
 am Pixel messbar. Prüfstand und Grenzen stehen in `AKTUELLER-STAND.json`.
+
+## Physischer Pixel über USB-ADB am 06.11.2026
+
+Pixel 10 Pro mit Android 17 (API 37), 1280 × 2856 px, 480 dpi,
+Gestennavigation und rund 52 GB freiem Speicher. Ausgangswerte waren 130 %
+Schrift, Hochformat und ausgeschaltete automatische Drehung. Benachrichtigungen
+und beide Standortberechtigungen waren erteilt. Die Fotoaufnahme öffnet die
+externe Kamera-App. ADB 37.0.1 lief lokal am Windows-Laptop. Nach der
+USB-Freigabe war genau das ausgewählte Pixel verbunden. Der App-Prozess
+lief bereits, einschließlich des Tunnel-Vordergrunddiensts. Die separate
+Test-App mit anderer Paketkennung gehörte nicht zum Prüflauf.
+
+Installiert war `at.hausgarten.service` 1.61.0 (131). Die lokal über USB-ADB
+gelesene APK-Prüfsumme stimmt exakt mit der signierten Release-Referenz überein.
+Die unveränderten Git-Blobs des Release-Commits `7e3b045d` und des untersuchten
+`main`-Commits `94803853` ergeben jeweils `67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38`.
+Die ersten MCP-Aufrufe von `get_capabilities` scheiterten am HTTP-Transport.
+Der spätere Abruf meldete dasselbe Paket und `runtime.build_fingerprint` für
+1.61.0 (131) mit Git `7e3b045d1975c407885a85bb9da1edb167c395e9`, demselben
+`source_sha256`, `source_dirty=false`, Buildtyp `release` und MCP-Protokoll 9.
+Die Quellbindung ist separat im [Arbeitsstand](../../AKTUELLER-STAND.json) erfasst.
+
+### Ausgeführte Bedienfälle und Rücklesen
+
+Alle Bedienhandlungen wurden per ADB an der tatsächlichen Oberfläche ausgelöst.
+Bei reinen Sichtbefunden nennt die Tabelle ausdrücklich die abgelesene Anzeige.
+Zubehörfunktionen beziehen sich auf das eigene synthetische Gerät
+`GPQA-20261106-Geraet`. Die Aktionen der Fotoansicht und die Systemübergänge sind
+Zusatzfälle zur Katalogzuordnung. Ein bestandener Teilpfad deckt nur die genannten
+Bedienhandlungen ab.
+
+| ID | Bereich und Aktions-ID | Voraussetzung | Schritte | Erwartet | Tatsächlich und wirksam zurückgelesen | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| QA01 | Heute, `revier.get_revier_overview` | App auf Heute | Übersicht und Timerstatus ablesen | Der angezeigte Startzustand ist erkennbar | „Arbeit starten“ war sichtbar. Eine aktive Timerleiste wurde nicht angezeigt. Die Schaltfläche wurde hier abgelesen. | BESTANDEN |
+| QA02 | Geräte, `revier.list_equipment` | App geöffnet | Zu Geräte navigieren und Liste öffnen | Geräteliste wird angezeigt | Der tatsächlich geöffnete Gerätebereich zeigte die Liste. | BESTANDEN |
+| QA03 | Geräte, `revier.save_equipment` | Geräteliste geöffnet, eigener Testname | Synthetisches Gerät anlegen, speichern, Liste und Gerätedetail erneut öffnen | Genau das gespeicherte Gerät lässt sich wiederfinden | Das Gerät war nach dem Speichern über die Liste erneut zu öffnen. | BESTANDEN |
+| QA04 | Zubehör, `platform.151` und System-Zurück | Zubehörformular mit eingegebener Bezeichnung | Fotoauswahl antippen, aus der verschachtelten Bildansicht zweimal Android-Zurück auslösen | Rückkehr ins Formular, Eingabe und Fototasten wieder verfügbar | Erste Rückaktion führte zur Picker-Wurzel, zweite ins Zubehörformular. Die Bezeichnung blieb erhalten und die Aktionen waren wieder sichtbar. Die Fotoauswahl wurde in QA05 erneut ausgelöst. | BESTANDEN |
+| QA05 | Zubehör, `platform.151` und `revier.save_equipment` | Zubehörformular, synthetisches JPEG mit 18.570 Byte in Downloads | Foto auswählen, JPEG antippen, speichern, Geräteübersicht und Detail erneut öffnen | Gespeichertes Zubehör und aktuelle Kette lassen sich erneut lesen | Systemauswahl und Speichern ausgeführt. Das erneut geöffnete Gerätedetail zeigte die Kettenzuordnung. | BESTANDEN |
+| QA06 | Zubehör, `platform.151` und `revier.save_equipment` | Eigenes Gerät und synthetisches JPEG mit 6.224.233 Byte | Zweimal die Datei über den Systempicker auswählen und speichern. Formularzustand, Hinweise und Rückkehr beobachten. | Während der Sperre erscheint eine verständliche Beschäftigtanzeige. Erfolgsanzeige folgt auf Abschluss. | In beiden Läufen war Speichern ausgegraut. Eine Beschäftigtanzeige fehlte. Der Hinweis „Lokal gespeichert.“ aus einem früheren Speichern blieb während der laufenden Verarbeitung sichtbar. Beide Läufe kehrten später ins Gerätedetail zurück. Zeiten stehen unten. | FEHLGESCHLAGEN |
+| QA07 | Zubehör, `revier.save_equipment` und Wiederholung | Erster Lauf von QA06, ein synthetisches Zubehör | Speichern schnell zweimal antippen und Gerät nach Abschluss erneut öffnen | Ein Zubehör, zugehöriges Foto und aktuelle Kette | Ein Zubehör wurde erneut gelesen. Foto und aktuelle Kette waren im Gerätedetail sichtbar. | BESTANDEN |
+| QA08 | Zubehörfoto, Zusatzfall | Gespeichertes Foto im Gerätedetail | Foto antippen und Android-Zurück auslösen | Foto vergrößert sich und Zurück führt zum Detail | Das tatsächliche Antippen öffnete die Vergrößerung. Android-Zurück schloss sie. | BESTANDEN |
+| QA09 | Kamera, `platform.151` und System-Zurück | Zubehörformular geöffnet | „Foto aufnehmen“ antippen, in Google Kamera Android-Zurück auslösen | Kamera öffnet sich, Abbruch erhält das Formular | Google Kamera öffnete sich. Android-Zurück führte zum unveränderten Formular mit sichtbaren Aktionen. | BESTANDEN |
+| QA10 | Zubehör, Großschrift und Querformat, Zusatzfall | Ausgangsschrift 130 %, Rotation 0 und Automatik 0 | Schrift auf 200 % stellen, Hoch- und Querformat beobachten, im Querformat „Zubehör bearbeiten“ und „Zurück“ tatsächlich antippen, Ausgangswerte wiederherstellen | Der geprüfte Einstieg und der Rückweg bleiben bedienbar. Schrift und Rotation werden zurückgesetzt. | Beide Formate wurden bei 200 % beobachtet. Die beiden Eingaben im Querformat führten in die Bearbeitung und zurück. Ausgangswerte 1,3 / Rotation 0 / Automatik 0 wurden wiederhergestellt. | BESTANDEN |
+| QA11 | Kameraaufnahme und Rückgabe, `platform.151` | Kamera erreichbar, neutrale Szene vor der Linse muss bestätigt sein | Auslösen, Aufnahme übernehmen, speichern und erneut öffnen | Die Aufnahme erscheint erneut beim Zubehör | Auslösung und Rücklesen stehen aus, da die neutrale Szene noch unbestätigt war. | BLOCKIERT |
+
+### Beobachtete Dauer beim großen Zubehörfoto
+
+Die Zeiten wurden am Laptop ab der jeweiligen Speichereingabe erfasst. Die
+Momentaufnahmen begrenzen den beobachteten Zustand zeitlich. ADB-Eingabe,
+Bildabruf und deren Laufzeiten sind Teil der Beobachtung. Die Tabelle gibt
+Zeitfenster bis zur sichtbaren Reaktion und zum erneuten Detail an.
+
+| Lauf | ADB-Eingabe dauerte | Speichern zuerst grau abgelesen bei | Formular zuletzt sichtbar | Detail sichtbar bis spätestens |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 0,156 s | 1,016 s | 26,469 s | 28,937 s |
+| 2 | 1,109 s | ca. 5 s | 54,375 s | 60,125 s |
+
+In Lauf 2 war der Bildschirmwechsel bei 57,218 s bereits im Gang. Die separate
+ADB-Dateiübertragung dauerte beim kleinen Bild 0,492 s und beim großen 2,582 s.
+Die beiden Speichermessungen bilden eine Stichprobe von zwei Läufen. Der im
+Messverfahren vorgesehene Vergleich mit 40 Wiederholungen steht aus.
+
+Die kumulativen `gfxinfo`-Stichproben für den App-Prozess ergaben zunächst
+6.147 Frames mit 119 als ruckelnd klassifizierten Frames (p50 5 ms, p90 7 ms),
+später 6.541 mit 132 (p95 12 ms). Das sind aggregierte Framewerte mehrerer
+Bedienwege. `dumpsys meminfo` zeigte für denselben Prozess 95.594 und später
+272.100 KiB Gesamt-PSS. Während der zweiten Messung zeigten zwei CPU-Stichproben
+126 % und 119 %. Aus diesen Einzelwerten lässt sich die Dauer einzelner
+Verarbeitungsschritte oder ein dauerhafter Speicherzuwachs nicht ableiten.
+
+### Ursache und Umfang der Korrektur
+
+`RevierEditor` setzt `busy` vor dem lokalen Aufbereiten und Zwischenspeichern
+des Zubehörfotos, der Entwurfssicherung und dem eigentlichen Speichervorgang.
+Die Sperre greift vor diesen Schritten. In Build 131 bleibt die Schaltfläche dabei
+weiter mit „Speichern“ beschriftet, und die globale Meldung aus dem vorherigen
+Vorgang wird erst bei der neuen Rückmeldung ersetzt. Bei der Fotoauswahl sperrt
+`RevierAccessoryFields` über `edit.mediaBusy` bis zur Rückgabe und lokalen
+Übernahme. Die Ursache der irreführenden Anzeige liegt damit in der Verknüpfung
+von Sperrzustand, Aktionsbeschriftung und Meldung. Die gemessene Gesamtdauer
+wurde nicht auf einzelne Speicher- oder Verarbeitungsschritte aufgeteilt.
+[`ComposeRevierScreens.kt`](../../android/app/src/main/java/at/hausgarten/service/ComposeRevierScreens.kt)
+
+Der Kandidat 1.61.1 (132) zeigt während der Fotoübernahme „Foto wird geladen …“
+und während eines laufenden Speichervorgangs im Geräte- und Zubehörformular
+„Bitte warten …“. Er leert dort beim Beginn des Vorgangs die vorige Meldung.
+Die Änderung betrifft die Rückmeldung. Der bestehende Speichervorgang, seine
+Sperren und die Erfolgsbestätigung nach wirksamem Schreiben werden weiter
+verwendet. Der erneute physische Vergleich mit dem Kandidaten setzt eine
+gesondert freigegebene Installation voraus und ist derzeit **BLOCKIERT**.
+
+### Weitere Bedienfälle auf Build 131
+
+| ID | Bereich/Aktion | Voraussetzung und Bedienung | Erwartet | Tatsächlich und wirksam zurückgelesen | Status |
+| --- | --- | --- | --- | --- | --- |
+| QA12 | Geräte und Testdatenbereinigung | Eigenes Gerät nach QA07 wieder öffnen, bis „Löschen“ scrollen, löschen, Namen im Suchfeld der Geräteliste eingeben | Ziel verschwindet aus dem wirksamen Bestand | Suche zeigte nach Löschung 0 Treffer. Beide synthetischen JPEGs im Download-Ordner wurden nach erneutem Hashabgleich einzeln entfernt und ihr Fehlen geprüft. | BESTANDEN |
+| QA13 | App-interne temporäre Dateien | Freigabebuild nach QA12, Lesbarkeit des privaten App-Verzeichnisses per ADB prüfen | Einzelne temporäre Dateien vor und nach dem Test vergleichen können | `run-as` meldete, dass das installierte Paket keine Debug-Freigabe hat. Die Speicheransicht liefert Aggregate. | BLOCKIERT |
+| R00 | Hauptnavigation | Geräteliste mit Testsuchtext offen. Auf Heute, Arbeit und Kunden wechseln, Büro erneut antippen. | Büro kehrt zur bisherigen Geräteliste zurück | Geräteliste mit Suche und Anlageaktion war beim erneuten Antippen des Büro-Tabs wieder offen. | BESTANDEN |
+| R01 | Heute | Aus einem anderen Bereich den Heute-Tab antippen | Übersicht mit Startaktion sichtbar | Heute zeigte „Arbeit starten“ und „Heute kein weiterer Einsatz geplant“. Der spätere unabhängige MCP-Abruf meldete Timerzustand `IDLE`. | BESTANDEN |
+| R02 | Heute-Hinweise | Heute öffnen, „Weitere Tageshinweise“ antippen | Abschnitt lässt sich einblenden | Der Abschnitt zeigte anschließend einen Planungshinweis. | BESTANDEN |
+| R03 | Arbeit | Arbeit-Tab antippen | Arbeitsaufzeichnungen erreichbar | Arbeitsaufzeichnungen mit Suche, Filter und „Arbeit nachtragen“ geöffnet. | BESTANDEN |
+| R04 | Kunden | Kunden-Tab antippen | Kundenliste erreichbar | Kundenliste mit Suche, Filter und „Kunde anlegen“ geöffnet. | BESTANDEN |
+| R05 | Abrechnung | Büro öffnen, Abrechnung antippen | Rechnung, Labor und Gesamt erkennbar | Drei Betragsbereiche, Filter und Abschlüsse sichtbar. Summenberechnung und Filterverhalten stehen separat aus. | BESTANDEN |
+| R06 | Angebote | Büro, Angebote antippen | Angebotsliste erreichbar | „Angebot anlegen“, Suche und Filter sichtbar. | BESTANDEN |
+| R07 | Planung | Büro, Planung antippen | Tages- und Wochenansicht erreichbar | Reiter „Tag“ und „Woche“ sichtbar. | BESTANDEN |
+| R08 | Offene Stunden | Büro, „Offene Stunden“ antippen | Ansicht erreichbar | Ansichtstitel „Offene Stunden“ nach der Navigation gelesen. | BESTANDEN |
+| R09 | Aufträge | Büro, „Aufträge und Anfragen“ öffnen, Aufträge antippen | Auftragsliste erreichbar | „Auftrag anlegen“, Suche und Filter sichtbar. | BESTANDEN |
+| R10 | Anfragen | Geöffnete Bürogruppe, Anfragen antippen | Anfragenliste erreichbar | „Anfrage anlegen“, Suche und Filter sichtbar. | BESTANDEN |
+| R11 | Objekte | Geöffnete Bürogruppe, Objekte antippen | Objektliste erreichbar | „Objekt anlegen“, Suche und Filter sichtbar. | BESTANDEN |
+| R12 | Pflegepläne | Geöffnete Bürogruppe, Pflegepläne antippen | Pflegeplanliste erreichbar | „Pflegeplan anlegen“, Suche und Filter sichtbar. | BESTANDEN |
+| R13 | Material | Büro, „Material und Pflanzen“ öffnen, Material antippen | Materialliste erreichbar | „Material anlegen“, Suche und Filter sichtbar. | BESTANDEN |
+| R14 | Pflanzen | Geöffnete Bürogruppe, Pflanzen antippen | Pflanzenansicht erreichbar | Der Zielbereich war geöffnet und zeigte „Filter“. | BESTANDEN |
+| R15 | Fotos | Geöffnete Bürogruppe, Fotos antippen | Fotoliste erreichbar | Zielbereich „Fotos“ mit Filter geöffnet. | BESTANDEN |
+| R16 | Leistungskatalog | Geöffnete Bürogruppe, Leistungskatalog antippen | Leistungsliste erreichbar | Zielbereich zeigte „Baustein anlegen“. | BESTANDEN |
+| R17 | Lokale Suche | Büro, „Weitere Verwaltung“ öffnen, Lokale Suche antippen | Suche und Filter erreichbar | Ansicht „Lokale Suche“ mit Filter und „Lokal suchen“ geöffnet. | BESTANDEN |
+| R18 | Revier-Archiv | Geöffnete Bürogruppe, Revier-Archiv antippen | Wirksamer Archivbestand wird angezeigt | Ansicht meldete „Keine archivierten Einträge dieser Art“. | BESTANDEN |
+| R19 | Papierkorb | Geöffnete Bürogruppe, Papierkorb antippen | Wirksamer Papierkorb wird angezeigt | „Der Papierkorb ist leer“ wurde angezeigt. | BESTANDEN |
+| R20 | Einstellungen | Büro, bis „Einstellungen und Daten“ scrollen und antippen | Einstellungswege sichtbar | Verbindungen, Sicherung und Wiederherstellung sowie Speicher sichtbar. | BESTANDEN |
+| S01 | Speicheranzeige | Einstellungen, Speicher, „Belegung ansehen“ antippen | Übersicht und Kategorien erscheinen | Angezeigter Gesamtspeicher und Detailkategorien für Datenbank und Medien gelesen. | BESTANDEN |
+| S02 | Lokale Sicherung, `backup.voll.get_full_backup_status`, `platform.vollbackup_saf` | In der Sicherungsansicht „Jetzt sichern“ antippen und im Systempicker eine neue ZIP im lokalen Download-Ordner benennen und speichern | Datei wird lokal geschrieben und vollständig zurückgelesen | Die App bestätigte das vollständige Rücklesen mit Hinweisen zum Ausgangsbestand. ADB las auf dem Pixel Dateigröße 117.786.589 Byte und ZIP-Kennung. Erneutes Öffnen zeigte „Letzte erfolgreiche Sicherung“. | BESTANDEN |
+| S03 | Wiederherstellungsdatei abwählen | Sicherungsansicht, „Sicherung wiederherstellen“ antippen, im Picker Android-Zurück auslösen | Rückkehr zur Sicherung ohne Dateiübernahme | Dateiauswahl öffnete sich und kehrte zur Sicherungsansicht zurück. | BESTANDEN |
+| S04 | Wiederherstellungsvorschau, Teil von `platform.vollrestore_bestaetigen` | Neue lokale ZIP im Picker wählen, „Datei prüfen“ antippen, Vorschau lesen, „Abbrechen“ antippen | Vorschau ohne Bestandswechsel, anschließend Sicherungsansicht | „Vorschau bereit. Der aktuelle Bestand ist unverändert“ mit Angaben zum Dateibestand. Abbrechen führte zur Sicherungsansicht zurück. | BESTANDEN |
+
+Die neue Datei `Gartenpirat-Pixel-Pruefung-20261106.zip` bleibt auf dem Pixel
+unter Downloads. Sie enthält den lokalen Ausgangsbestand. Die App meldete
+Einschränkungen zum Ausgangsbestand. Die Archivdatei und ihre Geschäftsdaten
+wurden ausschließlich lokal verarbeitet.
+
+### Leistungsursache weiter eingrenzen
+
+Der 6,22-MB-Ablauf läuft in der App lokal. `stageEquipmentPhoto` liest und hasht
+die Datei und übergibt sie in rund 190 Abschnitten zu maximal 32 KiB an den
+Dateiupload. Für jeden Abschnitt liest `PhotoApplicationService` den bisherigen
+Präfix und schreibt die verlängerte Fassung über die lokale Ablage. Die
+wiederholte Arbeit erklärt den plausiblen Größenbezug. Die gemessenen
+Speicherzeiten sind Ende-zu-Ende-Werte. Der Anteil der einzelnen IO- und
+Speicherschritte und die Verbesserung einer anderen Ablage bleiben offen.
+[`NativeAppController.kt`](../../android/app/src/main/java/at/hausgarten/service/NativeAppController.kt),
+[`PhotoApplicationService.kt`](../../android/app/src/main/java/at/hausgarten/service/PhotoApplicationService.kt)
+
+### Synthetischer Kunde und Zeiterfassung
+
+| ID | Bereich/Aktion | Voraussetzung und Bedienung | Erwartet | Tatsächlich und wirksam zurückgelesen | Status |
+| --- | --- | --- | --- | --- | --- |
+| C01 | Kunden, `kunden.3` Pflichtfeld | Neues Kundenformular, Anzeigename leer, „Kunde speichern“ an der angezeigten Position antippen | Formular bleibt offen, keine Erfolgsmeldung | Das Formular blieb mit „Anzeigename *“ geöffnet, ohne Erfolgsmeldung. | BESTANDEN |
+| C02 | Kunden, `kunden.1`, `kunden.2`, `kunden.3` | Im selben Formular synthetischen Namen eingeben, Tastatur schließen, speichern, in der Liste suchen und den Treffer öffnen | Genau ein gespeicherter Kunde und lesbare Akte | „Kunde gespeichert.“, danach genau ein Suchtreffer. In der geöffneten Akte erschien der Testname mit Standard „Rechnungsempfänger: Kunde selbst“. | BESTANDEN |
+| T01 | Zeiterfassung, Kundenteil von `zeiterfassung.41` | Timerzustand vorher `IDLE`, Testkunde geöffnet, „Arbeit starten“ antippen | Laufende Sitzung mit diesem Kunden | „Arbeit läuft“ und synthetischer Kunde in der Timeransicht. | BESTANDEN |
+| T02 | Zeiterfassung, `zeiterfassung.40`, `zeiterfassung.42` | Eigene laufende Sitzung, „Pause“ antippen | Dieselbe Sitzung pausiert | „Arbeit pausiert“ mit demselben Kunden. Unabhängige Abfrage meldete `PAUSED`. | BESTANDEN |
+| T03 | Zeiterfassung, `zeiterfassung.43` | Eigene pausierte Sitzung, „Fortsetzen“ antippen | Sitzung läuft weiter | „Arbeit läuft“ und der Kunde waren wieder sichtbar. Der anschließende Statusabgleich bestätigte dieselbe Sitzungs-ID. | BESTANDEN |
+| T04 | Zeiterfassung, `zeiterfassung.44` | Eigene laufende Sitzung, „Zeit stoppen“ antippen | Abschlussoberfläche ohne Arbeitsnachweis | „Arbeit abschließen“ erschien. Unabhängig zurückgelesen war dieselbe Sitzung `STOPPED_PENDING_REVIEW` ohne Arbeitsnachweis-ID. | BESTANDEN |
+| T05 | Zeiterfassung, `zeiterfassung.48` | Eigene gestoppte Sitzung, „Weitere Angaben (optional)“ öffnen, „Entwurf verwerfen“ antippen | Keine aktive Sitzung oder Arbeitsaufzeichnung | Startformular mit Rückholhinweis für die verworfene Sitzung. Unabhängige Abfrage meldete `IDLE`. Die App behält den Rückholhinweis gemäß ihrer Bedienlogik. | BESTANDEN |
+| C03 | Kunden, Löschung des eigenen Testkunden | Nach T05 Testkunden erneut öffnen, „Weitere Angaben“ und „Löschen“ antippen | Der Datensatz ist dauerhaft aus dem Bestand entfernt | Unabhängige Suche mit inaktiven Kunden lieferte 0 Treffer. Die Kundenliste zeigte nach Android-Zurück ebenfalls 0 Treffer. | BESTANDEN |
+| C04 | Kunden, Oberfläche nach Löschung | Derselbe ausgeführte Löschvorgang wie C03 | Automatischer Rücksprung in die Kundenliste mit verständlicher Rückmeldung | Die App blieb bei „Eintrag nicht mehr vorhanden“. Ein tatsächliches Wischen vom linken Bildschirmrand führte zur Kundenliste mit 0 Treffern. | FEHLGESCHLAGEN |
+| G01 | Hintergrund und Rückkehr, Zusatzfall | Kundenliste mit 0 Treffern offen, Home auslösen, Android-Übersicht öffnen und Karte „Haus & Garten“ antippen | Vorheriger App-Bereich und Suchtext sind erhalten | Kundenliste, synthetischer Suchtext und 0 Treffer waren wieder sichtbar. | BESTANDEN |
+
+Beim Kundenlöschen beobachtet die Akte den Datensatz über `watchDetail`.
+Sobald das Löschen im Speicher sichtbar wird, fällt der Datensatz aus der
+Ansicht. Dadurch kann Compose den Löschbutton und seinen lokalen
+Coroutine-Scope entfernen, bevor `deleteDirect` zur Rückkehr in die Liste
+kommt. Im Kandidaten nutzt der Löschbutton den bestehenden Scope der
+Detailansicht, der die Aktualisierung der Akte übersteht. Ein vorhandener
+isolierter Instrumentierungstest wartet nach dem Löschen jetzt auf den
+automatischen Rücksprung. Er löst keinen eigenen Rücksprung mehr aus.
+[`NativePrimaryScreens.kt`](../../android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt),
+[`NativeForms.kt`](../../android/app/src/main/java/at/hausgarten/service/NativeForms.kt),
+[`NativeComposeAppTests.kt`](../../android/app/src/androidTest/java/at/hausgarten/service/NativeComposeAppTests.kt)
+
+### Abrechnung und Verbindungen
+
+| ID | Bereich/Aktion | Voraussetzung und Bedienung | Erwartet | Tatsächlich und wirksam zurückgelesen | Status |
+| --- | --- | --- | --- | --- | --- |
+| R21 | Verbindungen | Einstellungen geöffnet, „Verbindungen“ antippen | Verbindungsmenü öffnet | Zielansicht und Wetteroption sichtbar. Keine Zugangsdaten oder Einstellungen bearbeitet. | BESTANDEN |
+| A01 | Abrechnungsweg, Teil von `abrechnung.overview` | Abrechnung öffnen, Filter „Rechnung“ auswählen und anwenden, Karte „Labor clandestino“ antippen, Filterzustand erneut öffnen und zurücksetzen | Die Auswahl wirkt und lässt sich auf beide Wege zurückstellen | Trefferzahlen wechselten von 3 über 2 auf 5. Die Filteransicht zeigte nach Antippen der Karte „Labor clandestino“. Die drei Überschriften blieben erreichbar. Die Betragsrechnung wurde hier nicht unabhängig nachgerechnet. | BESTANDEN |
+| A02 | Abschlüsse, `abrechnung.closures` | Abrechnung nach Filterrücksetzung, „Abschlüsse“ antippen | Abschlussliste ist lesbar | Die geöffnete Abschlussliste meldete „Keine Abschlüsse für diese Suche“. | BESTANDEN |
+| R22 | Planung, Teil von `termine.122` | Planung geöffnet, „Woche“ und danach „Tag“ antippen | Ansicht wechselt und lädt den entsprechenden Zeitraum | „Termine dieser Woche“ wurde in der Wochenansicht angezeigt. Die Tagesansicht meldete keine Termine in ihrem Zeitraum. | BESTANDEN |
+| R23 | Lokale Suche, `revier.search_local` | Gelöschten Testkundennamen eingeben, Filter „Kunden“ auswählen, „Lokal suchen“ antippen | Gefilterte Suche liefert einen wirksamen Leerzustand | Die Oberfläche zeigte die Kategorie „Kunden“ und 0 Treffer im gesamten lokalen Bestand. | BESTANDEN |
+
+### Blockierte Bedienfälle
+
+| ID | Bereich/Aktion | Voraussetzung und Bedienung | Erwartet | Tatsächlich und wirksam zurückgelesen | Status |
+| --- | --- | --- | --- | --- | --- |
+| B01 | App-Installation und Android-Gerätesicherung, `platform.154` | Gesonderte Freigabe für einen produktiven Update- oder Android-Gerätesicherungslauf | Vorgang am Pixel ausführen und Stand erneut lesen | Gesonderter Auftrag fehlt. Installierter Build 131 erneut per ADB gelesen. | BLOCKIERT |
+| B02 | Vollständige Wiederherstellung, `platform.vollrestore_bestaetigen` | Eigene lokale Vorschau aus S04 und Freigabe zum Bestandsersatz | Bestand ersetzen und wiederhergestellte Daten prüfen | Vorschau abgebrochen. Freigabe für Bestandsersatz fehlt. | BLOCKIERT |
+| B03 | Echte Rechnungsausstellung, Teil von `abrechnung.complete` | Ausstellungsfreigabe und belegter zulässiger Vorgang | Abschluss mit eigener Nummer und Original | Ausstellungsfreigabe fehlt. A02 prüft nur die Liste. | BLOCKIERT |
+| B04 | Externe Übergabe, Teil von `platform.153` | Freigegebenes Ziel für Versand oder Kontakt | Übergabe und Wirkung bestätigen | Externe Versendung und Kontakthandlung sind nicht freigegeben. | BLOCKIERT |
+| B05 | Produktive Datenmigration | Gesonderte Migrationsfreigabe | Zielbestand anhand der Ausgangsdaten prüfen | Die Freigabe fehlt. | BLOCKIERT |
+| B06 | Pixel-Nachtest QA06 | Freigegebene produktive Installation des korrigierten Builds | Hinweise während Fotoübernahme und Speicherung prüfen, Zubehör erneut öffnen | Der Pixel meldete weiter Build 131. Die Freigabe für den Kandidaten fehlt. | BLOCKIERT |
+| B07 | Pixel-Nachtest C04 | Freigegebene produktive Installation des korrigierten Builds | Nach wirksamer Löschung automatisch in die Kundenliste zurückkehren | Der Pixel meldete weiter Build 131. Die Freigabe für den Kandidaten fehlt. | BLOCKIERT |
+
+### Abdeckung und offene Fälle
+
+Die obigen Gerätefälle ergeben 49 BESTANDEN, 2 FEHLGESCHLAGEN und 9 BLOCKIERT.
+Die Zählung der registrierten Aktionen ist davon getrennt. Ein Gebietseinstieg
+oder ein bestandener Teilpfad zählt nicht als vollständig geprüfte Aktion.
+
+- **BESTANDEN (14)**
+  `kunden.1`, `kunden.2`, `kunden.3`, `zeiterfassung.40`,
+  `zeiterfassung.42`, `zeiterfassung.43`, `zeiterfassung.44`, `zeiterfassung.48`,
+  `revier.list_equipment`, `revier.list_revier_archive`, `revier.search_local`,
+  `backup.voll.get_full_backup_status`, `platform.vollbackup_saf`,
+  `abrechnung.closures`.
+- **FEHLGESCHLAGEN (2)**
+  `revier.save_equipment` im Teilpfad Zubehörfoto und `kunden.12` im
+  produktiv angebotenen Löschpfad. Beide Schreibvorgänge wirkten im Speicher.
+- **BLOCKIERT (5)**
+  `platform.151` für Kameraauslösung und Übernahme, `platform.153` für externe
+  Übergabe, `platform.154`, `platform.vollrestore_bestaetigen` für die Aktivierung
+  und `abrechnung.complete` für echte Rechnungsausstellung.
+- **NICHT AUSGEFÜHRT (157)**
+  Alle übrigen aktiven Katalog-IDs. Die obigen Teilbelege bleiben für diese
+  Aktionen auf die tatsächlich ausgeführten Schritte beschränkt.
+- **NICHT ANWENDBAR (6)**
+  Die im Katalog als stillgelegt geführten IDs bleiben außerhalb der aktiven
+  Abnahme.
+
+Insbesondere stehen die meisten fachlichen Schreib- und Zuordnungsabläufe,
+die Abrechnung mit Markierungen und unabhängig geprüften Beträgen, bestehende
+Originale, Zahlungen, Korrekturen, Kalender und Wetterlaufzeit, Export, sichere
+Versionskonflikte, langer Druck, horizontale Gesten, die übrigen Eingabetypen
+und der Prozessneustart nach einem Schreibvorgang aus. Auch die Sperre aller
+einzelnen Foto- und Zurück-Tasten während jeder Zwischenphase wurde nicht
+separat bedient. [Aktionsinventar](../../android/app/src/main/assets/ui-mcp-actions.json)
+
+### Quell-, Build- und Regressionsnachweise für 132
+
+Der Quellprüfer und der Abgleich aller 184 unveränderten Katalogeinträge
+bestanden. Die beiden Prüftools verwenden kanonische Pfade, damit der
+Windows-Laptop bei bytegleichen Quelldateien denselben Fingerabdruck wie die
+Release-Umgebung bildet. Der LF-Checkout bestätigte den installierten
+Fingerabdruck vor der App-Änderung.
+
+Für den Kandidaten mit Quell-SHA-256
+`8a8f3dcbbc5e1de78ddeeb17a595c6dfb2fa087269980835bd76fb62b7bbf4d7`
+bestanden der lokale unsignierte Release-Build, der Android-Test-APK-Build,
+Release-Vital-Lint und die verpflichtende Datenschutzprüfung der Release-APK.
+Die Datenschutzprüfung bestätigte null operative Startdatensätze.
+
+Elf JVM-/SQLite-Suiten bestanden, darunter die Zubehör-, Foto-, Arbeits-,
+SQLite- und Abrechnungsregressionen. `PixelPlainBackupTests` war durch die
+fehlende Windows-Berechtigung für symbolische Links blockiert.
+`check_current.py` erreichte die Signaturtests. Der vollständige Lauf endete
+an deren POSIX- und Symlink-Voraussetzungen. Die Sicherheitsprüfungen
+blieben aktiv.
+
+Der erweiterte Compose-Test ist kompiliert. Sein Laufzeitnachtest im Emulator
+steht aus. Die beiden Kandidaten-Nachtests auf dem physischen Pixel sind als
+B06 und B07 blockiert. Die oben belegten Geräteergebnisse gelten für Build 131.

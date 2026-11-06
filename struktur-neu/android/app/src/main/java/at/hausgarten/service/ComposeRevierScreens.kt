@@ -674,6 +674,7 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
     var confirmedResult by remember(edit.key) { mutableStateOf<JSONObject?>(null) }
     val values = edit.row()
     val locked = busy || edit.mediaBusy || edit.pending != null || edit.restored
+    val equipmentPhotoEditor = edit.kind == "equipment" || edit.kind == "accessories"
     fun update(field: String, value: Any) {
         if (locked) return
         edit.change(field, value)
@@ -771,14 +772,18 @@ private fun RevierEditor(controller: NativeAppController, edit: RevierEdit, repo
             }, enabled = !busy) { Text("Änderungen vergleichen") }
         }
         NativeActionBar(
-            primaryLabel = if (edit.pending != null) "Ergebnis prüfen" else when (edit.kind) {
-                "movement" -> when (values.optString("movement_kind", "consume")) { "consume" -> "Verbrauch buchen"; "receive" -> "Zugang buchen"; "adjust" -> "Korrektur buchen"; else -> "Gegenbuchung buchen" }
-                "maintenance_done" -> "Wartung speichern"
+            primaryLabel = when {
+                edit.mediaBusy -> "Foto wird geladen …"
+                busy && equipmentPhotoEditor -> "Bitte warten …"
+                edit.pending != null -> "Ergebnis prüfen"
+                edit.kind == "movement" -> when (values.optString("movement_kind", "consume")) { "consume" -> "Verbrauch buchen"; "receive" -> "Zugang buchen"; "adjust" -> "Korrektur buchen"; else -> "Gegenbuchung buchen" }
+                edit.kind == "maintenance_done" -> "Wartung speichern"
                 else -> "Speichern"
             },
             onPrimary = {
                 scope.launch {
                     busy = true; failure = ""
+                    if (equipmentPhotoEditor) controller.message("")
                     val checkingPending = edit.pending != null
                     try {
                         val frozen = edit.pending?.let(::JSONObject)

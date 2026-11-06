@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
@@ -959,9 +960,8 @@ internal suspend fun NativeAppController.deleteDirect(tool: String, initial: JSO
 @Composable
 internal fun NativeDeleteButton(controller: NativeAppController, entity: String, id: String,
     label: String = "Löschen", permanent: Boolean = false, emptyTrash: Boolean = false,
-    enabled: Boolean = true, onDone: () -> Unit) {
+    enabled: Boolean = true, scope: CoroutineScope = rememberCoroutineScope(), onDone: () -> Unit) {
     var busy by remember(entity, id) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     OutlinedButton({
         if (!busy) {
             busy = true

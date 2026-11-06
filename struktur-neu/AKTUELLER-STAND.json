@@ -3,16 +3,30 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T14:30:58Z",
-    "version_name": "1.60.0",
-    "version_code": 130,
-    "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
-    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
-    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+    "observed_at_utc": "2026-11-06T15:11:00Z",
+    "observation_time_precision": "minute",
+    "device_reported_last_update_at": "2026-11-06T15:36:17+01:00",
+    "version_name": "1.61.0",
+    "version_code": 131,
+    "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
+    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
+    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
+    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; zusätzlich exakter ADB-Abgleich mit signierter Release-APK",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; live Pixel130 still matches original bfd63ca/dbaa6402 source. Signed131 APK is provided separately; not installed."
+    "repository_source_match": "BESTANDEN. ADB-Prüfsumme der installierten APK stimmt exakt mit der signierten Release-Referenz überein. Die Git-Blobs von Release 7e3b045 und main 9480385 ergeben denselben Quellfingerabdruck.",
+    "runtime_self_report": "BESTANDEN nach anfänglichen HTTP-Transportfehlern. get_capabilities bestätigte Paket, Version, Commit, Quellfingerabdruck und source_dirty=false."
   },
   "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-11-06T14:30:58Z",
+      "version_name": "1.60.0",
+      "version_code": 130,
+      "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "package_name": "at.hausgarten.service",
+      "repository_source_match": "PASS; live Pixel130 still matches original bfd63ca/dbaa6402 source. Signed131 APK is provided separately; not installed at this observation."
+    },
     {
       "observed_at_utc": "2026-11-06T10:51:36Z",
       "version_name": "1.60.0",
@@ -26,7 +40,7 @@
   ],
   "current_task": {
     "name": "Lokale Rechnungen und interne Labor-Abschlüsse mit erhaltener Abrechnung",
-    "status": "IMPLEMENTED_VALIDATED_AND_APK_DISTRIBUTED; NOT_INSTALLED",
+    "status": "IMPLEMENTED_VALIDATED_AND_APK_DISTRIBUTED; INSTALLATION_LATER_OBSERVED",
     "owner_decisions": [
       "Auftrag 06.11.2026 ersetzt sevDesk-exklusive Begrenzung für gewöhnliche österreichische EUR-Kleinunternehmer-Abrechnung.",
       "Abrechnung behält Auftragseinheiten, getrennte Arten, Filter und Arbeitsdatumsbezug; bestätigte Rechnungs- und Laborbeträge ergeben gemeinsam die Gesamtsumme.",
@@ -54,15 +68,42 @@
         "graphics_repeat": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42228290232"
       },
       "limits": "Synthetic emulator/JVM only, no physical Pixel function test. Austrian domestic EUR/KU only; actual issuer/legal data, services/prices/tax status and restore audit require operator review. Plain PDF max100 pages/20MiB; no PDF/A/federal structured-invoice claim. New series does not reconstruct absent later transactions.",
-      "installation": "NOT_PERFORMED",
+      "installation": "NOT_PERFORMED_IN_RELEASE_TASK; LATER_OBSERVED_VIA_ADB",
       "distribution": "PASS; original-signed131 APK in existing Drive installation folder, full byte-equal authenticated download verified.",
       "productive_migration": "NOT_PERFORMED",
       "tested_app_commit": "8750f70be3c3043b902bd06385ba3845f7e29bbb; App hash unchanged since6240652;659e062/8750f70 changed tests only.",
       "apk_distribution": "PASS; package/version/original certificate compared to downloaded130 APK; empty seeds/assets/classes verified. Clean source fingerprint read directly from signed APK and Drive readback. No device installation."
     }
   },
+  "latest_pixel_qa": {
+    "status": "PARTIAL_EXECUTED",
+    "environment": "Physischer Pixel über USB-ADB am Windows-Laptop",
+    "installed_version_code": 131,
+    "evidence": "docs/verification/performance-current.md",
+    "ui_cases": {
+      "passed": 49,
+      "failed": 2,
+      "blocked": 9
+    },
+    "catalog": {
+      "active": 178,
+      "passed": 14,
+      "failed": 2,
+      "blocked": 5,
+      "not_executed": 157,
+      "retired_not_applicable": 6
+    },
+    "findings": [
+      "QA06. Großes Zubehörfoto wird gespeichert, der gesperrte Formularzustand hat keine aktuelle Beschäftigtmeldung.",
+      "C04. Synthetischer Kunde wird gelöscht, die Detailansicht bleibt mit Fehlanzeige offen."
+    ],
+    "pixel_retest": "BLOCKIERT. Beide Korrekturen brauchen eine gesondert freigegebene Installation.",
+    "cleanup": "Eigene Geräte- und Kundenstammdaten sowie die beiden Download-JPEGs entfernt und zurückgelesen. Timer nach Verwerfen IDLE. Schrift und Drehung wieder auf Ausgangswerten. Die geprüfte ZIP bleibt lokal auf dem Pixel."
+  },
   "open_checks": [
-    "Pixel live 1.60.0/130 mit Quellfingerabdruck dbaa6402 bestätigt. Ältere unvollständige native Backup-/Cleanup-Abnahmen bleiben getrennt offen; neue Abrechnung wird isoliert geprüft, keine produktive Installation.",
+    "Build 131 ist per ADB, signierter Release-Referenz und späterem Laufzeitselbstbericht bestätigt. Die Teilabnahme und offenen Pixel-Prüfungen sind im vorhandenen Gerätenachweis erfasst.",
+    "Die physische Prüfung ist eine Teilabnahme. Kameraaufnahme, die offenen Katalog- und Zusatzfälle und die beiden Pixel-Nachtests sind im Gerätenachweis abgegrenzt.",
+    "Ältere unvollständige native Backup- und Speicherbereinigungsabnahmen bleiben offen.",
     "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
     "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet.",
     "Ein früherer Listenlesefehler nach Rotation hatte keine erhaltene Exception; beide finalen Graphics-Wiederholungen bestanden einschließlich Rotation während Busy. Seine damalige Ursache bleibt ungeklärt; bei Wiederauftreten werden Fehlerklasse und Codepositionen ohne Geschäftsdaten protokolliert."
@@ -99,15 +140,22 @@
     "temporary_signing_material_removed": true,
     "source_binding": "PASS; clean release BuildConfig read from signed APK and full Drive readback DEX; source_dirty=false; Git7e3b045d1975c407885a85bb9da1edb167c395e9.",
     "native_runtime_acceptance": "PASS_ISOLATED; identical source and executed proofs in current_task.validation; no physical Pixel function test.",
-    "installation": "NOT_PERFORMED; live Pixel remains1.60.0/130."
+    "installation": "NOT_PERFORMED_IN_RELEASE_TASK; EXACT_INSTALLED_APK_LATER_OBSERVED_VIA_ADB"
   },
   "current_test_candidate": {
-    "version_name": "1.61.0",
-    "version_code": 131,
+    "version_name": "1.61.1",
+    "version_code": 132,
     "package_name": "at.hausgarten.service",
-    "status": "IMPLEMENTED_VALIDATED_AND_ORIGINAL_APK_DISTRIBUTED; NOT_INSTALLED",
-    "installation": "NOT_INSTALLED",
-    "distribution": "AUTHORIZED_AND_COMPLETED",
-    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38"
+    "status": "LOCAL_UNSIGNED_RELEASE_AND_ANDROID_TEST_APKS_VALIDATED",
+    "installation": "BLOCKIERT_OHNE_PRODUKTIVE_FREIGABE",
+    "distribution": "NOT_AUTHORIZED",
+    "source_sha256": "8a8f3dcbbc5e1de78ddeeb17a595c6dfb2fa087269980835bd76fb62b7bbf4d7",
+    "validation": {
+      "build": "BESTANDEN. assembleRelease, assembleReleaseAndroidTest, Release-Vital-Lint, Quell- und APK-Datenschutzprüfungen.",
+      "jvm_sqlite": "11 Suiten bestanden. PixelPlainBackupTests wegen fehlender Windows-Symlink-Berechtigung blockiert.",
+      "source_suite": "Quell- und Katalogprüfung bestanden. Vollständiger check_current.py-Lauf endet in Windows-spezifischen POSIX-/Symlink-Voraussetzungen der Signaturtests.",
+      "instrumentation_runtime": "NICHT AUSGEFÜHRT. Test-APK gebaut.",
+      "pixel_retest": "BLOCKIERT. Die Freigabe für eine produktive Installation fehlt."
+    }
   }
 }

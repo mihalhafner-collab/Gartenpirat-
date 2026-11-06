@@ -897,7 +897,8 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                 if (details) item {
                     NativeBusinessValues(JSONObject(row.toString()).apply { for (key in listOf("id", "customer_id", "order_id", "billing_customer_id", "default_billing_customer_id", "_sync_base", "_mcp_base", "created_at", "updated_at", "name", "activity", "title")) remove(key) })
                     if (kind != "worklog") {
-                        NativeDeleteButton(controller, kind, id, label = "Löschen") { controller.returnToList(collection) }
+                        // The live record can disappear before the delete result returns.
+                        NativeDeleteButton(controller, kind, id, scope = scope) { controller.returnToList(collection) }
                         NativeActionMenu(controller, if (kind == "customer") "kunden" else "auftraege", JSONObject().put(primaryId(kind), id).put("entity_id", id).put("entity", kind))
                     }
                 }
