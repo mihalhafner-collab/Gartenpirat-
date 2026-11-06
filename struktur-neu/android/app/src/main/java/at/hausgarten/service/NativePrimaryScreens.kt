@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +62,7 @@ private fun primaryGet(kind: String) = when (kind) { "customer" -> "get_customer
 private fun primaryId(kind: String) = if (kind == "worklog") "work_record_id" else "${kind}_id"
 
 /** Complete native route host; each feature uses the shared Kotlin repositories and writers. */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun NativeApplication(controller: NativeAppController) {
     val route = controller.route
@@ -71,6 +72,7 @@ internal fun NativeApplication(controller: NativeAppController) {
     val scope = rememberCoroutineScope()
     val routeStates = rememberSaveableStateHolder()
     var reviewChecked by remember(controller) { mutableStateOf(false) }
+    var createOpen by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(notice) {
         if (notice.isBlank()) return@LaunchedEffect
@@ -86,15 +88,35 @@ internal fun NativeApplication(controller: NativeAppController) {
         reviewChecked = true
     }
     BackHandler(reviewChecked && route.section != "restore_review") { controller.back() }
+    if (createOpen) ModalBottomSheet(onDismissRequest = { createOpen = false }) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Neu anlegen", style = MaterialTheme.typography.titleLarge)
+            for ((label, open) in listOf<Pair<String, () -> Unit>>(
+                "Arbeit nachtragen" to { controller.navigate("worklogs", mode = "new") },
+                "Anfrage" to { controller.navigate("inquiries", mode = "new") },
+                "Kunde" to { controller.navigate("customers", mode = "new") },
+                "Einsatz" to { controller.navigate("visits", mode = "new") },
+                "Foto" to { controller.navigate("photos", mode = "import", args = JSONObject().put("_open_camera", true)) },
+                "Materialverbrauch" to { controller.navigate("materials", mode = "movement") }
+            )) NativeInfoRow(label, onClick = { createOpen = false; open() })
+        }
+    }
     Row(Modifier.fillMaxSize()) {
     if (reviewChecked && route.section != "restore_review" && landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
     Scaffold(modifier = Modifier.weight(1f), containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
-                if (route.section != "today") Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (reviewChecked && controller.hasParentScreen() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
-                    Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
+                // Search and "+" sit in the same place on every overview, never over a screen's own bottom actions.
+                val quick = reviewChecked && route.section !in setOf("restore_review", "revier_search", "action") && route.mode == "list" && route.id.isEmpty()
+                if (route.section != "today" || quick) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (route.section == "today") Spacer(Modifier.weight(1f))
+                    if (route.section != "today" && reviewChecked && controller.hasParentScreen() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
+                    if (route.section != "today") Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
+                    if (quick) {
+                        NativeSearchButton { controller.navigate("revier_search") }
+                        IconButton({ createOpen = true }, Modifier.semantics { contentDescription = "Neu anlegen" }) { Text("+", style = MaterialTheme.typography.headlineMedium) }
+                    }
                 }
             }
         },

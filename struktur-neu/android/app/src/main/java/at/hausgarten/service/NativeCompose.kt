@@ -122,6 +122,19 @@ internal fun NativeBackButton(onBack: () -> Unit) {
 internal val NativeAttentionContainer = Color(0xfffff1d0)
 internal val NativeAttentionContent = Color(0xff79510b)
 
+/** Opens the search over all local records. */
+@Composable
+internal fun NativeSearchButton(onClick: () -> Unit) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onClick, Modifier.semantics { contentDescription = "Alles durchsuchen" }) {
+        Canvas(Modifier.size(24.dp)) {
+            val unit = size.minDimension / 24f
+            drawCircle(color, 6.5f * unit, Offset(10 * unit, 10 * unit), style = Stroke(2 * unit))
+            drawLine(color, Offset(15 * unit, 15 * unit), Offset(20 * unit, 20 * unit), 2 * unit)
+        }
+    }
+}
+
 /** The same explicit status semantics are used in every feature. */
 internal enum class NativeStatusTone { Neutral, Running, Confirmed, Attention, Failed }
 
