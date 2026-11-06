@@ -824,10 +824,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         hold(prefix + "1 korrigiert"); click("Seite auswählen"); shown("2 ausgewählt")
         val deleteStarted = SystemClock.uptimeMillis()
         click("Löschen")
-        waitUntil("WORK_SELECTED_DELETE_VERIFIED") { works().map { it.getString("id") }.toSet() == originalIds }
+        val deleteDeadline = SystemClock.uptimeMillis() + 20000
+        // Observe the actual filtered UI without competing journal projections.
+        // Verify durable IDs and content once, within that same deadline.
+        waitUntil("WORK_SELECTED_DELETE_VISIBLE_EMPTY", timeout = maxOf(1L, deleteDeadline - SystemClock.uptimeMillis())) {
+            node("Keine Treffer. Suchtext oder Filter ändern.") != null
+        }
+        val remainingWorks = works()
+        yes(remainingWorks.map { it.getString("id") }.toSet() == originalIds, "WORK_SELECTED_DELETE_VERIFIED")
+        yes(PixelMcpWriteTools.hash(JSONArray(remainingWorks)) == originalHash, "WORK_DELETE_PRESERVES_UNSELECTED_RECORDS")
+        yes(SystemClock.uptimeMillis() <= deleteDeadline, "WORK_DELETE_VERIFIED_WITHIN_SAME_20_SECOND_DEADLINE")
         test.sendStatus(0, Bundle().apply { putLong("work_selected_delete_ms", SystemClock.uptimeMillis() - deleteStarted) })
-        shown("Keine Treffer. Suchtext oder Filter ändern.")
-        yes(PixelMcpWriteTools.hash(JSONArray(works())) == originalHash, "WORK_DELETE_PRESERVES_UNSELECTED_RECORDS")
         test.sendStatus(0, Bundle().apply { putBoolean("work_delete_ui_still_finishing_before_recreation", node("Löschen …") != null) })
         yes(node("Löschen") == null, "WORK_DELETE_NO_NEW_WRITE_AFTER_COMMIT")
         recreate(); shown("Keine Treffer. Suchtext oder Filter ändern.")
