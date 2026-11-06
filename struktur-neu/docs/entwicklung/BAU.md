@@ -148,10 +148,13 @@ Diese Prüfungen ändern keine produktiven Dateien.
 
 Auftrag, Freigaben, Akzeptanzmatrix und tatsächliche Prüfergebnisse stehen
 ausschließlich in `AKTUELLER-STAND.json`. Diese Anleitung führt keine zweite
-Statusliste. Ausschließlich frei erfundene synthetische Fixtures, generierte
-Testbilder und neue isolierte temporäre Datenbanken verwenden. Keine produktiven
-oder daraus abgeleiteten Kundendaten, Fotos, Datenbanken oder Backups öffnen.
-Tests entfernen nur ihren eigenen temporären Bestand.
+Statusliste. Testprogramme erzeugen grundsätzlich eigene synthetische Fixtures,
+Testbilder und temporäre Datenbanken. Auf dem Pixel sind gezielte Funktionstests
+mit vorhandenen Betriebsdaten einschließlich Änderungen im Testumfang freigegeben.
+Die Sicherung und Rekonstruierbarkeit sind vom Eigentümer bestätigt; keine neuen
+Sicherungs- oder Bestätigungsrunden dafür verlangen. Betriebsdaten verbleiben auf
+dem Pixel und werden nicht in Entwicklung oder CI kopiert. Tests entfernen ihren
+eigenen Testbestand. Zielgerät ist das vorhandene Pixel, keine Plattformmatrix.
 
 1. Betroffene Bedienwege, Speichergrenzen und Abhängigkeiten nach KISS/YAGNI prüfen;
    jeder Anforderung ein prüfbares Sollverhalten und passende Nachweise zuordnen.
@@ -362,8 +365,8 @@ Offizielle Android-Grundlagen:
 
 ## ADB-Analyse und Lese-/Schreibtests über den Laptop
 
-Der konkrete aktuelle ADB-Auftrag muss Lesen, Schreiben und Testumfang abdecken.
-Eine frühere Freigabe oder diese Anleitung ersetzt den aktuellen Auftrag nicht.
+Die Testfreigabe umfasst Lesen und gezieltes Schreiben für die im Entwicklungsauftrag
+notwendigen Funktionstests. Vorhandene Betriebsdaten allein sind kein Abbruchgrund.
 Der Windows-Laptop wird konkret als USB-/ADB-Verbindung zum Pixel benötigt;
 Android Studio, lokale Builds und ein Emulator sind dafür nicht erforderlich.
 Quellarbeit und Auswertung möglichst in der Cloud belassen. Eine Cloud-Sitzung
@@ -394,15 +397,19 @@ $gpSerial = Read-Host 'Seriennummer des ausdrücklich ausgewählten Testgeräts'
 & $gpAdb -s $gpSerial shell settings get system font_scale
 ```
 
-Vor einem schreibenden **App-Test** müssen exakte Quell-/APK-Version, Paketkennung,
-Testfall und synthetischer Bestand feststehen. Kein Import von Produktivdaten in
-Testprofile. Keine zweite operative App oder Datenbank einführen. Die bestehende
-Installation nicht durch eine ungeprüfte Test-APK ersetzen. Die allgemeine
-ADB-Testfreigabe setzt weder Installations- noch Rechnungs-/Migrationsgates außer
-Kraft. Ein bloßes `test_record`-Flag beweist keine Isolation eines echten Bestands.
-Native App-Prüfungen verwenden ausschließlich den ausdrücklich ausgewählten,
-isolierten synthetischen Bestand. Die Emulator-Suiten mit Schutz gegen echte
-Geräte dürfen für eine Pixel-Abnahme nicht umgangen werden.
+Vor einem schreibenden **App-Test** exakte Quell-/APK-Version, Paketkennung und
+Testfall feststellen. Über die vorhandenen Pixel-Werkzeuge oder App-Oberfläche
+eigene synthetische Testdaten anlegen, den betroffenen Bedienweg ausführen und das
+Ergebnis durch erneutes Lesen beziehungsweise erneutes Öffnen prüfen. Passende
+Fehlerfälle und Wiederholungen mitprüfen; eigene Testdaten anschließend entfernen.
+Wenn der Test vorhandene Betriebsdaten benötigt, ist deren Lesen und gezieltes
+Ändern im Testumfang erlaubt. Keine erneute Freigabe allein deswegen verlangen.
+Laufende Zeiterfassung nicht nebenbei beenden oder fremde Datensätze pauschal löschen.
+Installation, vollständiger Bestandsaustausch und echte Rechnungsausstellung bleiben
+gesonderte Aufträge. Keine zweite operative App oder Datenbank einführen.
+Die Emulator-Suiten mit ihren frischen Beständen, internen Prozessneustarts und
+Emulatorprüfungen bleiben Emulatorprüfungen; keine Schutzabfrage für den Pixel abschalten.
+Eine fehlende Verbindung oder tatsächlich fehlgeschlagene Prüfung konkret melden.
 
 ### Prüfen des ADB-Lese-/Schreibtransports
 
@@ -447,7 +454,7 @@ Bei Verbindungsabbruch den bekannten erzeugten Testpfad zur gezielten späteren
 Bereinigung behalten. Kein pauschales `rm -rf`, `pm clear`, Löschen der Appdaten,
 Zurücksetzen von Rechnungszählern oder Überschreiben einer produktiven Datenbank.
 
-### Messwerte während der synthetischen App-Testfälle
+### Messwerte während der App-Testfälle
 
 Vergleichbare Bedienwege mit demselben synthetischen Fixture und mindestens
 40 Wiederholungen je Variante messen: Start, gefilterte Liste/Seitenwechsel,
@@ -626,13 +633,14 @@ Verbindungspins und die Transaktions-API älterer Android-Versionen bleiben erha
 Die native WAL-Prüfung hält den Schreiber ausdrücklich offen und liest währenddessen
 auch den vollständigen Bestand über einen zweiten Helper.
 
-Eigentümerentscheidung vom 03.11.2026: Für diesen Abschluss keine weiteren
-Emulatorprüfungen ausführen. Reguläre Push-Prüfungen und ein manueller Lauf ohne
-Zusatzoption führen deshalb Quellprüfung, Kotlin-/Java-/Release-/Android-Testbau,
-Lint und die acht JVM-Suiten aus. Die vorhandenen nativen Prüffolgen bleiben
-unverändert verfügbar und werden ausschließlich bei einem ausdrücklich gestarteten
-`workflow_dispatch` mit `emulator=true` ausgeführt. Nicht ausgeführte Android-
-Laufzeitprüfungen sind kein Erfolgsnachweis und werden im Projektstatus benannt.
+Reguläre Push-Prüfungen führen Quellprüfung, Kotlin-/Java-/Release-/Android-Testbau,
+Lint und die vorhandenen JVM-Suiten aus. Manuelle Läufe aktivieren standardmäßig
+auch die nativen Emulatorprüfungen; für eine reine Quell-/Bauprüfung kann
+`emulator=false` gewählt werden. Bei App-Verhaltensänderungen die betroffenen
+nativen Prüffolgen ohne zusätzliche Freigaberunde tatsächlich ausführen.
+Nicht ausgeführte Android-Laufzeitprüfungen sind kein Erfolgsnachweis und werden
+im Projektstatus benannt. Die frühere auf einen einzelnen Abschluss begrenzte
+Emulatorpause ist keine dauerhafte Testsperre.
 
 ## Speicherbereinigung und direkte Löschaktionen vom 03.11.2026
 

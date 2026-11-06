@@ -6,7 +6,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ('AGENTS.md', 'struktur-neu/AKTUELLER-STAND.json')
-MAX_CONTEXT_BYTES = 16000
+MAX_CONTEXT_BYTES = 20000
 
 
 def handle(payload, root=ROOT):

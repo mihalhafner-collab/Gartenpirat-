@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       emulator:
-        description: 'Native Laufzeitprüfungen im isolierten Emulator ausdrücklich ausführen'
+        description: 'Native Laufzeitprüfungen im isolierten Emulator ausführen'
         type: boolean
-        default: false
+        default: true
         required: false
       graphics_only:
         description: 'Nur die unabhängige Grafikprüfung auf frischem synthetischen Appbestand ausführen'

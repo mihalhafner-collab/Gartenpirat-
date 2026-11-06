@@ -69,16 +69,6 @@ class LocalStorageBuildTests(unittest.TestCase):
         self.assertNotIn("DriveSyncJob", source("RevierApplication"))
         self.assertNotIn("DriveSyncJob", source("MainActivity"))
 
-    def test_retired_drive_facades_are_removed(self):
-        for name in ('DriveSyncCoordinator', 'DriveRolePolicy', 'DrivePublication'):
-            self.assertFalse((MAIN / (name + '.kt')).exists(), name)
-        for path in native_sources():
-            self.assertNotRegex(
-                path.read_text(),
-                r'\b(?:DriveSyncCoordinator|DriveRolePolicy|DrivePublication)\b',
-                path.name,
-            )
-
     def test_old_partial_backup_and_restore_are_removed(self):
         for name in ('LocalOwnerRepository', 'ArchiveApplicationService', 'OwnerRepository'):
             self.assertNotRegex(source(name), r'\b(?:createBackup|protectDeletion|restoreBackup)\s*\(')

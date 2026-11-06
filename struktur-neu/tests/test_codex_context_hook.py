@@ -45,6 +45,15 @@ class ProjectContextHookTests(unittest.TestCase):
         self.assertIn('zweite Regel', after)
         self.assertNotIn('erste Regel', after)
 
+    def test_actual_project_context_fits_both_hook_limits(self):
+        result = hook.handle(self.payload, REPOSITORY)
+        self.assertNotIn('decision', result)
+        context = result['hookSpecificOutput']['additionalContext']
+        config = json.loads((REPOSITORY / '.codex/hooks.json').read_text())
+        limit = config['hooks']['UserPromptSubmit'][0]['hooks'][0]['additionalContextLimit']
+        self.assertLessEqual(hook.MAX_CONTEXT_BYTES, limit)
+        self.assertLessEqual(len(context.encode('utf-8')), limit)
+
     def test_next_prompt_reads_changed_state(self):
         before = self.context()
         self.state.write_text('{"status":"qa_second"}')

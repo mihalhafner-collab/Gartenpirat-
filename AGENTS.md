@@ -106,18 +106,37 @@ Datenstands prüfen, eine Queue-Quittung allein genügt nicht.
 KISS und YAGNI: flacher, direkter Code; keine vorsorglichen Abstraktionen,
 Abhängigkeiten oder zusätzlichen Dateien. Bestehende Dokumente aktualisieren.
 Paketkennung `at.hausgarten.service`, Originalsignatur, SQLite-Schema und bestehendes
-Backup-Format erhalten. Nur vollständig synthetische Testdaten verwenden; keine
-produktiven Kundendaten, Datenbanken, Fotos oder Sicherungen für Entwicklung lesen.
+Backup-Format erhalten.
 Autorisierte Aufträge direkt vollständig ausführen; bereits erteilte Freigaben
 nicht erneut erfragen. Subagenten nur bei ausdrücklichem Auftrag einsetzen.
 Keine Installation, Migration, Wiederherstellung oder Rechnungsfreigabe aus einem
-allgemeinen Entwicklungsauftrag ableiten. Produktive Gerätearbeiten ausschließlich über die
-aktuelle Pixel-Verbindung; Entwicklungsprüfungen isoliert mit synthetischen Daten.
+allgemeinen Entwicklungsauftrag ableiten. Produktive Gerätearbeiten über die
+aktuelle Pixel-Verbindung; ADB nur über die tatsächlich erreichbare Geräteverbindung.
+
+## Testumfang (Eigentümerentscheidung 06.11.2026)
+
+Ziel ist die bestehende App eines Einzelunternehmers auf seinem konkreten Pixel.
+Testprogramme erzeugen grundsätzlich eigene synthetische Daten und prüfen die
+betroffenen Fach-, Speicher- und Bedienwege einschließlich Fehlern, Wiederholung
+und erneutem Lesen ausreichend gründlich. Keine zusätzliche Plattformmatrix.
+Notwendige Tests im beauftragten Umfang direkt ausführen; keine erneute Freigabe
+nur für Emulatorlauf oder vorhandene Betriebsdaten verlangen.
+
+Gezielte Funktionstests auf dem Pixel dürfen vorhandene Betriebsdaten lesen und
+im Testumfang verändern. Der Eigentümer bestätigt deren Sicherung und
+Rekonstruierbarkeit und akzeptiert solche Änderungen. Keine zusätzliche
+Sicherung, Rückfallkopie oder Bestätigungsrunde als Testvoraussetzung einführen.
+Testdaten bevorzugen, eigenes Testergebnis wirksam zurücklesen und eigene
+Testdaten anschließend entfernen. Betriebsdaten, Fotos und ZIP-Sicherungen bleiben
+auf dem Pixel; keine Übernahme in Repository, Cloud-Testbestände oder CI-Artefakte.
+Vorhandene Emulator-Suiten bleiben isoliert; ihre Geräteprüfung nicht abschalten.
+Pixel-Prüfungen laufen über die vorhandene App-Oberfläche oder Pixel-Werkzeuge.
 
 ## Prüfung und Abschluss
 
-Nur passende Prüfungen ausführen. `python3 -B struktur-neu/tools/check_current.py`
-prüft den aktuellen Quellstand. Geräteidentität und Quellfingerabdruck sind kein
+Alle für die Änderung notwendigen Prüfungen ausführen.
+`python3 -B struktur-neu/tools/check_current.py` prüft den aktuellen Quellstand,
+ersetzt aber keine erforderliche Laufzeitprüfung. Geräteidentität und Quellfingerabdruck sind kein
 Beleg für einen Gerätefunktionstest. Fehlende oder fehlgeschlagene Prüfungen nennen.
 Nur eigene geprüfte Änderungen nach `main` committen, pushen und zurücklesen.
 Ergebnisse und Einschränkungen kurz melden; keine zusätzlichen Prüfberichte anlegen.
