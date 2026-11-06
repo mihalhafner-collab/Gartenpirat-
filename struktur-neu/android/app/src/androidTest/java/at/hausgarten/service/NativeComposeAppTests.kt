@@ -577,6 +577,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun graphicsNavigationJourney() {
+        click("Heute"); shown("Heute gespeichert")
+        for ((label, rootText) in listOf("Arbeit" to "Arbeit nachtragen", "Kunden" to "Kunde anlegen", "Büro" to "Organisieren", "Heute" to "Heute gespeichert")) {
+            click(label); click(label); shown(rootText)
+            recreate(); shown(rootText)
+            if (keyboardVisible()) { back(); waitUntil("MAIN_BACK_IME_HIDDEN_$label") { !keyboardVisible() } }
+            back(); shown("Heute gespeichert")
+            yes(activity?.isFinishing == false, "MAIN_BACK_STAYS_IN_APP_$label")
+        }
         openCustomerList(); enter("Suchen", fixturePrefix)
         shown("55 Treffer · 1–50"); shown(fixturePrefix + "000")
         captureSyntheticScreen("graphics-customers")
@@ -1647,6 +1655,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun customerContextJourney() {
+        val navigation = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        for (area in listOf("today", "worklogs", "customers", "office")) {
+            navigation.openSection(area)
+            val recreated = NativeAppController(requireNotNull(activity) as MainActivity, store)
+            recreated.restoreRoute(navigation.savedNavigation())
+            recreated.back()
+            yes(recreated.route.section == "today" && recreated.route.area == "today" && !recreated.hasParentScreen(), "MAIN_ROOT_BACK_TO_TODAY_$area")
+            navigation.back()
+        }
+        navigation.openSection("customers")
+        navigation.navigate("customers", "qa-back-customer")
+        navigation.openSection("office")
+        navigation.back()
+        navigation.openSection("customers")
+        yes(navigation.route.id == "qa-back-customer", "ROOT_BACK_PRESERVES_OTHER_AREA_DETAIL")
+        navigation.back()
+        yes(navigation.route.section == "customers" && navigation.route.id.isEmpty(), "DETAIL_BACK_RETURNS_TO_OWN_LIST")
+        navigation.back()
+        yes(navigation.route.section == "today" && !navigation.hasParentScreen(), "LIST_BACK_RETURNS_TO_TODAY_WITHOUT_TAB_HISTORY")
         val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
         controller.openSection("worklogs")
         controller.navigate("worklogs", "qa-route", "edit")

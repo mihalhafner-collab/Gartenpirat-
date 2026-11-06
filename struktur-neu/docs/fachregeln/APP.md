@@ -209,7 +209,9 @@ Zeit stoppen legt noch keine bestätigte Arbeit an. Eine gestoppte ungespeichert
 Arbeit bleibt mit klarer Abschlussaktion sichtbar. Zurück erhält Eingaben;
 Abbrechen schließt die aktuelle Auswahl ohne Übernahme; Verwerfen entfernt
 bewusst genau den benannten Entwurf. Nach Speichern zum erhaltenen Aufrufer
-zurückkehren. Hauptbereichswechsel bauen keinen Besuchsstapel auf.
+zurückkehren. Hauptbereichswechsel bauen keinen Besuchsstapel auf. Zurück aus
+einem der vier Hauptmenüs führt zu Heute; auf Heute bleibt die App dort.
+Unterseiten kehren zunächst zu ihrem aufrufenden Bildschirm zurück.
 
 Datum und Uhrzeit verwenden Android-Auswahl und interne ISO-Werte. Netto-Dauer
 und Uhrzeiten sind getrennte Eingabewege; eine Pause wird nur im Uhrzeitenweg

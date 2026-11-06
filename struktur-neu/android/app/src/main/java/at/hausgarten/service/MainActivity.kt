@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
             override fun handleOnBackPressed() {
                 val current = controller
                 if (current?.route?.section == "restore_review") finish()
-                else if (current?.canGoBack() == true) current.back() else finish()
+                else if (current != null) current.back() else finish()
             }
         })
         window.nativeLightSystemBars()

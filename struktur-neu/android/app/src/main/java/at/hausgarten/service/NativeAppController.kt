@@ -102,6 +102,10 @@ internal class NativeAppController(private val activity: MainActivity, val store
     }
     fun back() {
         messages.value = ""
+        if (!hasParentScreen()) {
+            openSection("today")
+            return
+        }
         route = if (history.isEmpty()) NativeRoute(route.area, area = route.area) else history.removeLast()
     }
     /** A saved work returns to its original caller; the stopped timer is no longer an editing step. */
@@ -125,7 +129,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
         }
     }
     fun requestBack() { activity.onBackPressedDispatcher.onBackPressed() }
-    fun canGoBack(): Boolean = history.isNotEmpty() || route.section != route.area || route.id.isNotEmpty() || route.mode != "list"
+    fun hasParentScreen(): Boolean = history.isNotEmpty() || route.section != route.area || route.id.isNotEmpty() || route.mode != "list"
     private fun routeValue(entry: NativeRoute): JSONObject = JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)
     private fun readRoute(value: JSONObject): NativeRoute {
         val section = value.optString("section", "today").let { if (it == "drafts") "office" else it }

@@ -3,14 +3,14 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T06:32:48.483Z",
+    "observed_at_utc": "2026-11-06T06:37:28.286Z",
     "version_name": "1.59.1",
     "version_code": 129,
     "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
     "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
     "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
+    "repository_source_match": "PASS; live fingerprint matches verified release source 701046b1fc0a13da8362067242faa9eaedca3ee2 and identical main source at 3dc7146; current main extends that source with the authorized Labor Clandestinus changes."
   },
   "observed_installation_history": [
     {
@@ -104,27 +104,29 @@
     }
   ],
   "current_task": {
-    "name": "Labor Clandestinus im Auswahlmenü bei langem Drücken",
-    "status": "SOURCE_VALIDATED; NO_INSTALLATION",
+    "name": "Zurück aus den vier Hauptmenüs führt zu Heute",
+    "status": "SOURCE_AND_ANDROID_COMPILATION_VALIDATED; NO_INSTALLATION",
     "verified_installed_base": {
-      "observed_at_utc": "2026-11-06T06:32:48.483Z",
+      "observed_at_utc": "2026-11-06T06:37:28.286Z",
       "version_name": "1.59.1",
       "version_code": 129,
       "reported_base_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
       "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
       "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
       "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; live get_capabilities matches exact source SHA256 of main 3dc7146f01ebd2bab2ebbb3a9656a6a6babcb67b before this task; installed source commit 701046b1fc0a13da8362067242faa9eaedca3ee2"
+      "repository_source_match": "PASS; live fingerprint matches verified release source 701046b1fc0a13da8362067242faa9eaedca3ee2 and identical main source at 3dc7146; current main extends that source with the authorized Labor Clandestinus changes."
     },
     "owner_decisions": [
       "Die im Screenshot markierte Bezeichnung „Persönlich bezahlt / b.b.“ in „Labor Clandestinus“ umbenennen.",
-      "Labor Clandestinus im Menü nach langem Drücken auf eine Arbeitsaufzeichnung ergänzen; bei Einzelauswahl dieselbe vorhandene Aktion mit der ausgewählten Arbeit öffnen."
+      "Labor Clandestinus im Menü nach langem Drücken auf eine Arbeitsaufzeichnung ergänzen; bei Einzelauswahl dieselbe vorhandene Aktion mit der ausgewählten Arbeit öffnen.",
+      "Zurück aus den vier Hauptmenüs führt auf den Heute-Bildschirm; auf Heute bleibt die App dort. Unterseiten gehen zunächst zum Aufrufer zurück."
     ],
     "validation": {
-      "source": "PASS; check_current.py with source/privacy gates, native UI/MCP mapping and 61 selected Python tests; git diff --check passed.",
-      "android": "NOT_RUN; menu shortcut to existing single-record action",
-      "installation": "NOT_PERFORMED; installed 1.59.1/129 unchanged.",
-      "source_sha256": "bd669c069e3a0ba25f21adecb785c865689c39c6ef0d14845b3ef68e21739d00"
+      "source": "PASS; check_current.py, native UI/MCP fingerprints and 61 selected Python tests; git diff --check passed.",
+      "android": "PASS; compileReleaseKotlin, compileReleaseJavaWithJavac and compileReleaseAndroidTestKotlin with configured proxy. Initial offline attempt lacked Compose plugin cache; network retry succeeded.",
+      "native_ui_execution": "NOT_RUN; no isolated emulator available. Existing navigation journeys cover all four roots, recreation and preserved caller/area navigation.",
+      "installation": "NOT_PERFORMED; live installed 1.59.1/129 unchanged.",
+      "source_sha256": "29329e3c53b16f30e6b94dbf2f7a302b1215ccec480d11233718bb61e55689f3"
     }
   },
   "open_checks": [
@@ -173,9 +175,9 @@
     "version_name": "1.59.2",
     "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "SOURCE_VALIDATED; APK_NOT_BUILT",
+    "status": "SOURCE_AND_ANDROID_COMPILATION_VALIDATED; APK_NOT_BUILT",
     "installation": "NOT_INSTALLED",
     "distribution": "NOT_DISTRIBUTED",
-    "source_sha256": "bd669c069e3a0ba25f21adecb785c865689c39c6ef0d14845b3ef68e21739d00"
+    "source_sha256": "29329e3c53b16f30e6b94dbf2f7a302b1215ccec480d11233718bb61e55689f3"
   }
 }

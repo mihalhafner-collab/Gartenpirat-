@@ -77,14 +77,14 @@ internal fun NativeApplication(controller: NativeAppController) {
         } catch (failure: Exception) { controller.message("Wiederhergestellte Formulare benötigen Prüfung."); controller.navigate("restore_review") }
         reviewChecked = true
     }
-    BackHandler(reviewChecked && controller.canGoBack() && route.section != "restore_review") { controller.back() }
+    BackHandler(reviewChecked && route.section != "restore_review") { controller.back() }
     Row(Modifier.fillMaxSize()) {
     if (reviewChecked && route.section != "restore_review" && landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
     Scaffold(modifier = Modifier.weight(1f), containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 if (route.section != "today") Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (reviewChecked && controller.canGoBack() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
+                    if (reviewChecked && controller.hasParentScreen() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
                     Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
                 }
                 if (notice.isNotBlank()) Text(notice, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MaterialTheme.typography.bodySmall)
