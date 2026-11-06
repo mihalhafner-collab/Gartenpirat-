@@ -144,3 +144,5 @@ an das geltende Fachverhalten anpassen; Prüfungen nicht abschwächen oder absch
 Beleg für einen Gerätefunktionstest. Fehlende oder fehlgeschlagene Prüfungen nennen.
 Nur eigene geprüfte Änderungen nach `main` committen, pushen und zurücklesen.
 Ergebnisse und Einschränkungen kurz melden; keine zusätzlichen Prüfberichte anlegen.
+`AKTUELLER-STAND.json` enthält nur den aktuellen Stand; Verlauf und Details stehen
+in Git und den Nachweisdokumenten. Beide Pflichtdateien bleiben zusammen unter 20000 Byte.
