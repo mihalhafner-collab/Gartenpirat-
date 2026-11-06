@@ -105,7 +105,7 @@
   ],
   "current_task": {
     "name": "Abrechnung mit getrennten Wegen, Filtern und Phase-2-Rechnungsbeträgen",
-    "status": "EFFECTIVE_STATE_FIX_VALIDATED; REBUILD_AND_NATIVE_ACCEPTANCE_PENDING",
+    "status": "COMPLETED; ORIGINAL_SIGNED_APK_DISTRIBUTED_AND_BYTE_VERIFIED; NOT_INSTALLED",
     "verified_installed_base": {
       "observed_at_utc": "2026-11-06T06:49:17.664Z",
       "version_name": "1.59.1",
@@ -125,12 +125,18 @@
       "APK erstellen und originalsigniert in Gartenpirat – Paketinstallation bereitstellen. Keine Pixel-Installation beauftragt."
     ],
     "validation": {
-      "source": "PASS; 61 selected Python checks, canonical source/privacy gates and 173 action fingerprints; accounting rules/service/schema now covered by native source-review fingerprints.",
-      "jvm": "PASS; all 8 local JVM suites on current compiled production code, including 33 accounting checks exercising the real journal/version guards, replay, stale proof, effective-state confirmation and rollback. Clean CI with table suite pending for this source.",
-      "android": "PENDING rebuild/lint after effective-state fix; earlier clean baseline passed on 7f8b0ca.",
-      "native_ui_execution": "FAIL 42186322810 reached successful IME/recreation, amount refresh, replay, stale rejection and receipt-abort rollback, then found ineffective conflict correction. Order journal updates lacked version guards. Both order writes now use existing ManualChangeRules with the current record; success requires actual canonical order/work/mark readback. Synthetic customer fixture now explicitly uses [TEST] prefix required by TestDataRules. Focused rerun pending.",
+      "source": "PASS; 61 selected Python checks, canonical source/privacy gates and 173 action fingerprints; accounting rules/service/schema covered by source-review fingerprints.",
+      "jvm": "PASS; clean CI 42190191870 passed all 9 JVM suites, including 33 accounting checks and 102 SQLite/JDBC checks. Real journal/version guards, replay, stale proof, effective-state confirmation and rollback covered.",
+      "android": "PASS; local release, Android test compilation and lintRelease; clean CI 42190191870 release/test build and lint passed on bfd63ca.",
+      "native_ui_execution": "PASS; focused CI 42190358855: 132 native accounting checks plus 6 force-stop/new-process checks. Real MainActivity, exact amounts, filters/navigation, live refresh, replay/stale rejection, receipt-abort transaction rollback, explicit conflict correction, removal and missing Phase-2 amounts. Synthetic emulator only, no productive data read.",
+      "visual_review": "PASS; 8 synthetic screenshots captured at 100/200 percent font in portrait/landscape; overview and correction editor visually reviewed with existing native design.",
+      "apk": "PASS; original signature, version 1.60.0/130, 636 unchanged source assets and empty business seed; clean BuildConfig independently read from signed APK DEX and identical Drive readback.",
+      "distribution": "PASS; uploaded to the existing Paketinstallation folder; complete 88326961-byte Drive download byte-equal to verified local original-signed APK.",
       "installation": "NOT_PERFORMED; user requested APK distribution only",
-      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82"
+      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
+      "source_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+      "ci_baseline_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42190191870",
+      "ci_native_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42190358855"
     },
     "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
   },
@@ -145,44 +151,47 @@
     "automatic_external_publication": false
   },
   "last_distributed_build": {
-    "distributed_at_utc": "2026-11-05T22:47:01.289423+00:00",
-    "version_name": "1.59.1",
-    "version_code": 129,
+    "distributed_at_utc": "2026-11-06T09:04:58.085582+00:00",
+    "version_name": "1.60.0",
+    "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "source_sha256": "78a2c4d0c55c4b1f96c107469ab514e4cf707aa572fe7e6cea9b9603db2bd53b",
-    "source_git_sha": "701046b1fc0a13da8362067242faa9eaedca3ee2",
-    "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c",
+    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
+    "source_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+    "apk_sha256": "796ea19df8f5ab6867b791deda676aa7b7dc219009d549ea53f2f3b65765fda6",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/1OtoCD8k9h5tu_R4R-p2U9ev7Fg2IJp_g/view?usp=drivesdk",
+    "download_url": "https://drive.google.com/file/d/14zpUqOneIoyKMat6N9zUl3FY6USZWdn9/view?usp=drivesdk",
     "drive": {
-      "file_id": "1OtoCD8k9h5tu_R4R-p2U9ev7Fg2IJp_g",
+      "file_id": "14zpUqOneIoyKMat6N9zUl3FY6USZWdn9",
       "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
       "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
     },
     "download_readback": {
       "status": "PASS; complete authenticated Drive download byte-equal to verified original-signed local APK",
-      "apk_sha256": "cbcce48cca3a24ffe0e48708f0fb1ab0f0668760717f73f9e435ee2ea5a8212c",
-      "byte_size": 88277809,
+      "apk_sha256": "796ea19df8f5ab6867b791deda676aa7b7dc219009d549ea53f2f3b65765fda6",
+      "byte_size": 88326961,
       "signature_valid": true,
       "original_certificate_match": true
     },
     "temporary_signing_material_removed": true,
     "signature_valid": true,
     "original_certificate_match": true,
-    "original_apk_identity_comparison": "PASS; compared to the complete, SHA256-verified original-signed 1.59.0 APK from Drive.",
-    "source_binding": "PASS; clean release BuildConfig independently read from signed APK and full Drive readback DEX; source_dirty=false; Git 701046b1fc0a13da8362067242faa9eaedca3ee2",
-    "installation": "NOT_PERFORMED; explicit APK distribution only; live Pixel 1.59.0/128 reconfirmed in this task.",
-    "native_runtime_acceptance": "FAIL_TARGETED_UI; workflow 42119487017: selected-deletion verification timeout and customer-list navigation helper timeout. Four other graphics journeys passed; physical Pixel NOT_RUN. Older full native backup/cleanup suite remains open.",
+    "source_binding": "PASS; clean release BuildConfig independently read from signed APK and full Drive readback DEX; source_dirty=false; Git bfd63caab7709ee804e7f8900f310e4ff66e8876",
+    "installation": "NOT_PERFORMED; explicit APK distribution only; last live observed Pixel remains 1.59.1/129.",
+    "native_runtime_acceptance": "PASS_TARGETED_ACCOUNTING; CI 42190358855 with 132 real MainActivity/SQLite/Compose checks and 6 new-process persistence checks; synthetic disposable emulator. No physical Pixel function test. Unrelated older open checks remain listed separately.",
     "productive_migration": "NOT_PERFORMED",
-    "invoice_authority": "REMOVED; SEVDESK_ONLY"
+    "invoice_authority": "SEVDESK_ONLY; future Phase-2 app invoice source explicitly deferred by owner",
+    "phase_2_dependency": "Monetary source is the future invoice function. Phase 1 has no manual monetary writer. Marked records without invoice amounts remain visible with explicit pending amounts, never silently zero-valued."
   },
   "current_test_candidate": {
     "version_name": "1.60.0",
     "version_code": 130,
     "package_name": "at.hausgarten.service",
-    "status": "EFFECTIVE_STATE_FIX_REBUILD_PENDING; NOT_DISTRIBUTED",
+    "status": "PASS_TARGETED_ACCEPTANCE; ORIGINAL_SIGNED_APK_DISTRIBUTED_AND_BYTE_VERIFIED",
     "installation": "NOT_INSTALLED",
-    "distribution": "REQUESTED_DRIVE_PAKETINSTALLATION",
-    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82"
+    "distribution": "COMPLETED_DRIVE_PAKETINSTALLATION",
+    "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
+    "source_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
+    "apk_sha256": "796ea19df8f5ab6867b791deda676aa7b7dc219009d549ea53f2f3b65765fda6",
+    "download_url": "https://drive.google.com/file/d/14zpUqOneIoyKMat6N9zUl3FY6USZWdn9/view?usp=drivesdk"
   }
 }
