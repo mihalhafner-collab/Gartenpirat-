@@ -165,6 +165,7 @@ class MainActivity : ComponentActivity() {
                         .collect { refreshWorkNotice() }
                 }
                 handleLaunch(intent, savedInstanceState == null)
+                publishShortcuts()
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) resumeRuntime()
             } catch (cancelled: CancellationException) {
                 withContext(NonCancellable + Dispatchers.IO) { openingStore?.close() }
@@ -178,6 +179,16 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); handleLaunch(intent) }
     private fun handleLaunch(intent: Intent?, fresh: Boolean = true) {
         val current = controller ?: return
+        val shortcut = intent?.getStringExtra(SHORTCUT)
+        if (intent != null && shortcut != null) {
+            intent.removeExtra(SHORTCUT)
+            if (fresh && current.route.section != "restore_review") when (shortcut) {
+                "start" -> current.navigate("timer")
+                "photo" -> current.navigate("photos", mode = "import", args = JSONObject().put("_open_camera", true))
+                "worklog" -> current.navigate("worklogs", mode = "new")
+            }
+            return
+        }
         val work = intent?.getStringExtra(WorkNotice.EXTRA)
         if (intent != null && work != null) {
             intent.removeExtra(WorkNotice.EXTRA)
@@ -213,6 +224,16 @@ class MainActivity : ComponentActivity() {
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { current.navigate("timer"); current.message(failure.message ?: "Zeitvorgang nicht bestätigt. Bitte Zeitstand prüfen.") }
         refreshWorkNotice()
+    }
+    /** Long press on the app icon offers the three most frequent actions. */
+    private fun publishShortcuts() {
+        val manager = getSystemService(android.content.pm.ShortcutManager::class.java) ?: return
+        fun shortcut(id: String, label: String) = android.content.pm.ShortcutInfo.Builder(this, id).setShortLabel(label)
+            .setIcon(android.graphics.drawable.Icon.createWithResource(this, R.drawable.app_icon))
+            .setIntent(Intent(this, MainActivity::class.java).setAction(Intent.ACTION_VIEW)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra(SHORTCUT, id)).build()
+        try { manager.dynamicShortcuts = listOf(shortcut("start", "Arbeit starten"), shortcut("photo", "Foto"), shortcut("worklog", "Arbeit nachtragen")) }
+        catch (_: RuntimeException) { android.util.Log.w("HausGartenShortcuts", "PUBLISH_FAILED") }
     }
     private suspend fun refreshWorkNotice() {
         val local = store ?: return
@@ -364,6 +385,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         @Volatile private var foreground = WeakReference<MainActivity>(null)
         private const val WORK_NOTICE_REQUEST = 0x574b
+        private const val SHORTCUT = "shortcut"
         private val BACKUP_SECRET_NAME = Pattern.compile("password|passwd|secret|credential|token|authorization|oauth|recovery.?code|api.?key", Pattern.CASE_INSENSITIVE)
         @JvmStatic fun refreshPlanningView() { refreshBusinessView() }
         @JvmStatic fun refreshBusinessView() {
