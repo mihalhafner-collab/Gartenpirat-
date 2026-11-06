@@ -133,18 +133,24 @@
     ],
     "validation": {
       "source": "PASS; check_current.py with 61 Python tests and 184 action mappings on second candidate.",
-      "jvm": "PASS; 12 suites incl SQLite/JDBC102, Settlement142, SettlementAccounting38, SettlementProtection42 and existing regressions; unchanged input hash 93e4ddb9d50c89e48dad0d01f5fcfa6c1487b08803cf18b67f77be1e26500c66.",
+      "jvm": "PASS; 12 suites incl SQLite/JDBC102, Settlement142, SettlementAccounting38, SettlementProtection42 and existing regressions; unchanged input hash 93e4ddb9d50c89e48dad0d01f5fcfa6c1487b08803cf18b67f77be1e26500c66. Clean CI42210669073 also passed on a5c2a79.",
       "android": "PASS; second-candidate local assembleRelease, assembleReleaseAndroidTest and lintRelease. Includes verified PDF error recovery, source-display corrections and transaction-local journal projection reuse.",
       "native_ui_execution": "FIRST_RUN_FAILED on 7524d51: accounting and settlement UI visibility assertions failed at preserved scroll offsets; exact values persisted. Settlement ZIP check used wrong test extraction path (missing data/). Graphics work deletion timed out while repeatedly materializing journal; minimal transaction-local reuse implemented without increasing timeout. All affected native suites require rerun on second candidate.",
       "installation": "NOT_PERFORMED",
       "distribution": "NOT_PERFORMED",
       "source_sha256": "e0853295816c68687047801a4d2b966f527c06de2c78709fe1ccf6b596d22964",
-      "ci_baseline_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206727508",
+      "ci_baseline_url": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210669073",
       "first_native_runs": [
         "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206740312",
         "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206745428",
         "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42206752675"
-      ]
+      ],
+      "second_native_runs": [
+        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210674795",
+        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210679595",
+        "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42210684595"
+      ],
+      "native_test_harness_followup": "Accounting second run reached recreation but asserted a field during the actual startup-loading screen; screenshot confirmed. Test now awaits the loaded field and retained search value, with all original monetary and UI assertions preserved. Android test compilation PASS; app source fingerprint unchanged e0853295816c68687047801a4d2b966f527c06de2c78709fe1ccf6b596d22964."
     }
   },
   "open_checks": [

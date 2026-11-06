@@ -517,6 +517,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Rechnung"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "qa_settlement_invoice"); back()
             recreate()
+            // Activity recreation first displays the asynchronous startup review.
+            // Wait for the restored feature field before inspecting its value.
+            waitUntil("SETTLEMENT_UI_RECREATED_ACCOUNTING_FIELD") { field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") == true }
             yes(field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") == true, "SETTLEMENT_UI_FILTER_RECREATION")
             val filteredAfterRecreation = read("get_accounting_overview", JSONObject().put("query", "qa_settlement_invoice").put("route", "billed"))
             yes(filteredAfterRecreation.getLong("billed_minor") == 90000L && filteredAfterRecreation.getLong("total_minor") == 90000L && filteredAfterRecreation.getInt("total") == 1, "SETTLEMENT_UI_RECREATED_FILTER_EXACT_AMOUNT")
@@ -629,6 +632,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
             yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW")
             recreate()
+            // A Compose startup screen exists before the accounting route is ready.
+            // Require its restored search field, not merely the root Compose view.
+            waitUntil("ACCOUNTING_RECREATED_FEATURE_FIELD") { field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true }
             yes(field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true, "ACCOUNTING_FILTERS_SURVIVE_DETAIL_AND_RECREATION")
             val filteredAfterRecreation = overview(JSONObject().put("query", "Abrechnung A").put("route", "billed"))
             yes(filteredAfterRecreation.getLong("billed_minor") == 90000L && filteredAfterRecreation.getLong("total_minor") == 90000L && filteredAfterRecreation.getInt("total") == 1, "ACCOUNTING_RECREATED_FILTER_EXACT_AMOUNT")
