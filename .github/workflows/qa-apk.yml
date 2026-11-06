@@ -183,6 +183,8 @@ jobs:
           for suite in "${suites[@]}"; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+            # The running-work notice asks once for this permission; a system dialog would cover the UI under test.
+            "$ADB" -s emulator-5580 shell pm grant at.hausgarten.service android.permission.POST_NOTIFICATIONS || true
             "$ADB" -s emulator-5580 logcat -c
             instrumentation_status=0
             suite_timeout=360
