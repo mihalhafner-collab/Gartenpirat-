@@ -311,10 +311,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("CUSTOMER_LIST_OR_DETAIL_ROUTE") {
                 if (!selectedArea("Kunden")) false
                 else if (ready()) { listReady = true; true }
-                else node("‹ Zurück")?.let(::clickable) != null
+                else node("‹ Zurück")?.let(::clickable)?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true
             }
             if (listReady) return
-            click("‹ Zurück")
+            settleUi()
         }
         throw AssertionError("QA_NATIVE_COMPOSE_CUSTOMER_LIST_BACK_PATH")
     }
@@ -731,6 +731,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 try { body(); passed.put(name) }
                 catch (failure: Throwable) {
                     test.sendStatus(0, Bundle().apply { putString("journey_failure", "$name: " + failure.stackTraceToString()) })
+                    test.sendStatus(0, Bundle().apply { putString("list_read_diagnostics", shell("logcat -d -s HausGartenNativeList:W").takeLast(12000)) })
                     runCatching { captureSyntheticScreen("failure-$name"); logVisibleActions("failure_$name") }
                     failures.add(AssertionError("QA_NATIVE_GRAPHICS_JOURNEY_$name", failure))
                 }

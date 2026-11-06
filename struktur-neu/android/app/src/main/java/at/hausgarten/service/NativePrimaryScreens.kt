@@ -647,7 +647,11 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
     var listFailure by remember { mutableStateOf("") }
-    val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).catch { listFailure = NATIVE_LIST_READ_ERROR } }
+    val flow = remember(collection, search, status, customer, billing, inactive, from, to, offset) { controller.store.nativeData().watchList(collection, search = search, status = status, customerId = customer, billingType = billing, includeInactive = inactive, offset = offset, limit = 50, dateFrom = from, dateTo = to).catch { failure ->
+        // Record only code locations, never exception messages, row values or search text.
+        android.util.Log.w("HausGartenNativeList", "READ_FAILED " + failure.javaClass.name + " " + failure.stackTrace.take(16).joinToString(";"))
+        listFailure = NATIVE_LIST_READ_ERROR
+    } }
     val displayFlow = remember(flow) { flow.map<NativeListPage, NativeListPage?> { it }.onStart { listFailure = ""; emit(null) } }
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
