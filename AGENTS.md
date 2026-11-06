@@ -98,6 +98,13 @@ Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 - **Prüfungen:** unklare Vorgänge automatisch intern prüfen, ohne doppelte
   Ausführung. Nur echte Konflikte zeigen. Wiederherstellung als Hinweis, nicht als Sperre.
 
+## ChatGPT-Anbindung (Pixel-MCP)
+
+- Jede fachliche App-Funktion ist auch als MCP-Werkzeug verfügbar; neue
+  Funktionen bekommen ihr Werkzeug im selben Schritt (`ui-mcp-actions.json`).
+- Schreibzugriff schaltet der Eigentümer in der App („ChatGPT darf Daten
+  ändern“). MCP-Schreibwege nutzen dieselben Prüfungen wie die Oberfläche.
+
 ## Tests
 
 - Testprogramme erzeugen eigene synthetische Daten und prüfen Fach-, Speicher-
@@ -111,6 +118,10 @@ Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
 - `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
   nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.
+- App-Änderungen erst nach grünem vollem CI-Lauf (`qa-apk.yml` mit Emulator,
+  ohne `*_only`) nach `main`. Ein Lauf ohne Emulator-Suiten zählt nicht.
+- AGENTS.md und AKTUELLER-STAND.json zusammen unter 19 KB halten
+  (Kontext-Hook-Grenze 20 KB); Erledigtes steht in der Git-Historie.
 - Fehlende oder fehlgeschlagene Prüfungen nennen. Geänderten Code nie als
   installiert ausgeben.
 - Nur eigene geprüfte Änderungen committen, pushen und zurücklesen. Ergebnis
