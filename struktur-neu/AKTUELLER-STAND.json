@@ -4,158 +4,45 @@
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
     "observed_at_utc": "2026-11-06T15:11:00Z",
-    "observation_time_precision": "minute",
-    "device_reported_last_update_at": "2026-11-06T15:36:17+01:00",
     "version_name": "1.61.0",
     "version_code": 131,
-    "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
-    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
-    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
-    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; zusätzlich exakter ADB-Abgleich mit signierter Release-APK",
     "package_name": "at.hausgarten.service",
-    "repository_source_match": "BESTANDEN. ADB-Prüfsumme der installierten APK stimmt exakt mit der signierten Release-Referenz überein. Die Git-Blobs von Release 7e3b045 und main 9480385 ergeben denselben Quellfingerabdruck.",
-    "runtime_self_report": "BESTANDEN nach anfänglichen HTTP-Transportfehlern. get_capabilities bestätigte Paket, Version, Commit, Quellfingerabdruck und source_dirty=false."
+    "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
+    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
+    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
+    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; ADB-Prüfsumme gleich signierter Release-APK"
   },
   "observed_installation_history": [
     {
-      "observed_at_utc": "2026-11-06T14:30:58Z",
-      "version_name": "1.60.0",
-      "version_code": 130,
-      "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
-      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
-      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
-      "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; live Pixel130 still matches original bfd63ca/dbaa6402 source. Signed131 APK is provided separately; not installed at this observation."
-    },
-    {
-      "observed_at_utc": "2026-11-06T10:51:36Z",
-      "version_name": "1.60.0",
-      "version_code": 130,
-      "reported_base_git_sha": "bfd63caab7709ee804e7f8900f310e4ff66e8876",
-      "source_sha256": "dbaa6402e4dc6d9d9392a892c717f889e4ee2776e0d593f8a0b3acdf95952d82",
-      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
-      "package_name": "at.hausgarten.service",
-      "repository_source_match": "PASS; live installed 1.60.0/130 matches exact Kotlin source fingerprint of bfd63ca and current main 037515d. Candidate extends this verified source; no installation authorized."
+      "observed_at_utc": "2026-11-06T15:11:00Z",
+      "version_name": "1.61.0",
+      "version_code": 131,
+      "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
+      "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38"
     }
   ],
-  "current_task": {
-    "name": "Lokale Rechnungen und interne Labor-Abschlüsse mit erhaltener Abrechnung",
-    "status": "IMPLEMENTED_VALIDATED_AND_APK_DISTRIBUTED; INSTALLATION_LATER_OBSERVED",
-    "owner_decisions": [
-      "Auftrag 06.11.2026 ersetzt sevDesk-exklusive Begrenzung für gewöhnliche österreichische EUR-Kleinunternehmer-Abrechnung.",
-      "Abrechnung behält Auftragseinheiten, getrennte Arten, Filter und Arbeitsdatumsbezug; bestätigte Rechnungs- und Laborbeträge ergeben gemeinsam die Gesamtsumme.",
-      "Entwicklung und isolierte synthetische Validierung; keine produktive Installation, Ausgabe, Migration oder APK-Verteilung.",
-      "Folgeauftrag06.11.2026: originalsignierte Installations-APK wie gewohnt bereitstellen; keine automatische Installation."
-    ],
-    "validation": {
-      "source": "PASS; check_current.py: 61 Python checks, source/privacy/seed gates, 184 semantic UI actions; Kotlin-only basis retained.",
-      "jvm": "PASS; all12 suites actually run locally and in CI42227034080, including Settlement142, SettlementAccounting38, SourceProtection42, MCP666, JDBC102 and existing finance/work/ZIP regressions.",
-      "mcp_catalog": "PASS; seven freshly compiled catalog/description checks;156 MCP tools,184 separate semantic UI actions.",
-      "android": "PASS; assembleRelease, assembleReleaseAndroidTest, lintRelease and release privacy actually executed locally and in CI; BuildConfig matches source_sha256. Latest test-only wait compiled locally.",
-      "native_settlement_data": "PASS;60+24 in CI42227087386: real SQLite,900+200=1100 after new process, multipage original PDF, parallel reservations, PDF failure/retry and post-PDF SQLite abort, payments/corrections, ZIP/restore/series/source audit. Later original UI stage failed separately.",
-      "native_settlement_ui": "PASS; focused163 in CI42230261664: both completions, exact totals, filters/back, draft save/recreation and200% portrait/landscape. Five images independently checked. Test-only save wait now requires actual review action and persisted title; same20s limit. Data/restore proofs are separate.",
-      "native_accounting": "PASS;145+6 in CI42227092709: grouping/marks, routes, same-selection sums, filters, corrections, source detail/back. Eight100/200% portrait/landscape images independently checked. Counter includes navigation/read actions.",
-      "native_graphics": "PASS twice;692/690 in CI42227036533/42228290232: six journeys covering Today/work/offers/navigation/accessories/timer/200%. IDs/hash and selection recovery after rotation during Busy passed twice. Eleven images checked.6404/3368ms are emulator/harness measurements, no performance guarantee.",
-      "investigated_failures": "Harness now waits completed UI/record and polls actual empty-list UI before one full snapshot, with original assertions and20s budget. Back action and root readiness checked together. Earlier unretained list exception remains documented in open_checks.",
-      "independent_reviews": "PASS; technical and Austrian domestic KU domain reviews; concrete findings corrected. USP/BMF primary sources checked, UGB14 official excerpt only. Sources/limits in APP.md; no guaranteed legal compliance.",
-      "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
-      "ci_runs": {
-        "source_build_jvm_lint": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227034080",
-        "settlement_data_restore": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227087386",
-        "settlement_ui": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42230261664",
-        "accounting": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227092709",
-        "graphics": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42227036533",
-        "graphics_repeat": "https://github.com/mihalhafner-collab/Gartenpirat-/actions/runs/42228290232"
-      },
-      "limits": "Synthetic emulator/JVM only, no physical Pixel function test. Austrian domestic EUR/KU only; actual issuer/legal data, services/prices/tax status and restore audit require operator review. Plain PDF max100 pages/20MiB; no PDF/A/federal structured-invoice claim. New series does not reconstruct absent later transactions.",
-      "installation": "NOT_PERFORMED_IN_RELEASE_TASK; LATER_OBSERVED_VIA_ADB",
-      "distribution": "PASS; original-signed131 APK in existing Drive installation folder, full byte-equal authenticated download verified.",
-      "productive_migration": "NOT_PERFORMED",
-      "tested_app_commit": "8750f70be3c3043b902bd06385ba3845f7e29bbb; App hash unchanged since6240652;659e062/8750f70 changed tests only.",
-      "apk_distribution": "PASS; package/version/original certificate compared to downloaded130 APK; empty seeds/assets/classes verified. Clean source fingerprint read directly from signed APK and Drive readback. No device installation."
-    }
-  },
-  "latest_pixel_qa": {
-    "status": "PARTIAL_EXECUTED",
-    "environment": "Physischer Pixel über USB-ADB am Windows-Laptop",
-    "installed_version_code": 131,
-    "evidence": "docs/verification/performance-current.md",
-    "ui_cases": {
-      "passed": 49,
-      "failed": 2,
-      "blocked": 9
-    },
-    "catalog": {
-      "active": 178,
-      "passed": 14,
-      "failed": 2,
-      "blocked": 5,
-      "not_executed": 157,
-      "retired_not_applicable": 6
-    },
-    "findings": [
-      "QA06. Großes Zubehörfoto wird gespeichert, der gesperrte Formularzustand hat keine aktuelle Beschäftigtmeldung.",
-      "C04. Synthetischer Kunde wird gelöscht, die Detailansicht bleibt mit Fehlanzeige offen."
-    ],
-    "pixel_retest": "BLOCKIERT. Beide Korrekturen brauchen eine gesondert freigegebene Installation.",
-    "cleanup": "Eigene Geräte- und Kundenstammdaten sowie die beiden Download-JPEGs entfernt und zurückgelesen. Timer nach Verwerfen IDLE. Schrift und Drehung wieder auf Ausgangswerten. Die geprüfte ZIP bleibt lokal auf dem Pixel."
-  },
-  "open_checks": [
-    "Build 131 ist per ADB, signierter Release-Referenz und späterem Laufzeitselbstbericht bestätigt. Die Teilabnahme und offenen Pixel-Prüfungen sind im vorhandenen Gerätenachweis erfasst.",
-    "Die physische Prüfung ist eine Teilabnahme. Kameraaufnahme, die offenen Katalog- und Zusatzfälle und die beiden Pixel-Nachtests sind im Gerätenachweis abgegrenzt.",
-    "Ältere unvollständige native Backup- und Speicherbereinigungsabnahmen bleiben offen.",
-    "Speicherfreigabe des zuvor angezeigten 22,53-GB-Arbeitsbestands nach Installation 1.58.2 noch nicht gemessen.",
-    "Kalender/Wetter und tatsächliche Pixel-Tunnel-Laufzeit nicht mit produktiven Konten oder Geschäftsdaten getestet.",
-    "Ein früherer Listenlesefehler nach Rotation hatte keine erhaltene Exception; beide finalen Graphics-Wiederholungen bestanden einschließlich Rotation während Busy. Seine damalige Ursache bleibt ungeklärt; bei Wiederauftreten werden Fehlerklasse und Codepositionen ohne Geschäftsdaten protokolliert."
-  ],
-  "workflow": {
-    "code": "android/app/src/main",
-    "automatic_installation": false,
-    "automatic_external_publication": false
-  },
   "last_distributed_build": {
-    "distributed_at_utc": "2026-11-06T14:30:58Z",
     "version_name": "1.61.0",
     "version_code": 131,
-    "package_name": "at.hausgarten.service",
-    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
-    "source_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
     "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "download_url": "https://drive.google.com/file/d/1xF0x0Ja-wzFt4RlShtXNreP3RZb5QB7R/view?usp=drivesdk",
-    "drive": {
-      "file_id": "1xF0x0Ja-wzFt4RlShtXNreP3RZb5QB7R",
-      "parent_folder_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
-      "purpose": "ORIGINAL_SIGNED_APK_INSTALLATION_ONLY"
-    },
-    "signature_valid": true,
-    "original_certificate_match": true,
-    "download_readback": {
-      "status": "PASS; complete authenticated Drive download byte-equal to verified original-signed local APK",
-      "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
-      "byte_size": 88408881,
-      "signature_valid": true,
-      "original_certificate_match": true
-    },
-    "temporary_signing_material_removed": true,
-    "source_binding": "PASS; clean release BuildConfig read from signed APK and full Drive readback DEX; source_dirty=false; Git7e3b045d1975c407885a85bb9da1edb167c395e9.",
-    "native_runtime_acceptance": "PASS_ISOLATED; identical source and executed proofs in current_task.validation; no physical Pixel function test.",
-    "installation": "NOT_PERFORMED_IN_RELEASE_TASK; EXACT_INSTALLED_APK_LATER_OBSERVED_VIA_ADB"
+    "drive_file_id": "1xF0x0Ja-wzFt4RlShtXNreP3RZb5QB7R"
   },
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
-    "package_name": "at.hausgarten.service",
-    "status": "LOCAL_UNSIGNED_RELEASE_AND_ANDROID_TEST_APKS_VALIDATED",
-    "installation": "BLOCKIERT_OHNE_PRODUKTIVE_FREIGABE",
-    "distribution": "NOT_AUTHORIZED",
     "source_sha256": "8a8f3dcbbc5e1de78ddeeb17a595c6dfb2fa087269980835bd76fb62b7bbf4d7",
-    "validation": {
-      "build": "BESTANDEN. assembleRelease, assembleReleaseAndroidTest, Release-Vital-Lint, Quell- und APK-Datenschutzprüfungen.",
-      "jvm_sqlite": "11 Suiten bestanden. PixelPlainBackupTests wegen fehlender Windows-Symlink-Berechtigung blockiert.",
-      "source_suite": "Quell- und Katalogprüfung bestanden. Vollständiger check_current.py-Lauf endet in Windows-spezifischen POSIX-/Symlink-Voraussetzungen der Signaturtests.",
-      "instrumentation_runtime": "NICHT AUSGEFÜHRT. Test-APK gebaut.",
-      "pixel_retest": "BLOCKIERT. Die Freigabe für eine produktive Installation fehlt."
-    }
-  }
+    "status": "Lokal gebaut und geprüft; Installation und Verteilung nicht freigegeben.",
+    "content": "Korrekturen zu QA06 (Beschäftigtmeldung beim Zubehörfoto) und C04 (Rückkehr nach Kundenlöschung)."
+  },
+  "current_task": {
+    "name": "Neue Oberfläche auf bestehendem Kern",
+    "status": "Geplant. Vorgaben in AGENTS.md, Abschnitt Oberfläche. Noch kein Umsetzungsauftrag."
+  },
+  "open_checks": [
+    "Pixel-Nachtest von QA06 und C04 braucht freigegebene Installation von 132.",
+    "Pixel-Teilabnahme 131: 49 bestanden, 2 fehlgeschlagen, 9 blockiert; Details in docs/verification/performance-current.md.",
+    "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
+    "Ältere native Backup- und Speicherbereinigungsabnahmen offen."
+  ]
 }
