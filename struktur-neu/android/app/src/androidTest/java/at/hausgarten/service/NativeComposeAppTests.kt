@@ -512,9 +512,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val internal = read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record")
             yes(internal.getString("status") == "confirmed" && !internal.has("invoice_number") && !internal.has("pdf"), "SETTLEMENT_UI_INTERNAL_NO_INVOICE")
             captureSyntheticScreen("settlement-labor-confirmed")
-            openOffice(); click("Abrechnung"); shown("1100,00 €")
+            openOffice(); click("Abrechnung"); reveal("1100,00 €"); shown("1100,00 €")
             yes(read("get_accounting_overview").getLong("total_minor") == 110000L, "SETTLEMENT_UI_900_PLUS_200")
-            click("Rechnung"); shown("900,00 €")
+            click("Rechnung"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "qa_settlement_invoice"); back()
             recreate()
             // Activity recreation first displays the asynchronous startup review.
@@ -552,7 +552,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung geprüft", "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH")
             yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks, "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED")
             openOffice(); click("Abrechnung")
-            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); scrollTop(); click("Gesamt"); shown("1100,00 €")
+            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); scrollTop(); click("Gesamt"); reveal("1100,00 €"); shown("1100,00 €")
             for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
                 shell("settings put system font_scale 2.0")
@@ -563,7 +563,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     test.runOnMainSync { val configuration = activity?.resources?.configuration; applied = configuration != null && configuration.fontScale >= 1.99f && configuration.orientation == if (wide) android.content.res.Configuration.ORIENTATION_LANDSCAPE else android.content.res.Configuration.ORIENTATION_PORTRAIT }
                     applied
                 }
-                settleUi(); reveal("Gesamt"); shown("1100,00 €")
+                settleUi(); reveal("Gesamt"); reveal("1100,00 €"); shown("1100,00 €")
                 captureSyntheticScreen("settlement-overview-200-${if (wide) "landscape" else "portrait"}")
             }
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false).put("real_main_activity", true)
@@ -626,9 +626,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val oldFont = shell("settings get system font_scale")
         try {
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
-            launch(); openOffice(); click("Abrechnung"); shown("1100,00 €")
-            click("Rechnung"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
-            click("‹ Zurück"); shown("900,00 €")
+            launch(); openOffice(); click("Abrechnung"); reveal("1100,00 €"); shown("1100,00 €")
+            click("Rechnung"); reveal("900,00 €"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
+            click("‹ Zurück"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
             yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW")
             recreate()
@@ -644,7 +644,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             // Simulate the later invoice module's committed source update, never a manual price editor.
             val invoiceUpdate = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
             PixelMcpWriteTools.find(invoiceUpdate.getJSONArray("orders"), "qa_accounting_a").put("accounting_amount", "950.25")
-            store.putOwnerValue("snapshot", invoiceUpdate.toString()); shown("950,25 €")
+            store.putOwnerValue("snapshot", invoiceUpdate.toString()); reveal("950,25 €"); shown("950,25 €")
             val observed = read("get_accounting_record", JSONObject().put("collection", "orders").put("entity_id", "qa_accounting_a"))
             val update = JSONObject().put("request_id", "qa_accounting_amount_change").put("collection", "orders").put("entity_id", "qa_accounting_a")
                 .put("expected_record_hash", observed.getString("expected_record_hash")).put("route", "billed")
@@ -657,7 +657,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 yes(abort.isFailure || abort.getOrNull()?.optBoolean("ok") == false, "ACCOUNTING_INJECTED_RECEIPT_FAILURE")
                 yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == beforeAbort && store.ownerValue("personal_paid", "[]") == marksBeforeAbort, "ACCOUNTING_TRANSACTION_ROLLBACK_HAS_NO_PARTIAL_MARKS_OR_AMOUNTS")
             } finally { store.writableDatabase.execSQL("DROP TRIGGER qa_accounting_abort") }
-            read("set_accounting_record", update); shown("950,25 €")
+            read("set_accounting_record", update); reveal("950,25 €"); shown("950,25 €")
             yes(read("set_accounting_record", update).getBoolean("replayed"), "ACCOUNTING_IDENTICAL_REPLAY")
             yes(overview().getLong("total_minor") == 115025L, "ACCOUNTING_REAL_WRITER_EXACT_AMOUNT_REFRESH")
             val stale = JSONObject(update.toString()).put("request_id", "qa_accounting_stale_change")
@@ -672,13 +672,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("ACCOUNTING_EXPLICIT_CONFLICT_CORRECTION") { val value = overview(); value.getInt("review_total") == 0 && value.getLong("labor_minor") == 115025L }
             // Return to the same filtered overview; clear only search for viewport checks.
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); waitUntil("ACCOUNTING_FINAL_IME_HIDDEN") { !keyboardVisible() }
-            scrollTop(); click("Gesamt"); shown("1150,25 €")
+            scrollTop(); click("Gesamt"); reveal("1150,25 €"); shown("1150,25 €")
             for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
                 shell("settings put system font_scale $font")
                 launch(); openOffice(); click("Abrechnung")
                 test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
-                settleUi(); reveal("Gesamt"); shown("1150,25 €")
+                settleUi(); reveal("Gesamt"); reveal("1150,25 €"); shown("1150,25 €")
                 captureSyntheticScreen("accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
                 yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_SEARCH_ACCESSIBLE_${font}_$wide")
                 reveal("QA Abrechnung A"); click("QA Abrechnung A"); click("Abrechnung")

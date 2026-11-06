@@ -2818,7 +2818,7 @@
   "reviewed_sources": {
     "android/app/src/main/assets/offer-contract.json": "f2fa77c5f92e22f69f46875ba4fc64f15a4d454d47b8339ede853b83ec393971",
     "android/app/src/main/java/at/hausgarten/service/AccountingRules.kt": "b58622c9b8029f6915448381ffcda1a84cfafb4e073a8d52865bf116e48ed88a",
-    "android/app/src/main/java/at/hausgarten/service/ArchiveApplicationService.kt": "fbba1a1e6e4a9135a7796749e62833c59d91d3f96122564a1ff5145ba8de9ed8",
+    "android/app/src/main/java/at/hausgarten/service/ArchiveApplicationService.kt": "bcea42159180186db91a9498ed97c14c3c1607a8bac6cef1b016cf4da6590ce4",
     "android/app/src/main/java/at/hausgarten/service/BackupArchive.kt": "eb8d5ceedef9f682d57b35cd33ef42533e87a42b1597959d735faca98b503492",
     "android/app/src/main/java/at/hausgarten/service/BackupDocumentTransfer.kt": "2d31551bb68522de0619b8e7a48a769f6f5bda4d73033521fb16fa82939ed734",
     "android/app/src/main/java/at/hausgarten/service/BackupInventory.kt": "5da18384dac09684db2547be5a077f4b74a18d95518fb6c9730a74380ad1559b",
@@ -2859,7 +2859,7 @@
     "android/app/src/main/java/at/hausgarten/service/NativeOwnerQueries.kt": "ca2e5b8de1c5d2e565d93eaa5f2cd98dca3d9b9d88003a02f471a8fa461b6494",
     "android/app/src/main/java/at/hausgarten/service/NativePrimaryScreens.kt": "54fee274da320d4f29c33116b03e92f129b8c7d4e80ef9b196c3ee52c35ba173",
     "android/app/src/main/java/at/hausgarten/service/NativeRestoredDraftScreens.kt": "da391f39efbc6a33a848d4fd5981138468be2b220054c13fb9543f7ea7ef3bad",
-    "android/app/src/main/java/at/hausgarten/service/NativeSettlementScreen.kt": "f0dc82191ec5a3fd7246ce49a081dddcda2f21dbaf1d2086affd55247ddf11ac",
+    "android/app/src/main/java/at/hausgarten/service/NativeSettlementScreen.kt": "ae082c5596ca22d45ba115f9e9d4edea40637d2a97f279beecd26fcb6e6477d1",
     "android/app/src/main/java/at/hausgarten/service/OfferApplicationService.kt": "33c4c3447dfb6a9d80c2e2fd72e264f3e835a7c11cc91e2bf2d67f045676dcb0",
     "android/app/src/main/java/at/hausgarten/service/OfferFileProvider.kt": "c82d509e884174c4c44254ca2047cfb39ad416d1413d1e921812c39b4c13536c",
     "android/app/src/main/java/at/hausgarten/service/OfferMoney.kt": "94813aa07fabbe079f3cdb0c626166c6e97f42908a86b49c9941902cf54f0045",

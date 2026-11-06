@@ -677,6 +677,14 @@ Speicher-/PDF-Adaptern. Der gezielte `workflow_dispatch` mit `emulator=true` und
 `settlement_only=true` führt auf dem synthetischen Wegwerf-Emulator nacheinander
 `native_settlement`, `native_settlement_reopen` und `native_settlement_ui` aus:
 Daten-/Restorepfade, Rücklesen im neuen Prozess und echte Compose-Bedienung.
+Für eine reine Bedienabnahme nach einer Korrektur des Prüfharness führt
+`workflow_dispatch`, `emulator=true`, `settlement_ui_only=true` ausschließlich
+`native_settlement_ui` auf einem frischen synthetischen Appbestand aus. Quellgates
+sowie Release- und Android-Testbau bleiben zwingend; Lint und JVM-Suiten laufen
+weiterhin beim normalen Code-Push. Bereits bestandene Daten-/Restore- und
+Fachprüfungen dürfen bei unverändertem App-Quellfingerabdruck getrennt belegt
+werden; der UI-Lauf wiederholt diese Prüfungen nicht und bestätigt sie nicht neu.
+
 Die Laufdefinition allein ist kein bestandener Android-Nachweis. `prepare_settlement` und `complete_settlement` sind zwei
 getrennte dauerhafte Schritte mit unveränderter `settlement_id` und jeweils
 stabiler eigener `request_id`. PDF-Fehler müssen die Reservierung erhalten;

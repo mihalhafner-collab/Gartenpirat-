@@ -312,7 +312,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                 Text(if (invoice) "Rechnung" else "Labor clandestino · interner Nachweis")
                 if (record.optString("invoice_number").isNotBlank()) Text("Rechnungsnummer: ${record.getString("invoice_number")}")
                 if (record.optString("original_number").isNotBlank()) Text("Storno zu ${record.getString("original_number")}")
-                Text("Rechnungsdatum: ${record.optString("issue_date").ifBlank { settlementDay() }}")
+                Text("${if (invoice) "Rechnungsdatum" else "Datum"}: ${record.optString("issue_date").ifBlank { settlementDay() }}")
                 Text("Leistung: ${record.optString("service_from")} – ${record.optString("service_to")}")
                 SettlementAddress("Aussteller", record.optJSONObject("issuer") ?: current.optJSONObject("issuer") ?: context?.optJSONObject("business_settings"), true)
                 if (status == "draft") TextButton({ scope.launch {

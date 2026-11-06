@@ -28,8 +28,8 @@ class ArchiveApplicationService : OwnerCommand {
                         requireInactiveSession(target.getString("entity"), target.getString("entity_id"))
                     }
                     val result = repository.enqueue(TrashPurgeBatch.KIND, payload, request)
-                    verifyRemoval(targets, true)
-                    verifyRemoval(dependents, true)
+                    val removed = verifyRemoval(targets, true)
+                    verifyRemoval(dependents, true, removed)
                     return result.put("deleted", targets.length()).put("recoverable", false).put("media_cleanup", "local_after_commit")
                 }
             }
@@ -50,41 +50,24 @@ class ArchiveApplicationService : OwnerCommand {
                 }
             }
             "purge_entity" -> {
-                run {
-                    requireInactiveSession(a.getString("entity"), a.getString("entity_id"))
-                    var kind: String = "purge_v1"
-                    var p: JSONObject = JSONObject().put("id", a.getString("entity_id")).put("expected_record_hash", a.optString("expected_record_hash", OwnerJournalRules.version(OwnerJournalRules.archives(all).getJSONObject(a.getString("entity") + ":" + a.getString("entity_id"))))).put("updated_at", stamp)
-                    if ((name.equals("purge_entity"))) {
-                        p.put("entity", a.getString("entity")).put("confirmed", a.getBoolean("confirmed"))
-                    }
-                    val dependents = TrashRules.testTargets(all, a.getString("entity"), a.getString("entity_id"))
-                    p.put("expected_test_dependencies_hash", PixelMcpWriteTools.hash(dependents)).put("test_dependencies", dependents)
-                    for (i in 0 until dependents.length()) {
-                        val target = dependents.getJSONObject(i)
-                        requireInactiveSession(target.getString("entity"), target.getString("entity_id"))
-                    }
-                    OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", kind).put("payload", p).put("client_id", request).put("created_at", stamp), HashMap(), JSONObject())
-                    val result = repository.enqueue(kind, p, request)
-                    verifyRemoval(JSONArray().put(JSONObject().put("entity", a.getString("entity")).put("entity_id", a.getString("entity_id"))), true)
-                    verifyRemoval(dependents, true)
-                    return result.put("recoverable", false).put("media_cleanup", "local_after_commit")
-                }
+                return purgeOne(all, a, request, stamp).first
             }
             "delete_entity" -> {
-                return deleteOne(all, a, request, stamp)
+                return deleteOne(all, a, request, stamp).first
             }
             "archive_entity" -> {
-                return archiveOne(all, a, request, stamp)
+                return archiveOne(all, a, request, stamp).first
             }
             "delete_work_records" -> {
                 val ids = a.getJSONArray("work_record_ids")
                 // Validate the whole selection before its first change; the owner request owns the transaction.
                 val selection = WorklogArchiveBatch.actions(all, ids, a.getString("expected_preview_hash"), request, stamp)
                 if (!a.getBoolean("confirmed")) throw IllegalArgumentException("Löschauswahl fehlt.")
+                var current = all
                 for (i in 0 until selection.length()) {
                     val payload = selection.getJSONObject(i).getJSONObject("payload")
-                    deleteOne(repository.effective(), JSONObject().put("entity", "worklog").put("entity_id", payload.getString("id"))
-                        .put("expected_record_hash", payload.getString("expected_record_hash")), "${request}_$i", stamp)
+                    current = deleteOne(current, JSONObject().put("entity", "worklog").put("entity_id", payload.getString("id"))
+                        .put("expected_record_hash", payload.getString("expected_record_hash")), "${request}_$i", stamp).second
                 }
                 return JSONObject().put("count", ids.length()).put("recoverable", false).put("physical_delete", true).put("local_state", "local_saved").put("sync_state", "not_applicable")
             }
@@ -106,8 +89,7 @@ class ArchiveApplicationService : OwnerCommand {
         }
     }
     /** A queue acknowledgement alone must never become a successful deletion receipt. */
-    private fun verifyRemoval(targets: JSONArray, permanent: Boolean) {
-        val actual = repository.effective()
+    private fun verifyRemoval(targets: JSONArray, permanent: Boolean, actual: JSONObject = repository.effective()): JSONObject {
         for (i in 0 until targets.length()) {
             val target = targets.getJSONObject(i)
             val entity = target.getString("entity")
@@ -118,24 +100,44 @@ class ArchiveApplicationService : OwnerCommand {
                 else archived?.has("record") == true && (active == null || entity in setOf("customer", "service_template") && (!active.optBoolean("active", true) || active.optInt("active", 1) == 0))
             if (!removed) throw PixelMcpWriteTools.Rejected("DELETE_NOT_APPLIED", "Löschen konnte nicht übernommen werden. Der Eintrag bleibt erhalten.")
         }
+        return actual
     }
     @Throws(Exception::class)
     private fun requireInactiveSession(entity: String, id: String) {
         ActiveWorkProtection.require(repository.state(), entity, id)
     }
     /** Both internal journal steps commit together; no recoverable row is published. */
-    private fun deleteOne(all: JSONObject, args: JSONObject, request: String, stamp: String): JSONObject {
-        archiveOne(all, args, request + "_archive", stamp)
+    private fun deleteOne(all: JSONObject, args: JSONObject, request: String, stamp: String): Pair<JSONObject, JSONObject> {
+        val afterArchive = archiveOne(all, args, request + "_archive", stamp).second
         val entity = args.getString("entity")
         val id = args.getString("entity_id")
-        val archived = OwnerJournalRules.archives(repository.effective()).getJSONObject("$entity:$id")
-        return perform("purge_entity", JSONObject().put("entity", entity).put("entity_id", id)
-            .put("expected_record_hash", OwnerJournalRules.version(archived)).put("confirmed", true), request)
-            .put("physical_delete", true)
+        val archived = OwnerJournalRules.archives(afterArchive).getJSONObject("$entity:$id")
+        val purged = purgeOne(afterArchive, JSONObject().put("entity", entity).put("entity_id", id)
+            .put("expected_record_hash", OwnerJournalRules.version(archived)).put("confirmed", true), request, stamp)
+        purged.first.put("physical_delete", true)
+        return purged
+    }
+
+    /** The private second value is the freshly verified state, never part of a public receipt. */
+    private fun purgeOne(all: JSONObject, a: JSONObject, request: String, stamp: String): Pair<JSONObject, JSONObject> {
+        requireInactiveSession(a.getString("entity"), a.getString("entity_id"))
+        val p = JSONObject().put("id", a.getString("entity_id")).put("expected_record_hash", a.optString("expected_record_hash", OwnerJournalRules.version(OwnerJournalRules.archives(all).getJSONObject(a.getString("entity") + ":" + a.getString("entity_id"))))).put("updated_at", stamp)
+            .put("entity", a.getString("entity")).put("confirmed", a.getBoolean("confirmed"))
+        val dependents = TrashRules.testTargets(all, a.getString("entity"), a.getString("entity_id"))
+        p.put("expected_test_dependencies_hash", PixelMcpWriteTools.hash(dependents)).put("test_dependencies", dependents)
+        for (i in 0 until dependents.length()) {
+            val target = dependents.getJSONObject(i)
+            requireInactiveSession(target.getString("entity"), target.getString("entity_id"))
+        }
+        OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", "purge_v1").put("payload", p).put("client_id", request).put("created_at", stamp), HashMap(), JSONObject())
+        val result = repository.enqueue("purge_v1", p, request)
+        val removed = verifyRemoval(JSONArray().put(JSONObject().put("entity", a.getString("entity")).put("entity_id", a.getString("entity_id"))), true)
+        verifyRemoval(dependents, true, removed)
+        return result.put("recoverable", false).put("media_cleanup", "local_after_commit") to removed
     }
 
     @Throws(Exception::class)
-    private fun archiveOne(all: JSONObject, args: JSONObject, request: String, stamp: String): JSONObject {
+    private fun archiveOne(all: JSONObject, args: JSONObject, request: String, stamp: String): Pair<JSONObject, JSONObject> {
         requireInactiveSession(args.getString("entity"), args.getString("entity_id"))
         if ((args.getString("entity").equals("appointment"))) {
             var session: JSONObject = repository.state().getJSONObject("work_session")
@@ -151,7 +153,7 @@ class ArchiveApplicationService : OwnerCommand {
         if (args.has("expected_photo_links_hash")) p.put("expected_photo_links_hash", args.getString("expected_photo_links_hash"))
         OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", "archive").put("client_id", request).put("payload", p).put("created_at", stamp), HashMap(), JSONObject())
         val result = repository.enqueue("archive", p, request)
-        verifyRemoval(JSONArray().put(JSONObject().put("entity", entity).put("entity_id", id)), false)
-        return result.put("recoverable", true).put("physical_delete", false)
+        val archived = verifyRemoval(JSONArray().put(JSONObject().put("entity", entity).put("entity_id", id)), false)
+        return result.put("recoverable", true).put("physical_delete", false) to archived
     }
 }

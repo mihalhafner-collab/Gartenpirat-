@@ -18,6 +18,11 @@ on:
         type: boolean
         default: false
         required: false
+      settlement_ui_only:
+        description: 'Nur unabhängige Compose-Abnahme der lokalen Rechnungs- und Laborabschlüsse auf frischem synthetischen Bestand'
+        type: boolean
+        default: false
+        required: false
       accounting_only:
         description: 'Nur Abrechnung mit synthetischer Datenbank, echter Oberfläche und Prozessneustart prüfen'
         type: boolean
@@ -69,13 +74,13 @@ jobs:
       - name: Build production sources and native test APK without release signing
         working-directory: struktur-neu/android
         env:
-          ACCOUNTING_FOCUSED: ${{ github.event_name == 'workflow_dispatch' && inputs.accounting_only }}
+          FOCUSED_UI: ${{ github.event_name == 'workflow_dispatch' && (inputs.accounting_only || inputs.settlement_ui_only) }}
         run: |
           tasks=(:app:assembleRelease :app:assembleReleaseAndroidTest)
-          if [ "$ACCOUNTING_FOCUSED" != true ]; then tasks+=(:app:lintRelease); fi
+          if [ "$FOCUSED_UI" != true ]; then tasks+=(:app:lintRelease); fi
           gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 "${tasks[@]}"
       - name: Run JVM archive, warning, rollback and related regressions
-        if: github.event_name != 'workflow_dispatch' || !inputs.accounting_only
+        if: github.event_name != 'workflow_dispatch' || (!inputs.accounting_only && !inputs.settlement_ui_only)
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/gp-deps"
@@ -119,6 +124,7 @@ jobs:
           GRAPHICS_ONLY: ${{ inputs.graphics_only }}
           ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
           SETTLEMENT_ONLY: ${{ inputs.settlement_only }}
+          SETTLEMENT_UI_ONLY: ${{ inputs.settlement_ui_only }}
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -153,7 +159,12 @@ jobs:
           "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
           native_suite_failures=0
-          if [ "$SETTLEMENT_ONLY" = true ]; then
+          if [ "$SETTLEMENT_UI_ONLY" = true ]; then
+            test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
+            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
+            suites=(native_settlement_ui)
+          elif [ "$SETTLEMENT_ONLY" = true ]; then
             test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
             test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_settlement native_settlement_reopen native_settlement_ui)

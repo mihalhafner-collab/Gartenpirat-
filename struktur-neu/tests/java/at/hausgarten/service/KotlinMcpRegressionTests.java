@@ -358,6 +358,42 @@ public final class KotlinMcpRegressionTests {
         }
     }
 
+    private static void deletionPhaseReadback() throws Exception {
+        for (String ignored : new String[]{"", "archive", "purge_v1", "dependent"}) {
+            JSONObject state = new JSONObject().put("master", trashFixture()).put("pending", new JSONArray())
+                .put("work_session", new JSONObject().put("state", "IDLE"));
+            JSONObject retainedPhoto = new JSONObject(state.getJSONObject("master").getJSONArray("photos").getJSONObject(0).toString());
+            OwnerRepository repository = (OwnerRepository) java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, (proxy, method, args) -> {
+                switch (method.getName()) {
+                    case "state": return state;
+                    case "effective":
+                        JSONObject projected = SnapshotProjection.effective(state);
+                        if (ignored.equals("dependent") && projected.getJSONArray("worklogs").length() == 0 && projected.getJSONArray("photos").length() == 0)
+                            projected.getJSONArray("photos").put(new JSONObject(retainedPhoto.toString()));
+                        return projected;
+                    case "enqueue":
+                        if (!ignored.equals(args[0])) state.getJSONArray("pending").put(new JSONObject().put("kind", args[0]).put("payload", args[1])
+                            .put("client_id", args[2]).put("created_at", "2026-11-03T20:00:00Z"));
+                        return new JSONObject().put("local_state", "local_saved");
+                    default: throw new UnsupportedOperationException(method.getName());
+                }
+            });
+            JSONObject work = repository.effective().getJSONArray("worklogs").getJSONObject(0);
+            JSONObject args = new JSONObject().put("entity", "worklog").put("entity_id", work.getString("id"))
+                .put("expected_record_hash", OwnerJournalRules.version(work));
+            ArchiveApplicationService service = new ArchiveApplicationService(repository);
+            if (!ignored.isEmpty()) rejected("DELETE_NOT_APPLIED", () -> service.perform("delete_entity", args, "qa_delete_phase_" + ignored));
+            else {
+                JSONObject result = service.perform("delete_entity", args, "qa_delete_phase_success");
+                JSONObject actual = repository.effective();
+                yes(actual.getJSONArray("worklogs").length() == 0 && actual.getJSONArray("photos").length() == 0,
+                    "Permanent deletion verifies both its source and its test-dependent photo");
+                yes(!result.has("master") && !result.has("owner_archive") && !result.has("worklogs"),
+                    "Private verified source snapshots are absent from the public deletion receipt");
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         optionalJsonBoundaries();
         guardedCustomerJournal();
@@ -366,6 +402,7 @@ public final class KotlinMcpRegressionTests {
         deletionReadback();
         removalAfterFailedEdit();
         permanentDeletion();
+        deletionPhaseReadback();
         System.out.println("PASS " + checks + " Kotlin MCP nullable-JSON/journal/catalog regression checks; synthetic only");
     }
 }
