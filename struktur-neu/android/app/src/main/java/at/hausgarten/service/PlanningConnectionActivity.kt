@@ -152,7 +152,7 @@ class PlanningConnectionActivity : ComponentActivity() {
             try {
                 val initial = withContext(Dispatchers.IO) {
                     RevierApplication.awaitStartup(this@PlanningConnectionActivity)
-                    PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                    PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                         val settings = AppointmentRuntime.publicSettings(this@PlanningConnectionActivity, store)
                         Triple(settings, PixelMcpWriteTools.hash(settings), PlanningAccount.bindingHash(this@PlanningConnectionActivity))
                     }
@@ -210,7 +210,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         lifecycleScope.launch {
             val next = try {
                 withContext(Dispatchers.IO) {
-                    PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                    PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                         val context = this@PlanningConnectionActivity; val preferences = PlanningAccount.prefs(context)
                         val connected = PlanningAccount.connected(context); val enabled = AppointmentRuntime.calendarEnabled(context, store); val state = store.ownerValue("calendar:status", "pending")
                         var label = when {
@@ -277,7 +277,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         working = true
         lifecycleScope.launch {
             try {
-                openedSettingsHash = withContext(Dispatchers.IO) { PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                openedSettingsHash = withContext(Dispatchers.IO) { PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                     AppointmentRuntime.setCalendarEnabled(this@PlanningConnectionActivity, store, enabled, openedSettingsHash)
                     PixelMcpWriteTools.hash(AppointmentRuntime.publicSettings(this@PlanningConnectionActivity, store))
                 } }
@@ -293,7 +293,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         working = true
         lifecycleScope.launch {
             try {
-                openedSettingsHash = withContext(Dispatchers.IO) { PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                openedSettingsHash = withContext(Dispatchers.IO) { PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                     val settings = AppointmentRuntime.settings(store); settings.put(key, enabled)
                     AppointmentRuntime.saveSettings(this@PlanningConnectionActivity, store, settings, openedSettingsHash)
                     PlanningAccount.prefs(this@PlanningConnectionActivity).edit().putBoolean(key, enabled).putBoolean("weather_blocked", false).putInt("weather_failures", 0).remove("weather_retry_at").apply()
@@ -316,7 +316,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         working = true
         lifecycleScope.launch {
             try {
-                openedSettingsHash = withContext(Dispatchers.IO) { PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                openedSettingsHash = withContext(Dispatchers.IO) { PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                     val settings = AppointmentRuntime.settings(store).put("workdays", selected).put("day_start", start).put("day_end", end).put("travel_minutes", buffer.toInt())
                     for ((key, value) in limits) settings.put(key, value.toDouble())
                     AppointmentRuntime.saveSettings(this@PlanningConnectionActivity, store, settings, openedSettingsHash)
@@ -350,7 +350,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         working = true; status = "Eingeschalteten Kalender abgleichen und eingeschaltetes Wetter aktualisieren …"
         lifecycleScope.launch {
             try {
-                runInterruptible(Dispatchers.IO) { PixelLocalStore(this@PlanningConnectionActivity).use { store -> AppointmentRuntime.request(this@PlanningConnectionActivity, store); AppointmentRuntime.refresh(this@PlanningConnectionActivity, store) } }
+                runInterruptible(Dispatchers.IO) { PixelLocalStore.shared(this@PlanningConnectionActivity).let { store -> AppointmentRuntime.request(this@PlanningConnectionActivity, store); AppointmentRuntime.refresh(this@PlanningConnectionActivity, store) } }
                 status = "Aktualisierung beendet. Den gespeicherten Kalenderstand und die Wetterhinweise getrennt beachten."
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (unavailable: Exception) { status = "Prüfung derzeit nicht möglich. Gespeicherte Termine bleiben erhalten." }
@@ -379,7 +379,7 @@ class PlanningConnectionActivity : ComponentActivity() {
             var awaitingConsent = false
             try {
                 val result = runInterruptible(Dispatchers.IO) {
-                    PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                    PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                         val context = this@PlanningConnectionActivity
                         if (granted == null) PlanningAccount.prefs(context).edit().putString("calendar_setup_attempt_at", Instant.now().toString()).remove("calendar_setup_result_code").apply()
                         phase("grant")
@@ -456,7 +456,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    PixelLocalStore(this@PlanningConnectionActivity).use { store ->
+                    PixelLocalStore.shared(this@PlanningConnectionActivity).let { store ->
                         val context = this@PlanningConnectionActivity
                         val binding = synchronized(PlanningAccount::class.java) {
                             if (openedCalendarBinding != PlanningAccount.bindingHash(context)) throw CalendarAuthorization.failure("CALENDAR_SETTINGS_CHANGED")

@@ -367,7 +367,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             OPEN_PREVIEWS.add(record.getString("restore_id"))
             // Read current counts separately: the backup is a replacement, never a merge.
             try {
-                PixelLocalStore(context).use { store ->
+                PixelLocalStore.shared(context).let { store ->
                     val effective = LocalOwnerRepository(context, store).effective()
                     val counts = JSONObject()
                     for (collection in arrayOf("customers", "worklogs", "photos", "offers", "orders", "appointments")) {

@@ -97,7 +97,7 @@ class PixelTunnelService : Service() {
                 status("not_configured", "Pixel-Verbindung einmalig einrichten.")
                 return
             }
-            PixelLocalStore(this).use { localStore ->
+            PixelLocalStore.shared(this).let { localStore ->
                 store = localStore
                 runTunnel(localStore)
             }

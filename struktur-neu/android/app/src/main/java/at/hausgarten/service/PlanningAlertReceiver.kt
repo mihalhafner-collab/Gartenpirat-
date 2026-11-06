@@ -13,7 +13,7 @@ class PlanningAlertReceiver : BroadcastReceiver() {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                PixelLocalStore(context).use { store ->
+                PixelLocalStore.shared(context).let { store ->
                     PixelOwnerAccess(context, store).execute("acknowledge_weather_alert", JSONObject().put("appointment_id", id).put("expected_alert_hash", hash).put("request_id", "notification-ack-" + hash))
                     WeatherNotifications.cancel(context, id)
                     context.getSystemService(android.app.NotificationManager::class.java)?.cancel(WeatherNotifications.ID)
