@@ -304,18 +304,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun openCustomerList() {
-        click("Kunden")
-        repeat(12) {
-            fun ready() = field("Suchen")?.isEditable == true && (keyboardVisible() || node("Kunde anlegen")?.let(::clickable) != null)
-            waitUntil("CUSTOMER_LIST_OR_DETAIL_ROUTE") {
-                selectedArea("Kunden") && (ready() || node("‹ Zurück")?.let(::clickable) != null)
-            }
-            if (ready()) return
-            // One back action per settled screen. Repeated actions in a wait
-            // predicate can pop the list again before its semantics arrive.
-            click("‹ Zurück", scrollTo = false)
+        // Restore this area, then open its root. Back must not race a tab change
+        // and pop the freshly opened list to Today.
+        click("Kunden"); click("Kunden")
+        waitUntil("CUSTOMER_LIST_READY") {
+            selectedArea("Kunden") && field("Suchen")?.isEditable == true &&
+                (keyboardVisible() || node("Kunde anlegen")?.let(::clickable) != null)
         }
-        throw AssertionError("QA_NATIVE_COMPOSE_CUSTOMER_LIST_BACK_PATH")
+        checks++
     }
 
     private fun selectedArea(label: String) = nodes().any {
@@ -326,13 +322,34 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // The first tap restores this area's previous detail; the second opens
         // its root and preserves the overview's saved filters and selected tab.
         click("Abrechnung"); click("Abrechnung")
-        waitUntil("ACCOUNTING_ROOT_READY") { selectedArea("Abrechnung") && node("Summen")?.let(::clickable) != null }
+        waitUntil("ACCOUNTING_ROOT_READY") { selectedArea("Abrechnung") && node("Summen") != null }
+    }
+
+    private fun openAccountingOpen() {
+        openAccounting()
+        waitUntil("ACCOUNTING_OPEN_TAB_OR_VIEW_READY") {
+            node("Fertig → abgerechnet → bezahlt") != null || node("Offen")?.let(::clickable) != null
+        }
+        if (node("Fertig → abgerechnet → bezahlt") == null) click("Offen")
+        reveal("Neue Abrechnung")
+    }
+
+    private fun openAccountingTotals() {
+        openAccounting()
+        waitUntil("ACCOUNTING_TOTALS_TAB_OR_VIEW_READY") {
+            field("Auftragsbezeichnung") != null || node("Summen")?.let(::clickable) != null
+        }
+        if (field("Auftragsbezeichnung") == null) click("Summen")
+        shown("Auftragsbezeichnung")
     }
 
     private fun openSettlements() {
         openAccounting()
         // A restored overview can already have this tab selected. Its search
         // field proves the actual list; no second tab action is needed then.
+        waitUntil("SETTLEMENT_TAB_OR_VIEW_READY") {
+            field("Abschluss oder Rechnungsnummer") != null || node("Rechnungen & Labor")?.let(::clickable) != null
+        }
         if (field("Abschluss oder Rechnungsnummer") == null) click("Rechnungen & Labor")
         waitUntil("SETTLEMENT_LIST_READY") { field("Abschluss oder Rechnungsnummer")?.isEditable == true }
     }
@@ -350,20 +367,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun openOffice() {
-        click("Büro")
-        repeat(12) {
-            fun ready() = node("Einstellungen und Daten")?.let(::clickable) != null || node("Organisieren") != null
-            waitUntil("OFFICE_AREA_SELECTED") { selectedArea("Büro") }
-            scrollTop()
-            var rootReady = false
-            waitUntil("OFFICE_ROOT_OR_DETAIL_ROUTE") {
-                if (ready()) { rootReady = true; true }
-                else node("‹ Zurück")?.let(::clickable) != null
-            }
-            if (rootReady) return
-            click("‹ Zurück")
-        }
-        throw AssertionError("QA_NATIVE_COMPOSE_OFFICE_BACK_PATH")
+        click("Büro"); click("Büro")
+        waitUntil("OFFICE_AREA_SELECTED") { selectedArea("Büro") }
+        reveal("Organisieren")
     }
 
     private fun discardWork() {
@@ -516,7 +522,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val internal = read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record")
             yes(internal.getString("status") == "confirmed" && !internal.has("invoice_number") && !internal.has("pdf"), "SETTLEMENT_UI_INTERNAL_NO_INVOICE")
             captureSyntheticScreen("settlement-labor-confirmed")
-            openAccounting(); click("Summen"); reveal("1100,00 €"); shown("1100,00 €")
+            openAccountingTotals(); reveal("1100,00 €"); shown("1100,00 €")
             yes(read("get_accounting_overview").getLong("total_minor") == 110000L, "SETTLEMENT_UI_900_PLUS_200")
             click("Rechnung"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "qa_settlement_invoice"); back()
@@ -531,14 +537,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             // the sum cards. Explicitly bring the card into view before asserting it.
             reveal("900,00 €"); shown("900,00 €")
             captureSyntheticScreen("settlement-overview-filter")
-            openAccounting(); click("Offen"); reveal("Neue Abrechnung"); click("Neue Abrechnung")
+            openAccountingOpen(); click("Neue Abrechnung")
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung")
             click("Position hinzufügen"); enter("Leistung", "[TEST] Synthetische manuelle Leistung A")
             enter("Tatsächlich geleistete Menge", "1"); enter("Einheit", "Leistung"); enter("Preis je Einheit (€)", "3,00")
             click("Entwurf speichern und prüfen"); reveal("[TEST] Erste manuelle Abrechnung"); shown("[TEST] Erste manuelle Abrechnung"); reveal("Entwurf"); shown("Entwurf")
             val firstNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Erste manuelle Abrechnung" }
             yes(firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 300L, "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT")
-            openAccounting(); click("Offen"); click("Neue Abrechnung")
+            openAccountingOpen(); click("Neue Abrechnung")
             reveal("Bezeichnung")
             yes(field("Bezeichnung")?.text?.toString().orEmpty().isEmpty(), "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_EMPTY")
             yes(node("Abrechnungsart: Rechnung") != null, "SETTLEMENT_UI_NEW_EDITOR_DEFAULT_ROUTE")
@@ -568,12 +574,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal("[TEST] Erste manuelle Abrechnung geprüft"); shown("[TEST] Erste manuelle Abrechnung geprüft")
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung geprüft", "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH")
             yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks, "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED")
-            openAccounting(); click("Summen")
+            openAccountingTotals()
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); scrollTop(); click("Gesamt"); reveal("1100,00 €"); shown("1100,00 €")
             for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
                 shell("settings put system font_scale 2.0")
-                launch(); openAccounting(); click("Summen")
+                launch(); openAccountingTotals()
                 test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                 waitUntil("SETTLEMENT_APPLIED_200_FONT_$wide") {
                     var applied = false
@@ -643,7 +649,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val oldFont = shell("settings get system font_scale")
         try {
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
-            launch(); openAccounting(); click("Summen"); reveal("1100,00 €"); shown("1100,00 €")
+            launch(); openAccountingTotals(); reveal("1100,00 €"); shown("1100,00 €")
             click("Rechnung"); reveal("900,00 €"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
             click("‹ Zurück"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
@@ -693,7 +699,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
                 shell("settings put system font_scale $font")
-                launch(); openAccounting(); click("Summen")
+                launch(); openAccountingTotals()
                 test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                 settleUi(); reveal("Gesamt"); reveal("1150,25 €"); shown("1150,25 €")
                 captureSyntheticScreen("accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
