@@ -80,11 +80,11 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
     val records = settlementObjects(result?.optJSONArray("records")).filter {
         listOf(it.optString("title"), it.optString("invoice_number"), it.optString("issue_date")).any { text -> text.contains(search, true) }
     }
-    NativeSearchList("Abschluss oder Rechnungsnummer", search, { search = it }, "${records.size} Abschlüsse", bottomSearch = true) {
+    NativeSearchList("Abschluss oder Rechnungsnummer", search, { search = it }, "${records.size} Einträge", bottomSearch = true) {
         LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
                 NativeActions {
-                    Button({ controller.navigate("settlement_edit") }) { Text("Leistungen abrechnen") }
+                    Button({ controller.navigate("settlement_edit") }) { Text("Neue Abrechnung") }
                     TextButton({ controller.navigate("accounting") }) { Text("Zur Abrechnung mit Summen") }
                 }
                 Text("Rechnungen und interne Labor-Abrechnungen bleiben getrennte Abschlüsse. Die Abrechnung zeigt ihre Beträge gemeinsam mit den bestehenden Zuordnungen.", style = MaterialTheme.typography.bodySmall)

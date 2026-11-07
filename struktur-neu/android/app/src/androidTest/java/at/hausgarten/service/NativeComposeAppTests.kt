@@ -485,7 +485,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val oldFont = shell("settings get system font_scale")
         try {
             automation.serviceInfo = previous.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
-            launch(); openOffice(); click("Abrechnung"); reveal("Abschlüsse"); click("Abschlüsse")
+            launch(); openOffice(); click("Abrechnung"); reveal("Rechnungen & Labor"); click("Rechnungen & Labor")
             shown("[TEST] Rechnung 900"); click("[TEST] Rechnung 900")
             shown("Entwurf")
             for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
@@ -503,7 +503,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val original = read("get_settlement", JSONObject().put("settlement_id", invoice)).getJSONObject("record")
             yes(original.getString("status") == "confirmed" && original.has("pdf") && original.has("invoice_number"), "SETTLEMENT_UI_ORIGINAL_AFTER_CONFIRMATION")
             captureSyntheticScreen("settlement-invoice-confirmed")
-            openOffice(); click("Abrechnung"); click("Abschlüsse"); click("[TEST] Labor 200")
+            openOffice(); click("Abrechnung"); click("Rechnungen & Labor"); click("[TEST] Labor 200")
             for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
             click("Labor-Abrechnung bestätigen")
             waitUntil("SETTLEMENT_UI_REAL_LABOR_PREPARATION") { read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record").getString("status") == "prepared" }
@@ -533,14 +533,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             // the sum cards. Explicitly bring the card into view before asserting it.
             reveal("900,00 €"); shown("900,00 €")
             captureSyntheticScreen("settlement-overview-filter")
-            openOffice(); click("Abrechnung"); reveal("Leistungen abrechnen"); click("Leistungen abrechnen")
+            openOffice(); click("Abrechnung"); reveal("Neue Abrechnung"); click("Neue Abrechnung")
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung")
             click("Position hinzufügen"); enter("Leistung", "[TEST] Synthetische manuelle Leistung A")
             enter("Tatsächlich geleistete Menge", "1"); enter("Einheit", "Leistung"); enter("Preis je Einheit (€)", "3,00")
             click("Entwurf speichern und prüfen"); reveal("[TEST] Erste manuelle Abrechnung"); shown("[TEST] Erste manuelle Abrechnung"); reveal("Entwurf"); shown("Entwurf")
             val firstNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Erste manuelle Abrechnung" }
             yes(firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 300L, "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT")
-            openOffice(); click("Abrechnung"); click("Leistungen abrechnen")
+            openOffice(); click("Abrechnung"); click("Neue Abrechnung")
             reveal("Bezeichnung")
             yes(field("Bezeichnung")?.text?.toString().orEmpty().isEmpty(), "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_EMPTY")
             yes(node("Abrechnungsart: Rechnung") != null, "SETTLEMENT_UI_NEW_EDITOR_DEFAULT_ROUTE")
@@ -552,7 +552,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val secondNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Zweite manuelle Abrechnung" }
             yes(secondNew.getString("id") != firstNew.getString("id") && secondNew.getString("route") == "labor" && secondNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 400L, "SETTLEMENT_UI_NEW_OPERATION_DISTINCT_ID_ROUTE_AND_AMOUNT")
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung", "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND")
-            openOffice(); click("Abrechnung"); click("Abschlüsse"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
+            openOffice(); click("Abrechnung"); click("Rechnungen & Labor"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
             reveal("Bezeichnung"); yes(field("Bezeichnung")?.text?.toString()?.contains("[TEST] Erste manuelle Abrechnung") == true, "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT")
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft"); click("Entwurf speichern und prüfen")
             var lastSaveScroll = 0L
@@ -868,7 +868,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun graphicsNavigationJourney() {
         click("Heute"); shown("Heute gespeichert")
-        for ((label, rootText) in listOf("Planung" to "Termin planen", "Kunden" to "Kunde anlegen", "Abrechnung" to "Leistungen abrechnen", "Büro" to "Organisieren", "Heute" to "Heute gespeichert")) {
+        for ((label, rootText) in listOf("Planung" to "Termin planen", "Kunden" to "Kunde anlegen", "Abrechnung" to "Neue Abrechnung", "Büro" to "Organisieren", "Heute" to "Heute gespeichert")) {
             click(label); click(label); shown(rootText)
             recreate(); shown(rootText)
             if (keyboardVisible()) { back(); waitUntil("MAIN_BACK_IME_HIDDEN_$label") { !keyboardVisible() } }
@@ -2341,11 +2341,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    private fun openOfficeGroup(label: String, entry: String) {
+    /** The office lists every entry directly; the group label is only a heading. */
+    private fun openOfficeGroup(@Suppress("UNUSED_PARAMETER") label: String, entry: String) {
         openOffice()
-        reveal(label)
-        val group = requireNotNull(node(label)).let(::clickable)
-        if (group == null || all(group).flatMap(::texts).none { it == "Schließen" || it.split('\n').any { line -> line == "Schließen" } }) click(label)
         click(entry)
     }
 
@@ -2431,7 +2429,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             keyboardSearchProof("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name"))
         }
         case("local") {
-            openOfficeGroup("Weitere Verwaltung", "Lokale Suche")
+            openOfficeGroup("Weitere", "Suche")
             keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
         }
         case("phrases") {
@@ -2509,7 +2507,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             Target("photos", "Fotos suchen", "QA Kontextfoto", "QA Kontextfoto 1") { openOfficeGroup("Material und Pflanzen", "Fotos") },
             Target("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein") { openOfficeGroup("Material und Pflanzen", "Leistungskatalog") },
             Target("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name")) { openOfficeGroup("Material und Pflanzen", "Pflanzen") },
-            Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
+            Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeGroup("Weitere", "Suche") }
         )
         val failures = ArrayList<Throwable>()
         try {
@@ -2605,7 +2603,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         revealContaining("1. Jan. 2020")
         // The local full-text filter remains a text filter and retains the original IME checks.
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-        openOfficeGroup("Weitere Verwaltung", "Lokale Suche"); click("Filter")
+        openOfficeGroup("Weitere", "Suche"); click("Filter")
         edit("Zeitraum ab · JJJJ-MM-TT", "2020-01-01", "local-date")
         showKeyboard("Name, Objekt, Tätigkeit, Notiz oder Beleg")
         waitUntil("LOCAL_SEARCH_CLOSES_FILTERS") { field("Zeitraum ab · JJJJ-MM-TT") == null }
@@ -2670,8 +2668,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("restored-drafts", "Übernommene Formularstände prüfen") {
             openOfficeGroup("Weitere Verwaltung", "Entwürfe"); click("Formular- und Medienauswahl prüfen")
         }
-        case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere Verwaltung", "Lokale Suche") }
-        case("archive", "Alle Arten") { openOfficeGroup("Weitere Verwaltung", "Revier-Archiv") }
+        case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere", "Suche") }
+        case("archive", "Alle Arten") { openOfficeGroup("Weitere", "Archiv") }
         case("trash", "Papierkorb leeren") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
         case("connections", "Optionale Verbindungen") { settings(); click("Verbindungen") }

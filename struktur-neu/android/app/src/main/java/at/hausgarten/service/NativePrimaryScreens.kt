@@ -49,12 +49,12 @@ import java.time.ZoneId
 import java.util.UUID
 
 private val nativeSections = linkedMapOf(
-    "today" to "Heute", "worklogs" to "Arbeitsaufzeichnungen", "timer" to "Zeiterfassung", "customers" to "Kunden", "properties" to "Objekte",
+    "today" to "Heute", "worklogs" to "Arbeiten", "timer" to "Zeiterfassung", "customers" to "Kunden", "properties" to "Objekte",
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
-    "equipment" to "Geräte", "revier_search" to "Lokale Suche", "revier_archive" to "Revier-Archiv", "orders" to "Aufträge", "offers" to "Angebote",
+    "equipment" to "Geräte", "revier_search" to "Suche", "revier_archive" to "Archiv", "orders" to "Aufträge", "offers" to "Angebote",
     "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
     "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher", "accounting" to "Abrechnung", "accounting_edit" to "Abrechnung bearbeiten",
-    "settlements" to "Abschlüsse", "settlement_edit" to "Leistungen abrechnen", "settlement_review" to "Abschluss prüfen"
+    "settlements" to "Rechnungen & Labor", "settlement_edit" to "Neue Abrechnung", "settlement_review" to "Abschluss prüfen"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
 private fun primaryKind(collection: String) = when (collection) { "customers" -> "customer"; "orders" -> "order"; else -> "worklog" }
@@ -244,28 +244,22 @@ private fun NativeRunningWorkBar(controller: NativeAppController) {
 
 @Composable
 private fun NativeOffice(controller: NativeAppController) {
-    var expanded by rememberSaveable { mutableStateOf("") }
-    val groups = linkedMapOf(
-        "Aufträge und Anfragen" to listOf("orders", "inquiries", "properties", "care_plans"),
-        "Material und Pflanzen" to listOf("materials", "plants", "photos", "catalog"),
-        "Weitere Verwaltung" to listOf("revier_search", "revier_archive", "trash")
+    // Flat list: every entry is visible at once, grouped only by plain headings.
+    val groups = listOf(
+        "Organisieren" to listOf(Triple("worklogs", "Arbeiten", "Alle erfassten Arbeiten"), Triple("billing", "Offene Stunden", "Noch nicht abgerechnete Arbeiten"),
+            Triple("offers", "Angebote", "Entwürfe und fertige Angebote"), Triple("orders", "Aufträge", "Laufende und erledigte Aufträge"),
+            Triple("inquiries", "Anfragen", "Neue und offene Anfragen")),
+        "Gärten und Pflege" to listOf(Triple("properties", "Objekte", "Gärten und Häuser der Kunden"), Triple("care_plans", "Pflegepläne", "Regelmäßige Pflege je Objekt")),
+        "Material und Geräte" to listOf(Triple("materials", "Material", "Bestand und Verbrauch"), Triple("equipment", "Geräte", "Wartung und Zubehör"),
+            Triple("photos", "Fotos", "Alle Fotos"), Triple("plants", "Pflanzen", "Pflanzenlexikon"), Triple("catalog", "Leistungskatalog", "Leistungen und Preise für Angebote")),
+        "Weitere" to listOf(Triple("revier_search", "Suche", "In allen Einträgen suchen"), Triple("revier_archive", "Archiv", "Abgeschlossene Pflege und Einsätze"),
+            Triple("trash", "Papierkorb", "Ältere gelöschte Einträge"), Triple("settings", "Einstellungen und Daten", "Verbindungen, Sicherung, Speicher und App-Prüfung"))
     )
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-        item { Text("Organisieren", style = MaterialTheme.typography.titleMedium) }
-        items(listOf(Triple("worklogs", "Arbeiten", "Alle Arbeitsaufzeichnungen"),
-            Triple("billing", "Offene Stunden", "Alle noch offenen Arbeiten"),
-            Triple("offers", "Angebote", "Entwürfe und fertige Dokumente"),
-            Triple("equipment", "Geräte", "Wartung, Zubehör und aktuelle Kette"))) { (section,title,subtitle) ->
-            NativeInfoRow(title, subtitle, { controller.navigate(section) })
+        for ((heading, rows) in groups) {
+            item { Text(heading, Modifier.padding(top = if (heading == "Organisieren") 0.dp else 20.dp, bottom = 4.dp), style = MaterialTheme.typography.titleMedium) }
+            items(rows, key = { it.first }) { (section, title, subtitle) -> NativeInfoRow(title, subtitle, { controller.navigate(section) }) }
         }
-        item { Text("Verwalten", Modifier.padding(top = 20.dp), style = MaterialTheme.typography.titleMedium) }
-        for ((title, sections) in groups) {
-            item { NativeInfoRow(title, if (expanded == title) "Schließen" else "Öffnen", { expanded = if (expanded == title) "" else title }) }
-            if (expanded == title) items(sections, key = { it }) { section ->
-                NativeInfoRow(nativeSections[section] ?: section, onClick = { controller.navigate(section) }, modifier = Modifier.padding(start = 16.dp))
-            }
-        }
-        item { NativeInfoRow("Einstellungen und Daten", "Verbindungen, Sicherung, Speicher und App-Prüfung", { controller.navigate("settings") }) }
     }
 }
 

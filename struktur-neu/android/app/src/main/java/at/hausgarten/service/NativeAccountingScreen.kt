@@ -67,9 +67,9 @@ internal fun NativeAccounting(controller: NativeAppController) {
             }
             item {
                 NativeActions {
-                    Button({ controller.navigate("settlement_edit") }) { Text("Leistungen abrechnen") }
+                    Button({ controller.navigate("settlement_edit") }) { Text("Neue Abrechnung") }
                     TextButton({ controller.navigate("billing") }) { Text("Offene Stunden") }
-                    TextButton({ controller.navigate("settlements") }) { Text("Abschlüsse") }
+                    TextButton({ controller.navigate("settlements") }) { Text("Rechnungen & Labor") }
                 }
                 Text("Bestätigte Rechnungen und interne Labor-Abrechnungen liefern ihre Beträge. Fehlende Beträge bleiben ausstehend; Zahlungen sind davon getrennt.", style = MaterialTheme.typography.bodySmall)
                 TextButton({

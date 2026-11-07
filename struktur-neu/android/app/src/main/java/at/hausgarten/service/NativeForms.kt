@@ -770,14 +770,24 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
 internal fun NativeActionMenu(controller: NativeAppController, area: String, contextArgs: JSONObject = JSONObject()) {
     var show by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    // Read-only catalog entries ("lesen", "Liste") duplicate the screen itself; only changing actions are offered.
+    var writable by remember(area) { mutableStateOf<Set<String>?>(null) }
+    LaunchedEffect(area) {
+        writable = NativeActionCatalog.forArea(area).flatMap { it.tools }.filter { tool ->
+            tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") ||
+                controller.spec(tool)?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) == false
+        }.toSet()
+    }
+    val offered = NativeActionCatalog.forArea(area).filter { action ->
+        action.tools.isNotEmpty() && !action.platformOnly && !action.retired && action.tools.any { !it.startsWith("preview_") && it in writable.orEmpty() }
+    }
+    if (offered.isEmpty()) return
     OutlinedButton({ show = true }) { Text("Weitere Aktionen") }
     if (show) AlertDialog(onDismissRequest = { show = false }, title = { Text("Aktionen") }, text = {
-        LazyColumn(Modifier.heightIn(max = 360.dp)) { items(NativeActionCatalog.forArea(area).filter {
-            it.tools.isNotEmpty() && !it.platformOnly && !it.retired && it.tools.any { tool -> !tool.startsWith("preview_") }
-        }, key = { it.id }) { action ->
+        LazyColumn(Modifier.heightIn(max = 360.dp)) { items(offered, key = { it.id }) { action ->
             TextButton({
                 show = false
-                val tool = action.tools.firstOrNull { it in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") } ?: action.tools.first()
+                val tool = action.tools.firstOrNull { it in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") } ?: action.tools.first { it in writable.orEmpty() }
                 if (tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records")) {
                     scope.launch {
                         try { controller.deleteDirect(tool, contextArgs); controller.finishAction(); controller.message("Gelöscht.") }

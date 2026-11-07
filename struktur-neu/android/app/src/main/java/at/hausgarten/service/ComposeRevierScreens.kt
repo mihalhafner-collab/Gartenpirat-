@@ -43,7 +43,7 @@ private val revierSections = listOf(
     RevierSection("property", "properties", "Objekte", "Objekt"),
     RevierSection("inquiry", "inquiries", "Anfragen", "Anfrage"),
     RevierSection("care_plan", "care_plans", "Pflegepläne", "Pflegeplan"),
-    RevierSection("visit", "visits", "Besuche", "Einsatz"),
+    RevierSection("visit", "visits", "Einsätze", "Einsatz"),
     RevierSection("material", "materials", "Material", "Material"),
     RevierSection("equipment", "equipment", "Geräte", "Gerät")
 )
