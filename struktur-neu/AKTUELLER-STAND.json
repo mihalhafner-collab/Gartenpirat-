@@ -32,25 +32,24 @@
     }
   ],
   "last_distributed_build": {
-    "version_name": "1.61.1",
-    "version_code": 132,
-    "git_sha": "eabc0e0aa6cfb04ad15f0408ef5bee3330a6b377",
-    "source_sha256": "e24e42e4fe556fb201e337b0d3bd0a8abd5f06c1921255f7a94c967dcf8f83ea",
-    "apk_sha256": "d4e5ea6489085bdc6c2dd9dd84e9c3dec2b8a5003cb163654b1b43c05eafa0d7",
+    "version_name": "1.62.0",
+    "version_code": 133,
+    "git_sha": "b1e08411a99955af2b45ed083c0cf0e0d3cfb99e",
+    "source_sha256": "72ad38c718a4e3bfadb961443cc6f70aabdd3078bf3ba15ee7fd06e5459122b2",
+    "apk_sha256": "94db9fecd4f583edd93d860cec9021be80ef1d0062bf3c0b57d94f53e2d250ac",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "size_bytes": 88441649,
-    "drive_file_id": "1B9HkczGQ7IdmjtiUKoC8GD1d9tJyZ4D1",
+    "size_bytes": 11646992,
+    "drive_file_id": "1JAUmdMOXAPLxTLy80SMOftkXy3MqSFXg",
     "drive_parent_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
-    "drive_url": "https://drive.google.com/file/d/1B9HkczGQ7IdmjtiUKoC8GD1d9tJyZ4D1/view?usp=drivesdk",
-    "verified_at_utc": "2026-11-07T07:37:05Z",
-    "verification": "PASS; Originalsignatur und höhere Version gegen vollständig zurückgeladene 131 geprüft; leere Startdaten, Kotlin-Klassen und Assets geprüft; Commit, source_sha256 und source_dirty=false direkt aus signierter APK gelesen; Drive-Download vollständig bytegleich."
+    "drive_url": "https://drive.google.com/file/d/1JAUmdMOXAPLxTLy80SMOftkXy3MqSFXg/view?usp=drivesdk",
+    "verified_at_utc": "2026-11-07T20:24:44Z",
+    "verification": "PASS; check_release_baseline.py, check_current.py und source_preservation.py; assembleRelease einschließlich lintVital und Datenschutzprüfung. verify_app_candidate.py gegen vollständig zurückgeladene 132: Paket und Originalzertifikat identisch, 133 > 132, leere Startdaten. Commit, source_sha256, release und source_dirty=false direkt aus signierter APK gelesen. Keine Pflanzenbibliothek oder alten App-WebView-Assets/-Komponenten; einzig AndroidX LinkifyCompat.findAddress referenziert WebView. Drive-Datei vollständig zurückgeladen, SHA256 und Bytevergleich identisch. Voller grüner CI-Lauf 42405244554 auf codeidentischem 061b9e0 bestätigt; keine Installation."
   },
   "current_test_candidate": {
     "version_name": "1.62.0",
     "version_code": 133,
     "source_sha256": "72ad38c718a4e3bfadb961443cc6f70aabdd3078bf3ba15ee7fd06e5459122b2",
-    "status": "Unsignierter Prüfstand 1.62.0/133 für volle CI und Claude-Review; Installation und Verteilung nicht freigegeben.",
-    "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“. Büro flach ohne Aufklappgruppen; „Weitere Aktionen“ nur mit ändernden Aktionen; einheitliche Namen (Arbeiten, Einsätze, Suche, Archiv, Neue Abrechnung, Rechnungen & Labor). Heute nach Entwurf; Arbeitsdetail gruppiert (Zeit, Abrechnung, Kosten & Weg, Weiteres, Aktionen). Kundenakte mit Kürzel-Kopf und Gruppen (Kontakt, Abrechnung, Verlauf, Unterlagen); Kundenliste mit Kürzeln und offenen Stunden; Abrechnung mit Reitern Offen · Rechnungen & Labor · Summen. WebView vollständig entfernt (Eigentümerentscheidung 07.11.2026): kein Browserstand in Sicherungen, nur pixel.snapshot.v2 wiederherstellbar; alte WebView-Einträge und Entwurfsfotos werden beim Start gelöscht. Pflanzenbibliothek entfernt (APK etwa 12 statt 88 MB)."
+    "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; nach Meldung „133 installiert“ Identität und Pixel-open_checks einschließlich QA06 und C04 prüfen, eigene Testdaten löschen und Datenstand nachlesen."
   },
   "current_task": {
     "name": "Version 133: Compose-Abläufe isolieren und volle CI grün machen",
