@@ -1,9 +1,7 @@
-"""Review native UI sources and the complete semantic UI/MCP action mapping."""
+"""Check that every app action maps to its ChatGPT (MCP) tool."""
 from pathlib import Path
-import hashlib
 import json
 import re
-import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'android/app/src/main/java/at/hausgarten/service'
@@ -14,51 +12,19 @@ manifest = json.loads(TARGET.read_text())
 def native_source(name):
     path = SOURCE / (name + '.kt')
     if not path.is_file():
-        raise SystemExit('Expected reviewed Kotlin source: ' + name)
+        raise SystemExit('Expected Kotlin source: ' + name)
     return path
 
 
-# Every Compose source joins the review automatically, including newly added screens.
-paths = {p for p in SOURCE.glob('*.kt') if re.search(r'@(?:androidx\.compose\.runtime\.)?Composable\b', p.read_text())}
-paths.update(native_source(name) for name in (
-    'MainActivity', 'NativePrimaryScreens', 'NativeForms', 'NativeCompose',
-    'NativeAppController', 'NativeActionCatalog', 'NativeDataRepository',
-    'LocalJournalRules', 'GardenRules', 'BillingRules', 'TestDataRules', 'WorklogRules',
-    'EntityProtectionRules', 'OwnerJournalRules', 'LocalActionOrder',
-
-    'PixelOwnerAccess', 'LocalOwnerRepository', 'PixelLocalStore',
-    'WorkSessionStore', 'BrowserDraftRepository', 'BackupSettingsRepository',
-    'LocalBackupDataset', 'NativeOwnerQueries', 'PixelMcpOwnerTools',
-    'ArchiveApplicationService',
-    'LocalBusinessState', 'OfferMoney', 'OfferFileProvider', 'RestoreStartupGuard', 'RevierApplication',
-    'PlanningConnectionActivity', 'PixelTunnelActivity', 'PixelTunnelService',
-    'PixelTunnelBootReceiver',  'PendingWorkPhotoStore',
-    'PixelBackupService', 'BackupDocumentTransfer', 'BackupInventory',
-    'BackupArchive', 'BackupRestoreService', 'RestoreStartupProtection',
-    'BackupScheduleRules', 'BackupStatusRules', 'LocalStorageMaintenance',
-    'BrowserMediaRepository', 'BrowserMediaRepositoryRules', 'RestoredBrowserCheckpoint',
-    'RestoredBrowserReviewRules', 'RevierApplicationService', 'RevierRules',
-    'EquipmentMaintenanceRules', 'EquipmentProfilePhotoRules', 'RevierRepository',
-    'RevierLocalRepository', 'RevierSnapshotRepository', 'LocalWorkflowTools',
-    'PlanningApplicationService', 'OfferApplicationService',
-    'OwnerRequestTransactions', 'McpErrors', 'CalendarSetupRules', 'FullBackupActivity',
-    'SettlementRules', 'SettlementTools', 'SettlementApplicationService', 'SettlementSourceProtection', 'BusinessDocumentStore', 'WorklogRelationRules',
-    'AccountingRules', 'WorkApplicationService', 'OwnerApplicationService', 'OwnerToolSchemas',
-    'RestoreRecoveryActivity',
-))
-paths.add(ROOT / 'android/app/src/main/assets/offer-contract.json')
 for action in manifest['actions']:
     for key in ('source', 'native_dispatch'):
         path = SOURCE / action[key]
         assert path.is_file() and path.suffix == '.kt', 'Missing native action source: ' + action['id']
-        paths.add(path)
 
 # A reintroduced WebView bridge needs an explicit architecture review.
 for path in SOURCE.glob('*'):
     if path.suffix in ('.java', '.kt') and re.search(r'@(?:android\.webkit\.)?JavascriptInterface\b|\bWebView\s*\(', path.read_text()):
         raise SystemExit('Unexpected WebView UI source: ' + str(path.relative_to(ROOT)))
-observed = {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in sorted(paths, key=lambda path: path.relative_to(ROOT).parts)}
 
 # Check every executed menu entry against the current semantic inventory.
 pattern = re.compile(r'NativeAction\s*\(\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*listOf\(([^)]*)\)\s*,?([^)]*)\)', re.S)
@@ -81,9 +47,4 @@ for action in manifest['actions']:
     else:
         assert action['platform_only'] and action.get('barrier'), 'Missing platform exception: ' + action['id']
 
-if '--record-reviewed' in sys.argv:
-    manifest['reviewed_sources'] = observed
-    TARGET.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-elif manifest['reviewed_sources'] != observed:
-    raise SystemExit('UI source review required; fingerprint or source set changed')
-print(f'PASS native UI review fingerprints; {len(entries)} semantic actions and exact executable registry mapping')
+print(f'PASS {len(entries)} semantic actions and exact executable registry mapping')

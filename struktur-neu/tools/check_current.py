@@ -8,14 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     (ROOT / 'outputs').mkdir(exist_ok=True)
+    # Contract, action, fixture, plant and maintenance-text checks run in every Gradle build (preBuild).
     checks = [
         ['-c', 'import privacy_guard; print(privacy_guard.source_gate())'],
         ['tools/check_release_baseline.py'],
-        ['tools/sync_offer_contract.py'],
-        ['tools/verify_ui_mcp_inventory.py'],
-        ['tools/sync_synthetic_fixtures.py'],
-        ['tools/sync_plant_assets.py'],
-        ['tools/sync_equipment_maintenance_texts.py', '--check'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_original_signing.py'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_local_storage_build.py'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_codex_context_hook.py'],

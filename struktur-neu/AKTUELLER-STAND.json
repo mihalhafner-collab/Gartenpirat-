@@ -48,7 +48,7 @@
   "current_test_candidate": {
     "version_name": "1.62.0",
     "version_code": 133,
-    "source_sha256": "51e8e22e4105f18868a0731764cfd294f7f2eaaf282b27d337959292507adba4",
+    "source_sha256": "93a857b1be0463d7d2e13885146c0c805223b6bcd52256d45584ea81ecd46e44",
     "status": "In Entwicklung; volle CI ausstehend. Installation und Verteilung nicht freigegeben.",
     "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“. Büro flach ohne Aufklappgruppen; „Weitere Aktionen“ nur mit ändernden Aktionen; einheitliche Namen (Arbeiten, Einsätze, Suche, Archiv, Neue Abrechnung, Rechnungen & Labor). Heute nach Entwurf; Arbeitsdetail gruppiert (Zeit, Abrechnung, Kosten & Weg, Weiteres, Aktionen). Kundenakte mit Kürzel-Kopf und Gruppen (Kontakt, Abrechnung, Verlauf, Unterlagen); Kundenliste mit Kürzeln und offenen Stunden; Abrechnung mit Reitern Offen · Rechnungen & Labor · Summen."
   },
@@ -60,6 +60,7 @@
     "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
     "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
     "Compose-Suite: ältere Fehler in pending_result_read_only, usability, today_older_work_commit, customer_context, search_keyboard, back_gesture, domain_search, list_viewports, surfaces, large_text, camera_capture.",
+    "Voller CI-Lauf enthält die Suiten native_settlement, native_accounting und native_graphics nicht; sie laufen nur über die *_only-Schalter.",
     "Pixel-Nachtest QA06 und C04 nach Installation von 132 noch offen.",
     "Pixel-Teilabnahme 131: 49 bestanden, 2 fehlgeschlagen, 9 blockiert; Details in docs/verification/performance-current.md.",
     "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",

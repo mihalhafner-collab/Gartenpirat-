@@ -59,7 +59,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
-          cache-disabled: true
       - name: Check current source and synthetic fixtures
         run: python3 -B tools/check_current.py
       - name: Install Android build packages
@@ -78,7 +77,7 @@ jobs:
         run: |
           tasks=(:app:assembleRelease :app:assembleReleaseAndroidTest)
           if [ "$FOCUSED_UI" != true ]; then tasks+=(:app:lintRelease); fi
-          gradle --no-daemon --no-configuration-cache --no-build-cache --max-workers=2 "${tasks[@]}"
+          gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 "${tasks[@]}"
       - name: Run JVM archive, warning, rollback and related regressions
         if: github.event_name != 'workflow_dispatch' || (!inputs.accounting_only && !inputs.settlement_ui_only)
         run: |
@@ -89,7 +88,7 @@ jobs:
           curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
           HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
       - name: Prepare isolated emulator packages
-        if: github.event_name == 'workflow_dispatch' && inputs.emulator
+        if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
         run: |
           set -euo pipefail
           # This disposable Kotlin/Android runner never uses the preinstalled .NET SDK.
@@ -102,7 +101,7 @@ jobs:
           fi
           "$SDKMANAGER" 'system-images;android-35;google_apis;x86_64'
       - name: Sign disposable emulator test packages only
-        if: github.event_name == 'workflow_dispatch' && inputs.emulator
+        if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
         run: |
           set -euo pipefail
           # This temporary test key is never used for a user APK and no APK is published.
@@ -118,7 +117,7 @@ jobs:
           mkdir -p outputs
           (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
-        if: github.event_name == 'workflow_dispatch' && inputs.emulator
+        if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
         timeout-minutes: 50
         env:
           GRAPHICS_ONLY: ${{ inputs.graphics_only }}
@@ -292,7 +291,7 @@ jobs:
           done
           test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
-        if: failure() && github.event_name == 'workflow_dispatch' && inputs.emulator
+        if: failure() && (github.event_name != 'workflow_dispatch' || inputs.emulator)
         run: |
           mkdir -p outputs
           cp "$RUNNER_TEMP/emulator.log" outputs/emulator.txt 2>/dev/null || true
@@ -320,5 +319,5 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove disposable test signing material
-        if: always() && github.event_name == 'workflow_dispatch' && inputs.emulator
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.emulator)
         run: rm -f "$RUNNER_TEMP/gp-test.jks" "$RUNNER_TEMP/gp-app.apk" "$RUNNER_TEMP/gp-test.apk"
