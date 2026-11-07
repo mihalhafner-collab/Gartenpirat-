@@ -779,7 +779,7 @@ internal fun NativeActionMenu(controller: NativeAppController, area: String, con
         }.toSet()
     }
     val offered = NativeActionCatalog.forArea(area).filter { action ->
-        action.tools.isNotEmpty() && !action.platformOnly && !action.retired && action.tools.any { !it.startsWith("preview_") && it in writable.orEmpty() }
+        action.tools.isNotEmpty() && !action.platformOnly && action.tools.any { !it.startsWith("preview_") && it in writable.orEmpty() }
     }
     if (offered.isEmpty()) return
     OutlinedButton({ show = true }) { Text("Weitere Aktionen") }

@@ -189,22 +189,6 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "kunden.13",
-      "area": "kunden",
-      "action": "Wiederherstellen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_archive",
-        "restore_entity"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": true,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
       "id": "auftraege.14",
       "area": "auftraege",
       "action": "Suchen / offene Aufträge",
@@ -326,22 +310,6 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "auftraege.25",
-      "area": "auftraege",
-      "action": "Wiederherstellen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_archive",
-        "restore_entity"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -545,22 +513,6 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.39",
-      "area": "arbeiten",
-      "action": "Rückgängig / wiederherstellen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_archive",
-        "restore_entity"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -1159,22 +1111,6 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "fotos.91",
-      "area": "fotos",
-      "action": "Wiederherstellen einschließlich geprüfter Zuordnung",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "list_archive",
-        "restore_entity"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": true,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
       "id": "fotos.92",
       "area": "fotos",
       "action": "Speicherverbrauch / Fotoqualität",
@@ -1203,22 +1139,6 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "papierkorb.100",
-      "area": "papierkorb",
-      "action": "Einzeln wiederherstellen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_archive",
-        "restore_entity"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": true,
       "native_dispatch": "NativeForms.kt"
     },
     {
@@ -2508,21 +2428,6 @@
       "native_dispatch": "NativeForms.kt",
       "action": "Archivierte Revier-Einträge lesen",
       "rights": "owner_read"
-    },
-    {
-      "id": "revier.set_revier_archived",
-      "area": "revier",
-      "source": "ComposeRevierScreens.kt",
-      "kind": "business",
-      "mcp": [
-        "set_revier_archived"
-      ],
-      "platform_only": false,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": true,
-      "native_dispatch": "NativeForms.kt",
-      "action": "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
-      "rights": "owner_write"
     },
     {
       "id": "revier.purge_revier_entity",

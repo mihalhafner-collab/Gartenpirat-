@@ -7,7 +7,6 @@ internal data class NativeAction(
     val label: String,
     val tools: List<String>,
     val platformOnly: Boolean = false,
-    val retired: Boolean = false,
 )
 
 internal object NativeActionCatalog {
@@ -70,13 +69,6 @@ internal object NativeActionCatalog {
                 listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
-                "kunden.13",
-                "kunden",
-                "Wiederherstellen",
-                listOf("list_archive", "restore_entity"),
-                retired = true,
-            ),
-            NativeAction(
                 "auftraege.14",
                 "auftraege",
                 "Suchen / offene Aufträge",
@@ -113,13 +105,6 @@ internal object NativeActionCatalog {
                 "auftraege",
                 "Archivieren",
                 listOf("preview_delete", "delete_entity"),
-            ),
-            NativeAction(
-                "auftraege.25",
-                "auftraege",
-                "Wiederherstellen",
-                listOf("list_archive", "restore_entity"),
-                retired = true,
             ),
             NativeAction(
                 "arbeiten.26",
@@ -193,13 +178,6 @@ internal object NativeActionCatalog {
                 "arbeiten",
                 "Auswahl in Papierkorb",
                 listOf("preview_archive_work_records", "delete_work_records"),
-            ),
-            NativeAction(
-                "arbeiten.39",
-                "arbeiten",
-                "Rückgängig / wiederherstellen",
-                listOf("list_archive", "restore_entity"),
-                retired = true,
             ),
             NativeAction(
                 "zeiterfassung.40",
@@ -405,13 +383,6 @@ internal object NativeActionCatalog {
                 listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
-                "fotos.91",
-                "fotos",
-                "Wiederherstellen einschließlich geprüfter Zuordnung",
-                listOf("list_archive", "restore_entity"),
-                retired = true,
-            ),
-            NativeAction(
                 "fotos.92",
                 "fotos",
                 "Speicherverbrauch / Fotoqualität",
@@ -422,13 +393,6 @@ internal object NativeActionCatalog {
                 "papierkorb",
                 "Alle Einträge / weitere laden",
                 listOf("list_archive"),
-            ),
-            NativeAction(
-                "papierkorb.100",
-                "papierkorb",
-                "Einzeln wiederherstellen",
-                listOf("list_archive", "restore_entity"),
-                retired = true,
             ),
             NativeAction(
                 "papierkorb.101",
@@ -950,13 +914,6 @@ internal object NativeActionCatalog {
                 listOf("list_revier_archive"),
             ),
             NativeAction(
-                "revier.set_revier_archived",
-                "revier",
-                "Revier-Eintrag ausdrücklich archivieren oder wieder öffnen",
-                listOf("set_revier_archived"),
-                retired = true,
-            ),
-            NativeAction(
                 "revier.purge_revier_entity",
                 "revier",
                 "Archivierten Revier-Eintrag nach Abhängigkeitsprüfung endgültig entfernen",
@@ -990,5 +947,5 @@ internal object NativeActionCatalog {
 
     /** Retired actions stay inspectable in the catalog without exposing an executable button. */
     fun forArea(area: String): List<NativeAction> =
-        actions.filter { it.area == area && !it.retired }
+        actions.filter { it.area == area }
 }

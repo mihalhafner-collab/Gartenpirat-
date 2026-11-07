@@ -2047,7 +2047,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             if (index == 0) {
                 captureSyntheticScreen("customer-overview")
                 for (fromInquiry in listOf(false, true)) {
-                    if (fromInquiry) { openOfficeGroup("Aufträge und Anfragen", "Anfragen"); enter("Suchen", "QA Kontextanfrage 0"); click("QA Kontextanfrage 0"); click("Angebot aus dieser Anfrage") }
+                    if (fromInquiry) { openOfficeEntry("Anfragen"); enter("Suchen", "QA Kontextanfrage 0"); click("QA Kontextanfrage 0"); click("Angebot aus dieser Anfrage") }
                     else { click("Alle Objekte"); click("QA Kontextobjekt 0"); click("Angebot vorbereiten") }
                     val title = if (fromInquiry) "QA Kontextanfrage 0" else "QA Kontextobjekt 0"
                     shown("Kunde: $name")
@@ -2349,7 +2349,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     /** The office lists every entry directly; the group label is only a heading. */
-    private fun openOfficeGroup(@Suppress("UNUSED_PARAMETER") label: String, entry: String) {
+    private fun openOfficeEntry(entry: String) {
         openOffice()
         click(entry)
     }
@@ -2419,11 +2419,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             keyboardSearchProof("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge")
         }
         case("photos") {
-            openOfficeGroup("Material und Pflanzen", "Fotos")
+            openOfficeEntry("Fotos")
             keyboardSearchProof("photos", "Fotos suchen", "QA Kontextfoto 0", "QA Kontextfoto 0")
         }
         case("catalog") {
-            openOfficeGroup("Material und Pflanzen", "Leistungskatalog")
+            openOfficeEntry("Leistungskatalog")
             keyboardSearchProof("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein")
             visibleResult("Zur Liste")
             captureSyntheticScreen("detail-catalog")
@@ -2432,11 +2432,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("plants") {
             val plants = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants")
             val plant = plants.getJSONObject(0)
-            openOfficeGroup("Material und Pflanzen", "Pflanzen")
+            openOfficeEntry("Pflanzen")
             keyboardSearchProof("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name"))
         }
         case("local") {
-            openOfficeGroup("Weitere", "Suche")
+            openOfficeEntry("Suche")
             keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
         }
         case("phrases") {
@@ -2469,7 +2469,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Ungespeicherten Entwurf verwerfen")
         }
         case("photo-assignment") {
-            openOfficeGroup("Material und Pflanzen", "Fotos"); click("Foto hinzufügen"); click("Kunden auswählen")
+            openOfficeEntry("Fotos"); click("Foto hinzufügen"); click("Kunden auswählen")
             keyboardSearchProof("photo-assignment", "Suchen", fixturePrefix+"001", fixturePrefix+"001")
             shown(fixturePrefix+"001"); click("Verwerfen")
         }
@@ -2505,16 +2505,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val targets = listOf(
             Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
             Target("work", "Suchen", work, work) { openWorklogs() },
-            Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeGroup("Aufträge und Anfragen", "Aufträge") },
+            Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeEntry("Aufträge") },
             Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { openOffice(); click("Angebote") },
             Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { openOffice(); click("Planung"); chooseDate("Datum *", LocalDate.now(ZoneId.of("Europe/Vienna")).plusDays(1).toString()) },
             Target("equipment", "Suchen", "QA Zubehör Säge", "[TEST] QA Zubehör Säge") { openOffice(); click("Geräte") },
             // The fixture is newest-first: photo 1 is the first of these two results.
             // Customer A/B exclusion is verified separately in customerContextJourney.
-            Target("photos", "Fotos suchen", "QA Kontextfoto", "QA Kontextfoto 1") { openOfficeGroup("Material und Pflanzen", "Fotos") },
-            Target("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein") { openOfficeGroup("Material und Pflanzen", "Leistungskatalog") },
-            Target("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name")) { openOfficeGroup("Material und Pflanzen", "Pflanzen") },
-            Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeGroup("Weitere", "Suche") }
+            Target("photos", "Fotos suchen", "QA Kontextfoto", "QA Kontextfoto 1") { openOfficeEntry("Fotos") },
+            Target("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein") { openOfficeEntry("Leistungskatalog") },
+            Target("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name")) { openOfficeEntry("Pflanzen") },
+            Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeEntry("Suche") }
         )
         val failures = ArrayList<Throwable>()
         try {
@@ -2610,7 +2610,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         revealContaining("1. Jan. 2020")
         // The local full-text filter remains a text filter and retains the original IME checks.
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-        openOfficeGroup("Weitere", "Suche"); click("Filter")
+        openOfficeEntry("Suche"); click("Filter")
         edit("Zeitraum ab · JJJJ-MM-TT", "2020-01-01", "local-date")
         showKeyboard("Name, Objekt, Tätigkeit, Notiz oder Beleg")
         waitUntil("LOCAL_SEARCH_CLOSES_FILTERS") { field("Zeitraum ab · JJJJ-MM-TT") == null }
@@ -2650,10 +2650,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
         case("customers", "Kunde anlegen") { click("Kunden") }
         case("office", "Organisieren", true) { click("Büro") }
-        case("properties", "Objekt anlegen") { openOfficeGroup("Aufträge und Anfragen", "Objekte") }
-        case("inquiries", "Anfrage anlegen") { openOfficeGroup("Aufträge und Anfragen", "Anfragen") }
-        case("orders", "Auftrag anlegen") { openOfficeGroup("Aufträge und Anfragen", "Aufträge") }
-        case("care-plans", "Pflegeplan anlegen") { openOfficeGroup("Aufträge und Anfragen", "Pflegepläne") }
+        case("properties", "Objekt anlegen") { openOfficeEntry("Objekte") }
+        case("inquiries", "Anfrage anlegen") { openOfficeEntry("Anfragen") }
+        case("orders", "Auftrag anlegen") { openOfficeEntry("Aufträge") }
+        case("care-plans", "Pflegeplan anlegen") { openOfficeEntry("Pflegepläne") }
         case("planning", "Termin planen", true) { planning() }
         case("visits", "Einsatz anlegen") { planning(); click("Alle Geplante Einsätze") }
         case("tour", "Datum öffnen") { planning(); click("Tagestour") }
@@ -2667,13 +2667,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("maintenance", "Wartung einrichten") {
             openOffice(); click("Geräte"); enter("Suchen", "QA Zubehör Säge"); click("[TEST] QA Zubehör Säge")
         }
-        case("materials", "Material anlegen") { openOfficeGroup("Material und Pflanzen", "Material") }
-        case("photos", "Foto hinzufügen") { openOfficeGroup("Material und Pflanzen", "Fotos") }
-        case("plants", "Zufällige Pflanze") { openOfficeGroup("Material und Pflanzen", "Pflanzen") }
-        case("catalog", "Baustein anlegen") { openOfficeGroup("Material und Pflanzen", "Leistungskatalog") }
-        case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere", "Suche") }
-        case("archive", "Alle Arten") { openOfficeGroup("Weitere", "Archiv") }
-        case("trash", "Papierkorb leeren") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
+        case("materials", "Material anlegen") { openOfficeEntry("Material") }
+        case("photos", "Foto hinzufügen") { openOfficeEntry("Fotos") }
+        case("plants", "Zufällige Pflanze") { openOfficeEntry("Pflanzen") }
+        case("catalog", "Baustein anlegen") { openOfficeEntry("Leistungskatalog") }
+        case("local-search", "Suchtext eingeben") { openOfficeEntry("Suche") }
+        case("archive", "Alle Arten") { openOfficeEntry("Archiv") }
+        case("trash", "Papierkorb leeren") { openOfficeEntry("Papierkorb") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
         case("connections", "Optionale Verbindungen") { settings(); click("Verbindungen") }
         case("calendar", "Verbinden", true) { settings(); click("Verbindungen"); click("Google Kalender") }

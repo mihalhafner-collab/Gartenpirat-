@@ -26,7 +26,7 @@ import okio.Path.Companion.toOkioPath
 
 internal fun nativeMainSection(section: String): String = when (section) {
     "today" -> "today"
-    "worklogs", "timer", "work", "drafts" -> "worklogs"
+    "worklogs", "timer", "work" -> "worklogs"
     "customers" -> "customers"
     "planning", "appointments", "visits", "tour", "weather", "care_plans" -> "planning"
     "billing", "accounting", "accounting_edit", "settlements", "settlement_edit", "settlement_review" -> "accounting"
@@ -138,7 +138,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun hasParentScreen(): Boolean = history.isNotEmpty() || route.section != route.area || route.id.isNotEmpty() || route.mode != "list"
     private fun routeValue(entry: NativeRoute): JSONObject = JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)
     private fun readRoute(value: JSONObject): NativeRoute {
-        val section = value.optString("section", "today").let { if (it == "drafts") "office" else it }
+        val section = value.optString("section", "today")
         return NativeRoute(section, value.optString("id"), value.optString("mode", "list"), value.optJSONObject("args") ?: JSONObject(), value.optString("area", nativeMainSection(section)))
     }
     fun restoreRoute(saved: String?) {

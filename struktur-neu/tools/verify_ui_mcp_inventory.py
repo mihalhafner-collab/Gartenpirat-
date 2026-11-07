@@ -40,7 +40,6 @@ for action in manifest['actions']:
     _, area, label, tools, flags = registry[action['id']]
     assert area == action['area'] and json.loads('"' + label + '"') == action['action'], 'Registry action mismatch: ' + action['id']
     assert re.findall(r'"([a-z][a-z0-9_]+)"', tools) == action['mcp'], 'Registry tool mismatch: ' + action['id']
-    assert ('retired = true' in flags) == action.get('retired', False), 'Registry retirement mismatch: ' + action['id']
     assert ('platformOnly = true' in flags) == action['platform_only'], 'Registry platform mismatch: ' + action['id']
     if action['kind'] == 'business':
         assert action['mcp'] and all(name in known for name in action['mcp']), 'Missing MCP mapping: ' + action['id']

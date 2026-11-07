@@ -28,6 +28,15 @@ Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.m
 
 ## Rechnung und Labor clandestino
 
+- Zwei Arten auf denselben tatsächlichen Leistungen, Mengen und Preisen:
+  **Rechnung** und **Labor clandestino** (nur diese Schreibweise). Der Abschluss
+  ist die einzige Quelle für den Abrechnungsstand.
+- Ein Entwurf wird aus den offenen Arbeiten des Empfängers vorbefüllt; Preise aus
+  Stundensatz bzw. Leistungskatalog. In der Vorschau sichtbar und änderbar;
+  „Ausstellen“ ist ein Knopf. Die Zustimmung zur elektronischen Rechnung wird
+  einmal pro Kunde gespeichert.
+- „Bezahlt“ mit einem Tippen (offener Betrag, heutiges Datum). Anzeige
+  fertig → abgerechnet → bezahlt; Zuordnung, Beleg und Zahlung bleiben getrennt.
 - Österreichische Inlandsrechnung in Euro mit Kleinunternehmerbefreiung. Keine
   Umsatzsteuer berechnen oder ausweisen. Hinweis genau:
   „Umsatzsteuerbefreit gemäß § 6 Abs. 1 Z 27 UStG“.
@@ -59,7 +68,8 @@ Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.m
 - Export enthält beide Arten, Summen, Positionen, Zahlungen, Korrekturen und die
   verwendeten Filter.
 - Nicht unterstützt: Ausland, Reverse Charge, anderer Steuerstatus, strukturierte
-  Rechnungen an Bundesdienststellen. Teilen eines PDFs beweist keinen Zugang.
+  Rechnungen an Bundesdienststellen, automatische Mahnungen, Anzahlungsrechnungen.
+  Historische sevDesk-Daten nicht neu ausstellen. Teilen eines PDFs beweist keinen Zugang.
 
 Quellen (gelesen 06.11.2026): USP/BMF zu
 [Kleinunternehmen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html),
@@ -81,6 +91,10 @@ Quellen (gelesen 06.11.2026): USP/BMF zu
 
 ## Löschen und Speicher
 
+- Löschen: ein Tippen, keine Rückfrage, kein Papierkorb. 5 Sekunden
+  „Rückgängig“, danach endgültig samt ungeteilter Dateien. Zuordnungen intern
+  bereinigen; Erfolg am wirksamen Datenstand prüfen.
+- Keine Rückfallkopien. Funktionslose Arbeitsdateien entfernen.
 - Ein unberührtes Formular erzeugt keinen Entwurf. Verwerfen entfernt nur den
   eigenen Entwurf und seine temporären Fotos.
 - Beim Löschen von Auftrag oder Termin werden Bezüge an Arbeiten, Fotos, Einsätzen
@@ -107,8 +121,37 @@ Quellen (gelesen 06.11.2026): USP/BMF zu
 - Wartungsintervalle und ihr Verlauf bleiben erhalten.
 - Pflanzenquelle ist allein `plant-catalog.json` mit den Android-Bildern.
 
+## Oberfläche
+
+Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
+
+- **Roter Faden:** Kunde → Objekt → Anfrage → Angebot → Auftrag → Einsatz →
+  Arbeit → Abrechnung → Zahlung. Detailseiten zeigen oben „Gehört zu“ (Kunde,
+  Objekt, Auftrag, Einsatz) als antippbare Chips; Verknüpfungen in beide Richtungen.
+- **Objekt als Anker:** Arbeiten gehören zu einem Objekt; das Objekt zeigt seinen
+  Verlauf von der Anfrage bis zur Zahlung.
+- **Navigation:** Heute · Planung · Kunden · Abrechnung · Büro. Ein „+“ für alles
+  Neue, eine Suche für alles.
+- **Heute:** Einsätze des Tages mit Uhrzeit und „Start“, darunter nur Punkte mit
+  Handlungsbedarf.
+- **Planung:** ein Objekt „Einsatz“; Termin, Tour und Pflegeplan sind Ansichten.
+- **Abrechnung:** Reiter Offen · Rechnungen & Labor · Summen.
+- **Laufende Zeit:** Benachrichtigung mit Pause, Foto und Stopp; Schnellkachel und
+  App-Verknüpfungen.
+- **Farben im Theme:** Waldgrün = Handeln, Bernstein = Geld, Gelb = Prüfen,
+  Ziegelrot nur für Löschen und Fehler. Keine Farbwerte im Feature-Code.
+- **Bausteine:** Material-3-Standardkomponenten. Große Schrift muss funktionieren.
+- **Texte:** kurz und deutsch, keine technischen Zustände, keine Textwände;
+  Hinweise einmal zeigen, danach als ⓘ.
+- **Rückmeldung:** Erfolg als kurze Snackbar, Fehler am Ort. Leere Listen nennen
+  die erste Aktion.
+- **Eingabe:** passende Tastatur (Telefon, E-Mail, Zahl), Spracheingabe in
+  Textfeldern, zuletzt Verwendetes oben.
+- **Prüfungen:** unklare Vorgänge automatisch intern prüfen, ohne doppelte
+  Ausführung; nur echte Konflikte zeigen.
+
 ## Verbindungen
 
 Kalender, Wetter und die ChatGPT-Verbindung sind optional. Eine Statusprüfung löst
 keinen Kalenderabgleich und keine Wetterabfrage aus. Keine sevDesk- oder
-Bankanbindung, keine Pflichtcloud, keine automatischen Mahnungen.
+Bankanbindung, keine Pflichtcloud.

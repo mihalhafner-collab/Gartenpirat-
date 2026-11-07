@@ -30,7 +30,7 @@ QUERIES.put("search_business_data", BusinessQueries::overview)
 
 var query = QUERIES.get(name)
 if (query == null) {
-throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
+throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
 }
 if (state.optBoolean("storage_list_selected")) {
 if ((name == "search_business_data")) {
@@ -76,7 +76,7 @@ data = find(orders, a.getString("order_id"))
 data = JSONObject().put("orders", select(orders, JSONObject(a.toString()).put("open_only", true).put("limit", a.optInt("limit", 50)), "order", master))
 }
 else -> {
-throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
+throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
 }
 }
 return data
@@ -135,7 +135,7 @@ data = (if (state.has("work_session")) state.getJSONObject("work_session") else 
 data = find(logs, a.getString("work_record_id"))
 }
 else -> {
-throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
+throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
 }
 }
 return data
@@ -152,7 +152,7 @@ when (name) {
 data = JSONObject().put("photos", select(photos, a, "photo", master))
 }
 else -> {
-throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
+throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
 }
 }
 return data
@@ -194,7 +194,7 @@ data = JSONObject().put("customers", select(customers, filters, "customer", mast
 }
 }
 else -> {
-throw IllegalArgumentException("Dieses Werkzeug ist in der Pixel-Testversion nicht freigegeben.")
+throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
 }
 }
 return data
