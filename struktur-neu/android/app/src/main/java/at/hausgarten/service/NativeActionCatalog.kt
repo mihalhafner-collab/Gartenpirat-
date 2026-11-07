@@ -161,7 +161,7 @@ internal object NativeActionCatalog {
             NativeAction(
                 "arbeiten.33",
                 "arbeiten",
-                "Labor Clandestinus setzen und entfernen",
+                "Labor clandestino setzen und entfernen",
                 listOf("set_personal_paid"),
             ),
             NativeAction(

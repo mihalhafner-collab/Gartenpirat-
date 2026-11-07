@@ -105,8 +105,9 @@ class FullBackupActivity : ComponentActivity() {
                         else -> chooseSave()
                     }
                 },
-                secondaryLabel = if (showWarnings || saveFinished || restorePending) null else if (showCheck) "Abbrechen" else "Zurück",
-                onSecondary = { leaveScreen() }, enabled = ready && !busy, secondaryEnabled = !busy
+                // Restore stays reachable without scrolling; leaving uses the top back arrow or gesture.
+                secondaryLabel = if (showWarnings || restorePending) null else if (showCheck) "Abbrechen" else "Sicherung wiederherstellen",
+                onSecondary = { if (showCheck) leaveScreen() else chooseRestore() }, enabled = ready && !busy, secondaryEnabled = !busy && (showCheck || ready)
             )
         }) {
             BackHandler(enabled = busy || showWarnings || showCheck) {
@@ -139,8 +140,8 @@ class FullBackupActivity : ComponentActivity() {
                 if (lastVerified.isNotEmpty()) NativeInfoRow("Letzte erfolgreiche Sicherung", "${displayTime(lastVerified)} · Datei vollständig zurückgelesen")
                 if (!restorePending) {
                     if (showNewTarget) OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { chooseSave() }) { Text("Anderen Speicherort wählen") }
-                    OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { chooseRestore() }) {
-                        Text(if (showCheck) "Andere Sicherungsdatei wählen" else "Sicherung wiederherstellen")
+                    if (showCheck) OutlinedButton(enabled = ready && !busy, modifier = Modifier.fillMaxWidth(), onClick = { chooseRestore() }) {
+                        Text("Andere Sicherungsdatei wählen")
                     }
                 }
                 Text("Eine Datei auf diesem Pixel schützt nicht gegen Geräteverlust. Manuelles Kopieren erfolgt außerhalb der App. Dateirücklesen bestätigt keine getestete Wiederherstellung.")

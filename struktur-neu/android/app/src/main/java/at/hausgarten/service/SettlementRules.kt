@@ -155,6 +155,32 @@ internal object SettlementRules {
             "Diese Leistungsdaten gehören zu einem aufbewahrungspflichtigen Abrechnungsvorgang. Nur interne Notizen und persönliche Zuordnungen ändern."
         }
     }
+    /** New draft from a recipient's open work. Price: the recipient's last hourly rate, else the last one used at all; always editable. */
+    fun prefill(args: JSONObject, worklogs: JSONArray?, records: List<JSONObject>): JSONObject {
+        val draft = JSONObject().put("route", "billed").put("positions", JSONArray())
+        val recipient = args.optString("billing_customer_id")
+        val ids = args.optJSONArray("work_record_ids")
+        val wanted = (0 until (ids?.length() ?: 0)).map { ids!!.getString(it) }.toSet()
+        if (recipient.isEmpty() || wanted.isEmpty()) return draft
+        val bound = records.filter(::active).flatMap { rows(it.optJSONArray("sources")) }
+            .filter { it.optString("collection") == "worklogs" }.map { it.optString("id") }.toSet()
+        fun hourly(row: JSONObject) = rows(row.optJSONArray("positions"))
+            .lastOrNull { it.optString("unit").lowercase().startsWith("stund") && it.optString("price").isNotBlank() }?.optString("price")
+        val rate = records.lastOrNull { it.optString("billing_customer_id") == recipient && hourly(it) != null }?.let(::hourly)
+            ?: records.lastOrNull { hourly(it) != null }?.let(::hourly) ?: ""
+        val works = rows(worklogs).filter { it.optString("id") in wanted && it.optString("id") !in bound }.sortedBy { it.optString("work_date") }
+        draft.put("billing_customer_id", recipient)
+        if (works.isEmpty()) return draft
+        val positions = JSONArray()
+        for (work in works) positions.put(JSONObject().put("title", work.optString("activity").ifBlank { "Gartenarbeit" })
+            .put("description", runCatching { LocalDate.parse(work.optString("work_date")).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")) }.getOrDefault(""))
+            .put("quantity", work.optString("hours").toBigDecimalOrNull()?.setScale(2, RoundingMode.HALF_UP)?.stripTrailingZeros()?.toPlainString().orEmpty())
+            .put("unit", "Stunden").put("price", rate).put("source_collection", "worklogs").put("source_id", work.getString("id")))
+        val from = works.first().optString("work_date")
+        val to = works.last().optString("work_date")
+        works.map { it.optString("customer_id") }.distinct().singleOrNull()?.takeIf { it.isNotEmpty() }?.let { draft.put("customer_id", it) }
+        return draft.put("service_from", from).put("service_to", to).put("title", "Leistungen").put("positions", positions)
+    }
     fun total(record: JSONObject) = rows(record.optJSONArray("positions")).fold(0L) { sum, row -> Math.addExact(sum, row.getLong("amount_minor")) }
     fun paid(ledger: JSONObject, id: String) = rows(ledger.optJSONArray("payments")).filter { it.optString("settlement_id") == id }.fold(0L) { sum, row -> Math.addExact(sum, row.getLong("amount_minor")) }
 }

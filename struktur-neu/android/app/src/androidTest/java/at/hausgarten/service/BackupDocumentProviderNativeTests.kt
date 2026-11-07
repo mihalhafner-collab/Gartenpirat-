@@ -155,7 +155,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 yes(store.ownerValue("pixel_backup_success", "") == good, "PRIOR_VERIFIED_PROOF_$mode")
                 yes(documentStats(id).getInt("writes") == 1, "WRITE_ATTEMPT_$mode")
                 yes(documentStats(id).getInt("reads") == if (mode.startsWith("READ_")) 1 else 0, "READ_ATTEMPT_$mode")
-                yes(File(context.noBackupFilesDir, "pixel-backup").listFiles()?.isEmpty() == true, "WORK_CLEANED_$mode")
+                yes(!File(context.noBackupFilesDir, "pixel-backup").exists(), "WORK_CLEANED_$mode")
             }
             service.save(request, uri(success)) {}
             yes(documentStats(success).getInt("writes") == 1, "RETRY_READS_WITHOUT_REWRITE")
@@ -234,7 +234,20 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             if (condition()) return
             SystemClock.sleep(100)
         }
-        throw AssertionError("QA_PICKER_TIMEOUT_$code")
+        throw AssertionError("QA_PICKER_TIMEOUT_$code VISIBLE=" + screenTexts())
+    }
+
+    /** Synthetic screen labels only, so a timeout names what was actually shown. */
+    private fun screenTexts(): String {
+        val out = ArrayList<String>()
+        fun walk(node: AccessibilityNodeInfo?) {
+            if (node == null || out.size >= 40) return
+            val label = (node.text ?: node.contentDescription)?.toString()?.take(60)
+            if (!label.isNullOrBlank()) out.add(label + (if (node.isEnabled) "" else "[disabled]") + (if (node.isVisibleToUser) "" else "[hidden]"))
+            for (i in 0 until node.childCount) walk(node.getChild(i))
+        }
+        walk(automation.rootInActiveWindow)
+        return out.joinToString(" | ")
     }
 
     private fun find(node: AccessibilityNodeInfo?, predicate: (AccessibilityNodeInfo) -> Boolean): AccessibilityNodeInfo? {
@@ -266,7 +279,10 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             }
             val match = find(root) { matches(it) && it.isVisibleToUser }
             if (match == null) {
-                find(root, matches)?.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
+                // Compose does not expose nodes outside the viewport; scroll until the label appears.
+                val hidden = find(root, matches)
+                if (hidden != null) hidden.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
+                else find(root) { it.isScrollable }?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
                 return@waitUntil false
             }
             val target = actionableAncestor(match, root)
@@ -344,7 +360,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             click("Sicherung wiederherstellen")
             waitUntil("OPEN_PICKER_CANCEL") { pickerVisible() }
             back()
-            waitUntil("OPEN_CANCEL_RETURNED") { node("Sicherung wiederherstellen") != null }
+            waitUntil("OPEN_CANCEL_RETURNED") { !pickerVisible() && node("Jetzt sichern") != null }
             val canceled = Bundle()
             test.runOnMainSync { test.callActivityOnSaveInstanceState(requireNotNull(activity), canceled) }
             yes(canceled.getString("restore_uri", "").isEmpty(), "OPEN_CANCEL_NO_SOURCE")

@@ -2712,10 +2712,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 if (scale == 1.0) {
                     click("Speicher bereinigen")
                     waitUntil("STORAGE_CLEANUP_CONFIRMED") {
-                        nodes().any { it.text?.toString()?.startsWith("Bereinigung abgeschlossen:") == true }
+                        nodes().any { it.text?.toString()?.contains("Bereinigt · ") == true }
                     }
                     yes(PixelMcpWriteTools.hash(retainedBusiness(before)) == PixelMcpWriteTools.hash(retainedBusiness(PixelMcpReadTools.effective(store.getState()))), "STORAGE_UI_PRESERVES_BUSINESS_DATA")
-                    val notice = nodes().mapNotNull { it.text?.toString() }.first { it.startsWith("Bereinigung abgeschlossen:") }
+                    val notice = nodes().mapNotNull { it.text?.toString() }.first { it.contains("Bereinigt · ") }
                     reveal(notice)
                     captureSyntheticScreen("storage-cleaned")
                 }

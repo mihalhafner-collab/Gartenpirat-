@@ -6,6 +6,7 @@ import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -59,7 +60,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null, enabled: Boolean = true, showLabel: Boolean = true) {
+internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null, enabled: Boolean = true, showLabel: Boolean = true, keyboardType: KeyboardType = KeyboardType.Text) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
     val searching = search || label in listOf("Suchen", "Suche", "Bausteine suchen", "Text suchen", "Vorschläge durchsuchen")
@@ -71,7 +72,7 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     }, label = if (showLabel) ({ Text(displayedLabel) }) else null,
         placeholder = if (!showLabel) ({ Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) }) else null,
         enabled = enabled, singleLine = !multiline, minLines = if (multiline) 3 else 1,
-        keyboardOptions = KeyboardOptions(imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
 }
 
@@ -361,7 +362,7 @@ private val nativeLabels = mapOf(
     "window_start" to "Von Uhrzeit", "window_end" to "Bis Uhrzeit", "scheduled_date" to "Geplant am", "billing_mode" to "Abrechnungsweg", "query" to "Suche"
 )
 internal fun nativeLabel(key: String): String = nativeLabels[key] ?: key.replace('_', ' ').replaceFirstChar { it.uppercase() }
-internal fun nativeValue(value: String): String = mapOf("billed" to "Rechnung", "labor" to "Labor clandestino", "marked_open" to "Offen markiert", "marked_billed" to "Abgerechnet markiert", "active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
+internal fun nativeValue(value: String): String = mapOf("billed" to "Rechnung", "labor" to "Labor clandestino", "labor clandestinus" to "Labor clandestino", "marked_open" to "Offen markiert", "marked_billed" to "Abgerechnet markiert", "active" to "Aktiv", "inactive" to "Inaktiv", "open" to "Offen", "completed" to "Erledigt", "cancelled" to "Abgesagt", "draft" to "Entwurf", "ready" to "Einsatzbereit", "defective" to "Defekt", "maintenance" to "Wartung", "profile" to "Profilfoto", "documentation" to "Dokumentation", "before" to "Vorher", "during" to "Währenddessen", "after" to "Nachher", "damage" to "Schaden", "other" to "Sonstiges", "small_business" to "Kleinunternehmer", "standard" to "Umsatzsteuer", "direct" to "Kunde selbst", "via_customer" to "Anderer Rechnungsempfänger", "fixed_price" to "Fixpreisangebot", "time_material" to "Regieangebot", "estimate_binding" to "Verbindlicher Kostenvoranschlag", "estimate_nonbinding" to "Unverbindlicher Kostenvoranschlag")[value] ?: value
 private fun technical(key: String) = key.startsWith("_") || key.startsWith("expected_") || key.endsWith("_id") || key.endsWith("_ids") || key.endsWith("_hash") || key.endsWith("_sha256") || key in setOf("id", "source", "created_at", "updated_at", "formatVersion", "schema_version", "local_revision", "test_record", "revision", "deleted_at", "device_id", "cloud_confirmed", "untrusted_business_data", "security_notice", "pdf_base64", "data_base64", "chunk_base64", "token", "installation_id", "restore_epoch", "protocol_version", "prerequisites", "requirements", "request_id")
 
 /** Read-only business values, never a raw JSON editor or a binary payload dump. */
@@ -777,7 +778,8 @@ internal fun NativeActionMenu(controller: NativeAppController, area: String, con
                         catch (failure: Exception) { controller.message(nativeActionError(failure, "Löschen nicht bestätigt.")) }
                     }
                 } else controller.action(action.label, tool, contextArgs)
-            }, Modifier.fillMaxWidth()) { Text(when {
+            }, Modifier.fillMaxWidth(), colors = if (action.tools.any { it in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") })
+                ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error) else ButtonDefaults.textButtonColors()) { Text(when {
                 "empty_trash" in action.tools -> "Papierkorb leeren"
                 "purge_entity" in action.tools -> "Endgültig löschen"
                 "delete_entity" in action.tools -> "Löschen"
@@ -977,5 +979,6 @@ internal fun NativeDeleteButton(controller: NativeAppController, entity: String,
                 finally { busy = false }
             }
         }
-    }, enabled = enabled && !busy) { Text(if (busy) "Löschen …" else label) }
+    }, enabled = enabled && !busy, colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        border = BorderStroke(1.dp, if (enabled && !busy) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant)) { Text(if (busy) "Löschen …" else label) }
 }

@@ -39,6 +39,30 @@ private fun settlementStatus(value: JSONObject) = when (value.optString("status"
     "draft" -> "Entwurf"; "prepared" -> "Abschluss vorbereitet – fortsetzen"; "confirmed" -> "Bestätigt"; "cancelled" -> "Korrigiert / aufgehoben"; "abandoned" -> "Vorbereitung aufgehoben – nicht ausgestellt"; else -> "Status prüfen"
 }
 
+/** Remaining amount of a confirmed invoice or internal closure, or 0 when nothing is open. */
+private fun settlementOpen(record: JSONObject): Long =
+    if (record.optString("status") == "confirmed" && record.optString("kind") in setOf("invoice", "internal"))
+        (record.optLong("total_minor") - record.optLong("paid_minor")).coerceAtLeast(0) else 0L
+
+/** One tap: records the current remainder with today's date through the review screen's durable operation. */
+private suspend fun settlementPaid(controller: NativeAppController, id: String): Long {
+    if (controller.draft("settlement-review:$id")?.optJSONObject("pending") != null) throw IllegalStateException("Ein Vorgang dieses Abschlusses ist noch offen. Bitte im Abschluss prüfen.")
+    val current = controller.query("get_settlement", JSONObject().put("settlement_id", id))
+    val open = current.optLong("balance_minor")
+    require(open > 0) { "Kein offener Betrag." }
+    val operation = JSONObject().put("tool", "add_settlement_payment").put("operation_id", UUID.randomUUID().toString()).put("args", JSONObject()
+        .put("settlement_id", id).put("expected_record_hash", current.getString("record_hash"))
+        .put("amount", OfferMoney.decimal(open)).put("date", settlementDay()).put("note", "Vollständig bezahlt"))
+    controller.saveDraft("settlement-review:$id", JSONObject().put("pending", operation)); controller.flushDrafts()
+    try { controller.settlementAction("review:$id:${operation.getString("operation_id")}", "add_settlement_payment", operation.getJSONObject("args")) }
+    catch (failure: Exception) {
+        if (failure is NativeCallFailure && failure.detail.optString("commit_state") == "not_committed") controller.removeDraft("settlement-review:$id")
+        throw failure
+    }
+    controller.removeDraft("settlement-review:$id")
+    return open
+}
+
 @Composable
 internal fun NativeSettlements(controller: NativeAppController, selectedId: String) {
     if (selectedId.isNotEmpty()) { NativeSettlementReview(controller, selectedId); return }
@@ -46,6 +70,8 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
     var search by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
     var attempt by remember { mutableIntStateOf(0) }
+    var paying by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(attempt) {
         try { result = controller.query("list_settlements"); error = "" }
         catch (cancelled: CancellationException) { throw cancelled }
@@ -70,6 +96,20 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
                     AccountingRules.label(record.optString("route")), settlementStatus(record), record.optString("invoice_number"),
                     if (record.has("total_minor")) settlementMoney(record.optLong("total_minor")) else "Betrag ausstehend"
                 ).filter { it.isNotBlank() }.joinToString(" · "), { controller.navigate("settlement_review", record.getString("id")) })
+                val open = settlementOpen(record)
+                if (open > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    NativeStatus("Offen " + settlementMoney(open), NativeStatusTone.Attention)
+                    Button({
+                        val id = record.getString("id")
+                        paying = id
+                        scope.launch {
+                            try { controller.message("Bezahlt erfasst: " + settlementMoney(settlementPaid(controller, id))) }
+                            catch (cancelled: CancellationException) { throw cancelled }
+                            catch (failure: Exception) { controller.message(failure.message ?: "Zahlung nicht bestätigt. Bitte im Abschluss prüfen.") }
+                            finally { paying = ""; attempt++ }
+                        }
+                    }, enabled = paying.isEmpty()) { Text(if (paying == record.getString("id")) "Wird erfasst …" else "Bezahlt") }
+                } else if (record.optString("status") == "confirmed" && record.optLong("total_minor") > 0) NativeStatus("Bezahlt", NativeStatusTone.Confirmed)
             }
             if (result != null && records.isEmpty()) item { Text("Keine Abschlüsse für diese Suche.") }
         }
@@ -79,7 +119,8 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
 /** Native working copy is durable, including exact pending save arguments. */
 @Composable
 internal fun NativeSettlementEditor(controller: NativeAppController, id: String) {
-    val key = "settlement-editor:$id"
+    val recipient = if (id.isEmpty()) controller.route.args.optString("billing_customer_id") else ""
+    val key = "settlement-editor:$id" + if (recipient.isNotEmpty()) ":$recipient" else ""
     var raw by rememberSaveable(id) { mutableStateOf<String?>(null) }
     var savedHash by rememberSaveable(id) { mutableStateOf("") }
     var pending by rememberSaveable(id) { mutableStateOf<String?>(null) }
@@ -112,7 +153,7 @@ internal fun NativeSettlementEditor(controller: NativeAppController, id: String)
                 require(row.optString("status") == "draft") { "Dieser Abschluss ist bereits eingefroren. Bitte die Vorschau öffnen." }
                 raw = row.toString(); savedHash = data.getString("record_hash")
             }
-            if (raw == null) raw = JSONObject().put("route", AccountingRules.BILLED).put("positions", JSONArray()).toString()
+            if (raw == null) raw = SettlementRules.prefill(controller.route.args, context!!.optJSONArray("worklogs"), priorRecords).toString()
             ready = true
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { error = failure.message ?: "Entwurf nicht lesbar." }
@@ -412,7 +453,12 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                             payment = true; reversal = entry.getString("id"); amount = OfferMoney.decimal(-entry.getLong("amount_minor")); note = "Gegenbuchung"
                         }, enabled = !busy && original == null) { Text("Diese Zahlung gegenbuchen") }
                       }
-                      TextButton({ payment = !payment }, enabled = !busy && original == null) { Text(if (payment) "Zahlungsformular schließen" else "Zahlung erfassen") }
+                      val open = if (status == "confirmed") current.optLong("balance_minor") else 0L
+                      if (open > 0 && !payment) Button({
+                          act("add_settlement_payment", JSONObject().put("settlement_id", id).put("expected_record_hash", current.getString("record_hash"))
+                              .put("amount", OfferMoney.decimal(open)).put("date", settlementDay()).put("note", "Vollständig bezahlt"))
+                      }, enabled = !busy && original == null) { Text("Bezahlt · " + settlementMoney(open)) }
+                      TextButton({ payment = !payment }, enabled = !busy && original == null) { Text(if (payment) "Zahlungsformular schließen" else "Teilzahlung oder anderes Datum") }
                       if (payment) {
                         if (reversal.isNotEmpty()) NativeStatus("Gegenbuchung zur gewählten Zahlung", NativeStatusTone.Attention)
                         SettlementText("Betrag (€)", amount, !busy && original == null) { amount = it }

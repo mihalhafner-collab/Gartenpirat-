@@ -118,6 +118,23 @@ internal fun NativeBackButton(onBack: () -> Unit) {
     }
 }
 
+/** Attention colors shared by status chips and hint cards. */
+internal val NativeAttentionContainer = Color(0xfffff1d0)
+internal val NativeAttentionContent = Color(0xff79510b)
+
+/** Opens the search over all local records. */
+@Composable
+internal fun NativeSearchButton(onClick: () -> Unit) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onClick, Modifier.semantics { contentDescription = "Alles durchsuchen" }) {
+        Canvas(Modifier.size(24.dp)) {
+            val unit = size.minDimension / 24f
+            drawCircle(color, 6.5f * unit, Offset(10 * unit, 10 * unit), style = Stroke(2 * unit))
+            drawLine(color, Offset(15 * unit, 15 * unit), Offset(20 * unit, 20 * unit), 2 * unit)
+        }
+    }
+}
+
 /** The same explicit status semantics are used in every feature. */
 internal enum class NativeStatusTone { Neutral, Running, Confirmed, Attention, Failed }
 
@@ -127,7 +144,7 @@ internal fun NativeStatus(label: String, tone: NativeStatusTone = NativeStatusTo
     val (background, foreground, symbol) = when (tone) {
         NativeStatusTone.Running -> Triple(Color(0xffe2f0e8), Color(0xff12543f), "●")
         NativeStatusTone.Confirmed -> Triple(Color(0xffe2f0e8), Color(0xff12543f), "✓")
-        NativeStatusTone.Attention -> Triple(Color(0xfffff1d0), Color(0xff79510b), "!")
+        NativeStatusTone.Attention -> Triple(NativeAttentionContainer, NativeAttentionContent, "!")
         NativeStatusTone.Failed -> Triple(Color(0xfff7e9e7), Color(0xff963d36), "×")
         NativeStatusTone.Neutral -> Triple(Color(0xffeaf0ec), Color(0xff52645d), "·")
     }

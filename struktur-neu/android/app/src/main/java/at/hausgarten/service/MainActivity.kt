@@ -45,6 +45,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -154,7 +158,14 @@ class MainActivity : ComponentActivity() {
                 }
                 store = opened
                 controller = NativeAppController(this@MainActivity, opened).also { it.restoreRoute(savedInstanceState?.getString("native_route")) }
-                handleLaunch(intent)
+                lifecycleScope.launch {
+                    opened.nativeData().watchCommittedChanges().onStart { emit(0L) }
+                        .retryWhen { failure, _ -> if (failure !is android.database.sqlite.SQLiteDatabaseLockedException) false else { delay(75); true } }
+                        .catch { android.util.Log.w("HausGartenWork", "NOTICE_WATCH_FAILED") }
+                        .collect { refreshWorkNotice() }
+                }
+                handleLaunch(intent, savedInstanceState == null)
+                publishShortcuts()
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) resumeRuntime()
             } catch (cancelled: CancellationException) {
                 withContext(NonCancellable + Dispatchers.IO) { openingStore?.close() }
@@ -166,13 +177,73 @@ class MainActivity : ComponentActivity() {
         }
     }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); handleLaunch(intent) }
-    private fun handleLaunch(intent: Intent?) {
+    private fun handleLaunch(intent: Intent?, fresh: Boolean = true) {
         val current = controller ?: return
+        val shortcut = intent?.getStringExtra(SHORTCUT)
+        if (intent != null && shortcut != null) {
+            intent.removeExtra(SHORTCUT)
+            if (fresh && current.route.section != "restore_review") when (shortcut) {
+                "start" -> current.navigate("timer")
+                "photo" -> current.navigate("photos", mode = "import", args = JSONObject().put("_open_camera", true))
+                "worklog" -> current.navigate("worklogs", mode = "new")
+            }
+            return
+        }
+        val work = intent?.getStringExtra(WorkNotice.EXTRA)
+        if (intent != null && work != null) {
+            intent.removeExtra(WorkNotice.EXTRA)
+            // A recreated activity must not repeat a notification action.
+            if (fresh) lifecycleScope.launch { workNoticeAction(current, work, intent.getStringExtra("session_id").orEmpty()) }
+            return
+        }
         if (intent?.getBooleanExtra("open_planning", false) != true) return
         val id = intent.getStringExtra("planning_appointment_id") ?: ""
         current.openSection("office")
         current.navigate("appointments", id, if (id.isEmpty()) "list" else "detail", JSONObject().put("action", intent.getStringExtra("planning_action") ?: ""))
         intent.removeExtra("open_planning")
+    }
+    /** Notification actions run only when they still match the current session; repeats are ignored. */
+    private suspend fun workNoticeAction(current: NativeAppController, action: String, id: String) {
+        if (current.route.section == "restore_review") return
+        try {
+            val session = withContext(Dispatchers.IO) { current.store.workSessions().current() }
+            val state = session.optString("state")
+            val same = id.isNotEmpty() && session.optString("id", session.optString("session_id")) == id
+            val args = JSONObject().put("session_id", id).apply {
+                for (field in listOf("customer_id", "order_id", "property_id", "visit_id")) session.optString(field).takeIf { it.isNotEmpty() }?.let { put(field, it) }
+            }
+            when {
+                same && action == "photo" && state == "RUNNING" -> current.navigate("photos", mode = "import", args = args.put("_open_camera", true))
+                same && (action == "stop_work" && state in setOf("RUNNING", "PAUSED") || action == "start_break" && state == "RUNNING" || action == "end_break" && state == "PAUSED") -> {
+                    current.navigate("timer")
+                    current.timerAction(action, id)
+                    current.message(when (action) { "stop_work" -> "Zeit gestoppt."; "start_break" -> "Pause läuft."; else -> "Zeit läuft weiter." })
+                }
+                else -> current.navigate("timer")
+            }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { current.navigate("timer"); current.message(failure.message ?: "Zeitvorgang nicht bestätigt. Bitte Zeitstand prüfen.") }
+        refreshWorkNotice()
+    }
+    /** Long press on the app icon offers the three most frequent actions. */
+    private fun publishShortcuts() {
+        val manager = getSystemService(android.content.pm.ShortcutManager::class.java) ?: return
+        fun shortcut(id: String, label: String) = android.content.pm.ShortcutInfo.Builder(this, id).setShortLabel(label)
+            .setIcon(android.graphics.drawable.Icon.createWithResource(this, R.drawable.app_icon))
+            .setIntent(Intent(this, MainActivity::class.java).setAction(Intent.ACTION_VIEW)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra(SHORTCUT, id)).build()
+        try { manager.dynamicShortcuts = listOf(shortcut("start", "Arbeit starten"), shortcut("photo", "Foto"), shortcut("worklog", "Arbeit nachtragen")) }
+        catch (_: RuntimeException) { android.util.Log.w("HausGartenShortcuts", "PUBLISH_FAILED") }
+    }
+    private suspend fun refreshWorkNotice() {
+        val local = store ?: return
+        val session = try { withContext(Dispatchers.IO) { local.workSessions().current() } }
+            catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { return }
+        if (session.optString("state") == "RUNNING" && !WorkNotice.allowed(this) && !preferences.getBoolean("work_notice_asked", false)) {
+            preferences.edit().putBoolean("work_notice_asked", true).apply()
+            try { requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), WORK_NOTICE_REQUEST) } catch (_: RuntimeException) { }
+        }
+        WorkNotice.update(this, session)
     }
     override fun onResume() {
         super.onResume()
@@ -275,7 +346,7 @@ class MainActivity : ComponentActivity() {
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        workLocation?.permissionResult(requestCode)
+        if (requestCode == WORK_NOTICE_REQUEST) lifecycleScope.launch { refreshWorkNotice() } else workLocation?.permissionResult(requestCode)
     }
     fun openBackup() {
         if (BuildConfig.UI_PREVIEW) { toast("Verbindungen und Sicherungen bleiben in der Vorschau ausgeschaltet."); return }
@@ -313,6 +384,8 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         @Volatile private var foreground = WeakReference<MainActivity>(null)
+        private const val WORK_NOTICE_REQUEST = 0x574b
+        private const val SHORTCUT = "shortcut"
         private val BACKUP_SECRET_NAME = Pattern.compile("password|passwd|secret|credential|token|authorization|oauth|recovery.?code|api.?key", Pattern.CASE_INSENSITIVE)
         @JvmStatic fun refreshPlanningView() { refreshBusinessView() }
         @JvmStatic fun refreshBusinessView() {

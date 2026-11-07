@@ -440,7 +440,31 @@ public final class SettlementTests {
             yes(counters.getLong("GP-SYNTHETIC-000000000001") == 1L, "Rejected competing closure consumes no second number");
         } finally { threads.shutdownNow(); }
     }
+    private static void openWorkPrefill() {
+        JSONArray works = master().getJSONArray("worklogs");
+        JSONObject bound = new JSONObject().put("status", "confirmed").put("kind", "invoice").put("billing_customer_id", "recipient")
+            .put("positions", new JSONArray().put(new JSONObject().put("unit", "Stunden").put("price", "45")))
+            .put("sources", new JSONArray().put(source("worklogs", "work-a")));
+        JSONObject later = new JSONObject().put("status", "draft").put("kind", "invoice").put("billing_customer_id", "other")
+            .put("positions", new JSONArray().put(new JSONObject().put("unit", "Stunden").put("price", "50")));
+        JSONArray ids = new JSONArray().put("work-a").put("work-b").put("standalone");
+        JSONObject draft = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", ids), works, List.of(bound, later));
+        JSONArray lines = draft.getJSONArray("positions");
+        yes(lines.length() == 2, "Work bound by an active closure is not offered again");
+        yes(lines.getJSONObject(0).getString("price").equals("45") && lines.getJSONObject(1).getString("price").equals("45"), "Recipient's own last hourly rate wins");
+        yes(lines.getJSONObject(0).getString("unit").equals("Stunden") && lines.getJSONObject(0).getString("quantity").equals("2"), "Hours become the quantity");
+        yes(lines.getJSONObject(0).getString("source_collection").equals("worklogs") && !lines.getJSONObject(0).getString("source_id").equals("work-a"), "Positions keep their work source");
+        yes(lines.getJSONObject(0).getString("description").equals("01.11.2026"), "Work date is shown as Austrian date");
+        yes(draft.getString("route").equals("billed") && draft.getString("billing_customer_id").equals("recipient") && draft.getString("customer_id").equals("site"), "Recipient and single work customer are set");
+        yes(draft.getString("service_from").equals("2026-11-01") && draft.getString("service_to").equals("2026-11-01"), "Service period follows the work dates");
+        JSONObject fallback = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later));
+        yes(fallback.getJSONArray("positions").getJSONObject(0).getString("price").equals("50"), "Without an own rate the last used rate is offered");
+        JSONObject unknown = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of());
+        yes(unknown.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "Without any rate the price stays open");
+        yes(RULES.prefill(new JSONObject(), works, List.of(bound)).getJSONArray("positions").length() == 0, "Without a selection the draft stays empty");
+    }
     public static void main(String[] ignored) throws Exception {
+        openWorkPrefill();
         decimalsAndDrafts();
         sourceBindingsAndReview();
         closureReplayPaymentsAndCorrections();
