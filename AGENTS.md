@@ -58,9 +58,12 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
   keinen Zustand. Fehler, Wiederholung und erneutes Lesen mitprüfen.
 - Neue Tests nur für neue Funktionen oder gefundene Fehler. Wer einen Test
   anfasst, entfernt überholte Prüfungen.
-- Auf dem Pixel dürfen gezielte Tests Betriebsdaten lesen und im Testumfang
-  ändern; keine zusätzliche Sicherung als Voraussetzung. Eigene Testdaten
-  danach entfernen. Betriebsdaten nie ins Repository, die Cloud oder CI.
+- Volle Test-Suiten dürfen per ADB auch auf dem Pixel laufen, aber nur in der
+  eigenen Test-App (Paketkennung `at.hausgarten.service.qa`, eigene Daten);
+  nie gegen `at.hausgarten.service`.
+- In der echten App auf dem Pixel nur gezielte Einzeltests: Betriebsdaten lesen
+  und im Testumfang ändern, eigene Testdaten danach entfernen; keine zusätzliche
+  Sicherung als Voraussetzung. Betriebsdaten nie ins Repository, die Cloud oder CI.
 
 ## Abschluss
 
