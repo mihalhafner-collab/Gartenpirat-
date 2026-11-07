@@ -226,7 +226,7 @@ internal class OwnerToolSchemas {
 
             p.put(
                     "resource_type",
-                    McpFields.enumeration("photo", "offer", "catalog"),
+                    McpFields.enumeration("photo", "offer"),
                 )
                 .put("resource_id", McpFields.id())
                 .put("offset", McpFields.number(0, ((1024 * 1024) * 1024)))

@@ -284,33 +284,6 @@ throw localOriginalMissing()
 mime = "application/pdf"
 }
 }
-"catalog" -> {
-run {
-var parts = id.split(Regex("#"))
-var p = entry(parts[0])
-var path = (if (parts.size == 2) parts[1] else "")
-var listed: Boolean = false
-var images = p.optJSONArray("images")
-run {
-var i: Int = 0
-var firstIteration22 = true
-while (true) {
-if (firstIteration22) firstIteration22 = false else { i++ }
-if (!(images != null && i < images.length())) break
-
-if ((path == images.getJSONObject(i).optString("path"))) {
-listed = true
-}
-
-}
-}
-if (!(listed) || path.isEmpty() || path.contains("..") || path.startsWith("/") || !(p.toString().contains(JSONObject.quote(path))) || !(path.matches(Regex("[A-Za-z0-9_./-]+\\.(jpg|jpeg|png|webp)")))) {
-throw IllegalArgumentException("Katalogbild nicht freigegeben.")
-}
-bytes = asset(path)
-mime = (if (path.endsWith("png")) "image/png" else (if (path.endsWith("webp")) "image/webp" else "image/jpeg"))
-}
-}
 else -> throw IllegalArgumentException("Unbekannter Dateityp.")
 }
 
