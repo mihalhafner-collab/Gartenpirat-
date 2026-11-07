@@ -37,9 +37,10 @@
   },
   "current_task": {
     "name": "Neue Oberfläche auf bestehendem Kern; Projekt an Claude übergeben",
-    "status": "Schritte 1 bis 7 umgesetzt; veraltete Emulator-Tests und Hook-Größe repariert; volle CI ausstehend. Danach Merge nach main, dann Navigation und Heute als Tagesliste."
+    "status": "Schritte 1–7 und Testreparaturen umgesetzt. Volle CI: alle Daten-, Sicherungs- und Anbieter-Suiten grün; Compose-Suite mit 11 älteren Fehlern, die auch auf dem Ausgangsstand f982988 auftreten (Vergleichslauf 225). Diese werden als Nächstes behoben."
   },
   "open_checks": [
+    "Compose-Suite: ältere Fehler in pending_result_read_only, usability, today_older_work_commit, customer_context, search_keyboard, back_gesture, domain_search, list_viewports, surfaces, large_text, camera_capture.",
     "Pixel-Nachtest von QA06 und C04 braucht freigegebene Installation von 132.",
     "Pixel-Teilabnahme 131: 49 bestanden, 2 fehlgeschlagen, 9 blockiert; Details in docs/verification/performance-current.md.",
     "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
