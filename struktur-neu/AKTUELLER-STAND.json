@@ -59,7 +59,7 @@
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline.",
       "android": "PASS; assembleRelease, assembleReleaseAndroidTest und lintRelease; APK-Datenschutzprüfung.",
-      "diagnostic_ci": "42393105970: alle sechs Grafikabläufe und Settlement-/Accounting-Datenprüfungen grün. 19/21 Compose-Abläufe grün; Dezimalkomma-Ursache in 3022372 korrigiert. Kunden-Testnavigation und Erkennung bereits ausgewählter Abrechnungsreiter korrigiert. Nur der vollständige Lauf des abschließenden Commits erteilt CI-Freigabe.",
+      "diagnostic_ci": "42397358477: 20/21 Compose-Abläufe und alle sechs Grafikabläufe grün; auch Settlement-/Accounting-Datenprüfungen grün. Offen-Testhilfe wartete auf Text unter dem sichtbaren Ausschnitt; sie erkennt jetzt die Überschrift nach Scrollen zum Anfang. Heute-Summe korrekt aktualisiert, Zeilenvergleich rot: Ausgangsprojektion unmittelbar vor der Änderung nach sichtbarer Ausgangsansicht erfassen und vollständige Felddifferenz bei Abweichung ausgeben. Nur ein vollständig grüner Lauf des abschließenden Commits zählt.",
       "ci_gate": "Je Commit qa-apk.yml mit emulator=true ohne *_only; nur vollständig grüner Lauf zählt.",
       "jvm": "PASS; alle 11 lokalen JVM-Suiten ohne Tabellenmodul, einschließlich 61 Arbeits-/Zubehörprüfungen. Neuer Dezimalkomma-Fall vor der Korrektur reproduzierbar rot, danach grün; negative Werte, NaN und unzulässige Genauigkeit abgewiesen. Tabellenmodul und Emulator bleiben Teil der vollen CI."
     }

@@ -327,10 +327,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun openAccountingOpen() {
         openAccounting()
+        scrollTop()
         waitUntil("ACCOUNTING_OPEN_TAB_OR_VIEW_READY") {
-            node("Fertig → abgerechnet → bezahlt") != null || node("Offen")?.let(::clickable) != null
+            node("Offene Stunden") != null || node("Offen")?.let(::clickable) != null
         }
-        if (node("Fertig → abgerechnet → bezahlt") == null) click("Offen")
+        if (node("Offene Stunden") == null) click("Offen")
         reveal("Neue Abrechnung")
     }
 
@@ -1850,10 +1851,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         store.notifyCommittedChange()
         val data = store.nativeData()
-        val beforePage = runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 4) }
-        yes(beforePage.rows.size == 4, "TODAY_TOTAL_FIXTURE_HAS_FOUR_ROWS")
-        val topThree = beforePage.rows.take(3)
-        val fourth = beforePage.rows[3]
         val args = JSONObject().put("date_from", day).put("date_to", day)
         val before = read("get_work_record_summary", args)
         fun summaryText(hours: Double, count: Int): String {
@@ -1861,16 +1858,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             return "${minutes / 60} Std. ${minutes % 60} Min. · $count Arbeiten"
         }
         click("Heute"); reveal(summaryText(before.getDouble("hours"), before.getInt("work_records"))); scrollTop()
-        val envelope = tools.call("get_work_record", JSONObject().put("work_record_id", fourth.id))
-        yes(!envelope.has("ok") || envelope.getBoolean("ok"), "TODAY_FOURTH_WORK_CAS_BASE")
-        val record = envelope.optJSONObject("data") ?: envelope
-        read("update_work_record", JSONObject().put("request_id", "qa_native_today_older_hours")
-            .put("work_record_id", fourth.id).put("expected_record_hash", envelope.getString("record_hash"))
-            .put("updates", JSONObject().put("hours", record.getDouble("hours") + 0.5).put("start_time", "").put("end_time", "").put("break_minutes", 0)))
-        // No navigation or refresh between the external writer and the visible assertion; the total sits below the day's visits.
-        reveal(summaryText(before.getDouble("hours") + 0.5, before.getInt("work_records")))
-        yes(runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 3) }.rows == topThree,
-            "TODAY_TOTAL_UPDATES_WITH_IDENTICAL_THREE_VISIBLE_WORK_ROWS")
+        // Capture the visible list's baseline only after the initial screen has
+        // finished loading, immediately before the external edit under test.
+        val beforePage = runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 4) }
+        yes(beforePage.rows.size == 4, "TODAY_TOTAL_FIXTURE_HAS_FOUR_ROWS")
+        val topThree = beforePage.rows.take(3)
+        val fourth = beforePage.rows[3]
+        repeat(3) { edit ->
+            val envelope = tools.call("get_work_record", JSONObject().put("work_record_id", fourth.id))
+            yes(!envelope.has("ok") || envelope.getBoolean("ok"), "TODAY_FOURTH_WORK_CAS_BASE")
+            val record = envelope.optJSONObject("data") ?: envelope
+            read("update_work_record", JSONObject().put("request_id", "qa_native_today_older_hours_$edit")
+                .put("work_record_id", fourth.id).put("expected_record_hash", envelope.getString("record_hash"))
+                .put("updates", JSONObject().put("hours", record.getDouble("hours") + 0.5).put("start_time", "").put("end_time", "").put("break_minutes", 0)))
+            // No navigation or refresh between the external writer and the visible assertion.
+            reveal(summaryText(before.getDouble("hours") + 0.5 * (edit + 1), before.getInt("work_records")))
+            val afterRows = runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 3) }.rows
+            yes(afterRows == topThree,
+                "TODAY_TOTAL_UPDATES_WITH_IDENTICAL_THREE_VISIBLE_WORK_ROWS; edit=$edit; expected=$topThree; actual=$afterRows")
+        }
         yes(read("get_work_record_summary", args).getInt("work_records") == before.getInt("work_records"), "TODAY_OLDER_EDIT_DOES_NOT_ADD_WORK")
     }
 
