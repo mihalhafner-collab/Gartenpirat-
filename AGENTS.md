@@ -118,8 +118,9 @@ Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
 - `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
   nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.
-- App-Änderungen erst nach grünem vollem CI-Lauf (`qa-apk.yml` mit Emulator,
-  ohne `*_only`) nach `main`. Ein Lauf ohne Emulator-Suiten zählt nicht.
+- App-Änderungen erst nach vollem CI-Lauf (`qa-apk.yml` mit Emulator, ohne
+  `*_only`) nach `main`: keine neuen Fehler gegenüber `main`, vorhandene Fehler
+  stehen in `open_checks`. Ein Lauf ohne Emulator-Suiten zählt nicht.
 - AGENTS.md und AKTUELLER-STAND.json zusammen unter 19 KB halten
   (Kontext-Hook-Grenze 20 KB); Erledigtes steht in der Git-Historie.
 - Fehlende oder fehlgeschlagene Prüfungen nennen. Geänderten Code nie als
