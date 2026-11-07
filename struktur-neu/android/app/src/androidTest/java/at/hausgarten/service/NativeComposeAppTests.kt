@@ -1513,7 +1513,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("selected_photo_uri", other.toString()))
         controller.flushDrafts()
         click("Heute"); click("Arbeit nachtragen")
-        click("Weitere Angaben"); reveal("Ungespeichertes Foto")
+        // The form remembers whether "Weitere Angaben" was open; open it only when closed.
+        reveal("Weitere Angaben")
+        if (runCatching { waitUntil("EXTRA_DETAILS_OPEN", 1500) { node("Foto · optional") != null || node("Foto hinzufügen") != null } }.isFailure) click("Weitere Angaben")
+        reveal("Ungespeichertes Foto")
         val workCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         shown("Arbeit speichern")
         yes(!actionEnabled("Arbeit speichern"), "PHOTO_CUSTOMER_REQUIRED_BEFORE_SAVE_ENABLED")
@@ -2475,7 +2478,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("DOMAIN_SEARCH_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(domainSearchCases.length() == 15, "ALL_DOMAIN_SEARCH_PATHS")
+        yes(domainSearchCases.length() == 14, "ALL_DOMAIN_SEARCH_PATHS")
     }
 
     private fun listViewportJourney() {

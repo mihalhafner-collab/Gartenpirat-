@@ -932,7 +932,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                         NativeGroup("Abrechnung") {
                             NativeKeyValue("Rechnungsempfänger", if (assignment?.optString("mode") == "direct") "Kunde selbst" else assignment?.optString("billing_customer_name").orEmpty().ifBlank { "Zuordnung prüfen" }) { edit() }
                             if (assignment?.optBoolean("valid") == false) NativeStatus("Rechnungsempfänger prüfen", NativeStatusTone.Attention)
-                            NativeKeyValue("Offene Arbeiten prüfen", null) { controller.navigate("billing", args = JSONObject().put("work_customer_id", id)) }
+                            NativeKeyValue("Offene Stunden", null) { controller.navigate("billing", args = JSONObject().put("work_customer_id", id)) }
                         }
                     }
                     item {
