@@ -54,7 +54,7 @@
   },
   "current_task": {
     "name": "Version 133: Compose-Abläufe isolieren und volle CI grün machen",
-    "status": "Schritt 1: 21 Compose-Abläufe einzeln nach pm clear in neuem Prozess; eigene synthetische Abhängigkeiten statt Zustandsübernahme. check_current.py sowie Release-/Test-Build mit lintRelease grün; voller CI-Lauf folgt. Kein Merge, keine Installation, keine Verteilung; PR nach main erst bei vollständig grünem Lauf zur Claude-Prüfung.",
+    "status": "Schritt 1 gepusht (2612d21); voller CI-Lauf 42387530148 läuft. Schritt 2: Navigation wartet auf abgeschlossene Seitenwechsel; Zubehör wartet auf geöffneten Editor; Knopfprüfung berücksichtigt deaktivierte Vorfahren; Kamera prüft explizit IDLE und fehlenden Fotoentwurf. check_current.py und Release-/Test-Build mit lintRelease grün; voller CI-Lauf folgt. Keine Installation, Verteilung oder Merge; PR erst nach grünem vollem Lauf.",
     "owner_instruction": "Ausdrücklicher Auftrag 07.11.2026: Isolation, rote Ursachen beheben, native_settlement/native_accounting/native_graphics in vollen Lauf aufnehmen; je Schritt prüfen, bauen mit Lint, committen, pushen und volle CI mit emulator=true."
   },
   "open_checks": [

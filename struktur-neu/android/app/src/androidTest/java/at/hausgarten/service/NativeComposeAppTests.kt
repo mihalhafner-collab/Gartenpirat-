@@ -306,16 +306,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun openCustomerList() {
         click("Kunden")
         repeat(12) {
-            // With the keyboard open the list hides its bottom action bar.
             fun ready() = field("Suchen")?.isEditable == true && (keyboardVisible() || node("Kunde anlegen")?.let(::clickable) != null)
-            var listReady = false
             waitUntil("CUSTOMER_LIST_OR_DETAIL_ROUTE") {
-                if (!selectedArea("Kunden")) false
-                else if (ready()) { listReady = true; true }
-                else node("‹ Zurück")?.let(::clickable)?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true
+                selectedArea("Kunden") && (ready() || node("‹ Zurück")?.let(::clickable) != null)
             }
-            if (listReady) return
-            settleUi()
+            if (ready()) return
+            // One back action per settled screen. Repeated actions in a wait
+            // predicate can pop the list again before its semantics arrive.
+            click("‹ Zurück", scrollTo = false)
         }
         throw AssertionError("QA_NATIVE_COMPOSE_CUSTOMER_LIST_BACK_PATH")
     }
@@ -366,7 +364,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val candidate = requireNotNull(node(label)) { "Missing action: $label" }
         var current: AccessibilityNodeInfo? = candidate
         while (current != null) {
-            if (current.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK }) return current.isEnabled
+            if (!current.isEnabled) return false
+            if (current.isClickable || current.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK }) return true
             current = current.parent
         }
         return candidate.isEnabled
@@ -1365,6 +1364,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Übersicht")
         click("Zubehör")
         click("Zubehör hinzufügen")
+        shown("Fotos helfen beim Wiederfinden. Technische Angaben sind freiwillig.")
         click("Zubehör hinzufügen")
         click("Anderes Zubehör")
         click("Kette", scrollTo = false)
@@ -1572,6 +1572,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         fun photos() = PixelMcpReadTools.effective(store.getState()).getJSONArray("photos")
         val before = photos().length()
+        yes(read("get_active_work_session").optString("state") == "IDLE", "CAMERA_HAS_NO_RUNNING_WORK")
         yes(store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("photo_import"), "").isEmpty(), "CAMERA_FIXTURE_HAS_NO_PENDING_DRAFT")
         openCustomerList(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000"); click("Fotos"); click("Foto hinzufügen"); click("Foto aufnehmen")
         cameraReady(); back(); shown("Foto hinzufügen")
@@ -1906,7 +1907,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // Only the previously verified disposable synthetic fixture is allowed here.
         nodes().filter { it.isVisibleToUser && texts(it).isNotEmpty() }.forEach { item ->
             val bounds = Rect(); item.getBoundsInScreen(bounds)
-            android.util.Log.i("NativeComposeQA", "$stage ${texts(item)} $bounds id=${item.viewIdResourceName} editable=${item.isEditable} clickable=${clickable(item) != null}")
+            android.util.Log.i("NativeComposeQA", "$stage ${texts(item)} $bounds id=${item.viewIdResourceName} editable=${item.isEditable} enabled=${item.isEnabled} clickable=${clickable(item) != null} actions=${item.actionList.map { it.id }}")
         }
     }
 
@@ -2038,7 +2039,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("QA Kontextauftrag $index"); yes(node("QA Kontextauftrag ${1-index}") == null, "ORDERS_KEEP_CUSTOMER_$index")
             click("‹ Zurück"); click("Alle Objekte")
             shown("QA Kontextobjekt $index"); yes(node("QA Kontextobjekt ${1-index}") == null, "PROPERTIES_KEEP_CUSTOMER_$index")
-            click("Objekt anlegen"); shown("Kunde: $name"); click("Zurück")
+            click("Objekt anlegen"); shown("Kunde: $name"); click("Zurück"); shown("Objekt anlegen")
             click("‹ Zurück"); click("Alle Einsätze")
             shown("QA Kontexteinsatz $index"); yes(node("QA Kontexteinsatz ${1-index}") == null, "VISITS_KEEP_CUSTOMER_$index")
             click("‹ Zurück"); scrollTop()
