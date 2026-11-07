@@ -1661,7 +1661,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val session = read("get_active_work_session")
         val id = session.getString("id")
         yes(session.optString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "TIMER_SYNTHETIC_CUSTOMER")
-        click("Heute"); shown("Zeit läuft"); shown("Arbeitszeit ohne Pause")
+        // "Zeit läuft" also stands on the timer screen; wait for Today's own heading.
+        click("Heute"); shown("Aktuelle Arbeit"); shown("Zeit läuft"); shown("Arbeitszeit ohne Pause")
         yes(node("Einsätze geplant") == null && node("Heute gespeichert") == null, "TODAY_PRIORITIZES_ACTIVE_TIME_OVER_STATISTICS")
         val activeTimeBounds = Rect().also { requireNotNull(node("Arbeitszeit ohne Pause")).getBoundsInScreen(it) }
         val titleBounds = Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
