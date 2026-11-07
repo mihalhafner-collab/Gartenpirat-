@@ -2416,12 +2416,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             captureSyntheticScreen("detail-catalog")
             click("Zur Liste"); waitUntil("DOMAIN_RETURN_QUERY_catalog") { field("Bausteine suchen")?.text?.toString()?.contains("QA Leistungsbaustein") == true }
         }
-        case("plants") {
-            val plants = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants")
-            val plant = plants.getJSONObject(0)
-            openOfficeEntry("Pflanzen")
-            keyboardSearchProof("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name"))
-        }
         case("local") {
             openOfficeEntry("Suche")
             keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
@@ -2488,7 +2482,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val width = minOf(physical[1].toInt(), physical[2].toInt())
         val height = maxOf(physical[1].toInt(), physical[2].toInt())
         val work = "QA Kontextabrechnung 0"
-        val plant = JSONObject(context.assets.open("plant-catalog.json").bufferedReader().use { it.readText() }).getJSONArray("plants").getJSONObject(0)
         data class Target(val key: String, val label: String, val query: String, val result: String, val manual: Boolean = false, val open: () -> Unit)
         val targets = listOf(
             Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
@@ -2501,7 +2494,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             // Customer A/B exclusion is verified separately in customerContextJourney.
             Target("photos", "Fotos suchen", "QA Kontextfoto", "QA Kontextfoto 1") { openOfficeEntry("Fotos") },
             Target("catalog", "Bausteine suchen", "QA Leistungsbaustein", "QA Leistungsbaustein") { openOfficeEntry("Leistungskatalog") },
-            Target("plants", "Name, botanischer Name oder Familie", plant.getString("scientificName"), plant.getString("name")) { openOfficeEntry("Pflanzen") },
             Target("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", true) { openOfficeEntry("Suche") }
         )
         val failures = ArrayList<Throwable>()
@@ -2657,7 +2649,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("materials", "Material anlegen") { openOfficeEntry("Material") }
         case("photos", "Foto hinzufügen") { openOfficeEntry("Fotos") }
-        case("plants", "Zufällige Pflanze") { openOfficeEntry("Pflanzen") }
         case("catalog", "Baustein anlegen") { openOfficeEntry("Leistungskatalog") }
         case("local-search", "Suchtext eingeben") { openOfficeEntry("Suche") }
         case("archive", "Alle Arten") { openOfficeEntry("Archiv") }
@@ -2677,7 +2668,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         } finally { shell("settings put system font_scale $oldFont") }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("SURFACES_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(surfaceCases.length() == 33, "ALL_SURFACES_REACHABLE")
+        yes(surfaceCases.length() == 32, "ALL_SURFACES_REACHABLE")
     }
 
     private fun storageSettingsJourney() {

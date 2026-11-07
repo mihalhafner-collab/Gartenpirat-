@@ -116,12 +116,6 @@ androidComponents {
     beforeVariants(selector().withBuildType('debug')) { variant -> variant.enable = false }
 }
 
-def plantGate = tasks.register('verifySharedPlantAssets', Exec) {
-    workingDir rootProject.projectDir.parentFile
-    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tools/sync_plant_assets.py'] : ['python3', 'tools/sync_plant_assets.py'])
-}
-tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn plantGate }
-
 def maintenanceTextGate = tasks.register('verifyEquipmentMaintenanceTexts', Exec) {
     workingDir rootProject.projectDir.parentFile
     commandLine 'python3', 'tools/sync_equipment_maintenance_texts.py', '--check'

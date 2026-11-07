@@ -52,7 +52,7 @@ private val nativeSections = linkedMapOf(
     "today" to "Heute", "worklogs" to "Arbeiten", "timer" to "Zeiterfassung", "customers" to "Kunden", "properties" to "Objekte",
     "inquiries" to "Anfragen", "care_plans" to "Pflegepläne", "visits" to "Einsätze", "tour" to "Tagestour", "materials" to "Material",
     "equipment" to "Geräte", "revier_search" to "Suche", "revier_archive" to "Archiv", "orders" to "Aufträge", "offers" to "Angebote",
-    "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "plants" to "Pflanzen", "appointments" to "Termine", "weather" to "Wetter",
+    "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "appointments" to "Termine", "weather" to "Wetter",
     "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher", "accounting" to "Abrechnung", "accounting_edit" to "Abrechnung bearbeiten",
     "settlements" to "Rechnungen & Labor", "settlement_edit" to "Neue Abrechnung", "settlement_review" to "Abschluss prüfen"
 )
@@ -101,7 +101,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                 // Search and "+" sit in the same place on every overview, never over a screen's own bottom actions.
                 val quick = route.mode == "list" && route.id.isEmpty() && route.section in setOf("today", "worklogs", "customers", "office", "more",
                     "orders", "offers", "planning", "appointments", "visits", "properties", "inquiries", "care_plans", "materials", "equipment", "photos",
-                    "accounting", "settlements", "billing", "catalog", "plants", "tour")
+                    "accounting", "settlements", "billing", "catalog", "tour")
                 if (route.section != "today" || quick) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (route.section == "today") Spacer(Modifier.weight(1f))
                     if (route.section != "today" && controller.hasParentScreen()) NativeBackButton { controller.requestBack() }
@@ -138,7 +138,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "timer", "work" -> NativeTimer(controller)
                 "properties", "inquiries", "care_plans", "visits", "tour", "materials", "equipment", "revier_search", "revier_archive" -> NativeRevierScreen(route.section, route.id, controller)
                 "offers", "catalog" -> NativeFinanceScreen(route.section, route.id, controller)
-                "photos", "plants" -> NativeMediaScreen(route.section, route.id, controller)
+                "photos" -> NativeMediaScreen(route.section, route.id, controller)
                 "appointments", "weather", "planning" -> NativePlanningScreen(route.section, route.id, controller)
                 "action" -> NativeActionForm(controller, route.id, route.mode, route.args)
                 "settings" -> NativeSettings(controller)
@@ -241,7 +241,7 @@ private fun NativeOffice(controller: NativeAppController) {
             Triple("inquiries", "Anfragen", "Neue und offene Anfragen")),
         "Gärten und Pflege" to listOf(Triple("properties", "Objekte", "Gärten und Häuser der Kunden"), Triple("care_plans", "Pflegepläne", "Regelmäßige Pflege je Objekt")),
         "Material und Geräte" to listOf(Triple("materials", "Material", "Bestand und Verbrauch"), Triple("equipment", "Geräte", "Wartung und Zubehör"),
-            Triple("photos", "Fotos", "Alle Fotos"), Triple("plants", "Pflanzen", "Pflanzenlexikon"), Triple("catalog", "Leistungskatalog", "Leistungen und Preise für Angebote")),
+            Triple("photos", "Fotos", "Alle Fotos"), Triple("catalog", "Leistungskatalog", "Leistungen und Preise für Angebote")),
         "Weitere" to listOf(Triple("revier_search", "Suche", "In allen Einträgen suchen"), Triple("revier_archive", "Archiv", "Abgeschlossene Pflege und Einsätze"),
             Triple("trash", "Papierkorb", "Ältere gelöschte Einträge"), Triple("settings", "Einstellungen und Daten", "Verbindungen, Sicherung, Speicher und App-Prüfung"))
     )

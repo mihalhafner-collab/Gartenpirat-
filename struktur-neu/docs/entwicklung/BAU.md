@@ -24,7 +24,7 @@ python3 -B tools/check_current.py
 ```
 
 Prüft Originalidentität, Datenschutz und die Python-Tests; baut nichts.
-Verträge, Testdaten, Pflanzen, Wartungstexte und die Zuordnung jeder App-Aktion
+Verträge, Testdaten, Wartungstexte und die Zuordnung jeder App-Aktion
 zu ihrem MCP-Werkzeug prüft jeder Gradle-Build vorab.
 
 ```sh
@@ -84,8 +84,3 @@ verwenden, keine Seriennummern in Git. Vor schreibenden Tests Paket, Version und
 `source_sha256` lesen (`get_capabilities`). Eigene Testdaten anlegen, Ergebnis
 erneut lesen, danach entfernen. Laufende Zeiterfassung nicht nebenbei beenden.
 Keine Verbindung heißt „nicht ausgeführt“, nicht bestanden.
-
-## Pflanzen
-
-Verteilt wird allein `android/app/src/main/assets/plant-catalog.json` mit den
-referenzierten Bildern. Quellen und Bildrechte liegen in `libraries/plants/`.

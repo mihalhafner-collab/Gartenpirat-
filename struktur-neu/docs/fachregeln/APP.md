@@ -114,12 +114,11 @@ Quellen (gelesen 06.11.2026): USP/BMF zu
 - Datenbank-, Datei- und Bildarbeit nie auf dem UI-Thread.
 - Antwortzeit und Speicher am Pixel messen; Emulatorwerte sind kein Nachweis.
 
-## Geräte und Pflanzen
+## Geräte
 
 - Gerätefotos gehören zum Gerät. Zubehör liegt im Gerätedatensatz (`accessories`);
   `current_chain_id` zeigt auf eine Kette derselben Maschine.
 - Wartungsintervalle und ihr Verlauf bleiben erhalten.
-- Pflanzenquelle ist allein `plant-catalog.json` mit den Android-Bildern.
 
 ## Oberfläche
 

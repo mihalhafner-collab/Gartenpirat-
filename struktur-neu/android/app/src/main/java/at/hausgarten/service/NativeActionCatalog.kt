@@ -581,30 +581,6 @@ internal object NativeActionCatalog {
                 listOf("preview_delete", "delete_entity"),
             ),
             NativeAction(
-                "pflanzen.142",
-                "pflanzen",
-                "Pflanzenbibliothek / Neophyten / Suche",
-                listOf("search_catalog"),
-            ),
-            NativeAction(
-                "pflanzen.143",
-                "pflanzen",
-                "Pflanzenprofil / Pflege / Quellen lesen",
-                listOf("get_catalog_entry"),
-            ),
-            NativeAction(
-                "pflanzen.144",
-                "pflanzen",
-                "Alle Pflanzenbilder / Wischen-Äquivalent",
-                listOf("get_catalog_entry", "get_file_metadata", "read_file_chunk"),
-            ),
-            NativeAction(
-                "pflanzen.145",
-                "pflanzen",
-                "Garteninformationen im Kundenkonto",
-                listOf("get_customer", "update_customer"),
-            ),
-            NativeAction(
                 "platform.147",
                 "plattform",
                 "Google-Kalender erstmalig verbinden / App-Kalender anlegen",

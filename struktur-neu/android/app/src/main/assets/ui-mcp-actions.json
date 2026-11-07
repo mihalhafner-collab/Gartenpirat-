@@ -1625,69 +1625,6 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "pflanzen.142",
-      "area": "pflanzen",
-      "action": "Pflanzenbibliothek / Neophyten / Suche",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "search_catalog"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "pflanzen.143",
-      "area": "pflanzen",
-      "action": "Pflanzenprofil / Pflege / Quellen lesen",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "get_catalog_entry"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "pflanzen.144",
-      "area": "pflanzen",
-      "action": "Alle Pflanzenbilder / Wischen-Äquivalent",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "get_catalog_entry",
-        "get_file_metadata",
-        "read_file_chunk"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "pflanzen.145",
-      "area": "pflanzen",
-      "action": "Garteninformationen im Kundenkonto",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "get_customer",
-        "update_customer"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
       "id": "platform.147",
       "area": "plattform",
       "action": "Google-Kalender erstmalig verbinden / App-Kalender anlegen",

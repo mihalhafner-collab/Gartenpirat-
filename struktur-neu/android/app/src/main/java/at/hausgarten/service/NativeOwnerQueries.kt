@@ -189,37 +189,7 @@ return withStorageContract(JSONObject().put("photo_storage", repository.photoSto
 }
 }
 "search_catalog" -> {
-run {
-if (("service" == args.optString("catalog_type"))) {
-var filters = JSONObject(args.toString())
-filters.remove("catalog_type")
-return OfferTools.query("search_offer_templates", filters, repository.state())
-}
-var q = args.optString("query").lowercase(Locale.GERMAN)
-var skip: Int = args.optInt("offset")
-var limit: Int = args.optInt("limit", 20)
-var total: Int = 0
-var out = JSONArray()
-var rows = repository.plants()
-run {
-var i: Int = 0
-var firstIteration14 = true
-while (true) {
-if (firstIteration14) firstIteration14 = false else { i++ }
-if (!(i < rows.length())) break
-
-var p = rows.getJSONObject(i)
-if (!(p.toString().lowercase(Locale.GERMAN).contains(q))) {
-continue
-}
-if (total++ >= skip && out.length() < limit) {
-out.put(p)
-}
-
-}
-}
-return JSONObject().put("entries", out).put("total", total)
-}
+return OfferTools.query("search_offer_templates", JSONObject(args.toString()).apply { remove("catalog_type") }, repository.state())
 }
 "list_archive" -> {
 run {
@@ -271,11 +241,8 @@ return JSONObject().put("archive", out).put("total", keys.size)
 }
 }
 "get_catalog_entry" -> {
-if (args.getString("entry_id").startsWith("svc_")) {
 var e = PixelMcpWriteTools.find(repository.effective().getJSONArray("service_catalog"), args.getString("entry_id"))
 return JSONObject().put("entry", e).put("record_hash", PixelMcpWriteTools.hash(e))
-}
-return repository.entry(args.getString("entry_id"))
 }
 "get_file_metadata", "read_file_chunk" -> {
 return repository.readChunk(args)

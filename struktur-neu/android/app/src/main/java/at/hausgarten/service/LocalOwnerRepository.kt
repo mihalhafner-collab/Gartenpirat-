@@ -223,14 +223,6 @@ return out.toByteArray()
 
 }
 }
-@Throws(Exception::class) fun plants(): JSONArray {
-
-return JSONObject(String(asset("plant-catalog.json"), StandardCharsets.UTF_8)).getJSONArray("plants")
-}
-@Throws(Exception::class) fun entry(id: String): JSONObject {
-
-return PixelMcpWriteTools.find(plants(), id)
-}
 private fun localOriginalMissing(): PixelMcpWriteTools.Rejected {
 
 return PixelMcpWriteTools.Rejected("LOCAL_ORIGINAL_MISSING", "Das benötigte Original fehlt im lokalen Bestand. Das Original gezielt importieren oder eine geprüfte vollständige Sicherung am Gerät prüfen; nichts geändert.")

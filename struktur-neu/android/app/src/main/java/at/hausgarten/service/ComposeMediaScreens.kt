@@ -45,11 +45,11 @@ import org.json.JSONObject
 import java.io.File
 import java.util.UUID
 
-/** Native photo and bundled plant-library views. Every business write uses the shared owner path. */
+/** Native photo views. Every business write uses the shared owner path. */
 @Composable
 internal fun NativeMediaScreen(section: String, id: String, controller: NativeAppController) {
     key(section, id, controller.route.mode, controller.route.args.toString()) {
-        if (section == "plants") NativePlantLibrary(id, controller) else NativePhotoLibrary(id, controller)
+        NativePhotoLibrary(id, controller)
     }
 }
 
@@ -62,11 +62,6 @@ private fun mediaInspectionMessage(proof: JSONObject): String = when (proof.optS
     else -> "Das Ergebnis ist noch offen. Eingaben und ursprünglicher Vorgang bleiben erhalten. Es wurde nichts erneut gespeichert."
 }
 private fun jsonRows(rows: JSONArray?): List<JSONObject> = (0 until (rows?.length() ?: 0)).map { rows!!.getJSONObject(it) }
-private fun fieldText(value: Any?): String = when (value) {
-    null, JSONObject.NULL -> ""
-    is JSONArray -> (0 until value.length()).map { fieldText(value.opt(it)) }.filter { it.isNotBlank() }.joinToString(" · ")
-    else -> value.toString()
-}
 
 private suspend fun mediaWrite(controller: NativeAppController, tool: String, args: JSONObject): JSONObject {
     val response = controller.call(tool, args)
@@ -535,163 +530,21 @@ private fun NativePhotoSettings(controller: NativeAppController, close: () -> Un
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun NativePlantLibrary(initialId: String, controller: NativeAppController) {
-    val imeVisible = WindowInsets.isImeVisible
-    var catalog by remember { mutableStateOf<JSONObject?>(null) }
-    var error by remember { mutableStateOf("") }
-    var selected by rememberSaveable(initialId) { mutableStateOf(initialId) }
-    var search by rememberSaveable { mutableStateOf("") }
-    var category by rememberSaveable { mutableStateOf("") }
-    var light by rememberSaveable { mutableStateOf("") }
-    var neophyte by rememberSaveable { mutableStateOf("") }
-    var limit by rememberSaveable { mutableIntStateOf(40) }
-    LaunchedEffect(Unit) { try { catalog = withContext(Dispatchers.IO) { controller.context.assets.open("plant-catalog.json").bufferedReader().use { JSONObject(it.readText()) } } } catch (failure: Exception) { error = mediaError(failure) } }
-    val plants = remember(catalog) { jsonRows(catalog?.optJSONArray("plants")) }
-    val chosen = plants.firstOrNull { it.optString("id") == selected }
-    if (chosen != null) { NativePlantDetail(chosen, catalog!!, controller) { selected = "" }; return }
-    val filtered = remember(plants, search, category, light, neophyte) { plants.filter { plant ->
-        val neo = plant.optJSONObject("neophyte")
-        (category.isBlank() || plant.optString("category") == category) && (light.isBlank() || (0 until (plant.optJSONArray("light")?.length() ?: 0)).any { plant.getJSONArray("light").getString(it).startsWith(light) }) &&
-            when (neophyte) { "all" -> neo?.optBoolean("isNeophyte") == true; "established" -> neo?.optString("establishmentStatus") in listOf("established", "locally-established"); "invasive" -> neo?.optBoolean("invasive") == true; "union" -> neo?.optBoolean("unionConcern") == true; else -> true } &&
-            SnapshotReadSupport.matches(search, listOf(plant.optString("name"), plant.optString("scientificName"), plant.optString("family"), plant.optString("category"), fieldText(plant.opt("alternativeNames")), fieldText(plant.opt("light")), neo?.optString("statusLabel").orEmpty(), neo?.optString("austriaStatus").orEmpty()).joinToString(" "))
-    } }
-    var filters by remember { mutableStateOf(false) }
-    NativeSearchList("Name, botanischer Name oder Familie", search, { search = it; limit = 40 },
-        "${filtered.size} Treffer", onFilters = { filters = true }) {
-        val filterLabel = listOf(category, light, when(neophyte) { "all" -> "Neophyten"; "established" -> "Etabliert"; "invasive" -> "Invasiv"; "union" -> "EU-Unionsliste"; else -> "" }).filter { it.isNotBlank() }.joinToString(" · ")
-        if (filterLabel.isNotBlank() && !imeVisible) Text(filterLabel, Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-        if (error.isNotBlank()) Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-        if (neophyte.isNotBlank() && !imeVisible) Text(catalog?.optJSONObject("neophyteReference")?.optString("notice").orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-        if (imeVisible || search.isNotBlank()) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)) {
-            if (filtered.isEmpty() && catalog != null) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
-            items(filtered.take(limit), key = { it.getString("id") }) { plant ->
-                ListItem(headlineContent = { Text(plant.optString("name")) }, supportingContent = { Text(plant.optString("scientificName")) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { selected = plant.getString("id") })
-            }
-            if (filtered.size > limit) item { TextButton({ limit += 40 }) { Text("Weitere laden") } }
-        } else LazyVerticalGrid(columns = GridCells.Adaptive(148.dp), modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (filtered.isEmpty() && catalog != null) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
-            items(filtered.take(limit), key = { it.getString("id") }) { plant -> Card(onClick = { selected = plant.getString("id") }) {
-                MediaAssetImage(plant.optJSONArray("images")?.optJSONObject(0)?.optString("path").orEmpty(), plant.optString("name"), controller, Modifier.fillMaxWidth().height(130.dp))
-                Text(plant.optString("name"), Modifier.padding(8.dp), style = MaterialTheme.typography.titleSmall)
-                Text(plant.optString("scientificName"), Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.bodySmall)
-                Text(plant.optString("category"), Modifier.padding(8.dp), style = MaterialTheme.typography.bodySmall)
-            } }
-        }
-        if (!imeVisible) NativeActions {
-            OutlinedButton(onClick = { if (plants.isNotEmpty()) selected = plants.random().getString("id") }, enabled = plants.isNotEmpty()) { Text("Zufällige Pflanze") }
-            if (filtered.size > limit) Button(onClick = { limit += 40 }) { Text("Weitere laden") }
-        }
-    }
-    if (filters) Dialog(onDismissRequest = { filters = false }) { Surface(shape = MaterialTheme.shapes.large) {
-        Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Pflanzen filtern", style = MaterialTheme.typography.titleLarge)
-            TextButton({ search = ""; category = ""; light = ""; neophyte = ""; limit = 40 }) { Text("Zurücksetzen") }
-            MediaDropdown("Gruppe", category, linkedMapOf("" to "Alle Gruppen").apply { plants.map { it.optString("category") }.distinct().sorted().forEach { put(it, it) } }) { category = it; limit = 40 }
-            MediaDropdown("Standort", light, linkedMapOf("" to "Alle Standorte", "Sonne" to "Sonne", "Halbschatten" to "Halbschatten", "Schatten" to "Schatten")) { light = it; limit = 40 }
-            MediaDropdown("Status", neophyte, linkedMapOf("" to "Alle Pflanzen", "all" to "Alle erfassten Neophyten", "established" to "Etabliert / lokal etabliert", "invasive" to "Invasiv eingestuft", "union" to "EU-Unionsliste")) { neophyte = it; limit = 40 }
-            Button(onClick = { filters = false }, Modifier.fillMaxWidth()) { Text("Anwenden") }
-        }
-    } }
-}
-
-@Composable
-private fun NativePlantDetail(plant: JSONObject, catalog: JSONObject, controller: NativeAppController, close: () -> Unit) {
-    var image by remember { mutableIntStateOf(-1) }
-    var customerPicker by remember { mutableStateOf(false) }
-    var tab by rememberSaveable(plant.optString("id")) { mutableIntStateOf(0) }
-    val images = jsonRows(plant.optJSONArray("images"))
-    BackHandler { close() }
-    Column(Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically) { TextButton(onClick = close) { Text("Zurück") }; Text("Pflanzenporträt", style = MaterialTheme.typography.titleLarge) }
-        ScrollableTabRow(tab) {
-            for ((index, title) in listOf("Pflege", "Wissen und Hinweise", "Quellen").withIndex()) Tab(tab == index, { tab = index }, text = { Text(title) })
-        }
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item { Text(plant.optString("name"), style = MaterialTheme.typography.headlineMedium); Text(plant.optString("scientificName") + " · " + plant.optString("family")); Text(plant.optString("category"), style = MaterialTheme.typography.labelLarge) }
-            item {
-                if (plant.optString("acceptedName").isNotBlank()) MediaFact("Akzeptierter botanischer Name", plant.opt("acceptedName"))
-                for (warning in listOf(fieldText(plant.opt("scopeWarnings")), when (plant.optString("taxonScope")) { "horticultural_group" -> "Gartengruppe: Angaben gelten nicht automatisch für jede Sorte."; "species_aggregate" -> "Artengruppe: Ähnliche Kleinarten sind hier zusammengefasst."; else -> "" }, if (plant.optString("cultivationScope") == "IDENTIFICATION_AND_PREVENTION_REFERENCE_NO_CULTIVATION_ADVICE") "Zur Identifikation und Prävention. Keine Anbauempfehlung." else "")) if (warning.isNotBlank()) Text(warning)
-            }
-            item {
-                Text("Giftigkeit und Umgang", style = MaterialTheme.typography.titleMedium)
-                MediaFact("Giftigkeit laut Quelle", plant.opt("poison")); MediaFact("Hautreaktionen laut Quelle", plant.opt("contact"))
-                if (fieldText(plant.opt("rhsWarnings")).isNotBlank()) MediaFact("Zusätzliche Warnhinweise", plant.opt("rhsWarnings"))
-                Text(plant.optString("safetyNotice")); Text(catalog.optString("safetyNote"))
-            }
-            if (tab == 0) {
-            items(images.indices.toList()) { index -> val picture = images[index]; Column {
-                MediaAssetImage(picture.optString("path"), plant.optString("name"), controller, Modifier.fillMaxWidth().height(220.dp).clickable { image = index }, ContentScale.Fit)
-                Text(picture.optString("caption") + " · " + picture.optString("author") + " · " + picture.optString("license"), style = MaterialTheme.typography.bodySmall)
-                Text(picture.optString("changes"), style = MaterialTheme.typography.bodySmall)
-                Row { MediaWebLink("Bildquelle", picture.optString("source")); MediaWebLink("Lizenz", picture.optString("licenseUrl")) }
-            } }
-            item { Text("Standort und Wuchs", style = MaterialTheme.typography.titleLarge) }
-            items(listOf("light" to "Licht", "soil" to "Boden", "water" to "Bodenfeuchte / Drainage", "ph" to "Boden-pH", "dimensions" to "Größe · Richtwerte", "life" to "Lebensdauer", "foliage" to "Laub", "growth" to "Wachstum", "bloom" to "Blütezeit · Richtwerte", "colors" to "Blütenfarben", "planting" to "Pflanzen und Düngen", "care" to "Pflege und Schnitt", "propagation" to "Vermehrung", "hardiness" to "Winterhärte · Quellenklassifikation", "origin" to "Herkunft laut Quelle")) { (key, label) -> MediaFact(label, plant.opt(key)) }
-            }
-            if (tab == 1) {
-            plant.optJSONObject("neophyte")?.let { neo ->
-                item { Text("Neophyten- und Rechtsinformation", style = MaterialTheme.typography.titleLarge) }
-                items(listOf("austriaStatus" to "Status in Österreich", "statusLabel" to "Einordnung", "recognition" to "Erkennungsmerkmale", "spread" to "Ausbreitung", "impacts" to "Ökologische Auswirkungen", "control" to "Kontrolle", "disposal" to "Entsorgung", "legalNotes" to "Rechtlicher Hinweis", "dataNote" to "Datenumfang")) { (key, label) -> MediaFact(label, neo.opt(key)) }
-                item { Text(catalog.optJSONObject("neophyteReference")?.optString("notice").orEmpty()) }
-            }
-            plant.optJSONObject("regionalRestrictions")?.let { law ->
-                item {
-                    Text("Regionale Rechtsinformationen", style = MaterialTheme.typography.titleLarge)
-                    law.optJSONObject("EU")?.let { eu -> if (eu.optString("effectiveDate").isNotBlank()) MediaFact("Europäische Union · Beschränkungen ab " + eu.optString("effectiveDate"), eu.opt("restrictionsSummary")) }
-                    law.optJSONObject("CH")?.let { ch -> if (ch.optString("annex").isNotBlank()) MediaFact("Schweiz · FrSV Anhang " + ch.optString("annex"), ch.opt("notice")) }
-                    Text("Quellenstand " + law.optString("checkedAt") + ". " + law.optString("regionalRules"))
-                }
-            }
-            item { Text(catalog.optString("climateNote")) }
-            }
-            if (tab == 2) {
-            item { Text("Quellen und regionale Hinweise", style = MaterialTheme.typography.titleLarge); Text(catalog.optString("climateNote")) }
-            items(jsonRows(plant.optJSONArray("sources"))) { source -> Column { MediaWebLink(source.optString("title"), source.optString("url")); Text("Geprüft: " + source.optString("checked"), style = MaterialTheme.typography.bodySmall) } }
-            }
-            item { Text("Pflegehinweise sind redaktionelle Orientierung. Sorten, konkrete Situation und örtliche Schnittvorgaben prüfen.") }
-        }
-        NativeActionBar("Gartenangaben öffnen", { customerPicker = true }, "Zurück", close)
-    }
-    if (image >= 0) MediaZoomDialog("", controller, assetPaths = images.map { it.optString("path") }, initialIndex = image, captions = images.map { it.optString("caption") + " · " + it.optString("author") + " · " + it.optString("license") }, close = { image = -1 })
-    if (customerPicker) MediaEntityPicker("customers", controller, dismiss = { customerPicker = false }) { row -> customerPicker = false; controller.navigate("customers", row.id, "edit", JSONObject().put("focus", "garden_area")) }
-}
-
-@Composable
-private fun MediaAssetImage(path: String, description: String, controller: NativeAppController, modifier: Modifier, scale: ContentScale = ContentScale.Crop) {
-    val safe = path.matches(Regex("plant-images/[A-Za-z0-9_.-]+\\.(jpg|jpeg|png|webp)")) && !path.contains("..")
-    var failed by remember(path) { mutableStateOf(false) }
-    val density = LocalDensity.current
-    BoxWithConstraints(modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-        val width = with(density) { maxWidth.roundToPx() }.coerceIn(32, 1280)
-        val height = with(density) { maxHeight.roundToPx() }.coerceIn(32, 1280)
-        if (safe) AsyncImage(model = ImageRequest.Builder(controller.context).data("file:///android_asset/$path").size(width, height).build(), imageLoader = controller.imageLoader, contentDescription = description, modifier = Modifier.fillMaxSize(), contentScale = scale, onError = { failed = true })
-        if (!safe || failed) Text("Bild nicht verfügbar", Modifier.padding(8.dp))
-    }
-}
-
-@Composable
-private fun MediaZoomDialog(photoId: String, controller: NativeAppController, assetPaths: List<String> = emptyList(), initialIndex: Int = 0, captions: List<String> = emptyList(), close: () -> Unit) {
-    var index by remember { mutableIntStateOf(initialIndex.coerceAtLeast(0)) }
-    var scale by remember(index) { mutableFloatStateOf(1f) }
-    var pan by remember(index) { mutableStateOf(Offset.Zero) }
+private fun MediaZoomDialog(photoId: String, controller: NativeAppController, close: () -> Unit) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var pan by remember { mutableStateOf(Offset.Zero) }
     val transform = rememberTransformableState { zoom, change, _ -> scale = (scale * zoom).coerceIn(1f, 5f); pan = if (scale <= 1f) Offset.Zero else pan + change }
     val source by produceState<File?>(null, photoId) { if (photoId.isNotBlank()) value = withContext(Dispatchers.IO) { runCatching { controller.store.photoAttachment(photoId)?.let { controller.store.photoAttachmentStore().verifiedFile(it) } }.getOrNull() } }
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Column(Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
             Box(Modifier.weight(1f).fillMaxWidth().transformable(transform), contentAlignment = Alignment.Center) {
-                val model = if (assetPaths.isEmpty()) source else assetPaths.getOrNull(index)?.takeIf { it.matches(Regex("plant-images/[A-Za-z0-9_.-]+\\.(jpg|jpeg|png|webp)")) && !it.contains("..") }?.let { "file:///android_asset/$it" }
-                AsyncImage(model = ImageRequest.Builder(controller.context).data(model).size(2048, 2048).build(), imageLoader = controller.imageLoader, contentDescription = "Bild in Vollansicht", modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = scale; scaleY = scale; translationX = pan.x; translationY = pan.y }, contentScale = ContentScale.Fit)
+                AsyncImage(model = ImageRequest.Builder(controller.context).data(source).size(2048, 2048).build(), imageLoader = controller.imageLoader, contentDescription = "Bild in Vollansicht", modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = scale; scaleY = scale; translationX = pan.x; translationY = pan.y }, contentScale = ContentScale.Fit)
             }
-            if (captions.getOrNull(index).orEmpty().isNotBlank()) Text(captions[index], Modifier.padding(12.dp), color = Color.White, style = MaterialTheme.typography.bodySmall)
             Text("Mit zwei Fingern vergrößern und verschieben.", Modifier.padding(horizontal = 12.dp), color = Color.White, style = MaterialTheme.typography.bodySmall)
             Row(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                if (assetPaths.size > 1) TextButton(onClick = { index = (index - 1 + assetPaths.size) % assetPaths.size }) { Text("Vorheriges") }
                 TextButton(onClick = { scale = 1f; pan = Offset.Zero }) { Text("Zurücksetzen") }
                 TextButton(onClick = close) { Text("Schließen") }
-                if (assetPaths.size > 1) TextButton(onClick = { index = (index + 1) % assetPaths.size }) { Text("Nächstes") }
             }
         }
     }
@@ -726,14 +579,4 @@ private fun MediaPagination(offset: Int, count: Int, total: Int, limit: Int, cha
         Text("${if (total == 0) 0 else offset + 1}–${offset + count} / $total", style = MaterialTheme.typography.bodySmall)
         TextButton(enabled = offset + count < total, onClick = { changed(offset + limit) }) { Text("Weitere") }
     }
-}
-
-@Composable
-private fun MediaFact(label: String, value: Any?) { NativeInfoRow(label, fieldText(value).ifBlank { "In der Quelle nicht angegeben" }) }
-
-@Composable
-private fun MediaWebLink(label: String, url: String) {
-    val context = LocalContext.current
-    val parsed = remember(url) { runCatching { Uri.parse(url).takeIf { it.scheme in listOf("https", "http") && !it.host.isNullOrBlank() } }.getOrNull() }
-    if (parsed != null) TextButton(onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, parsed)) } }) { Text(label.ifBlank { "Quelle öffnen" }) }
 }

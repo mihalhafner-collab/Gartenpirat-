@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     (ROOT / 'outputs').mkdir(exist_ok=True)
-    # Contract, action, fixture, plant and maintenance-text checks run in every Gradle build (preBuild).
+    # Contract, action, fixture and maintenance-text checks run in every Gradle build (preBuild).
     checks = [
         ['-c', 'import privacy_guard; print(privacy_guard.source_gate())'],
         ['tools/check_release_baseline.py'],

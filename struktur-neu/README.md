@@ -19,7 +19,6 @@ benötigen weiterhin einen eigenen Auftrag.
 | Pfad | Inhalt |
 |---|---|
 | `android/` | Kotlin-App, native Compose-Oberfläche und Android-Baukonfiguration |
-| `libraries/plants/` | Pflanzenquellen, Bildrechte und notwendige redaktionelle Eingaben |
 | `tools/` | Tatsächlich benötigte Build-, Pflege- und Prüfwerkzeuge |
 | `tests/` | Ausgewählte aktuelle Prüfungen und ihre Hilfsdaten |
 | `docs/` | Bauanleitung, Originalsignierung und Fachregeln |

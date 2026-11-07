@@ -242,9 +242,6 @@ private fun RevierList(config: RevierSection, controller: NativeAppController, r
                 )
                 HorizontalDivider()
             }
-            if (config.kind == "material" && !imeVisible) item {
-                NativeInfoRow("Pflanzen und Pflege", "Wissen und Pflegepläne", { controller.navigate("plants") })
-            }
             if (offset > 0 || page.hasMore) item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton({ offset = (offset - 50).coerceAtLeast(0) }, enabled = offset > 0) { Text("Vorherige") }
                 TextButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }

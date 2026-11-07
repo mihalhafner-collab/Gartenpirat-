@@ -203,8 +203,7 @@ internal class OwnerToolSchemas {
             required: MutableList<String>,
         ): Unit {
 
-            p.put("catalog_type", McpFields.enumeration("plant", "service"))
-                .put("query", McpFields.text(200))
+            p.put("query", McpFields.text(200))
                 .put("offset", McpFields.number(0, 1000000))
                 .put("limit", McpFields.number(1, 100))
         }
