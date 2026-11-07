@@ -332,7 +332,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     /** Work records have no tab; the office lists them first. */
     private fun openWorklogs() {
         openOffice(); click("Arbeiten")
-        waitUntil("WORK_LIST_READY") { node("Arbeit nachtragen") != null || node("‹ Zurück") != null }
+        repeat(12) {
+            fun ready() = field("Suchen")?.isEditable == true
+            waitUntil("WORK_LIST_OR_RETAINED_DETAIL") { ready() || node("‹ Zurück")?.let(::clickable) != null }
+            if (ready()) return
+            click("‹ Zurück", scrollTo = false)
+        }
+        throw AssertionError("QA_NATIVE_COMPOSE_WORK_LIST_BACK_PATH")
     }
 
     private fun openOffice() {
@@ -352,9 +358,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         throw AssertionError("QA_NATIVE_COMPOSE_OFFICE_BACK_PATH")
     }
 
-    private fun discardWork(confirm: Boolean = true) {
-        if (confirm) click("Entwurf verwerfen")
-        else yes(node("Entwurf verwerfen") != null, "DISCARD_AVAILABLE_WITHOUT_CONFIRMATION")
+    private fun discardWork() {
+        click("Entwurf verwerfen")
+        // Discard removes its durable draft asynchronously. Do not navigate away
+        // and cancel that coroutine before its original editor has closed.
+        waitUntil("DISCARDED_EDITOR_CLOSED") { node("Entwurf verwerfen") == null }
+        settleUi()
     }
 
     private fun primaryPosition(primary: String, secondary: String) {
@@ -802,9 +811,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Zurück")
         openWorklogs(); shown(prefix + "1 korrigiert")
         fun hold(label: String) {
-            var candidate: AccessibilityNodeInfo? = requireNotNull(node(label))
-            while (candidate != null && candidate.actionList.none { it.id == AccessibilityNodeInfo.ACTION_LONG_CLICK }) candidate = candidate.parent
-            yes(requireNotNull(candidate).performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK), "WORK_LONG_PRESS_SELECTION")
+            waitUntil("WORK_LONG_PRESS_TARGET_$label") {
+                var candidate = node(label)
+                while (candidate != null && candidate.actionList.none { it.id == AccessibilityNodeInfo.ACTION_LONG_CLICK }) candidate = candidate.parent
+                candidate?.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK) == true
+            }
+            checks++
             settleUi()
         }
         hold(prefix + "1 korrigiert"); shown("1 ausgewählt")
@@ -1193,6 +1205,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val ownText = "[TEST] QA usability work"
         enter("Was wurde erledigt? *", ownText)
         click("Textbausteine ▾"); click("Rasen gemäht")
+        reveal("Was wurde erledigt? *")
         waitUntil("OWN_TEXT_RETAINED_AFTER_SNIPPET") { field("Was wurde erledigt? *")?.text?.toString() == ownText + "\nRasen gemäht" }
         click("Weitere Angaben")
         enter("Freier Betrag (€)", "73,40"); enter("Notizen", "[TEST] QA sofort sichtbare Notiz")
@@ -1212,9 +1225,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(row.getDouble("disposal_cost") == 73.4 && row.getString("activity") == ownText + "\nRasen gemäht", "DISPOSAL_AND_OWN_TEXT_AND_PHRASE_SAVED")
         click(row.getString("activity")); reveal("[TEST] QA sofort sichtbare Notiz")
         click("Tätigkeit"); enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
-        discardWork(confirm = false)
-        reveal("Was wurde erledigt? *")
-        yes(field("Was wurde erledigt? *")?.text?.toString()?.contains("ungespeichert") == true, "CANCEL_DISCARD_RETAINS_INPUT")
         discardWork()
         yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
         yes(saved()?.getString("activity") == row.getString("activity"), "DISCARD_DOES_NOT_SAVE_CHANGES")
@@ -1226,7 +1236,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Stunden", "3"); enter("Minuten", "30")
         shown("Reine Arbeitszeit. Keine Pause zusätzlich abziehen.")
         yes(node("Pause (Minuten)") == null && node("Beginn") == null && node("Ende") == null, "DURATION_EXCLUDES_TIMES_AND_PAUSE")
-        click("Weitere Angaben"); enter("Kilometer", "7,25"); enter("Materialkosten", "12,50")
+        // The new-work route retains the expanded details from the first entry.
+        enter("Kilometer", "7,25"); enter("Materialkosten", "12,50")
         click("Arbeit speichern")
         waitUntil("DECIMAL_WORK_SAVED") {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
@@ -1475,10 +1486,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Arbeit speichern")
         yes(!actionEnabled("Arbeit speichern"), "PHOTO_CUSTOMER_REQUIRED_BEFORE_SAVE_ENABLED")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == workCount, "PHOTO_CUSTOMER_REQUIREMENT_CHECKED_BEFORE_WORK_SAVE")
-        discardWork(confirm = false)
-        yes(File(requireNotNull(other.path)).isFile, "CANCEL_DISCARD_KEEPS_TEMP_PHOTO")
         reveal("Was wurde erledigt? *")
-        yes(field("Was wurde erledigt? *")?.text?.toString() == "QA unsaved photo draft", "CANCEL_DISCARD_KEEPS_PHOTO_FORM")
+        yes(field("Was wurde erledigt? *")?.text?.toString() == "QA unsaved photo draft", "PHOTO_DRAFT_LOADS_OWN_TEXT")
         discardWork()
         waitUntil("DISCARD_REMOVES_TEMP_PHOTO_AND_DRAFT") {
             !File(requireNotNull(other.path)).exists() &&
@@ -1566,9 +1575,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     listOf("While using the app", "Allow", "Bei Nutzung der App"))?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
                 cameraAction(listOf("location_tagging_dialog_negative_button"), listOf("No thanks", "No, thanks", "Nein, danke"))
                     ?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                shutter() != null
+                shutter() != null && automation.rootInActiveWindow?.packageName?.toString() == cameraPackage
             }
-            yes(automation.rootInActiveWindow?.packageName?.toString() == cameraPackage, "EXTERNAL_CAMERA_OWNS_WINDOW")
+            checks++
         }
         fun photos() = PixelMcpReadTools.effective(store.getState()).getJSONArray("photos")
         val before = photos().length()
@@ -1759,8 +1768,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         awaitTimerCompletionReady(discardedId, "[TEST] QA verworfener Abschluss")
         click("Weitere Angaben (optional)")
         reveal("Entwurf verwerfen")
-        discardWork(confirm = false)
-        yes(read("get_active_work_session").optString("state") == "STOPPED_PENDING_REVIEW", "CANCEL_TIMER_DISCARD_RETAINS_STOPPED_SESSION")
         val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
         val completionKey = "action:complete_work_session:$discardedId"
         runBlocking { controller.flushDrafts() }
@@ -2050,7 +2057,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     else { click("Alle Objekte"); click("QA Kontextobjekt 0"); click("Angebot vorbereiten") }
                     val title = if (fromInquiry) "QA Kontextanfrage 0" else "QA Kontextobjekt 0"
                     shown("Kunde: $name"); reveal("Titel *")
-                    yes(field("Titel *")?.text?.toString()?.contains(title) == true, "OFFER_SOURCE_TITLE_$fromInquiry")
+                    waitUntil("OFFER_SOURCE_TITLE_$fromInquiry") { field("Titel *")?.text?.toString() == title }
                     enter("Titel *", "$title geprüft")
                     val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("finance:offers:new")
                     waitUntil("OFFER_SOURCE_DRAFT_$fromInquiry") { store.ownerValue(draftKey, "").contains("_source_context") }
@@ -2061,6 +2068,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     yes(field("Titel *")?.text?.toString()?.contains("$title geprüft") == true, "OFFER_SOURCE_TITLE_RECREATED_$fromInquiry")
                     click("Zeitraum und Bedingungen"); reveal("Einsatzort"); yes(field("Einsatzort")?.text?.toString()?.contains("QA Gartenweg 0, Testort") == true, "OFFER_SOURCE_LOCATION_$fromInquiry")
                     discardWork()
+                    waitUntil("OFFER_SOURCE_DRAFT_REMOVED_$fromInquiry") { store.ownerValue(draftKey, "").isEmpty() }
                     openCustomerList(); enter("Suchen", name); click(name)
                 }
                 val invoiceCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
@@ -2352,8 +2360,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         showKeyboard(fieldLabel); visibleResult(result, requireKeyboard = true)
         captureSyntheticScreen("domain-$key", requireKeyboard = true)
         yes(requireNotNull(field(fieldLabel)).performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id), "DOMAIN_IME_ACTION_$key")
-        waitUntil("DOMAIN_IME_CLOSED_$key") { !keyboardVisible() }
-        yes(field(fieldLabel)?.text?.toString()?.contains(query) == true, "DOMAIN_QUERY_RETAINED_$key")
+        waitUntil("DOMAIN_IME_CLOSED_WITH_QUERY_$key") {
+            !keyboardVisible() && field(fieldLabel)?.text?.toString()?.contains(query) == true
+        }
         visibleResult(result)
         showKeyboard(fieldLabel); visibleResult(result, tap = true, requireKeyboard = true)
         waitUntil("DOMAIN_TOUCH_OPENED_$key") { !keyboardVisible() && field(fieldLabel) == null }

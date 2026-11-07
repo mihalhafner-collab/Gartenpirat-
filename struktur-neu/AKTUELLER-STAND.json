@@ -49,13 +49,19 @@
     "version_name": "1.62.0",
     "version_code": 133,
     "source_sha256": "d9c52e78e322d9ad2afcf1783ac3d528ff7703e73307ce78289acad760eff937",
-    "status": "In Entwicklung; volle CI ausstehend. Installation und Verteilung nicht freigegeben.",
+    "status": "Unsignierter Prüfstand 1.62.0/133 für volle CI und Claude-Review; Installation und Verteilung nicht freigegeben.",
     "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“. Büro flach ohne Aufklappgruppen; „Weitere Aktionen“ nur mit ändernden Aktionen; einheitliche Namen (Arbeiten, Einsätze, Suche, Archiv, Neue Abrechnung, Rechnungen & Labor). Heute nach Entwurf; Arbeitsdetail gruppiert (Zeit, Abrechnung, Kosten & Weg, Weiteres, Aktionen). Kundenakte mit Kürzel-Kopf und Gruppen (Kontakt, Abrechnung, Verlauf, Unterlagen); Kundenliste mit Kürzeln und offenen Stunden; Abrechnung mit Reitern Offen · Rechnungen & Labor · Summen. WebView vollständig entfernt (Eigentümerentscheidung 07.11.2026): kein Browserstand in Sicherungen, nur pixel.snapshot.v2 wiederherstellbar; alte WebView-Einträge und Entwurfsfotos werden beim Start gelöscht. Pflanzenbibliothek entfernt (APK etwa 12 statt 88 MB)."
   },
   "current_task": {
     "name": "Version 133: Compose-Abläufe isolieren und volle CI grün machen",
-    "status": "Isolation und Wartekorrekturen gepusht (2612d21, 7f3f8ef); volle Emulatorläufe 42387530148 und 42387770913 laufen. Erweiterter Standardlauf mit settlement/accounting und sechs isolierten Grafikabläufen gepusht (9f1ad74), volle CI 42388033966 läuft. Abrechnungs-UI-Tests öffnen jetzt ausdrücklich die Bereichsübersicht statt eine gemerkte Detailseite vorauszusetzen; check_current.py und Release-/Test-Build mit lintRelease grün; voller CI-Lauf folgt. Keine Installation, Verteilung oder Merge; PR erst nach grünem vollem Lauf.",
-    "owner_instruction": "Ausdrücklicher Auftrag 07.11.2026: Isolation, rote Ursachen beheben, native_settlement/native_accounting/native_graphics in vollen Lauf aufnehmen; je Schritt prüfen, bauen mit Lint, committen, pushen und volle CI mit emulator=true."
+    "status": "21 Compose- und sechs Grafikabläufe starten einzeln nach pm clear in neuem Prozess mit eigenen synthetischen Abhängigkeiten. Restkorrekturen: sichtbare Text-/Suchfelder nach UI-Wechsel abwarten, gemerkte Arbeitsdetails bis zur wirklichen Liste verlassen, Entwurfsverwerfen samt dauerhaft entferntem Entwurf abschließen lassen, geöffneten Abschnitt Weitere Angaben erhalten; Kameraauslöser nur im externen Kamerafenster erkennen. Überholte Rückfrageprüfungen entfernt. Settlement, Accounting und Graphics sind im vollen Standardlauf. Freigabe erst über grünen vollen CI-Lauf des abschließenden Stands, danach PR nach main zur Claude-Prüfung; kein Merge, keine Pixel-Installation, keine Verteilung.",
+    "owner_instruction": "Ausdrücklicher Auftrag 07.11.2026: Isolation, rote Ursachen beheben, native_settlement/native_accounting/native_graphics in vollen Lauf aufnehmen; je Schritt prüfen, bauen mit Lint, committen, pushen und volle CI mit emulator=true.",
+    "validation": {
+      "source": "PASS; check_current.py und Release-Baseline.",
+      "android": "PASS; assembleRelease, assembleReleaseAndroidTest und lintRelease; APK-Datenschutzprüfung.",
+      "diagnostic_ci": "42388033966: Backup, Daten, Provider, native_settlement samt Wiederanlauf, native_accounting samt Wiederanlauf und fünf Grafikabläufe grün. Rote Compose-Restfälle, Grafik-Arbeitsliste und Settlement-UI-Rückweg anhand Protokollen und synthetischen Bildern untersucht; Korrekturen implementiert.",
+      "ci_gate": "Je Commit qa-apk.yml mit emulator=true ohne *_only; nur vollständig grüner Lauf zählt."
+    }
   },
   "open_checks": [
     "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
