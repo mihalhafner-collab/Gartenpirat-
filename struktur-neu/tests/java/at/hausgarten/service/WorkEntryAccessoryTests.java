@@ -30,6 +30,21 @@ public final class WorkEntryAccessoryTests {
         JSONObject none = work(); WorklogRules.validate(none,true); yes(!none.has("disposal_cost"));
         JSONObject cleared = work().put("disposal_cost", ""); WorklogRules.validate(cleared,true); yes(!cleared.has("disposal_cost"));
         JSONObject net = work().put("start_time", "").put("end_time", "").put("hours", 3.5).put("break_minutes",30); WorklogRules.validate(net,true); yes(net.getDouble("hours")==3.5);
+        JSONObject decimal = work().put("start_time", "").put("end_time", "")
+            .put("hours", "3,5").put("kilometers", "7,25").put("break_minutes", "0")
+            .put("material", "QA Material").put("material_cost", "12,50");
+        PixelMcpWriteTools.applyMaterialCost(decimal);
+        WorklogRules.validate(decimal, true);
+        JSONObject decimalReopened = new JSONObject(decimal.toString());
+        WorklogRules.validate(decimalReopened, false);
+        yes(decimalReopened.getDouble("hours") == 3.5 && decimalReopened.getDouble("kilometers") == 7.25);
+        yes(decimalReopened.get("hours") instanceof Number && decimalReopened.get("kilometers") instanceof Number);
+        yes(decimalReopened.getString("material").equals("QA Material\nMaterialkosten [EUR]: 12.50") && !decimalReopened.has("material_cost"));
+        rejects(() -> PixelMcpWriteTools.applyMaterialCost(work().put("material_cost", "-1,50")));
+        rejects(() -> PixelMcpWriteTools.applyMaterialCost(work().put("material_cost", "1,234")));
+        rejects(() -> WorklogRules.validate(work().put("break_minutes", "1,5"), true));
+        rejects(() -> WorklogRules.validate(work().put("kilometers", "-7,25"), true));
+        rejects(() -> WorklogRules.validate(work().put("kilometers", "NaN"), true));
         rejects(() -> WorklogRules.validate(work().put("break_minutes","nonsense"),true));
         rejects(() -> WorklogRules.validate(work().put("break_minutes",240),true));
         rejects(() -> WorklogRules.validate(work().put("disposal_cost","x"),true));

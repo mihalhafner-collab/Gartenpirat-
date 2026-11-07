@@ -31,7 +31,6 @@ POLICY=json.loads((ROOT/'privacy_policy.json').read_text())
 RETIRED=set(POLICY['retired_private_literal_hashes'])
 RETIRED_LENGTHS={tuple(x) for x in POLICY['retired_literal_word_lengths']}
 _archive_cache={}
-_public_images=None
 
 
 def retired_literal(raw):
@@ -86,33 +85,12 @@ def private_settings(value):
 
 
 def public_image_hashes():
-    global _public_images
-    if _public_images is not None:return set(_public_images)
-    paths=[]
-    catalog=json.loads((ROOT/'android/app/src/main/assets/plant-catalog.json').read_text())
-    paths += [ROOT/'android/app/src/main/assets'/image['path'] for plant in catalog['plants'] for image in plant['images']]
-    _public_images=set(POLICY['public_brand_image_sha256']) | {hashlib.sha256(p.read_bytes()).hexdigest() for p in paths if p.is_file() and p.suffix.lower() in IMAGES}
-    return set(_public_images)
+    """Only the public brand images may be packaged; business photos never are."""
+    return set(POLICY['public_brand_image_sha256'])
 
 
 def packaged_public_images(archive):
-    allowed=public_image_hashes()
-    # Older public botanical editions remain valid. Their own licensed catalog
-    # must enumerate each picture; arbitrary photos are never admitted by folder.
-    for name in archive.namelist():
-        if not name.endswith('/plant-catalog.json'):continue
-        try:
-            catalog=json.loads(archive.read(name));parent=Path(name).parent
-            for plant in catalog['plants']:
-                for image in plant['images']:
-                    relative=Path(image['path'])
-                    if relative.is_absolute() or '..' in relative.parts or not str(relative).startswith('plant-images/'):continue
-                    if not all(image.get(k) for k in ('author','license','source')):continue
-                    member=archive.getinfo(str(parent/relative))
-                    if member.file_size>MAX_MEMBER:continue
-                    allowed.add(hashlib.sha256(archive.read(member)).hexdigest())
-        except (KeyError,ValueError,TypeError):continue
-    return allowed
+    return public_image_hashes()
 
 
 def bootstrap_writers(source):

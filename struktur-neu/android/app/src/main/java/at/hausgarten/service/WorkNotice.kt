@@ -10,6 +10,8 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
+import android.service.quicksettings.Tile
+import android.service.quicksettings.TileService
 import org.json.JSONObject
 import java.time.Instant
 import java.time.ZoneId
@@ -58,5 +60,22 @@ internal object WorkNotice {
             else -> builder.setContentTitle("Arbeit noch abschließen").setContentText("Zeit gestoppt · zum Speichern antippen").setShowWhen(false)
         }
         manager.notify(ID, builder.build())
+    }
+}
+
+/** Quick settings tile: opens the timer like the "Arbeit starten" shortcut. */
+class WorkTileService : TileService() {
+    override fun onStartListening() {
+        qsTile?.apply { state = Tile.STATE_INACTIVE; label = "Arbeit"; updateTile() }
+    }
+
+    // The Intent variant runs only below Android 14, where it is the only API.
+    @android.annotation.SuppressLint("StartActivityAndCollapseDeprecated")
+    override fun onClick() {
+        val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            .putExtra(MainActivity.SHORTCUT, "start")
+        if (Build.VERSION.SDK_INT >= 34) startActivityAndCollapse(PendingIntent.getActivity(this, 7, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
+        else @Suppress("DEPRECATION") startActivityAndCollapse(intent)
     }
 }

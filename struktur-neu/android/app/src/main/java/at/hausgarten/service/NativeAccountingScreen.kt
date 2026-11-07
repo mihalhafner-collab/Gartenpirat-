@@ -18,9 +18,34 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
+/** Design: one billing area with tabs; "Offen" leads with what is still to bill. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NativeAccounting(controller: NativeAppController) {
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    Column(Modifier.fillMaxSize()) {
+        PrimaryTabRow(selectedTabIndex = tab) {
+            listOf("Offen", "Rechnungen & Labor", "Summen").forEachIndexed { index, label ->
+                Tab(selected = tab == index, onClick = { tab = index }, text = { Text(label, maxLines = 2) })
+            }
+        }
+        Box(Modifier.weight(1f)) {
+            when (tab) {
+                0 -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    NativeOpenHours(controller, "")
+                    Button({ controller.navigate("settlement_edit") }, Modifier.heightIn(min = 48.dp)) { Text("Neue Abrechnung") }
+                    Text("Fertig → abgerechnet → bezahlt", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                1 -> Column(Modifier.fillMaxSize()) { NativeSettlements(controller, "") }
+                else -> AccountingTotals(controller)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountingTotals(controller: NativeAppController) {
     var search by rememberSaveable { mutableStateOf("") }
     var from by rememberSaveable { mutableStateOf("") }
     var to by rememberSaveable { mutableStateOf("") }
@@ -58,7 +83,7 @@ internal fun NativeAccounting(controller: NativeAppController) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(if (path.isEmpty()) "Gesamt" else AccountingRules.label(path), style = MaterialTheme.typography.titleMedium)
                                 val pending = result?.optInt(when (path) { AccountingRules.BILLED -> "pending_billed"; AccountingRules.LABOR -> "pending_labor"; else -> "pending_amounts" }) ?: 0
-                                Text(result?.let { if (pending > 0 && it.getLong(field) == 0L) "Betrag ausstehend" else financeMoney(OfferMoney.decimal(it.getLong(field))) } ?: "…", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                                Text(result?.let { if (pending > 0 && it.getLong(field) == 0L) "Betrag ausstehend" else financeMoney(OfferMoney.decimal(it.getLong(field))) } ?: "…", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = NativeMoney)
                                 if (pending > 0) Text("$pending Beträge fehlen oder sind unvollständig", style = MaterialTheme.typography.bodySmall)
                             }
                         }
@@ -66,11 +91,6 @@ internal fun NativeAccounting(controller: NativeAppController) {
                 }
             }
             item {
-                NativeActions {
-                    Button({ controller.navigate("settlement_edit") }) { Text("Leistungen abrechnen") }
-                    TextButton({ controller.navigate("settlements") }) { Text("Abschlüsse") }
-                }
-                Text("Bestätigte Rechnungen und interne Labor-Abrechnungen liefern ihre Beträge. Fehlende Beträge bleiben ausstehend; Zahlungen sind davon getrennt.", style = MaterialTheme.typography.bodySmall)
                 TextButton({
                     scope.launch {
                         exporting = true
@@ -80,7 +100,6 @@ internal fun NativeAccounting(controller: NativeAppController) {
                         finally { exporting = false }
                     }
                 }, enabled = !exporting) { Text(if (search.isNotBlank() || from.isNotBlank() || to.isNotBlank() || property.isNotBlank() || route.isNotBlank()) "Gefilterte Abrechnung exportieren" else "Vollständige Abrechnung exportieren") }
-                Text("Zeitraum: letztes berücksichtigtes Arbeitsdatum; ohne Arbeitseintrag das geplante Auftragsdatum.", style = MaterialTheme.typography.bodySmall)
                 NativeStatus(if (route.isEmpty()) "Beide Abrechnungswege" else AccountingRules.label(route))
                 if (from.isNotEmpty() || to.isNotEmpty()) Text("${from.takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Ohne Beginn"} – ${to.takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Ohne Ende"}", style = MaterialTheme.typography.bodySmall)
             }

@@ -61,9 +61,6 @@ final class LocalBackupNativeTests {
             store.putOwnerValue("qa_backup_marker", "QA before save");
             store.putOwnerValue("qa_backup_metadata", new JSONObject().put("synthetic_value", 42).toString());
             JSONObject identity = new BackupDeviceGuard(context).current();
-            JSONObject browser = new JSONObject().put("formatVersion", 1).put("storage", new JSONObject().put("hausgarten.entry.draft.v1", "QA preserved draft 🌿"));
-            store.putOwnerValue("full_backup_browser", new JSONObject(identity.toString()).put("formatVersion", 1).put("capturedAt", java.time.Instant.now().toString()).put("browser", browser).put("contentSha256", PixelMcpWriteTools.hash(browser)).toString());
-            store.putOwnerValue(BrowserMediaRepositoryRules.PREFIX+"state",new JSONObject().put("formatVersion",99).toString());
             SQLiteDatabase db = store.getWritableDatabase();
             db.execSQL("CREATE TABLE qa_backup_payload (id INTEGER PRIMARY KEY, payload BLOB)");
             byte[] blob = new byte[65536]; new Random(71).nextBytes(blob);
@@ -95,7 +92,7 @@ final class LocalBackupNativeTests {
                 }
             });
             id = result.getString("backup_id");
-            yes(result.getBoolean("verified")); yes(result.getInt("warning_count") >= 4); yes(writes[0] == 1);
+            yes(result.getBoolean("verified")); yes(result.getInt("warning_count") >= 3); yes(writes[0] == 1);
             yes(store.ownerValue("qa_backup_marker", "").equals("QA before save"));
             yes(service.status(new JSONObject()).getString("state").equals("VERIFIED"));
             service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {}); yes(writes[0] == 1);
@@ -126,7 +123,7 @@ final class LocalBackupNativeTests {
         rejects(() -> restore.previewFrom("qa_corrupt_preview", "qa_corrupt", () -> new ByteArrayInputStream(Arrays.copyOf(zipBytes, zipBytes.length - 40))));
         JSONObject preview = restore.previewFrom("qa_native_preview", "qa_saved", () -> new FileInputStream(saved));
         yes(preview.getString("phase").equals("VALIDATED"));
-        yes(preview.getJSONObject("summary").getInt("warning_count") >= 4);
+        yes(preview.getJSONObject("summary").getInt("warning_count") >= 3);
         try (PixelLocalStore store = new PixelLocalStore(context)) { store.putOwnerValue("qa_backup_marker", "QA after save"); }
         write(new File(context.getFilesDir(), "qa-extra.txt"), "QA changed after save");
         restore.requestActivation("qa_native_activate", preview.getString("restore_id"), preview.getString("preview_hash"), true);
@@ -136,8 +133,9 @@ final class LocalBackupNativeTests {
         try (SQLiteDatabase db = SQLiteDatabase.openDatabase(database.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
             yes(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_marker", "").equals("QA before save"));
             yes(new JSONObject(DatabaseBackupSnapshot.ownerValue(db, "qa_backup_metadata", "{}")).getInt("synthetic_value") == 42);
-            yes(!DatabaseBackupSnapshot.ownerValue(db,"restored_browser_checkpoint_active","").isEmpty());
-            yes(!DatabaseBackupSnapshot.ownerValue(db,"restore_media_warning","").isEmpty());
+            // The removed WebView review leaves no restore checkpoint or media warning behind.
+            yes(DatabaseBackupSnapshot.ownerValue(db,"restored_browser_checkpoint_active","").isEmpty());
+            yes(DatabaseBackupSnapshot.ownerValue(db,"restore_media_warning","").isEmpty());
         }
         yes(text(new File(context.getFilesDir(), "qa-extra.txt")).equals("QA exact file before save"));
         write(marker, new JSONObject().put("snapshot", originalSnapshot).put("backup_id", id).toString());

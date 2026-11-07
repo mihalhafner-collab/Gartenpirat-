@@ -26,8 +26,10 @@ import okio.Path.Companion.toOkioPath
 
 internal fun nativeMainSection(section: String): String = when (section) {
     "today" -> "today"
-    "worklogs", "timer", "work", "drafts" -> "worklogs"
+    "worklogs", "timer", "work" -> "worklogs"
     "customers" -> "customers"
+    "planning", "appointments", "visits", "tour", "weather", "care_plans" -> "planning"
+    "billing", "accounting", "accounting_edit", "settlements", "settlement_edit", "settlement_review" -> "accounting"
     else -> "office"
 }
 internal data class NativeRoute(val section: String = "today", val id: String = "", val mode: String = "list", val args: JSONObject = JSONObject(), val area: String = nativeMainSection(section))
@@ -50,7 +52,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
     private var catalog: Map<String, JSONObject>? = null
 
     private val areaNavigation = mutableMapOf<String, List<NativeRoute>>()
-    private val mainAreas = setOf("today", "worklogs", "customers", "office")
+    private val mainAreas = setOf("today", "worklogs", "customers", "planning", "accounting", "office")
 
     private fun sameScreen(left: NativeRoute, right: NativeRoute): Boolean =
         left.section == right.section && left.id == right.id && left.mode == right.mode && left.area == right.area &&
@@ -136,7 +138,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun hasParentScreen(): Boolean = history.isNotEmpty() || route.section != route.area || route.id.isNotEmpty() || route.mode != "list"
     private fun routeValue(entry: NativeRoute): JSONObject = JSONObject().put("section", entry.section).put("id", entry.id).put("mode", entry.mode).put("args", entry.args).put("area", entry.area)
     private fun readRoute(value: JSONObject): NativeRoute {
-        val section = value.optString("section", "today").let { if (it == "drafts") "office" else it }
+        val section = value.optString("section", "today")
         return NativeRoute(section, value.optString("id"), value.optString("mode", "list"), value.optJSONObject("args") ?: JSONObject(), value.optString("area", nativeMainSection(section)))
     }
     fun restoreRoute(saved: String?) {
@@ -162,7 +164,8 @@ internal class NativeAppController(private val activity: MainActivity, val store
             history.clear(); sameArea.forEach(history::addLast)
         }
     }
-    fun savedRoute(): String = routeValue(route).toString()
+    // Screen state key; a one-time "action" (e.g. open suggested slots) must not change it when consumed.
+    fun savedRoute(): String = routeValue(route).put("args", JSONObject(route.args.toString()).apply { remove("action") }).toString()
     fun savedNavigation(): String = routeValue(route).put("back_stack", JSONArray().apply {
         history.forEach { put(routeValue(it)) }
     }).put("area_navigation", JSONObject().apply {
@@ -395,7 +398,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
                     if (!saved.has(metadata) && earlier?.has(metadata) == true) saved.put(metadata, earlier.get(metadata))
                 }
                 if (!saved.has("_creation_identity")) saved.put("_creation_identity", BackupDeviceGuard(context).current())
-                synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+                synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
                     store.putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), saved.toString())
                 }
                 draftFailures.remove(key)
@@ -428,14 +431,14 @@ internal class NativeAppController(private val activity: MainActivity, val store
                 if (!adopted.has(metadata) && earlier?.has(metadata) == true) adopted.put(metadata, earlier.get(metadata))
             }
             adopted.put("_creation_identity", BackupDeviceGuard(context).current()).remove("_restore_action_review_required")
-            synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { store.putOwnerValue(storageKey, adopted.toString()) }
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { store.putOwnerValue(storageKey, adopted.toString()) }
             draftFailures.remove(key)
             NativeDraftPersistence.unsaved.remove(key)
         }
     }
     suspend fun removeDraft(key: String) = withContext(Dispatchers.IO) {
         awaitDraftWrites(); draftMutex.withLock {
-            synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { store.putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), "") }
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { store.putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), "") }
             draftFailures.remove(key)
             NativeDraftPersistence.unsaved.remove(key)
         }
@@ -580,7 +583,7 @@ private object NativeImages {
 }
 
 /** Process-wide ordering keeps recreation and backup ahead of every queued form write. */
-private object NativeDraftPersistence {
+internal object NativeDraftPersistence {
     val mutex = Mutex()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile var tail: Deferred<Unit>? = null

@@ -78,8 +78,8 @@ android {
         buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 132
-        versionName '1.61.1'
+        versionCode 133
+        versionName '1.62.0'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
@@ -115,12 +115,6 @@ kotlin {
 androidComponents {
     beforeVariants(selector().withBuildType('debug')) { variant -> variant.enable = false }
 }
-
-def plantGate = tasks.register('verifySharedPlantAssets', Exec) {
-    workingDir rootProject.projectDir.parentFile
-    commandLine(System.getProperty('os.name').toLowerCase().contains('windows') ? ['py', '-3.11', 'tools/sync_plant_assets.py'] : ['python3', 'tools/sync_plant_assets.py'])
-}
-tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn plantGate }
 
 def maintenanceTextGate = tasks.register('verifyEquipmentMaintenanceTexts', Exec) {
     workingDir rootProject.projectDir.parentFile

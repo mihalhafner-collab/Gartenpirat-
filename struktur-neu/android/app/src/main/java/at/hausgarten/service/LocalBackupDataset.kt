@@ -22,16 +22,12 @@ internal object LocalBackupDataset {
     }
 
     @JvmStatic
-    @Throws(Exception::class)
-    fun capture(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject, suppliedBrowser: JSONObject?): Captured =
-        capture(context, store, directory, identity, suppliedBrowser, false)
-
     /** Caller holds FILE_CAPTURE_LOCK until the originals have been streamed. */
     fun forStreaming(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject): Captured =
-        capture(context, store, directory, identity, null, true)
+        capture(context, store, directory, identity, true)
 
-    private fun capture(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject, suppliedBrowser: JSONObject?, streamOriginals: Boolean): Captured =
-        synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+    private fun capture(context: Context, store: PixelLocalStore, directory: File, identity: JSONObject, streamOriginals: Boolean): Captured =
+        synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
             var stage = "FILES"
             try {
                 for (source in arrayOf(context.filesDir, context.cacheDir)) {
@@ -43,7 +39,7 @@ internal object LocalBackupDataset {
                 val initial = asset(context, "initial-data.json")
                 val catalog = asset(context, "service-catalog.json")
                 // Freeze immutable originals before the DB snapshot so concurrent removal cannot lose them.
-                if (!streamOriginals) for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media", "mcp-photo-uploads", "native-form-media")) {
+                if (!streamOriginals) for (name in arrayOf("customer-photo-originals", "business-documents", "mcp-photo-uploads", "native-form-media")) {
                     BackupFilePins.pinImmutable(File(context.filesDir, name), directory, "files/$name")
                 }
                 stage = "PREFERENCES"
@@ -68,17 +64,7 @@ internal object LocalBackupDataset {
                 }
                 var report = JSONObject().put("counts", JSONObject()).put("warnings", JSONArray()).put("lastIssuedDocumentIds", JSONArray())
                 val extra = JSONArray()
-                val browser = SQLiteDatabase.openDatabase(database.absolutePath, null, SQLiteDatabase.OPEN_READONLY).use { snapshot ->
-                    stage = "BROWSER"
-                    val capturedBrowser = browserSnapshot(snapshot, suppliedBrowser, extra)
-                    try {
-                        if (BrowserMediaRepository.hasCapturedNamespace(snapshot)) {
-                            BrowserMediaRepository.inspectCaptured(snapshot, filesRoot)
-                        }
-                    } catch (mediaProblem: Exception) {
-                        extra.put(JSONObject().put("kind", "browser_media").put("reason", BackupScheduleRules.errorCode(mediaProblem))
-                            .put("message", "Medienverweise sind nicht vollständig verifiziert; vorhandene Rohdaten und Dateien bleiben enthalten."))
-                    }
+                SQLiteDatabase.openDatabase(database.absolutePath, null, SQLiteDatabase.OPEN_READONLY).use { snapshot ->
                     // Diagnostic only. Raw SQLite and every readable file have already been captured.
                     try {
                         val state = BackupSnapshotState.read(snapshot, BackupPreferences.values(preferences, "haus_garten"), initial, catalog)
@@ -93,7 +79,6 @@ internal object LocalBackupDataset {
                         extra.put(JSONObject().put("kind", "inventory").put("reason", "INVENTORY_NOT_VERIFIABLE")
                             .put("message", "Bestandsübersicht nicht vollständig auswertbar; Datenbank und vorhandene Dateien sind unverändert enthalten."))
                     }
-                    capturedBrowser
                 }
                 val warnings = report.getJSONArray("warnings")
                 for (i in 0 until extra.length()) warnings.put(extra.get(i))
@@ -102,14 +87,13 @@ internal object LocalBackupDataset {
                         .put("count", db.getLong("foreignKeyViolations"))
                         .put("message", "Bereits vorhandene fehlerhafte Datenbezüge wurden unverändert gesichert."))
                 }
-                write(File(directory, "browser-storage.json"), browser.toString())
                 write(File(directory, "backup-notes.json"), report.toString(2))
                 val metadata = JSONObject(identity.toString()).put("datasetFormat", "pixel.snapshot.v2")
                     .put("schemaVersion", db.getInt("schemaVersion")).put("database", db).put("applicationId", context.packageName)
                     .put("appVersion", context.packageManager.getPackageInfo(context.packageName, 0).versionName)
                     .put("capturedAt", Instant.now().toString()).put("counts", report.getJSONObject("counts"))
                     .put("numberState", JSONObject()).put("lastIssuedDocumentIds", report.getJSONArray("lastIssuedDocumentIds"))
-                    .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences_browser_storage")
+                    .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences")
                     .put("media_coverage", "AVAILABLE_FILES_WITH_NOTES")
                 Captured(directory, metadata, originals, report)
             } catch (failure: Exception) {
@@ -130,44 +114,9 @@ internal object LocalBackupDataset {
         }
         val preferences = JSONObject(text(File(directory, "preferences.json")))
         for (group in BackupPreferences.GROUPS) BackupPreferences.values(preferences, group)
-        validBrowser(JSONObject(text(File(directory, "browser-storage.json"))))
         // Restore checks copy fidelity, not the validity of invoices, references or old originals.
         val notes = File(directory, "backup-notes.json")
         return if (notes.isFile) JSONObject(text(notes)) else JSONObject().put("counts", manifest.getJSONObject("counts")).put("warnings", JSONArray())
-    }
-
-    @Throws(Exception::class)
-    private fun browserSnapshot(database: SQLiteDatabase, supplied: JSONObject?, warnings: JSONArray): JSONObject {
-        var browser = supplied
-        try {
-            val saved = JSONObject(DatabaseBackupSnapshot.ownerValue(database, "full_backup_browser", "{}")!!)
-            if (saved.optJSONObject("browser") != null) browser = saved.getJSONObject("browser")
-            validBrowser(browser)
-            val status = JSONObject(DatabaseBackupSnapshot.ownerValue(database, "full_backup_browser_status", "{}")!!)
-            if (status.optBoolean("capturePending") || status.optString("code").isNotEmpty()) throw IOException("CHECKPOINT_STALE")
-        } catch (unavailable: Exception) {
-            warnings.put(JSONObject().put("kind", "browser").put("reason", "BROWSER_CHECKPOINT_INCOMPLETE")
-                .put("message", "Letzter lesbarer Formularstand enthalten; neuere ungespeicherte Eingaben sind nicht bestätigt. Rohdaten bleiben in der Datenbank."))
-            try {
-                validBrowser(browser)
-            } catch (invalid: Exception) {
-                browser = JSONObject().put("formatVersion", 1).put("storage", JSONObject())
-            }
-        }
-        return JSONObject(browser!!.toString())
-    }
-
-    @Throws(Exception::class)
-    private fun validBrowser(browser: JSONObject?) {
-        if (browser == null || browser.optInt("formatVersion") != 1 || browser.optJSONObject("storage") == null) {
-            throw IOException("BACKUP_BROWSER_STATE_INVALID")
-        }
-        RestoredBrowserReviewRules.validate(browser)
-        val storage = browser.getJSONObject("storage")
-        val keys = storage.keys()
-        while (keys.hasNext()) {
-            if (storage.get(keys.next()) !is String) throw IOException("BACKUP_BROWSER_STORAGE_INVALID")
-        }
     }
 
     @Throws(Exception::class)

@@ -12,10 +12,20 @@ import java.time.Instant
 
 /** Local ownership decides retention. No cloud receipt or restore epoch is needed. */
 internal class LocalStorageMaintenance(private val context: Context, private val store: PixelLocalStore) {
+    /** Deletes what the retired WebView left behind: its database entries and draft photo folders. */
+    fun removeWebViewLeftovers(): Int = synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
+        val removed = store.writableDatabase.delete("owner_state",
+            "key GLOB 'browser_drafts:*' OR key GLOB 'browser_media:*' OR key GLOB 'restored_browser_*' OR " +
+                "key GLOB 'full_backup_browser*' OR key GLOB 'equipment_photo_draft_consumed:*' OR key = 'restore_media_warning'", null)
+        File(context.filesDir, "browser-media").deleteRecursively()
+        File(context.noBackupFilesDir, "browser-media-upload").deleteRecursively()
+        removed
+    }
+
     fun usage(): JSONObject {
         val database = context.getDatabasePath("haus-garten-mobile.db")
         val dbBytes = bytes(database) + bytes(File(database.path + "-wal")) + bytes(File(database.path + "-shm"))
-        val photos = listOf("customer-photo-originals", "browser-media", "pending-work-photo-files", "native-form-media")
+        val photos = listOf("customer-photo-originals", "pending-work-photo-files", "native-form-media")
             .sumOf { bytes(File(context.filesDir, it)) }
         val documents = bytes(File(context.filesDir, "business-documents"))
         val other = (bytes(context.filesDir) - photos - documents).coerceAtLeast(0)
@@ -28,12 +38,13 @@ internal class LocalStorageMaintenance(private val context: Context, private val
         return JSONObject().put("database_bytes", dbBytes).put("photo_bytes", photos)
             .put("document_bytes", documents).put("other_files_bytes", other).put("work_bytes", work).put("cache_bytes", cache)
             .put("work_directories", workDirectories)
-            .put("backup_work_bytes", listOf("pixel-backup", "full-backup-work", "browser-media-upload")
+            .put("backup_work_bytes", listOf("pixel-backup", "full-backup-work")
                 .sumOf { workDirectories.optLong(it) })
             .put("total_bytes", dbBytes + photos + documents + other + work + cache)
     }
 
     fun clean(vacuum: Boolean): JSONObject {
+        removeWebViewLeftovers()
         // Backup owns SAVE_LOCK before FILE_CAPTURE_LOCK. Keep that order here too.
         val backupRemoved = PixelBackupService.cleanupWork(context)
         val before = usage().getLong("total_bytes") + backupRemoved
@@ -43,7 +54,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
         database.acquireReference()
         try {
             check(!database.inTransaction()) { "STORAGE_CLEANUP_REQUIRES_COMMITTED_DATA" }
-            synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
                 store.beginBusinessTransaction(database)
                 try {
                     val state = store.getState()
@@ -143,7 +154,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                         }
                         orphanRows.forEach { database.delete("photo_attachments", "photo_id=?", arrayOf(it)) }
                     }
-                    for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media", "pending-work-photo-files", "mcp-photo-uploads", "native-form-media")) {
+                    for (name in arrayOf("customer-photo-originals", "business-documents", "pending-work-photo-files", "mcp-photo-uploads", "native-form-media")) {
                         val directory = File(context.filesDir, name)
                         // Form photo staging publishes a URI shortly before the draft writer.
                         // Give only that staging area a grace period; purged originals/PDFs go now.
@@ -182,8 +193,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                     key.startsWith("receipt_guard:") || key.startsWith("photo-ui:") || key.startsWith("purge-cleaned:") ||
                     key.startsWith("revier:v1:audit:") || key == "purged_local_test_records_v1") continue
                 if (key.startsWith("legacy-backup:")) refs.add(key.removePrefix("legacy-backup:"))
-                // Include drafts, active/trash Revier records, invoice originals and retained
-                // browser graphs, including restore candidates whose choice is still open.
+                // Include drafts, active/trash Revier records and invoice originals.
                 parse(store.ownerValue(key, ""))?.let { collect(it, refs) }
             }
         }

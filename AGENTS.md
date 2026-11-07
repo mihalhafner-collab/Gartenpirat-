@@ -18,85 +18,30 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 - Vor jeder Aufgabe `main`, diese Datei und `struktur-neu/AKTUELLER-STAND.json`
   lesen. Das Repository ist die einzige verbindliche Quelle; frühere Chats sind
   nur Material.
+- Fachregeln und Oberflächenkonzept: `struktur-neu/docs/fachregeln/APP.md`.
+  Bauen und CI: `struktur-neu/docs/entwicklung/BAU.md`. Signieren und
+  Verteilen: `struktur-neu/docs/entwicklung/SIGNIERUNG.md`.
 - Einzige Codebasis für TEST und PRODUKTIV: Kotlin/Compose unter
   `struktur-neu/android/app/src/main/`. Vorher
   `python3 -B struktur-neu/tools/check_release_baseline.py` ausführen; schlägt
-  sie fehl, stoppen. Alte Java/WebView-Quellen nie wiederherstellen.
+  sie fehl, stoppen. Keine WebView und keine Java-Quellen wieder einführen.
 - Vor Geräteaktionen über `Haus & Gartenservice Pixel.get_capabilities` Paket,
   Version, Git-Commit und `source_sha256` der installierten App prüfen. Die
   installierte Version ist maßgeblich. Bei Lücken keine Geräteänderung.
 
 ## Feste Grenzen
 
-- Paketkennung `at.hausgarten.service`, Originalsignatur und Backup-Format
-  erhalten. SQLite-Schema nur mit ausdrücklichem Auftrag ändern.
+- Paketkennung `at.hausgarten.service` und Originalsignatur erhalten. Sicherung
+  nur im Format `pixel.snapshot.v2`. SQLite-Schema nur mit ausdrücklichem Auftrag ändern.
 - TEST: eigene Paketkennung, eigene Testdaten, bisherige Signatur.
 - Geschäftsdaten, Fotos und ZIP-Sicherungen bleiben lokal auf dem Pixel. Keine
   Cloud-Pflicht. Google Drive nur für die beauftragte Verteilung originalsignierter APKs.
 - Nur mit ausdrücklichem Auftrag: Installation, Migration, Wiederherstellung,
   Rechnungsausstellung mit echten Daten, APK-Verteilung, neue Branches oder Tags.
+- Steuerstatus nie aus Umsätzen ableiten oder selbst ändern. Keine sevDesk- oder
+  Bankanbindung. Originale, Abschlüsse und Zahlungen vor Löschen schützen.
+- Laufende Zeiterfassung und Geschäftsdaten nie nebenbei ändern oder löschen; Tests ausgenommen.
 - Subagenten nur auf ausdrücklichen Auftrag.
-
-## Abrechnung
-
-- Zwei Arten auf denselben tatsächlichen Leistungen, Mengen und Preisen:
-  **Rechnung** und **Labor clandestino** (nur diese Schreibweise).
-- Rechnung: gewöhnliche österreichische Inlandsrechnung in Euro mit
-  Kleinunternehmerbefreiung. Nach der Vorschau eigene lokale Nummer und
-  unveränderliches Original-PDF. Labor: intern bestätigt, ohne Nummer und PDF.
-- Der Abschluss ist die einzige Quelle für den Abrechnungsstand. Alte manuelle
-  Markierungen bleiben als Altdaten lesbar.
-- Ein Rechnungsentwurf wird aus den offenen Arbeiten des Empfängers vorbefüllt,
-  Preise aus Stundensatz bzw. Leistungskatalog. In der Vorschau sichtbar und
-  änderbar; „Ausstellen“ ist ein Knopf. Die Zustimmung zur elektronischen
-  Rechnung wird einmal pro Kunde gespeichert.
-- „Bezahlt“ mit einem Tippen (offener Betrag, heutiges Datum). Anzeige
-  fertig → abgerechnet → bezahlt; Zuordnung, Beleg und Zahlung bleiben getrennt gespeichert.
-- Steuerstatus nie aus Umsätzen ableiten oder selbst ändern. Keine sevDesk-
-  oder Bankanbindung, keine automatischen Mahnungen, keine Anzahlungsrechnungen.
-  Historische sevDesk-Daten nicht neu ausstellen.
-- Originale, Abschlüsse, Zahlungen und nötige Historie vor Löschen schützen;
-  keine Alterslöschung. Nach Restore neue Nummernserie; restaurierte Quellen
-  vor erneuter Abrechnung gegen den Belegstand prüfen.
-
-## Löschen und Speicher
-
-- Löschen: ein Tippen, keine Rückfrage, kein Papierkorb. 5 Sekunden
-  „Rückgängig“, danach endgültig samt ungeteilter Dateien. Zuordnungen intern
-  bereinigen; Erfolg am wirksamen Datenstand prüfen.
-- Keine Rückfallkopien. Funktionslose Arbeitsdateien (z. B. `full-backup-work`)
-  entfernen. Laufende Zeiterfassung und fremde Geschäftsdaten bleiben geschützt.
-
-## Oberfläche
-
-Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
-
-- **Roter Faden:** Kunde → Objekt → Anfrage → Angebot → Auftrag → Einsatz →
-  Arbeit → Abrechnung → Zahlung. Jede Detailseite zeigt oben „Gehört zu“
-  (Kunde, Objekt, Auftrag, Einsatz) als antippbare Chips; Verknüpfungen in beide Richtungen.
-- **Objekt als Anker:** Arbeiten gehören zu einem Objekt. Das Objekt zeigt
-  seinen Verlauf von der Anfrage bis zur Zahlung.
-- **Planung:** ein Objekt „Einsatz“. Termin, Tour und Pflegeplan sind Ansichten
-  (Tag, Woche, Karte); verschieben durch Ziehen.
-- **Navigation:** Heute · Planung · Kunden · Abrechnung. Ein „+“-Knopf für
-  alles Neue, eine Suche für alles.
-- **Heute:** Einsätze des Tages mit Uhrzeit und „Start“, darunter nur Punkte
-  mit Handlungsbedarf.
-- **Abrechnung:** ein Bereich mit Offen, Abschlüsse, Summen.
-- **Laufende Zeit:** Benachrichtigung mit Pause, Foto und Stopp; Schnellkachel
-  und App-Verknüpfungen.
-- **Farben im Theme:** Waldgrün = Handeln, Bernstein = Geld, Gelb = Prüfen,
-  Ziegelrot nur für Löschen und Fehler. Keine Farbwerte im Feature-Code.
-- **Bausteine:** Material-3-Standardkomponenten statt Nachbauten. Große Schrift
-  muss funktionieren.
-- **Texte:** kurz und deutsch. Keine technischen Zustände, keine Textwände;
-  Hinweise einmal zeigen, danach als ⓘ.
-- **Rückmeldung:** Erfolg als kurze Snackbar, Fehler am Ort. Leere Listen
-  nennen die erste Aktion.
-- **Eingabe:** passende Tastatur (Telefon, E-Mail, Zahl), Spracheingabe in
-  Textfeldern, zuletzt Verwendetes oben.
-- **Prüfungen:** unklare Vorgänge automatisch intern prüfen, ohne doppelte
-  Ausführung. Nur echte Konflikte zeigen. Wiederherstellung als Hinweis, nicht als Sperre.
 
 ## ChatGPT-Anbindung (Pixel-MCP)
 
@@ -107,20 +52,27 @@ Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
 ## Tests
 
-- Testprogramme erzeugen eigene synthetische Daten und prüfen Fach-, Speicher-
-  und Bedienwege samt Fehler, Wiederholung und erneutem Lesen.
-- Notwendige Tests direkt ausführen. Emulator-Suiten bleiben isoliert.
-- Auf dem Pixel dürfen gezielte Tests Betriebsdaten lesen und im Testumfang
-  ändern; keine zusätzliche Sicherung als Voraussetzung. Eigene Testdaten
-  danach entfernen. Betriebsdaten nie ins Repository, die Cloud oder CI.
+- Tests prüfen Funktion: Knopf betätigen, Ergebnis in den Daten nachlesen.
+  Keine Text- oder Pixelvergleiche außer für Bedienbarkeit (große Schrift, Tastatur).
+- Jeder Test erzeugt eigene synthetische Daten, startet sauber und hinterlässt
+  keinen Zustand. Fehler, Wiederholung und erneutes Lesen mitprüfen.
+- Neue Tests nur für neue Funktionen oder gefundene Fehler. Wer einen Test
+  anfasst, entfernt überholte Prüfungen.
+- Eigentümerentscheidung 07.11.2026: Die Daten auf dem Pixel gelten als
+  Praxistest. Funktion und Stabilität haben Vorrang; volle Test-Suiten dürfen
+  per ADB direkt gegen `at.hausgarten.service` laufen und Daten ändern oder
+  löschen. Keine Sicherung als Voraussetzung. Betriebsdaten nie ins Repository,
+  die Cloud oder CI.
 
 ## Abschluss
 
 - `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
   nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.
-- App-Änderungen erst nach vollem CI-Lauf (`qa-apk.yml` mit Emulator, ohne
-  `*_only`) nach `main`: keine neuen Fehler gegenüber `main`, vorhandene Fehler
-  stehen in `open_checks`. Ein Lauf ohne Emulator-Suiten zählt nicht.
+- Rot heißt Stopp: Vor neuer Funktion jeden roten Test beheben oder mit
+  Begründung löschen. Nach `main` nur mit grünem vollem CI-Lauf (`qa-apk.yml`
+  mit Emulator, ohne `*_only`).
+- `open_checks` nur für Pixel-Prüfungen, die im Emulator nicht möglich sind;
+  nie für rote CI-Tests.
 - AGENTS.md und AKTUELLER-STAND.json zusammen unter 19 KB halten
   (Kontext-Hook-Grenze 20 KB); Erledigtes steht in der Git-Historie.
 - Fehlende oder fehlgeschlagene Prüfungen nennen. Geänderten Code nie als

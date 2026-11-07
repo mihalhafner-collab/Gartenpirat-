@@ -52,15 +52,6 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
             if (db.version < 4 || db.version > PixelLocalStore.SCHEMA_VERSION) {
                 throw IOException("RESTORE_DATABASE_VERSION_UNSUPPORTED")
             }
-            // A failed optional media transaction must finish before the core restore transaction.
-            // Catching a nested SQLite failure inside it would silently roll back checkpoint activation.
-            var mediaWarning = ""
-            try {
-                BrowserMediaRepository.installRestored(db, requestId, BackupDeviceGuard(context).current())
-            } catch (mediaProblem: Exception) {
-                if (restoredManifest.optString("datasetFormat") != "pixel.snapshot.v2") throw mediaProblem
-                mediaWarning = BackupScheduleRules.errorCode(mediaProblem)
-            }
             db.beginTransaction()
             try {
                 db.rawQuery("SELECT id FROM work_sessions WHERE state IN ('RUNNING','PAUSED','STOPPED_PENDING_REVIEW')", null).use { sessions ->
@@ -88,7 +79,6 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
                         put(db, "planning_settings", settings.toString())
                     }
                 }
-                if (mediaWarning.isNotEmpty()) put(db, "restore_media_warning", mediaWarning)
                 // A new number series cannot reconstruct later documents lost by an old
                 // backup. Retain the restored source set for deliberate evidence review.
                 val ledger = JSONObject(DatabaseBackupSnapshot.ownerValue(db, "settlement:v1", "{}")!!)
@@ -109,8 +99,6 @@ class RestoreStartupProtection(private val context: Context) : BackupRestoreServ
                     .put("restore_epoch", BackupDeviceGuard(context).current().getString("restoreEpoch"))
                     .put("restore_request_id", requestId)
                 put(db, "settlement:v1", ledger.toString())
-                RestoredBrowserCheckpoint.install(db, requestId, restoredManifest,
-                    restoredManifest.getJSONObject("_restored_browser_checkpoint"), BackupDeviceGuard(context).current())
                 db.version = PixelLocalStore.SCHEMA_VERSION
                 db.setTransactionSuccessful()
             } finally {

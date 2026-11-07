@@ -34,6 +34,12 @@
         <service android:name=".PixelTunnelService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-enabled private MCP responder for ChatGPT, outbound HTTPS polling with persistent notification and stop control" />
         </service>
+        <service android:name=".WorkTileService" android:exported="true" android:icon="@drawable/app_icon" android:label="Arbeit"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
         <receiver android:name=".PlanningAlertReceiver" android:exported="false" />
         <receiver android:name=".PixelTunnelBootReceiver" android:exported="false">
             <intent-filter>

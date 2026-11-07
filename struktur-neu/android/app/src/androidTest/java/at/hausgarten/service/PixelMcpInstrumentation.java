@@ -54,17 +54,12 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             }
             if(suite.equals("native_data")||suite.equals("native_compose")||suite.equals("native_graphics")){
                 JSONObject result=suite.equals("native_data")?NativeDataAccessNativeTests.run(this):
-                    suite.equals("native_graphics")?NativeComposeAppTests.runGraphics(this):NativeComposeAppTests.run(this);
+                    suite.equals("native_graphics")?NativeComposeAppTests.runGraphics(this,arguments.getString("journey","")):NativeComposeAppTests.run(this,arguments.getString("journey",""));
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
                 finish(Activity.RESULT_OK,report);return;
             }
             if(suite.equals("document_provider")||suite.equals("document_provider_reopen")){
                 JSONObject result=BackupDocumentProviderNativeTests.run(this,suite.equals("document_provider_reopen"));
-                checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
-                finish(Activity.RESULT_OK,report);return;
-            }
-            if(suite.equals("browser_checkpoint")||suite.equals("browser_checkpoint_reopen")){
-                JSONObject result=RestoredBrowserCheckpointNativeTests.run(this,suite.equals("browser_checkpoint_reopen"));
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
                 finish(Activity.RESULT_OK,report);return;
             }

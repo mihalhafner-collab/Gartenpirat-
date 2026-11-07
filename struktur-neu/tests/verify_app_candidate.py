@@ -24,7 +24,7 @@ PACKAGE = 'at.hausgarten.service'
 NATIVE_ENTRIES = {
     'MainActivity', 'RevierApplication', 'NativeAppController', 'NativeRoute',
     'FullBackupActivity', 'RestoreRecoveryActivity', 'NativeComposeKt',
-    'NativeFormsKt', 'NativePrimaryScreensKt', 'NativeRestoredDraftScreensKt',
+    'NativeFormsKt', 'NativePrimaryScreensKt',
     'ComposeMediaScreensKt', 'ComposePlanningScreensKt',
     'ComposeRevierScreensKt', 'ComposeFinanceScreensKt',
 }
@@ -250,17 +250,12 @@ def verify(apk, aapt, apksigner, baseline=None):
     if classes & retired:
         raise ValueError('Retired transport or test-only class present in release DEX')
     with zipfile.ZipFile(apk) as archive:
-        catalog_raw = archive.read('assets/plant-catalog.json')
-        catalog = json.loads(catalog_raw)
         web_assets = sorted(name for name in archive.namelist() if name.startswith('assets/') and Path(name).suffix.lower() in ('.js', '.css', '.html', '.htm'))
         if web_assets:
             raise ValueError('Obsolete application web assets packaged: ' + ', '.join(web_assets))
         dex = [archive.read(name) for name in archive.namelist() if re.fullmatch(r'classes\d*\.dex', name)]
         if not any(b'Landroidx/compose/runtime/Composer;' in data for data in dex):
             raise ValueError('Native Compose runtime missing from DEX')
-        images = {image['path'] for plant in catalog['plants'] for image in plant['images']}
-        if any('assets/' + image not in archive.namelist() for image in images):
-            raise ValueError('Missing packaged plant image')
     original = metadata(baseline, aapt, apksigner) if baseline else None
     identity = compare_identity(original, meta) if original else 'NOT_RUN_original_APK_unavailable'
     return {'apk_sha256': hashlib.sha256(apk.read_bytes()).hexdigest(), **meta,
@@ -269,8 +264,6 @@ def verify(apk, aapt, apksigner, baseline=None):
             'kotlin_file_facades_present': sorted(facades), 'native_ui': 'KOTLIN_COMPOSE',
             'critical_native_entries_present': sorted(NATIVE_ENTRIES),
             'retired_and_test_classes_absent': sorted(name.removeprefix(PACKAGE + '.') for name in retired),
-            'plant_profiles': len(catalog['plants']), 'plant_images': len(images),
-            'catalog_sha256': hashlib.sha256(catalog_raw).hexdigest(),
             'original_apk_identity_comparison': identity,
             'fresh_install': 'NOT_RUN', 'in_place_update_data_retention': 'NOT_RUN',
             'pixel_installation': 'NOT_PERFORMED', 'release_approved': False}

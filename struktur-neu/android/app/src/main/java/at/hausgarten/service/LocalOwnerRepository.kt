@@ -174,7 +174,7 @@ return out.toByteArray()
     // Nested owner work has not physically committed and must never wait on the
     // capture monitor while holding SQLite's writer (backup takes the reverse).
     if (database.inTransaction()) return
-    synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+    synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
         val directory = File(context!!.filesDir, "mcp-photo-uploads")
         if (!directory.exists()) return
         if (!directory.isDirectory || java.nio.file.Files.isSymbolicLink(directory.toPath())) throw IOException("UPLOAD_DIRECTORY_INVALID")
@@ -222,14 +222,6 @@ out.write(buffer, 0, n)
 return out.toByteArray()
 
 }
-}
-@Throws(Exception::class) fun plants(): JSONArray {
-
-return JSONObject(String(asset("plant-catalog.json"), StandardCharsets.UTF_8)).getJSONArray("plants")
-}
-@Throws(Exception::class) fun entry(id: String): JSONObject {
-
-return PixelMcpWriteTools.find(plants(), id)
 }
 private fun localOriginalMissing(): PixelMcpWriteTools.Rejected {
 
@@ -290,33 +282,6 @@ bytes = BusinessDocumentStore(context!!).read(offer)
 throw localOriginalMissing()
 }
 mime = "application/pdf"
-}
-}
-"catalog" -> {
-run {
-var parts = id.split(Regex("#"))
-var p = entry(parts[0])
-var path = (if (parts.size == 2) parts[1] else "")
-var listed: Boolean = false
-var images = p.optJSONArray("images")
-run {
-var i: Int = 0
-var firstIteration22 = true
-while (true) {
-if (firstIteration22) firstIteration22 = false else { i++ }
-if (!(images != null && i < images.length())) break
-
-if ((path == images.getJSONObject(i).optString("path"))) {
-listed = true
-}
-
-}
-}
-if (!(listed) || path.isEmpty() || path.contains("..") || path.startsWith("/") || !(p.toString().contains(JSONObject.quote(path))) || !(path.matches(Regex("[A-Za-z0-9_./-]+\\.(jpg|jpeg|png|webp)")))) {
-throw IllegalArgumentException("Katalogbild nicht freigegeben.")
-}
-bytes = asset(path)
-mime = (if (path.endsWith("png")) "image/png" else (if (path.endsWith("webp")) "image/webp" else "image/jpeg"))
 }
 }
 else -> throw IllegalArgumentException("Unbekannter Dateityp.")

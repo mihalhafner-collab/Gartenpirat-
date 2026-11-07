@@ -66,12 +66,18 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     val searching = search || label in listOf("Suchen", "Suche", "Bausteine suchen", "Text suchen", "Vorschläge durchsuchen")
     val finish = { keyboard?.hide(); focus.clearFocus(); Unit }
     val displayedLabel = label + if (required) " *" else ""
+    val speaker = androidx.activity.compose.LocalActivity.current as? MainActivity
     OutlinedTextField(value, onValueChange, modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
         if (!showLabel) contentDescription = displayedLabel
     }, label = if (showLabel) ({ Text(displayedLabel) }) else null,
         placeholder = if (!showLabel) ({ Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) }) else null,
         enabled = enabled, singleLine = !multiline, minLines = if (multiline) 3 else 1,
+        // Dictation appends to longer texts; the field stays editable as before.
+        trailingIcon = if (multiline && enabled && speaker != null) ({
+            IconButton({ speaker.recognizeSpeech { spoken -> onValueChange(listOf(value.trimEnd(), spoken).filter { it.isNotBlank() }.joinToString(" ")) } },
+                Modifier.semantics { contentDescription = "Diktieren" }) { NativeMicIcon() }
+        }) else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
 }
@@ -181,8 +187,15 @@ internal const val NATIVE_LIST_READ_ERROR = "Die Einträge konnten nicht geladen
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithoutIme: Boolean = false, bottomControls: Boolean = false, controlsVisible: Boolean = true, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val sideBySide = controlsVisible && LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0 || sideBySideWithoutIme)
+    val configuration = LocalConfiguration.current
+    val activity = androidx.activity.compose.LocalActivity.current
+    val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
     Layout(modifier = modifier, content = { controls(); Column(Modifier.fillMaxSize(), content = content) }) { children, limits ->
+        // A dialog can retain its previous LocalConfiguration during rotation.
+        // Measurement already has the new bounds; use the host configuration
+        // at that same point so a landscape keyboard cannot consume all rows.
+        val landscape = (activity?.resources?.configuration ?: configuration).orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val sideBySide = controlsVisible && landscape && (imeVisible || sideBySideWithoutIme)
         val gap = if (sideBySide) 12.dp.roundToPx() else 0
         val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
         val head = children[0].measure(Constraints(minWidth = controlWidth, maxWidth = controlWidth, maxHeight = limits.maxHeight))
@@ -241,7 +254,8 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
         val keyboard = LocalSoftwareKeyboardController.current
         val focus = LocalFocusManager.current
         val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
-        val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val configuration = LocalConfiguration.current
+        val landscape = (androidx.activity.compose.LocalActivity.current?.resources?.configuration ?: configuration).orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val dialogWindow = (view.parent as? DialogWindowProvider)?.window
         DisposableEffect(dialogWindow, landscape, imeVisible) {
             val bars = dialogWindow?.let { androidx.core.view.WindowCompat.getInsetsController(it, view) }
@@ -764,14 +778,24 @@ internal fun NativeActionForm(controller: NativeAppController, tool: String, tit
 internal fun NativeActionMenu(controller: NativeAppController, area: String, contextArgs: JSONObject = JSONObject()) {
     var show by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    // Read-only catalog entries ("lesen", "Liste") duplicate the screen itself; only changing actions are offered.
+    var writable by remember(area) { mutableStateOf<Set<String>?>(null) }
+    LaunchedEffect(area) {
+        writable = NativeActionCatalog.forArea(area).flatMap { it.tools }.filter { tool ->
+            tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") ||
+                controller.spec(tool)?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) == false
+        }.toSet()
+    }
+    val offered = NativeActionCatalog.forArea(area).filter { action ->
+        action.tools.isNotEmpty() && !action.platformOnly && action.tools.any { !it.startsWith("preview_") && it in writable.orEmpty() }
+    }
+    if (offered.isEmpty()) return
     OutlinedButton({ show = true }) { Text("Weitere Aktionen") }
     if (show) AlertDialog(onDismissRequest = { show = false }, title = { Text("Aktionen") }, text = {
-        LazyColumn(Modifier.heightIn(max = 360.dp)) { items(NativeActionCatalog.forArea(area).filter {
-            it.tools.isNotEmpty() && !it.platformOnly && !it.retired && it.tools.any { tool -> !tool.startsWith("preview_") }
-        }, key = { it.id }) { action ->
+        LazyColumn(Modifier.heightIn(max = 360.dp)) { items(offered, key = { it.id }) { action ->
             TextButton({
                 show = false
-                val tool = action.tools.firstOrNull { it in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") } ?: action.tools.first()
+                val tool = action.tools.firstOrNull { it in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records") } ?: action.tools.first { it in writable.orEmpty() }
                 if (tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records")) {
                     scope.launch {
                         try { controller.deleteDirect(tool, contextArgs); controller.finishAction(); controller.message("Gelöscht.") }

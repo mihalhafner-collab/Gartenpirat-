@@ -344,7 +344,7 @@ class PixelMcpWriteTools {
             if (!(payload.has("material_cost"))) {
                 return
             }
-            var cost = java.math.BigDecimal(payload.get("material_cost").toString())
+            var cost = java.math.BigDecimal(payload.get("material_cost").toString().trim().replace(',', '.'))
             if (((cost.scale() > 2) || (cost.signum() < 0))) {
                 throw Rejected(
                     "INVALID_INPUT",

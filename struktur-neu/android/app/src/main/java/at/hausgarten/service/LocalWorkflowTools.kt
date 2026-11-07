@@ -118,7 +118,7 @@ internal class LocalWorkflowTools {
         fun description(name: String): String {
 
             if ((name == "save_equipment")) {
-                return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk oder profile_photo_draft aus einem aktiven lokalen Browsermedia-Entwurf (Sitzung, Auswahl und Installations-/Restore-Kontext müssen übereinstimmen): geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
+                return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
             }
             if ((name == "get_equipment_maintenance")) {
                 return "Liest eigene Wartungspläne und paginierten erledigten Wartungsverlauf genau eines lokalen Geräts, einschließlich nächster Fälligkeit und record_hash. Kein Schreiben, keine Gerätefreigabe, keine Herstellerintervalle oder automatische Erledigung."
@@ -666,27 +666,7 @@ internal class LocalWorkflowTools {
                     )
                 }
                 "save_equipment" -> {
-                    p.put(
-                            "profile_photo_draft",
-                            McpFields.`object`(
-                                JSONObject()
-                                    .put("media_key", McpFields.text(240))
-                                    .put("session_id", McpFields.id())
-                                    .put(
-                                        "selection",
-                                        McpFields.text(32).put("pattern", "[a-f0-9]{32}"),
-                                    )
-                                    .put("installation_id", McpFields.text(200))
-                                    .put("restore_epoch", McpFields.text(200)),
-                                *arrayOf(
-                                    "media_key",
-                                    "session_id",
-                                    "selection",
-                                    "installation_id",
-                                    "restore_epoch",
-                                ),
-                            ),
-                        )
+                    p
                         .put("accessories", array(McpFields.`object`(JSONObject()
                             .put("id", McpFields.id()).put("type", McpFields.enumeration("chain", "other"))
                             .put("name", McpFields.text(240)).put("manufacturer", McpFields.text(240)).put("model", McpFields.text(240))

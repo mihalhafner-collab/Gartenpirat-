@@ -4,10 +4,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -118,9 +120,23 @@ internal fun NativeBackButton(onBack: () -> Unit) {
     }
 }
 
+/** Amber for money amounts; dark enough for text on white. */
+internal val NativeMoney = Color(0xff8a5a12)
+
 /** Attention colors shared by status chips and hint cards. */
 internal val NativeAttentionContainer = Color(0xfffff1d0)
 internal val NativeAttentionContent = Color(0xff79510b)
+
+@Composable
+internal fun NativeMicIcon() {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Canvas(Modifier.size(22.dp)) {
+        val unit = size.minDimension / 24f
+        drawRoundRect(color, Offset(9 * unit, 3 * unit), Size(6 * unit, 11 * unit), androidx.compose.ui.geometry.CornerRadius(3 * unit, 3 * unit))
+        drawArc(color, 0f, 180f, false, Offset(5 * unit, 6 * unit), Size(14 * unit, 12 * unit), style = Stroke(2 * unit))
+        drawLine(color, Offset(12 * unit, 18 * unit), Offset(12 * unit, 21 * unit), 2 * unit)
+    }
+}
 
 /** Opens the search over all local records. */
 @Composable
@@ -237,6 +253,45 @@ internal fun NativeInfoRow(
     }
 }
 
+/** A titled group of compact rows, like a section of a delivery note. */
+@Composable
+internal fun NativeGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column {
+            Text(title.uppercase(), Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            content()
+        }
+    }
+}
+
+/** Two-letter avatar; its theme container is fixed per name, so a customer is recognised at a glance. */
+@Composable
+internal fun NativeInitials(name: String, size: androidx.compose.ui.unit.Dp = 40.dp) {
+    val words = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() && it.first().isLetterOrDigit() }
+    val initials = (if (words.size > 1) "${words[0].first()}${words[1].first()}" else words.firstOrNull()?.take(2).orEmpty()).uppercase().ifEmpty { "?" }
+    val scheme = MaterialTheme.colorScheme
+    val (container, content) = listOf(scheme.primaryContainer to scheme.onPrimaryContainer, scheme.secondaryContainer to scheme.onSecondaryContainer,
+        scheme.tertiaryContainer to scheme.onTertiaryContainer)[Math.floorMod(name.trim().lowercase().hashCode(), 3)]
+    Box(Modifier.size(size).background(container, CircleShape), contentAlignment = Alignment.Center) {
+        Text(initials, color = content, style = if (size > 48.dp) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall)
+    }
+}
+
+/** One tappable label/value row; an empty value invites to add it, no value marks an action. */
+@Composable
+internal fun NativeKeyValue(label: String, value: String?, money: Boolean = false, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 48.dp).padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+        if (value != null) Text(value.ifBlank { "+ ergänzen" }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+            color = when { value.isBlank() -> MaterialTheme.colorScheme.primary; money -> NativeMoney; else -> MaterialTheme.colorScheme.onSurface })
+        Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+}
+
 /** Four consistent stroke icons; their adjacent navigation labels carry semantics. */
 @Composable
 internal fun NativeAreaIcon(section: String) {
@@ -253,6 +308,15 @@ internal fun NativeAreaIcon(section: String) {
             "worklogs" -> {
                 drawRoundRect(color, p(4,7), Size(16*unit,14*unit), androidx.compose.ui.geometry.CornerRadius(2*unit,2*unit), style = Stroke(1.8f*unit))
                 line(8,7,8,4); line(8,4,16,4); line(16,4,16,7); line(4,12,20,12)
+            }
+            "planning" -> {
+                drawRoundRect(color, p(3,5), Size(18*unit,16*unit), androidx.compose.ui.geometry.CornerRadius(2*unit,2*unit), style = Stroke(1.8f*unit))
+                line(3,10,21,10); line(8,3,8,7); line(16,3,16,7); line(7,14,10,14); line(13,14,17,14); line(7,17,10,17)
+            }
+            "accounting" -> {
+                drawCircle(color, 9*unit, p(12,12), style = Stroke(1.8f*unit))
+                drawArc(color, 45f, 270f, false, p(8,7), Size(9*unit,10*unit), style = Stroke(1.8f*unit))
+                line(6,11,13,11); line(6,14,13,14)
             }
             "customers" -> {
                 drawCircle(color, 3*unit, p(9,7), style = Stroke(1.8f*unit)); drawArc(color,180f,180f,false,p(2,12),Size(14*unit,14*unit),style=Stroke(1.8f*unit))

@@ -331,7 +331,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
         if(error.isNotEmpty()) item { Text(error, color=MaterialTheme.colorScheme.error) }
         if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         if (!listLoading && page.rows.isEmpty() && error.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
-        items(page.rows, key = { it.id }) { row -> OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
+        items(page.rows, key = { it.id }) { row -> OutlinedCard(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable { controller.navigate(section, row.id, args = JSONObject(controller.route.args.toString()).put("customer_id", customer)) }) {
             Column(Modifier.padding(12.dp), verticalArrangement=Arrangement.spacedBy(5.dp)) {
                 Text(row.title, style=MaterialTheme.typography.titleMedium)
                 if (row.subtitle.isNotEmpty()) Text(nativeDisplayText(row.subtitle))

@@ -158,22 +158,13 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
     }
 
     @Throws(Exception::class)
-    fun requestActivation(
-        requestId: String?, restoreId: String?, expectedPreviewHash: String?, confirmed: Boolean
-    ): JSONObject = requestActivation(requestId, restoreId, expectedPreviewHash, confirmed, false)
-
-    @Throws(Exception::class)
-    fun requestActivation(
-        requestId: String?, restoreId: String?, expectedPreviewHash: String?, confirmed: Boolean,
-        legacyMediaCoverageConfirmed: Boolean
-    ): JSONObject {
+    fun requestActivation(requestId: String?, restoreId: String?, expectedPreviewHash: String?, confirmed: Boolean): JSONObject {
         request(requestId)
         if (!confirmed) throw IOException("RESTORE_CONFIRMATION_REQUIRED")
         hash(expectedPreviewHash)
         return synchronized(LOCK) {
             val intent = JSONObject().put("request_id", requestId).put("restore_id", restoreId)
                 .put("preview_hash", expectedPreviewHash).put("confirmed", true)
-            if (legacyMediaCoverageConfirmed) intent.put("legacy_media_coverage_confirmed", true)
             val fingerprint = PixelMcpWriteTools.hash(intent)
             val receipt = receipt(requestId)
             if (receipt.exists() || File("$receipt.bak").exists()) {
@@ -204,16 +195,11 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                 throw IOException("RESTORE_PREVIEW_CHANGED")
             }
             requireTargetContext(record)
-            val manifest = validateStage(work, record)
-            val coverage = mediaCoverage(manifest)
-            if (coverage == "LEGACY_NOT_PROVEN" && !legacyMediaCoverageConfirmed) {
-                throw IOException("RESTORE_MEDIA_COVERAGE_CONFIRMATION_REQUIRED")
-            }
+            validateStage(work, record)
             val request = JSONObject().put("formatVersion", 1).put("request_id", requestId)
                 .put("request_fingerprint", fingerprint).put("restore_id", restoreId)
                 .put("preview_hash", expectedPreviewHash).put("phase", "REQUESTED")
-                .put("requested_at", Instant.now().toString()).put("media_coverage", coverage)
-                .put("legacy_media_coverage_confirmed", legacyMediaCoverageConfirmed)
+                .put("requested_at", Instant.now().toString())
             write(activationFile(), request)
             write(receipt, request)
             activationView(request)
@@ -257,27 +243,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         previewView(read(File(work(restoreId), "preview.json")))
     }
 
-    /** This file stays in staging during component moves; recheck its immutable manifest binding on resume. */
-    @Throws(Exception::class)
-    private fun activationBrowser(work: File, record: JSONObject, manifest: JSONObject): JSONObject {
-        val data = File(child(work, record.getString("directory")), "data")
-        val browser = File(data, "browser-storage.json")
-        var expected: JSONObject? = null
-        val files = manifest.getJSONArray("files")
-        for (i in 0 until files.length()) {
-            if (files.getJSONObject(i).getString("path") == "browser-storage.json") {
-                if (expected != null) throw IOException("RESTORE_STAGED_FILE_CHANGED")
-                expected = files.getJSONObject(i)
-            }
-        }
-        if (expected == null || Files.isSymbolicLink(browser.toPath()) || !browser.isFile ||
-            browser.length() != expected.getLong("size") ||
-            BackupArchive.sha256(browser) != expected.getString("sha256")) {
-            throw IOException("RESTORE_STAGED_FILE_CHANGED")
-        }
-        return RestoredBrowserReviewRules.validate(JSONObject(readText(browser, 16 * 1024 * 1024)))
-    }
-
     @Throws(Exception::class)
     private fun prepareTargets(work: File, record: JSONObject, manifest: JSONObject): Map<String, File> {
         val data = File(child(work, record.getString("directory")), "data")
@@ -314,7 +279,8 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
             throw IOException("RESTORE_PREVIEW_CHANGED")
         }
         val manifest = read(manifestFile)
-        if (manifest.optString("archiveProtection") != "NONE") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
+        // Only current native backups; WebView-era archives are no longer restored.
+        if (manifest.optString("archiveProtection") != "NONE" || manifest.optString("datasetFormat") != "pixel.snapshot.v2") throw IOException("BACKUP_FORMAT_UNSUPPORTED")
         val stage = child(work, record.getString("directory"))
         val data = File(stage, "data")
         val expected = HashSet<String>()
@@ -360,7 +326,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                     .put("counts", manifest.getJSONObject("counts"))
                     .put("warnings", record.optJSONArray("warnings") ?: org.json.JSONArray())
                     .put("last_issued_document_count", manifest.getJSONArray("lastIssuedDocumentIds").length())
-                    .put("media_coverage", mediaCoverage(manifest))
             )
         }
         if (record.optString("phase") == "VALIDATED") {
@@ -469,16 +434,11 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                         BackupArchive.sha256(File(work, "manifest.json")) != record.getString("manifest_sha256")) {
                         throw IOException("RESTORE_PREVIEW_CHANGED")
                     }
-                    val coverage = mediaCoverage(manifest)
-                    if (coverage == "LEGACY_NOT_PROVEN" && !state.optBoolean("legacy_media_coverage_confirmed") ||
-                        state.has("media_coverage") && coverage != state.getString("media_coverage")) {
-                        throw IOException("RESTORE_MEDIA_COVERAGE_CONFIRMATION_REQUIRED")
-                    }
                     val hookManifest = JSONObject(manifest.toString()).put(
                         "_activation_context", JSONObject().put("installation_id", record.getString("installation_id"))
                             .put("expected_restore_epoch", record.getString("expected_restore_epoch"))
                             .put("restore_id", record.getString("restore_id"))
-                    ).put("_restored_browser_checkpoint", service.activationBrowser(work, record, manifest))
+                    )
                     val current = arrayOf(state)
                     val journal = object : BackupDatasetExchange.Journal {
                         override fun read(): JSONObject = current[0]
@@ -627,8 +587,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                 .put("preview_hash", state.optString("preview_hash")).put("restart_required", PENDING.contains(phase))
                 .put("current_state_unchanged", phase in listOf("REQUESTED", "CANCELLED", "ROLLED_BACK"))
                 .put("last_error_code", state.optString("last_error_code"))
-                .put("media_coverage", state.optString("media_coverage", "LEGACY_NOT_PROVEN"))
-                .put("legacy_media_coverage_confirmed", state.optBoolean("legacy_media_coverage_confirmed"))
         }
 
         @Throws(Exception::class)
@@ -696,13 +654,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                 if (output != null) atomic.failWrite(output)
                 throw failure
             }
-        }
-
-        private fun mediaCoverage(manifest: JSONObject): String {
-            if (manifest.optString("datasetFormat") == "pixel.snapshot.v2") return "AVAILABLE_FILES_WITH_NOTES"
-            return if (manifest.has("browser_media_inventory") && manifest.optInt("browser_media_format_version") == 1) {
-                "VERIFIED_NATIVE_MIRROR"
-            } else "LEGACY_NOT_PROVEN"
         }
 
         @Throws(IOException::class)

@@ -64,7 +64,6 @@ class FullBackupActivity : ComponentActivity() {
     private var restoreUri = ""
     private var restoreId = ""
     private var previewHash = ""
-    private var legacyMedia = false
     private val initialized = CompletableDeferred<Unit>()
     private var resolvingDocument = false
 
@@ -149,8 +148,7 @@ class FullBackupActivity : ComponentActivity() {
             if (showConfirmation) AlertDialog(
                 onDismissRequest = { showConfirmation = false },
                 title = { Text("Bestand ersetzen?") },
-                text = { Text("Die Sicherung vom ${displayTime(capturedAt)} ersetzt den aktuellen Datenstand.\n\nDatei: ${inventory(backupCounts)}\nAktuell zum Prüfzeitpunkt: ${inventory(currentCounts)}\n\nEs wird keine Rückfallkopie angelegt." +
-                    if (legacyMedia) " Die nicht vollständig belegte Fotoabdeckung wird ausdrücklich akzeptiert." else "") },
+                text = { Text("Die Sicherung vom ${displayTime(capturedAt)} ersetzt den aktuellen Datenstand.\n\nDatei: ${inventory(backupCounts)}\nAktuell zum Prüfzeitpunkt: ${inventory(currentCounts)}\n\nEs wird keine Rückfallkopie angelegt.") },
                 dismissButton = { TextButton(onClick = { showConfirmation = false }) { Text("Abbrechen") } },
                 confirmButton = { TextButton(onClick = { showConfirmation = false; activateRestore() }) { Text("Bestand ersetzen") } }
             )
@@ -302,7 +300,7 @@ class FullBackupActivity : ComponentActivity() {
         if (discarded.isNotEmpty()) WORK.launch { runCatching { BackupRestoreService.discardPreview(this@FullBackupActivity, discarded) } }
         restoreRequest = ""; restoreId = ""; previewHash = ""; showActivate = false
         showWarnings = false; showConfirmation = false; backupCounts = null; currentCounts = null
-        capturedAt = ""; warnings = JSONArray(); warningCount = 0; legacyMedia = false
+        capturedAt = ""; warnings = JSONArray(); warningCount = 0
     }
 
     private fun showPreview(result: JSONObject) {
@@ -313,13 +311,12 @@ class FullBackupActivity : ComponentActivity() {
         }
         ui {
             restoreId = result.optString("restore_id"); previewHash = result.optString("preview_hash")
-            legacyMedia = summary.optString("media_coverage") == "LEGACY_NOT_PROVEN"
             capturedAt = summary.optString("captured_at"); backupCounts = summary.optJSONObject("counts")
             currentCounts = result.optJSONObject("current_counts")
             warnings = summary.optJSONArray("warnings") ?: JSONArray(); warningCount = maxOf(summary.optInt("warning_count"), warnings.length())
             statusLabel = if (warningCount > 0) "Datei geprüft · ${BackupInventory.warningSummary(warnings, warningCount)}" else "Datei geprüft"
-            statusTone = if (warningCount > 0 || legacyMedia) NativeStatusTone.Attention else NativeStatusTone.Neutral
-            status = "Vorschau bereit. Der aktuelle Bestand ist unverändert." + if (legacyMedia) " Bei dieser älteren ZIP ist die Fotoabdeckung nicht vollständig belegt." else ""
+            statusTone = if (warningCount > 0) NativeStatusTone.Attention else NativeStatusTone.Neutral
+            status = "Vorschau bereit. Der aktuelle Bestand ist unverändert."
             showCheck = true; showActivate = true; saveFinished = false
         }
     }
@@ -330,10 +327,9 @@ class FullBackupActivity : ComponentActivity() {
         val id = restoreId
         val hash = previewHash
         val activationRequest = "activate_$restoreRequest"
-        val acceptLegacyMedia = legacyMedia
         if (id.isEmpty() || hash.isEmpty()) return
         runTask {
-            BackupRestoreService(this).requestActivation(activationRequest, id, hash, true, acceptLegacyMedia)
+            BackupRestoreService(this).requestActivation(activationRequest, id, hash, true)
             ui {
                 restorePending = true; statusLabel = "Wiederherstellung vorgemerkt"; statusTone = NativeStatusTone.Attention
                 status = "Der Bestand ist noch nicht ersetzt. App vollständig schließen und erneut öffnen; der geschützte Austausch erfolgt beim Neustart."

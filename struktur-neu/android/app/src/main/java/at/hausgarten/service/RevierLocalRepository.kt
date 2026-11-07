@@ -35,7 +35,6 @@ class RevierLocalRepository(private val store: PixelLocalStore, private val insp
     override fun currentSession(): JSONObject = store.workSessions().current()
     override fun nativeReceipt(request: String): JSONObject? = store.lookupNativeReceipt(request)
     override fun prepareEquipmentProfilePhoto(upload: String, equipment: String, request: String): JSONObject = store.prepareEquipmentProfilePhoto(upload, equipment, request)
-    override fun prepareEquipmentProfilePhotoDraft(source: JSONObject, equipment: String, request: String): JSONObject = store.prepareEquipmentProfilePhotoDraft(source, equipment, request)
     override fun verifyEquipmentProfilePhoto(photo: JSONObject) {
         EquipmentProfilePhotoRules.attachment(photo, store.photoAttachment(photo.getString("id")))
         store.photoAttachmentStore().read(photo)

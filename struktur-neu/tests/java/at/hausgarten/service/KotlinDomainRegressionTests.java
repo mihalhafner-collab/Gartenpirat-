@@ -113,32 +113,6 @@ public final class KotlinDomainRegressionTests {
                 "2,000 clock/boot edge cases retain the Java timer decisions");
     }
 
-    private static int browserMediaWorkflows() throws Exception {
-        Field counter = BrowserMediaRepositoryRulesTests.class.getDeclaredField("checks");
-        counter.setAccessible(true);
-        int before = counter.getInt(null);
-        Path temporary = Files.createTempDirectory("qa-kotlin-domain-media-");
-        try {
-            for (String name : new String[]{"androidNullCleanup", "sharedDiscardAndDeferredReview"}) {
-                Method workflow = BrowserMediaRepositoryRulesTests.class.getDeclaredMethod(name, File.class);
-                workflow.setAccessible(true);
-                try {
-                    workflow.invoke(null, temporary.toFile());
-                } catch (InvocationTargetException failure) {
-                    Throwable cause = failure.getCause();
-                    if (cause instanceof Exception) throw (Exception) cause;
-                    if (cause instanceof Error) throw (Error) cause;
-                    throw new AssertionError(cause);
-                }
-            }
-        } finally {
-            try (Stream<Path> files = Files.walk(temporary)) {
-                for (Path file : files.sorted(Comparator.reverseOrder()).toList()) Files.delete(file);
-            }
-        }
-        return counter.getInt(null) - before;
-    }
-
     public static void main(String[] ignored) throws Exception {
         int original = RevierDomainTests.assertions;
         RevierDomainTests.workflow();
@@ -157,15 +131,14 @@ public final class KotlinDomainRegressionTests {
         int beforeReceipts = RevierDomainTests.assertions;
         RevierDomainTests.nativeAndOwnerReceiptInspection();
         int receipts = RevierDomainTests.assertions - beforeReceipts;
-        int browser = browserMediaWorkflows();
         nullablePortInputs();
         int nullable = checks;
         guardedCustomerWithoutCustomFields();
         int journal = checks - nullable;
         legacyTimerCharacterization();
-        System.out.println("PASS " + (workflows + receipts + browser + checks)
+        System.out.println("PASS " + (workflows + receipts + checks)
                 + " Kotlin domain assertions: " + workflows + " existing Revier, " + receipts
-                + " receipt inspection, " + browser + " browser media, " + nullable
+                + " receipt inspection, " + nullable
                 + " nullable inputs, " + journal + " guarded customer journal, " + (checks - nullable - journal)
                 + " timer characterization (2,000 scenarios); synthetic JVM only");
     }
