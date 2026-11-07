@@ -653,8 +653,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             launch(); openAccountingTotals(); reveal("1100,00 €"); shown("1100,00 €")
             click("Rechnung"); reveal("900,00 €"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
             click("‹ Zurück"); reveal("900,00 €"); shown("900,00 €")
-            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
-            yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW")
+            showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back()
+            // IME disappearance precedes the resized dialog's accessibility tree.
+            // Require the retained query and overview together after that reflow.
+            waitUntil("ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW") {
+                !keyboardVisible() && field("Auftragsbezeichnung")?.text?.toString() == "Abrechnung A"
+            }
+            checks++
             recreate()
             // A Compose startup screen exists before the accounting route is ready.
             // Require its restored search field, not merely the root Compose view.

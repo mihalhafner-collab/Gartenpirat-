@@ -573,7 +573,13 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             "service_catalog" -> listOf(row.optString("category"), listOf(amount(row, "default_price"), row.optString("unit")).filter { it.isNotBlank() }.joinToString(" / ")).filter { it.isNotBlank() }.joinToString(" · ")
             else -> ""
         }
-        val subtitle = listOf(customers[customer].orEmpty(), row.optString("company"), row.optString("location"), finance, if (collection == "worklogs" && row.has("hours")) row.opt("hours").toString() + " h" else "", date.take(10)).filter { it.isNotBlank() }.distinct().joinToString(" · ")
+        // JSON round trips can turn 1.0 into 1. Keep the same displayed hours
+        // when an unrelated write rebuilds this projection.
+        val hours = if (collection == "worklogs" && row.has("hours")) {
+            val value = row.opt("hours").toString()
+            (value.toBigDecimalOrNull()?.stripTrailingZeros()?.toPlainString() ?: value) + " h"
+        } else ""
+        val subtitle = listOf(customers[customer].orEmpty(), row.optString("company"), row.optString("location"), finance, hours, date.take(10)).filter { it.isNotBlank() }.distinct().joinToString(" · ")
         val photo = row.optJSONObject("profile_photo")
         val thumbnail = photo?.optString("thumbnail_storage_name").orEmpty().ifEmpty { row.optString("thumbnail_storage_name") }
         val active = isActive(row) && (collection == "customers" || !row.optBoolean("archived"))
