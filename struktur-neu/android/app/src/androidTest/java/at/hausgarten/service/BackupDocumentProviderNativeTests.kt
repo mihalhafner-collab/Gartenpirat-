@@ -234,7 +234,20 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             if (condition()) return
             SystemClock.sleep(100)
         }
-        throw AssertionError("QA_PICKER_TIMEOUT_$code")
+        throw AssertionError("QA_PICKER_TIMEOUT_$code VISIBLE=" + screenTexts())
+    }
+
+    /** Synthetic screen labels only, so a timeout names what was actually shown. */
+    private fun screenTexts(): String {
+        val out = ArrayList<String>()
+        fun walk(node: AccessibilityNodeInfo?) {
+            if (node == null || out.size >= 40) return
+            val label = (node.text ?: node.contentDescription)?.toString()?.take(60)
+            if (!label.isNullOrBlank()) out.add(label + (if (node.isEnabled) "" else "[disabled]") + (if (node.isVisibleToUser) "" else "[hidden]"))
+            for (i in 0 until node.childCount) walk(node.getChild(i))
+        }
+        walk(automation.rootInActiveWindow)
+        return out.joinToString(" | ")
     }
 
     private fun find(node: AccessibilityNodeInfo?, predicate: (AccessibilityNodeInfo) -> Boolean): AccessibilityNodeInfo? {
