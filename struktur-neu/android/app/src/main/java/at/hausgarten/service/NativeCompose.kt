@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -262,6 +263,19 @@ internal fun NativeGroup(title: String, content: @Composable ColumnScope.() -> U
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             content()
         }
+    }
+}
+
+/** Two-letter avatar; its theme container is fixed per name, so a customer is recognised at a glance. */
+@Composable
+internal fun NativeInitials(name: String, size: androidx.compose.ui.unit.Dp = 40.dp) {
+    val words = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() && it.first().isLetterOrDigit() }
+    val initials = (if (words.size > 1) "${words[0].first()}${words[1].first()}" else words.firstOrNull()?.take(2).orEmpty()).uppercase().ifEmpty { "?" }
+    val scheme = MaterialTheme.colorScheme
+    val (container, content) = listOf(scheme.primaryContainer to scheme.onPrimaryContainer, scheme.secondaryContainer to scheme.onSecondaryContainer,
+        scheme.tertiaryContainer to scheme.onTertiaryContainer)[Math.floorMod(name.trim().lowercase().hashCode(), 3)]
+    Box(Modifier.size(size).background(container, CircleShape), contentAlignment = Alignment.Center) {
+        Text(initials, color = content, style = if (size > 48.dp) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleSmall)
     }
 }
 

@@ -85,9 +85,7 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
             item {
                 NativeActions {
                     Button({ controller.navigate("settlement_edit") }) { Text("Neue Abrechnung") }
-                    TextButton({ controller.navigate("accounting") }) { Text("Zur Abrechnung mit Summen") }
                 }
-                Text("Rechnungen und interne Labor-Abrechnungen bleiben getrennte Abschlüsse. Die Abrechnung zeigt ihre Beträge gemeinsam mit den bestehenden Zuordnungen.", style = MaterialTheme.typography.bodySmall)
             }
             if (error.isNotEmpty()) item { NativeStatus(error, NativeStatusTone.Failed); TextButton({ attempt++ }) { Text("Erneut laden") } }
             if (result == null && error.isEmpty()) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }

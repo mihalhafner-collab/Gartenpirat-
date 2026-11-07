@@ -48,13 +48,13 @@
   "current_test_candidate": {
     "version_name": "1.62.0",
     "version_code": 133,
-    "source_sha256": "b11b462e850b01cda42d5bd1618dc31163b3ab1b11368b85888c4cd0ff004846",
+    "source_sha256": "51e8e22e4105f18868a0731764cfd294f7f2eaaf282b27d337959292507adba4",
     "status": "In Entwicklung; volle CI ausstehend. Installation und Verteilung nicht freigegeben.",
-    "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“. Büro flach ohne Aufklappgruppen; „Weitere Aktionen“ nur mit ändernden Aktionen; einheitliche Namen (Arbeiten, Einsätze, Suche, Archiv, Neue Abrechnung, Rechnungen & Labor). Heute nach Entwurf; Arbeitsdetail gruppiert (Zeit, Abrechnung, Kosten & Weg, Weiteres, Aktionen)."
+    "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“. Büro flach ohne Aufklappgruppen; „Weitere Aktionen“ nur mit ändernden Aktionen; einheitliche Namen (Arbeiten, Einsätze, Suche, Archiv, Neue Abrechnung, Rechnungen & Labor). Heute nach Entwurf; Arbeitsdetail gruppiert (Zeit, Abrechnung, Kosten & Weg, Weiteres, Aktionen). Kundenakte mit Kürzel-Kopf und Gruppen (Kontakt, Abrechnung, Verlauf, Unterlagen); Kundenliste mit Kürzeln und offenen Stunden; Abrechnung mit Reitern Offen · Rechnungen & Labor · Summen."
   },
   "current_task": {
     "name": "Version 133: Bildschirme nach Entwurf (claude.ai/artifact/L98zTxZmxa8DnR5peAqxRH)",
-    "status": "Erledigt: Navigation, Heute, Arbeitsdetail, Büro flach, Namen, Weitere Aktionen. Offen: Kundenakte, Abrechnung mit Reitern, Kundenliste mit Kürzeln; volle CI und Merge ausstehend."
+    "status": "Bildschirme nach Entwurf umgesetzt. Volle CI und Merge ausstehend; danach Oberflächentests für neue Knöpfe und ältere Compose-Fehler."
   },
   "open_checks": [
     "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
