@@ -583,7 +583,7 @@ private object NativeImages {
 }
 
 /** Process-wide ordering keeps recreation and backup ahead of every queued form write. */
-private object NativeDraftPersistence {
+internal object NativeDraftPersistence {
     val mutex = Mutex()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile var tail: Deferred<Unit>? = null

@@ -720,14 +720,26 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
     val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && listFailure.isEmpty()
+    // The first frame has no rows and resets the list to the top; keep the position and restore it once the page is there.
+    var savedScroll by rememberSaveable(collection) { mutableStateOf(listOf(0, 0)) }
+    var scrollRestored by remember { mutableStateOf(false) }
+    val tracking by rememberUpdatedState(loadedPage != null && scrollRestored)
+    LaunchedEffect(listState) {
+        snapshotFlow { listOf(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) }.collect { if (tracking) savedScroll = it }
+    }
+    LaunchedEffect(loadedPage != null) {
+        if (loadedPage != null && !scrollRestored) {
+            scrollRestored = true
+            if (savedScroll != listOf(0, 0)) listState.scrollToItem(savedScroll[0], savedScroll[1])
+        }
+    }
     val scope = rememberCoroutineScope()
     NativeSearchList("Suchen", search, { search = it; offset = 0 },
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false },
         bottomSearch = collection == "worklogs", controlsVisible = selected.isEmpty()) {
-        // The list appears only with its page, so a restored scroll position is not reset by an empty first frame.
-        if (listLoading) Box(Modifier.weight(1f).padding(horizontal = 16.dp)) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-        else LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         if (listFailure.isNotEmpty()) item { Text(listFailure, color = MaterialTheme.colorScheme.error) }
         if (!imeVisible && collection != "customers") item {
             NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))
@@ -811,7 +823,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     }
                 }
             }
-        } else if (!imeVisible || collection != "worklogs") NativeActionBar(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
+        } else if (!imeVisible) NativeActionBar(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
             controller.navigate(collection, mode = "new", args = JSONObject().apply { if (collection != "customers" && customer.isNotBlank()) put("customer_id", customer) })
         })
     }
