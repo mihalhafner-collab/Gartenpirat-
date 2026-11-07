@@ -25,17 +25,6 @@ internal class McpErrors {
                     "BACKUP_RUNNER_BUSY",
                     "BACKUP_ALREADY_COMPLETE",
                     "BACKUP_AUTOMATIC_PAUSED",
-                    "BACKUP_BROWSER_REPLAY_MISMATCH",
-                    "BACKUP_BROWSER_EDITOR_STATE_MISMATCH",
-                    "BACKUP_BROWSER_RESTORE_REVIEW_REQUIRED",
-                    "BACKUP_BROWSER_REVISION_REQUIRED",
-                    "BACKUP_BROWSER_STATE_CHANGED",
-                    "BACKUP_BROWSER_STATE_INVALID",
-                    "BACKUP_BROWSER_STATE_REQUIRED",
-                    "BACKUP_BROWSER_STATE_REQUIRED_OPEN_APP",
-                    "BACKUP_BROWSER_STATE_TOO_LARGE",
-                    "BACKUP_BROWSER_STORAGE_INVALID",
-                    "BACKUP_BROWSER_WRITE_CONFLICT",
                     "BACKUP_BUSINESS_ID_REQUIRED",
                     "BACKUP_BUSINESS_INVENTORY_MISMATCH",
                     "BACKUP_CAPTURE_ARCHIVE_MISMATCH",
@@ -219,9 +208,6 @@ internal class McpErrors {
                     code.endsWith("CHANGED"))
             ) {
                 return "Der gespeicherte Stand hat sich geändert. Neu laden; Eingaben bleiben erhalten."
-            }
-            if ((code == "BACKUP_BROWSER_EDITOR_STATE_MISMATCH")) {
-                return "Formularentwürfe und Sicherungsaufnahme gehören noch nicht zum selben lokalen Stand. Zur App zurückkehren und die Sicherung erneut öffnen; bestätigte Geschäftsdaten bleiben erhalten."
             }
             if (code.contains("REPLAY_MISMATCH")) {
                 return "Die Anfragekennung gehört zu anderen Angaben. Die ursprüngliche Aktion prüfen."

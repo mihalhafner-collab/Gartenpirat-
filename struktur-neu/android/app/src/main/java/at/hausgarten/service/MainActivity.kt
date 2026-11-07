@@ -57,7 +57,6 @@ import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.Locale
 import java.util.UUID
-import java.util.regex.Pattern
 import kotlin.coroutines.resume
 
 /** Native Compose entry point; platform consent stays separate from business writers. */
@@ -124,8 +123,7 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val current = controller
-                if (current?.route?.section == "restore_review") finish()
-                else if (current != null) current.back() else finish()
+                if (current != null) current.back() else finish()
             }
         })
         window.nativeLightSystemBars()
@@ -182,7 +180,7 @@ class MainActivity : ComponentActivity() {
         val shortcut = intent?.getStringExtra(SHORTCUT)
         if (intent != null && shortcut != null) {
             intent.removeExtra(SHORTCUT)
-            if (fresh && current.route.section != "restore_review") when (shortcut) {
+            if (fresh) when (shortcut) {
                 "start" -> current.navigate("timer")
                 "photo" -> current.navigate("photos", mode = "import", args = JSONObject().put("_open_camera", true))
                 "worklog" -> current.navigate("worklogs", mode = "new")
@@ -204,7 +202,6 @@ class MainActivity : ComponentActivity() {
     }
     /** Notification actions run only when they still match the current session; repeats are ignored. */
     private suspend fun workNoticeAction(current: NativeAppController, action: String, id: String) {
-        if (current.route.section == "restore_review") return
         try {
             val session = withContext(Dispatchers.IO) { current.store.workSessions().current() }
             val state = session.optString("state")
@@ -386,7 +383,6 @@ class MainActivity : ComponentActivity() {
         @Volatile private var foreground = WeakReference<MainActivity>(null)
         private const val WORK_NOTICE_REQUEST = 0x574b
         internal const val SHORTCUT = "shortcut"
-        private val BACKUP_SECRET_NAME = Pattern.compile("password|passwd|secret|credential|token|authorization|oauth|recovery.?code|api.?key", Pattern.CASE_INSENSITIVE)
         @JvmStatic fun refreshPlanningView() { refreshBusinessView() }
         @JvmStatic fun refreshBusinessView() {
             val activity = foreground.get() ?: return
@@ -395,52 +391,6 @@ class MainActivity : ComponentActivity() {
         private fun logPhotoCaptureFailure(code: String, error: Exception) {
             val cause = error.cause?.let { "; cause=" + it.javaClass.simpleName } ?: ""
             android.util.Log.e("HausGartenCamera", code + "; type=" + error.javaClass.simpleName + cause)
-        }
-        @JvmStatic @Throws(Exception::class)
-        fun sanitizeBackupCheckpoint(source: JSONObject): JSONObject {
-            if (source.optInt("formatVersion") != 1 || source.optJSONObject("storage") == null) throw IOException("BACKUP_BROWSER_CAPTURE_REQUIRED")
-            val value = JSONObject().put("formatVersion", 1).put("storage", JSONObject(source.getJSONObject("storage").toString()))
-            val storage = value.getJSONObject("storage")
-            val keys = storage.keys()
-            while (keys.hasNext()) {
-                val name = keys.next()
-                if (BACKUP_SECRET_NAME.matcher(name).find()) keys.remove()
-                else if (storage.get(name) !is String) throw IOException("BACKUP_BROWSER_CAPTURE_REQUIRED")
-            }
-            val drafts = source.opt("drafts")
-            if (drafts != null && drafts !== JSONObject.NULL) value.put("drafts", sanitizeBackupDraftValue(drafts))
-            val mirror = "hausgarten.fullbackup.formdrafts.v1"
-            if (storage.has(mirror)) try {
-                val original = JSONObject(storage.getString(mirror))
-                val sanitized = sanitizeBackupDraftValue(original)
-                if (PixelMcpWriteTools.hash(original) != PixelMcpWriteTools.hash(sanitized)) storage.put(mirror, sanitized.toString())
-            } catch (_: JSONException) { throw IOException("BACKUP_BROWSER_CAPTURE_REQUIRED") }
-            if (source.has("editor_state")) {
-                val state = source.optJSONObject("editor_state")
-                val identity = state?.optJSONObject("context")
-                if (state == null || state.length() != 4 || state.opt("formatVersion") !is Int || state.getInt("formatVersion") != 1 || state.opt("review_required") !is Boolean || state.opt("record_hash") !is String || !state.getString("record_hash").matches(Regex("[0-9a-f]{64}")) || identity == null || identity.length() != 2) throw IOException("BACKUP_BROWSER_CAPTURE_REQUIRED")
-                for (name in arrayOf("installationId", "restoreEpoch")) if (identity.opt(name) !is String || !identity.getString(name).matches(Regex("[0-9a-f-]{36}"))) throw IOException("BACKUP_BROWSER_CAPTURE_REQUIRED")
-                value.put("editor_state", JSONObject().put("formatVersion", 1).put("context", JSONObject(identity.toString())).put("review_required", state.getBoolean("review_required")).put("record_hash", state.getString("record_hash")))
-            }
-            return value
-        }
-        private fun sanitizeBackupDraftValue(value: Any?): Any? = when (value) {
-            is JSONArray -> JSONArray().also { safe ->
-                for (i in 0 until value.length()) {
-                    val row = value.get(i)
-                    if (row is JSONObject) {
-                        val type = row.optString("type")
-                        val name = row.optString("id") + "." + row.optString("name") + "." + row.optString("autocomplete")
-                        if (type.equals("password", true) || type.equals("file", true) || BACKUP_SECRET_NAME.matcher(name).find()) continue
-                    }
-                    safe.put(sanitizeBackupDraftValue(row))
-                }
-            }
-            is JSONObject -> JSONObject().also { safe ->
-                val keys = value.keys()
-                while (keys.hasNext()) { val name = keys.next(); if (!BACKUP_SECRET_NAME.matcher(name).find()) safe.put(name, sanitizeBackupDraftValue(value.get(name))) }
-            }
-            else -> value
         }
     }
 }

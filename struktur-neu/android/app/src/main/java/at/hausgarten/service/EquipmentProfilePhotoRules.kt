@@ -31,39 +31,6 @@ class EquipmentProfilePhotoRules {
             }
         }
         @Throws(Exception::class)
-        @JvmStatic fun draft(current: JSONObject, source: JSONObject): JSONObject {
-            var session: String = source.optString("session_id")
-            var selection: String = source.optString("selection")
-            var graph: JSONObject? = current.optJSONObject("record")
-            var origin: JSONObject? = (if ((graph == null)) null else graph!!.optJSONObject("action_context"))
-            if ((((((((((((((((!session.matches(Regex("[A-Za-z0-9_.:-]{8,200}")) || !selection.matches(Regex("[a-f0-9]{32}"))) || !source.optString("media_key").equals(("equipment_" + session))) || !current.optString("key").equals(("customer-draft:" + source.optString("media_key")))) || source.optString("installation_id").isEmpty()) || source.optString("restore_epoch").isEmpty()) || !current.optString("installation_id").equals(source.optString("installation_id"))) || !current.optString("restore_epoch").equals(source.optString("restore_epoch"))) || (graph == null)) || (origin == null)) || !source.optString("installation_id").equals(origin!!.optString("installation_id"))) || !source.optString("restore_epoch").equals(origin!!.optString("restore_epoch"))) || graph!!.optBoolean("_restore_action_review_required")) || !session.equals(graph!!.optString("session_id"))) || !selection.equals(graph!!.optString("selection"))))) {
-                throw RevierRules.error("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE", "Diese Fotoauswahl ist nicht mehr aktuell. Gerätefoto erneut bewusst auswählen; es wurde nichts angelegt.")
-            }
-            var ref: JSONObject? = graph!!.optJSONObject("file")
-            if (((ref == null))) {
-                throw RevierRules.error("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE", "Der lokale Fotoentwurf ist unvollständig.")
-            }
-            BrowserMediaFiles.validateReference(ref)
-            if ((((!ref!!.optString("representation").equals("blob") || (ref!!.optLong("byte_size") < 1)) || (ref!!.optLong("byte_size") > MAX_BYTES)))) {
-                throw RevierRules.error("EQUIPMENT_PHOTO_INVALID", "Bitte ein unterstütztes Foto bis 20 MB auswählen.")
-            }
-            return ref
-        }
-        @Throws(Exception::class)
-        @JvmStatic fun draftSession(state: JSONObject, source: JSONObject, request: String) {
-            var envelope: JSONObject = (if ((state.optBoolean("present") && !state.optBoolean("review_required"))) JSONObject(state.getString("value")) else JSONObject())
-            var session: String = source.optString("session_id")
-            var entries: JSONObject? = envelope.optJSONObject("entries")
-            var removed: JSONObject? = envelope.optJSONObject("removed")
-            var edit: JSONObject? = (if ((entries == null)) null else entries!!.optJSONObject(session))
-            var context: JSONObject? = (if ((edit == null)) null else edit!!.optJSONObject("context"))
-            var pending: JSONObject? = (if ((edit == null)) null else edit!!.optJSONObject("pending"))
-            var args: JSONObject? = (if ((pending == null)) null else pending!!.optJSONObject("args"))
-            if ((((((((((((((((envelope.optInt("formatVersion") != 1) || (removed == null)) || removed!!.has(session)) || (edit == null)) || !edit!!.optString("kind").equals("equipment")) || (context == null)) || !source.optString("media_key").equals(context!!.optString("media_key"))) || !source.optString("selection").equals(context!!.optString("photo_selection"))) || (pending == null)) || !pending!!.optString("tool").equals("save_equipment")) || (args == null)) || (args!!.optJSONObject("profile_photo_draft") == null)) || !request.equals(args!!.optString("request_id"))) || !PixelMcpWriteTools.hash(source).equals(PixelMcpWriteTools.hash(args!!.optJSONObject("profile_photo_draft")))))) {
-                throw RevierRules.error("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE", "Diese Gerätebearbeitung wurde verworfen oder geändert. Aktuellen Entwurf prüfen; es wurde nichts angelegt.")
-            }
-        }
-        @Throws(Exception::class)
         @JvmStatic fun attachment(photo: JSONObject, attachment: JSONObject?) {
             if (((attachment == null))) {
                 throw RevierRules.error("EQUIPMENT_PHOTO_ORIGINAL_MISSING", "Das lokale Gerätefoto fehlt.")

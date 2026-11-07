@@ -1594,7 +1594,7 @@ internal suspend fun nativeRetainPhotoDraft(controller: NativeAppController, sou
             }
         } ?: error("Das gewählte Foto ist nicht mehr lesbar.")
         currentCoroutineContext().ensureActive()
-        val file = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+        val file = synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
             val directory = File(controller.context.filesDir, "native-form-media")
             check(directory.isDirectory || directory.mkdirs()) { "Fotoentwurf kann nicht gespeichert werden." }
             val target = File(directory, "equipment-" + UUID.randomUUID() + extension)
@@ -1608,7 +1608,7 @@ internal suspend fun nativeDeletePhotoDraft(controller: NativeAppController, sou
     if (source.isEmpty()) return@withContext
     val uri = Uri.parse(source)
     if (uri.scheme != "file") return@withContext
-    synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+    synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
         val directory = File(controller.context.filesDir, "native-form-media").canonicalFile
         val file = File(uri.path.orEmpty()).canonicalFile
         if (file.parentFile == directory && file.name.startsWith("equipment-")) {

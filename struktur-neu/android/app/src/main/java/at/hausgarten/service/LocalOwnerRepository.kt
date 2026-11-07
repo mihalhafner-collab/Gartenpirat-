@@ -174,7 +174,7 @@ return out.toByteArray()
     // Nested owner work has not physically committed and must never wait on the
     // capture monitor while holding SQLite's writer (backup takes the reverse).
     if (database.inTransaction()) return
-    synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+    synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
         val directory = File(context!!.filesDir, "mcp-photo-uploads")
         if (!directory.exists()) return
         if (!directory.isDirectory || java.nio.file.Files.isSymbolicLink(directory.toPath())) throw IOException("UPLOAD_DIRECTORY_INVALID")

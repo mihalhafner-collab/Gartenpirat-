@@ -1258,36 +1258,6 @@ meta.put("attached_photo", photo.getString("id")).put("equipment_id", equipment)
 files.putFile(upload, meta, ByteArray(0))
 return photo
 }
-@Throws(Exception::class) fun prepareEquipmentProfilePhotoDraft(source: JSONObject, equipment: String, request: String): JSONObject {
-
-try {
-
-var consumed = "equipment_photo_draft_consumed:" + PixelMcpWriteTools.hash(source)
-if (!(ownerValue(consumed, "")!!.isEmpty())) {
-throw PixelMcpWriteTools.Rejected("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE", "Diese Fotoauswahl wurde bereits gespeichert. Aktuellen Gerätestand prüfen.")
-}
-var editState = BrowserDraftRepository(context, this).read(JSONObject().put("formatVersion", 1).put("action", "get").put("key", "hausgarten.form.sessions.v1").toString())
-EquipmentProfilePhotoRules.draftSession(editState, source, request)
-var media = BrowserMediaRepository(context, this)
-var current = media.readRecord("customer-draft:" + source.optString("media_key"))
-var ref = EquipmentProfilePhotoRules.draft(current, source)
-media.assertReadableReference(current.getString("record_id"), ref)
-var directory = File(context.getFilesDir(), "browser-media")
-BrowserMediaFiles.verifyReference(directory, ref)
-var bytes = java.nio.file.Files.readAllBytes(BrowserMediaFiles.referenceFile(directory, ref).toPath())
-if (bytes.size.toLong() != ref.getLong("byte_size") || !((McpFileTransfer.sha(bytes) == ref.getString("sha256")))) {
-throw IOException("BROWSER_MEDIA_ORIGINAL_MISSING_OR_CHANGED")
-}
-var photo = storeEquipmentProfilePhoto(bytes, ref.getString("mime_type"), equipment, request)
-putOwnerValue(consumed, request)
-return photo
-
-} catch (known: PixelMcpWriteTools.Rejected) {
-throw known
-} catch (unavailable: Exception) {
-throw PixelMcpWriteTools.Rejected("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE", "Fotoentwurf nicht eindeutig lesbar. Auswahl erneut prüfen; Geräteangaben bleiben erhalten.")
-}
-}
 private @Throws(Exception::class) fun storeEquipmentProfilePhoto(bytes: ByteArray, mime: String, equipment: String, request: String): JSONObject {
 
 var prepared: PhotoAttachmentStore.Prepared
@@ -1732,6 +1702,8 @@ database.endTransaction()
 }
 }
 companion object {
+/** Held while files are captured for a backup, so photo writes and removals wait. */
+@JvmField val FILE_CAPTURE_LOCK: Any = Any()
 @JvmField val SCHEMA_VERSION: Int = 7
 private val OPEN_STORES: java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger> = java.util.concurrent.ConcurrentHashMap()
 private val OPEN_DATABASES = java.util.WeakHashMap<SQLiteDatabase, String>()

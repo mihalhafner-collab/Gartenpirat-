@@ -1561,15 +1561,11 @@ class RevierApplicationService {
         }
         row.put("condition", condition)
         var upload: String = RevierRules.id(args, "profile_photo_upload_id", false)
-        var draft: JSONObject? = args.optJSONObject("profile_photo_draft")
-        if ((((args.has("profile_photo_draft") && (draft == null)) || (!upload.isEmpty() && (draft != null))))) {
-            throw RevierRules.error("INVALID_INPUT", "Genau eine lokale Fotoquelle verwenden.")
-        }
-        if (((!upload.isEmpty() || (draft != null)))) {
+        if (upload.isNotEmpty()) {
             if ((((old != null) && ((old!!.optBoolean("archived") || !old!!.optBoolean("active", true)))))) {
                 throw RevierRules.error("EQUIPMENT_INACTIVE", "Archiviertes oder inaktives Gerät zuerst bewusst prüfen.")
             }
-            var photo: JSONObject = (if ((draft == null)) repository.prepareEquipmentProfilePhoto(upload, row.getString("id"), request) else repository.prepareEquipmentProfilePhotoDraft(draft, row.getString("id"), request))
+            val photo = repository.prepareEquipmentProfilePhoto(upload, row.getString("id"), request)
             EquipmentProfilePhotoRules.validate(photo, row.getString("id"))
             repository.verifyEquipmentProfilePhoto(photo)
             row.put("profile_photo", photo).put("format_version", 3)

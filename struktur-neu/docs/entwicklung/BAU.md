@@ -125,15 +125,10 @@ ableiten. In diesem synthetischen Entwicklungs- und Prüfverfahren wird kein
 persönliches oder aus Kundendaten abgeleitetes ZIP geöffnet. Formatunterstützung
 beweist nicht die individuelle Lesbarkeit oder Unversehrtheit eines solchen Archivs.
 
-`NativeRestoredDraftScreens` ordnet native Entwürfe und bekannte lesbare ältere
-Formularhüllen passenden nativen Editoren zu. Quellhüllen, unklare Vorgangsbelege
-und die dauerhafte Sichtungsentscheidung bleiben erhalten; alte Schreibaktionen
-werden nicht automatisch wiederholt. Unbekannte Hüllen bleiben zur Sichtung
-verfügbar. Rohe archivierte IndexedDB-/LevelDB-Dateien werden bewahrt, aber nicht
-als vollständig interpretierte Browserdatenbank importiert. Ein unvollständiger
-Medienspiegel oder fehlende Nachweise blockieren die Medienaktivierung oder werden
-bewusst zurückgestellt. Diese Grenzen auch bei synthetischen Restorefällen prüfen;
-Dateierhaltung und vollständige Bedienbarkeit sind unterschiedliche Nachweise.
+Die alte WebView ist samt Entwurfsprüfung entfernt. Jede Sicherung enthält
+weiterhin `browser-storage.json`, jetzt immer leer; ältere Sicherungen bleiben
+wiederherstellbar, ihr Formularstand wird ignoriert. Alte Entwurfsfotos in
+`browser-media` gibt die Speicherbereinigung frei.
 
 Die native Datensuite prüft zusätzlich die lokale Speicherbereinigung in einem
 neuen synthetischen Kontext: Auftrags-/Terminlöschung mit geleisteter Arbeit,

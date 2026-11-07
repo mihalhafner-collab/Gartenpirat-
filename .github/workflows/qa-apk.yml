@@ -177,7 +177,7 @@ jobs:
             test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_graphics)
           else
-            suites=(local_backup local_backup_reopen browser_checkpoint browser_checkpoint_reopen native_data document_provider document_provider_reopen native_compose)
+            suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen native_compose)
           fi
           for suite in "${suites[@]}"; do
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
@@ -220,10 +220,6 @@ jobs:
           assert result['synthetic_only'] is True and result['productive_data_read'] is False, result
           if sys.argv[1].startswith('local_backup'):
               assert result['native_backup_roundtrip'] is True, result
-          elif sys.argv[1].startswith('browser_checkpoint'):
-              assert result['real_sqlite_transactions'] is True and result['isolated_context_paths'] is True, result
-              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
-              assert result['optional_media_failure_tested'] is (not sys.argv[1].endswith('_reopen')), result
           elif sys.argv[1]=='native_data':
               assert result['isolated_context_paths'] is True and result['projection_rows']==40000, result
               assert result['real_sqlite_transactions'] is True and result['wal_concurrent_reader'] is True, result
@@ -305,7 +301,6 @@ jobs:
           name: Gartenpirat-backup-test-results
           path: |
             struktur-neu/outputs/local_backup*.txt
-            struktur-neu/outputs/browser_checkpoint*.txt
             struktur-neu/outputs/document_provider*.txt
             struktur-neu/outputs/native_data*.txt
             struktur-neu/outputs/native_compose*.txt

@@ -20,6 +20,5 @@ interface RevierRepository {
     @Throws(Exception::class) fun currentSession(): JSONObject = JSONObject()
     @Throws(Exception::class) fun nativeReceipt(request: String): JSONObject? = null
     @Throws(Exception::class) fun prepareEquipmentProfilePhoto(upload: String, equipment: String, request: String): JSONObject { throw RevierRules.error("EQUIPMENT_PHOTO_UNAVAILABLE", "Gerätefoto kann gerade nicht gespeichert werden.") }
-    @Throws(Exception::class) fun prepareEquipmentProfilePhotoDraft(source: JSONObject, equipment: String, request: String): JSONObject { throw RevierRules.error("EQUIPMENT_PHOTO_UNAVAILABLE", "Gerätefotoentwurf kann gerade nicht gespeichert werden.") }
     @Throws(Exception::class) fun verifyEquipmentProfilePhoto(photo: JSONObject) { throw RevierRules.error("EQUIPMENT_PHOTO_ORIGINAL_MISSING", "Gerätefoto kann hier nicht vollständig geprüft werden.") }
 }

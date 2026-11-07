@@ -24,7 +24,7 @@ PACKAGE = 'at.hausgarten.service'
 NATIVE_ENTRIES = {
     'MainActivity', 'RevierApplication', 'NativeAppController', 'NativeRoute',
     'FullBackupActivity', 'RestoreRecoveryActivity', 'NativeComposeKt',
-    'NativeFormsKt', 'NativePrimaryScreensKt', 'NativeRestoredDraftScreensKt',
+    'NativeFormsKt', 'NativePrimaryScreensKt',
     'ComposeMediaScreensKt', 'ComposePlanningScreensKt',
     'ComposeRevierScreensKt', 'ComposeFinanceScreensKt',
 }

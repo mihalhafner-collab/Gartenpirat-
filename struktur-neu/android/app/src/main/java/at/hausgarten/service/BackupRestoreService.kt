@@ -257,27 +257,6 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
         previewView(read(File(work(restoreId), "preview.json")))
     }
 
-    /** This file stays in staging during component moves; recheck its immutable manifest binding on resume. */
-    @Throws(Exception::class)
-    private fun activationBrowser(work: File, record: JSONObject, manifest: JSONObject): JSONObject {
-        val data = File(child(work, record.getString("directory")), "data")
-        val browser = File(data, "browser-storage.json")
-        var expected: JSONObject? = null
-        val files = manifest.getJSONArray("files")
-        for (i in 0 until files.length()) {
-            if (files.getJSONObject(i).getString("path") == "browser-storage.json") {
-                if (expected != null) throw IOException("RESTORE_STAGED_FILE_CHANGED")
-                expected = files.getJSONObject(i)
-            }
-        }
-        if (expected == null || Files.isSymbolicLink(browser.toPath()) || !browser.isFile ||
-            browser.length() != expected.getLong("size") ||
-            BackupArchive.sha256(browser) != expected.getString("sha256")) {
-            throw IOException("RESTORE_STAGED_FILE_CHANGED")
-        }
-        return RestoredBrowserReviewRules.validate(JSONObject(readText(browser, 16 * 1024 * 1024)))
-    }
-
     @Throws(Exception::class)
     private fun prepareTargets(work: File, record: JSONObject, manifest: JSONObject): Map<String, File> {
         val data = File(child(work, record.getString("directory")), "data")
@@ -478,7 +457,7 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                         "_activation_context", JSONObject().put("installation_id", record.getString("installation_id"))
                             .put("expected_restore_epoch", record.getString("expected_restore_epoch"))
                             .put("restore_id", record.getString("restore_id"))
-                    ).put("_restored_browser_checkpoint", service.activationBrowser(work, record, manifest))
+                    )
                     val current = arrayOf(state)
                     val journal = object : BackupDatasetExchange.Journal {
                         override fun read(): JSONObject = current[0]

@@ -397,7 +397,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
                     if (!saved.has(metadata) && earlier?.has(metadata) == true) saved.put(metadata, earlier.get(metadata))
                 }
                 if (!saved.has("_creation_identity")) saved.put("_creation_identity", BackupDeviceGuard(context).current())
-                synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+                synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
                     store.putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), saved.toString())
                 }
                 draftFailures.remove(key)
@@ -430,14 +430,14 @@ internal class NativeAppController(private val activity: MainActivity, val store
                 if (!adopted.has(metadata) && earlier?.has(metadata) == true) adopted.put(metadata, earlier.get(metadata))
             }
             adopted.put("_creation_identity", BackupDeviceGuard(context).current()).remove("_restore_action_review_required")
-            synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { store.putOwnerValue(storageKey, adopted.toString()) }
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { store.putOwnerValue(storageKey, adopted.toString()) }
             draftFailures.remove(key)
             NativeDraftPersistence.unsaved.remove(key)
         }
     }
     suspend fun removeDraft(key: String) = withContext(Dispatchers.IO) {
         awaitDraftWrites(); draftMutex.withLock {
-            synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { store.putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), "") }
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { store.putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), "") }
             draftFailures.remove(key)
             NativeDraftPersistence.unsaved.remove(key)
         }

@@ -21,7 +21,7 @@ class PendingWorkPhotoStore(private val context: Context) {
     }
 
     @Synchronized @Throws(Exception::class)
-    fun stage(raw: String?): String = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { stageLocked(raw) }
+    fun stage(raw: String?): String = synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { stageLocked(raw) }
 
     @Throws(Exception::class)
     private fun stageLocked(raw: String?): String {
@@ -62,7 +62,7 @@ class PendingWorkPhotoStore(private val context: Context) {
     }
 
     @Synchronized @Throws(Exception::class)
-    fun read(): String = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { readLocked() }
+    fun read(): String = synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { readLocked() }
 
     @Throws(Exception::class)
     private fun readLocked(): String {
@@ -79,7 +79,7 @@ class PendingWorkPhotoStore(private val context: Context) {
         return payload.toString()
     }
 
-    @Synchronized fun clear() = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) { clearLocked() }
+    @Synchronized fun clear() = synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) { clearLocked() }
 
     private fun clearLocked() {
         RestoreStartupGuard.assertStoreMayOpen(context)

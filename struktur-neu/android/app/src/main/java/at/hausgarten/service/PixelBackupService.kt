@@ -149,7 +149,7 @@ class PixelBackupService internal constructor(private val context: Context, priv
             val attempt = Files.createTempDirectory(parent.toPath(), "attempt-").toFile()
             val captureIdentity = JSONObject(identity.toString()).put("backupId", id)
                 .put("businessId", context.packageName)
-            val (captured, archive) = synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+            val (captured, archive) = synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
                 progress.accept("Datenbank und Einstellungen aufnehmen …")
                 val captured = LocalBackupDataset.forStreaming(context, store, File(attempt, "snapshot"), captureIdentity)
                 progress.accept("Originaldateien sichern und ZIP vollständig zurücklesen …")

@@ -38,29 +38,9 @@ public final class EquipmentProfilePhotoTests {
  static JSONObject args(String request){return obj().put("request_id",request);}
  static JSONObject current(RevierApplicationService app)throws Exception{return app.query("list_equipment",obj()).getJSONArray("items").getJSONObject(0);}
  static JSONObject update(RevierApplicationService app,String request)throws Exception {JSONObject d=current(app);return args(request).put("equipment_id",d.getString("id")).put("expected_record_hash",d.getString("record_hash"));}
- static void draftProofs(File root)throws Exception {
-  File media=new File(root,"draft-media");BrowserMediaFiles files=new BrowserMediaFiles(media,new File(root,"draft-upload"));String upload=PixelMcpWriteTools.hash("qa_equipment_local_draft");files.begin(upload,IMAGE.length,"image/png");files.append(upload,0,IMAGE);JSONObject ref=files.complete(upload);
-  BrowserMediaRepositoryRulesTests.Memory memory=new BrowserMediaRepositoryRulesTests.Memory();BrowserMediaRepositoryRules rules=new BrowserMediaRepositoryRules(memory,media);rules.beginMirror("qa_equipment_mirror","active");rules.completeMirror("qa_equipment_mirror_done","active",new JSONArray());
-  String session="qa_equipment_session",key="customer-draft:equipment_"+session;JSONObject source=obj().put("media_key","equipment_"+session).put("session_id",session).put("selection","a".repeat(32)).put("installation_id","qa_browser_installation").put("restore_epoch","qa_browser_epoch_1"),graph=obj().put("session_id",session).put("selection","a".repeat(32)).put("action_context",obj().put("installation_id","qa_browser_installation").put("restore_epoch","qa_browser_epoch_1")).put("file",ref);
-  String empty=rules.readRecord(key).getString("record_hash");rules.prepareRecordWrite("qa_equipment_draft_stage",key,empty);rules.writeRecord("qa_equipment_draft_stage",key,empty,graph);JSONObject active=rules.readRecord(key);yes(EquipmentProfilePhotoRules.draft(active,source).getString("sha256").equals(McpFileTransfer.sha(IMAGE)));rules.assertReadableReference(active.getString("record_id"),ref);
-  denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draft(active,new JSONObject(source.toString()).put("selection","b".repeat(32))));
-  denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draft(active,new JSONObject(source.toString()).put("restore_epoch","qa_old_epoch")));
-  yes(EquipmentProfilePhotoRules.draft(new JSONObject(active.toString()).put("restored_request_review_required",true),source).getString("sha256").equals(ref.getString("sha256")));
-  JSONObject oldOrigin=new JSONObject(active.toString());oldOrigin.getJSONObject("record").getJSONObject("action_context").put("restore_epoch","qa_old_epoch");denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draft(oldOrigin,source));
-  JSONObject reviewGraph=new JSONObject(active.toString());reviewGraph.getJSONObject("record").put("_restore_action_review_required",true);denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draft(reviewGraph,source));
-  String before=active.getString("record_hash");rules.prepareRecordWrite("qa_equipment_draft_discard",key,before);rules.writeRecord("qa_equipment_draft_discard",key,before,null);
-  denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draft(rules.readRecord(key),source));yes(!BrowserMediaFiles.referenceFile(media,ref).exists());
-  try{rules.writeMirrorRecord("qa_equipment_late_mirror","active",key,graph);throw new AssertionError("Closed mirror must reject");}catch(IOException expected){yes(expected.getMessage().equals("BROWSER_MEDIA_MIRROR_CLOSED"));}
-  JSONObject envelope=obj().put("formatVersion",1).put("entries",obj().put(session,obj().put("kind","equipment").put("context",obj().put("media_key",source.getString("media_key")).put("photo_selection",source.getString("selection"))).put("pending",obj().put("tool","save_equipment").put("args",obj().put("request_id","qa_draft_commit").put("profile_photo_draft",source))))).put("removed",obj());
-  JSONObject editState=obj().put("present",true).put("review_required",false).put("value",envelope.toString());EquipmentProfilePhotoRules.draftSession(editState,source,"qa_draft_commit");yes(true);
-  denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draftSession(editState,source,"qa_changed_id"));
-  denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draftSession(new JSONObject(editState.toString()).put("review_required",true),source,"qa_draft_commit"));
-  envelope.getJSONObject("removed").put(session,obj().put("discarded",true));editState.put("value",envelope.toString());denied("EQUIPMENT_PHOTO_DRAFT_UNAVAILABLE",()->EquipmentProfilePhotoRules.draftSession(editState,source,"qa_draft_commit"));
- }
  public static void main(String[] argv)throws Exception {
   SyntheticBusinessData.verify();Path temp=Files.createTempDirectory("qa_equipment_photos_");
   try{
-   draftProofs(temp.toFile());
    Memory store=new Memory(temp.toFile());RevierApplicationService app=new RevierApplicationService(store,RevierDomainTests.CLOCK);String baseline=PixelMcpWriteTools.hash(store.snapshot);
    JSONObject original=app.execute("save_equipment",args("qa_equipment_identity").put("name","QA Gartenschere").put("condition","defective")).getJSONObject("record");
    yes(!original.has("profile_photo")&&original.getInt("format_version")==1);yes(store.preparations==0);

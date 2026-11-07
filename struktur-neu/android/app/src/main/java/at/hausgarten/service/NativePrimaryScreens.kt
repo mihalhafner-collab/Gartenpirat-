@@ -71,7 +71,6 @@ internal fun NativeApplication(controller: NativeAppController) {
     val notice by controller.messages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val routeStates = rememberSaveableStateHolder()
-    var reviewChecked by remember(controller) { mutableStateOf(false) }
     var createOpen by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(notice) {
@@ -79,15 +78,7 @@ internal fun NativeApplication(controller: NativeAppController) {
         snackbar.showSnackbar(notice, withDismissAction = true, duration = SnackbarDuration.Long)
         if (controller.messages.value == notice) controller.message("")
     }
-    LaunchedEffect(controller) {
-        try {
-            val pending = withContext(Dispatchers.IO) { RestoredBrowserCheckpoint(controller.context, controller.store).pending() }
-            if (pending && controller.route.section != "restore_review") controller.navigate("restore_review")
-            else if (!pending && controller.route.section == "restore_review") controller.navigate("today")
-        } catch (failure: Exception) { controller.message("Wiederhergestellte Formulare benötigen Prüfung."); controller.navigate("restore_review") }
-        reviewChecked = true
-    }
-    BackHandler(reviewChecked && route.section != "restore_review") { controller.back() }
+    BackHandler { controller.back() }
     if (createOpen) ModalBottomSheet(onDismissRequest = { createOpen = false }) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Neu anlegen", style = MaterialTheme.typography.titleLarge)
@@ -102,19 +93,19 @@ internal fun NativeApplication(controller: NativeAppController) {
         }
     }
     Row(Modifier.fillMaxSize()) {
-    if (reviewChecked && route.section != "restore_review" && landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
+    if (landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
     Scaffold(modifier = Modifier.weight(1f), containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 // Search and "+" sit in the same place on every overview, never over a screen's own bottom actions.
-                val quick = reviewChecked && route.mode == "list" && route.id.isEmpty() && route.section in setOf("today", "worklogs", "customers", "office", "more",
+                val quick = route.mode == "list" && route.id.isEmpty() && route.section in setOf("today", "worklogs", "customers", "office", "more",
                     "orders", "offers", "planning", "appointments", "visits", "properties", "inquiries", "care_plans", "materials", "equipment", "photos",
                     "accounting", "settlements", "billing", "catalog", "plants", "tour")
                 if (route.section != "today" || quick) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (route.section == "today") Spacer(Modifier.weight(1f))
-                    if (route.section != "today" && reviewChecked && controller.hasParentScreen() && route.section != "restore_review") NativeBackButton { controller.requestBack() }
-                    if (route.section != "today") Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: if (route.section == "restore_review") "Wiederhergestellte Entwürfe" else "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
+                    if (route.section != "today" && controller.hasParentScreen()) NativeBackButton { controller.requestBack() }
+                    if (route.section != "today") Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
                     if (quick) {
                         NativeSearchButton { controller.navigate("revier_search") }
                         IconButton({ createOpen = true }, Modifier.semantics { contentDescription = "Neu anlegen" }) { Text("+", style = MaterialTheme.typography.headlineMedium) }
@@ -123,15 +114,14 @@ internal fun NativeApplication(controller: NativeAppController) {
             }
         },
         bottomBar = {
-            if (reviewChecked && route.section != "restore_review" && !imeVisible) Column {
-                if (route.section !in listOf("today", "timer", "work", "backup", "restore_review")) NativeRunningWorkBar(controller)
+            if (!imeVisible) Column {
+                if (route.section !in listOf("today", "timer", "work", "backup")) NativeRunningWorkBar(controller)
                 if (!landscape) NativeMainNavigation(controller)
             }
         }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
-            if (!reviewChecked) Column(Modifier.padding(16.dp)) { CircularProgressIndicator(); Text("Übernommene Formulare werden geprüft …") }
-            else routeStates.SaveableStateProvider(controller.savedRoute()) { when (route.section) {
+            routeStates.SaveableStateProvider(controller.savedRoute()) { when (route.section) {
                 "today" -> NativeToday(controller)
                 "more", "office" -> NativeOffice(controller)
                 "billing" -> NativeBillingOverview(controller)
@@ -163,7 +153,6 @@ internal fun NativeApplication(controller: NativeAppController) {
                     }
                     NativeActionBar("Sicherung öffnen", { scope.launch { try { controller.flushDrafts(); controller.open(FullBackupActivity::class.java) } catch (failure: Exception) { controller.message(failure.message ?: "Entwürfe konnten nicht gesichert werden.") } } })
                 }
-                "restore_review", "restored_drafts" -> NativeRestoredDraftReview(controller)
                 else -> NativeRevierScreen(route.section.removePrefix("revier-"), route.id, controller)
             } }
         }

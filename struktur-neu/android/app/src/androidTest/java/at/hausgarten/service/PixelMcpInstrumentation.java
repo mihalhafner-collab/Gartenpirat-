@@ -63,11 +63,6 @@ public final class PixelMcpInstrumentation extends Instrumentation {
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
                 finish(Activity.RESULT_OK,report);return;
             }
-            if(suite.equals("browser_checkpoint")||suite.equals("browser_checkpoint_reopen")){
-                JSONObject result=RestoredBrowserCheckpointNativeTests.run(this,suite.equals("browser_checkpoint_reopen"));
-                checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
-                finish(Activity.RESULT_OK,report);return;
-            }
             if(suite.equals("local_backup")||suite.equals("local_backup_reopen")){
                 checks=LocalBackupNativeTests.run(this,suite.equals("local_backup_reopen"));
                 report.putString("result",new JSONObject().put("suite",suite).put("checks",checks).put("synthetic_only",true).put("productive_data_read",false).put("native_backup_roundtrip",true).put("android_file_picker_tested",false).toString());

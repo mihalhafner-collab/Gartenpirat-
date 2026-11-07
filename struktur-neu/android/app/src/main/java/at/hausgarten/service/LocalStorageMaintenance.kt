@@ -43,7 +43,7 @@ internal class LocalStorageMaintenance(private val context: Context, private val
         database.acquireReference()
         try {
             check(!database.inTransaction()) { "STORAGE_CLEANUP_REQUIRES_COMMITTED_DATA" }
-            synchronized(BrowserMediaRepositoryRules.FILE_CAPTURE_LOCK) {
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
                 store.beginBusinessTransaction(database)
                 try {
                     val state = store.getState()
@@ -181,9 +181,11 @@ internal class LocalStorageMaintenance(private val context: Context, private val
                 if (key == "snapshot" || key.startsWith("business_tables:") || key.startsWith("receipt:") ||
                     key.startsWith("receipt_guard:") || key.startsWith("photo-ui:") || key.startsWith("purge-cleaned:") ||
                     key.startsWith("revier:v1:audit:") || key == "purged_local_test_records_v1") continue
+                // Entries of the removed WebView keep no file alive; their old draft photos are released.
+                if (key.startsWith("browser_drafts:") || key.startsWith("browser_media:") ||
+                    key.startsWith("restored_browser_") || key.startsWith("full_backup_browser")) continue
                 if (key.startsWith("legacy-backup:")) refs.add(key.removePrefix("legacy-backup:"))
-                // Include drafts, active/trash Revier records, invoice originals and retained
-                // browser graphs, including restore candidates whose choice is still open.
+                // Include drafts, active/trash Revier records and invoice originals.
                 parse(store.ownerValue(key, ""))?.let { collect(it, refs) }
             }
         }
