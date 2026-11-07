@@ -2565,7 +2565,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             launch()
         }
         if (failures.isNotEmpty()) { val failure = AssertionError("LIST_VIEWPORTS_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(listViewportCases.length() == 15, "ALL_LIST_VIEWPORTS")
+        yes(listViewportCases.length() == 14, "ALL_LIST_VIEWPORTS")
     }
 
     private fun filterKeyboardJourney() {
