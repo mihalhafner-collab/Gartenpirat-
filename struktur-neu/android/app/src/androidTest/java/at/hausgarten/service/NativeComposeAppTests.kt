@@ -2058,7 +2058,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     openCustomerList(); enter("Suchen", name); click(name)
                 }
                 val invoiceCount = PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
-                click("Offene Arbeiten prüfen")
+                click("Offene Stunden")
                 shown("Offene Stunden")
                 click("Arbeiten prüfen")
                 enter("Suchen", "QA Kontextabrechnung")

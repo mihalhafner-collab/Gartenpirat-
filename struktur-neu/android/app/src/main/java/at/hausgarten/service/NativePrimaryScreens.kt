@@ -439,6 +439,7 @@ private fun NativeToday(controller: NativeAppController) {
     var session by remember { mutableStateOf<JSONObject?>(null) }
     var summary by remember { mutableStateOf<JSONObject?>(null) }
     var backup by remember { mutableStateOf<JSONObject?>(null) }
+    var openHours by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var hints by rememberSaveable { mutableStateOf(false) }
@@ -455,7 +456,8 @@ private fun NativeToday(controller: NativeAppController) {
         try {
             overview = controller.query("get_revier_overview", JSONObject().put("date", day))
             summary = controller.query("get_work_record_summary", JSONObject().put("date_from", day).put("date_to", day))
-            backup = controller.query("get_full_backup_status"); error = ""
+            backup = controller.query("get_full_backup_status")
+            openHours = controller.query("get_work_record_summary", JSONObject().put("group_by_billing_customer", true)); error = ""
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { error = failure.message ?: "Heute konnte nicht gelesen werden." }
     }
@@ -522,27 +524,18 @@ private fun NativeToday(controller: NativeAppController) {
     }
     Column(Modifier.fillMaxSize()) {
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Design: the date is the title; the day's figures sit in one quiet line below it.
             item {
-                Text("Heute", style = MaterialTheme.typography.headlineLarge)
-                Text(LocalDate.parse(day).format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d. MMMM yyyy", java.util.Locale.GERMAN)), color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (!active) item {
-                val large = LocalDensity.current.fontScale > 1.3f
-                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val statModifier = if (large) Modifier.fillMaxWidth() else Modifier.weight(1f)
-                    Surface(statModifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(if (overview == null) "…" else visits.size.toString(), style = MaterialTheme.typography.headlineSmall)
-                            Text("Einsätze geplant", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                Text(LocalDate.parse(day).format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d. MMMM", java.util.Locale.GERMAN)),
+                    style = MaterialTheme.typography.headlineSmall)
+                if (!active) FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(if (overview == null) "…" else visits.size.toString(), style = MaterialTheme.typography.titleMedium)
+                        Text("Einsätze geplant", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Surface(statModifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(summary?.let { nativeNumber(it.opt("hours")) + " Std." } ?: "…", style = MaterialTheme.typography.headlineSmall)
-                            Text("Heute gespeichert", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(summary?.let { nativeNumber(it.opt("hours")) + " Std." } ?: "…", style = MaterialTheme.typography.titleMedium)
+                        Text("Heute gespeichert", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -573,7 +566,7 @@ private fun NativeToday(controller: NativeAppController) {
                         if (visit === next) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(visit.optString("window_start").ifBlank { "–" }, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                        Text(visit.optString("window_start").ifBlank { "–" }, Modifier.widthIn(min = 48.dp), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(visit.optString("title", "Einsatz"), style = MaterialTheme.typography.titleSmall)
                             listOf(visit.optString("location"), listOf(visit.optString("window_start"), visit.optString("window_end")).filter { it.isNotBlank() }.joinToString("–"))
@@ -586,8 +579,16 @@ private fun NativeToday(controller: NativeAppController) {
                 }
             }
             item {
-                Text("Noch zu erledigen", style = MaterialTheme.typography.titleMedium)
-                NativeInfoRow("Offene Arbeiten prüfen", "Tatsächliche Leistungen und Abrechnungszuordnung", { controller.navigate("billing") })
+                val openGroups = openHours?.optJSONArray("billing_groups")
+                val openTotal = (0 until (openGroups?.length() ?: 0)).sumOf { openGroups!!.getJSONObject(it).optDouble("hours") }
+                val anyDue = openTotal > 0 || (overview?.optJSONArray("maintenance_due")?.length() ?: 0) > 0 || (overview?.optInt("open_inquiries") ?: 0) > 0
+                if (anyDue) Text("Zu erledigen", style = MaterialTheme.typography.titleMedium)
+                if (openTotal > 0) NativeInfoRow("Offene Stunden", nativeDuration(openTotal) + " bei " + (if (openGroups!!.length() == 1) "1 Empfänger" else "${openGroups.length()} Empfängern") + " · jetzt abrechnen",
+                    { controller.navigate("billing") }, leading = {
+                        Surface(shape = CircleShape, color = NativeAttentionContainer, contentColor = NativeMoney) {
+                            Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) { Text("€", style = MaterialTheme.typography.titleMedium) }
+                        }
+                    })
                 val due = overview?.optJSONArray("maintenance_due")?.length() ?: 0
                 val inquiries = overview?.optInt("open_inquiries") ?: 0
                 if (due > 0) NativeInfoRow("Wartung fällig", if (due == 1) "1 Gerät" else "$due Geräte", { controller.navigate("equipment") })
