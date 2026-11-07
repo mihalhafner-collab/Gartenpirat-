@@ -329,6 +329,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("ACCOUNTING_ROOT_READY") { selectedArea("Abrechnung") && node("Summen")?.let(::clickable) != null }
     }
 
+    private fun openSettlements() {
+        openAccounting()
+        // A restored overview can already have this tab selected. Its search
+        // field proves the actual list; no second tab action is needed then.
+        if (field("Abschluss oder Rechnungsnummer") == null) click("Rechnungen & Labor")
+        waitUntil("SETTLEMENT_LIST_READY") { field("Abschluss oder Rechnungsnummer")?.isEditable == true }
+    }
+
     /** Work records have no tab; the office lists them first. */
     private fun openWorklogs() {
         openOffice(); click("Arbeiten")
@@ -475,7 +483,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val oldFont = shell("settings get system font_scale")
         try {
             automation.serviceInfo = previous.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
-            launch(); openAccounting(); reveal("Rechnungen & Labor"); click("Rechnungen & Labor")
+            launch(); openSettlements()
             shown("[TEST] Rechnung 900"); click("[TEST] Rechnung 900")
             shown("Entwurf")
             for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
@@ -493,7 +501,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val original = read("get_settlement", JSONObject().put("settlement_id", invoice)).getJSONObject("record")
             yes(original.getString("status") == "confirmed" && original.has("pdf") && original.has("invoice_number"), "SETTLEMENT_UI_ORIGINAL_AFTER_CONFIRMATION")
             captureSyntheticScreen("settlement-invoice-confirmed")
-            openAccounting(); click("Rechnungen & Labor"); click("[TEST] Labor 200")
+            openSettlements(); click("[TEST] Labor 200")
             for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
             click("Labor-Abrechnung bestätigen")
             waitUntil("SETTLEMENT_UI_REAL_LABOR_PREPARATION") { read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record").getString("status") == "prepared" }
@@ -542,7 +550,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val secondNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Zweite manuelle Abrechnung" }
             yes(secondNew.getString("id") != firstNew.getString("id") && secondNew.getString("route") == "labor" && secondNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 400L, "SETTLEMENT_UI_NEW_OPERATION_DISTINCT_ID_ROUTE_AND_AMOUNT")
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung", "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND")
-            openAccounting(); click("Rechnungen & Labor"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
+            openSettlements(); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
             reveal("Bezeichnung"); yes(field("Bezeichnung")?.text?.toString()?.contains("[TEST] Erste manuelle Abrechnung") == true, "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT")
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft"); click("Entwurf speichern und prüfen")
             var lastSaveScroll = 0L

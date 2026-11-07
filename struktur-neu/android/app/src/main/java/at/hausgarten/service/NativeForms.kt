@@ -187,8 +187,15 @@ internal const val NATIVE_LIST_READ_ERROR = "Die Einträge konnten nicht geladen
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeSearchLayout(modifier: Modifier = Modifier, sideBySideWithoutIme: Boolean = false, bottomControls: Boolean = false, controlsVisible: Boolean = true, controls: @Composable () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val sideBySide = controlsVisible && LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && (WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0 || sideBySideWithoutIme)
+    val configuration = LocalConfiguration.current
+    val activity = androidx.activity.compose.LocalActivity.current
+    val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
     Layout(modifier = modifier, content = { controls(); Column(Modifier.fillMaxSize(), content = content) }) { children, limits ->
+        // A dialog can retain its previous LocalConfiguration during rotation.
+        // Measurement already has the new bounds; use the host configuration
+        // at that same point so a landscape keyboard cannot consume all rows.
+        val landscape = (activity?.resources?.configuration ?: configuration).orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val sideBySide = controlsVisible && landscape && (imeVisible || sideBySideWithoutIme)
         val gap = if (sideBySide) 12.dp.roundToPx() else 0
         val controlWidth = if (sideBySide) ((limits.maxWidth-gap)*0.42f).toInt() else limits.maxWidth
         val head = children[0].measure(Constraints(minWidth = controlWidth, maxWidth = controlWidth, maxHeight = limits.maxHeight))
@@ -247,7 +254,8 @@ internal fun NativeSearchDialog(title: String, search: String, onSearch: (String
         val keyboard = LocalSoftwareKeyboardController.current
         val focus = LocalFocusManager.current
         val imeVisible = WindowInsets.isImeVisible || WindowInsets.ime.getBottom(LocalDensity.current) > 0
-        val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val configuration = LocalConfiguration.current
+        val landscape = (androidx.activity.compose.LocalActivity.current?.resources?.configuration ?: configuration).orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val dialogWindow = (view.parent as? DialogWindowProvider)?.window
         DisposableEffect(dialogWindow, landscape, imeVisible) {
             val bars = dialogWindow?.let { androidx.core.view.WindowCompat.getInsetsController(it, view) }
