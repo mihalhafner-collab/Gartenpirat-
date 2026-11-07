@@ -106,7 +106,7 @@ class FullBackupActivity : ComponentActivity() {
                     }
                 },
                 // Restore stays reachable without scrolling; leaving uses the top back arrow or gesture.
-                secondaryLabel = if (showWarnings || saveFinished || restorePending) null else if (showCheck) "Abbrechen" else "Sicherung wiederherstellen",
+                secondaryLabel = if (showWarnings || restorePending) null else if (showCheck) "Abbrechen" else "Sicherung wiederherstellen",
                 onSecondary = { if (showCheck) leaveScreen() else chooseRestore() }, enabled = ready && !busy, secondaryEnabled = !busy && (showCheck || ready)
             )
         }) {
