@@ -168,7 +168,8 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
     val large = LocalDensity.current.fontScale > 1.3f
     if (rail) {
         Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
-            Column(Modifier.width(112.dp).fillMaxHeight().safeDrawingPadding().padding(horizontal = 4.dp), verticalArrangement = Arrangement.Center) {
+            // Scrolls when five areas do not fit, e.g. landscape with large text.
+            Column(Modifier.width(112.dp).fillMaxHeight().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 8.dp)) {
                 entries.forEach { (section, label) ->
                     val active = controller.route.area == section
                     TextButton({ controller.openSection(section) }, Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics {
@@ -723,8 +724,9 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false },
         bottomSearch = collection == "worklogs", controlsVisible = selected.isEmpty()) {
-        LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        // The list appears only with its page, so a restored scroll position is not reset by an empty first frame.
+        if (listLoading) Box(Modifier.weight(1f).padding(horizontal = 16.dp)) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        else LazyColumn(Modifier.weight(1f).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (listFailure.isNotEmpty()) item { Text(listFailure, color = MaterialTheme.colorScheme.error) }
         if (!imeVisible && collection != "customers") item {
             NativeContext(controller, JSONObject(controller.route.args.toString()).put("customer_id", customer).put("date_from", from).put("date_to", to))

@@ -992,6 +992,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val failure = try { run(); null }
                     catch (failure: AssertionError) { failure }
                     catch (failure: Exception) { failure }
+                // A journey that stops midway must not leave running work behind for the next one.
+                runCatching {
+                    val session = store.workSessions().current()
+                    if (session.optString("state") in setOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW"))
+                        store.workSessions().discard(session.optString("id"), "qa_cleanup_" + name)
+                }
                 if (failure == null) android.util.Log.i("NativeComposeQA", "$name PASS")
                 else {
                     test.sendStatus(0, Bundle().apply { putString("journey_failure", "$name: " + failure.stackTraceToString()) })
@@ -1876,8 +1882,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         read("update_work_record", JSONObject().put("request_id", "qa_native_today_older_hours")
             .put("work_record_id", fourth.id).put("expected_record_hash", envelope.getString("record_hash"))
             .put("updates", JSONObject().put("hours", record.getDouble("hours") + 0.5).put("start_time", "").put("end_time", "").put("break_minutes", 0)))
-        // No navigation or refresh between the external writer and the visible assertion.
-        shown(summaryText(before.getDouble("hours") + 0.5, before.getInt("work_records")))
+        // No navigation or refresh between the external writer and the visible assertion; the total sits below the day's visits.
+        reveal(summaryText(before.getDouble("hours") + 0.5, before.getInt("work_records")))
         yes(runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 3) }.rows == topThree,
             "TODAY_TOTAL_UPDATES_WITH_IDENTICAL_THREE_VISIBLE_WORK_ROWS")
         yes(read("get_work_record_summary", args).getInt("work_records") == before.getInt("work_records"), "TODAY_OLDER_EDIT_DOES_NOT_ADD_WORK")
@@ -2640,10 +2646,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         fun planning() { openOffice(); click("Planung") }
         fun billing() { openOffice(); click("Offene Stunden") }
         case("today", "Arbeit starten", true) { }
-        case("work", "Arbeitsentwürfe") { openWorklogs() }
+        case("work", "Arbeit nachtragen") { openWorklogs() }
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
         case("customers", "Kunde anlegen") { click("Kunden") }
-        case("office", "Aufträge und Anfragen", true) { click("Büro") }
+        case("office", "Organisieren", true) { click("Büro") }
         case("properties", "Objekt anlegen") { openOfficeGroup("Aufträge und Anfragen", "Objekte") }
         case("inquiries", "Anfrage anlegen") { openOfficeGroup("Aufträge und Anfragen", "Anfragen") }
         case("orders", "Auftrag anlegen") { openOfficeGroup("Aufträge und Anfragen", "Aufträge") }
@@ -2665,10 +2671,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("photos", "Foto hinzufügen") { openOfficeGroup("Material und Pflanzen", "Fotos") }
         case("plants", "Zufällige Pflanze") { openOfficeGroup("Material und Pflanzen", "Pflanzen") }
         case("catalog", "Baustein anlegen") { openOfficeGroup("Material und Pflanzen", "Leistungskatalog") }
-        case("drafts", "Bereich: Alle Entwürfe") { openOfficeGroup("Weitere Verwaltung", "Entwürfe") }
-        case("restored-drafts", "Übernommene Formularstände prüfen") {
-            openOfficeGroup("Weitere Verwaltung", "Entwürfe"); click("Formular- und Medienauswahl prüfen")
-        }
         case("local-search", "Suchtext eingeben") { openOfficeGroup("Weitere", "Suche") }
         case("archive", "Alle Arten") { openOfficeGroup("Weitere", "Archiv") }
         case("trash", "Papierkorb leeren") { openOfficeGroup("Weitere Verwaltung", "Papierkorb") }
@@ -2676,7 +2678,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("connections", "Optionale Verbindungen") { settings(); click("Verbindungen") }
         case("calendar", "Verbinden", true) { settings(); click("Verbindungen"); click("Google Kalender") }
         // FLAG_SECURE remains enabled; do not weaken credential screens for screenshots.
-        case("chatgpt", "Erweitert / Diagnose · Einrichtung und Rechte") { settings(); click("Verbindungen"); click("ChatGPT-Verbindung") }
+        case("chatgpt", "Einrichtung und Diagnose") { settings(); click("Verbindungen"); click("ChatGPT-Verbindung") }
         case("backup", "Jetzt sichern", true) { settings(); click("Sicherung und Wiederherstellung") }
         val oldFont = shell("settings get system font_scale")
         try {
@@ -2687,7 +2689,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         } finally { shell("settings put system font_scale $oldFont") }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
         if (failures.isNotEmpty()) { val failure = AssertionError("SURFACES_${failures.size}_FAILED"); failures.forEach(failure::addSuppressed); throw failure }
-        yes(surfaceCases.length() == 35, "ALL_SURFACES_REACHABLE")
+        yes(surfaceCases.length() == 33, "ALL_SURFACES_REACHABLE")
     }
 
     private fun storageSettingsJourney() {

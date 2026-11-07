@@ -48,7 +48,7 @@
   "current_test_candidate": {
     "version_name": "1.62.0",
     "version_code": 133,
-    "source_sha256": "f125df09f18dffd502e7e452d395bb932ebe3a20ddd420d85d6732743e54d028",
+    "source_sha256": "ce8fc41885f42f396f9a7a802e0604760f5d5cc95a647bdd4e6ebe1de5baa0a9",
     "status": "In Entwicklung; volle CI ausstehend. Installation und Verteilung nicht freigegeben.",
     "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“. Büro flach ohne Aufklappgruppen; „Weitere Aktionen“ nur mit ändernden Aktionen; einheitliche Namen (Arbeiten, Einsätze, Suche, Archiv, Neue Abrechnung, Rechnungen & Labor). Heute nach Entwurf; Arbeitsdetail gruppiert (Zeit, Abrechnung, Kosten & Weg, Weiteres, Aktionen). Kundenakte mit Kürzel-Kopf und Gruppen (Kontakt, Abrechnung, Verlauf, Unterlagen); Kundenliste mit Kürzeln und offenen Stunden; Abrechnung mit Reitern Offen · Rechnungen & Labor · Summen. WebView vollständig entfernt (Eigentümerentscheidung 07.11.2026): kein Browserstand in Sicherungen, nur pixel.snapshot.v2 wiederherstellbar; alte WebView-Einträge und Entwurfsfotos werden beim Start gelöscht."
   },
