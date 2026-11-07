@@ -107,9 +107,12 @@ Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
 ## Tests
 
-- Testprogramme erzeugen eigene synthetische Daten und prüfen Fach-, Speicher-
-  und Bedienwege samt Fehler, Wiederholung und erneutem Lesen.
-- Notwendige Tests direkt ausführen. Emulator-Suiten bleiben isoliert.
+- Tests prüfen Funktion: Knopf betätigen, Ergebnis in den Daten nachlesen.
+  Keine Text- oder Pixelvergleiche außer für Bedienbarkeit (große Schrift, Tastatur).
+- Jeder Test erzeugt eigene synthetische Daten, startet sauber und hinterlässt
+  keinen Zustand. Fehler, Wiederholung und erneutes Lesen mitprüfen.
+- Neue Tests nur für neue Funktionen oder gefundene Fehler. Wer einen Test
+  anfasst, entfernt überholte Prüfungen.
 - Auf dem Pixel dürfen gezielte Tests Betriebsdaten lesen und im Testumfang
   ändern; keine zusätzliche Sicherung als Voraussetzung. Eigene Testdaten
   danach entfernen. Betriebsdaten nie ins Repository, die Cloud oder CI.
@@ -118,9 +121,11 @@ Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
 - `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
   nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.
-- App-Änderungen erst nach vollem CI-Lauf (`qa-apk.yml` mit Emulator, ohne
-  `*_only`) nach `main`: keine neuen Fehler gegenüber `main`, vorhandene Fehler
-  stehen in `open_checks`. Ein Lauf ohne Emulator-Suiten zählt nicht.
+- Rot heißt Stopp: Vor neuer Funktion jeden roten Test beheben oder mit
+  Begründung löschen. Nach `main` nur mit grünem vollem CI-Lauf (`qa-apk.yml`
+  mit Emulator, ohne `*_only`).
+- `open_checks` nur für Pixel-Prüfungen, die im Emulator nicht möglich sind;
+  nie für rote CI-Tests.
 - AGENTS.md und AKTUELLER-STAND.json zusammen unter 19 KB halten
   (Kontext-Hook-Grenze 20 KB); Erledigtes steht in der Git-Historie.
 - Fehlende oder fehlgeschlagene Prüfungen nennen. Geänderten Code nie als

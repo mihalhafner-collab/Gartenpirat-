@@ -54,13 +54,11 @@
   },
   "current_task": {
     "name": "Version 133: Bildschirme nach Entwurf (claude.ai/artifact/L98zTxZmxa8DnR5peAqxRH)",
-    "status": "Bildschirme nach Entwurf umgesetzt. Volle CI und Merge ausstehend; danach Oberflächentests für neue Knöpfe und ältere Compose-Fehler."
+    "status": "Bildschirme nach Entwurf, WebView-Entfernung und Doku auf dem Branch. Rot heißt Stopp: vor dem Merge alle Compose-Abläufe grün machen (offen u. a. timer, notification, usability, back_gesture, customer_context, domain_search, camera_capture). Danach Suiten native_settlement, native_accounting und native_graphics in den vollen CI-Lauf aufnehmen."
   },
   "open_checks": [
     "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
     "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
-    "Compose-Suite: ältere Fehler in pending_result_read_only, usability, today_older_work_commit, customer_context, search_keyboard, back_gesture, domain_search, list_viewports, surfaces, large_text, camera_capture.",
-    "Voller CI-Lauf enthält die Suiten native_settlement, native_accounting und native_graphics nicht; sie laufen nur über die *_only-Schalter.",
     "Pixel-Teilabnahme 131: 49 bestanden; fehlgeschlagen QA06 (Hinweise bei Gerätefoto-Übernahme) und C04 (nach Löschen nicht zur Kundenliste zurück), Nachtest nach Installation; Kamera (QA11) und Randgeste offen.",
     "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
     "Ältere native Backup- und Speicherbereinigungsabnahmen offen."
