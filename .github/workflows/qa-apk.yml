@@ -42,7 +42,7 @@ permissions:
 jobs:
   current-source-and-backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 80
+    timeout-minutes: 110
     defaults:
       run:
         working-directory: struktur-neu
@@ -118,7 +118,7 @@ jobs:
           (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
         if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
-        timeout-minutes: 50
+        timeout-minutes: 85
         env:
           GRAPHICS_ONLY: ${{ inputs.graphics_only }}
           ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
@@ -159,45 +159,41 @@ jobs:
           mkdir -p outputs
           native_suite_failures=0
           if [ "$SETTLEMENT_UI_ONLY" = true ]; then
-            test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
-            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
-            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_settlement_ui)
           elif [ "$SETTLEMENT_ONLY" = true ]; then
-            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
-            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_settlement native_settlement_reopen native_settlement_ui)
           elif [ "$ACCOUNTING_ONLY" = true ]; then
-            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
-            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_accounting native_accounting_reopen)
           elif [ "$GRAPHICS_ONLY" = true ]; then
-            test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
-            test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
-            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             suites=(native_graphics)
           else
-            suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen native_compose)
+            suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen native_compose native_settlement native_settlement_reopen native_settlement_ui native_accounting native_accounting_reopen native_graphics)
           fi
           # Every UI journey gets a new process and a completely empty app sandbox.
           compose_journeys=(today_hub customer native_pickers pending_result_read_only usability work_photo_retention accessories timer today_older_work_commit notification customer_context office_opening search_keyboard back_gesture domain_search list_viewports filter_keyboard surfaces large_text storage_settings camera_capture)
+          graphics_journeys=(graphics_today graphics_work graphics_navigation graphics_accessories graphics_timer graphics_large_text)
           expanded_suites=()
           for suite in "${suites[@]}"; do
             if [ "$suite" = native_compose ]; then
-              for journey in "${compose_journeys[@]}"; do expanded_suites+=("native_compose:$journey"); done
+              for journey in "${compose_journeys[@]}"; do expanded_suites+=("native_compose.$journey"); done
+            elif [ "$suite" = native_graphics ]; then
+              for journey in "${graphics_journeys[@]}"; do expanded_suites+=("native_graphics.$journey"); done
             else expanded_suites+=("$suite"); fi
           done
           for entry in "${expanded_suites[@]}"; do
-            suite="${entry%%:*}"
+            suite="${entry%%.*}"
             journey=""
             instrument_args=()
-            if [[ "$entry" == *:* ]]; then
-              journey="${entry#*:}"
+            if [[ "$entry" == *.* ]]; then
+              journey="${entry#*.}"
+            fi
+            # Reopen suites retain only their own preceding synthetic fixture.
+            if [[ "$entry" == *.* ]] || [[ "$suite" == native_settlement || "$suite" == native_settlement_ui || "$suite" == native_accounting ]]; then
               test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
               test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
               test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
-              instrument_args=(-e journey "$journey")
             fi
+            if [ -n "$journey" ]; then instrument_args=(-e journey "$journey"); fi
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
             # The running-work notice asks once for this permission; a system dialog would cover the UI under test.
@@ -255,12 +251,11 @@ jobs:
                   for proof in ('real_main_activity','exact_amounts','filters_and_navigation','conflict_correction','viewport_and_large_text'):
                       assert result[proof] is True, result
           elif sys.argv[1]=='native_graphics':
-              for proof in ('independent_fresh_fixture','real_main_activity','native_compose_ui','today_hub',
-                            'timer_state_transitions','machine_accessory_roundtrip','font_scale_200_percent'):
+              for proof in ('independent_fresh_fixture','real_main_activity','native_compose_ui'):
                   assert result[proof] is True, result
               assert result['backup_provider_prerequisite'] is False, result
               assert result['physical_pixel_tested'] is False and result['drive_account_tested'] is False, result
-              assert result['graphics_cases'] == ['graphics_today','graphics_work','graphics_navigation','graphics_accessories','graphics_timer','graphics_large_text'], result
+              assert result['graphics_cases'] == [sys.argv[3]], result
           elif sys.argv[1]=='native_compose':
               assert result['journey'] == sys.argv[3] and result['independent_fresh_fixture'] is True, result
               assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result

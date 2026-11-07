@@ -40,7 +40,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         /** One journey per process, after pm clear on the disposable API 35 emulator. */
         @JvmStatic fun run(test: Instrumentation, journey: String): JSONObject = NativeComposeAppTests(test).execute(journey)
         /** Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider prerequisite. */
-        @JvmStatic fun runGraphics(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeGraphics()
+        @JvmStatic fun runGraphics(test: Instrumentation, journey: String): JSONObject = NativeComposeAppTests(test).executeGraphics(journey)
         @JvmStatic fun runSettlement(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeSettlement()
         @JvmStatic fun runAccounting(test: Instrumentation, reopen: Boolean): JSONObject = NativeComposeAppTests(test).executeAccounting(reopen)
     }
@@ -707,31 +707,29 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    private fun executeGraphics(): JSONObject {
+    private fun executeGraphics(selectedJourney: String): JSONObject {
         guardGraphicsFixture()
         val previousInfo = automation.serviceInfo
         val previousFlags = previousInfo.flags
         val oldFont = shell("settings get system font_scale")
-        val passed = JSONArray()
-        val failures = ArrayList<Throwable>()
         try {
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
             shell("settings put system font_scale 1.0")
             seedPaging()
             launch()
+            var ran = false
             fun journey(name: String, body: () -> Unit) {
+                if (selectedJourney != name) return
+                yes(!ran, "ONE_GRAPHICS_JOURNEY_PER_PROCESS")
+                ran = true
                 test.sendStatus(0, Bundle().apply { putString("journey_start", name) })
-                try { body(); passed.put(name) }
+                try { body() }
                 catch (failure: Throwable) {
                     test.sendStatus(0, Bundle().apply { putString("journey_failure", "$name: " + failure.stackTraceToString()) })
                     test.sendStatus(0, Bundle().apply { putString("list_read_diagnostics", shell("logcat -d -s HausGartenNativeList:W").takeLast(12000)) })
                     runCatching { captureSyntheticScreen("failure-$name"); logVisibleActions("failure_$name") }
-                    failures.add(AssertionError("QA_NATIVE_GRAPHICS_JOURNEY_$name", failure))
+                    throw failure
                 }
-                // Keep later screenshot groups reachable after an unrelated failed UI case.
-                activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
-                shell("settings put system font_scale 1.0")
-                launch()
             }
             journey("graphics_today", ::todayJourney)
             journey("graphics_work", ::workInteractionJourney)
@@ -739,16 +737,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("graphics_accessories", ::accessoryJourney)
             journey("graphics_timer") { timerJourney(largeFontScreenshot = true) }
             journey("graphics_large_text", ::largeTextJourney)
-            if (failures.isNotEmpty()) {
-                val failure = AssertionError("QA_NATIVE_GRAPHICS_JOURNEYS_FAILED_${failures.size}")
-                failures.forEach(failure::addSuppressed)
-                throw failure
-            }
+            yes(ran, "EXPLICIT_KNOWN_GRAPHICS_JOURNEY_REQUIRED")
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
                 .put("independent_fresh_fixture", true).put("backup_provider_prerequisite", false)
-                .put("real_main_activity", true).put("native_compose_ui", true).put("graphics_cases", passed)
-                .put("today_hub", true).put("timer_state_transitions", true).put("machine_accessory_roundtrip", true)
-                .put("font_scale_200_percent", true).put("physical_pixel_tested", false).put("drive_account_tested", false)
+                .put("real_main_activity", true).put("native_compose_ui", true).put("graphics_cases", JSONArray().put(selectedJourney))
+                .put("physical_pixel_tested", false).put("drive_account_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
             activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }

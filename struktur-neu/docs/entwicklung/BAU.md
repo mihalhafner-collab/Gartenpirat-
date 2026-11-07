@@ -50,16 +50,17 @@ der Runner prüft deren SHA256 und lädt nichts nach.
 `.github/workflows/qa-apk.yml` baut, führt die JVM-Tests aus und startet auf
 einem Wegwerf-Emulator (API 35) die Suiten `local_backup`, `local_backup_reopen`,
 `native_data`, `document_provider`, `document_provider_reopen` und
-`native_compose`. Das geschieht bei jedem Push nach `main` und bei manuellem
-Start mit `emulator`. Die Suiten für Abrechnung, Rechnungen und Grafik laufen
-nur über die Schalter `accounting_only`, `settlement_only`,
-`settlement_ui_only` und `graphics_only`.
+`native_compose`, `native_settlement`, `native_settlement_reopen`,
+`native_settlement_ui`, `native_accounting`, `native_accounting_reopen` und
+`native_graphics`. Das geschieht bei jedem Push nach `main` und bei manuellem
+Start mit `emulator=true` ohne `*_only`. Die `*_only`-Schalter bleiben für
+gezielte Fehlersuche verfügbar und zählen nicht als voller Lauf.
 
 Der Emulator verwendet nur synthetische Daten und einen temporären
 Testschlüssel; es wird keine APK veröffentlicht. Ein Build ist kein Emulatorlauf,
 ein Emulatorlauf keine Pixel-Abnahme.
 
-Die 21 Compose-Abläufe laufen einzeln mit `-e journey <name>`, jeweils nach
+Die 21 Compose- und sechs Grafikabläufe laufen einzeln mit `-e journey <name>`, jeweils nach
 `pm clear` und in einem neuen Instrumentierungsprozess. Jeder legt seinen
 synthetischen Bestand selbst an; Ergebnisse stehen je Ablauf im CI-Artefakt.
 
