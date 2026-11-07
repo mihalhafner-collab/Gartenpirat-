@@ -306,7 +306,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun openCustomerList() {
         click("Kunden")
         repeat(12) {
-            fun ready() = field("Suchen")?.isEditable == true && node("Kunde anlegen")?.let(::clickable) != null
+            // With the keyboard open the list hides its bottom action bar.
+            fun ready() = field("Suchen")?.isEditable == true && (keyboardVisible() || node("Kunde anlegen")?.let(::clickable) != null)
             var listReady = false
             waitUntil("CUSTOMER_LIST_OR_DETAIL_ROUTE") {
                 if (!selectedArea("Kunden")) false
@@ -1216,6 +1217,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Weitere 50")
         scrollTop(); shown("55 Treffer · 51–55")
         reveal(fixturePrefix + "054")
+        // Compare positions without the keyboard on both sides; it changes the visible area.
+        if (keyboardVisible()) { back(); waitUntil("USABILITY_IME_HIDDEN") { !keyboardVisible() } }
+        reveal(fixturePrefix + "054")
         val retainedBounds = actionBounds(fixturePrefix + "054")
         click("Heute"); click("Kunden")
         shown("55 Treffer · 51–55")
@@ -2052,7 +2056,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     if (fromInquiry) { openOfficeEntry("Anfragen"); enter("Suchen", "QA Kontextanfrage 0"); click("QA Kontextanfrage 0"); click("Angebot aus dieser Anfrage") }
                     else { click("Alle Objekte"); click("QA Kontextobjekt 0"); click("Angebot vorbereiten") }
                     val title = if (fromInquiry) "QA Kontextanfrage 0" else "QA Kontextobjekt 0"
-                    shown("Kunde: $name")
+                    shown("Kunde: $name"); reveal("Titel *")
                     yes(field("Titel *")?.text?.toString()?.contains(title) == true, "OFFER_SOURCE_TITLE_$fromInquiry")
                     enter("Titel *", "$title geprüft")
                     val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("finance:offers:new")
