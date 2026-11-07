@@ -298,6 +298,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             db.rawQuery("SELECT count(*) FROM mcp_uploads WHERE id='qa_retained_backup'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "RETIRED_BACKUP_BLOB_REMOVED") }
             yes(pending.isFile && staged.isFile && keptPhoto.isFile && issued.isFile, "ALL_LIVE_REFERENCES_RETAINED")
             yes(!browser.exists(), "OLD_WEBVIEW_DRAFT_PHOTO_RELEASED")
+            db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'browser_media:*'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "OLD_WEBVIEW_ENTRIES_REMOVED") }
             yes(!context.getSharedPreferences("haus_garten", 0).contains("drive_snapshot"), "LEGACY_PREFERENCES_REMOVED")
             db.rawQuery("SELECT count(*) FROM owner_state WHERE key GLOB 'business_tables:original:*' OR key GLOB 'receipt_guard:*'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "OLD_DUPLICATES_REMOVED") }
             db.rawQuery("SELECT count(*) FROM mcp_uploads WHERE id='qa_old_upload'", null).use { rows -> yes(rows.moveToFirst() && rows.getInt(0) == 0, "ORPHAN_UPLOAD_BLOB_REMOVED") }

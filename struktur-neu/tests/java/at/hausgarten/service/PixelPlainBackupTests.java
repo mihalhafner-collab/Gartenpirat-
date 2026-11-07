@@ -10,13 +10,13 @@ public final class PixelPlainBackupTests {
     static JSONObject metadata()throws Exception{return new JSONObject().put("schemaVersion",6).put("applicationId","at.hausgarten.service").put("appVersion","qa").put("backupId","qa_plain_backup").put("installationId","qa_install").put("businessId","qa_business").put("capturedAt","2026-10-28T00:00:00Z").put("counts",new JSONObject()).put("numberState",new JSONObject()).put("lastIssuedDocumentIds",new JSONArray());}
     static void diagnosticChecks()throws Exception{
         // These failures used to collapse to BACKUP_CAPTURE_INVENTORY_IO_FAILED.
-        for(String code:new String[]{"BROWSER_MEDIA_RECORD_MISSING","BACKUP_DATABASE_INTEGRITY_FAILED","BACKUP_FILE_HASH_MISMATCH"}){
+        for(String code:new String[]{"RESTORE_PREVIEW_CHANGED","BACKUP_DATABASE_INTEGRITY_FAILED","BACKUP_FILE_HASH_MISMATCH"}){
             Exception error=BackupScheduleRules.captureFailure("INVENTORY",new IOException(code));
             yes(BackupScheduleRules.errorCode(error).equals(code));
         }
         IOException privateDetail=new IOException("QA path /private/customer-document.pdf");
-        Exception sanitized=BackupScheduleRules.captureFailure("INVENTORY_BROWSER_MEDIA",privateDetail);
-        yes(BackupScheduleRules.errorCode(sanitized).equals("BACKUP_CAPTURE_INVENTORY_BROWSER_MEDIA_IO_FAILED"));
+        Exception sanitized=BackupScheduleRules.captureFailure("INVENTORY_ORIGINALS",privateDetail);
+        yes(BackupScheduleRules.errorCode(sanitized).equals("BACKUP_CAPTURE_INVENTORY_ORIGINALS_IO_FAILED"));
         yes(sanitized.getCause()==privateDetail);yes(BackupScheduleRules.errorCode(privateDetail).equals("BACKUP_OPERATION_FAILED"));
         yes(BackupScheduleRules.errorCode(new IOException("UNSAFE_SECRET\nQA private text")).equals("BACKUP_OPERATION_FAILED"));
         InterruptedIOException interrupted=new InterruptedIOException("QA cancelled");yes(BackupScheduleRules.captureFailure("INVENTORY",interrupted)==interrupted);
@@ -150,16 +150,16 @@ public final class PixelPlainBackupTests {
         File parent=new File(root,"qa_work"),external=new File(root,"qa_kept_original");
         yes(parent.mkdir());Files.write(external.toPath(),new byte[]{1,2,3});
         long expected=0;
-        for(String name:new String[]{"pixel-backup","full-backup-work","browser-media-upload","before-restore","deletion-backups","legacy-conflict-backups","backup-key-protection","local-authority-review","local-authority"}){
+        for(String name:new String[]{"pixel-backup","full-backup-work","before-restore","deletion-backups","legacy-conflict-backups","backup-key-protection","local-authority-review","local-authority"}){
             File nested=new File(parent,name+"/attempt/capture/deep/old.bin");yes(nested.getParentFile().mkdirs());
             Files.write(nested.toPath(),new byte[101]);expected+=101;
         }
         File identity=new File(parent,"backup-device-guard/identity.v1");yes(identity.getParentFile().mkdirs());Files.write(identity.toPath(),new byte[]{8});
         File active=new File(parent,"full-restore/restore_active/working.bin");yes(active.getParentFile().mkdirs());Files.write(active.toPath(),new byte[]{9});
         Files.createSymbolicLink(new File(parent,"full-backup-work/attempt/external-link").toPath(),external.toPath());
-        Files.createSymbolicLink(new File(parent,"browser-media-upload/attempt/loop").toPath(),parent.toPath());
+        Files.createSymbolicLink(new File(parent,"before-restore/attempt/loop").toPath(),parent.toPath());
         yes(BackupArchive.removeWorkDirectories(parent)==expected);
-        for(String name:new String[]{"pixel-backup","full-backup-work","browser-media-upload","before-restore","deletion-backups","legacy-conflict-backups","backup-key-protection","local-authority-review","local-authority"})yes(!new File(parent,name).exists());
+        for(String name:new String[]{"pixel-backup","full-backup-work","before-restore","deletion-backups","legacy-conflict-backups","backup-key-protection","local-authority-review","local-authority"})yes(!new File(parent,name).exists());
         yes(identity.isFile()&&active.isFile()&&Arrays.equals(Files.readAllBytes(external.toPath()),new byte[]{1,2,3}));
         yes(BackupArchive.removeWorkDirectories(parent)==0);
         Files.createSymbolicLink(new File(parent,"full-backup-work").toPath(),external.toPath());

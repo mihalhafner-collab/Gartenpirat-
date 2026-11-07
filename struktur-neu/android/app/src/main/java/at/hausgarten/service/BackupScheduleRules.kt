@@ -10,7 +10,7 @@ object BackupScheduleRules {
     @JvmStatic
     fun errorCode(failure: Throwable?): String {
         val code = failure?.message
-        return if (code != null && code.matches(Regex("(?:BACKUP|RESTORE|DOCUMENT|BROWSER_MEDIA)_[A-Z0-9_]{1,100}"))) {
+        return if (code != null && code.matches(Regex("(?:BACKUP|RESTORE|DOCUMENT)_[A-Z0-9_]{1,100}"))) {
             code
         } else {
             "BACKUP_OPERATION_FAILED"
@@ -22,9 +22,9 @@ object BackupScheduleRules {
         if (failure is InterruptedIOException || Thread.currentThread().isInterrupted) return failure
         if (errorCode(failure) != "BACKUP_OPERATION_FAILED") return failure
         val safeStage = if (stage in listOf(
-                "READINESS", "MATERIALIZE", "PIN_FILES", "PREFERENCES", "DATABASE", "BROWSER", "FILES", "INVENTORY",
+                "READINESS", "MATERIALIZE", "PIN_FILES", "PREFERENCES", "DATABASE", "FILES", "INVENTORY",
                 "INVENTORY_STATE", "INVENTORY_BUSINESS", "INVENTORY_RELATIONS",
-                "INVENTORY_ORIGINALS", "INVENTORY_BROWSER_MEDIA", "INVENTORY_METADATA"
+                "INVENTORY_ORIGINALS", "INVENTORY_METADATA"
             )) stage else "UNKNOWN"
         val category = when {
             failure.javaClass.name.startsWith("android.database.") -> "DATABASE"

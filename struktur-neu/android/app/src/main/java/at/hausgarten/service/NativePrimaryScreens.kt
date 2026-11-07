@@ -1715,7 +1715,6 @@ private fun NativeStorageSettings(controller: NativeAppController) {
                     for (name in directories.keys().asSequence().sorted()) {
                         val label = when (name) {
                             "full-backup-work" -> "Alte Sicherungs-Arbeitskopien"
-                            "browser-media-upload" -> "Alte Upload-Arbeitsdateien"
                             "pixel-backup" -> "Sicherungs-Arbeitsdateien"
                             "full-restore" -> "Wiederherstellungsvorschauen"
                             "before-restore" -> "Alte Wiederherstellungsdateien"

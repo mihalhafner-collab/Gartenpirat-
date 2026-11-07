@@ -39,7 +39,7 @@ internal object LocalBackupDataset {
                 val initial = asset(context, "initial-data.json")
                 val catalog = asset(context, "service-catalog.json")
                 // Freeze immutable originals before the DB snapshot so concurrent removal cannot lose them.
-                if (!streamOriginals) for (name in arrayOf("customer-photo-originals", "business-documents", "browser-media", "mcp-photo-uploads", "native-form-media")) {
+                if (!streamOriginals) for (name in arrayOf("customer-photo-originals", "business-documents", "mcp-photo-uploads", "native-form-media")) {
                     BackupFilePins.pinImmutable(File(context.filesDir, name), directory, "files/$name")
                 }
                 stage = "PREFERENCES"
@@ -87,15 +87,13 @@ internal object LocalBackupDataset {
                         .put("count", db.getLong("foreignKeyViolations"))
                         .put("message", "Bereits vorhandene fehlerhafte Datenbezüge wurden unverändert gesichert."))
                 }
-                // The backup format keeps this file; since the WebView is gone it is always empty.
-                write(File(directory, "browser-storage.json"), JSONObject().put("formatVersion", 1).put("storage", JSONObject()).toString())
                 write(File(directory, "backup-notes.json"), report.toString(2))
                 val metadata = JSONObject(identity.toString()).put("datasetFormat", "pixel.snapshot.v2")
                     .put("schemaVersion", db.getInt("schemaVersion")).put("database", db).put("applicationId", context.packageName)
                     .put("appVersion", context.packageManager.getPackageInfo(context.packageName, 0).versionName)
                     .put("capturedAt", Instant.now().toString()).put("counts", report.getJSONObject("counts"))
                     .put("numberState", JSONObject()).put("lastIssuedDocumentIds", report.getJSONArray("lastIssuedDocumentIds"))
-                    .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences_browser_storage")
+                    .put("warning_count", warnings.length()).put("captureScope", "database_all_tables_private_files_preferences")
                     .put("media_coverage", "AVAILABLE_FILES_WITH_NOTES")
                 Captured(directory, metadata, originals, report)
             } catch (failure: Exception) {

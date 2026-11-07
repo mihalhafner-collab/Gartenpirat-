@@ -291,7 +291,7 @@ object BackupArchive {
         if (Files.isSymbolicLink(parent.toPath()) || !parent.isDirectory) throw IOException("BACKUP_WORK_STORAGE_UNAVAILABLE")
         var removed = 0L
         // Retired private work/backup trees explicitly released by the owner.
-        for (name in listOf("pixel-backup", "full-backup-work", "browser-media-upload", "before-restore",
+        for (name in listOf("pixel-backup", "full-backup-work", "before-restore",
             "deletion-backups", "legacy-conflict-backups", "backup-key-protection", "local-authority-review", "local-authority")) {
             val directory = File(parent, name)
             checkCancelled()

@@ -125,10 +125,10 @@ ableiten. In diesem synthetischen Entwicklungs- und Prüfverfahren wird kein
 persönliches oder aus Kundendaten abgeleitetes ZIP geöffnet. Formatunterstützung
 beweist nicht die individuelle Lesbarkeit oder Unversehrtheit eines solchen Archivs.
 
-Die alte WebView ist samt Entwurfsprüfung entfernt. Jede Sicherung enthält
-weiterhin `browser-storage.json`, jetzt immer leer; ältere Sicherungen bleiben
-wiederherstellbar, ihr Formularstand wird ignoriert. Alte Entwurfsfotos in
-`browser-media` gibt die Speicherbereinigung frei.
+Die alte WebView ist vollständig entfernt (Eigentümerentscheidung 07.11.2026).
+Sicherungen enthalten keinen Browserstand mehr; nur Sicherungen im Format
+`pixel.snapshot.v2` werden wiederhergestellt. Alte WebView-Einträge und
+Entwurfsfotos löscht die App beim Start und bei jeder Speicherbereinigung.
 
 Die native Datensuite prüft zusätzlich die lokale Speicherbereinigung in einem
 neuen synthetischen Kontext: Auftrags-/Terminlöschung mit geleisteter Arbeit,

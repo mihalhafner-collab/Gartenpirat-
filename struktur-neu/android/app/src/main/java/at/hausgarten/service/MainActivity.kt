@@ -264,6 +264,7 @@ class MainActivity : ComponentActivity() {
             try { connectivity.registerDefaultNetworkCallback(callback); planningNetworkCallback = callback } catch (_: RuntimeException) { }
         }
         maintenance.launch {
+            store?.let { local -> try { LocalStorageMaintenance(this@MainActivity, local).removeWebViewLeftovers() } catch (_: Exception) { } }
             PlanningJob.schedule(this@MainActivity, 1500)
             val config = PixelTunnelConfig(this@MainActivity)
             if (config.enabled() && config.configured() && !PixelTunnelService.status(this@MainActivity).optBoolean("running")) {

@@ -61,8 +61,6 @@ final class LocalBackupNativeTests {
             store.putOwnerValue("qa_backup_marker", "QA before save");
             store.putOwnerValue("qa_backup_metadata", new JSONObject().put("synthetic_value", 42).toString());
             JSONObject identity = new BackupDeviceGuard(context).current();
-            JSONObject browser = new JSONObject().put("formatVersion", 1).put("storage", new JSONObject().put("hausgarten.entry.draft.v1", "QA preserved draft 🌿"));
-            store.putOwnerValue("full_backup_browser", new JSONObject(identity.toString()).put("formatVersion", 1).put("capturedAt", java.time.Instant.now().toString()).put("browser", browser).put("contentSha256", PixelMcpWriteTools.hash(browser)).toString());
             SQLiteDatabase db = store.getWritableDatabase();
             db.execSQL("CREATE TABLE qa_backup_payload (id INTEGER PRIMARY KEY, payload BLOB)");
             byte[] blob = new byte[65536]; new Random(71).nextBytes(blob);
