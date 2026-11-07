@@ -22,7 +22,7 @@ benötigen weiterhin einen eigenen Auftrag.
 | `libraries/plants/` | Pflanzenquellen, Bildrechte und notwendige redaktionelle Eingaben |
 | `tools/` | Tatsächlich benötigte Build-, Pflege- und Prüfwerkzeuge |
 | `tests/` | Ausgewählte aktuelle Prüfungen und ihre Hilfsdaten |
-| `docs/` | Kurze gültige Anleitungen, Fachregeln und aktueller Releasebeleg |
+| `docs/` | Bauanleitung, Originalsignierung und Fachregeln |
 
 MCP ist Bestandteil der nativen App. Ein separater alter Python-Geschäftsserver,
 alte Diagnosekampagnen, Quellarchive und Installationspakete werden nicht kopiert.

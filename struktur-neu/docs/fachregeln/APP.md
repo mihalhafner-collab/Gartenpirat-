@@ -1,554 +1,114 @@
-# Gültiger App-Vertrag
+# Fachregeln
+
+Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.md.
+
+## Grundsätze
+
+- Die App führt die Geschäftsdaten lokal auf dem Pixel. Oberfläche und MCP
+  verwenden dieselben transaktionalen Fachpfade.
+- Kunde (Einsatzkunde), Objekt und Rechnungsempfänger sind getrennte Beziehungen.
+  Arbeiten ohne Auftrag bleiben möglich.
+- Fehlende Daten, Preise, Zeiten, Beziehungen und Belegnummern nie erfinden.
+  Fehlende Beträge sind unbekannt, nicht 0 €.
+- Unklare Antwort: dieselbe Vorgangskennung mit denselben Argumenten erneut
+  senden; sie liest das Ergebnis und bucht nicht doppelt.
+
+## Abrechnungsübersicht
+
+- Rechnung und Labor clandestino haben getrennte Summen und eine gemeinsame
+  Gesamtsumme (900 € + 200 € = 1.100 €). Die Gesamtsumme ist keine Zahlungssumme.
+- Ein Auftrag erscheint höchstens einmal; Arbeiten ohne Auftrag sind eigene
+  Einheiten. Jeder Positionsbetrag zählt genau einmal bei seiner Quelle; Auftrag
+  und seine Arbeiten nie doppelt addieren. Sammelrechnungen nur anteilig zurechnen.
+- Widersprüchliche Zuordnungen werden zur Prüfung gezeigt und keiner Art zugerechnet.
+- `accounting_amount` ist ein dezimaler Eurobetrag. Zeitbezug ist das letzte
+  berücksichtigte Arbeitsdatum, ohne Arbeit das geplante Auftragsdatum.
+- Alte Markierungen (`billed`, `personal_paid`) bleiben lesbar; Abschluss,
+  Zahlung und Storno ändern sie nicht automatisch.
+
+## Rechnung und Labor clandestino
+
+- Österreichische Inlandsrechnung in Euro mit Kleinunternehmerbefreiung. Keine
+  Umsatzsteuer berechnen oder ausweisen. Hinweis genau:
+  „Umsatzsteuerbefreit gemäß § 6 Abs. 1 Z 27 UStG“.
+- Abschluss braucht Aussteller, Empfänger, Leistungsdatum oder -zeitraum,
+  verständliche Positionen, positive Mengen, bestätigte Preise und Zahlungsangaben.
+  UID und Steuernummer nicht pauschal verlangen.
+- Geld mit `BigDecimal`: jede Position auf Cent mit `HALF_UP` runden, dann exakt
+  addieren. Deutsches Dezimalkomma zulässig. Kein `Double` für Geld.
+- Alle Quellen einer Sammelrechnung haben denselben Empfänger. Material, Fahrt
+  und Entsorgung werden bewusst übernommen. Ein Angebot ist keine Leistung.
+- Zwei Schritte mit gleicher `settlement_id`: `prepare_settlement` friert Inhalt
+  und Stammdaten ein, bindet die Quellen und reserviert bei Rechnung die Nummer;
+  `complete_settlement` erzeugt und prüft das Original-PDF. Labor ohne Nummer
+  und ohne PDF. Ein PDF-Fehler lässt die Reservierung zum Fortsetzen bestehen.
+- Nummernkreis GP, getrennt von sevDesk; Kalendertage in `Europe/Vienna`.
+  Reservierte Nummern werden nie neu vergeben, auch nicht nach Aufhebung.
+- Aktive Bindungen verhindern doppelte Abrechnung derselben Leistung. Eine
+  nicht abgeschlossene Vorbereitung darf begründet aufgehoben werden (`abandoned`).
+- Storno: eigene Nummer mit Originalverweis; erst der abgeschlossene Beleg gibt
+  die Quellen frei. Labor wird mit begründetem internem Gegenvorgang aufgehoben.
+- Zahlungen sind einzelne datierte Beträge; Teil- und Überzahlungen bleiben
+  nachvollziehbar. Storno löscht keine Zahlung.
+- Ledger in `owner_state` unter `settlement:v1`. Nach Restore beginnt eine neue
+  Nummernserie aus Installation und Restore-Epoche; restaurierte Quellen vor
+  erneuter Abrechnung gegen den Belegstand prüfen.
+- Originale, Abschlüsse, Zahlungen und Historie sind vor Löschen und
+  Speicherbereinigung geschützt. Aufbewahrung mindestens sieben Jahre ab
+  Jahresende; keine Alterslöschung.
+- Export enthält beide Arten, Summen, Positionen, Zahlungen, Korrekturen und die
+  verwendeten Filter.
+- Nicht unterstützt: Ausland, Reverse Charge, anderer Steuerstatus, strukturierte
+  Rechnungen an Bundesdienststellen. Teilen eines PDFs beweist keinen Zugang.
+
+Quellen (gelesen 06.11.2026): USP/BMF zu
+[Kleinunternehmen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html),
+[Formerfordernissen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html),
+[e-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung.html),
+[Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html),
+[Registrierkassen](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-rechte-und-pflichten/registrierkassen.html);
+[UStR 2000 Rz 1533/1534](https://findok.bmf.gv.at/volltext?dokumentId=e24c9c94-4cc7-4241-a016-524f51f880e3).
+
+## Zeit und Arbeit
+
+- „Zeit stoppen“ legt noch keine Arbeit an; die gestoppte Zeit bleibt mit
+  Abschlussaktion sichtbar.
+- Netto-Dauer und Uhrzeiten sind getrennte Eingabewege; eine Pause wird nur bei
+  Uhrzeiten und genau einmal abgezogen.
+- Entsorgung ist ein optionaler Eurobetrag (`disposal_cost`), ohne automatischen Preis.
+- Geplante Einsätze erzeugen keine Arbeiten. Eine bestätigte Arbeit bleibt auch
+  bei einem späteren Foto- oder Sicherungsfehler erhalten.
+
+## Löschen und Speicher
+
+- Ein unberührtes Formular erzeugt keinen Entwurf. Verwerfen entfernt nur den
+  eigenen Entwurf und seine temporären Fotos.
+- Beim Löschen von Auftrag oder Termin werden Bezüge an Arbeiten, Fotos, Einsätzen
+  und Anfragen gelöst; diese Datensätze bleiben.
+- Gesperrt bleiben: ausgestellte Rechnungen, abgeschlossene Angebote, laufende
+  Zeiterfassung. Bei markierten Testeinträgen löscht endgültiges Löschen auch
+  zugehörige Testarbeiten und Testfotos.
+- „Speicher bereinigen“ schreibt den wirksamen Stand fest, entfernt erledigte
+  Journalaktionen, verwaiste Medien und Arbeitsordner und führt danach
+  WAL-Checkpoint und VACUUM aus. Neue Formularfotos haben einen Tag Schonfrist.
+
+## Datenbank und Bilder
+
+- Listen laden nur Anzeigespalten und eine begrenzte Seite; Details erst beim
+  Öffnen. Indizes nur für tatsächliche Abfragen, belegt mit `EXPLAIN QUERY PLAN`.
+- Fotos als Dateien; in SQLite nur Referenz und Metadaten. Vorhandene BLOBs bleiben.
+- Datenbank-, Datei- und Bildarbeit nie auf dem UI-Thread.
+- Antwortzeit und Speicher am Pixel messen; Emulatorwerte sind kein Nachweis.
 
-## Betrieb und gemeinsame Fachlogik
+## Geräte und Pflanzen
 
-Die App auf dem Pixel führt die Geschäftsdaten lokal. Die Android-Anwendung ist
-in Kotlin auf Android/JVM mit nativer Compose-Oberfläche implementiert. Oberfläche
-und MCP verwenden dieselben transaktionalen Fachpfade. Paketkennung
-`at.hausgarten.service`, Originalsignatur und Updatefähigkeit bleiben erhalten.
-Ein Update benötigt eine höhere Versionsnummer. Die frühere eigenständige
-Weboberfläche wird nicht mehr gepflegt.
+- Gerätefotos gehören zum Gerät. Zubehör liegt im Gerätedatensatz (`accessories`);
+  `current_chain_id` zeigt auf eine Kette derselben Maschine.
+- Wartungsintervalle und ihr Verlauf bleiben erhalten.
+- Pflanzenquelle ist allein `plant-catalog.json` mit den Android-Bildern.
 
-Kunden, Einsatzobjekte und Rechnungsempfänger sind unterschiedliche Beziehungen.
-Auftragslose Arbeiten bleiben möglich. Persönliches
-„b.b./bezahlt“ wird intern verlustfrei weitergeführt und gehört zur Art
-„Labor clandestino“; es bleibt vom
-Rechnungsstatus getrennt. Fehlende Daten, Preise, Zeiten, Beziehungen und
-Belegnummern nicht erfinden.
+## Verbindungen
 
-## Abrechnung
-
-Unter Büro → Organisieren steht Abrechnung direkt nach Offene Stunden und vor
-Angebote. Rechnung und Labor clandestino bleiben getrennte Abrechnungsarten mit
-jeweiliger Summe und gemeinsamer Gesamtsumme: 900 € Rechnung plus 200 € Labor
-sind 1.100 €. Die Übersicht bleibt eine Sicht auf zugeordnete Aufträge und
-Arbeiten, nicht nur auf ausgestellte Rechnungen. Bestätigte Rechnungs- und
-interne Laborbeträge liefern dieselbe Betragsgrundlage. Persönliche Markierungen
-sind weder Zahlungen noch Leistungsbindungen; Abschluss, Zahlung und Korrektur
-ändern sie nicht automatisch. Die bisherigen internen Werte `billed`,
-`personal_paid`, Auftragsstatus und IDs bleiben erhalten.
-
-Ein Auftrag erscheint innerhalb der Übersicht höchstens einmal; auftragslose
-Arbeiten bleiben eigene Einheiten. Manuelle Abrechnungen ohne Quellarbeit sind
-bewusst angelegte eigene Einheiten, keine künstlichen Arbeiten oder Aufträge.
-Positionsbeträge zählen genau einmal und werden ihrer tatsächlichen Quelle
-zugeordnet. Auftrag und zugehörige Arbeiten dürfen nicht gleichzeitig als
-Betragsquellen addiert werden. Bei Sammelrechnungen wird nur der jeweilige
-Positionsanteil je Auftrag zugerechnet. Mehrere Positionen derselben Arbeit sind
-zulässig, während ihre aktive Bindung pro Vorgang nur einmal geführt wird.
-Weitere nicht ausgewählte Arbeiten bleiben offen.
-
-Fehlende Beträge sind unbekannt, nicht 0 €. Bekannte Teilbeträge dürfen mit
-sichtbarer Kennzeichnung des unvollständigen Umfangs einfließen. Widersprüchliche
-Benutzerzuordnungen sind zur Prüfung sichtbar und dürfen nicht willkürlich einer
-Art zugerechnet werden. Das bestehende Feld `accounting_amount` bezeichnet
-weiterhin einen dezimalen Eurobetrag; Centinteger gehören nicht in dieses Feld.
-Keine Preise aus Stunden, Angeboten oder Auslagen erfinden.
-
-Zeitraum, Objekt und Bezeichnungssuche gelten für Summen und Liste gemeinsam.
-Das Datum bleibt das letzte berücksichtigte Arbeitsdatum, bei Aufträgen ohne
-berücksichtigte Arbeit das geplante Auftragsdatum. Rechnungsdatum ersetzt diesen
-Zeitbezug nicht. Summenkarten setzen nur den Artenfilter; übrige Filter,
-Scrollpositionen, ursprüngliche Detailaufrufe und Rücksprünge bleiben erhalten.
-Die vorhandene persistente Zuordnungsaktion bearbeitet den Weg für den gesamten
-Auftrag mit Versionsprüfung und atomarer Aktualisierung seiner Markierungen.
-Eine widersprüchliche Altzuordnung erfordert eine ausdrückliche Auswahl.
-
-`AccountingRules` und `NativeDataRepository.accounting` bleiben die gemeinsame
-Grundlage der Übersicht. `SettlementRules`, `SettlementApplicationService` und
-`SettlementTools` ergänzen die gemeinsame Erfassung und den Abschluss für Compose
-und MCP. Eigenständige aktive Bindungen verhindern parallele oder erneute
-Abrechnung derselben Leistungen. Solange eine Bindung der anderen Art aktiv ist,
-muss zuerst der bisherige Vorgang bewusst korrigiert oder aufgehoben werden.
-Die Benutzerzuordnung wird danach gesondert geändert; Ausstellung, Zahlung oder
-Storno erledigen das nicht nebenbei.
-
-## Speichern und Löschen
-
-Ein unberührtes Formular erzeugt keinen Entwurf. Bearbeitung ist ein Entwurf;
-bestätigtes Speichern erzeugt einen Geschäftssatz. Verwerfen entfernt den Entwurf
-vollständig. Nach unklarer Antwort dieselbe Vorgangskennung und Argumente erhalten
-und zuerst lesen. Ein bestätigter Geschäftssatz bleibt bei einem späteren Foto-,
-Oberflächen- oder Sicherungsfehler erhalten.
-
-Löschen, Archivieren und Verwerfen haben unterschiedliche Bedeutung. Referenzen,
-ausgestellte Belege und erforderliche Aufbewahrung vor dem Löschen berücksichtigen.
-Neustart, verspätete Antworten und Wiederherstellung dürfen verworfene Inhalte
-nicht unbeabsichtigt wieder aktivieren.
-
-Die lokale Einzelnutzer-Oberfläche entfernt beim Antippen von „Löschen“ den
-Datensatz endgültig samt ungeteilten Dateien. Die intern nötigen Schritte werden
-in einem Vorgang übernommen; es bleibt kein neuer Papierkorbeintrag. Aktionsbeleg und Vergleichsschutz bleiben intern erhalten; zusätzliche
-Bestätigungsdialoge und Pflichttexte entfallen. Technische Kennungen bleiben ausgeblendet. Es gibt keine vorab einzuholenden
-Vorschau- oder Fotoverknüpfungs-Hashes. Fachliche Sperren für ausgestellte
-Rechnungen, abgeschlossene Angebote und laufende Zeiterfassung bleiben bestehen.
-Beim Entfernen von Auftrag oder Termin werden optionale Bezüge an Arbeiten,
-Fotos, Einsätzen und Anfragen gelöst; die Datensätze und ihre Kunden bleiben
-vorhanden. Endgültiges Löschen entfernt den Archivdatensatz wirklich.
-
-Die anschließende lokale Bereinigung schreibt den bereits wirksamen Datenstand
-transaktional fest und entfernt nur erfolgreich übernommene Journalaktionen,
-alte Snapshot-Duplikate und Löschbelege. Ungeklärte lokale Aktionen außerhalb ausdrücklich endgültig gelöschter IDs
-bleiben vorhanden. Überholte Aktionen der entfernten Datensätze werden mit entfernt;
-minimale Vorgangsfingerabdrücke verhindern eine Wiederanlage ohne Geschäftsinhalte
-oder Dateiverweise aufzubewahren. Dateien werden gegen aktive Datensätze, Papierkorb, Entwürfe und
-verbliebene Aktionen geprüft. Erst nach dem Datenbank-Commit werden ungenutzte
-Originale, Vorschauen, Medien und Entwurfs-PDFs entfernt. Gerade veröffentlichte
-Formular-Fotodateien und laufende Uploads erhalten höchstens einen Tag Schonfrist,
-weil ihre Formularreferenz erst unmittelbar danach gespeichert wird.
-
-Einstellungen → Sicherung und Diagnose zeigt die tatsächlichen Dateigrößen der
-Datenbank einschließlich WAL, Fotos/Medien, PDFs, weiteren App-Dateien, lokalen
-Arbeitsdaten und Cache. „Speicher bereinigen“ entfernt verwaiste Backup-Arbeitsdateien und
-ungenutzte Medien/Uploads, anschließend laufen WAL-Checkpoint und VACUUM außerhalb
-der Transaktion. Geschäftsdaten und ausgestellte Originalbelege werden nicht
-aufgrund ihres Alters gelöscht. Die Bereinigung ist keine produktive Migration
-oder Rechnungsfreigabe. Lokale Fotoentwürfe werden nach Wiederherstellung nicht
-an einer früheren Geräte-/Restore-Epoche abgewiesen.
-
-Der Abschluss einer Formularsichtung nach Wiederherstellung wird erst nach
-erfolgreichem Speichern des Kernzustands bestätigt. Ein optionaler Medienfehler
-darf diesen Abschluss nicht unbemerkt zurückrollen. Ausdrücklich ausgewählte
-Medien und Kernzustand werden weiterhin gemeinsam übernommen; zurückgestellte
-Medien bleiben getrennt prüfbar. Ungültige oder wiederholte Bestätigungen dürfen
-keine zusätzliche Übernahme auslösen.
-
-Lesbare Formularhüllen aus älteren Sicherungen bleiben in der ausdrücklichen
-Wiederherstellungssichtung lesbar. Die Quellhülle und unklare Vorgangsbelege bleiben
-erhalten; ein eigenständiges Entwürfe-Menü zur späteren Zuordnung entfällt. Unbekannte Hüllen dürfen
-nicht als abgeschlossene Geschäftsaktionen oder automatisch ausführbare Entwürfe
-ausgelegt werden. Archivierte rohe IndexedDB-/LevelDB-Dateien bleiben erhalten;
-die native Oberfläche kann daraus keinen vollständigen Browserdatenbank-Inhalt
-ableiten. Diese Grenze muss sichtbar bleiben. Medien ohne vollständigen lesbaren
-Spiegel oder erforderliche Nachweise werden ausdrücklich zurückgestellt oder ihre
-Aktivierung bleibt gesperrt; ihre bloße Dateierhaltung ist kein Übernahmenachweis.
-
-Das eigenständige Entwürfe-Menü samt Inbox ist entfernt. Automatische Zwischenstände
-laufender Formulare und Vorgangsprüfungen bleiben im jeweiligen Fachformular.
-Arbeitsaufzeichnungen aktivieren die Auswahl durch langes Drücken auf eine Karte.
-Weitere Karten werden durch Antippen ausgewählt; die untere Aktionsleiste bietet
-Abbrechen, Seitenauswahl, bei einer Arbeit Duplizieren sowie endgültiges Löschen.
-Es gibt keine linke Checkbox und keine eigene Löschtaste je Arbeit. Fotos, Termine
-und Revier-Einträge behalten ihre eindeutige direkte Löschbedienung. Historische Papierkorbeinträge bleiben nur zum endgültigen Entfernen
-erreichbar; die Oberfläche zeigt keine Wiederherstellungswahl.
-
-Bei eindeutig markierten Testeinträgen umfasst endgültiges Löschen auch die zugehörigen
-aktiven oder archivierten Test-Arbeiten, Testfotos und weiteren Testdatensätze. Die
-Abhängigkeitsmenge wird mit aktuellen Versionen geprüft und gemeinsam übernommen.
-Unveränderte Fotozuordnungsbelege erfassen auch zuvor beim Archivieren gelöste Testfotos.
-Gemeinsam genutzte, nicht zum Test gehörende Daten werden nicht beiläufig mitgelöscht;
-laufende Arbeit bleibt geschützt. Gemischte Papierkörbe bleiben vollständig lokal,
-die alte Test-/Drive-Sperre ist entfernt. Eine Löschquittung setzt voraus, dass der
-wirksame Datenstand die Entfernung bestätigt.
-
-## Sicherung
-
-SQLite-Schema7 und ZIP-Manifestformat1 bleiben kompatibel. Neue Sicherungen sind
-unverschlüsselte ZIP-Dateien: Speicherknopf, Android-Dateiauswahl und einen
-lokalen Speicherort auf dem Pixel wählen. Die geschriebene Datei wird vollständig
-zurückgelesen. Es gibt weder einen Cloudzugang noch eine automatische Übertragung.
-Eine spätere Kopie zu einem anderen Speicherort erledigt der Eigentümer manuell
-außerhalb der App. Die lokale Datenbank bleibt führend. Das erfolgreiche
-Rücklesen beweist die Integrität der lokalen Sicherungsdatei.
-Ältere verschlüsselte Sicherungen werden nicht mehr eingelesen. Tink, der alte
-Entschlüsselungspfad und Wiederherstellungsschlüssel-Abfragen sind entfernt.
-Bestehende Benutzerdateien und Schlüsseldateien werden dadurch nicht gelöscht.
-Unterstützt werden die vorhandenen unverschlüsselten lokalen ZIP-Sicherungen.
-
-Sicherung bewahrt den vorhandenen Bestand. Ein konsistenter SQLite-Snapshot,
-typisierte Einstellungen und der zuletzt lesbare Formularstand werden aufgenommen.
-Originalfotos, PDFs und weitere private Dateien werden direkt in den ZIP-Stream
-des gewählten Dateianbieters gelesen; keine vollständige Medienkopie und kein
-Komplett-Entpacken zur Sicherungsprüfung. Dateigrößen und SHA256 werden beim
-Schreiben geprüft, die geschriebene ZIP danach vollständig im Stream zurückgelesen. Die bisherige Sicherungs-Auftragsverwaltung
-ist entfernt; es werden nur letzter Versuch und letzter Erfolg gespeichert.
-Rechnungsnummernkollisionen, bereits fehlerhafte Datenbezüge, fehlende oder nicht
-verifizierte Originale verhindern das Sichern und Wiederherstellen nicht. Konkrete
-Datensatzkennungen und Gründe stehen in `data/backup-notes.json`; Oberfläche und
-MCP nennen die Anzahl der Hinweise. Ist eine Bestandsübersicht nicht auswertbar,
-bleiben Rohdaten erhalten und die fehlende Auswertbarkeit wird ausdrücklich genannt.
-Eine Sicherung mit Hinweisen bestätigt keine vollständige Verfügbarkeit aller
-referenzierten Originale. Sie repariert oder normalisiert den Ausgangsbestand nicht.
-
-Technisch unlesbare Datenbanken, Schreibfehler und beschädigte oder veränderte
-Archive bleiben echte Fehler. Ein Erfolg setzt das vollständige Zurücklesen der
-geschriebenen ZIP voraus. Eine Wiederholung derselben Vorgangskennung liest das Ergebnis zurück; ein neuer
-Sicherungslauf darf dieselbe ausdrücklich gewählte Zieldatei überschreiben.
-Verwaiste Inhalte des ausschließlich temporären Verzeichnisses `pixel-backup`
-werden beim Start sowie vor und nach jedem Sicherungslauf entfernt. Ein laufender
-Sicherungsvorgang wird dabei nicht abgeräumt. Es gibt keine Verbindung zur Migrationsprüfung oder zur
-automatischen Rechnungsfreigabe. Unverschlüsselte ZIP-Sicherungen behalten Manifestformat und
-Integritätsprüfung; verschlüsselte Container werden als nicht unterstützt abgewiesen.
-
-Wiederherstellung erfolgt ausdrücklich nach technischer Archivprüfung ohne
-Rückfallkopie des aktuellen Bestands. Erstellen, Prüfen und Wiederherstellen solcher
-Kopien sind gemäß Eigentümerentscheidung vom 03.11.2026 entfernt. Der atomare Dateiaustausch
-mit Wiederanlauf und Rollback bleibt erhalten. Sicherungsfehler blockieren die
-Geschäftserfassung nicht. Ein echter Pixel-Nachweis ist getrennt von JVM- und
-synthetischen Emulatorprüfungen zu führen.
-
-Statusanzeigen ordnen Versuche nach tatsächlichem Zeitpunkt, unabhängig von
-zufälligen Kennungen und Listenseiten. Ein neuerer Fehler bleibt sichtbar, auch
-wenn eine ältere Sicherung bestätigt ist. Eine gespeicherte Capture-Phase allein
-beweist keinen laufenden Worker. Der Selbsttest unterscheidet fehlende Nachweise,
-Fehler und protokolliertes Dateirücklesen; letzteres ist keine neue Dateiprüfung
-und kein Restore-Test. Fehlercodes dürfen keine Finanzdaten ausgeben.
-
-## Lokale Rechnungen und interne Abschlüsse
-
-Der Eigentümerauftrag vom 06.11.2026 ersetzt den früheren sevDesk-exklusiven
-Umfang. Unterstützt wird gewöhnliche österreichische Inlandsabrechnung in Euro
-mit bewusst bestätigter Kleinunternehmerbefreiung. Keine Umsatzsteuer berechnen
-oder ausweisen. Rechnungen tragen genau den Hinweis
-„Umsatzsteuerbefreit gemäß § 6 Abs. 1 Z 27 UStG“, weder „inklusive Umsatzsteuer“
-noch lediglich „0 % USt“. Die App bestimmt oder ändert den Steuerstatus nicht
-selbstständig anhand ihrer Summen. Labor ist keine automatische steuerliche
-Ausnahme und bleibt mit Rechnung gemeinsam nachvollziehbar exportierbar.
-
-Entwürfe dürfen unvollständig sein. Ein Abschluss benötigt tatsächliche
-Aussteller- und Empfängerangaben, Leistungsdatum oder -zeitraum, verständliche
-Positionen, positive Mengen, bewusst bestätigte Preise und Zahlungsangaben.
-Mengen und Preise werden mit `BigDecimal` berechnet; jede Position wird auf Cent
-mit `HALF_UP` gerundet, anschließend werden die Centbeträge exakt addiert.
-Deutsches Dezimalkomma ist zulässig; Geld wird nicht mit `Double` berechnet.
-Empfänger und eindeutige Nummer sind einheitliche Produktregeln auch bei
-vereinfachter Kleinunternehmer-Rechnungslegung. UID und Steuernummer nicht
-pauschal erzwingen. Tatsächliche rechtsformabhängige Angaben sind bewusst zu
-prüfen; ein Geschäftsname ersetzt bei Bedarf nicht den rechtlichen Aussteller.
-
-Einsatzkunde, Objekt, Auftrag und rechtlicher Rechnungsempfänger bleiben getrennt.
-Alle Quellen einer Sammelrechnung müssen denselben rechtlichen Empfänger haben.
-Material, Fahrt und Entsorgung werden bewusst übernommen. Ein Angebot beweist
-keine tatsächlich ausgeführte Leistung und wird nicht automatisch abgerechnet.
-Historische sevDesk-Umsätze oder Versuchsdaten werden nicht neu ausgestellt oder
-automatisch zu gültigen lokalen Belegen erklärt. Alte Implementierungen und
-Migrationsformulare bleiben stillgelegt.
-
-Der Abschluss besteht aus zwei dauerhaften Schritten: `prepare_settlement` prüft
-die bestätigte Vorschau, friert Stammdaten und Leistungsinhalt ein, reserviert
-aktive Quellenbindungen und bei Rechnung eine lokale Nummer. Erst
-`complete_settlement` erzeugt und prüft das Original-PDF und bestätigt den
-Geschäftsabschluss. Labor wird intern ohne PDF-Rechnung und ohne Nummer bestätigt.
-SQLite und Dateisystem bilden keine gemeinsame Transaktion; ein PDF-Fehler lässt
-die zuvor bestätigte Reservierung zum Fortsetzen bestehen. Die `settlement_id`
-bleibt über beide Schritte gleich; jeder Schritt behält bei Wiederholung seine
-eigene `request_id` und dieselben Argumente. Andere Argumente unter derselben
-Anfragekennung werden abgewiesen. Reservierte Nummern werden nicht neu vergeben.
-Der GP-Nummernkreis ist von sevDesk getrennt; lokale Kalendertage verwenden
-`Europe/Vienna`. Spätere Stammdatenänderungen ändern eingefrorene Belege nicht.
-
-`BusinessDocumentStore` verwendet den vorhandenen lokalen Dokumentenspeicher;
-Rechnungen erhalten einen eigenen mehrseitigen Renderer mit langen Texten und
-Umlauten sowie Android-PDF-Leseprüfung. Der Angebotsrenderer wird nicht als
-fachlich unveränderte Rechnungsvorlage verwendet. Gespeicherte Originale bleiben
-unverändert und werden lokal geöffnet oder per Android-Teilen übergeben.
-Elektronische Übermittlung erfordert die akzeptierte Übermittlungsart. Teilen
-beweist weder Versand noch Zugang; tatsächliche Zugangsnachweise werden gesondert
-erfasst und bei Berichtigung beziehungsweise Storno erhalten.
-
-Ein vollständiges Rechnungsstorno besitzt eine eigene Nummer und Originalverweis.
-Erst sein abgeschlossener Beleg neutralisiert den Originalbetrag und dessen
-aktive Bindungen. Ersatzrechnungen können auf den korrigierten Vorgang verweisen.
-Labor wird mit begründetem internem Gegenvorgang aufgehoben, ohne erfundene
-Stornorechnung. Andere Abrechnungen und persönliche Markierungen bleiben erhalten.
-Zahlungen sind einzelne datierte Beträge. Teilzahlungen, Überzahlungen und
-begründete Gegenbuchungen bleiben nachvollziehbar; Storno oder interne Aufhebung
-löscht keine Zahlung und behauptet keine Rückzahlung. Die Abrechnungsgesamtsumme
-zeigt bestätigte Abrechnungsbeträge und ist keine Zahlungseingangssumme.
-
-Der Ledger liegt in `owner_state` unter `settlement:v1`; SQLite-Schema7 bleibt
-erhalten. Die vollständige lokale ZIP-Sicherung enthält Ledger, eingefrorene
-Inhalte, Nummernserien, Vorgangsbelege, Korrekturen, Zahlungen und Originaldateien.
-Die Serienidentität wird zusätzlich aus Installation und Restore-Epoche außerhalb
-des restaurierten Zählerstands gebildet. Nach Restore läuft die alte Serie nicht
-ungeprüft weiter. Restaurierte Quellen benötigen vor erneuter Abrechnung eine
-bewusste dokumentierte Prüfung des aktuellen Belegstands. Neue nach Restore
-erfasste Leistungen bleiben nutzbar. Die neue Serie stellt fehlende spätere
-Rechnungen, interne Vorgänge, Zahlungen oder Bindungen nicht wieder her.
-
-Ausgestellte Originale, interne Abschlüsse und wesentliche Historien sind vor
-gewöhnlicher Löschung und Speicherbereinigung geschützt. Grundsätzlich sieben
-Jahre ab Jahresende, gegebenenfalls länger aufbewahren; keine automatische
-Alterslöschung. Lokaler Export umfasst beide Arten, getrennte Summen,
-Gesamtsumme, Positionen, Zahlungen und Korrekturen. Die ausgewählten
-Übersichtseinheiten einschließlich markierter Einträge ohne bekannten Betrag
-bleiben mit ausstehendem Betrag enthalten. Filter müssen im Export sichtbar
-bezeichnet sein. PDF, Hash und ZIP allein garantieren keine
-Rechtskonformität.
-
-Ausland, Reverse Charge, abweichender Steuerstatus und strukturierte Rechnungen
-an Bundesdienststellen gehören nicht zum unterstützten Abschluss. Keine
-sevDesk-/Bankanbindung, Pflichtcloud, automatischen Mahnungen, Anzahlungsrechnungen
-oder allgemeine Steuerverwaltung ergänzen. Manuelle Zahlungserfassung ersetzt
-keine Registrierkasse. Der Entwicklungsauftrag autorisiert weder produktive
-Rechnungsausstellung noch Migration, Installation oder APK-Verteilung.
-
-### Österreichische Primärquellen
-
-Am 06.11.2026 fachlich gelesen; die Quellen bestimmen keine automatische
-Steuerstatusumschaltung:
-
-- [USP/BMF: Kleinunternehmen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/weitere-steuertatbestaende-und-befreiungen/kleinunternehmen.html): Befreiung ohne Umsatzsteuerausweis; UID nicht pauschal erforderlich.
-- [USP/BMF: Kleinbetragsrechnungen](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/kleinbetragsrechnungen.html) und [Formerfordernisse](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/formerfordernisse.html): vereinfachte Rechnungslegung auch für steuerbefreite Kleinunternehmen; strengere Empfänger-/Nummernregel hier bewusst als Produktregel.
-- [USP/BMF: e-Rechnung](https://www.usp.gv.at/themen/steuern-finanzen/umsatzsteuer-ueberblick/weitere-informationen-zur-umsatzsteuer/vorsteuerabzug-und-rechnung/e-rechnung.html): akzeptierte elektronische Übermittlung, Lesbarkeit und nachvollziehbarer Prüfpfad; Bundesdienststellen benötigen strukturierte Rechnungen.
-- [BMF: UStR 2000](https://findok.bmf.gv.at/volltext?dokumentId=e24c9c94-4cc7-4241-a016-524f51f880e3), Rz1533/1534, Fassung seit 10.12.2025 im [amtlichen XML-ZIP](https://findok.bmf.gv.at/iwg/19/19969/19969.zip) gelesen: Berichtigung mit Originalverweis und Zugangsnachweis.
-- [USP/BMF: Aufbewahrung](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-gewinnermittlung/weitere-informationen-zur-steuerlichen-gewinnermittlung/betriebliches-rechnungswesen/aufbewahrungspflicht.html): sieben Jahre ab Jahresende und gegebenenfalls längere Fristen.
-- [USP/BMF: Registrierkassenpflicht](https://www.usp.gv.at/themen/steuern-finanzen/steuerliche-rechte-und-pflichten/registrierkassen.html): Zahlungseinträge ersetzen erforderliche Kassen-/Barzahlungsbelege nicht.
-
-[RIS: UGB §14](https://www.ris.bka.gv.at/NormDokument.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10001702&Paragraf=14)
-zu rechtsformabhängigen Angaben wurde nur im amtlichen Suchauszug bestätigt;
-der RIS-Volltext war beim Abruf mit HTTP503 nicht zugänglich. Keine vollständige
-Volltextprüfung dieses Paragraphen behaupten.
-
-## Pflanzen und Geräte
-
-`android/app/src/main/assets/plant-catalog.json` und die dort referenzierten Bilder
-sind die einzige verteilte Pflanzenquelle. `tools/sync_plant_assets.py`
-prüft nur diese Android-Quellen und deren Bildnachweise. Fachquellen, Bildrechte und die vom vorhandenen
-Importwerkzeug benötigten redaktionellen Eingaben bleiben in `libraries/plants/`.
-
-Gerätefotos gehören zum Gerät. Abgebrochene Auswahl und verworfene Bearbeitung
-dürfen keine Geschäftsdaten erzeugen. Bestehende Wartungsintervalle und ihr Verlauf
-bleiben erhalten. Der Wortlautkatalog wird über das vorhandene Werkzeug erzeugt.
-
-## Verbindliche Oberfläche: grafisches Konzept vom 04.11.2026
-
-Die grafische Umsetzung folgt dem vom Eigentümer angehängten 24-seitigen PDF
-`Haus_und_Garten_App_Konzept.pdf` (Konzept 1.0, 04.11.2026). Diese ausdrückliche
-Gestaltungsentscheidung ersetzt die frühere blaue Gestaltung: Waldgrün,
-hellgraugrüner Hintergrund, weiße gerundete Karten mit feinem Rand, klare
-Überschriften und grüne Icon-Pills in der Navigation. Der bestehende Funktionsumfang
-bleibt maßgeblich; die lokale Rechnungs- und Zahlungsfunktion folgt dem
-ausdrücklichen Auftrag vom 06.11.2026, nicht allein den Mockups. Backup-Logik, Format und Bedienabläufe
-bleiben unverändert. Fachliche Listen und gezielte Details ersetzen Rohdatenwände.
-
-Die Sammellöschung von Arbeiten zeigt die markierten Karten und die Anzahl der
-Auswahl. „Löschen“ entfernt die Auswahl endgültig ohne zusätzlichen Dialog oder
-Papierkorbstufe. Android-Zurück beendet den Auswahlmodus ohne Datenänderung. Interne Prüffelder und
-Vergleichshashes bleiben unsichtbar; geschützte oder veränderte Arbeiten werden
-weiterhin durch die bestehenden Prüfungen abgefangen.
-
-Die Hauptaktion steht rechts; eine alleinige Hauptaktion darf die ganze Leiste
-belegen. Sekundäraktionen stehen links. Große Schrift darf Aktionen untereinander
-anordnen, ohne Beschriftungen zu verkleinern oder Inhalte zu verdecken. Status
-verwenden Text und Zeichen: laufend grün, pausiert beziehungsweise eingerichtet
-neutral, bestätigt grün, Prüfbedarf orange und nachgewiesen fehlgeschlagen rot.
-Ein Erfolg mit Einschränkung nennt diese bereits in seiner Hauptaussage.
-
-„Arbeit starten“, „Pause“, „Fortsetzen“, „Zeit stoppen“, „Arbeit speichern“,
-„Arbeit nachtragen“ und „Foto hinzufügen“ bezeichnen überall denselben Vorgang.
-Zeit stoppen legt noch keine bestätigte Arbeit an. Eine gestoppte ungespeicherte
-Arbeit bleibt mit klarer Abschlussaktion sichtbar. Zurück erhält Eingaben;
-Abbrechen schließt die aktuelle Auswahl ohne Übernahme; Verwerfen entfernt
-bewusst genau den benannten Entwurf. Nach Speichern zum erhaltenen Aufrufer
-zurückkehren. Hauptbereichswechsel bauen keinen Besuchsstapel auf. Zurück aus
-einem der vier Hauptmenüs führt zu Heute; auf Heute bleibt die App dort.
-Unterseiten kehren zunächst zu ihrem aufrufenden Bildschirm zurück.
-
-Datum und Uhrzeit verwenden Android-Auswahl und interne ISO-Werte. Netto-Dauer
-und Uhrzeiten sind getrennte Eingabewege; eine Pause wird nur im Uhrzeitenweg
-abgezogen. Textbausteine ergänzen vorhandenen Text. „Ergebnis prüfen“ bleibt
-lesend; eine ausdrücklich gewählte Wiederholung verwendet dieselbe ursprüngliche
-Kennung und dieselben Argumente und darf keine zweite Buchung erzeugen.
-
-Kalender, Wetter und die einzelne ChatGPT-Verbindung bleiben optional.
-Einschaltung, aktuelle Freigabe, letzter Transportkontakt und tatsächlich
-übermittelte Antwort sind unterschiedliche Nachweise. Eine lokale Statusprüfung
-löst keinen Kalenderabgleich und keine Wetterabfrage aus. Wetter wird nicht
-mit dem ersten Termin eingeschaltet. Fremde ChatGPT-Connectoren werden nicht
-von der Android-App inventarisiert oder als Pflichtfunktion eingeführt.
-
-## Bedienung und Listenfilter
-
-Der Nutzer hat kleine Hände: häufige Aktionen am unteren Bildschirmrand gut
-erreichbar anbieten, mit kompakten, gut treffbaren Schaltflächen statt übergroßer
-Buttons. Aktionsleisten müssen Platz im Layout erhalten und dürfen weder Inhalte
-noch Tastatur oder Systemnavigation verdecken; Systemabstände und verkleinerte
-Bildschirmhöhe beachten. Die vorhandene Suche bleibt erhalten.
-Kunden nach aktiv/archiviert und Abrechnungsweg, Geräte nach vorhandenem Zustand,
-Aufträge nach vorhandenem Status und Kunde filtern. Aktive Auswahl,
-Trefferzahl und einfaches Zurücksetzen sichtbar halten. Keine gespeicherten
-Filterprofile oder zusätzlichen Datenmodelle.
-
-Die vier Hauptbereiche bleiben Heute, Arbeit (vollständiger Seitentitel:
-Arbeitsaufzeichnungen), Kunden und Büro. Unteransichten zeigen ihren Bereich weiter an.
-Gemeinsame Übersichten führen in dieselben Fachansichten und bewahren Kunden-,
-Objekt-, Auftrags- und Zeitraumbezüge. Rechnungsempfänger wird gesondert benannt.
-Eine Übersicht oder Planung löst keine Buchung aus. Suchtext und Auswahl bleiben
-beim Tastaturabschluss erhalten; „Keine Treffer“ und „Keine Zuordnung“ unterscheiden.
-Die verbindliche Funktionszuordnung und tatsächlich erreichte Abnahme stehen in der
-bestehenden Prüfnotiz `docs/verification/performance-current.md` und im aktuellen Stand.
-
-## Datenbank, Bilder und Reaktionszeit
-
-Die vorhandene SQLite-Datei bleibt der Geschäftsspeicher. Die Tabellen
-`native_read_rows`, `native_read_records` und `native_read_meta` enthalten eine
-abgeleitete, wiederaufbaubare Leseprojektion innerhalb derselben Datenbank. Sie
-ersetzen weder Fachschreiber noch Originaldaten oder Sicherungsbelege. Eine
-Schemaumstellung oder ein destruktiver Fallback folgt daraus nicht.
-
-Listen laden nur benötigte Anzeigespalten und eine begrenzte Seite. Filter und
-Sortierung möglichst in SQL ausführen. Historien, Notizen, Beziehungen und
-Originaldateien erst beim Öffnen des jeweiligen Details laden. Ein JSON-Feld mit
-dem gesamten Bestand erfüllt diese Listenprojektion nicht. Der Aufbau einer
-ungültigen Leseprojektion darf den vollständigen Fachstand im Hintergrund auswerten;
-ungeänderte Projektionen müssen für weitere Seiten und Suchanfragen wiederverwendet
-werden. Eine Änderung invalidiert die betroffene Sicht über die Quellrevision;
-Flow bedeutet keine automatische Verarbeitung nur einzelner geänderter Zeilen.
-
-Indizes an tatsächlichen Filter-, Sortier- und Beziehungsabfragen ausrichten.
-Bei einer Objekthistorie den vorhandenen Objektbezug mit dem Arbeitsdatum verwenden.
-`EXPLAIN QUERY PLAN` und realistische synthetische Bestände müssen die Verwendung
-belegen. Zusätzliche Indizes benötigen eine konkrete Abfrage, weil sie auch
-Schreibaufwand verursachen. Keine neue Fachbeziehung nur für einen Index erfinden.
-
-WAL ausdrücklich konfigurieren und zur Laufzeit prüfen. WAL erlaubt gleichzeitige
-Leser und einen Schreiber, beseitigt aber nicht jede Sperre. SQLite-Sicherungen
-müssen einen konsistenten, vollständig bestätigten Stand einschließlich der
-Änderungen im WAL aufnehmen. Das isolierte Kopieren der Hauptdatei einer laufenden
-WAL-Datenbank ist keine vollständige Sicherung. Sicherung, Wiederherstellung und
-erneutes Öffnen auch bei gleichzeitigem Schreiben prüfen.
-
-Fotos und neue temporäre Fotoübertragungen als Dateien speichern; in SQLite nur
-Dateireferenz und benötigte Metadaten halten. Vorhandene BLOBs und ihre MCP- und
-Sicherungsbezüge vollständig erhalten. Listen bevorzugen verifizierte kleine
-Vorschaudateien aus der Projektion. Ein gültiges Vorschaubild darf keinen Zugriff
-auf das Original erzwingen. Bei fehlender Vorschau darf der geprüfte Originalpfad
-verwendet werden; Coil dekodiert passend zur Anzeigegröße. Originale bleiben für
-Detailansicht, Export und Sicherung verfügbar.
-
-Gestückelte Übertragungen dürfen keine dauerhaft wachsende Folge vollständiger
-Dateizwischenstände ansammeln. Nicht mehr referenzierte Uploadstände erst nach
-bestätigtem Commit und abgestimmt mit laufenden Sicherungsaufnahmen entfernen.
-Rollback, andere Uploads, ursprüngliche BLOBs und bereits aufgenommene Dateien
-müssen dabei erhalten bleiben. Ein Aufräumfehler hebt einen bestätigten Commit
-nicht auf und darf keinen erneuten Geschäftsvorgang auslösen.
-
-Coil verwendet einen gemeinsamen ImageLoader mit begrenztem RAM- und Disk-Cache;
-keine zweite eigene Bildcacheverwaltung. Unlesbare Bilder sichtbar kennzeichnen.
-Datenbankabfragen, Dateizugriffe, Integritätsprüfung und Bildverarbeitung dürfen
-den UI-Thread nicht blockieren. Blockierende Fach- und Dateioperationen laufen auf
-`Dispatchers.IO`. Leseprojektionen werden über Flow beobachtet und in Compose an
-den Lebenszyklus gebunden. Die Startprüfung einer unterbrochenen Wiederherstellung
-hält gewöhnliche Speicherzugriffe zurück, ohne den ersten Bildschirm zu blockieren.
-
-Antwortzeit, Speicherverbrauch und flüssiges Scrollen am tatsächlichen Zielgerät
-messen. Durchsatz, einzelne Millisekundenwerte oder Bildraten sind keine zugesicherten
-Eigenschaften der App. Ein Quellcheck oder synthetischer Emulatorlauf ersetzt
-keinen entsprechenden Nachweis auf dem Pixel.
-
-## Vereinfachte native Bedienung und Arbeitszubehör
-
-Arbeitsaufzeichnungen folgen der Kartenoptik des Kundenmenüs. Suche und Trefferzahl
-stehen am unteren Bildschirmrand und bleiben oberhalb der Tastatur erreichbar;
-bei Texteingabe wird „Arbeit nachtragen“ ausgeblendet. Im Querformat teilen sich
-Suche und Liste den verfügbaren Platz. Filter öffnen als natives unteres Blatt.
-Die Liste enthält keinen eigenen Einstieg in die Zeiterfassung. Gespeicherte
-Arbeiten öffnen ihre bearbeitbaren Angaben einzeln durch Antippen; eine allgemeine
-Bearbeiten-Aktion entfällt. Texte und Datum ändern die gespeicherte Zeit nicht.
-Zeitkorrekturen verwenden weiterhin die gemeinsame Dauer-/Pausenprüfung. Die
-Abrechnungsmarkierung hält die bereits gewählte Arbeit intern fest und zeigt
-keine erneute Arbeitsauswahl.
-
-Heute, Arbeitsaufzeichnungen, Kunden und Büro sind die vier festen Hauptbereiche.
-Heute folgt der grafischen Bildvorlage vom 04.11.2026: geplante Einsätze und
-gespeicherte Tagesstunden als kompakte Karten, nächster Einsatz, offene Arbeiten
-und die vorhandenen Tageshinweise. Bestehende lokale Sicherungsangaben und deren
-Bedienung bleiben erhalten. Während einer Arbeit steht die grüne Karte mit
-persistenter Nettozeit vor den übrigen Informationen; die Ansicht bietet
-Pause/Fortsetzen und Beenden. Beenden öffnet die vorhandene Zeitprüfung und erzeugt
-keine ungeprüfte Arbeitsaufzeichnung. Foto und Material verwenden die bestehende
-Erfassung mit dem tatsächlichen Kunden-/Auftrags-/Sitzungsbezug. Das unten geöffnete
-Erfassen-Menü bietet Foto, Material, manuelle Arbeit und die vorhandenen Kundennotizen. Der Notiz-Kurzzugriff
-öffnet beim zugeordneten Kunden das Notizfeld; ohne Zuordnung wird zuerst der
-Kunde gewählt. Die Notiz erzeugt keine Arbeitsaufzeichnung. Vorhandene Entwürfe bleiben vorrangig. Es gibt keine
-neue Menügeste; Android-Zurück schließt den Dialog. Hauptaktionen sind mindestens
-56 dp hoch, große Schrift bleibt ungekürzt. Gerätewartungen und offene lokale
-Hinweise erscheinen nur aus vorhandenen Daten. Die Ansicht behauptet keinen
-externen Sicherungsnachweis. Der Kunden-Menüaufruf beginnt
-am Listenanfang; Suchtext und Filter werden dadurch nicht geändert. Arbeitsnotizen
-stehen ohne Aufklappen im Detail. Büro erhält die vorhandenen Funktionen einschließlich
-Maschinenpark und Gerätewartung. Häufige Aktionen liegen kompakt am unteren Rand.
-Bei großer Schrift dürfen Navigationsbeschriftungen den Formularbereich nicht
-verdrängen. Auswahlwerte und Formularaktionen wechseln bei Platzmangel in eine
-weitere Zeile; die eingestellte Schriftgröße bleibt erhalten.
-
-Arbeit erfassen folgt Kunde, Beginn/Ende, Pause, Tätigkeit, optionale Entsorgung
-und Fotos. Datum und weitere bestehende Angaben bleiben erreichbar. Pause bietet
-15/30/45/60 Minuten und freie Eingabe; aus Uhrzeiten wird sie genau einmal abgezogen.
-Eine ausschließlich eingegebene Dauer ist die Nettoarbeitszeit. Textbausteine ergänzen
-den freien Tätigkeitstext. Vorschläge öffnen den vorhandenen Auswahldialog mit Suche.
-Entsorgung ist ein optionaler Eurobetrag mit 50/100/150-Euro-
-Auswahl und freier Eingabe; kein automatischer Preis und keine Zusatzpflichten.
-Der vorhandene Arbeitsdatensatz speichert den Betrag als `disposal_cost`.
-
-Verwerfen fragt „Ungespeicherte Eingaben und Foto verwerfen?“ mit OK/Abbrechen.
-Nur der eigene ungespeicherte Formularstand und seine temporären Fotodaten werden
-verworfen. Bestätigte Arbeit und bereits gespeicherte Fotos bleiben erhalten, auch
-wenn ein nachfolgender Foto- oder Bereinigungsschritt fehlschlägt.
-
-Gerätebezeichnungen erlauben durchsuchbare Vorschläge und freien Text. Zubehör
-liegt im vorhandenen Gerätedatensatz (`accessories`) und ist im eigenen Reiter
-sichtbar. `current_chain_id` ist die einzige aktuelle Kettenzuordnung und muss auf
-eine Kette derselben Maschine zeigen. Bezeichnung oder Hersteller/Modell identifizieren
-das Zubehör; unbekannte Spezifikationen bleiben leer. Kettenteilung, Treibgliedstärke,
-Treibgliederzahl, Artikelnummer, Zahntyp, Feilengröße und weitere Angaben bleiben
-optional. Zubehörfotos verwenden den vorhandenen Gerätefotopfad und behalten ihren
-Maschinenbezug. Zubehörkarten zeigen die Fotovorschau direkt; Foto hinzufügen/ändern
-öffnet die vorhandene Erfassung mit Kamera oder Dateiauswahl. Gespeicherte Geräte-
-und Zubehörfotos lassen sich groß ansehen. Keine neue Datenbank, Lagerverwaltung
-oder Wartungsautomatik. Außerhalb der Timeransicht macht eine kompakte rein lesende
-Leiste die laufende oder pausierte Zeit erreichbar; sie öffnet denselben Timer.
-
-Aus der Kundenakte begrenzt die Übersicht offener Stunden die Arbeitsaufzeichnungen
-auf den gewählten Einsatzkunden, auch wenn weitere Kunden denselben
-Rechnungsempfänger verwenden. „Offene Stunden“ öffnet dieselbe gefilterte
-Arbeitsliste. Die Abrechnungsmarkierung bleibt unabhängig von Belegstatus und
-Zahlungen. Angebote und Kostenvoranschläge sind außerdem direkt aus Büro
-zugänglich. Geplante Einsätze erzeugen keine Arbeitsaufzeichnungen.
-
-Die lokale Aktionsprojektion hat einen einzigen Ausführungspfad. Sie verwendet
-keine Drive-Verteilung, entfernten Fehlerzustände oder Cloud-Feldzusammenführung.
-Die bereits im Backupformat vorhandenen Schlüssel `drive_applied_ids`,
-`drive_action_hashes`, `drive_action_receipts` und `drive_journal_errors` bleiben
-Speicherbezeichnungen für lokale Übernahmebelege und Fehler. Sie setzen weder
-Drive noch eine Rechnungsautorität voraus. Bestätigte Aktionen werden vor der
-Bereinigung transaktional in SQLite materialisiert. Veraltete Rechnungsaktionen
-werden nicht ausgeführt. Alte Rechnungs-/Zahlungsformulare erhalten keinen
-Editor und keinen Versandweg; ihre Rohdaten bleiben in vollständigen Sicherungen.
-Die begrenzte JSON-Teilsicherung und ihr gesperrter Teilrestore sind entfernt.
-Bereits vorhandene Altsicherungen als Dateien oder SQLite-BLOBs bleiben auch bei
-der Speicherbereinigung bytegetreu erhalten; nur temporäre Backup-Arbeitsdateien
-werden automatisch entfernt.
-Für vollständige Sicherung und Wiederherstellung gilt allein der lokale ZIP-Pfad.
-
-## Vereinfachung vom 03.11.2026
-
-Ein Antippen führt Löschen, Sammellöschung, Papierkorb-Leerung und Verwerfen
-direkt aus. Zusätzliche Bestätigungsdialoge und Pflicht-Grundtexte entfallen.
-Fachliche Versionen und Verknüpfungen werden intern geprüft. Nach unklarer Antwort
-liest die nächste Betätigung denselben gespeicherten Vorgang, ohne ihn neu anzulegen.
-Die bestehende Unterscheidung zwischen Papierkorb, Archiv und endgültigem Löschen
-bleibt erhalten. Erneute Datenfreigaben sind nicht Teil dieser Bedienung.
-
-Die Speicherbereinigung entfernt freigegebene alte interne Sicherungen,
-Rückfallkopien, ausgediente Schlüssel-/Upload-Arbeitsdateien und verwaiste
-Restore-Arbeitsbäume einschließlich leeren Unterordnern. Geöffnete Vorschauen und
-noch laufende Austauschvorgänge bleiben bis Abschluss erhalten. Der abgeschlossene
-Austausch hinterlässt keine vollständige Kopie des vorherigen Bestands.
-Einstellungen zeigen kurze Ergebnisse; interne Datensatzkennungen und ungefilterte
-Diagnosewerte werden dort nicht mehr ausgegeben. Die Speicheransicht schlüsselt
-verbleibende Arbeitsordner einzeln auf.
-
-Automatische Vorgängerbezüge von Löschaktionen enthalten nur bereits übernommene
-Änderungen. Eine ältere fehlgeschlagene Änderung wird nicht zur künstlichen
-Löschvoraussetzung; aktuelle Versions- und Referenzprüfungen bleiben bestehen.
-Ausdrücklich angegebene Vorgänger und normale Bearbeitungen behalten ihre Prüfungen.
-
-Eine noch nicht abgeschlossene Vorbereitung darf nach bewusster Begründung
-aufgehoben werden, etwa bei einem dauerhaft nicht erzeugbaren PDF. Snapshot und
-reservierte Nummer bleiben im Vorgang mit Status `abandoned`; die Nummer wird
-niemals wiederverwendet. Quellen werden erst durch diese ausdrückliche Aufhebung
-wieder frei. Nach Restore ist zuvor der aktuelle Belegstand zu prüfen. Bereits
-bestätigte Rechnungen und interne Abschlüsse benötigen weiterhin ihren eigenen
-Storno- beziehungsweise Aufhebungsablauf.
+Kalender, Wetter und die ChatGPT-Verbindung sind optional. Eine Statusprüfung löst
+keinen Kalenderabgleich und keine Wetterabfrage aus. Keine sevDesk- oder
+Bankanbindung, keine Pflichtcloud, keine automatischen Mahnungen.

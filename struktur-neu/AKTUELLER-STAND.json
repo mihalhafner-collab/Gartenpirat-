@@ -61,8 +61,7 @@
     "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
     "Compose-Suite: ältere Fehler in pending_result_read_only, usability, today_older_work_commit, customer_context, search_keyboard, back_gesture, domain_search, list_viewports, surfaces, large_text, camera_capture.",
     "Voller CI-Lauf enthält die Suiten native_settlement, native_accounting und native_graphics nicht; sie laufen nur über die *_only-Schalter.",
-    "Pixel-Nachtest QA06 und C04 nach Installation von 132 noch offen.",
-    "Pixel-Teilabnahme 131: 49 bestanden, 2 fehlgeschlagen, 9 blockiert; Details in docs/verification/performance-current.md.",
+    "Pixel-Teilabnahme 131: 49 bestanden; fehlgeschlagen QA06 (Hinweise bei Gerätefoto-Übernahme) und C04 (nach Löschen nicht zur Kundenliste zurück), Nachtest nach Installation; Kamera (QA11) und Randgeste offen.",
     "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
     "Ältere native Backup- und Speicherbereinigungsabnahmen offen."
   ]
