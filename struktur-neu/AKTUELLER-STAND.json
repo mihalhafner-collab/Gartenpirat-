@@ -57,7 +57,7 @@
     "status": "Navigation und Heute umgesetzt; CI ausstehend."
   },
   "open_checks": [
-    "Nach Selbstinstallation von 132 über get_capabilities Paket, 1.61.1/132, eabc0e0 und e24e42e4 prüfen; last_observed_installed_build und observed_installation_history erst dann auf 132 setzen.",
+    "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
     "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
     "Compose-Suite: ältere Fehler in pending_result_read_only, usability, today_older_work_commit, customer_context, search_keyboard, back_gesture, domain_search, list_viewports, surfaces, large_text, camera_capture.",
     "Pixel-Nachtest QA06 und C04 nach Installation von 132 noch offen.",
