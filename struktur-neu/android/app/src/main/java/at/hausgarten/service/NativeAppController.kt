@@ -94,10 +94,14 @@ internal class NativeAppController(private val activity: MainActivity, val store
         if (section == "today") {
             // Today always means the day overview, including when its previous visit opened a timer.
             route = saved.firstOrNull { it.section == "today" && it.id.isEmpty() && it.mode == "list" } ?: NativeRoute("today")
-        } else if (saved.isEmpty()) route = NativeRoute(section, area = section)
-        else {
-            saved.dropLast(1).forEach(history::addLast)
-            route = saved.last()
+        } else {
+            // A timer is reached through the running-work bar; an area tab returns to the area's own screens.
+            val kept = saved.filter { it.section !in setOf("timer", "work") }
+            if (kept.isEmpty()) route = NativeRoute(section, area = section)
+            else {
+                kept.dropLast(1).forEach(history::addLast)
+                route = kept.last()
+            }
         }
     }
     fun back() {

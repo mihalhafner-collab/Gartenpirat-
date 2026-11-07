@@ -108,7 +108,9 @@ internal fun NativeApplication(controller: NativeAppController) {
         topBar = {
             if (!imeVisible) Column(Modifier.statusBarsPadding()) {
                 // Search and "+" sit in the same place on every overview, never over a screen's own bottom actions.
-                val quick = reviewChecked && route.section !in setOf("restore_review", "revier_search", "action") && route.mode == "list" && route.id.isEmpty()
+                val quick = reviewChecked && route.mode == "list" && route.id.isEmpty() && route.section in setOf("today", "worklogs", "customers", "office", "more",
+                    "orders", "offers", "planning", "appointments", "visits", "properties", "inquiries", "care_plans", "materials", "equipment", "photos",
+                    "accounting", "settlements", "billing", "catalog", "plants", "tour")
                 if (route.section != "today" || quick) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (route.section == "today") Spacer(Modifier.weight(1f))
                     if (route.section != "today" && reviewChecked && controller.hasParentScreen() && route.section != "restore_review") NativeBackButton { controller.requestBack() }

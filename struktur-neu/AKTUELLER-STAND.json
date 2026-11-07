@@ -31,7 +31,7 @@
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
-    "source_sha256": "54d61527354b072839c6ab7e52debd2bb335e7205b8a8ef6cefa6527a9441aac",
+    "source_sha256": "e24e42e4fe556fb201e337b0d3bd0a8abd5f06c1921255f7a94c967dcf8f83ea",
     "status": "Quelle geändert; Build und Emulator-Prüfung über CI ausstehend. Installation und Verteilung nicht freigegeben.",
     "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–7: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag); App-Verknüpfungen Arbeit starten, Foto, Arbeit nachtragen; ChatGPT-Schreibfreigabe direkt in der Verbindungsansicht schaltbar; „Sicherung wiederherstellen“ fest in der unteren Leiste."
   },
