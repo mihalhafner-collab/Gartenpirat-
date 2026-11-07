@@ -59,6 +59,10 @@ Der Emulator verwendet nur synthetische Daten und einen temporären
 Testschlüssel; es wird keine APK veröffentlicht. Ein Build ist kein Emulatorlauf,
 ein Emulatorlauf keine Pixel-Abnahme.
 
+Die 21 Compose-Abläufe laufen einzeln mit `-e journey <name>`, jeweils nach
+`pm clear` und in einem neuen Instrumentierungsprozess. Jeder legt seinen
+synthetischen Bestand selbst an; Ergebnisse stehen je Ablauf im CI-Artefakt.
+
 Einzelne Suite am Gerät oder Emulator:
 
 ```sh

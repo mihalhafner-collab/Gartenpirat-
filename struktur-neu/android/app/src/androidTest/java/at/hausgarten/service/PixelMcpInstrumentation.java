@@ -54,7 +54,7 @@ public final class PixelMcpInstrumentation extends Instrumentation {
             }
             if(suite.equals("native_data")||suite.equals("native_compose")||suite.equals("native_graphics")){
                 JSONObject result=suite.equals("native_data")?NativeDataAccessNativeTests.run(this):
-                    suite.equals("native_graphics")?NativeComposeAppTests.runGraphics(this):NativeComposeAppTests.run(this);
+                    suite.equals("native_graphics")?NativeComposeAppTests.runGraphics(this):NativeComposeAppTests.run(this,arguments.getString("journey",""));
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
                 finish(Activity.RESULT_OK,report);return;
             }

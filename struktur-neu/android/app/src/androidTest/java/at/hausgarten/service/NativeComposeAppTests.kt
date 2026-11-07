@@ -34,11 +34,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
 
-/** Real MainActivity/Compose semantics, against the disposable provider suite's known fixture. */
+/** Real MainActivity/Compose semantics on a fresh disposable synthetic app sandbox. */
 class NativeComposeAppTests private constructor(private val test: Instrumentation) {
     companion object {
-        /** Run only after document_provider_reopen, on the same disposable API 35 emulator. */
-        @JvmStatic fun run(test: Instrumentation): JSONObject = NativeComposeAppTests(test).execute()
+        /** One journey per process, after pm clear on the disposable API 35 emulator. */
+        @JvmStatic fun run(test: Instrumentation, journey: String): JSONObject = NativeComposeAppTests(test).execute(journey)
         /** Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider prerequisite. */
         @JvmStatic fun runGraphics(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeGraphics()
         @JvmStatic fun runSettlement(test: Instrumentation): JSONObject = NativeComposeAppTests(test).executeSettlement()
@@ -382,32 +382,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val master = PixelMcpReadTools.effective(store.getState())
         val rows = master.getJSONArray("customers")
         return (0 until rows.length()).map { rows.getJSONObject(it) }.filter { it.optString("name") == name }
-    }
-
-    private fun guardFixture() {
-        // Check the device and test APK before reading any application data or fixture marker.
-        yes(test.context.packageName == "at.hausgarten.service.test", "TEST_APK_REQUIRED")
-        yes(context.packageName == "at.hausgarten.service", "ORIGINAL_PACKAGE_REQUIRED")
-        yes(Build.VERSION.SDK_INT == 35, "API_35_REQUIRED")
-        yes(Build.HARDWARE in listOf("ranchu", "goldfish") && shell("getprop ro.kernel.qemu") == "1", "DISPOSABLE_EMULATOR_REQUIRED")
-        val marker = File(context.noBackupFilesDir, "qa-provider-fixture.json")
-        yes(marker.isFile, "PROVIDER_FIXTURE_REQUIRED")
-        val saved = JSONObject(marker.readText())
-        yes(saved.getString("fixture") == "synthetic-provider-app-v1", "RECOGNIZED_SYNTHETIC_FIXTURE")
-        val original = context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE).getString("drive_snapshot", "") ?: ""
-        yes(PixelMcpWriteTools.hash(original) == saved.getString("snapshot_sha256"), "PROVIDER_FIXTURE_HASH")
-        yes(PixelMcpWriteTools.hash(JSONObject(original)) == PixelMcpWriteTools.hash(SyntheticBusinessData.profile("minimal")), "EXACT_PUBLIC_SYNTHETIC_PROFILE")
-        yes(!File(context.noBackupFilesDir, "qa-native-compose-fixture.json").exists(), "FRESH_COMPOSE_SUITE_REQUIRED")
-        yes(context.getSharedPreferences("planning_private", Context.MODE_PRIVATE).all.isEmpty(), "NO_CALENDAR_ACCOUNT_OR_WEATHER_CONFIGURATION")
-        store = PixelLocalStore(context)
-        yes(store.ownerValue("qa_provider_marker", "") == "QA synthetic provider fixture", "PROVIDER_DATABASE_IDENTITY")
-        val master = PixelMcpReadTools.effective(store.getState())
-        yes(PixelMcpWriteTools.hash(master.getJSONArray("customers")) == PixelMcpWriteTools.hash(SyntheticBusinessData.profile("minimal").getJSONArray("customers")), "UNMODIFIED_SYNTHETIC_CUSTOMERS")
-        File(context.noBackupFilesDir, "qa-native-compose-fixture.json").writeText(JSONObject().put("fixture", "synthetic-native-compose-v1").put("source_fixture", saved.getString("fixture")).toString())
-        tools = PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
-        yes(read("get_active_work_session").optString("state") == "IDLE", "NO_EXISTING_TIMER")
-        // Explicit AUS prevents the real UI lifecycle from scheduling any weather/account work.
-        yes(context.getSharedPreferences("planning_private", Context.MODE_PRIVATE).edit().putBoolean("weather_enabled", false).putBoolean("notifications", false).commit(), "OFFLINE_SYNTHETIC_PLANNING")
     }
 
     private fun seedPaging() {
@@ -978,8 +952,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         } finally { old.application.unregisterActivityLifecycleCallbacks(callbacks) }
     }
 
-    private fun execute(): JSONObject {
-        guardFixture()
+    private fun execute(selectedJourney: String): JSONObject {
+        guardGraphicsFixture()
         val previousInfo = automation.serviceInfo
         val previousFlags = previousInfo.flags
         val oldFont = shell("settings get system font_scale")
@@ -987,25 +961,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
             seedPaging()
             launch()
-            val failures = ArrayList<Throwable>()
+            var ran = false
             fun journey(name: String, run: () -> Unit) {
+                if (selectedJourney != name) return
+                yes(!ran, "ONE_JOURNEY_PER_PROCESS")
+                ran = true
                 test.sendStatus(0, Bundle().apply { putString("journey_start", name) })
-                val failure = try { run(); null }
-                    catch (failure: AssertionError) { failure }
-                    catch (failure: Exception) { failure }
-                // A journey that stops midway must not leave running work behind for the next one.
-                runCatching {
-                    val session = store.workSessions().current()
-                    if (session.optString("state") in setOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW"))
-                        store.workSessions().discard(session.optString("id"), "qa_cleanup_" + name)
-                    NativeDraftPersistence.unsaved.clear()
-                    store.writableDatabase.delete("owner_state", "key GLOB 'native_form_draft:*'", null)
-                }
-                if (failure == null) android.util.Log.i("NativeComposeQA", "$name PASS")
-                else {
+                try { run() } catch (failure: Throwable) {
                     test.sendStatus(0, Bundle().apply { putString("journey_failure", "$name: " + failure.stackTraceToString()) })
                     runCatching { captureSyntheticScreen("failure-$name"); logVisibleActions("failure_$name") }
-                    failures.add(AssertionError("QA_NATIVE_COMPOSE_JOURNEY_$name", failure))
+                    throw failure
                 }
             }
             journey("today_hub", ::todayJourney)
@@ -1013,6 +978,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("native_pickers", ::pickerJourney)
             journey("pending_result_read_only", ::pendingResultJourney)
             journey("usability", ::usabilityJourney)
+            journey("work_photo_retention") { workPhotoRetention(seedWork("[TEST] QA photo retention")) }
             journey("accessories", ::accessoryJourney)
             journey("timer") { timerJourney() }
             journey("today_older_work_commit", ::todayOlderWorkJourney)
@@ -1028,23 +994,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("large_text", ::largeTextJourney)
             journey("storage_settings", ::storageSettingsJourney)
             journey("camera_capture", ::cameraCaptureJourney)
-            if (failures.isNotEmpty()) {
-                val failure = AssertionError("QA_NATIVE_COMPOSE_JOURNEYS_FAILED_${failures.size}")
-                failures.forEach(failure::addSuppressed)
-                throw failure
-            }
+            yes(ran, "EXPLICIT_KNOWN_JOURNEY_REQUIRED")
             return JSONObject().put("checks", checks).put("synthetic_only", true).put("productive_data_read", false)
-                .put("real_main_activity", true).put("native_compose_ui", true).put("customer_crud", true).put("customer_context_navigation", true)
-                .put("paging_and_search", true).put("mcp_write_visible_without_reload", true)
-                .put("draft_recreation", true).put("timer_state_transitions", true).put("font_scale_200_percent", true)
-                .put("planning_notification_alternatives", true).put("customer_conflict_review", true)
-                .put("draft_write_failure_recovery", true)
-                .put("native_picker_confirm_cancel", true).put("local_selection_without_history_chain", true)
-                .put("pending_result_read_only", true).put("primary_action_positions", true)
-                .put("today_total_updates_beyond_visible_rows", true)
-                .put("work_entry_usability", true).put("work_photo_retention", true).put("real_camera_capture", true)
-                .put("machine_accessory_roundtrip", true).put("decimal_comma_inputs", true)
-                .put("today_hub", true).put("storage_settings_cleanup", true).put("filter_keyboard", true).put("system_back_gesture", true).put("work_ime_actions", true).put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases).put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
+                .put("journey", selectedJourney).put("independent_fresh_fixture", true)
+                .put("real_main_activity", true).put("native_compose_ui", true)
+                .put("search_keyboard_matrix", searchMatrix).put("domain_search_cases", domainSearchCases)
+                .put("surface_cases", surfaceCases).put("list_viewport_cases", listViewportCases).put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false).put("physical_pixel_tested", false)
         } finally {
             shell(if (oldFont == "null") "settings delete system font_scale" else "settings put system font_scale $oldFont")
@@ -1264,7 +1219,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         discardWork()
         yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
         yes(saved()?.getString("activity") == row.getString("activity"), "DISCARD_DOES_NOT_SAVE_CHANGES")
-        workPhotoRetention(row)
         click("Heute"); click("Arbeit nachtragen")
         openWorkCustomerPicker(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         enter("Was wurde erledigt? *", "[TEST] QA freie Dezimalwerte")
@@ -1898,7 +1852,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(read("get_work_record_summary", args).getInt("work_records") == before.getInt("work_records"), "TODAY_OLDER_EDIT_DOES_NOT_ADD_WORK")
     }
 
-    private fun notificationJourney() {
+    private fun seedNotification(): String {
         val zone = ZoneId.of("Europe/Vienna")
         val start = LocalDate.now(zone).plusDays(1).atTime(10, 0).atZone(zone).toInstant()
         val result = read("create_appointment", JSONObject().put("request_id", "qa_native_notification_001")
@@ -1906,6 +1860,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("title", "[TEST] QA Native Notification").put("starts_at", start.toString()).put("ends_at", start.plusSeconds(3600).toString())
             .put("timezone", zone.id).put("weather_profile", "indoor").put("status", "tentative"))
         val id = result.getString("appointment_id")
+        return id
+    }
+
+    private fun notificationJourney() {
+        val id = seedNotification()
         val original = PixelMcpWriteTools.hash(read("get_appointment", JSONObject().put("appointment_id", id)).getJSONObject("appointment"))
         activity?.let { current -> test.runOnMainSync { current.finish() } }
         launch(planning = true, appointment = id, action = "alternatives")
@@ -1962,6 +1921,65 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         if (requireKeyboard) yes(keyboardVisible(), "SCREENSHOT_IME_AFTER_$name")
     }
 
+    private fun seedWork(activityText: String): JSONObject {
+        val id = store.saveEditorRecord("worklog", JSONObject().put("_request_id", "qa_seed_work")
+            .put("customer_id", customers(fixturePrefix + "000").single().getString("id"))
+            .put("activity", activityText).put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
+            .put("hours", 1))
+        return read("get_work_record", JSONObject().put("work_record_id", id))
+    }
+
+    private fun seedEquipment() {
+        read("save_equipment", JSONObject().put("request_id", "qa_seed_equipment")
+            .put("name", "[TEST] QA Zubehör Säge")
+            .put("accessories", JSONArray().put(JSONObject().put("id", "qa_seed_chain").put("type", "chain").put("name", "QA Kette"))))
+    }
+
+    private fun seedSearchCatalog() {
+        val source = JSONObject(store.getState().getJSONObject("master").toString())
+        val catalog = source.optJSONArray("service_catalog") ?: JSONArray()
+        catalog.put(JSONObject().put("id", "qa_ui_service").put("title", "QA Leistungsbaustein")
+            .put("description", "Synthetischer Tätigkeitstext").put("category", "QA").put("unit", "h")
+            .put("default_price", "7.50").put("default_quantity", "1").put("price_confirmed", true).put("active", true))
+        source.put("service_catalog", catalog)
+        store.putOwnerValue("snapshot", source.toString()); store.notifyCommittedChange()
+    }
+
+    private fun seedCustomerContext() {
+        val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        val fixture = JSONObject(store.getState().getJSONObject("master").toString())
+        val offers = fixture.optJSONArray("offers") ?: JSONArray()
+        val source = File(context.cacheDir, "qa-context-photo.png")
+        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(0xff346a45.toInt())
+        source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
+        val identity = BackupDeviceGuard(context).current()
+        for (index in 0..1) {
+            val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
+            val id = customers(name).single().getString("id")
+            val property = read("create_property", JSONObject().put("request_id", "qa_ui_context_property_$index").put("customer_id", id).put("name", "QA Kontextobjekt $index").put("address", "QA Gartenweg $index, Testort"))
+            read("create_inquiry", JSONObject().put("request_id", "qa_ui_context_inquiry_$index").put("customer_id", id).put("property_id", property.getString("property_id")).put("title", "QA Kontextanfrage $index"))
+            read("plan_visit", JSONObject().put("request_id", "qa_ui_context_visit_$index").put("property_id", property.getString("property_id")).put("title", "QA Kontexteinsatz $index").put("date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("planned_minutes", 60))
+            val orders = fixture.optJSONArray("orders") ?: JSONArray()
+            orders.put(JSONObject().put("id", "qa_context_order_$index").put("customer_id", id).put("title", "QA Kontextauftrag $index").put("status", "Geplant").put("test_record", true))
+            fixture.put("orders", orders)
+            val workRows = fixture.optJSONArray("worklogs") ?: JSONArray()
+            workRows.put(JSONObject().put("id", "qa_context_billing_$index").put("customer_id", id)
+                .put("billing_customer_id", customers(fixturePrefix+"000").single().getString("id"))
+                .put("activity", "QA Kontextabrechnung $index").put("hours", 1).put("billed", 0)
+                .put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("test_record", true))
+            fixture.put("worklogs", workRows)
+            offers.put(JSONObject().put("id", "qa_context_offer_$index").put("customer_id", id)
+                .put("title", "QA Kontextangebot $index").put("status", "draft").put("test_record", true))
+            runBlocking { controller.importPhoto(Uri.fromFile(source), JSONObject().put("_photo_request_id", "qa_context_photo_$index")
+                .put("customer_id", id).put("role", "documentation").put("caption", "QA Kontextfoto $index")
+                .put("_capture_context", JSONObject().put("formatVersion", 1).put("installation_id", identity.getString("installationId"))
+                    .put("restore_epoch", identity.getString("restoreEpoch")))) }
+        }
+        fixture.put("offers", offers); store.putOwnerValue("snapshot", fixture.toString()); store.notifyCommittedChange()
+        source.delete()
+    }
+
     private fun customerContextJourney() {
         val navigation = NativeAppController(requireNotNull(activity) as MainActivity, store)
         for (area in listOf("today", "worklogs", "customers", "office")) {
@@ -2000,36 +2018,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         controller.back()
         yes(controller.messages.value.isEmpty(), "BACK_CLEARS_OLD_MESSAGE")
 
-        val fixture = JSONObject(store.getState().getJSONObject("master").toString())
-        val offers = fixture.optJSONArray("offers") ?: JSONArray()
-        val source = File(context.cacheDir, "qa-context-photo.png")
-        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
-        bitmap.eraseColor(0xff346a45.toInt())
-        source.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
-        val identity = BackupDeviceGuard(context).current()
-        for (index in 0..1) {
-            val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
-            val id = customers(name).single().getString("id")
-            val property = read("create_property", JSONObject().put("request_id", "qa_ui_context_property_$index").put("customer_id", id).put("name", "QA Kontextobjekt $index").put("address", "QA Gartenweg $index, Testort"))
-            read("create_inquiry", JSONObject().put("request_id", "qa_ui_context_inquiry_$index").put("customer_id", id).put("property_id", property.getString("property_id")).put("title", "QA Kontextanfrage $index"))
-            read("plan_visit", JSONObject().put("request_id", "qa_ui_context_visit_$index").put("property_id", property.getString("property_id")).put("title", "QA Kontexteinsatz $index").put("date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("planned_minutes", 60))
-            val orders = fixture.optJSONArray("orders") ?: JSONArray()
-            orders.put(JSONObject().put("id", "qa_context_order_$index").put("customer_id", id).put("title", "QA Kontextauftrag $index").put("status", "Geplant").put("test_record", true))
-            fixture.put("orders", orders)
-            val workRows = fixture.optJSONArray("worklogs") ?: JSONArray()
-            workRows.put(JSONObject().put("id", "qa_context_billing_$index").put("customer_id", id)
-                .put("billing_customer_id", customers(fixturePrefix+"000").single().getString("id"))
-                .put("activity", "QA Kontextabrechnung $index").put("hours", 1).put("billed", 0)
-                .put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("test_record", true))
-            fixture.put("worklogs", workRows)
-            offers.put(JSONObject().put("id", "qa_context_offer_$index").put("customer_id", id)
-                .put("title", "QA Kontextangebot $index").put("status", "draft").put("test_record", true))
-            runBlocking { controller.importPhoto(Uri.fromFile(source), JSONObject().put("_photo_request_id", "qa_context_photo_$index")
-                .put("customer_id", id).put("role", "documentation").put("caption", "QA Kontextfoto $index")
-                .put("_capture_context", JSONObject().put("formatVersion", 1).put("installation_id", identity.getString("installationId"))
-                    .put("restore_epoch", identity.getString("restoreEpoch")))) }
-        }
-        fixture.put("offers", offers); store.putOwnerValue("snapshot", fixture.toString()); store.notifyCommittedChange()
+        seedCustomerContext()
         for (index in 0..1) {
             val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
             openCustomerList(); enter("Suchen", name); click(name)
@@ -2085,7 +2074,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length() == invoiceCount, "OVERVIEW_DOES_NOT_CREATE_INVOICE")
             }
         }
-        source.delete()
         click("Heute")
     }
 
@@ -2373,11 +2361,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun domainSearchJourney() {
+        seedCustomerContext()
+        seedEquipment()
+        seedNotification()
+        seedWork("[TEST] QA domain search work")
+        seedSearchCatalog()
         val source = JSONObject(store.getState().getJSONObject("master").toString())
-        val catalog = source.optJSONArray("service_catalog") ?: JSONArray()
-        catalog.put(JSONObject().put("id", "qa_ui_service").put("title", "QA Leistungsbaustein").put("description", "Vollständig synthetischer langer Tätigkeitstext für die Auswahlprüfung.")
-            .put("category", "QA").put("unit", "h").put("default_price", "7.50").put("default_quantity", "1").put("price_confirmed", true).put("active", true))
-        source.put("service_catalog", catalog)
         val duplicateName = "[TEST] QA Gleichnamig mit sehr langem Gartenkundenname"
         val allCustomers = source.getJSONArray("customers")
         for ((index, city) in listOf("QA TestNord", "QA TestSüd").withIndex()) allCustomers.put(JSONObject().put("id", "qa_duplicate_$index").put("name", duplicateName).put("city", city).put("active", 1).put("billing_mode", "direct").put("test_record", true))
@@ -2394,8 +2383,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("work") {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
-            val work = (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA usability work") }
-            openWorklogs(); keyboardSearchProof("work", "Suchen", "QA usability work", work.getString("activity"))
+            val work = (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA domain search work") }
+            openWorklogs(); keyboardSearchProof("work", "Suchen", "QA domain search work", work.getString("activity"))
         }
         case("offers") {
             openCustomerList(); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
@@ -2482,6 +2471,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun listViewportJourney() {
+        seedCustomerContext(); seedEquipment(); seedNotification(); seedSearchCatalog()
         val oldFont = shell("settings get system font_scale")
         val sizeText = shell("wm size")
         val override = Regex("Override size: (\\d+x\\d+)").find(sizeText)?.groupValues?.get(1)
@@ -2608,6 +2598,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     /** Read-only route acceptance complements the mutating domain journeys above. */
     private fun surfaceJourney() {
+        seedEquipment()
         val failures = ArrayList<Throwable>()
         fun case(key: String, ready: String, screenshot: Boolean = false, body: () -> Unit) {
             test.sendStatus(0, Bundle().apply { putString("surface_start", key) })

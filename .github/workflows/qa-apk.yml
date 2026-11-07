@@ -179,7 +179,25 @@ jobs:
           else
             suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen native_compose)
           fi
+          # Every UI journey gets a new process and a completely empty app sandbox.
+          compose_journeys=(today_hub customer native_pickers pending_result_read_only usability work_photo_retention accessories timer today_older_work_commit notification customer_context office_opening search_keyboard back_gesture domain_search list_viewports filter_keyboard surfaces large_text storage_settings camera_capture)
+          expanded_suites=()
           for suite in "${suites[@]}"; do
+            if [ "$suite" = native_compose ]; then
+              for journey in "${compose_journeys[@]}"; do expanded_suites+=("native_compose:$journey"); done
+            else expanded_suites+=("$suite"); fi
+          done
+          for entry in "${expanded_suites[@]}"; do
+            suite="${entry%%:*}"
+            journey=""
+            instrument_args=()
+            if [[ "$entry" == *:* ]]; then
+              journey="${entry#*:}"
+              test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
+              test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+              test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
+              instrument_args=(-e journey "$journey")
+            fi
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
             # The running-work notice asks once for this permission; a system dialog would cover the UI under test.
@@ -189,30 +207,20 @@ jobs:
             suite_timeout=360
             if [ "$suite" = native_accounting ] || [ "$suite" = native_settlement ] || [ "$suite" = native_settlement_ui ]; then suite_timeout=900; fi
             if [ "$suite" = native_compose ] || [ "$suite" = native_graphics ]; then suite_timeout=2100; fi
-            timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$suite.txt" || instrumentation_status=$?
-            timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$suite-logcat.txt" 2>&1 || true
-            if [ "$suite" = native_settlement_ui ]; then
-              for image in settlement-invoice-confirmed settlement-labor-confirmed settlement-overview-filter settlement-overview-200-landscape settlement-overview-200-portrait settlement-failure; do
-                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
-              done
-            fi
-            if [ "$suite" = native_accounting ]; then
-              for image in accounting-failure accounting-100-portrait accounting-100-landscape accounting-200-portrait accounting-200-landscape accounting-editor-100-portrait accounting-editor-100-landscape accounting-editor-200-portrait accounting-editor-200-landscape; do
-                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
-              done
-            fi
-            if [ "$suite" = native_compose ] || [ "$suite" = native_graphics ]; then
-              for image in work-list work-search work-selection work-billing graphics-customers graphics-customer graphics-planning graphics-offers graphics-offer-customer graphics-offer-positions graphics-equipment planning-large-font today-hints failure-graphics_today failure-graphics_work failure-graphics_navigation failure-graphics_accessories failure-graphics_timer failure-graphics_large_text camera-scene camera-selected failure-camera_capture today-idle today-running today-capture today-large-font failure-today-large-font failure-today_hub list-customers-portrait failure-list-customers-portrait list-customers-landscape failure-list-customers-landscape list-work-portrait failure-list-work-portrait list-work-landscape failure-list-work-landscape list-orders-portrait failure-list-orders-portrait list-offers-portrait failure-list-offers-portrait list-offers-landscape failure-list-offers-landscape list-planning-portrait failure-list-planning-portrait list-equipment-portrait failure-list-equipment-portrait list-photos-portrait failure-list-photos-portrait list-catalog-portrait failure-list-catalog-portrait list-catalog-landscape failure-list-catalog-landscape list-plants-portrait failure-list-plants-portrait list-local-portrait failure-list-local-portrait list-local-landscape failure-list-local-landscape failure-list_viewports timer-actions detail-offers detail-catalog filter-work-date filter-local-date failure-filter_keyboard back-gesture failure-back-gesture-active failure-back_gesture failure-surface-today failure-surface-work failure-surface-timer failure-surface-customers failure-surface-office failure-surface-properties failure-surface-inquiries failure-surface-orders failure-surface-care-plans failure-surface-planning failure-surface-visits failure-surface-tour failure-surface-weather failure-surface-billing failure-surface-offers failure-surface-equipment failure-surface-accessories failure-surface-maintenance failure-surface-materials failure-surface-photos failure-surface-plants failure-surface-catalog failure-surface-drafts failure-surface-restored-drafts failure-surface-local-search failure-surface-archive failure-surface-trash failure-surface-settings failure-surface-connections failure-surface-calendar failure-surface-chatgpt failure-surface-backup failure-surface-settings-200 failure-surface-calendar-200 failure-surface-backup-200 surface-today surface-office surface-planning surface-billing surface-accessories surface-settings surface-calendar surface-backup surface-settings-200 surface-calendar-200 surface-backup-200 failure-surfaces domain-planning-picker failure-domain-planning-picker domain-photo-assignment failure-domain-photo-assignment domain-offer-positions failure-domain-offer-positions domain-maintenance-phrases failure-domain-maintenance-phrases domain-work failure-domain-work domain-offers failure-domain-offers domain-planning failure-domain-planning domain-equipment failure-domain-equipment domain-photos failure-domain-photos domain-catalog failure-domain-catalog domain-plants failure-domain-plants domain-local failure-domain-local domain-phrases failure-domain-phrases domain-duplicate-customers failure-domain-duplicate-customers domain-equipment-picker failure-domain-equipment-picker failure-domain_search customer-overview customer-billing search-no-results search-customer-list failure-search_keyboard search-100-normal-portrait failure-search-100-normal-portrait search-100-normal-landscape failure-search-100-normal-landscape search-130-normal-portrait failure-search-130-normal-portrait search-130-normal-landscape failure-search-130-normal-landscape search-200-compact-portrait failure-search-200-compact-portrait search-200-compact-landscape failure-search-200-compact-landscape customer-photos customer-offers failure-customer_context work-keyboard accessory accessory-enlarged accessory-editor timer-compact timer-large-font work-large-font failure-customer failure-usability failure-accessories failure-timer failure-notification failure-office_opening failure-large_text; do
-                "$ADB" -s emulator-5580 pull "/sdcard/Android/data/at.hausgarten.service/files/qa-native-$image.png" "outputs/qa-native-$image.png" || true
-              done
-            fi
+            timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" "${instrument_args[@]}" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$entry.txt" || instrumentation_status=$?
+            timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$entry-logcat.txt" 2>&1 || true
+            # Collect only screenshots actually produced by this fresh synthetic run.
+            while IFS= read -r image; do
+              [ -n "$image" ] || continue
+              "$ADB" -s emulator-5580 pull "$image" "outputs/${image##*/}"
+            done < <("$ADB" -s emulator-5580 shell find /sdcard/Android/data/at.hausgarten.service/files -maxdepth 1 -name 'qa-native-*.png' 2>/dev/null | tr -d '\r')
             if [ "$instrumentation_status" != 0 ]; then
               native_suite_failures=$((native_suite_failures+1))
               continue
             fi
-            if python3 - "$suite" <<'PY'
+            if python3 - "$suite" "$entry" "$journey" <<'PY'
           import json,pathlib,sys
-          text=pathlib.Path('outputs/'+sys.argv[1]+'.txt').read_text()
+          text=pathlib.Path('outputs/'+sys.argv[2]+'.txt').read_text()
           assert 'INSTRUMENTATION_CODE: -1' in text, text
           assert 'INSTRUMENTATION_FAILED' not in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
           result=json.loads(next(line.split('=',1)[1] for line in text.splitlines() if line.startswith('INSTRUMENTATION_RESULT: result=')))
@@ -254,21 +262,22 @@ jobs:
               assert result['physical_pixel_tested'] is False and result['drive_account_tested'] is False, result
               assert result['graphics_cases'] == ['graphics_today','graphics_work','graphics_navigation','graphics_accessories','graphics_timer','graphics_large_text'], result
           elif sys.argv[1]=='native_compose':
-              for proof in ('real_camera_capture','today_hub','storage_settings_cleanup','real_main_activity','filter_keyboard','system_back_gesture','native_compose_ui','customer_crud','customer_context_navigation','paging_and_search',
-                            'mcp_write_visible_without_reload','draft_recreation','timer_state_transitions',
-                            'font_scale_200_percent','planning_notification_alternatives','customer_conflict_review',
-                            'draft_write_failure_recovery','work_entry_usability','work_photo_retention',
-                            'machine_accessory_roundtrip','decimal_comma_inputs','work_ime_actions'):
-                  assert result[proof] is True, result
-              assert result['office_opening']['samples_per_path'] == 40, result
-              assert len(result['domain_search_cases']) == 15, result
-              assert len(result['surface_cases']) == 35, result
-              assert len(result['list_viewport_cases']) == 15, result
-              assert all(row['keyboard_bounds'] and row['real_touch'] and row['ime_preserves_query'] for row in result['list_viewport_cases']), result
-              assert all(row['no_auto_ime'] for row in result['surface_cases']), result
-              assert all(row['keyboard_bounds'] and row['real_touch'] for row in result['domain_search_cases']), result
-              assert len(result['search_keyboard_matrix']) == 6, result
-              assert all(row['keyboard_open_and_closed'] and row['ime_action_preserves_query'] and row['real_touch_selection'] for row in result['search_keyboard_matrix']), result
+              assert result['journey'] == sys.argv[3] and result['independent_fresh_fixture'] is True, result
+              assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result
+              if sys.argv[3]=='office_opening':
+                  assert result['office_opening']['samples_per_path'] == 40, result
+              if sys.argv[3]=='domain_search':
+                  assert len(result['domain_search_cases']) == 14, result
+                  assert all(row['keyboard_bounds'] and row['real_touch'] for row in result['domain_search_cases']), result
+              if sys.argv[3]=='surfaces':
+                  assert len(result['surface_cases']) == 32, result
+                  assert all(row['no_auto_ime'] for row in result['surface_cases']), result
+              if sys.argv[3]=='list_viewports':
+                  assert len(result['list_viewport_cases']) == 14, result
+                  assert all(row['keyboard_bounds'] and row['real_touch'] and row['ime_preserves_query'] for row in result['list_viewport_cases']), result
+              if sys.argv[3]=='search_keyboard':
+                  assert len(result['search_keyboard_matrix']) == 6, result
+                  assert all(row['keyboard_open_and_closed'] and row['ime_action_preserves_query'] and row['real_touch_selection'] for row in result['search_keyboard_matrix']), result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
@@ -285,6 +294,8 @@ jobs:
               native_suite_failures=$((native_suite_failures+1))
             fi
           done
+          "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
+          test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
           test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
         if: failure() && (github.event_name != 'workflow_dispatch' || inputs.emulator)
