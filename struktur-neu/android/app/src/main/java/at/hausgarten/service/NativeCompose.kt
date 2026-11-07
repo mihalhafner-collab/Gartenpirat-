@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -249,6 +250,32 @@ internal fun NativeInfoRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** A titled group of compact rows, like a section of a delivery note. */
+@Composable
+internal fun NativeGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column {
+            Text(title.uppercase(), Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 16.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            content()
+        }
+    }
+}
+
+/** One tappable label/value row; an empty value invites to add it, no value marks an action. */
+@Composable
+internal fun NativeKeyValue(label: String, value: String?, money: Boolean = false, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 48.dp).padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+        if (value != null) Text(value.ifBlank { "+ ergänzen" }, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+            color = when { value.isBlank() -> MaterialTheme.colorScheme.primary; money -> NativeMoney; else -> MaterialTheme.colorScheme.onSurface })
+        Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 
 /** Four consistent stroke icons; their adjacent navigation labels carry semantics. */

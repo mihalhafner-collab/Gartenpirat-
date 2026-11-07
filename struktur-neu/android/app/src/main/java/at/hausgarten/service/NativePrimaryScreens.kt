@@ -853,12 +853,17 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             if (row == null && error.isEmpty()) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (row != null) {
                 item {
-                    if (kind == "worklog") NativeInfoRow("Tätigkeit", row.optString("activity"), { editWorkField("activity") })
+                    if (kind == "worklog") Surface(onClick = { editWorkField("activity") }, color = Color.Transparent) {
+                        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Text("Tätigkeit", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(row.optString("activity").ifBlank { "Tätigkeit ergänzen" }, style = MaterialTheme.typography.headlineSmall)
+                        }
+                    }
                     else Text(row.optString("name", row.optString("title", "Eintrag")), style = MaterialTheme.typography.headlineSmall)
                     if (kind == "customer") Text(row.optString("company").ifBlank { "Kundenakte" }, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     else NativeContext(controller, context)
                 }
-                if (kind != "customer") item {
+                if (kind == "order") item {
                     NativeInfoRow("Abrechnungsweg", row.opt(AccountingRules.AMOUNT)?.takeUnless { it == JSONObject.NULL }?.let(::financeMoney) ?: "Gesamtbetrag und Abrechnungsweg",
                         { controller.navigate("accounting_edit", id, collection) })
                 }
@@ -913,36 +918,60 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                     item { NativeInfoRow("Aufträge", "Vorhandene Aufträge dieses Kunden", { controller.navigate("orders", args = context) }) }
                     item { NativeInfoRow("Anfragen", "Vorhandene Anfragen dieses Kunden", { controller.navigate("inquiries", args = context) }) }
                 } else if (kind == "worklog") {
+                    // Design: grouped like a delivery note instead of one card per field.
+                    val assignment = envelope?.optJSONObject("billing_assignment")
+                    fun value(field: String): String = when (field) {
+                        "order_id" -> envelope?.optString("order_title").orEmpty().ifBlank { if (row.optString(field).isBlank()) "Nicht zugeordnet" else "Zugeordneter Auftrag" }
+                        "customer_visible" -> if (row.optBoolean(field, row.optInt(field, 1) != 0)) "Ja" else "Nein"
+                        else -> nativeDisplayText(row.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString().orEmpty())
+                    }
                     item {
-                        NativeStatus("Gespeicherte Arbeit", NativeStatusTone.Confirmed)
-                        NativeInfoRow("Datum", nativeDisplayDate(row.optString("work_date")), { editWorkField("work_date") })
-                        NativeInfoRow("Arbeitszeit", nativeDuration(row.optDouble("hours")), { editWorkField("hours") })
-                        if (row.optString("start_time").isNotBlank() || row.optString("end_time").isNotBlank()) {
-                            NativeInfoRow("Beginn", row.optString("start_time"), { editWorkField("start_time") })
-                            NativeInfoRow("Ende", row.optString("end_time"), { editWorkField("end_time") })
-                            NativeInfoRow("Pause", nativeNumber(row.opt("break_minutes")) + " Min.", { editWorkField("break_minutes") })
-                            NativeInfoRow("Arbeit über Mitternacht", if (row.optBoolean("allow_overnight")) "Ja" else "Nein", { editWorkField("allow_overnight") })
-                        }
-                        val assignment = envelope?.optJSONObject("billing_assignment")
-                        NativeInfoRow("Rechnungsempfänger", assignment?.optString("billing_customer_name").orEmpty().ifBlank { "Zuordnung prüfen" }, {
-                            controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", "")))
-                        })
-                        NativeStatus(if (row.optInt("billed") != 0) "Lokal als abgerechnet markiert" else "Lokal offen markiert")
-                        Text("Die Zuordnung bestätigt weder einen ausgestellten Beleg noch einen Zahlungseingang.", style = MaterialTheme.typography.bodySmall)
-                        for (field in listOf("order_id", "material", "material_cost", "disposal_cost", "kilometers", "location", "notes", "customer_visible")) {
-                            val value = when (field) {
-                                "order_id" -> envelope?.optString("order_title").orEmpty().ifBlank { if (row.optString(field).isBlank()) "Nicht zugeordnet" else "Zugeordneter Auftrag" }
-                                "customer_visible" -> if (row.optBoolean(field, row.optInt(field, 1) != 0)) "Ja" else "Nein"
-                                else -> row.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString().orEmpty().ifBlank { "Hinzufügen" }
-                            }
-                            NativeInfoRow(nativeLabel(field), nativeDisplayText(value), { editWorkField(field) })
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            NativeStatus("Gespeicherte Arbeit", NativeStatusTone.Confirmed)
+                            NativeStatus(if (row.optInt("billed") != 0) "Abgerechnet markiert" else "Offen", if (row.optInt("billed") != 0) NativeStatusTone.Neutral else NativeStatusTone.Attention)
                         }
                     }
-                    item { NativeInfoRow("Fotos", "Dokumentation dieser Arbeit", { controller.navigate("photos", args = JSONObject(context.toString()).put("worklog_id", id).put("order_id", row.optString("order_id"))) }) }
-                    item { NativeInfoRow("Als Vorlage duplizieren", "Neue vergangene Arbeit vorbereiten", { controller.navigate("worklogs", id, "duplicate", controller.route.args) }) }
-                    item { NativeInfoRow("Zuordnung ändern", "Arbeitskunde und Rechnungsempfänger bewusst prüfen", { controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) }
-                    item { NativeInfoRow("Abgerechnet / offen markieren", "Ändert nur die lokale Markierung", { controller.action("Lokale Abrechnungsmarkierung", "set_work_record_billed", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }) }
-                    item { NativeInfoRow("Labor clandestino", "Vorhandene lokale Angabe ändern", { controller.action("Labor clandestino", "set_personal_paid", JSONObject().put("work_record_id", id)) }) }
+                    item {
+                        NativeGroup("Zeit") {
+                            NativeKeyValue("Datum", nativeDisplayDate(row.optString("work_date"))) { editWorkField("work_date") }
+                            NativeKeyValue("Arbeitszeit", nativeDuration(row.optDouble("hours"))) { editWorkField("hours") }
+                            if (row.optString("start_time").isNotBlank() || row.optString("end_time").isNotBlank()) {
+                                NativeKeyValue("Beginn", row.optString("start_time")) { editWorkField("start_time") }
+                                NativeKeyValue("Ende", row.optString("end_time")) { editWorkField("end_time") }
+                                NativeKeyValue("Pause", nativeNumber(row.opt("break_minutes")) + " Min.") { editWorkField("break_minutes") }
+                                NativeKeyValue("Arbeit über Mitternacht", if (row.optBoolean("allow_overnight")) "Ja" else "Nein") { editWorkField("allow_overnight") }
+                            }
+                        }
+                    }
+                    item {
+                        NativeGroup("Abrechnung") {
+                            NativeKeyValue("Abrechnungsweg", row.opt(AccountingRules.AMOUNT)?.takeUnless { it == JSONObject.NULL }?.let(::financeMoney) ?: "Festlegen", money = true) {
+                                controller.navigate("accounting_edit", id, collection)
+                            }
+                            NativeKeyValue("Rechnungsempfänger", assignment?.optString("billing_customer_name").orEmpty().ifBlank { "Zuordnung prüfen" }) {
+                                controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", "")))
+                            }
+                        }
+                    }
+                    item {
+                        NativeGroup("Kosten & Weg") {
+                            for (field in listOf("material", "material_cost", "disposal_cost", "kilometers", "location")) NativeKeyValue(nativeLabel(field), value(field)) { editWorkField(field) }
+                        }
+                    }
+                    item {
+                        NativeGroup("Weiteres") {
+                            for (field in listOf("order_id", "notes", "customer_visible")) NativeKeyValue(nativeLabel(field), value(field)) { editWorkField(field) }
+                            NativeKeyValue("Fotos", "Ansehen und hinzufügen") { controller.navigate("photos", args = JSONObject(context.toString()).put("worklog_id", id).put("order_id", row.optString("order_id"))) }
+                        }
+                    }
+                    item {
+                        NativeGroup("Aktionen") {
+                            NativeKeyValue("Als Vorlage duplizieren", null) { controller.navigate("worklogs", id, "duplicate", controller.route.args) }
+                            NativeKeyValue("Zuordnung ändern", null) { controller.action("Zuordnung ändern", "reassign_work_record", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }
+                            NativeKeyValue("Abgerechnet / offen markieren", null) { controller.action("Lokale Abrechnungsmarkierung", "set_work_record_billed", JSONObject().put("work_record_id", id).put("expected_record_hash", envelope?.optString("record_hash", ""))) }
+                            NativeKeyValue("Labor clandestino", null) { controller.action("Labor clandestino", "set_personal_paid", JSONObject().put("work_record_id", id)) }
+                        }
+                    }
                 } else {
                     item {
                         if (row.optString("status").isNotBlank()) NativeStatus(nativeValue(row.optString("status")))
