@@ -54,7 +54,7 @@
   },
   "current_task": {
     "name": "Version 133: Compose-Abläufe isolieren und volle CI grün machen",
-    "status": "Schritte 1 und 2 gepusht (2612d21, 7f3f8ef); volle Emulatorläufe 42387530148 und 42387770913 laufen. Schritt 3 nimmt native_settlement einschließlich Wiederanlauf/UI, native_accounting einschließlich Wiederanlauf und sechs isolierte native_graphics-Abläufe in den Standardlauf auf. check_current.py und Release-/Test-Build mit lintRelease grün; voller CI-Lauf folgt. Keine Installation, Verteilung oder Merge; PR erst nach grünem vollem Lauf.",
+    "status": "Isolation und Wartekorrekturen gepusht (2612d21, 7f3f8ef); volle Emulatorläufe 42387530148 und 42387770913 laufen. Erweiterter Standardlauf mit settlement/accounting und sechs isolierten Grafikabläufen gepusht (9f1ad74), volle CI 42388033966 läuft. Abrechnungs-UI-Tests öffnen jetzt ausdrücklich die Bereichsübersicht statt eine gemerkte Detailseite vorauszusetzen; check_current.py und Release-/Test-Build mit lintRelease grün; voller CI-Lauf folgt. Keine Installation, Verteilung oder Merge; PR erst nach grünem vollem Lauf.",
     "owner_instruction": "Ausdrücklicher Auftrag 07.11.2026: Isolation, rote Ursachen beheben, native_settlement/native_accounting/native_graphics in vollen Lauf aufnehmen; je Schritt prüfen, bauen mit Lint, committen, pushen und volle CI mit emulator=true."
   },
   "open_checks": [

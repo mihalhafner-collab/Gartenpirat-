@@ -322,6 +322,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         it.isVisibleToUser && matches(it, label) && clickable(it)?.stateDescription?.toString() == "Ausgewählter Bereich"
     }
 
+    private fun openAccounting() {
+        // The first tap restores this area's previous detail; the second opens
+        // its root and preserves the overview's saved filters and selected tab.
+        click("Abrechnung"); click("Abrechnung")
+        waitUntil("ACCOUNTING_ROOT_READY") { selectedArea("Abrechnung") && node("Summen")?.let(::clickable) != null }
+    }
+
     /** Work records have no tab; the office lists them first. */
     private fun openWorklogs() {
         openOffice(); click("Arbeiten")
@@ -459,7 +466,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val oldFont = shell("settings get system font_scale")
         try {
             automation.serviceInfo = previous.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
-            launch(); openOffice(); click("Abrechnung"); reveal("Rechnungen & Labor"); click("Rechnungen & Labor")
+            launch(); openAccounting(); reveal("Rechnungen & Labor"); click("Rechnungen & Labor")
             shown("[TEST] Rechnung 900"); click("[TEST] Rechnung 900")
             shown("Entwurf")
             for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
@@ -477,7 +484,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val original = read("get_settlement", JSONObject().put("settlement_id", invoice)).getJSONObject("record")
             yes(original.getString("status") == "confirmed" && original.has("pdf") && original.has("invoice_number"), "SETTLEMENT_UI_ORIGINAL_AFTER_CONFIRMATION")
             captureSyntheticScreen("settlement-invoice-confirmed")
-            openOffice(); click("Abrechnung"); click("Rechnungen & Labor"); click("[TEST] Labor 200")
+            openAccounting(); click("Rechnungen & Labor"); click("[TEST] Labor 200")
             for (label in listOf("Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft", "Gewöhnliche österreichische Inlandsabrechnung in Euro", "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft")) click(label)
             click("Labor-Abrechnung bestätigen")
             waitUntil("SETTLEMENT_UI_REAL_LABOR_PREPARATION") { read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record").getString("status") == "prepared" }
@@ -492,7 +499,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val internal = read("get_settlement", JSONObject().put("settlement_id", labor)).getJSONObject("record")
             yes(internal.getString("status") == "confirmed" && !internal.has("invoice_number") && !internal.has("pdf"), "SETTLEMENT_UI_INTERNAL_NO_INVOICE")
             captureSyntheticScreen("settlement-labor-confirmed")
-            openOffice(); click("Abrechnung"); click("Summen"); reveal("1100,00 €"); shown("1100,00 €")
+            openAccounting(); click("Summen"); reveal("1100,00 €"); shown("1100,00 €")
             yes(read("get_accounting_overview").getLong("total_minor") == 110000L, "SETTLEMENT_UI_900_PLUS_200")
             click("Rechnung"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "qa_settlement_invoice"); back()
@@ -507,14 +514,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             // the sum cards. Explicitly bring the card into view before asserting it.
             reveal("900,00 €"); shown("900,00 €")
             captureSyntheticScreen("settlement-overview-filter")
-            openOffice(); click("Abrechnung"); click("Offen"); reveal("Neue Abrechnung"); click("Neue Abrechnung")
+            openAccounting(); click("Offen"); reveal("Neue Abrechnung"); click("Neue Abrechnung")
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung")
             click("Position hinzufügen"); enter("Leistung", "[TEST] Synthetische manuelle Leistung A")
             enter("Tatsächlich geleistete Menge", "1"); enter("Einheit", "Leistung"); enter("Preis je Einheit (€)", "3,00")
             click("Entwurf speichern und prüfen"); reveal("[TEST] Erste manuelle Abrechnung"); shown("[TEST] Erste manuelle Abrechnung"); reveal("Entwurf"); shown("Entwurf")
             val firstNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Erste manuelle Abrechnung" }
             yes(firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 300L, "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT")
-            openOffice(); click("Abrechnung"); click("Offen"); click("Neue Abrechnung")
+            openAccounting(); click("Offen"); click("Neue Abrechnung")
             reveal("Bezeichnung")
             yes(field("Bezeichnung")?.text?.toString().orEmpty().isEmpty(), "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_EMPTY")
             yes(node("Abrechnungsart: Rechnung") != null, "SETTLEMENT_UI_NEW_EDITOR_DEFAULT_ROUTE")
@@ -526,7 +533,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val secondNew = SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.optString("title") == "[TEST] Zweite manuelle Abrechnung" }
             yes(secondNew.getString("id") != firstNew.getString("id") && secondNew.getString("route") == "labor" && secondNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 400L, "SETTLEMENT_UI_NEW_OPERATION_DISTINCT_ID_ROUTE_AND_AMOUNT")
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung", "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND")
-            openOffice(); click("Abrechnung"); click("Rechnungen & Labor"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
+            openAccounting(); click("Rechnungen & Labor"); click("[TEST] Erste manuelle Abrechnung"); click("Entwurf bearbeiten")
             reveal("Bezeichnung"); yes(field("Bezeichnung")?.text?.toString()?.contains("[TEST] Erste manuelle Abrechnung") == true, "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT")
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft"); click("Entwurf speichern und prüfen")
             var lastSaveScroll = 0L
@@ -544,12 +551,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal("[TEST] Erste manuelle Abrechnung geprüft"); shown("[TEST] Erste manuelle Abrechnung geprüft")
             yes(SettlementRules.rows(read("list_settlements").getJSONArray("records")).single { it.getString("id") == firstNew.getString("id") }.getString("title") == "[TEST] Erste manuelle Abrechnung geprüft", "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH")
             yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks, "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED")
-            openOffice(); click("Abrechnung"); click("Summen")
+            openAccounting(); click("Summen")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", ""); back(); scrollTop(); click("Gesamt"); reveal("1100,00 €"); shown("1100,00 €")
             for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
                 shell("settings put system font_scale 2.0")
-                launch(); openOffice(); click("Abrechnung"); click("Summen")
+                launch(); openAccounting(); click("Summen")
                 test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                 waitUntil("SETTLEMENT_APPLIED_200_FONT_$wide") {
                     var applied = false
@@ -619,7 +626,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val oldFont = shell("settings get system font_scale")
         try {
             automation.serviceInfo = previousInfo.apply { flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS }
-            launch(); openOffice(); click("Abrechnung"); click("Summen"); reveal("1100,00 €"); shown("1100,00 €")
+            launch(); openAccounting(); click("Summen"); reveal("1100,00 €"); shown("1100,00 €")
             click("Rechnung"); reveal("900,00 €"); shown("900,00 €"); reveal("QA Abrechnung A"); click("QA Abrechnung A"); shown("Bearbeiten")
             click("‹ Zurück"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "Abrechnung A"); back(); waitUntil("ACCOUNTING_SEARCH_KEYBOARD_HIDDEN") { !keyboardVisible() }
@@ -669,7 +676,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
                 activity?.let { current -> test.runOnMainSync { if (!current.isFinishing) current.finish() } }
                 shell("settings put system font_scale $font")
-                launch(); openOffice(); click("Abrechnung"); click("Summen")
+                launch(); openAccounting(); click("Summen")
                 test.runOnMainSync { activity?.requestedOrientation = if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                 settleUi(); reveal("Gesamt"); reveal("1150,25 €"); shown("1150,25 €")
                 captureSyntheticScreen("accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
