@@ -28,6 +28,8 @@ internal fun nativeMainSection(section: String): String = when (section) {
     "today" -> "today"
     "worklogs", "timer", "work", "drafts" -> "worklogs"
     "customers" -> "customers"
+    "planning", "appointments", "visits", "tour", "weather", "care_plans" -> "planning"
+    "billing", "accounting", "accounting_edit", "settlements", "settlement_edit", "settlement_review" -> "accounting"
     else -> "office"
 }
 internal data class NativeRoute(val section: String = "today", val id: String = "", val mode: String = "list", val args: JSONObject = JSONObject(), val area: String = nativeMainSection(section))
@@ -50,7 +52,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
     private var catalog: Map<String, JSONObject>? = null
 
     private val areaNavigation = mutableMapOf<String, List<NativeRoute>>()
-    private val mainAreas = setOf("today", "worklogs", "customers", "office")
+    private val mainAreas = setOf("today", "worklogs", "customers", "planning", "accounting", "office")
 
     private fun sameScreen(left: NativeRoute, right: NativeRoute): Boolean =
         left.section == right.section && left.id == right.id && left.mode == right.mode && left.area == right.area &&

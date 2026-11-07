@@ -254,6 +254,15 @@ internal fun NativeAreaIcon(section: String) {
                 drawRoundRect(color, p(4,7), Size(16*unit,14*unit), androidx.compose.ui.geometry.CornerRadius(2*unit,2*unit), style = Stroke(1.8f*unit))
                 line(8,7,8,4); line(8,4,16,4); line(16,4,16,7); line(4,12,20,12)
             }
+            "planning" -> {
+                drawRoundRect(color, p(3,5), Size(18*unit,16*unit), androidx.compose.ui.geometry.CornerRadius(2*unit,2*unit), style = Stroke(1.8f*unit))
+                line(3,10,21,10); line(8,3,8,7); line(16,3,16,7); line(7,14,10,14); line(13,14,17,14); line(7,17,10,17)
+            }
+            "accounting" -> {
+                drawCircle(color, 9*unit, p(12,12), style = Stroke(1.8f*unit))
+                drawArc(color, 45f, 270f, false, p(8,7), Size(9*unit,10*unit), style = Stroke(1.8f*unit))
+                line(6,11,13,11); line(6,14,13,14)
+            }
             "customers" -> {
                 drawCircle(color, 3*unit, p(9,7), style = Stroke(1.8f*unit)); drawArc(color,180f,180f,false,p(2,12),Size(14*unit,14*unit),style=Stroke(1.8f*unit))
                 drawArc(color,-90f,180f,false,p(15,4),Size(6*unit,6*unit),style=Stroke(1.8f*unit)); line(18,13,21,18)

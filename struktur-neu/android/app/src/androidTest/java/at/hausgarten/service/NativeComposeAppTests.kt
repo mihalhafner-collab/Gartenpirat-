@@ -323,6 +323,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         it.isVisibleToUser && matches(it, label) && clickable(it)?.stateDescription?.toString() == "Ausgewählter Bereich"
     }
 
+    /** Work records have no tab; the office lists them first. */
+    private fun openWorklogs() {
+        openOffice(); click("Arbeiten")
+        waitUntil("WORK_LIST_READY") { node("Arbeit nachtragen") != null || node("‹ Zurück") != null }
+    }
+
     private fun openOffice() {
         click("Büro")
         repeat(12) {
@@ -694,7 +700,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 settleUi(); reveal("Gesamt"); reveal("1150,25 €"); shown("1150,25 €")
                 captureSyntheticScreen("accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
                 yes(field("Auftragsbezeichnung") != null, "ACCOUNTING_SEARCH_ACCESSIBLE_${font}_$wide")
-                reveal("QA Abrechnung A"); click("QA Abrechnung A"); click("Abrechnung")
+                reveal("QA Abrechnung A"); click("QA Abrechnung A"); click("Abrechnungsweg")
                 shown("Abrechnung speichern"); reveal("Abrechnungsweg: Labor clandestino")
                 captureSyntheticScreen("accounting-editor-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}")
                 click("Zurück")
@@ -792,7 +798,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("_request_id", "qa_work_interaction_$index").put("customer_id", customer)
             .put("work_date", day).put("activity", prefix + index).put("start_time", "08:00")
             .put("end_time", "12:00").put("break_minutes", 30).put("notes", "[TEST] Ursprüngliche Notiz")) }
-        click("Arbeit"); enter("Suchen", prefix); shown(prefix + "1"); shown(prefix + "2")
+        openWorklogs(); enter("Suchen", prefix); shown(prefix + "1"); shown(prefix + "2")
         yes(node("Zeiterfassung öffnen") == null && node("Löschen") == null && nodes().none { it.className?.toString() == "android.widget.CheckBox" }, "WORK_LIST_WITHOUT_TIMER_CHECKBOXES_OR_ROW_DELETE")
         val searchBounds = Rect().also { requireNotNull(field("Suchen")).getBoundsInScreen(it) }
         yes(searchBounds.top > actionBounds(prefix + "1").bottom, "WORK_SEARCH_BELOW_RESULTS")
@@ -820,7 +826,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(visibleTexts().none { it.contains("Work record id", true) || it.startsWith("Arbeitsaufzeichnung:") }, "WORK_BILLING_REFERENCE_HIDDEN")
         captureSyntheticScreen("work-billing")
         click("Zurück")
-        click("Arbeit"); shown(prefix + "1 korrigiert")
+        openWorklogs(); shown(prefix + "1 korrigiert")
         fun hold(label: String) {
             var candidate: AccessibilityNodeInfo? = requireNotNull(node(label))
             while (candidate != null && candidate.actionList.none { it.id == AccessibilityNodeInfo.ACTION_LONG_CLICK }) candidate = candidate.parent
@@ -862,7 +868,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun graphicsNavigationJourney() {
         click("Heute"); shown("Heute gespeichert")
-        for ((label, rootText) in listOf("Arbeit" to "Arbeit nachtragen", "Kunden" to "Kunde anlegen", "Büro" to "Organisieren", "Heute" to "Heute gespeichert")) {
+        for ((label, rootText) in listOf("Planung" to "Termin planen", "Kunden" to "Kunde anlegen", "Abrechnung" to "Leistungen abrechnen", "Büro" to "Organisieren", "Heute" to "Heute gespeichert")) {
             click(label); click(label); shown(rootText)
             recreate(); shown(rootText)
             if (keyboardVisible()) { back(); waitUntil("MAIN_BACK_IME_HIDDEN_$label") { !keyboardVisible() } }
@@ -1516,7 +1522,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun todayJourney() {
         click("Heute"); shown("Arbeit starten")
-        for (label in listOf("Heute", "Arbeit", "Kunden", "Büro")) shown(label)
+        for (label in listOf("Heute", "Planung", "Kunden", "Abrechnung", "Büro")) shown(label)
         primaryPosition("Arbeit starten", "Arbeit nachtragen")
         yes(visibleTexts().none { it.contains("Externe Sicherung") }, "TODAY_HAS_NO_FABRICATED_EXTERNAL_BACKUP_PROOF")
         captureSyntheticScreen("today-idle")
@@ -1544,7 +1550,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         try {
             activity?.let { current -> test.runOnMainSync { current.finish() } }
             shell("settings put system font_scale 2.0"); launch()
-            val labels = listOf("Arbeit starten", "Arbeit nachtragen", "Heute", "Arbeit", "Kunden", "Büro")
+            val labels = listOf("Arbeit starten", "Arbeit nachtragen", "Heute", "Planung", "Kunden", "Abrechnung", "Büro")
             waitUntil("TODAY_LARGE_TEXT_LAYOUT_READY") {
                 var fontReady = false
                 test.runOnMainSync { fontReady = (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f }
@@ -1721,7 +1727,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Arbeitszeit ohne Pause")
         yes(read("get_active_work_session").getString("id") == id &&
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == before, "COMPACT_TIMER_REOPENS_WITHOUT_DUPLICATE_OR_WORKLOG")
-        click("Arbeit"); enter("Suchen", "")
+        openWorklogs(); enter("Suchen", "")
         yes(node("Laufende Arbeit öffnen") == null, "WORK_LIST_HAS_NO_TIMER_MENU_ENTRY")
         waitUntil("WORK_COMPACT_TIMER_OPENS_EXISTING_SESSION") {
             val label = nodes().firstOrNull { it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) } }?.let(::clickable)
@@ -2390,7 +2396,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("work") {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
             val work = (0 until rows.length()).map { rows.getJSONObject(it) }.first { it.optString("activity").startsWith("[TEST] QA usability work") }
-            click("Arbeit"); keyboardSearchProof("work", "Suchen", "QA usability work", work.getString("activity"))
+            openWorklogs(); keyboardSearchProof("work", "Suchen", "QA usability work", work.getString("activity"))
         }
         case("offers") {
             openCustomerList(); enter("Suchen", fixturePrefix+"000"); click(fixturePrefix+"000"); click("Angebote")
@@ -2493,7 +2499,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         data class Target(val key: String, val label: String, val query: String, val result: String, val manual: Boolean = false, val open: () -> Unit)
         val targets = listOf(
             Target("customers", "Suchen", fixturePrefix+"000", fixturePrefix+"000") { click("Kunden") },
-            Target("work", "Suchen", work, work) { click("Arbeit") },
+            Target("work", "Suchen", work, work) { openWorklogs() },
             Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") { openOfficeGroup("Aufträge und Anfragen", "Aufträge") },
             Target("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0") { openOffice(); click("Angebote") },
             Target("planning", "Suche", "QA Native Notification", "[TEST] QA Native Notification") { openOffice(); click("Planung"); chooseDate("Datum *", LocalDate.now(ZoneId.of("Europe/Vienna")).plusDays(1).toString()) },
@@ -2586,7 +2592,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("FILTER_DONE_PRESERVES_VALUE_$key") { !keyboardVisible() && field(label)?.text?.toString()?.contains(value) == true }
         }
         activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-        click("Arbeit"); click("Filter")
+        openWorklogs(); click("Filter")
         chooseDate("Ab Datum", "2020-01-01")
         revealContaining("1. Jan. 2020")
         click("Ergebnisse anzeigen")
@@ -2635,7 +2641,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         fun planning() { openOffice(); click("Planung") }
         fun billing() { openOffice(); click("Offene Stunden") }
         case("today", "Arbeit starten", true) { }
-        case("work", "Arbeitsentwürfe") { click("Arbeit") }
+        case("work", "Arbeitsentwürfe") { openWorklogs() }
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
         case("customers", "Kunde anlegen") { click("Kunden") }
         case("office", "Aufträge und Anfragen", true) { click("Büro") }
