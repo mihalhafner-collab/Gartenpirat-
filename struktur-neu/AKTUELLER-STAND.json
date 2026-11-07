@@ -48,9 +48,9 @@
   "current_test_candidate": {
     "version_name": "1.62.0",
     "version_code": 133,
-    "source_sha256": "0739defb1f2259e1a9ca643733fabb8bc9e486fb198869f6ec803b09760d657b",
+    "source_sha256": "d883080ff366d99e5a8767c18e2f0380a6235cd8468f13708dd2068e6a614509",
     "status": "In Entwicklung; volle CI ausstehend. Installation und Verteilung nicht freigegeben.",
-    "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich."
+    "content": "Navigation Heute · Planung · Kunden · Abrechnung · Büro; Heute als Tagesliste mit Start pro Einsatz und Handlungsbedarf; Offene Stunden im Abrechnungsbereich. Diktieren in mehrzeiligen Textfeldern; leere Listen nennen die erste Aktion; Geldbeträge in Bernstein; Schnellkachel „Arbeit“."
   },
   "current_task": {
     "name": "Version 133: weitere Punkte der neuen Oberfläche",

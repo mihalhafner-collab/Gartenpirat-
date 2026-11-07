@@ -766,7 +766,14 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 }) else null, isSelected = checked)
             if (row.status.isNotBlank() && !worklog && collection != "customers") NativeStatus(nativeValue(row.status))
         }
-        if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty()) item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+        if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty()) item {
+            val unfiltered = search.isEmpty() && status.isEmpty() && customer.isEmpty() && billing.isEmpty() && from.isEmpty() && to.isEmpty() && !inactive
+            Text(if (!unfiltered) "Keine Treffer. Suchtext oder Filter ändern." else when (collection) {
+                "customers" -> "Noch keine Kunden. Unten „Kunde anlegen“ antippen."
+                "orders" -> "Noch keine Aufträge. Unten „Auftrag anlegen“ antippen."
+                else -> "Noch keine Arbeiten. Unten „Arbeit nachtragen“ antippen."
+            })
+        }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { if (offset > 0) OutlinedButton({ offset = maxOf(0, offset - 50) }) { Text("Vorherige 50") }; if (page.hasMore) OutlinedButton({ offset += 50 }) { Text("Weitere 50") } } }
         }
         if (collection == "worklogs" && selected.isNotEmpty()) {

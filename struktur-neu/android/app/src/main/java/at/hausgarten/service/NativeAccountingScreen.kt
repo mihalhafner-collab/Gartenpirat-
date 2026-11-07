@@ -58,7 +58,7 @@ internal fun NativeAccounting(controller: NativeAppController) {
                             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(if (path.isEmpty()) "Gesamt" else AccountingRules.label(path), style = MaterialTheme.typography.titleMedium)
                                 val pending = result?.optInt(when (path) { AccountingRules.BILLED -> "pending_billed"; AccountingRules.LABOR -> "pending_labor"; else -> "pending_amounts" }) ?: 0
-                                Text(result?.let { if (pending > 0 && it.getLong(field) == 0L) "Betrag ausstehend" else financeMoney(OfferMoney.decimal(it.getLong(field))) } ?: "…", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                                Text(result?.let { if (pending > 0 && it.getLong(field) == 0L) "Betrag ausstehend" else financeMoney(OfferMoney.decimal(it.getLong(field))) } ?: "…", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = NativeMoney)
                                 if (pending > 0) Text("$pending Beträge fehlen oder sind unvollständig", style = MaterialTheme.typography.bodySmall)
                             }
                         }

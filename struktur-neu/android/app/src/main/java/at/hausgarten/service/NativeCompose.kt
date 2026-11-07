@@ -118,9 +118,23 @@ internal fun NativeBackButton(onBack: () -> Unit) {
     }
 }
 
+/** Amber for money amounts; dark enough for text on white. */
+internal val NativeMoney = Color(0xff8a5a12)
+
 /** Attention colors shared by status chips and hint cards. */
 internal val NativeAttentionContainer = Color(0xfffff1d0)
 internal val NativeAttentionContent = Color(0xff79510b)
+
+@Composable
+internal fun NativeMicIcon() {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Canvas(Modifier.size(22.dp)) {
+        val unit = size.minDimension / 24f
+        drawRoundRect(color, Offset(9 * unit, 3 * unit), Size(6 * unit, 11 * unit), androidx.compose.ui.geometry.CornerRadius(3 * unit, 3 * unit))
+        drawArc(color, 0f, 180f, false, Offset(5 * unit, 6 * unit), Size(14 * unit, 12 * unit), style = Stroke(2 * unit))
+        drawLine(color, Offset(12 * unit, 18 * unit), Offset(12 * unit, 21 * unit), 2 * unit)
+    }
+}
 
 /** Opens the search over all local records. */
 @Composable

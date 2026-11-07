@@ -385,7 +385,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         @Volatile private var foreground = WeakReference<MainActivity>(null)
         private const val WORK_NOTICE_REQUEST = 0x574b
-        private const val SHORTCUT = "shortcut"
+        internal const val SHORTCUT = "shortcut"
         private val BACKUP_SECRET_NAME = Pattern.compile("password|passwd|secret|credential|token|authorization|oauth|recovery.?code|api.?key", Pattern.CASE_INSENSITIVE)
         @JvmStatic fun refreshPlanningView() { refreshBusinessView() }
         @JvmStatic fun refreshBusinessView() {

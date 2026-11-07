@@ -66,12 +66,18 @@ internal fun NativeField(label: String, value: String, onValueChange: (String) -
     val searching = search || label in listOf("Suchen", "Suche", "Bausteine suchen", "Text suchen", "Vorschläge durchsuchen")
     val finish = { keyboard?.hide(); focus.clearFocus(); Unit }
     val displayedLabel = label + if (required) " *" else ""
+    val speaker = androidx.activity.compose.LocalActivity.current as? MainActivity
     OutlinedTextField(value, onValueChange, modifier.fillMaxWidth().semantics {
         testTagsAsResourceId = true; testTag = "native-field:$displayedLabel"
         if (!showLabel) contentDescription = displayedLabel
     }, label = if (showLabel) ({ Text(displayedLabel) }) else null,
         placeholder = if (!showLabel) ({ Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) }) else null,
         enabled = enabled, singleLine = !multiline, minLines = if (multiline) 3 else 1,
+        // Dictation appends to longer texts; the field stays editable as before.
+        trailingIcon = if (multiline && enabled && speaker != null) ({
+            IconButton({ speaker.recognizeSpeech { spoken -> onValueChange(listOf(value.trimEnd(), spoken).filter { it.isNotBlank() }.joinToString(" ")) } },
+                Modifier.semantics { contentDescription = "Diktieren" }) { NativeMicIcon() }
+        }) else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = if (multiline) ImeAction.Default else if (searching) ImeAction.Search else ImeAction.Done),
         keyboardActions = KeyboardActions(onSearch = { finish(); onSearch?.invoke() }, onDone = { finish() }))
 }
