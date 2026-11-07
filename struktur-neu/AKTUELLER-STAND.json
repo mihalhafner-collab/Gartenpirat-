@@ -31,9 +31,9 @@
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
-    "source_sha256": "ad096cf3381745497ef3ba9e02b3a23209852113ed87e06f688632f6ca33c13b",
+    "source_sha256": "2a9cd22ddecf173519f94178f03e6dffe7ff43f754c442c7dddcf3adf7424bea",
     "status": "Quelle geändert; Build und Emulator-Prüfung über CI ausstehend. Installation und Verteilung nicht freigegeben.",
-    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–7: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag); App-Verknüpfungen Arbeit starten, Foto, Arbeit nachtragen; ChatGPT-Schreibfreigabe direkt in der Verbindungsansicht schaltbar."
+    "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–7: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag); App-Verknüpfungen Arbeit starten, Foto, Arbeit nachtragen; ChatGPT-Schreibfreigabe direkt in der Verbindungsansicht schaltbar; „Sicherung wiederherstellen“ fest in der unteren Leiste."
   },
   "current_task": {
     "name": "Neue Oberfläche auf bestehendem Kern; Projekt an Claude übergeben",
