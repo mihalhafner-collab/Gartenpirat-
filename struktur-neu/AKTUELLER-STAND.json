@@ -3,16 +3,26 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-06T15:11:00Z",
+    "observed_at_utc": "2026-11-07T07:35:31Z",
     "version_name": "1.61.0",
     "version_code": 131,
     "package_name": "at.hausgarten.service",
     "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
     "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
     "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
-    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; ADB-Prüfsumme gleich signierter Release-APK"
+    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; Git-Blobs von 7e3b045 ergeben denselben Quellfingerabdruck; APK-Prüfsumme aus bisherigem ADB-Nachweis"
   },
   "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-11-07T07:35:31Z",
+      "version_name": "1.61.0",
+      "version_code": 131,
+      "package_name": "at.hausgarten.service",
+      "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
+      "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false",
+      "note": "Nach Bereitstellung von 132 weiterhin 131 beobachtet. Nutzer installiert 132 selbst; USB-ADB und Bedienprüfung folgen später."
+    },
     {
       "observed_at_utc": "2026-11-06T15:11:00Z",
       "version_name": "1.61.0",
@@ -22,26 +32,46 @@
     }
   ],
   "last_distributed_build": {
-    "version_name": "1.61.0",
-    "version_code": 131,
-    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
+    "version_name": "1.61.1",
+    "version_code": 132,
+    "git_sha": "eabc0e0aa6cfb04ad15f0408ef5bee3330a6b377",
+    "source_sha256": "e24e42e4fe556fb201e337b0d3bd0a8abd5f06c1921255f7a94c967dcf8f83ea",
+    "apk_sha256": "d4e5ea6489085bdc6c2dd9dd84e9c3dec2b8a5003cb163654b1b43c05eafa0d7",
     "certificate_sha256": "a939a34e7c3a17a94c344f145583e2719d1e6b8c6ad43ce331f756363f37bff8",
-    "drive_file_id": "1xF0x0Ja-wzFt4RlShtXNreP3RZb5QB7R"
+    "size_bytes": 88441649,
+    "drive_file_id": "1B9HkczGQ7IdmjtiUKoC8GD1d9tJyZ4D1",
+    "drive_parent_id": "1ZO05p02n3V9bQABiDLH_bo-vQQAwMbua",
+    "drive_url": "https://drive.google.com/file/d/1B9HkczGQ7IdmjtiUKoC8GD1d9tJyZ4D1/view?usp=drivesdk",
+    "verified_at_utc": "2026-11-07T07:37:05Z",
+    "verification": "PASS; Originalsignatur und höhere Version gegen vollständig zurückgeladene 131 geprüft; leere Startdaten, Kotlin-Klassen und Assets geprüft; Commit, source_sha256 und source_dirty=false direkt aus signierter APK gelesen; Drive-Download vollständig bytegleich."
   },
   "current_test_candidate": {
     "version_name": "1.61.1",
     "version_code": 132,
     "source_sha256": "e24e42e4fe556fb201e337b0d3bd0a8abd5f06c1921255f7a94c967dcf8f83ea",
-    "status": "Quelle geändert; Build und Emulator-Prüfung über CI ausstehend. Installation und Verteilung nicht freigegeben.",
+    "status": "Release132 aus sauberem main eabc0e0 gebaut, originalsigniert und im bisherigen Drive-Installationsordner verteilt. Nutzer installiert selbst; Installation und Pixel-Bedienprüfung noch offen.",
     "content": "Korrekturen QA06 und C04; Oberfläche Schritte 1–7: Hinweisfarben, Löschen in Rot, Snackbar, Tastaturen, Labor clandestino; Benachrichtigung mit Pause, Foto, Stopp; Abrechnen aus offenen Stunden; Bezahlt mit einem Tippen; Suche und Neu anlegen in der Kopfzeile; antippbare Zusammenhänge (Kunde, Objekt, Anfrage, Auftrag); App-Verknüpfungen Arbeit starten, Foto, Arbeit nachtragen; ChatGPT-Schreibfreigabe direkt in der Verbindungsansicht schaltbar; „Sicherung wiederherstellen“ fest in der unteren Leiste."
   },
   "current_task": {
-    "name": "Neue Oberfläche auf bestehendem Kern; Projekt an Claude übergeben",
-    "status": "Schritte 1–7 und Testreparaturen umgesetzt. Volle CI: alle Daten-, Sicherungs- und Anbieter-Suiten grün; Compose-Suite mit 11 älteren Fehlern, die auch auf dem Ausgangsstand f982988 auftreten (Vergleichslauf 225). Diese werden als Nächstes behoben."
+    "name": "Release 1.61.1/132 aus main eabc0e0 bauen und verteilen",
+    "status": "BUILT_SIGNED_DISTRIBUTED_VERIFIED; OWNER_INSTALLATION_AND_PIXEL_QA_PENDING",
+    "owner_instruction": "Auftrag 07.11.2026: Build, Originalsignatur und Drive-Verteilung. Nachtrag: Nutzer installiert selbst; USB-ADB am Laptop später.",
+    "validation": {
+      "source": "PASS; check_release_baseline.py und check_current.py, 61 ausgewählte Python-Tests; erwarteter Quellfingerabdruck bestätigt.",
+      "android": "PASS; assembleRelease mit allen 56 Tasks einschließlich lintVital und verpflichtenden Quell-/Artefakt-Datenschutzprüfungen. Fehlende Compose-Abhängigkeiten nach erstem Offline-Fehlschlag über reguläre Paketquellen aufgelöst.",
+      "signed_apk": "PASS; sign_original_apk.py, verify_app_candidate.py gegen 131 und BuildConfig aus signiertem DEX; 164 Kotlin-Quelldateien, keine Geschäftsdaten-Startwerte.",
+      "drive": "PASS; authentifiziert vollständig heruntergeladen, 88441649 Bytes, identisch mit signierter APK.",
+      "pixel_identity": "PASS; get_capabilities meldet weiterhin 1.61.0/131, 7e3b045 und 67afb866; Git-Quellfingerabdruck unabhängig nachgerechnet.",
+      "pixel_smoke_test": "NOT_RUN; 132 noch nicht installiert, kein erreichbarer ADB-Zugang. Spätere USB-ADB-Verbindung am Laptop laut Nutzer.",
+      "test_data": "NONE_CREATED; keine eigenen Testdaten auf dem Pixel angelegt.",
+      "ci": "Kein neuer CI-/Emulatorlauf für diesen unveränderten Releasebau; bestehende Compose-Fehler bleiben in open_checks dokumentiert."
+    }
   },
   "open_checks": [
+    "Nach Selbstinstallation von 132 über get_capabilities Paket, 1.61.1/132, eabc0e0 und e24e42e4 prüfen; last_observed_installed_build und observed_installation_history erst dann auf 132 setzen.",
+    "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
     "Compose-Suite: ältere Fehler in pending_result_read_only, usability, today_older_work_commit, customer_context, search_keyboard, back_gesture, domain_search, list_viewports, surfaces, large_text, camera_capture.",
-    "Pixel-Nachtest von QA06 und C04 braucht freigegebene Installation von 132.",
+    "Pixel-Nachtest QA06 und C04 nach Installation von 132 noch offen.",
     "Pixel-Teilabnahme 131: 49 bestanden, 2 fehlgeschlagen, 9 blockiert; Details in docs/verification/performance-current.md.",
     "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
     "Ältere native Backup- und Speicherbereinigungsabnahmen offen."
