@@ -40,7 +40,7 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
   Rechnungsausstellung mit echten Daten, APK-Verteilung, neue Branches oder Tags.
 - Steuerstatus nie aus Umsätzen ableiten oder selbst ändern. Keine sevDesk- oder
   Bankanbindung. Originale, Abschlüsse und Zahlungen vor Löschen schützen.
-- Laufende Zeiterfassung und fremde Geschäftsdaten nie nebenbei ändern oder löschen.
+- Laufende Zeiterfassung und Geschäftsdaten nie nebenbei ändern oder löschen; Tests ausgenommen.
 - Subagenten nur auf ausdrücklichen Auftrag.
 
 ## ChatGPT-Anbindung (Pixel-MCP)
@@ -58,12 +58,11 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
   keinen Zustand. Fehler, Wiederholung und erneutes Lesen mitprüfen.
 - Neue Tests nur für neue Funktionen oder gefundene Fehler. Wer einen Test
   anfasst, entfernt überholte Prüfungen.
-- Volle Test-Suiten dürfen per ADB auch auf dem Pixel laufen, aber nur in der
-  eigenen Test-App (Paketkennung `at.hausgarten.service.qa`, eigene Daten);
-  nie gegen `at.hausgarten.service`.
-- In der echten App auf dem Pixel nur gezielte Einzeltests: Betriebsdaten lesen
-  und im Testumfang ändern, eigene Testdaten danach entfernen; keine zusätzliche
-  Sicherung als Voraussetzung. Betriebsdaten nie ins Repository, die Cloud oder CI.
+- Eigentümerentscheidung 07.11.2026: Die Daten auf dem Pixel gelten als
+  Praxistest. Funktion und Stabilität haben Vorrang; volle Test-Suiten dürfen
+  per ADB direkt gegen `at.hausgarten.service` laufen und Daten ändern oder
+  löschen. Keine Sicherung als Voraussetzung. Betriebsdaten nie ins Repository,
+  die Cloud oder CI.
 
 ## Abschluss
 
