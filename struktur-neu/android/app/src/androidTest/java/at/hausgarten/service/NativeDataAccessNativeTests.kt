@@ -311,7 +311,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             store.putOwnerValue("snapshot", current.toString())
             val directRemoved = access.execute("delete_entity", JSONObject().put("request_id", "qa_direct_work_delete").put("entity", "worklog").put("entity_id", "qa_direct_work").put("expected_record_hash", OwnerJournalRules.version(directWork)))
             val afterDirect = PixelMcpReadTools.effective(store.getState())
-            yes(!directRemoved.optBoolean("recoverable", true), "DIRECT_WORK_NOT_RECOVERABLE " + directRemoved)
+            yes(!(directRemoved.optJSONObject("data") ?: directRemoved).optBoolean("recoverable", true), "DIRECT_WORK_NOT_RECOVERABLE " + directRemoved)
             yes(OwnerJournalRules.findOrNull(afterDirect.getJSONArray("worklogs"), "qa_direct_work") == null, "DIRECT_WORK_REMOVED")
             yes(!OwnerJournalRules.archives(afterDirect).has("worklog:qa_direct_work"), "DIRECT_WORK_WITHOUT_TRASH")
             val red = android.graphics.Bitmap.createBitmap(2, 2, android.graphics.Bitmap.Config.ARGB_8888)
