@@ -613,7 +613,8 @@ private fun NativeToday(controller: NativeAppController) {
             "RUNNING" -> NativeActionBar("Zeit stoppen", { timer("stop_work") }, "Pause", { timer("start_break") }, enabled = !busy, secondaryEnabled = !busy)
             "PAUSED" -> NativeActionBar("Fortsetzen", { timer("end_break") }, "Zeit stoppen", { timer("stop_work") }, enabled = !busy, secondaryEnabled = !busy)
             "STOPPED_PENDING_REVIEW" -> NativeActionBar("Abschluss prüfen", { controller.navigate("timer") }, "Arbeit nachtragen", { controller.navigate("worklogs", mode = "new") })
-            else -> NativeActionBar("Arbeit starten", { startWork() }, "Arbeit nachtragen", { controller.navigate("worklogs", mode = "new") }, enabled = session != null && !busy, secondaryEnabled = !busy)
+            // Visits have their own "Start"; the general button opens the timer to choose.
+            else -> NativeActionBar("Arbeit starten", { startWork(JSONObject()) }, "Arbeit nachtragen", { controller.navigate("worklogs", mode = "new") }, enabled = session != null && !busy, secondaryEnabled = !busy)
         }
     }
 }
