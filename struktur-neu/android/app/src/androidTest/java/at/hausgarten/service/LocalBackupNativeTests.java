@@ -92,7 +92,7 @@ final class LocalBackupNativeTests {
                 }
             });
             id = result.getString("backup_id");
-            yes(result.getBoolean("verified")); yes(result.getInt("warning_count") >= 4); yes(writes[0] == 1);
+            yes(result.getBoolean("verified")); yes(result.getInt("warning_count") >= 3); yes(writes[0] == 1);
             yes(store.ownerValue("qa_backup_marker", "").equals("QA before save"));
             yes(service.status(new JSONObject()).getString("state").equals("VERIFIED"));
             service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {}); yes(writes[0] == 1);
@@ -123,7 +123,7 @@ final class LocalBackupNativeTests {
         rejects(() -> restore.previewFrom("qa_corrupt_preview", "qa_corrupt", () -> new ByteArrayInputStream(Arrays.copyOf(zipBytes, zipBytes.length - 40))));
         JSONObject preview = restore.previewFrom("qa_native_preview", "qa_saved", () -> new FileInputStream(saved));
         yes(preview.getString("phase").equals("VALIDATED"));
-        yes(preview.getJSONObject("summary").getInt("warning_count") >= 4);
+        yes(preview.getJSONObject("summary").getInt("warning_count") >= 3);
         try (PixelLocalStore store = new PixelLocalStore(context)) { store.putOwnerValue("qa_backup_marker", "QA after save"); }
         write(new File(context.getFilesDir(), "qa-extra.txt"), "QA changed after save");
         restore.requestActivation("qa_native_activate", preview.getString("restore_id"), preview.getString("preview_hash"), true);

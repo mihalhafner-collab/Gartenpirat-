@@ -164,7 +164,8 @@ internal class NativeAppController(private val activity: MainActivity, val store
             history.clear(); sameArea.forEach(history::addLast)
         }
     }
-    fun savedRoute(): String = routeValue(route).toString()
+    // Screen state key; a one-time "action" (e.g. open suggested slots) must not change it when consumed.
+    fun savedRoute(): String = routeValue(route).put("args", JSONObject(route.args.toString()).apply { remove("action") }).toString()
     fun savedNavigation(): String = routeValue(route).put("back_stack", JSONArray().apply {
         history.forEach { put(routeValue(it)) }
     }).put("area_navigation", JSONObject().apply {
