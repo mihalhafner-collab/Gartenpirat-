@@ -52,17 +52,19 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Version 1.65.0/138: Oberfläche Schritt 3 – Detailseiten",
-    "status": "Schritt 2 (Suche) in PR #21. Schritt 3: „Gehört zu“-Chips mit Kunde, Objekt, Auftrag und Einsatz; bei Arbeiten leere Angaben gesammelt als „+ ergänzen“, unten „Abrechnen · Bearbeiten“, seltene Aktionen im ⋮-Menü; „Löschen“ ganz unten, ziegelrot mit Symbol, bei Kunden, Aufträgen und Arbeiten. Lupe entfällt auf Heute und Kunden, Mikrofon gezeichnet. Keine Installation, keine Verteilung.",
-    "owner_instruction": "Eigentümer 08.11.2026: Lupe weg, Mikrofon-Symbol zeichnen, dann Schritt 3.",
+    "name": "Version 1.66.0/139: Oberfläche Schritte 2–4 (Suche, Detailseiten, Abrechnung)",
+    "status": "Schritte 2–4 in PR #21. Schritt 3: „Gehört zu“-Chips mit Kunde, Objekt, Auftrag und Einsatz; bei Arbeiten leere Angaben gesammelt als „+ ergänzen“, unten „Abrechnen · Bearbeiten“, seltene Aktionen im ⋮-Menü; „Löschen“ ganz unten, ziegelrot mit Symbol, bei Kunden, Aufträgen und Arbeiten. Lupe entfällt auf Heute und Kunden, Mikrofon gezeichnet. Keine Installation, keine Verteilung. Schritt 4: ein Knopf „Ausstellen“ nach der Vorschau (Vorbereiten und Original-PDF bleiben dauerhafte Einzelschritte, Fortsetzen möglich); Ausstellerangaben einmal in den Einstellungen bestätigt; E-Rechnung einmal pro Empfänger; Einstellung Stundensatz für vorbefüllte Entwürfe; Fortschritt fertig → abgerechnet → bezahlt; „Abrechnen“ aus der Arbeit übernimmt alle offenen Arbeiten des Empfängers.",
+    "owner_instruction": "Eigentümer 08.11.2026: Konzept „Gartenpirat Optik-Entwürfe“ abarbeiten, Abrechnung zuerst, dann der Rest.",
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline.",
       "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest.",
       "ci_gate": "Voller CI-Lauf über PR ausstehend."
     },
     "next": [
-      "Oberfläche Schritt 4: Wischen in Listen (rechts positive Aktion, links löschen) mit 5 s „Rückgängig“.",
-      "Danach 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste; Detailseiten von Objekten, Einsätzen und Geräten im selben Aufbau."
+      "Schritt 5: Wischen in Listen (rechts positive Aktion, links löschen) mit 5 s „Rückgängig“.",
+      "Schritt 6: Planung Tag · Woche · Karte.",
+      "Schritt 7: Objekt-Zeitleiste; Objekt-, Einsatz-, Termin-, Foto- und Abschlussdetail im Aufbau von Schritt 3.",
+      "Schritt 8: Prüfungen im Hintergrund, Leerzustände mit erster Aktion, Snackbar mit „Ansehen“; optional dunkle Ansicht."
     ]
   },
   "open_checks": [
