@@ -488,6 +488,7 @@ internal fun NativeSearchList(
     onSearch: (() -> Unit)? = null,
     bottomSearch: Boolean = false,
     controlsVisible: Boolean = true,
+    onVoice: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val ime = WindowInsets.isImeVisible
@@ -520,6 +521,7 @@ internal fun NativeSearchList(
                                 Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() },
                             showLabel = !large,
                         )
+                        if (onVoice != null && !ime) NativeVoiceButton(onVoice)
                         if (ime || large && !landscape)
                             Column(
                                 Modifier.widthIn(max = 128.dp),

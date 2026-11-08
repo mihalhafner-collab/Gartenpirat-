@@ -164,6 +164,20 @@ internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null)
     }
 }
 
+/** Speech input for search fields; the recognized text replaces the query. */
+@Composable
+internal fun NativeVoiceButton(onClick: () -> Unit) {
+    IconButton(
+        onClick,
+        Modifier.semantics {
+            contentDescription = "Spracheingabe"
+            testTag = UiTags.VOICE
+        },
+    ) {
+        Text("🎤", style = MaterialTheme.typography.titleMedium)
+    }
+}
+
 /** Fixed touch target leaves the full page title room at large font sizes. */
 @Composable
 internal fun NativeBackButton(onBack: () -> Unit) {

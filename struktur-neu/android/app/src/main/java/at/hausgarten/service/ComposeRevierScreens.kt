@@ -16,6 +16,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -3840,7 +3842,7 @@ private fun RevierArchive(controller: NativeAppController) {
 private fun RevierSearch(controller: NativeAppController) {
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
-    var query by rememberSaveable { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf(controller.route.args.optString("query")) }
     var type by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("") }
     var from by rememberSaveable { mutableStateOf("") }
@@ -3884,7 +3886,12 @@ private fun RevierSearch(controller: NativeAppController) {
             }
         }
     }
-    LaunchedEffect(Unit) { if (result == null && frozen != null) search(offset, true) }
+    LaunchedEffect(Unit) {
+        if (result == null && frozen != null) search(offset, true)
+        else if (result == null && query.isNotBlank()) search(0)
+    }
+    // Without a query the search shows what was opened last.
+    val recent = remember(query.isBlank()) { controller.recentSearchHits() }
     val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
     NativeSearchList(
         "Name, Objekt, Tätigkeit, Notiz oder Beleg",
@@ -3894,6 +3901,12 @@ private fun RevierSearch(controller: NativeAppController) {
         onFilters = { filtersOpen = !filtersOpen },
         onFocus = { filtersOpen = false },
         onSearch = { if (query.isNotBlank()) search(0) },
+        onVoice = {
+            controller.speech { spoken ->
+                query = spoken
+                search(0)
+            }
+        },
     ) {
         if (!imeVisible && !filtersOpen && (result == null || frozen?.optString("query") != query))
             TextButton(
@@ -3918,6 +3931,7 @@ private fun RevierSearch(controller: NativeAppController) {
                                 "" to "Alle Arten",
                                 "customer" to "Kunden",
                                 "property" to "Objekte",
+                                "settlement" to "Abschlüsse",
                                 "inquiry" to "Anfragen",
                                 "care_plan" to "Pflegepläne",
                                 "order" to "Aufträge",
@@ -3974,59 +3988,40 @@ private fun RevierSearch(controller: NativeAppController) {
                 item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
             if (result == null && query.isNotBlank())
                 item { Text("Mit „Suchen“ auf der Tastatur suchen.") }
-            items(rows, key = { it.optString("type") + ":" + it.optString("id") }) { row ->
-                OutlinedCard(
-                    Modifier.fillMaxWidth().clickable {
-                        val target = row.optJSONObject("target") ?: row
-                        val targetType = target.optString("type", row.optString("entity_type"))
-                        val route =
-                            when (targetType) {
-                                "customer" -> "customers"
-                                "property" -> "properties"
-                                "inquiry" -> "inquiries"
-                                "care_plan" -> "care_plans"
-                                "visit" -> "visits"
-                                "activity",
-                                "worklog" -> "worklogs"
-                                "order" -> "orders"
-                                "offer" -> "offers"
-                                "invoice" -> "invoices"
-                                "appointment" -> "planning"
-                                "material" -> "materials"
-                                "equipment" -> "equipment"
-                                else -> targetType
-                            }
-                        controller.navigate(
-                            if (
-                                row.optBoolean("archived") &&
-                                    targetType !in
-                                        listOf(
-                                            "property",
-                                            "inquiry",
-                                            "care_plan",
-                                            "visit",
-                                            "material",
-                                            "equipment",
-                                        )
-                            )
-                                "trash"
-                            else route,
-                            target.optString("id", row.optString("id")),
-                            "detail",
-                            JSONObject().put("entity", targetType),
-                        )
-                    }
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(
-                            row.optString("label", row.optString("title", "Eintrag")),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            row.optString("snippet", row.optString("text", row.optString("status")))
-                        )
-                        if (row.optBoolean("archived")) Text("Archiviert / entfernt")
-                    }
+            if (query.isBlank() && recent.isNotEmpty()) {
+                item(key = "recent-heading") {
+                    Text("Zuletzt geöffnet", style = MaterialTheme.typography.titleSmall)
+                }
+                items(
+                    recent,
+                    key = { "recent:" + it.optString("type") + ":" + it.optString("id") },
+                ) { row ->
+                    RevierSearchHit(
+                        controller,
+                        row,
+                        Modifier.semantics { testTag = UiTags.SEARCH_RECENT },
+                    )
+                }
+            }
+            // Design: results grouped by kind, the four main kinds first.
+            for ((type, group) in
+                (if (query.isBlank()) emptyList() else rows)
+                    .groupBy { it.optString("type") }
+                    .entries
+                    .sortedBy { (type, _) ->
+                        revierSearchOrder.indexOf(type).let {
+                            if (it < 0) revierSearchOrder.size else it
+                        }
+                    }) {
+                item(key = "group:$type") {
+                    Text(
+                        "${revierSearchKinds[type] ?: "Weitere"} · ${group.size}",
+                        Modifier.semantics { testTag = UiTags.searchGroup(type) },
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+                items(group, key = { it.optString("type") + ":" + it.optString("id") }) { row ->
+                    RevierSearchHit(controller, row)
                 }
             }
         }
@@ -4045,6 +4040,110 @@ private fun RevierSearch(controller: NativeAppController) {
                     }
             }
     }
+}
+
+private val revierSearchOrder = listOf("property", "customer", "settlement", "activity")
+
+private val revierSearchKinds =
+    mapOf(
+        "property" to "Objekte",
+        "customer" to "Kunden",
+        "settlement" to "Abschlüsse",
+        "activity" to "Arbeiten",
+        "order" to "Aufträge",
+        "appointment" to "Termine",
+        "offer" to "Angebote",
+        "invoice" to "Rechnungen",
+        "inquiry" to "Anfragen",
+        "care_plan" to "Pflegepläne",
+        "visit" to "Besuche",
+        "material" to "Material",
+        "equipment" to "Geräte",
+        "note" to "Notizen",
+    )
+
+/**
+ * One search result: opens its record; customers and objects can be called or routed to directly.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RevierSearchHit(
+    controller: NativeAppController,
+    row: JSONObject,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedCard(modifier.fillMaxWidth().clickable { openRevierSearchHit(controller, row) }) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                row.optString("label", row.optString("title", "Eintrag")),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            val detail = row.optString("snippet", row.optString("text", row.optString("status")))
+            if (detail.isNotBlank()) Text(detail)
+            if (row.optBoolean("archived")) Text("Archiviert / entfernt")
+            val phone = row.optString("phone")
+            val address = row.optString("address")
+            if (phone.isNotBlank() || address.isNotBlank())
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (phone.isNotBlank())
+                        FilledTonalButton(
+                            { controller.dial(phone) },
+                            Modifier.heightIn(min = 48.dp).semantics {
+                                testTag = UiTags.SEARCH_CALL
+                            },
+                        ) {
+                            Text("Anrufen")
+                        }
+                    if (address.isNotBlank())
+                        FilledTonalButton(
+                            { controller.route(address) },
+                            Modifier.heightIn(min = 48.dp).semantics {
+                                testTag = UiTags.SEARCH_ROUTE
+                            },
+                        ) {
+                            Text("Route")
+                        }
+                }
+        }
+    }
+}
+
+private fun openRevierSearchHit(controller: NativeAppController, row: JSONObject) {
+    controller.rememberSearchHit(row)
+    val target = row.optJSONObject("target") ?: row
+    val targetType = target.optString("type", row.optString("entity_type"))
+    val id = target.optString("id", row.optString("id"))
+    if (targetType == "settlement") {
+        controller.navigate("settlement_review", id)
+        return
+    }
+    val route =
+        when (targetType) {
+            "customer" -> "customers"
+            "property" -> "properties"
+            "inquiry" -> "inquiries"
+            "care_plan" -> "care_plans"
+            "visit" -> "visits"
+            "activity",
+            "worklog" -> "worklogs"
+            "order" -> "orders"
+            "offer" -> "offers"
+            "invoice" -> "invoices"
+            "appointment" -> "planning"
+            "material" -> "materials"
+            "equipment" -> "equipment"
+            else -> targetType
+        }
+    val archivedOwnerRecord =
+        row.optBoolean("archived") &&
+            targetType !in
+                listOf("property", "inquiry", "care_plan", "visit", "material", "equipment")
+    controller.navigate(
+        if (archivedOwnerRecord) "trash" else route,
+        id,
+        "detail",
+        JSONObject().put("entity", targetType),
+    )
 }
 
 private val revierCompareLabels =

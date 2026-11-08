@@ -578,6 +578,46 @@ internal class NativeAppController(private val activity: MainActivity, val store
         activity.recognizeSpeech(result)
     }
 
+    fun dial(phone: String) {
+        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(phone))))
+    }
+
+    /** Hands the address to the map app; the app has no map service of its own. */
+    fun route(address: String) {
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(address)))
+            )
+        } catch (_: android.content.ActivityNotFoundException) {
+            message("Keine Karten-App zum Öffnen der Adresse vorhanden.")
+        }
+    }
+
+    private val searchHistory = context.getSharedPreferences("native_search", Context.MODE_PRIVATE)
+
+    /**
+     * Results last opened from the search, newest first. A per-device convenience, not business
+     * data.
+     */
+    fun recentSearchHits(): List<JSONObject> {
+        val rows = JSONArray(searchHistory.getString("recent", "[]"))
+        return (0 until rows.length()).map { rows.getJSONObject(it) }
+    }
+
+    fun rememberSearchHit(hit: JSONObject) {
+        val key = hit.optString("type") + ":" + hit.optString("id")
+        val kept =
+            recentSearchHits().filter { it.optString("type") + ":" + it.optString("id") != key }
+        val entry = JSONObject()
+        for (field in listOf("type", "id", "title", "phone", "address", "target")) {
+            hit.opt(field)?.let { entry.put(field, it) }
+        }
+        searchHistory
+            .edit()
+            .putString("recent", JSONArray(listOf(entry) + kept.take(7)).toString())
+            .apply()
+    }
+
     /** Selection is a draft only; this method is called exclusively by an explicit Save. */
     suspend fun importPhoto(uri: Uri, contextMetadata: JSONObject): JSONObject =
         withContext(Dispatchers.IO) {

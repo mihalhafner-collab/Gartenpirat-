@@ -2035,6 +2035,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("search_keyboard", ::searchKeyboardJourney)
             journey("back_gesture", ::backGestureJourney)
             journey("domain_search", ::domainSearchJourney)
+            journey("grouped_search", ::groupedSearchJourney)
             journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
@@ -4621,6 +4622,84 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("real_touch", true)
                 .put("ime_preserves_query", true)
                 .put("screenshot", "qa-native-domain-$key.png")
+        )
+    }
+
+    /**
+     * Search from Today: results grouped by kind, call and route on the hit, last opened without a
+     * query.
+     */
+    private fun groupedSearchJourney() {
+        val name = "[TEST] QA Gruppensuche Kunde"
+        val source = JSONObject(store.getState().getJSONObject("master").toString())
+        source
+            .getJSONArray("customers")
+            .put(
+                JSONObject()
+                    .put("id", "qa_group_customer")
+                    .put("name", name)
+                    .put("phone", "+43 000 0000002")
+                    .put("street", "QA Gruppenweg 1")
+                    .put("postal_code", "0000")
+                    .put("city", "QA Ort")
+                    .put("active", 1)
+                    .put("billing_mode", "direct")
+                    .put("test_record", true)
+            )
+        store.putOwnerValue("snapshot", source.toString())
+        store.putOwnerValue(
+            SettlementRules.KEY,
+            JSONObject()
+                .put(
+                    "records",
+                    JSONArray()
+                        .put(
+                            JSONObject()
+                                .put("id", "qa_group_settlement")
+                                .put("kind", "labor")
+                                .put("status", "confirmed")
+                                .put("title", "[TEST] QA Gruppensuche Abschluss")
+                                .put("issue_date", java.time.LocalDate.now().toString())
+                                .put("recipient", JSONObject().put("name", name))
+                        ),
+                )
+                .toString(),
+        )
+        store.notifyCommittedChange()
+        activity?.let { current -> test.runOnMainSync { current.finish() } }
+        launch()
+        click(UiTags.area("today"))
+        click(UiTags.TODAY_SEARCH)
+        val label = "Name, Objekt, Tätigkeit, Notiz oder Beleg"
+        enter(label, "Gruppensuche")
+        yes(
+            requireNotNull(field(label))
+                .performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id),
+            "GROUPED_SEARCH_SUBMIT",
+        )
+        if (keyboardVisible()) back()
+        waitUntil("GROUPED_SEARCH_CUSTOMER_GROUP") { node(UiTags.searchGroup("customer")) != null }
+        fun top(tag: String) = node(tag)?.let { Rect().also(it::getBoundsInScreen).top }
+        // Kinds are ordered objects, customers, settlements, work: settlements never precede
+        // customers.
+        val customerTop = requireNotNull(top(UiTags.searchGroup("customer")))
+        yes(
+            top(UiTags.searchGroup("settlement"))?.let { it > customerTop } ?: true,
+            "GROUPED_SEARCH_CUSTOMERS_BEFORE_SETTLEMENTS",
+        )
+        shown(UiTags.SEARCH_CALL)
+        shown(UiTags.SEARCH_ROUTE)
+        reveal(UiTags.searchGroup("settlement"))
+        click(name)
+        shown(UiTags.BACK)
+        click(UiTags.BACK)
+        enter(label, "")
+        waitUntil("GROUPED_SEARCH_RECENT") { node(UiTags.SEARCH_RECENT) != null }
+        val recent =
+            JSONArray(context.getSharedPreferences("native_search", 0).getString("recent", "[]"))
+        yes(
+            recent.length() >= 1 && recent.getJSONObject(0).getString("id") == "qa_group_customer",
+            "GROUPED_SEARCH_REMEMBERS_OPENED_HIT",
         )
     }
 

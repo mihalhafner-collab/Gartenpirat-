@@ -1169,6 +1169,33 @@ private fun NativeToday(controller: NativeAppController) {
                     PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // Design: one search field on top of Today, with speech input.
+                item {
+                    OutlinedCard(
+                        onClick = { controller.navigate("revier_search") },
+                        modifier =
+                            Modifier.fillMaxWidth().semantics { testTag = UiTags.TODAY_SEARCH },
+                    ) {
+                        Row(
+                            Modifier.padding(start = 16.dp, end = 4.dp).heightIn(min = 52.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "Suchen",
+                                Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            NativeVoiceButton {
+                                controller.speech { spoken ->
+                                    controller.navigate(
+                                        "revier_search",
+                                        args = JSONObject().put("query", spoken),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
                 // Design: the date is the title; the day's plan sits in one quiet line below it.
                 item {
                     Text(
@@ -1667,6 +1694,15 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         onFocus = { filtersOpen = false },
         bottomSearch = collection == "worklogs",
         controlsVisible = selected.isEmpty(),
+        onVoice =
+            if (collection == "customers") {
+                {
+                    controller.speech { spoken ->
+                        search = spoken
+                        offset = 0
+                    }
+                }
+            } else null,
     ) {
         LazyColumn(
             Modifier.weight(1f).padding(horizontal = 16.dp),
