@@ -210,13 +210,8 @@ internal suspend fun NativeAppController.queueSwipe(entity: String, id: String, 
             require(entity in setOf("order", "appointment"))
             val current = query("get_$entity", JSONObject().put("${entity}_id", id))
             tool = "update_$entity"
-            args
-                .put("${entity}_id", id)
-                .put("expected_record_hash", current.getString("record_hash"))
-                .put(
-                    "updates",
-                    JSONObject().put("status", if (entity == "order") "Erledigt" else "completed"),
-                )
+            val completion = ListActionTools.completionArgs(entity, id, current)
+            for (key in completion.keys()) args.put(key, completion.get(key))
         }
         else -> {
             val preview =

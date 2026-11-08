@@ -24,6 +24,23 @@ internal object ListActionTools {
 
     fun handles(name: String) = name in READS || name in WRITES
 
+    /** Order point reads return the record itself; appointment reads return an envelope. */
+    fun completionArgs(entity: String, id: String, current: JSONObject): JSONObject {
+        require(entity in setOf("order", "appointment"))
+        val hash =
+            if (entity == "order") {
+                require(current.getString("id") == id)
+                PixelMcpWriteTools.hash(PixelMcpEntityWriteTools.recordForHash("order", current))
+            } else current.getString("record_hash")
+        return JSONObject()
+            .put("${entity}_id", id)
+            .put("expected_record_hash", hash)
+            .put(
+                "updates",
+                JSONObject().put("status", if (entity == "order") "Erledigt" else "completed"),
+            )
+    }
+
     fun schema(name: String): JSONObject {
         require(handles(name))
         val fields = JSONObject()

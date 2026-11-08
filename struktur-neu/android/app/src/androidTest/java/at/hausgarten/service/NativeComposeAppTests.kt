@@ -4646,6 +4646,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .put("customer_id", customer)
                     .put("title", "[TEST] AAA Wischauftrag")
                     .put("status", "Geplant")
+                    .put("created_at", "2026-11-08T10:00:00Z")
+                    .put("updated_at", "2026-11-08T10:00:00Z")
                     .put("test_record", true)
             )
         val invoice =

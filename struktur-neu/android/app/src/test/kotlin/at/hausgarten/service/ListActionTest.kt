@@ -341,6 +341,78 @@ class ListActionTest {
     }
 
     @Test
+    fun orderCompletionUsesTheActualPointReadAndTheSharedUpdateGuard() {
+        val s = Sandbox()
+        LocalBusinessState.prepare(s.master)
+        s.master
+            .getJSONArray("customers")
+            .getJSONObject(0)
+            .put("name", "[TEST] QA Auftragsempfänger")
+        val order =
+            JSONObject()
+                .put("id", "qa_list_completion_guard")
+                .put("customer_id", "qa_customer_1")
+                .put("title", "[TEST] QA Auftrag mit Änderungsstand")
+                .put("test_record", true)
+                .put("status", "Geplant")
+                .put("notes", "[TEST] QA Notiz bleibt erhalten")
+                .put("created_at", "2026-11-08T10:00:00Z")
+                .put("updated_at", "2026-11-08T10:00:00Z")
+        s.master.getJSONArray("orders").put(order)
+        val source = PixelMcpReadTools(PixelMcpReadTools.Source { s.repository.state() })
+        val current =
+            source
+                .call("get_order", JSONObject().put("order_id", order.getString("id")))
+                .getJSONObject("data")
+        val args =
+            ListActionTools.completionArgs("order", order.getString("id"), current)
+                .put("request_id", "qa_list_complete_guard")
+        PixelMcpEntityWriteTools.validate("update_order", args)
+        val prepared =
+            EntityApplicationService.prepare(
+                    "update_order",
+                    args,
+                    s.repository.state(),
+                    args.getString("request_id"),
+                )
+                .getJSONObject("payload")
+        assertEquals("Erledigt", prepared.getString("status"))
+        assertEquals(order.getString("customer_id"), prepared.getString("customer_id"))
+        assertEquals(1, args.getJSONObject("updates").length())
+        ManualChangeRules.prepare("order", prepared, current, "2026-11-08T10:00:30Z")
+        val saved = JSONObject(s.master.toString())
+        val errors =
+            LocalJournalRules.apply(
+                saved,
+                JSONArray()
+                    .put(
+                        JSONObject()
+                            .put("kind", "order")
+                            .put("client_id", args.getString("request_id"))
+                            .put("created_at", "2026-11-08T10:00:30Z")
+                            .put("payload", prepared)
+                    ),
+            )
+        assertEquals(errors.toString(), 0, errors.length())
+        val completed =
+            SnapshotReadSupport.find(saved.getJSONArray("orders"), order.getString("id"))
+        assertEquals("Erledigt", completed.getString("status"))
+        assertEquals(order.getString("notes"), completed.getString("notes"))
+        order.put("notes", "[TEST] QA inzwischen bearbeitet")
+        order.put("updated_at", "2026-11-08T10:01:00Z")
+        rejected {
+            EntityApplicationService.prepare(
+                "update_order",
+                args,
+                s.repository.state(),
+                args.getString("request_id"),
+            )
+        }
+        assertEquals("Geplant", order.getString("status"))
+        assertEquals(0, s.writes)
+    }
+
+    @Test
     fun positiveOrderUndoPreservesTheOrderAndUnrelatedUpdatesAreRejected() {
         val s = Sandbox()
         val order =
