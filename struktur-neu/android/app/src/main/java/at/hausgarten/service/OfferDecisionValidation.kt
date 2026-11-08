@@ -23,10 +23,10 @@ internal object OfferDecisionValidation {
         state: JSONObject,
         id: String,
     ): JSONObject {
-        var offers = state!!.optJSONArray("offers")
+        val offers = state!!.optJSONArray("offers")
         run {
             var i: Int = 0
-            while (((offers !== null) && (i < offers!!.length()))) {
+            while ((offers !== null) && (i < offers!!.length())) {
                 if (id!!.equals((offers!!.getJSONObject(i))!!.optString("id"))) {
                     return offers!!.getJSONObject(i)
                 }
@@ -47,7 +47,7 @@ internal object OfferDecisionValidation {
         max: Int,
         required: Boolean,
     ): String {
-        var result = RevierRules.text(value, key, max, required)
+        val result = RevierRules.text(value, key, max, required)
         if (required) {
             require(!result!!.isEmpty())
         }
@@ -58,44 +58,41 @@ internal object OfferDecisionValidation {
     @Throws(Exception::class)
     fun validate(repository: RevierRepository, state: JSONObject): JSONObject {
         var current: MutableMap<String, JSONObject> = TreeMap()
-        var revisions: MutableMap<String, JSONObject> = TreeMap()
-        var receipts: MutableMap<String, JSONObject> = TreeMap()
-        var histories: MutableMap<String, JSONArray> = TreeMap()
-        var entries = repository!!.rawEntries(OfferDecisionRules.PREFIX)
-        var keys: MutableSet<String> = HashSet()
-        var prefix = OfferDecisionRules.PREFIX
+        val revisions: MutableMap<String, JSONObject> = TreeMap()
+        val receipts: MutableMap<String, JSONObject> = TreeMap()
+        val histories: MutableMap<String, JSONArray> = TreeMap()
+        val entries = repository!!.rawEntries(OfferDecisionRules.PREFIX)
+        val keys: MutableSet<String> = HashSet()
+        val prefix = OfferDecisionRules.PREFIX
         try {
             run {
                 var i: Int = 0
-                while ((i < entries!!.length())) {
-                    var entry = entries!!.getJSONObject(i)
-                    var key = entry!!.getString("key")
-                    var raw = entry!!.getString("value")
+                while (i < entries!!.length()) {
+                    val entry = entries!!.getJSONObject(i)
+                    val key = entry!!.getString("key")
+                    val raw = entry!!.getString("value")
                     require(keys!!.add(key))
-                    if (key!!.startsWith((prefix.toString() + "current:"))) {
-                        var id = key!!.substring(((prefix.toString() + "current:"))!!.length)
+                    if (key!!.startsWith(prefix.toString() + "current:")) {
+                        var id = key!!.substring((prefix.toString() + "current:")!!.length)
                         var value: JSONObject = JSONObject(raw)
                         require(id!!.equals(value!!.optString("offer_id")))
                         OfferDecisionRules.version(value)
                         current!!.put(id, value)
                     } else {
-                        if (key!!.startsWith((prefix.toString() + "history:"))) {
-                            var id = key!!.substring(((prefix.toString() + "history:"))!!.length)
+                        if (key!!.startsWith(prefix.toString() + "history:")) {
+                            var id = key!!.substring((prefix.toString() + "history:")!!.length)
                             histories!!.put(id, JSONArray(raw))
                         } else {
-                            if (key!!.startsWith((prefix.toString() + "revision:"))) {
-                                var id =
-                                    key!!.substring(((prefix.toString() + "revision:"))!!.length)
+                            if (key!!.startsWith(prefix.toString() + "revision:")) {
+                                var id = key!!.substring((prefix.toString() + "revision:")!!.length)
                                 var value: JSONObject = JSONObject(raw)
                                 require(id!!.equals(value!!.optString("offer_id")))
                                 OfferDecisionRules.version(value)
                                 revisions!!.put(id, value)
                             } else {
-                                if (key!!.startsWith((prefix.toString() + "request:"))) {
+                                if (key!!.startsWith(prefix.toString() + "request:")) {
                                     receipts!!.put(
-                                        key!!.substring(
-                                            ((prefix.toString() + "request:"))!!.length
-                                        ),
+                                        key!!.substring((prefix.toString() + "request:")!!.length),
                                         JSONObject(raw),
                                     )
                                 } else {
@@ -109,15 +106,15 @@ internal object OfferDecisionValidation {
                 }
             }
             require((current!!.keys)!!.equals(histories!!.keys))
-            var decisions: MutableSet<String> = HashSet()
-            var requestIds: MutableSet<String> = HashSet()
+            val decisions: MutableSet<String> = HashSet()
+            val requestIds: MutableSet<String> = HashSet()
             for (item in (current!!.entries)!!) {
                 var id = item!!.key
-                var decision = item!!.value
-                var document = offer(state, id)
+                val decision = item!!.value
+                val document = offer(state, id)
                 OfferDecisionRules.requireFinal(document)
-                var request = text(decision, "request_id", 128, true)
-                var decisionId = RevierRules.id(decision, "decision_id", true)
+                val request = text(decision, "request_id", 128, true)
+                val decisionId = RevierRules.id(decision, "decision_id", true)
                 require(
                     (((((request!!.length >= 8) && request!!.matches(Regex("[A-Za-z0-9_.:-]+"))) &&
                         requestIds!!.add(request)) && decisions!!.add(decisionId)) &&
@@ -135,7 +132,7 @@ internal object OfferDecisionValidation {
                         ))
                 )
                 Instant.parse(text(decision, "recorded_at", 80, true))
-                var status = text(decision, "decision", 30, true)
+                val status = text(decision, "decision", 30, true)
                 require((Arrays.asList("accepted", "declined"))!!.contains(status))
                 if (status!!.equals("accepted")) {
                     Instant.parse(text(decision, "accepted_at", 80, true))
@@ -144,24 +141,24 @@ internal object OfferDecisionValidation {
                     require(!(document!!.optString("status"))!!.equals("accepted"))
                     text(decision, "reason", 10000, false)
                 }
-                var history = histories!!.get(id)
-                require((history!!.length() == 1))
-                var recorded = history!!.getJSONObject(0)
+                val history = histories!!.get(id)
+                require(history!!.length() == 1)
+                val recorded = history!!.getJSONObject(0)
                 OfferDecisionRules.version(recorded)
                 require((hash(recorded))!!.equals(hash(decision)))
-                var receipt = receipts!!.get(hash(request))
-                require((receipt !== null))
+                val receipt = receipts!!.get(hash(request))
+                require(receipt !== null)
                 validateReceipt(receipt!!, decision, id)
             }
-            require((receipts!!.size == current!!.size))
+            require(receipts!!.size == current!!.size)
             for (item in (revisions!!.entries)!!) {
                 var id = item!!.key
-                var revision = item!!.value
-                var child = offer(state, id)
-                var parent = RevierRules.id(revision, "parent_offer_id", true)
+                val revision = item!!.value
+                val child = offer(state, id)
+                val parent = RevierRules.id(revision, "parent_offer_id", true)
                 require(!parent!!.equals(id))
                 var original = offer(state, parent)
-                var parentVersion = revision!!.getString("parent_content_version")
+                val parentVersion = revision!!.getString("parent_content_version")
                 require(
                     (parentVersion!!.matches(Regex("[0-9a-f]{64}")) &&
                         (child!!.optString("customer_id"))!!.equals(
@@ -177,13 +174,13 @@ internal object OfferDecisionValidation {
                 }
                 Instant.parse(text(revision, "created_at", 80, true))
                 text(revision, "request_id", 200, true)
-                var visited: MutableSet<String> = HashSet()
+                val visited: MutableSet<String> = HashSet()
                 visited!!.add(id)
                 var ancestor = parent
                 while (!ancestor!!.isEmpty()) {
                     require(visited!!.add(ancestor))
-                    var link = revisions!!.get(ancestor)
-                    ancestor = (if ((link === null)) "" else link!!.optString("parent_offer_id"))
+                    val link = revisions!!.get(ancestor)
+                    ancestor = (if (link === null) "" else link!!.optString("parent_offer_id"))
                 }
             }
             return ((((((JSONObject())!!.put("formatVersion", 1))!!.put("status", "PASS"))!!.put(
@@ -206,7 +203,7 @@ internal object OfferDecisionValidation {
         id: String,
     ): Unit {
         require((receipt!!.optString("fingerprint"))!!.matches(Regex("[0-9a-f]{64}")))
-        var result = receipt!!.getJSONObject("result")
+        val result = receipt!!.getJSONObject("result")
         require(
             ((((id!!.equals(result!!.optString("offer_id")) &&
                 !result!!.optBoolean("invoice_created", true)) &&

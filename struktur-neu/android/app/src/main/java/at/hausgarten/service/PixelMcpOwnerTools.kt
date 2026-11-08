@@ -15,7 +15,11 @@ internal class PixelMcpOwnerTools {
         val READS: Array<String> =
             LocalWorkflowTools.concat(
                 arrayOf(
-                    "list_settlements", "get_settlement", "get_settlement_context", "get_settlement_pdf", "export_settlements",
+                    "list_settlements",
+                    "get_settlement",
+                    "get_settlement_context",
+                    "get_settlement_pdf",
+                    "export_settlements",
                     "run_self_test",
                     "get_ui_action_catalog",
                     "get_accounting_overview",
@@ -25,7 +29,6 @@ internal class PixelMcpOwnerTools {
                     "preview_archive_work_records",
                     "preview_purge",
                     "preview_delete",
-
                     "get_photo",
                     "get_settings",
                     "get_business_settings",
@@ -41,11 +44,17 @@ internal class PixelMcpOwnerTools {
         val WRITES: Array<String> =
             LocalWorkflowTools.concat(
                 arrayOf(
-                    "save_settlement_draft", "prepare_settlement", "complete_settlement", "correct_settlement", "abandon_prepared_settlement", "add_settlement_payment", "review_restored_sources", "record_settlement_delivery",
+                    "save_settlement_draft",
+                    "prepare_settlement",
+                    "complete_settlement",
+                    "correct_settlement",
+                    "abandon_prepared_settlement",
+                    "add_settlement_payment",
+                    "review_restored_sources",
+                    "record_settlement_delivery",
                     "empty_trash",
                     "archive_work_records",
                     "delete_work_records",
-
                     "set_work_record_billed",
                     "reassign_work_record",
                     "update_photo",
@@ -56,41 +65,37 @@ internal class PixelMcpOwnerTools {
                     "delete_entity",
                     "archive_entity",
                     "restore_entity",
-
                     "update_settings",
                     "update_business_settings",
                     "set_personal_paid",
                     "set_accounting_record",
-
                 ),
                 LocalWorkflowTools.WRITES,
             )
 
         @JvmStatic
         fun read(n: String): Boolean {
-
             return READS.asList().contains(n)
         }
 
         @JvmStatic
         fun write(n: String): Boolean {
-
             return WRITES.asList().contains(n)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
-            return if (name in SettlementTools.READS || name in SettlementTools.WRITES) SettlementTools.schema(name) else OwnerToolSchemas.schema(name, write(name))
+            return if (name in SettlementTools.READS || name in SettlementTools.WRITES)
+                SettlementTools.schema(name)
+            else OwnerToolSchemas.schema(name, write(name))
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun tools(writable: Boolean): JSONArray {
-
             var out = JSONArray()
-            var names = ArrayList<String>(READS.asList())
+            val names = ArrayList<String>(READS.asList())
             if (writable) {
                 names.addAll(WRITES.asList())
             }
@@ -109,7 +114,7 @@ internal class PixelMcpOwnerTools {
                                     (Arrays.asList(
                                             "empty_trash",
                                             "archive_work_records",
-                    "delete_work_records",
+                                            "delete_work_records",
                                             "set_work_record_billed",
                                             "reassign_work_record",
                                             "purge_entity",
@@ -128,17 +133,22 @@ internal class PixelMcpOwnerTools {
         }
 
         private @JvmStatic fun description(n: String): String {
-
-            if (n in SettlementTools.READS || n in SettlementTools.WRITES) return SettlementTools.description(n)
+            if (n in SettlementTools.READS || n in SettlementTools.WRITES)
+                return SettlementTools.description(n)
             if (LocalWorkflowTools.handles(n)) {
                 return LocalWorkflowTools.description(n)
             }
             var common =
                 " Private Eigentümerfunktion. Vor Änderung Datensatz und Hash abrufen; request_id bei Wiederholung gleich lassen. Lokale Speicherung, Provider-Rücklesen und Cloud-Bestätigung unterscheiden."
             when (n) {
-                "get_accounting_overview" -> return "Liest Rechnung und Labor clandestino mit getrennten bestätigten Beträgen, gemeinsamer Gesamtsumme und identischen Datums-/Objekt-/Suchfiltern. Markierte Einheiten mit fehlenden oder teilweise bekannten Beträgen bleiben sichtbar; Zahlungen sind keine Abrechnungsbeträge."
-                "get_accounting_record" -> return "Liest den ursprünglichen Auftrag mit Arbeitseinträgen, Gesamtbetrag, Abrechnungsweg und versionsgebundenem Korrekturhash." + common
-                "set_accounting_record" -> return "Ordnet den gesamten Auftrag ausdrücklich einer Abrechnungsart zu oder entfernt die Zuordnung. Markierungen, Arbeitseinträge und Wiederholungsbeleg werden atomar gespeichert. Bestätigte Beträge entstehen getrennt durch lokale Rechnungs- oder Laborabschlüsse. Aktive Bindungen vor einem Artenwechsel ausdrücklich stornieren oder intern aufheben." + common
+                "get_accounting_overview" ->
+                    return "Liest Rechnung und Labor clandestino mit getrennten bestätigten Beträgen, gemeinsamer Gesamtsumme und identischen Datums-/Objekt-/Suchfiltern. Markierte Einheiten mit fehlenden oder teilweise bekannten Beträgen bleiben sichtbar; Zahlungen sind keine Abrechnungsbeträge."
+                "get_accounting_record" ->
+                    return "Liest den ursprünglichen Auftrag mit Arbeitseinträgen, Gesamtbetrag, Abrechnungsweg und versionsgebundenem Korrekturhash." +
+                        common
+                "set_accounting_record" ->
+                    return "Ordnet den gesamten Auftrag ausdrücklich einer Abrechnungsart zu oder entfernt die Zuordnung. Markierungen, Arbeitseinträge und Wiederholungsbeleg werden atomar gespeichert. Bestätigte Beträge entstehen getrennt durch lokale Rechnungs- oder Laborabschlüsse. Aktive Bindungen vor einem Artenwechsel ausdrücklich stornieren oder intern aufheben." +
+                        common
                 "get_ui_action_catalog" -> {
                     return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert."
                 }
@@ -146,7 +156,8 @@ internal class PixelMcpOwnerTools {
                     return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für archive_work_records oder delete_work_records."
                 }
                 "delete_work_records" -> {
-                    return "Entfernt die ausgewählten Arbeitsaufzeichnungen atomar und endgültig mit aktuellem preview_hash. Kein Papierkorb-Zwischenschritt; ungeteilte Dateien nach lokalem Commit bereinigen. Bei unveränderter request_id keine Wiederholung." + common
+                    return "Entfernt die ausgewählten Arbeitsaufzeichnungen atomar und endgültig mit aktuellem preview_hash. Kein Papierkorb-Zwischenschritt; ungeteilte Dateien nach lokalem Commit bereinigen. Bei unveränderter request_id keine Wiederholung." +
+                        common
                 }
                 "archive_work_records" -> {
                     return ("Verschiebt die ausdrücklich bestätigte Auswahl anhand des unveränderten preview_hash atomar in den wiederherstellbaren Papierkorb. Bei nur einem geänderten/geschützten Eintrag keine Änderung. Bestehende Einzeljournale, Originalfotos und stabile Request-Belege bleiben erhalten." +
@@ -218,8 +229,8 @@ internal class PixelMcpOwnerTools {
                 }
                 else -> {
                     return (java.lang.String.valueOf(
-                        ((if (read(n)) "Liest vorhandene App-Daten ohne Geheimwerte."
-                        else "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen."))
+                        (if (read(n)) "Liest vorhandene App-Daten ohne Geheimwerte."
+                        else "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen.")
                     ) + common)
                 }
             }
@@ -228,16 +239,13 @@ internal class PixelMcpOwnerTools {
         @JvmStatic
         @Throws(Exception::class)
         fun validate(name: String, args: JSONObject): Unit {
-
             McpSchema.validate(args, schema(name))
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun photoHash(row: JSONObject): JSONObject {
-
             return LocalJournalRules.guard(row, "photo")
         }
-
     }
 }

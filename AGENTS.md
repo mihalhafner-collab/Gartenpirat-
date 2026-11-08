@@ -21,10 +21,10 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 - Fachregeln und Oberflächenkonzept: `struktur-neu/docs/fachregeln/APP.md`.
   Bauen und CI: `struktur-neu/docs/entwicklung/BAU.md`. Signieren und
   Verteilen: `struktur-neu/docs/entwicklung/SIGNIERUNG.md`.
-- Einzige Codebasis für TEST und PRODUKTIV: Kotlin/Compose unter
+- Einzige Codebasis: Kotlin/Compose unter
   `struktur-neu/android/app/src/main/`. Vorher
   `python3 -B struktur-neu/tools/check_release_baseline.py` ausführen; schlägt
-  sie fehl, stoppen. Keine WebView und keine Java-Quellen wieder einführen.
+  sie fehl, stoppen. Keine WebView; App-Code nur Kotlin (Java nur in Tests).
 - Vor Geräteaktionen über `Haus & Gartenservice Pixel.get_capabilities` Paket,
   Version, Git-Commit und `source_sha256` der installierten App prüfen. Die
   installierte Version ist maßgeblich. Bei Lücken keine Geräteänderung.
@@ -33,7 +33,6 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 
 - Paketkennung `at.hausgarten.service` und Originalsignatur erhalten. Sicherung
   nur im Format `pixel.snapshot.v2`. SQLite-Schema nur mit ausdrücklichem Auftrag ändern.
-- TEST: eigene Paketkennung, eigene Testdaten, bisherige Signatur.
 - Geschäftsdaten, Fotos und ZIP-Sicherungen bleiben lokal auf dem Pixel. Keine
   Cloud-Pflicht. Google Drive nur für die beauftragte Verteilung originalsignierter APKs.
 - Nur mit ausdrücklichem Auftrag: Installation, Migration, Wiederherstellung,
@@ -69,8 +68,10 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 - `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
   nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.
 - Rot heißt Stopp: Vor neuer Funktion jeden roten Test beheben oder mit
-  Begründung löschen. Nach `main` nur mit grünem vollem CI-Lauf (`qa-apk.yml`
-  mit Emulator, ohne `*_only`).
+  Begründung löschen. Nach `main` nur über PR mit grünem vollem CI-Lauf
+  (`qa-apk.yml` läuft je PR voll; manuell nur mit `emulator=true`, ohne `*_only`).
+- Geänderter App-Code bekommt eine neue `versionCode`, damit jede verteilte
+  Version genau einem Quellstand entspricht.
 - `open_checks` nur für Pixel-Prüfungen, die im Emulator nicht möglich sind;
   nie für rote CI-Tests.
 - AGENTS.md und AKTUELLER-STAND.json zusammen unter 19 KB halten

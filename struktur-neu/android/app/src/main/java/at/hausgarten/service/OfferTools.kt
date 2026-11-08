@@ -69,7 +69,7 @@ internal class OfferTools {
                         McpFields.enumeration(*(OfferContract.values("contract_channels"))),
                     ))!!
                 .put("tax_mode", McpFields.enumeration(*(OfferContract.values("tax_modes"))))
-            var line: JSONObject = JSONObject()
+            val line: JSONObject = JSONObject()
             for (k in
                 (arrayOf("title", "description", "unit", "catalog_entry_id", "catalog_hash"))!!) {
                 line!!.put(k, McpFields.text(10000))
@@ -87,7 +87,7 @@ internal class OfferTools {
                     McpFields.enumeration(*(OfferContract.values("price_bases"))),
                 ))!!
                 .put("price_note", McpFields.text(2000))
-            var calculation: JSONObject = JSONObject()
+            val calculation: JSONObject = JSONObject()
             for (k in (arrayOf("base_price", "factor", "surcharge"))!!) {
                 calculation!!.put(
                     k,
@@ -154,7 +154,7 @@ internal class OfferTools {
         @Throws(Exception::class)
         fun schema(n: String): JSONObject {
             var p: JSONObject = JSONObject()
-            var required: MutableList<String> = ArrayList()
+            val required: MutableList<String> = ArrayList()
             if (write(n)) {
                 p!!.put("request_id", (McpFields.text(128))!!.put("minLength", 8))
                 required!!.add("request_id")
@@ -197,11 +197,11 @@ internal class OfferTools {
                 "create_offer_draft",
                 "create_and_validate_offer" -> {
                     run {
-                        var f = fields()
+                        val f = fields()
                         run {
-                            var it = f!!.keys()
+                            val it = f!!.keys()
                             while (it!!.hasNext()) {
-                                var k = it!!.next()
+                                val k = it!!.next()
                                 p!!.put(k, f!!.get(k))
                             }
                         }
@@ -273,11 +273,11 @@ internal class OfferTools {
                 }
                 "create_catalog_entry" -> {
                     run {
-                        var f = catalogFields()
+                        val f = catalogFields()
                         run {
-                            var it = f!!.keys()
+                            val it = f!!.keys()
                             while (it!!.hasNext()) {
-                                var k = it!!.next()
+                                val k = it!!.next()
                                 p!!.put(k, f!!.get(k))
                             }
                         }
@@ -303,7 +303,7 @@ internal class OfferTools {
         @Throws(Exception::class)
         fun tools(writable: Boolean): JSONArray {
             var out: JSONArray = JSONArray()
-            var names: MutableList<String> = ArrayList(Arrays.asList(*(READS)))
+            val names: MutableList<String> = ArrayList(Arrays.asList(*(READS)))
             if (writable) {
                 names!!.addAll(Arrays.asList(*(WRITES)))
             }
@@ -368,8 +368,8 @@ internal class OfferTools {
             }
             var c =
                 PixelMcpWriteTools.find(s!!.getJSONArray("customers"), p!!.getString("customer_id"))
-            var r = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), recipient)
-            var settings = s!!.optJSONObject("business_settings")
+            val r = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), recipient)
+            val settings = s!!.optJSONObject("business_settings")
             return (((((JSONObject())!!.put("customer", LocalJournalRules.guard(c, "customer")))!!
                             .put("recipient", LocalJournalRules.guard(r, "customer")))!!
                         .put(
@@ -386,11 +386,11 @@ internal class OfferTools {
                         ))!!
                     .put(
                         "business_settings",
-                        (if ((settings === null)) JSONObject() else settings),
+                        (if (settings === null) JSONObject() else settings),
                     ))!!
                 .put(
                     "service_catalog",
-                    (if ((s!!.optJSONArray("service_catalog") === null)) JSONArray()
+                    (if (s!!.optJSONArray("service_catalog") === null) JSONArray()
                     else s!!.getJSONArray("service_catalog")),
                 )
         }
@@ -402,9 +402,9 @@ internal class OfferTools {
             if (n!!.equals("get_offer_contract")) {
                 return OfferContract.data()
             }
-            var s = PixelMcpReadTools.effective(state)
-            var offers = s!!.getJSONArray("offers")
-            if ((n!!.equals("get_offer") || n!!.equals("validate_offer"))) {
+            val s = PixelMcpReadTools.effective(state)
+            val offers = s!!.getJSONArray("offers")
+            if (n!!.equals("get_offer") || n!!.equals("validate_offer")) {
                 var p = PixelMcpWriteTools.find(offers, a!!.getString("offer_id"))
                 var result: JSONObject =
                     (((((JSONObject())!!.put("offer", p))!!.put(
@@ -435,10 +435,18 @@ internal class OfferTools {
                     val catalog = s.optJSONArray("service_catalog") ?: JSONArray()
                     for (index in 0 until catalog.length()) {
                         val entry = catalog.getJSONObject(index)
-                        if ((0 until positions.length()).any { positions.getJSONObject(it).optString("catalog_entry_id") == entry.optString("id") }) selected.put(entry)
+                        if (
+                            (0 until positions.length()).any {
+                                positions.getJSONObject(it).optString("catalog_entry_id") ==
+                                    entry.optString("id")
+                            }
+                        )
+                            selected.put(entry)
                     }
                     review.put("service_catalog", selected)
-                    result.put("review_snapshot", review).put("validation", OfferRules.validate(p, s))
+                    result
+                        .put("review_snapshot", review)
+                        .put("validation", OfferRules.validate(p, s))
                 }
                 if (!(p!!.optString("order_id"))!!.isEmpty()) {
                     result!!.put(
@@ -469,14 +477,14 @@ internal class OfferTools {
             }
             if (n!!.equals("get_offer_context")) {
                 var id = a!!.getString("customer_id")
-                var c = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), id)
-                var logs: JSONArray = JSONArray()
-                var orders: JSONArray = JSONArray()
-                var prices: JSONArray = JSONArray()
+                val c = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), id)
+                val logs: JSONArray = JSONArray()
+                val orders: JSONArray = JSONArray()
+                val prices: JSONArray = JSONArray()
                 var all = s!!.getJSONArray("worklogs")
                 run {
                     var i: Int = (all!!.length() - 1)
-                    while (((i >= 0) && (logs!!.length() < 10))) {
+                    while ((i >= 0) && (logs!!.length() < 10)) {
                         if (id!!.equals((all!!.getJSONObject(i))!!.optString("customer_id"))) {
                             logs!!.put(all!!.getJSONObject(i))
                         }
@@ -487,7 +495,7 @@ internal class OfferTools {
                 all = s!!.getJSONArray("orders")
                 run {
                     var i: Int = 0
-                    while (((i < all!!.length()) && (orders!!.length() < 10))) {
+                    while ((i < all!!.length()) && (orders!!.length() < 10)) {
                         if (
                             (id!!.equals((all!!.getJSONObject(i))!!.optString("customer_id")) &&
                                 !(Arrays.asList("Erledigt", "Abgeschlossen", "Storniert"))!!
@@ -502,8 +510,8 @@ internal class OfferTools {
                 all = s!!.getJSONArray("service_catalog")
                 run {
                     var i: Int = 0
-                    while ((i < all!!.length())) {
-                        var e = all!!.getJSONObject(i)
+                    while (i < all!!.length()) {
+                        val e = all!!.getJSONObject(i)
                         if (
                             ((e!!.optBoolean("active", true) &&
                                 e!!.optBoolean("price_confirmed")) && !e!!.isNull("default_price"))
@@ -533,12 +541,12 @@ internal class OfferTools {
             var out: JSONArray = JSONArray()
             var total: Int = 0
             if (n!!.equals("search_offer_templates")) {
-                var collator = java.text.Collator.getInstance(Locale.GERMAN)
+                val collator = java.text.Collator.getInstance(Locale.GERMAN)
                 collator!!.setStrength(java.text.Collator.PRIMARY)
-                var ordered: MutableList<JSONObject> = ArrayList()
+                val ordered: MutableList<JSONObject> = ArrayList()
                 run {
                     var i: Int = 0
-                    while ((i < rows!!.length())) {
+                    while (i < rows!!.length()) {
                         ordered!!.add(rows!!.getJSONObject(i))
 
                         i++
@@ -552,7 +560,7 @@ internal class OfferTools {
                                 y!!.optString("category"),
                                 collator,
                             )
-                        if ((order == 0)) {
+                        if (order == 0) {
                             order =
                                 SnapshotReadSupport.natural(
                                     x!!.optString("title"),
@@ -560,7 +568,7 @@ internal class OfferTools {
                                     collator,
                                 )
                         }
-                        return@lambda (if ((order == 0))
+                        return@lambda (if (order == 0)
                             (x!!.optString("id"))!!.compareTo(y!!.optString("id"))
                         else order)
                     }
@@ -569,7 +577,7 @@ internal class OfferTools {
             }
             run {
                 var i: Int = 0
-                while ((i < rows!!.length())) {
+                while (i < rows!!.length()) {
                     var p = rows!!.getJSONObject(i)
                     if (
                         (!(a!!.optString("customer_id"))!!.isEmpty() &&
@@ -649,7 +657,7 @@ internal class OfferTools {
                     .put("limit", a!!.optInt("limit", 30)))!!
                 .put(
                     "next_cursor",
-                    (if (((a!!.optInt("offset") + out!!.length()) < total))
+                    (if ((a!!.optInt("offset") + out!!.length()) < total)
                         (a!!.optInt("offset") + out!!.length())
                     else JSONObject.NULL),
                 )

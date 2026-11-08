@@ -8,8 +8,8 @@ internal class PixelMcpBusinessTools {
         @JvmStatic
         @Throws(Exception::class)
         fun sync(legacy: JSONObject, state: JSONObject): JSONObject {
-            val saved = legacy.optBoolean("saved_locally",
-                legacy.optString("status") == "local_saved")
+            val saved =
+                legacy.optBoolean("saved_locally", legacy.optString("status") == "local_saved")
             return JSONObject(legacy.toString())
                 .put("status", if (saved) "local_saved" else "unknown")
                 .put("sync_state", "not_applicable")
@@ -24,19 +24,17 @@ internal class PixelMcpBusinessTools {
 
         @JvmStatic
         fun overlap(a: JSONObject, b: JSONObject): Boolean {
-
             if (
-                (!((a.optString("work_date") == b.optString("work_date"))) ||
+                (!(a.optString("work_date") == b.optString("work_date")) ||
                     (a.optString("id") == b.optString("id")))
             ) {
                 return false
             }
             try {
-
                 var `as`: Int = java.time.LocalTime.parse(a.getString("start_time")).toSecondOfDay()
-                var ae: Int = java.time.LocalTime.parse(a.getString("end_time")).toSecondOfDay()
-                var bs: Int = java.time.LocalTime.parse(b.getString("start_time")).toSecondOfDay()
-                var be: Int = java.time.LocalTime.parse(b.getString("end_time")).toSecondOfDay()
+                val ae: Int = java.time.LocalTime.parse(a.getString("end_time")).toSecondOfDay()
+                val bs: Int = java.time.LocalTime.parse(b.getString("start_time")).toSecondOfDay()
+                val be: Int = java.time.LocalTime.parse(b.getString("end_time")).toSecondOfDay()
                 return ((((ae > `as`) && (be > bs)) && (`as` < be)) && (bs < ae))
             } catch (e: Exception) {
                 return false
@@ -46,7 +44,6 @@ internal class PixelMcpBusinessTools {
         @JvmStatic
         @Throws(Exception::class)
         fun preventOverlap(payload: JSONObject, logs: JSONArray?): Unit {
-
             run {
                 var i: Int = 0
                 var firstIteration82 = true
@@ -55,7 +52,7 @@ internal class PixelMcpBusinessTools {
                     else {
                         i++
                     }
-                    if (!(((logs != null) && (i < logs.length())))) break
+                    if (!((logs != null) && (i < logs.length()))) break
 
                     if (overlap(payload, logs.getJSONObject(i))) {
                         throw PixelMcpWriteTools.Rejected(
@@ -70,12 +67,11 @@ internal class PixelMcpBusinessTools {
         @JvmStatic
         @Throws(Exception::class)
         fun report(logs: JSONArray, master: JSONObject): JSONObject {
-
             var hours: Double = 0.0
             var marked: Int = 0
-            var issues = JSONArray()
-            var customerIds = HashSet<String>()
-            var customers = master.optJSONArray("customers")
+            val issues = JSONArray()
+            val customerIds = HashSet<String>()
+            val customers = master.optJSONArray("customers")
             run {
                 var i: Int = 0
                 var firstIteration83 = true
@@ -84,112 +80,82 @@ internal class PixelMcpBusinessTools {
                     else {
                         i++
                     }
-                    if (!(((customers != null) && (i < customers.length())))) break
+                    if (!((customers != null) && (i < customers.length()))) break
 
                     customerIds.add(customers.getJSONObject(i).optString("id"))
                 }
             }
-            if ((logs.length() > 5000)) {
+            if (logs.length() > 5000) {
                 throw IllegalArgumentException(
                     "Bitte einen engeren Zeitraum für die Qualitätsprüfung wählen."
                 )
             }
-            run {
-                var i: Int = 0
-                var firstIteration85 = true
-                while (true) {
-                    if (firstIteration85) firstIteration85 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < logs.length()))) break
-
-                    var row = logs.getJSONObject(i)
-                    hours += row.optDouble("hours", 0.0)
-                    if (row.optInt("billed", 0) == 0) marked++
-                    if (!(customerIds.contains(row.optString("customer_id")))) {
+            for (i in 0 until logs.length()) {
+                val row = logs.getJSONObject(i)
+                hours += row.optDouble("hours", 0.0)
+                if (row.optInt("billed", 0) == 0) marked++
+                if (!(customerIds.contains(row.optString("customer_id")))) {
+                    issues.put(
+                        issue("MISSING_CUSTOMER", row, "Kundenverknüpfung fehlt oder ist ungültig.")
+                    )
+                }
+                try {
+                    val normalized = JSONObject(row.toString())
+                    WorklogRules.validate(normalized, false)
+                    if (
+                        (Math.abs(normalized.optDouble("hours") - row.optDouble("hours")) > 0.005)
+                    ) {
                         issues.put(
                             issue(
-                                "MISSING_CUSTOMER",
+                                "TIME_MISMATCH",
                                 row,
-                                "Kundenverknüpfung fehlt oder ist ungültig.",
+                                "Gespeicherte Stunden passen nicht zu den Uhrzeiten.",
                             )
                         )
                     }
-                    try {
-
-                        var normalized = JSONObject(row.toString())
-                        WorklogRules.validate(normalized, false)
-                        if (
-                            (Math.abs((normalized.optDouble("hours") - row.optDouble("hours"))) >
-                                0.005)
-                        ) {
-                            issues.put(
-                                issue(
-                                    "TIME_MISMATCH",
-                                    row,
-                                    "Gespeicherte Stunden passen nicht zu den Uhrzeiten.",
-                                )
-                            )
-                        }
-                    } catch (e: Exception) {
+                } catch (e: Exception) {
+                    issues.put(
+                        issue(
+                            "INVALID_WORK_RECORD",
+                            row,
+                            "Datum, Zeiten, Tätigkeit und Zahlen bitte prüfen.",
+                        )
+                    )
+                }
+                for (j in 0 until i) {
+                    val other = logs.getJSONObject(j)
+                    if (overlap(row, other)) {
                         issues.put(
                             issue(
-                                "INVALID_WORK_RECORD",
+                                "TIME_OVERLAP",
                                 row,
-                                "Datum, Zeiten, Tätigkeit und Zahlen bitte prüfen.",
+                                ("Überschneidung mit " + other.optString("id")),
                             )
                         )
                     }
-                    run {
-                        var j: Int = 0
-                        var firstIteration84 = true
-                        while (true) {
-                            if (firstIteration84) firstIteration84 = false
-                            else {
-                                j++
-                            }
-                            if (!((j < i))) break
-
-                            var other = logs.getJSONObject(j)
-                            if (overlap(row, other)) {
-                                issues.put(
-                                    issue(
-                                        "TIME_OVERLAP",
-                                        row,
-                                        ("Überschneidung mit " + other.optString("id")),
-                                    )
-                                )
-                            }
-                            if (
-                                ((((row.optString("customer_id") ==
-                                    other.optString("customer_id")) &&
-                                    (row.optString("work_date") == other.optString("work_date"))) &&
-                                    (Math.abs((row.optDouble("hours") - other.optDouble("hours"))) <
-                                        0.005)) &&
-                                    row.optString("activity")
-                                        .trim()
-                                        .equals(
-                                            other.optString("activity").trim(),
-                                            ignoreCase = true,
-                                        ))
-                            ) {
-                                issues.put(
-                                    issue(
-                                        "POSSIBLE_DUPLICATE",
-                                        row,
-                                        ("Ähnlicher Eintrag: " + other.optString("id")),
-                                    )
-                                )
-                            }
-                        }
+                    if (
+                        ((((row.optString("customer_id") == other.optString("customer_id")) &&
+                            (row.optString("work_date") == other.optString("work_date"))) &&
+                            (Math.abs(row.optDouble("hours") - other.optDouble("hours")) <
+                                0.005)) &&
+                            row.optString("activity")
+                                .trim()
+                                .equals(other.optString("activity").trim(), ignoreCase = true))
+                    ) {
+                        issues.put(
+                            issue(
+                                "POSSIBLE_DUPLICATE",
+                                row,
+                                ("Ähnlicher Eintrag: " + other.optString("id")),
+                            )
+                        )
                     }
                 }
             }
             var result =
                 JSONObject()
                     .put("work_records", logs.length())
-                    .put("hours", (Math.round((hours * 100)) / 100.0))
+                    .put("hours", (Math.round(hours * 100) / 100.0))
                     .put("marked_open", marked)
                     .put("marked_billed", logs.length() - marked)
                     .put("issues", issues)
@@ -206,7 +172,6 @@ internal class PixelMcpBusinessTools {
             row: JSONObject,
             message: String,
         ): JSONObject {
-
             return JSONObject()
                 .put("code", code)
                 .put("work_record_id", row.optString("id"))

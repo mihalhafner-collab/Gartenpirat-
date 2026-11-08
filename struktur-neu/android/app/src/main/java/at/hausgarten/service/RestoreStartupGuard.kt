@@ -8,10 +8,12 @@ internal object RestoreStartupGuard {
 
     @JvmStatic
     fun assertStoreMayOpen(context: Context) {
-        if (exclusive.get()) return
+        if (exclusive.get() == true) return
         RevierApplication.awaitStartup(context)
-        if (BackupRestoreService.requiresExclusiveStartup(context) ||
-            RestoreStartupProtection.requiresColdRestart(context)) {
+        if (
+            BackupRestoreService.requiresExclusiveStartup(context) ||
+                RestoreStartupProtection.requiresColdRestart(context)
+        ) {
             throw IllegalStateException("RESTORE_RESTART_REQUIRED")
         }
     }
@@ -28,7 +30,7 @@ internal object RestoreStartupGuard {
 
     @JvmStatic
     fun exclusiveStartup(): AutoCloseable {
-        if (exclusive.get()) throw IllegalStateException("RESTORE_STARTUP_REENTRY")
+        if (exclusive.get() == true) throw IllegalStateException("RESTORE_STARTUP_REENTRY")
         exclusive.set(true)
         return AutoCloseable { exclusive.remove() }
     }

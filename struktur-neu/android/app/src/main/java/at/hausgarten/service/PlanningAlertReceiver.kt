@@ -1,8 +1,8 @@
 package at.hausgarten.service
 
 import android.content.*
-import org.json.JSONObject
 import kotlinx.coroutines.*
+import org.json.JSONObject
 
 /** Only an immutable owner-device notification intent can acknowledge this exact risk version. */
 class PlanningAlertReceiver : BroadcastReceiver() {
@@ -14,12 +14,24 @@ class PlanningAlertReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 PixelLocalStore(context).use { store ->
-                    PixelOwnerAccess(context, store).execute("acknowledge_weather_alert", JSONObject().put("appointment_id", id).put("expected_alert_hash", hash).put("request_id", "notification-ack-" + hash))
+                    PixelOwnerAccess(context, store)
+                        .execute(
+                            "acknowledge_weather_alert",
+                            JSONObject()
+                                .put("appointment_id", id)
+                                .put("expected_alert_hash", hash)
+                                .put("request_id", "notification-ack-" + hash),
+                        )
                     WeatherNotifications.cancel(context, id)
-                    context.getSystemService(android.app.NotificationManager::class.java)?.cancel(WeatherNotifications.ID)
+                    context
+                        .getSystemService(android.app.NotificationManager::class.java)
+                        ?.cancel(WeatherNotifications.ID)
                 }
-            } catch (stale: Exception) { /* A stale/deleted risk is never acknowledged as the new version. In-app review remains. */ }
-            finally { pending.finish() }
+            } catch (stale: Exception) {
+                /* A stale/deleted risk is never acknowledged as the new version. In-app review remains. */
+            } finally {
+                pending.finish()
+            }
         }
     }
 }

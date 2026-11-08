@@ -1,8 +1,8 @@
 # Gartenpirat
 
 Einziger funktionaler Android-Quellstand: `struktur-neu/android/app/src/main/`
-(Kotlin, Jetpack Compose, lokale SQLite-Datenbank). TEST und PRODUKTIV
-entstehen aus demselben fachlichen Quellcode; keine getrennten Implementierungen.
+(Kotlin, Jetpack Compose, lokale SQLite-Datenbank). Es gibt genau ein Paket,
+`at.hausgarten.service`; Tests laufen im Emulator oder direkt auf dem Pixel.
 
 Maßgebliche Projektregeln: [AGENTS.md](AGENTS.md).
 Aktueller Stand: [AKTUELLER-STAND.json](struktur-neu/AKTUELLER-STAND.json).

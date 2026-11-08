@@ -12,51 +12,88 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.UUID
 
 /** Recovery controls deliberately work without opening the business database. */
 class RestoreRecoveryActivity : ComponentActivity() {
-    private var status by mutableStateOf("Die Wiederherstellung benötigt eine Prüfung. Der unterbrochene Austausch muss abgeschlossen werden.")
+    private var status by
+        mutableStateOf(
+            "Die Wiederherstellung benötigt eine Prüfung. Der unterbrochene Austausch muss abgeschlossen werden."
+        )
     private var cold by mutableStateOf(true)
     private var busy by mutableStateOf(true)
     private var cancelled by mutableStateOf(false)
     private var confirmCancellation by mutableStateOf(false)
 
-    public override fun onCreate(saved: Bundle?) {
-        super.onCreate(saved)
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         title = "Wiederherstellung prüfen"
         nativeContent("Wiederherstellung prüfen", showBack = false) {
             Text(status)
-            if (!cold) Button(enabled = !busy && !cancelled, modifier = Modifier.fillMaxWidth(), onClick = { confirmCancellation = true }) { Text("Wiederherstellung abbrechen") }
-            Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                finishAffinity()
-                android.os.Process.killProcess(android.os.Process.myPid())
-            }) { Text("App schließen") }
-            if (confirmCancellation) AlertDialog(
-                onDismissRequest = { confirmCancellation = false },
-                title = { Text("Wiederherstellung abbrechen?") },
-                text = { Text("Nur ein noch nicht begonnener oder vollständig zurückgerollter Austausch kann abgebrochen werden.") },
-                dismissButton = { TextButton(onClick = { confirmCancellation = false }) { Text("Zurück") } },
-                confirmButton = { TextButton(onClick = { confirmCancellation = false; cancelRestore() }) { Text("Abbrechen") } }
-            )
+            if (!cold)
+                Button(
+                    enabled = !busy && !cancelled,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { confirmCancellation = true },
+                ) {
+                    Text("Wiederherstellung abbrechen")
+                }
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    finishAffinity()
+                    android.os.Process.killProcess(android.os.Process.myPid())
+                },
+            ) {
+                Text("App schließen")
+            }
+            if (confirmCancellation)
+                AlertDialog(
+                    onDismissRequest = { confirmCancellation = false },
+                    title = { Text("Wiederherstellung abbrechen?") },
+                    text = {
+                        Text(
+                            "Nur ein noch nicht begonnener oder vollständig zurückgerollter Austausch kann abgebrochen werden."
+                        )
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { confirmCancellation = false }) { Text("Zurück") }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                confirmCancellation = false
+                                cancelRestore()
+                            }
+                        ) {
+                            Text("Abbrechen")
+                        }
+                    },
+                )
         }
         lifecycleScope.launch {
             try {
-                cold = withContext(Dispatchers.IO) {
-                    try { RevierApplication.awaitStartup(this@RestoreRecoveryActivity) }
-                    catch (protectedState: IllegalStateException) {
-                        if (protectedState.message != "RESTORE_RESTART_REQUIRED") throw protectedState
+                cold =
+                    withContext(Dispatchers.IO) {
+                        try {
+                            RevierApplication.awaitStartup(this@RestoreRecoveryActivity)
+                        } catch (protectedState: IllegalStateException) {
+                            if (protectedState.message != "RESTORE_RESTART_REQUIRED")
+                                throw protectedState
+                        }
+                        RestoreStartupProtection.requiresColdRestart(this@RestoreRecoveryActivity)
                     }
-                    RestoreStartupProtection.requiresColdRestart(this@RestoreRecoveryActivity)
-                }
-                if (cold) status = "Der Bestand wurde geprüft aktiviert. Schließe die App und öffne sie erneut. Rechnungen bleiben bis zum aktuellen Belegabgleich gesperrt."
+                if (cold)
+                    status =
+                        "Der Bestand wurde geprüft aktiviert. Schließe die App und öffne sie erneut. Rechnungen bleiben bis zum aktuellen Belegabgleich gesperrt."
                 busy = false
             } catch (_: Exception) {
                 // Keep cancellation unavailable if the startup gate itself could not be observed.
-                status = "Abbruch ist in diesem Zustand gesperrt. Der Austausch muss zuerst abgeschlossen werden."
+                status =
+                    "Abbruch ist in diesem Zustand gesperrt. Der Austausch muss zuerst abgeschlossen werden."
             }
         }
     }
@@ -68,13 +105,18 @@ class RestoreRecoveryActivity : ComponentActivity() {
             try {
                 withContext(Dispatchers.IO) {
                     val pending = BackupRestoreService.pendingStatus(this@RestoreRecoveryActivity)
-                    BackupRestoreService(this@RestoreRecoveryActivity).cancelActivation("cancel_" + UUID.randomUUID(),
-                        pending.getString("restore_id"), pending.getString("preview_hash"))
+                    BackupRestoreService(this@RestoreRecoveryActivity)
+                        .cancelActivation(
+                            "cancel_" + UUID.randomUUID(),
+                            pending.getString("restore_id"),
+                            pending.getString("preview_hash"),
+                        )
                 }
                 status = "Abbruch gespeichert. Schließe die App und öffne sie erneut."
                 cancelled = true
             } catch (protectedState: Exception) {
-                status = "Abbruch ist in diesem Zustand gesperrt. Der Austausch muss zuerst abgeschlossen werden."
+                status =
+                    "Abbruch ist in diesem Zustand gesperrt. Der Austausch muss zuerst abgeschlossen werden."
             } finally {
                 busy = false
             }

@@ -29,13 +29,12 @@ internal class LocalBusinessState {
         @JvmStatic
         @Throws(Exception::class)
         fun prepare(snapshot: JSONObject): Unit {
-
             LocalJournalRules.validateSnapshot(snapshot)
             if (!(snapshot.has("business_settings"))) {
-                var known = JSONObject()
-                var issuer = snapshot.optJSONObject("invoice_issuer")
+                val known = JSONObject()
+                val issuer = snapshot.optJSONObject("invoice_issuer")
                 for (key in PixelMcpOwnerTools.BUSINESS_KEYS) {
-                    if (((issuer != null) && issuer.has(key))) {
+                    if ((issuer != null) && issuer.has(key)) {
                         known.put(key, issuer.get(key))
                     }
                 }
@@ -43,7 +42,7 @@ internal class LocalBusinessState {
                     .put("business_settings", known)
                     .put("business_settings_origin", "legacy_known_fields_only")
             }
-            if ((snapshot.optJSONObject("business_settings") == null)) {
+            if (snapshot.optJSONObject("business_settings") == null) {
                 throw IllegalArgumentException(
                     "Ungültige Geschäftseinstellungen; keine Vorgaben eingesetzt."
                 )
@@ -57,6 +56,5 @@ internal class LocalBusinessState {
                 .put("processing_engine", ENGINE)
                 .put("schema_version", Math.max(2, snapshot.optInt("schema_version", 1)))
         }
-
     }
 }

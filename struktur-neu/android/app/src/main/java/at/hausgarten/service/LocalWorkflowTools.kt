@@ -60,21 +60,13 @@ internal class LocalWorkflowTools {
         val OFFER_DECISION_WRITES: Array<String> =
             arrayOf("record_offer_acceptance", "decline_offer")
         @JvmField
-        val READS: Array<String> =
-            concat(
-                concat(BACKUP_READS, REVIER_READS),
-                OFFER_DECISION_READS,
-            )
+        val READS: Array<String> = concat(concat(BACKUP_READS, REVIER_READS), OFFER_DECISION_READS)
         @JvmField
         val WRITES: Array<String> =
-            concat(
-                concat(BACKUP_WRITES, REVIER_WRITES),
-                OFFER_DECISION_WRITES,
-            )
+            concat(concat(BACKUP_WRITES, REVIER_WRITES), OFFER_DECISION_WRITES)
 
         @JvmStatic
         fun concat(first: Array<String>, second: Array<String>): Array<String> {
-
             var all = ArrayList<String>(first.asList())
             all.addAll(second.asList())
             return all.toTypedArray()
@@ -82,110 +74,100 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun backup(name: String): Boolean {
-
             return (BACKUP_READS.asList().contains(name) || BACKUP_WRITES.asList().contains(name))
         }
 
         @JvmStatic
         fun revier(name: String): Boolean {
-
             return (REVIER_READS.asList().contains(name) || REVIER_WRITES.asList().contains(name))
         }
 
-        @JvmStatic
-        fun critical(name: String): Boolean = name == "purge_revier_entity"
+        @JvmStatic fun critical(name: String): Boolean = name == "purge_revier_entity"
 
         @JvmStatic
         fun offerDecision(name: String): Boolean {
-
             return (OFFER_DECISION_READS.asList().contains(name) ||
                 OFFER_DECISION_WRITES.asList().contains(name))
         }
 
         @JvmStatic
         fun handles(name: String): Boolean {
-
             return backup(name) || revier(name) || offerDecision(name)
         }
 
         @JvmStatic
         fun write(name: String): Boolean {
-
             return WRITES.asList().contains(name)
         }
 
         @JvmStatic
         fun description(name: String): String {
-
-            if ((name == "save_equipment")) {
+            if (name == "save_equipment") {
                 return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
             }
-            if ((name == "get_equipment_maintenance")) {
+            if (name == "get_equipment_maintenance") {
                 return "Liest eigene Wartungspläne und paginierten erledigten Wartungsverlauf genau eines lokalen Geräts, einschließlich nächster Fälligkeit und record_hash. Kein Schreiben, keine Gerätefreigabe, keine Herstellerintervalle oder automatische Erledigung."
             }
-            if ((name == "save_equipment_maintenance_plan")) {
+            if (name == "save_equipment_maintenance_plan") {
                 return "Speichert einen ausdrücklich gewählten eigenen Wartungsplan am vorhandenen Gerät. configure benötigt Tätigkeit, Kalenderintervall und starts_on; Änderungen benötigen Grund und aktuellen Gerätehash. bring_forward zieht nur den nächsten Termin vor; shorten verkürzt das Intervall dauerhaft. Keine erledigte Wartung, Zustandsfreigabe, Herstellerempfehlung oder Drive-Arbeit. request_id bei unklarer Antwort erhalten und zuerst lesend prüfen."
             }
-            if ((name == "record_equipment_maintenance")) {
+            if (name == "record_equipment_maintenance") {
                 return "Erfasst eine tatsächlich erledigte Wartung am vorhandenen Plan mit explizitem performed_on, aktuellem Gerätehash und stabiler request_id. Kein Zukunftsdatum. Ein älterer Nachtrag verdrängt keine neuere Erledigung. Optionale kürzere Intervalle nur mit Grund, etwa Fehlschnitten oder erneutem Nachschärfen. Historie bleibt erhalten; Gerätezustand und Backup bleiben unabhängig."
             }
-            if ((name == "get_restore_status")) {
+            if (name == "get_restore_status") {
                 return "Liest ausschließlich den nicht geheimen Zustand einer am Gerät bestätigten vollständigen Wiederherstellung: Phase, Vorschauhash, Neustartbedarf und lokale Integritätsprüfung. Kein Recovery-Code, Dateipfad oder Inhalt und keine Aktivierung durch Lesen."
             }
-            if ((name == "get_offer_decision_history")) {
+            if (name == "get_offer_decision_history") {
                 return "Liest Annahme-/Ablehnungshistorie der unveränderlichen Angebotsversion mit Nachweis und Zeitpunkt. Kein Versand-/Zustellbeleg aus bloßem Teilen."
             }
-            if ((name == "record_offer_acceptance")) {
+            if (name == "record_offer_acceptance") {
                 return "Hält die ausdrücklich bestätigte Annahme genau dieser finalen Angebotsversion mit tatsächlichem Zeitpunkt und nachvollziehbarem Nachweis fest. record_hash prüfen; keine Annahme erfinden und noch keinen zweiten Auftrag erzeugen. request_id bei Retry unverändert lassen."
             }
-            if ((name == "decline_offer")) {
+            if (name == "decline_offer") {
                 return "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen."
             }
-            if ((name == "get_full_backup_status")) {
+            if (name == "get_full_backup_status") {
                 return "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät."
             }
-            if ((name == "request_full_backup")) {
+            if (name == "request_full_backup") {
                 return "Liefert den Hinweis, die lokale Sicherungsansicht und Android-Dateiwahl auf dem Pixel zu öffnen. Startet keinen Upload und erzeugt ohne Dateiwahl keine Sicherung. Zuerst get_full_backup_status lesen; request_id bei Wiederholung erhalten."
             }
-            if ((name == "retry_full_backup")) {
+            if (name == "retry_full_backup") {
                 return "Liefert den Hinweis, einen bestehenden lokalen Speicherversuch in der Sicherungsansicht am Pixel fortzusetzen. Keine neue Sicherung oder Dateifreigabe durch MCP; kein Drive-Zugriff."
             }
-            if ((name == "inspect_edit_action")) {
+            if (name == "inspect_edit_action") {
                 return "Prüft ausschließlich lesend den vorhandenen Beleg einer ursprünglichen Editoraktion mit unveränderten Argumenten. state=confirmed, content_removed oder unknown; keine Wiederholung einer Geschäftsaktion und keine Freigabe allein anhand restaurierter Requests. Unbekanntes Ergebnis separat anhand aktueller Originale klären."
             }
-            if ((name == "list_revier_archive")) {
+            if (name == "list_revier_archive") {
                 return "Liest archivierte Revier-Einträge mit Eintragsart und Pagination, unveränderten IDs sowie record_hash. Kein Wiederöffnen oder Löschen durch Lesen."
             }
-            if ((name == "set_revier_archived")) {
+            if (name == "set_revier_archived") {
                 return "Archiviert oder öffnet genau einen ausdrücklich bestätigten Revier-Eintrag mit aktuellem record_hash. Aktive Einsätze zuerst gesondert beenden; laufende Arbeit und Abhängigkeiten bleiben geschützt. Stabile request_id bei Wiederholung."
             }
-            if ((name == "purge_revier_entity")) {
+            if (name == "purge_revier_entity") {
                 return "Entfernt genau einen aktiven oder früher archivierten Revier-Eintrag endgültig nach aktueller Versions- und Abhängigkeitsprüfung. Die lokale Oberfläche führt die beschriftete Löschung direkt aus. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests."
             }
-            if ((name == "accept_inquiry_direct")) {
+            if (name == "accept_inquiry_direct") {
                 return "Nimmt eine Anfrage ausdrücklich ohne vorheriges Angebot an: tatsächlichen Annahmezeitpunkt, Nachweis und gegebenenfalls getrennten Rechnungsempfänger angeben. Aktuellen record_hash prüfen. Derselbe request_id erzeugt höchstens einen verknüpften Auftrag; kein Rechnungsversand."
             }
             return (java.lang.String.valueOf(
-                ((if (write(name))
+                (if (write(name))
                     "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. "
                 else
-                    "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. "))
+                    "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. ")
             ) +
                 "Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.")
         }
 
         private @JvmStatic @Throws(Exception::class) fun date(): JSONObject {
-
             return McpFields.text(10).put("pattern", "[0-9]{4}-[0-9]{2}-[0-9]{2}")
         }
 
         private @JvmStatic @Throws(Exception::class) fun clock(): JSONObject {
-
             return McpFields.text(5).put("pattern", "(?:[01][0-9]|2[0-3]):[0-5][0-9]")
         }
 
         private @JvmStatic @Throws(Exception::class) fun clearable(field: JSONObject): JSONObject {
-
             field.remove("minLength")
             if (field.has("pattern")) {
                 field.put("pattern", (("(?:" + field.getString("pattern")) + ")?"))
@@ -194,35 +176,30 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun instant(): JSONObject {
-
             return McpFields.text(80).put("minLength", 1)
         }
 
         private @JvmStatic @Throws(Exception::class) fun decimal(signed: Boolean): JSONObject {
-
             return McpFields.text(64)
                 .put(
                     "pattern",
-                    (java.lang.String.valueOf(((if (signed) "-?" else ""))) +
+                    (java.lang.String.valueOf(if (signed) "-?" else "") +
                         "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?"),
                 )
         }
 
         /** Retained for material purchase/billing prices, not invoice payments. */
-        private @JvmStatic fun minor(): JSONObject = JSONObject()
-            .put("type", "integer").put("minimum", 0)
-            .put("maximum", 9000000000000000L)
+        private @JvmStatic fun minor(): JSONObject =
+            JSONObject().put("type", "integer").put("minimum", 0).put("maximum", 9000000000000000L)
 
         private @JvmStatic @Throws(Exception::class) fun array(
             item: JSONObject,
             max: Int,
         ): JSONObject {
-
             return JSONObject().put("type", "array").put("items", item).put("maxItems", max)
         }
 
         private @JvmStatic @Throws(Exception::class) fun materialNeeds(): JSONObject {
-
             return array(
                 McpFields.`object`(
                     JSONObject()
@@ -236,7 +213,6 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun list(p: JSONObject): Unit {
-
             p.put("offset", McpFields.number(0, 1000000))
                 .put("limit", McpFields.number(1, 100))
                 .put("query", McpFields.text(200))
@@ -251,7 +227,6 @@ internal class LocalWorkflowTools {
         private @JvmStatic @Throws(Exception::class) fun propertyFields(
             create: Boolean
         ): JSONObject {
-
             var p =
                 JSONObject()
                     .put("name", McpFields.text(500).put("minLength", 1))
@@ -284,7 +259,6 @@ internal class LocalWorkflowTools {
         private @JvmStatic @Throws(Exception::class) fun inquiryFields(
             create: Boolean
         ): JSONObject {
-
             var p =
                 JSONObject()
                     .put("title", McpFields.text(500).put("minLength", 1))
@@ -332,7 +306,6 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun careFields(create: Boolean): JSONObject {
-
             var p =
                 JSONObject()
                     .put("title", McpFields.text(500).put("minLength", 1))
@@ -355,7 +328,6 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun visitFields(create: Boolean): JSONObject {
-
             var p =
                 JSONObject()
                     .put("date", date())
@@ -391,12 +363,11 @@ internal class LocalWorkflowTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
             if (!(handles(name))) {
                 throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
             }
             var p = JSONObject()
-            var required = ArrayList<String>()
+            val required = ArrayList<String>()
             if (write(name)) {
                 p.put("request_id", McpFields.text(128).put("minLength", 8))
                 required.add("request_id")
@@ -467,7 +438,7 @@ internal class LocalWorkflowTools {
                 "list_materials",
                 "list_equipment" -> {
                     list(p)
-                    if ((name == "list_care_plans")) {
+                    if (name == "list_care_plans") {
                         p.put("care_plan_id", McpFields.id())
                     }
                 }
@@ -529,7 +500,7 @@ internal class LocalWorkflowTools {
                     required.addAll(
                         Arrays.asList("entity", "entity_id", "expected_record_hash", "confirmed")
                     )
-                    if ((name == "set_revier_archived")) {
+                    if (name == "set_revier_archived") {
                         p.put("archived", McpFields.bool())
                         required.add("archived")
                     }
@@ -666,13 +637,30 @@ internal class LocalWorkflowTools {
                     )
                 }
                 "save_equipment" -> {
-                    p
-                        .put("accessories", array(McpFields.`object`(JSONObject()
-                            .put("id", McpFields.id()).put("type", McpFields.enumeration("chain", "other"))
-                            .put("name", McpFields.text(240)).put("manufacturer", McpFields.text(240)).put("model", McpFields.text(240))
-                            .put("pitch", McpFields.text(80)).put("gauge", McpFields.text(80)).put("drive_links", McpFields.text(80))
-                            .put("article_number", McpFields.text(240)).put("tooth_type", McpFields.text(240)).put("file_size", McpFields.text(80))
-                            .put("notes", McpFields.text(10000)).put("photo_upload_id", McpFields.id()), "id", "type"), 100))
+                    p.put(
+                            "accessories",
+                            array(
+                                McpFields.`object`(
+                                    JSONObject()
+                                        .put("id", McpFields.id())
+                                        .put("type", McpFields.enumeration("chain", "other"))
+                                        .put("name", McpFields.text(240))
+                                        .put("manufacturer", McpFields.text(240))
+                                        .put("model", McpFields.text(240))
+                                        .put("pitch", McpFields.text(80))
+                                        .put("gauge", McpFields.text(80))
+                                        .put("drive_links", McpFields.text(80))
+                                        .put("article_number", McpFields.text(240))
+                                        .put("tooth_type", McpFields.text(240))
+                                        .put("file_size", McpFields.text(80))
+                                        .put("notes", McpFields.text(10000))
+                                        .put("photo_upload_id", McpFields.id()),
+                                    "id",
+                                    "type",
+                                ),
+                                100,
+                            ),
+                        )
                         .put("current_chain_id", McpFields.text(200))
                         .put("profile_photo_upload_id", McpFields.id())
                         .put("equipment_id", McpFields.id())
@@ -783,15 +771,10 @@ internal class LocalWorkflowTools {
             target: JSONObject,
             fields: JSONObject,
         ): JSONObject {
-
             run {
-                var keys = fields.keys()
-                var firstIteration73 = true
-                while (true) {
-                    if (firstIteration73) firstIteration73 = false else {}
-                    if (!(keys.hasNext())) break
-
-                    var key = keys.next()
+                val keys = fields.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
                     target.put(key, fields.get(key))
                 }
             }

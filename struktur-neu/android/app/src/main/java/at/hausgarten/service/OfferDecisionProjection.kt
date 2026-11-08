@@ -14,9 +14,9 @@ internal object OfferDecisionProjection {
     @JvmStatic
     @Throws(Exception::class)
     fun apply(database: SQLiteDatabase, master: JSONObject): Unit {
-        var decisions: JSONObject = JSONObject()
-        var revisions: JSONObject = JSONObject()
-        var prefix = OfferDecisionRules.PREFIX
+        val decisions: JSONObject = JSONObject()
+        val revisions: JSONObject = JSONObject()
+        val prefix = OfferDecisionRules.PREFIX
         run {
             database!!
                 .rawQuery(
@@ -25,16 +25,16 @@ internal object OfferDecisionProjection {
                 )
                 .use { rows ->
                     while (rows!!.moveToNext()) {
-                        var key = rows!!.getString(0)
+                        val key = rows!!.getString(0)
                         if (
-                            (!key!!.startsWith((prefix.toString() + "current:")) &&
-                                !key!!.startsWith((prefix.toString() + "revision:")))
+                            (!key!!.startsWith(prefix.toString() + "current:") &&
+                                !key!!.startsWith(prefix.toString() + "revision:"))
                         ) {
                             continue
                         }
                         var value: JSONObject = JSONObject(rows!!.getString(1))
                         OfferDecisionRules.version(value)
-                        if (key!!.startsWith((prefix.toString() + "current:"))) {
+                        if (key!!.startsWith(prefix.toString() + "current:")) {
                             decisions!!.put(value!!.getString("offer_id"), value)
                         } else {
                             revisions!!.put(value!!.getString("offer_id"), value)
@@ -42,12 +42,12 @@ internal object OfferDecisionProjection {
                     }
                 }
         }
-        if ((decisions!!.length() > 0)) {
+        if (decisions!!.length() > 0) {
             master!!.put("offer_decisions", decisions)
         } else {
             master!!.remove("offer_decisions")
         }
-        if ((revisions!!.length() > 0)) {
+        if (revisions!!.length() > 0) {
             master!!.put("offer_revisions", revisions)
         } else {
             master!!.remove("offer_revisions")

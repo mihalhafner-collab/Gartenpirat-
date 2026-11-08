@@ -23,14 +23,12 @@ internal class PixelMcpSessionTools {
 
         @JvmStatic
         fun handles(name: String): Boolean {
-
             return NAMES.asList().contains(name)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
             var props =
                 JSONObject()
                     .put(
@@ -39,8 +37,8 @@ internal class PixelMcpSessionTools {
                             .put("minLength", 8)
                             .put("maxLength", 128),
                     )
-            var required = JSONArray().put("request_id")
-            if ((name == "start_work")) {
+            val required = JSONArray().put("request_id")
+            if (name == "start_work") {
                 for (key in
                     arrayOf(
                         "customer_id",
@@ -59,7 +57,7 @@ internal class PixelMcpSessionTools {
                 props.put("session_id", PixelMcpWriteTools.field("session_id"))
                 required.put("session_id")
             }
-            if (((name == "complete_work_session") || (name == "finish_work"))) {
+            if ((name == "complete_work_session") || (name == "finish_work")) {
                 for (key in
                     arrayOf(
                         "customer_id",
@@ -75,7 +73,7 @@ internal class PixelMcpSessionTools {
                 }
                 required.put("activity")
             }
-            if ((name == "review_work_session")) {
+            if (name == "review_work_session") {
                 props.put(
                     "expected_revision_hash",
                     JSONObject().put("type", "string").put("pattern", "[0-9a-f]{64}"),
@@ -118,7 +116,6 @@ internal class PixelMcpSessionTools {
         @JvmStatic
         @Throws(Exception::class)
         fun tools(): JSONArray {
-
             var out = JSONArray()
             for (name in NAMES) {
                 out.put(
@@ -145,29 +142,28 @@ internal class PixelMcpSessionTools {
         @JvmStatic
         @Throws(Exception::class)
         fun prepare(name: String, args: JSONObject, state: JSONObject): JSONObject {
-
             PixelMcpWriteTools.validate(args, schema(name))
             var current = state.optJSONObject("work_session")
             var out = JSONObject(args.toString())
-            if ((current == null)) {
+            if (current == null) {
                 throw PixelMcpWriteTools.Rejected(
                     "SESSION_UNAVAILABLE",
                     "Die aktuelle Zeiterfassung ist nicht lesbar. Bitte die App prüfen.",
                 )
             }
-            if ((name == "start_work")) {
-                if (!(("IDLE" == current.optString("state")))) {
+            if (name == "start_work") {
+                if (!("IDLE" == current.optString("state"))) {
                     return out
                 }
-                var master = PixelMcpReadTools.effective(state)
+                val master = PixelMcpReadTools.effective(state)
                 PixelMcpWriteTools.find(
                     master.optJSONArray("customers"),
                     out.getString("customer_id"),
                 )
                 var order = out.optString("order_id")
                 if (!(order.isEmpty())) {
-                    var row = PixelMcpWriteTools.find(master.optJSONArray("orders"), order)
-                    if (!((row.optString("customer_id") == out.getString("customer_id")))) {
+                    val row = PixelMcpWriteTools.find(master.optJSONArray("orders"), order)
+                    if (!(row.optString("customer_id") == out.getString("customer_id"))) {
                         throw PixelMcpWriteTools.Rejected(
                             "REFERENCE_MISMATCH",
                             "Kunde und Auftrag passen nicht zusammen.",
@@ -184,8 +180,8 @@ internal class PixelMcpSessionTools {
                 LocalDate.parse(out.getString("work_date"))
                 return out
             }
-            if ((name == "restore_work_session")) {
-                if (!(("IDLE" == current.optString("state")))) {
+            if (name == "restore_work_session") {
+                if (!("IDLE" == current.optString("state"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "SESSION_CONFLICT",
                         "Eine andere Sitzung ist aktiv.",
@@ -193,16 +189,16 @@ internal class PixelMcpSessionTools {
                 }
                 return out
             }
-            if (!((args.getString("session_id") == current.optString("id")))) {
+            if (!(args.getString("session_id") == current.optString("id"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "SESSION_CONFLICT",
                     "Die Sitzung ist nicht mehr die aktuelle Sitzung. Bitte erneut abfragen.",
                 )
             }
-            if ((name == "review_work_session")) {
+            if (name == "review_work_session") {
                 return out
             }
-            if ((name == "discard_work_session")) {
+            if (name == "discard_work_session") {
                 if (
                     !(Arrays.asList("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")
                         .contains(current.optString("state")))
@@ -215,17 +211,17 @@ internal class PixelMcpSessionTools {
                 return out
             }
             var expected =
-                (if ((name == "continue_work")) "STOPPED_PENDING_REVIEW"
+                (if (name == "continue_work") "STOPPED_PENDING_REVIEW"
                 else
-                    (if ((name == "start_break")) "RUNNING"
+                    (if (name == "start_break") "RUNNING"
                     else
-                        (if ((name == "end_break")) "PAUSED"
+                        (if (name == "end_break") "PAUSED"
                         else
-                            (if ((((name == "complete_work_session") || (name == "finish_work"))))
+                            (if ((name == "complete_work_session") || (name == "finish_work"))
                                 "STOPPED_PENDING_REVIEW"
                             else ""))))
             if (
-                ((!(expected.isEmpty()) && !((expected == current.optString("state")))) ||
+                ((!(expected.isEmpty()) && !(expected == current.optString("state"))) ||
                     ((name == "stop_work") &&
                         !(Arrays.asList("RUNNING", "PAUSED").contains(current.optString("state")))))
             ) {
@@ -234,7 +230,7 @@ internal class PixelMcpSessionTools {
                     "Diese Aktion passt nicht zum aktuellen Sitzungszustand.",
                 )
             }
-            if (((name == "complete_work_session") || (name == "finish_work"))) {
+            if ((name == "complete_work_session") || (name == "finish_work")) {
                 if (
                     (current.optBoolean("review_required") ||
                         current.optBoolean("pause_unverified"))
@@ -244,10 +240,9 @@ internal class PixelMcpSessionTools {
                         "Sitzung wegen Neustart oder widersprüchlicher Geräteuhr zuerst prüfen. Kein Arbeitsende geschätzt.",
                     )
                 }
-                var customer = current.optString("customer_id")
+                val customer = current.optString("customer_id")
                 if (
-                    (!((out.optString("customer_id", customer) == customer)) &&
-                        !(customer.isEmpty()))
+                    (!(out.optString("customer_id", customer) == customer) && !(customer.isEmpty()))
                 ) {
                     throw PixelMcpWriteTools.Rejected(
                         "REFERENCE_MISMATCH",
@@ -276,7 +271,7 @@ internal class PixelMcpSessionTools {
                         (((("Zeiterfassung: Beginn " + origin) + ", Ende ") +
                             current.optString("updated_at")) +
                             ". Nettozeit aus Timer; Pausen in Minuten aus Ereigniszeiten gerundet.")
-                    if (("manual_review" == current.optString("time_origin"))) {
+                    if ("manual_review" == current.optString("time_origin")) {
                         audit =
                             ("Geprüfte Nettozeit; keine Endzeit rekonstruiert. Grund: " +
                                 current.optString("correction_reason"))
@@ -284,8 +279,8 @@ internal class PixelMcpSessionTools {
                     out.put(
                         "notes",
                         (java.lang.String.valueOf(
-                            ((if (out.optString("notes").isEmpty()) ""
-                            else (out.getString("notes") + "\n")))
+                            (if (out.optString("notes").isEmpty()) ""
+                            else (out.getString("notes") + "\n"))
                         ) + audit),
                     )
                 }

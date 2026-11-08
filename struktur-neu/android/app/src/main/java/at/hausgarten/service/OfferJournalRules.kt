@@ -21,7 +21,7 @@ internal class OfferJournalRules {
         @Throws(Exception::class)
         fun apply(s: JSONObject, a: JSONObject): Unit {
             var p = a!!.getJSONObject("payload")
-            var old = PixelMcpWriteTools.find(s!!.getJSONArray("offers"), p!!.getString("id"))
+            val old = PixelMcpWriteTools.find(s!!.getJSONArray("offers"), p!!.getString("id"))
             if (
                 !(PixelMcpWriteTools.hash(LocalJournalRules.clean(old)))!!.equals(
                     p!!.getString("expected_record_hash")
@@ -39,11 +39,11 @@ internal class OfferJournalRules {
             ) {
                 throw IllegalArgumentException("Ausdrückliche Bestätigung erforderlich.")
             }
-            var next: JSONObject = JSONObject(old!!.toString())
-            var kind = a!!.getString("kind")
+            val next: JSONObject = JSONObject(old!!.toString())
+            val kind = a!!.getString("kind")
             if (kind!!.equals("offer_validate")) {
                 OfferRules.normalize(next, old, s)
-                var validation = OfferRules.validate(next, s)
+                val validation = OfferRules.validate(next, s)
                 if (!validation!!.getBoolean("valid")) {
                     throw PixelMcpWriteTools.Rejected(
                         "DOCUMENT_VALIDATION_FAILED",
@@ -59,7 +59,7 @@ internal class OfferJournalRules {
                         PixelMcpWriteTools.hash(OfferTools.context(old, s)),
                     )
             } else {
-                if ((kind!!.equals("offer_share") || kind!!.equals("offer_delivery"))) {
+                if (kind!!.equals("offer_share") || kind!!.equals("offer_delivery")) {
                     if (
                         !(Arrays.asList("finalized", "accepted"))!!.contains(
                             old!!.optString("status")
@@ -67,7 +67,7 @@ internal class OfferJournalRules {
                     ) {
                         throw IllegalArgumentException("Dokument zuerst finalisieren.")
                     }
-                    if ((kind!!.equals("offer_delivery") || p!!.has("recipient_email"))) {
+                    if (kind!!.equals("offer_delivery") || p!!.has("recipient_email")) {
                         TestDataRules.noDelivery(old, s)
                     }
                     if (kind!!.equals("offer_share")) {
@@ -79,7 +79,7 @@ internal class OfferJournalRules {
                             next!!.put("delivery_recipient", p!!.getString("recipient_email"))
                         }
                     } else {
-                        var receipt = p!!.getJSONObject("receipt")
+                        val receipt = p!!.getJSONObject("receipt")
                         if (
                             (((!("pixel_gmail_readback")!!.equals(
                                 receipt!!.optString("verified_by")
@@ -112,7 +112,7 @@ internal class OfferJournalRules {
                             )
                         }
                         OfferRules.normalize(next, old, s)
-                        var v = OfferRules.validate(next, s)
+                        val v = OfferRules.validate(next, s)
                         if (!v!!.getBoolean("valid")) {
                             throw IllegalArgumentException(
                                 (v!!.getJSONArray("errors"))!!.join("; ")
@@ -120,7 +120,7 @@ internal class OfferJournalRules {
                         }
                         next!!.put(
                             "offer_number",
-                            ((((((if (next!!.optBoolean("test_record")) "TEST-" else "") +
+                            (((((if (next!!.optBoolean("test_record")) "TEST-" else "") +
                                     (if (
                                         (next!!.optString("document_type"))!!.startsWith(
                                             "estimate_"
@@ -128,7 +128,7 @@ internal class OfferJournalRules {
                                     )
                                         "KV-"
                                     else "ANG-")) +
-                                    (next!!.getString("issue_date"))!!.substring(0, 4)))
+                                    (next!!.getString("issue_date"))!!.substring(0, 4))
                                 .toString() + "-") +
                                 ((PixelMcpWriteTools.hash(next!!.getString("id")))!!.substring(
                                         0,
@@ -138,8 +138,8 @@ internal class OfferJournalRules {
                         )
                         run {
                             var i: Int = 0
-                            while ((i < (s!!.getJSONArray("offers"))!!.length())) {
-                                var other = (s!!.getJSONArray("offers"))!!.getJSONObject(i)
+                            while (i < (s!!.getJSONArray("offers"))!!.length()) {
+                                val other = (s!!.getJSONArray("offers"))!!.getJSONObject(i)
                                 if (
                                     (!(other!!.getString("id"))!!.equals(next!!.getString("id")) &&
                                         (next!!.getString("offer_number"))!!.equals(
@@ -255,11 +255,11 @@ internal class OfferJournalRules {
                                             .put(
                                                 "location",
                                                 (if ((old!!.optString("location"))!!.isEmpty())
-                                                    (((((((c!!.optString("street")).toString() +
+                                                    (((((c!!.optString("street")).toString() +
                                                                 ", ") +
-                                                                c!!.optString("postal_code")))
+                                                                c!!.optString("postal_code"))
                                                             .toString() + " ") +
-                                                            c!!.optString("city")))!!
+                                                            c!!.optString("city"))!!
                                                         .trim()
                                                 else old!!.getString("location")),
                                             ))!!
@@ -267,12 +267,12 @@ internal class OfferJournalRules {
                                     .put("created_at", a!!.getString("created_at"))
                         }
                         var refs = order!!.optJSONArray("offer_refs")
-                        if ((refs === null)) {
+                        if (refs === null) {
                             refs = JSONArray()
                         }
                         run {
                             var i: Int = 0
-                            while ((i < refs!!.length())) {
+                            while (i < refs!!.length()) {
                                 if (
                                     (old!!.getString("id"))!!.equals(
                                         (refs!!.getJSONObject(i))!!.optString("offer_id")
@@ -304,10 +304,10 @@ internal class OfferJournalRules {
                         }
                         (order!!.put(
                                 "description",
-                                (((((((order!!.optString("description")).toString() + "\n") +
-                                            old!!.getString("offer_number")))
+                                (((((order!!.optString("description")).toString() + "\n") +
+                                            old!!.getString("offer_number"))
                                         .toString() + "\n") +
-                                        OfferRules.positionText(old!!.getJSONArray("positions"))))!!
+                                        OfferRules.positionText(old!!.getJSONArray("positions")))!!
                                     .trim(),
                             ))!!
                             .put("updated_at", a!!.getString("created_at"))

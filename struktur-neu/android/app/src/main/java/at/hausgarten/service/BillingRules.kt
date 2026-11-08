@@ -1,6 +1,5 @@
 package at.hausgarten.service
 
-import java.math.BigDecimal
 import java.util.*
 import org.json.*
 
@@ -9,7 +8,7 @@ internal class BillingRules {
     companion object {
         @JvmStatic
         fun text(row: JSONObject?, key: String): String {
-            return (if (((row === null) || row!!.isNull(key))) ""
+            return (if ((row === null) || row!!.isNull(key)) ""
             else (row!!.optString(key))!!.trim())
         }
 
@@ -38,9 +37,9 @@ internal class BillingRules {
                     "Abrechnung muss Direkt oder Über einen anderen Kunden sein.",
                 )
             }
-            var target = text(row, "default_billing_customer_id")
+            val target = text(row, "default_billing_customer_id")
             if (mode!!.equals("direct")) {
-                if ((!target!!.isEmpty() && !target!!.equals(text(row, "id")))) {
+                if (!target!!.isEmpty() && !target!!.equals(text(row, "id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "BILLING_MISMATCH",
                         "Bei Direktabrechnung bitte keinen anderen Standard-Rechnungsempfänger angeben.",
@@ -48,14 +47,14 @@ internal class BillingRules {
                 }
                 row!!.put("default_billing_customer_id", "")
             } else {
-                if ((target!!.isEmpty() || target!!.equals(text(row, "id")))) {
+                if (target!!.isEmpty() || target!!.equals(text(row, "id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "MISSING_BILLING_CUSTOMER",
                         "Bitte einen anderen vorhandenen Rechnungsempfänger auswählen.",
                     )
                 }
                 customer(customers, target)
-                var visited: MutableSet<String> = HashSet()
+                val visited: MutableSet<String> = HashSet()
                 visited!!.add(text(row, "id"))
                 var next = target
                 while (!next!!.isEmpty()) {
@@ -65,7 +64,7 @@ internal class BillingRules {
                             "Die Standard-Abrechnung würde einen Kreis bilden. Bitte Zuordnung prüfen.",
                         )
                     }
-                    var other = customer(customers, next)
+                    val other = customer(customers, next)
                     next =
                         (if (("via_customer")!!.equals(text(other, "billing_mode")))
                             text(other, "default_billing_customer_id")
@@ -78,7 +77,7 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun defaultRecipient(customerId: String, orderId: String, master: JSONObject): String {
-            var workCustomer = customer(master!!.optJSONArray("customers"), customerId)
+            val workCustomer = customer(master!!.optJSONArray("customers"), customerId)
             var recipient = customerId
             if (("via_customer")!!.equals(text(workCustomer, "billing_mode"))) {
                 recipient = text(workCustomer, "default_billing_customer_id")
@@ -108,12 +107,12 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun work(row: JSONObject, old: JSONObject?, master: JSONObject): Unit {
-            var workCustomer = text(row, "customer_id")
+            val workCustomer = text(row, "customer_id")
             customer(master!!.optJSONArray("customers"), workCustomer)
             var target = text(row, "billing_customer_id")
             if (target!!.isEmpty()) {
                 target =
-                    (if ((old !== null)) recipient(old)
+                    (if (old !== null) recipient(old)
                     else defaultRecipient(workCustomer, text(row, "order_id"), master))
             }
             customer(master!!.optJSONArray("customers"), target)
@@ -131,7 +130,7 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun assignment(row: JSONObject, master: JSONObject, work: Boolean): JSONObject {
-            var customerId = text(row, (if (work) "customer_id" else "id"))
+            val customerId = text(row, (if (work) "customer_id" else "id"))
             var recipient =
                 (if (work) recipient(row)
                 else
@@ -165,28 +164,40 @@ internal class BillingRules {
         @Throws(Exception::class)
         fun groups(logs: JSONArray?, master: JSONObject): JSONArray {
             val groups = java.util.TreeMap<String, JSONObject>()
-            val sorted = (0 until (logs?.length() ?: 0))
-                .map { logs!!.getJSONObject(it) }
-                .sortedWith(compareByDescending<JSONObject> { it.optString("work_date") }
-                    .thenBy { it.optString("id") })
+            val sorted =
+                (0 until (logs?.length() ?: 0))
+                    .map { logs!!.getJSONObject(it) }
+                    .sortedWith(
+                        compareByDescending<JSONObject> { it.optString("work_date") }
+                            .thenBy { it.optString("id") }
+                    )
             for (row in sorted) {
                 if (row.optInt("billed", 0) != 0) continue
                 val recipientId = recipient(row)
-                val group = groups.getOrPut(recipientId) {
-                    val detail = assignment(row, master, true)
-                    JSONObject().put("billing_customer_id", recipientId)
-                        .put("billing_customer_name", detail.optString("billing_customer_name", "Zuordnung prüfen"))
-                        .put("valid", detail.optBoolean("valid"))
-                        .put("hours", 0.0)
-                        .put("work_records", JSONArray())
+                val group =
+                    groups.getOrPut(recipientId) {
+                        val detail = assignment(row, master, true)
+                        JSONObject()
+                            .put("billing_customer_id", recipientId)
+                            .put(
+                                "billing_customer_name",
+                                detail.optString("billing_customer_name", "Zuordnung prüfen"),
+                            )
+                            .put("valid", detail.optBoolean("valid"))
+                            .put("hours", 0.0)
+                            .put("work_records", JSONArray())
+                            .put("billing_status", "marked_open")
+                    }
+                val copy =
+                    JSONObject(row.toString())
+                        .put("billing_customer_id", recipientId)
                         .put("billing_status", "marked_open")
-                }
-                val copy = JSONObject(row.toString())
-                    .put("billing_customer_id", recipientId)
-                    .put("billing_status", "marked_open")
                 try {
-                    copy.put("work_customer_name",
-                        customer(master.optJSONArray("customers"), text(row, "customer_id")).optString("name"))
+                    copy.put(
+                        "work_customer_name",
+                        customer(master.optJSONArray("customers"), text(row, "customer_id"))
+                            .optString("name"),
+                    )
                 } catch (_: Exception) {
                     copy.put("work_customer_name", "Einsatzkunde fehlt")
                     group.put("valid", false)

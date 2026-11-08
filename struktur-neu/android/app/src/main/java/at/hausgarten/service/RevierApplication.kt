@@ -20,8 +20,9 @@ class RevierApplication : Application() {
                 if (BackupRestoreService.requiresExclusiveStartup(this)) {
                     BackupRestoreService.activatePending(this, RestoreStartupProtection(this))
                 }
-                recoveryRequired = BackupRestoreService.requiresExclusiveStartup(this) ||
-                    RestoreStartupProtection.requiresColdRestart(this)
+                recoveryRequired =
+                    BackupRestoreService.requiresExclusiveStartup(this) ||
+                        RestoreStartupProtection.requiresColdRestart(this)
             } catch (_: Exception) {
                 recoveryRequired = true
             } finally {
@@ -34,9 +35,13 @@ class RevierApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         startupExecutor.execute {
-            try { PixelBackupService.cleanupWork(this) } catch (_: Exception) { }
+            try {
+                PixelBackupService.cleanupWork(this)
+            } catch (_: Exception) {}
             if (recoveryRequired) return@execute
-            try { PixelBackupService.cancelRetiredJobs(this) } catch (_: RuntimeException) { }
+            try {
+                PixelBackupService.cancelRetiredJobs(this)
+            } catch (_: RuntimeException) {}
         }
     }
 
@@ -44,22 +49,29 @@ class RevierApplication : Application() {
         @Volatile private var recoveryRequired = false
         @Volatile private var startup: CompletableFuture<Unit>? = null
         private val startupWorker = ThreadLocal.withInitial { false }
-        private val startupExecutor = Executors.newSingleThreadExecutor { task ->
-            Thread(task, "local-startup").apply { isDaemon = true }
-        }
+        private val startupExecutor =
+            Executors.newSingleThreadExecutor { task ->
+                Thread(task, "local-startup").apply { isDaemon = true }
+            }
 
         @JvmStatic fun recoveryRequired(): Boolean = recoveryRequired
 
         /** Never wait on Android's UI thread or on the recovery worker's own completion. */
-        @JvmStatic @JvmOverloads fun awaitStartup(context: Context, timeoutMillis: Long = 0) {
-            if (context.applicationContext !is RevierApplication || startupWorker.get() == true) return
+        @JvmStatic
+        @JvmOverloads
+        fun awaitStartup(context: Context, timeoutMillis: Long = 0) {
+            if (context.applicationContext !is RevierApplication || startupWorker.get() == true)
+                return
             val completion = startup ?: return
             if (!completion.isDone && Looper.myLooper() == Looper.getMainLooper()) {
                 throw IllegalStateException("APPLICATION_STARTUP_PENDING")
             }
-            try { if (timeoutMillis > 0) completion.get(timeoutMillis, TimeUnit.MILLISECONDS) else completion.get() }
-            catch (_: TimeoutException) { throw IllegalStateException("APPLICATION_STARTUP_PENDING") }
-            catch (interrupted: InterruptedException) {
+            try {
+                if (timeoutMillis > 0) completion.get(timeoutMillis, TimeUnit.MILLISECONDS)
+                else completion.get()
+            } catch (_: TimeoutException) {
+                throw IllegalStateException("APPLICATION_STARTUP_PENDING")
+            } catch (interrupted: InterruptedException) {
                 Thread.currentThread().interrupt()
                 throw IllegalStateException("APPLICATION_STARTUP_INTERRUPTED", interrupted)
             }

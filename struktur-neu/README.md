@@ -25,7 +25,6 @@ benötigen weiterhin einen eigenen Auftrag.
 
 MCP ist Bestandteil der nativen App. Ein separater alter Python-Geschäftsserver,
 alte Diagnosekampagnen, Quellarchive und Installationspakete werden nicht kopiert.
-Leere Gerüstordner werden erst bei tatsächlichem Bedarf befüllt.
 
 Ändere bestehende Dokumente statt weitere Berichte anzulegen. Quellen und offene
 Fragen bleiben anhand des Quellstands nachvollziehbar; alte Berichte sind keine
