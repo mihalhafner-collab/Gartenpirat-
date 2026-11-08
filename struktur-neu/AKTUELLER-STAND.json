@@ -49,25 +49,29 @@
     "version_name": "1.62.0",
     "version_code": 133,
     "source_sha256": "72ad38c718a4e3bfadb961443cc6f70aabdd3078bf3ba15ee7fd06e5459122b2",
-    "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; nach Meldung „133 installiert“ Identität und Pixel-open_checks einschließlich QA06 und C04 prüfen, eigene Testdaten löschen und Datenstand nachlesen."
+    "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Version 133: Compose-Abläufe isolieren und volle CI grün machen",
-    "status": "21 Compose- und sechs Grafikabläufe starten einzeln nach pm clear in neuem Prozess mit eigenen synthetischen Abhängigkeiten. Testkorrekturen warten auf sichtbare Eingaben, wirkliche Listen, abgeschlossenes Entwurfsverwerfen und das externe Kamerafenster; überholte Rückfrageprüfungen entfernt. Die Testnavigation öffnet Kunden- und Büroübersichten durch erneutes Anwählen des Bereichs, ohne nachträgliches Zurückspringen. Abrechnungsübersichten erkennen bereits ausgewählte Reiter am sichtbaren Inhalt statt an erneuter Klickbarkeit. Suchdialoge verwenden beim Drehen die aktuelle Host-Konfiguration. Gemeinsame Arbeitsprüfung und Materialkosten-Schreiber normalisieren Dezimalkomma, damit gültige Stunden, Kilometer und Eurobeträge gespeichert werden können; Grenzen für negative, nicht endliche und ungültig genaue Werte bleiben erhalten. Die Listenprojektion formatiert gleichwertige Stundenwerte 1 und 1.0 identisch, damit ein anderer Schreibvorgang keine unveränderten Zeilen verändert. Settlement, Accounting und Graphics sind im vollen Standardlauf. Freigabe erst über grünen vollen CI-Lauf des abschließenden Stands, danach PR nach main zur Claude-Prüfung; kein Merge, keine Pixel-Installation, keine Verteilung.",
-    "owner_instruction": "Ausdrücklicher Auftrag 07.11.2026: Isolation, rote Ursachen beheben, native_settlement/native_accounting/native_graphics in vollen Lauf aufnehmen; je Schritt prüfen, bauen mit Lint, committen, pushen und volle CI mit emulator=true.",
+    "name": "Repository-Bereinigung nach Fehleranalyse (1.62.1/135)",
+    "status": "Regeln an tatsächlichen Stand angeglichen (kein TEST-Paket, Java nur in Tests, CI-Freigabe über PR). Ungenutzte Assets, Schriften, leere Ordner, toter Signier- und Klartext-Code entfernt. CI in Bau- und Emulator-Job geteilt, PR-Auslöser und Abbruch überholter Läufe. Version 135 (134 belegt der offene Oberflächen-Branch ccr-51374233-11uky3), keine Installation, keine Verteilung.",
+    "owner_instruction": "Ausdrücklicher Auftrag 08.11.2026: Repository nach vollständiger Fehleranalyse bereinigen und Historie prüfen.",
+    "next": [
+      "Compose-Tests auf testTag und ComposeTestRule umstellen; Zählwerte aus qa-apk.yml in die Tests verlagern.",
+      "Oberfläche an APP.md angleichen: Schritt 1 (vier Reiter, + unten rechts, Abrechnung Offen · Abschlüsse · Summen) liegt ungemergt auf ccr-51374233-11uky3; danach Wischgesten.",
+      "JVM-Tests als Gradle-Unit-Tests statt run-followup-java.py."
+    ],
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline.",
-      "android": "PASS; assembleRelease, assembleReleaseAndroidTest und lintRelease; APK-Datenschutzprüfung.",
-      "diagnostic_ci": "42401738391: Settlement-UI mit 167 Prüfungen und alle sechs Grafikabläufe grün. Heute-Felddifferenz beweist Formatwechsel 1.0 h → 1 h in unveränderter Zeile beim Cache-Neuaufbau; Stundenanzeige deshalb normalisiert. Drei externe Änderungen bleiben mit vollständigem Zeilenvergleich geprüft. Accounting wartet nach Tastaturschließen auf das wieder sichtbare Suchfeld samt unverändertem Suchtext. Reopen fehlte nur wegen des abgebrochenen Accounting-Vorlaufs. Freigabe ausschließlich durch vollständig grünen Lauf des abschließenden Commits.",
-      "ci_gate": "Je Commit qa-apk.yml mit emulator=true ohne *_only; nur vollständig grüner Lauf zählt.",
-      "jvm": "PASS; alle 11 lokalen JVM-Suiten ohne Tabellenmodul, einschließlich 61 Arbeits-/Zubehörprüfungen. Neuer Dezimalkomma-Fall vor der Korrektur reproduzierbar rot, danach grün; negative Werte, NaN und unzulässige Genauigkeit abgewiesen. Tabellenmodul und Emulator bleiben Teil der vollen CI."
+      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (87 Lint-Hinweise, 0 Fehler), APK-Datenschutzprüfung; APK 9,8 MB statt 11,6 MB.",
+      "jvm": "PASS; alle 12 JVM-Suiten einschließlich Tabellenmodul.",
+      "ci_gate": "Voller CI-Lauf mit Emulator für diesen Stand ausstehend."
     }
   },
   "open_checks": [
-    "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
-    "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
-    "Pixel-Teilabnahme 131: 49 bestanden; fehlgeschlagen QA06 (Hinweise bei Gerätefoto-Übernahme) und C04 (nach Löschen nicht zur Kundenliste zurück), Nachtest nach Installation; Kamera (QA11) und Randgeste offen.",
-    "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
-    "Ältere native Backup- und Speicherbereinigungsabnahmen offen."
+    "Installierte Version über get_capabilities bestätigen (gemeldet 1.61.1/132, verteilt 1.62.0/133); last_observed_installed_build erst danach setzen.",
+    "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und +; Sicherung wiederherstellen. Eigene Testdaten anschließend löschen.",
+    "Nachtest aus Teilabnahme 131: QA06 (Hinweise bei Gerätefoto-Übernahme), C04 (nach Löschen zurück zur Kundenliste), Kamera QA11, Randgeste.",
+    "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe am Pixel produktiv prüfen.",
+    "Native Sicherung und Speicherbereinigung am Pixel abnehmen."
   ]
 }

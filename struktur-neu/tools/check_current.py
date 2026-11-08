@@ -14,7 +14,6 @@ def main():
         ['tools/check_release_baseline.py'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_original_signing.py'],
         ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_local_storage_build.py'],
-        ['-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_codex_context_hook.py'],
     ]
     for arguments in checks:
         subprocess.run([sys.executable, '-B', *arguments], cwd=ROOT, check=True)

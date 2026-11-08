@@ -28,7 +28,7 @@ on:
         type: boolean
         default: false
         required: false
-  push:
+  pull_request:
     branches: [main]
     paths:
       - 'struktur-neu/android/**'
@@ -39,23 +39,28 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same PR or branch replaces the running check.
+concurrency:
+  group: qa-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  current-source-and-backup:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 110
     defaults:
       run:
         working-directory: struktur-neu
         shell: bash
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
@@ -87,8 +92,47 @@ jobs:
           curl -fsSL https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.46.1.0/sqlite-jdbc-3.46.1.0.jar -o "$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar"
           curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
           HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
+      - name: Keep unsigned packages for the emulator job
+        run: |
+          set -euo pipefail
+          mkdir -p outputs/unsigned
+          cp android/app/build/outputs/apk/release/app-release-unsigned.apk outputs/unsigned/
+          TEST_APK=$(find android/app/build/outputs/apk/androidTest/release -name '*.apk' -print -quit)
+          test -n "$TEST_APK"
+          cp "$TEST_APK" outputs/unsigned/app-release-androidTest.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Gartenpirat-unsigned-packages
+          path: struktur-neu/outputs/unsigned/
+          retention-days: 1
+      - name: Preserve lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gartenpirat-lint
+          path: struktur-neu/android/app/build/reports/lint-results-release.html
+          if-no-files-found: ignore
+          retention-days: 7
+
+  emulator:
+    needs: build
+    if: github.event_name != 'workflow_dispatch' || inputs.emulator
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: struktur-neu
+        shell: bash
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: Gartenpirat-unsigned-packages
+          path: ${{ runner.temp }}/unsigned
       - name: Prepare isolated emulator packages
-        if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
         run: |
           set -euo pipefail
           # This disposable Kotlin/Android runner never uses the preinstalled .NET SDK.
@@ -96,28 +140,26 @@ jobs:
           if [ -d /usr/share/dotnet ]; then sudo rm -rf /usr/share/dotnet; fi
           df -h "$RUNNER_TEMP"
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" 'build-tools;37.0.0' 'platform-tools'
           if [ ! -x "$ANDROID_HOME/emulator/emulator" ]; then
             "$SDKMANAGER" 'emulator'
           fi
           "$SDKMANAGER" 'system-images;android-35;google_apis;x86_64'
       - name: Sign disposable emulator test packages only
-        if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
         run: |
           set -euo pipefail
           # This temporary test key is never used for a user APK and no APK is published.
           keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/gp-test.jks" -storepass android -keypass android -alias qa -keyalg RSA -validity 2 -dname 'CN=Gartenpirat Synthetic Emulator Only'
           SIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
           ALIGN="$ANDROID_HOME/build-tools/37.0.0/zipalign"
-          TEST_APK=$(find android/app/build/outputs/apk/androidTest/release -name '*.apk' -print -quit)
-          test -n "$TEST_APK"
-          "$ALIGN" -f 4 android/app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/gp-app.apk"
-          "$ALIGN" -f 4 "$TEST_APK" "$RUNNER_TEMP/gp-test.apk"
+          "$ALIGN" -f 4 "$RUNNER_TEMP/unsigned/app-release-unsigned.apk" "$RUNNER_TEMP/gp-app.apk"
+          "$ALIGN" -f 4 "$RUNNER_TEMP/unsigned/app-release-androidTest.apk" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
           (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
-        if: (github.event_name != 'workflow_dispatch' || inputs.emulator)
         timeout-minutes: 85
         env:
           GRAPHICS_ONLY: ${{ inputs.graphics_only }}
@@ -293,7 +335,7 @@ jobs:
           test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
           test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
-        if: failure() && (github.event_name != 'workflow_dispatch' || inputs.emulator)
+        if: failure()
         run: |
           mkdir -p outputs
           cp "$RUNNER_TEMP/emulator.log" outputs/emulator.txt 2>/dev/null || true
@@ -316,9 +358,8 @@ jobs:
             struktur-neu/outputs/qa-native-*.png
             struktur-neu/outputs/qa-test-package-identity.txt
             struktur-neu/outputs/emulator*.txt
-            struktur-neu/android/app/build/reports/lint-results-release.html
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove disposable test signing material
-        if: always() && (github.event_name != 'workflow_dispatch' || inputs.emulator)
+        if: always()
         run: rm -f "$RUNNER_TEMP/gp-test.jks" "$RUNNER_TEMP/gp-app.apk" "$RUNNER_TEMP/gp-test.apk"

@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-jar = Path(os.environ.get('HG_JSON_JAR', ROOT/'.dependencies/pixel-tunnel-tests/json-20240303.jar'))
+jar = Path(os.environ['HG_JSON_JAR'])
 if hashlib.sha256(jar.read_bytes()).hexdigest() != '3cf6cd6892e32e2b4c1c39e0f52f5248a2f5b37646fdfbb79a66b46b618414ed':
     raise RuntimeError('JSON test dependency mismatch')
 sdk = Path(os.environ.get('ANDROID_HOME') or os.environ['ANDROID_SDK_ROOT'])
@@ -70,8 +70,7 @@ for name in names:
 java_sources = [p for p in sources if p.suffix == '.java']
 java_sources += [ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java', *support, *tests]
 kotlin_sources = [p for p in sources if p.suffix == '.kt']
-kotlin_tests = sorted((ROOT/'tests/kotlin').rglob('*.kt'))
-if kotlin_sources or kotlin_tests:
+if kotlin_sources:
     if os.environ.get('HG_KOTLINC'):
         compiler = shlex.split(os.environ['HG_KOTLINC'])
     else:
@@ -92,7 +91,7 @@ if kotlin_sources or kotlin_tests:
         compiler = [shutil.which('java'), '-cp', os.pathsep.join(map(str, compiler_jars)),
                     'org.jetbrains.kotlin.cli.jvm.K2JVMCompiler']
     run([*compiler, '-no-stdlib', '-no-reflect', '-jvm-target', '17', '-classpath', cp, '-d', str(classes),
-         *map(str, kotlin_sources), *map(str, kotlin_tests), *map(str, java_sources)])
+         *map(str, kotlin_sources), *map(str, java_sources)])
 run([shutil.which('javac'), '-encoding', 'UTF-8', '-cp', cp, '-d', str(classes), *map(str, java_sources)])
 results = []
 for test in tests:

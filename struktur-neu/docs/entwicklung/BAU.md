@@ -43,26 +43,23 @@ HG_JSON_JAR=… HG_SQLITE_JDBC_JAR=… HG_SLF4J_API_JAR=… \
 ```
 
 Benötigt `org.json:json:20240303`, SQLite-JDBC 3.46.1.0 und SLF4J-API 1.7.36;
-der Runner prüft deren SHA256 und lädt nichts nach.
+der Runner prüft deren SHA256 und lädt nichts nach. Den Kotlin-Compiler nimmt er
+aus dem Gradle-Cache; vorher einmal den Gradle-Bau ausführen.
 
 ## CI
 
-`.github/workflows/qa-apk.yml` baut, führt die JVM-Tests aus und startet auf
-einem Wegwerf-Emulator (API 35) die Suiten `local_backup`, `local_backup_reopen`,
-`native_data`, `document_provider`, `document_provider_reopen` und
-`native_compose`, `native_settlement`, `native_settlement_reopen`,
-`native_settlement_ui`, `native_accounting`, `native_accounting_reopen` und
-`native_graphics`. Das geschieht bei jedem Push nach `main` und bei manuellem
-Start mit `emulator=true` ohne `*_only`. Die `*_only`-Schalter bleiben für
-gezielte Fehlersuche verfügbar und zählen nicht als voller Lauf.
+`.github/workflows/qa-apk.yml` läuft bei jedem PR nach `main` und manuell.
+Job `build`: Quellprüfung, Release- und Test-APK, Lint,
+JVM-Tests. Job `emulator`: alle nativen Suiten auf einem Wegwerf-Emulator
+(API 35); die Liste der Suiten und Abläufe steht nur im Workflow. Ein neuerer
+Push auf denselben PR bricht den laufenden Lauf ab. Voller Lauf = PR-Lauf oder
+manuell mit `emulator=true` ohne `*_only`; die `*_only`-Schalter dienen nur der
+Fehlersuche.
 
-Der Emulator verwendet nur synthetische Daten und einen temporären
-Testschlüssel; es wird keine APK veröffentlicht. Ein Build ist kein Emulatorlauf,
-ein Emulatorlauf keine Pixel-Abnahme.
-
-Die 21 Compose- und sechs Grafikabläufe laufen einzeln mit `-e journey <name>`, jeweils nach
-`pm clear` und in einem neuen Instrumentierungsprozess. Jeder legt seinen
-synthetischen Bestand selbst an; Ergebnisse stehen je Ablauf im CI-Artefakt.
+Jeder Compose- und Grafikablauf startet nach `pm clear` in einem neuen
+Instrumentierungsprozess (`-e journey <name>`) und legt seine synthetischen
+Daten selbst an. Der Emulator nutzt einen temporären Testschlüssel; es wird
+keine APK veröffentlicht. Ein Emulatorlauf ist keine Pixel-Abnahme.
 
 Einzelne Suite am Gerät oder Emulator:
 
