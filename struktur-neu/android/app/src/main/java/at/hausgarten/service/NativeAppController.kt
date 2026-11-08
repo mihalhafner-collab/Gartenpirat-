@@ -68,6 +68,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
         get() = NativeImages.loader(context)
 
     val messages = MutableStateFlow("")
+    var listActions by mutableStateOf<List<JSONObject>>(emptyList())
     var route by mutableStateOf(NativeRoute())
         private set
 

@@ -989,6 +989,18 @@ internal object NativeActionCatalog {
                 "Tatsächlich erledigte Wartung mit Datum dokumentieren",
                 listOf("record_equipment_maintenance"),
             ),
+            NativeAction(
+                "listen.1",
+                "listen",
+                "Wischen und Rückgängig",
+                listOf("queue_list_action", "get_list_actions", "undo_list_action"),
+            ),
+            NativeAction(
+                "abrechnung.entwurf_loeschen",
+                "abrechnung",
+                "Abrechnungsentwurf löschen",
+                listOf("delete_settlement_draft"),
+            ),
         )
 
     /** Retired actions stay inspectable in the catalog without exposing an executable button. */

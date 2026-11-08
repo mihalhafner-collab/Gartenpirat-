@@ -143,6 +143,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
     }
 
     override @Throws(Exception::class) fun query(name: String, args: JSONObject): JSONObject? {
+        if (name == "get_list_actions") return ListActionService(repository).query()
         if (name == "export_settlements") return exportSettlements(args)
         if (name in SettlementTools.READS && name != "export_settlements")
             return SettlementTools.query(name, args, repository)

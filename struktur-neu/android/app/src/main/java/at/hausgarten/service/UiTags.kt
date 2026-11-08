@@ -2,6 +2,13 @@ package at.hausgarten.service
 
 /** Stable ids of controls that instrumentation tests use instead of visible text. */
 internal object UiTags {
+    const val UNDO = "action:undo"
+    const val DELETE_SELECTION = "action:delete-selection"
+
+    fun swipe(entity: String, id: String) = "swipe:$entity:$id"
+
+    fun billingTab(index: Int) = "billing-tab:$index"
+
     const val BACK = "action:back"
     const val CREATE = "action:create"
     const val MORE = "action:more"

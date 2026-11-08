@@ -296,12 +296,16 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                             contentPadding = PaddingValues(horizontal = 12.dp),
                         ) {
                             items(page.rows, key = { it.id }) { row ->
-                                ListItem(
-                                    headlineContent = { Text(row.title) },
-                                    supportingContent = { Text(nativeDisplayText(row.subtitle)) },
-                                    modifier =
-                                        Modifier.fillMaxWidth().clickable { selected = row.id },
-                                )
+                                NativeSwipeRow(controller, "photo", row.id) {
+                                    ListItem(
+                                        headlineContent = { Text(row.title) },
+                                        supportingContent = {
+                                            Text(nativeDisplayText(row.subtitle))
+                                        },
+                                        modifier =
+                                            Modifier.fillMaxWidth().clickable { selected = row.id },
+                                    )
+                                }
                             }
                             if (!imeVisible && search.isNotBlank()) item { photoActions() }
                         }
@@ -314,21 +318,27 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(page.rows, key = { it.id }) { row ->
-                                Card(onClick = { selected = row.id }) {
-                                    NativePhotoImage(
-                                        row.id,
-                                        controller,
-                                        Modifier.fillMaxWidth().height(132.dp),
-                                        ContentScale.Crop,
-                                        thumbnailReference = row.thumbnailReference,
-                                    )
-                                    Text(row.title, Modifier.padding(8.dp), maxLines = 2)
-                                    Text(
-                                        nativeDisplayText(row.subtitle),
-                                        Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        maxLines = 2,
-                                    )
+                                NativeSwipeRow(controller, "photo", row.id) {
+                                    Card(onClick = { selected = row.id }) {
+                                        NativePhotoImage(
+                                            row.id,
+                                            controller,
+                                            Modifier.fillMaxWidth().height(132.dp),
+                                            ContentScale.Crop,
+                                            thumbnailReference = row.thumbnailReference,
+                                        )
+                                        Text(row.title, Modifier.padding(8.dp), maxLines = 2)
+                                        Text(
+                                            nativeDisplayText(row.subtitle),
+                                            Modifier.padding(
+                                                start = 8.dp,
+                                                end = 8.dp,
+                                                bottom = 8.dp,
+                                            ),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 2,
+                                        )
+                                    }
                                 }
                             }
                         }

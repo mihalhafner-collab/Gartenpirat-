@@ -2010,6 +2010,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("back_gesture", ::backGestureJourney)
             journey("domain_search", ::domainSearchJourney)
             journey("grouped_search", ::groupedSearchJourney)
+            journey("list_actions", ::listActionsJourney)
             journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
@@ -4622,6 +4623,190 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
      * Search from Today: results grouped by kind, call and route on the hit, last opened without a
      * query.
      */
+    /**
+     * Real gestures, undo, durable deletion after recreation, positive actions and invoice guard.
+     */
+    private fun listActionsJourney() {
+        val beforeMaster = JSONObject(store.getState().getJSONObject("master").toString())
+        val beforeLedger = store.ownerValue(SettlementRules.KEY, "{}")
+        val beforeQueue = store.ownerValue(ListActionTools.KEY, "{}")
+        val customerId = "qa_swipe_customer"
+        val orderId = "qa_swipe_order"
+        val invoiceId = "qa_swipe_invoice"
+        val customer = customers(fixturePrefix + "000").single().getString("id")
+        val source = JSONObject(beforeMaster.toString())
+        source
+            .getJSONArray("customers")
+            .put(
+                JSONObject()
+                    .put("id", customerId)
+                    .put("name", "[TEST] AAA Wischkunde")
+                    .put("active", 1)
+                    .put("billing_mode", "direct")
+                    .put("test_record", true)
+            )
+        source
+            .getJSONArray("orders")
+            .put(
+                JSONObject()
+                    .put("id", orderId)
+                    .put("customer_id", customer)
+                    .put("title", "[TEST] AAA Wischauftrag")
+                    .put("status", "Geplant")
+                    .put("test_record", true)
+            )
+        val invoice =
+            JSONObject()
+                .put("id", invoiceId)
+                .put("title", "[TEST] AAA geschützte Rechnung")
+                .put("kind", "invoice")
+                .put("route", "billed")
+                .put("status", "confirmed")
+                .put("issue_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
+                .put("invoice_number", "QA-WISCH-1")
+                .put("total_minor", 1000)
+        store.putOwnerValue("snapshot", source.toString())
+        store.putOwnerValue(
+            SettlementRules.KEY,
+            JSONObject()
+                .put("records", JSONArray().put(invoice))
+                .put("payments", JSONArray())
+                .toString(),
+        )
+        store.notifyCommittedChange()
+        activity?.let { current -> test.runOnMainSync { current.finish() } }
+        launch()
+        fun rows(entity: String, id: String): List<JSONObject> {
+            val response = tools.call("get_list_actions", JSONObject())
+            val entries = (response.optJSONObject("data") ?: response).getJSONArray("actions")
+            return (0 until entries.length())
+                .map { entries.getJSONObject(it) }
+                .filter { it.optString("entity") == entity && it.optString("entity_id") == id }
+        }
+        fun record(collection: String, id: String) =
+            OwnerJournalRules.findOrNull(
+                PixelMcpReadTools.effective(store.getState()).optJSONArray(collection),
+                id,
+            )
+        fun swipe(tag: String, right: Boolean) {
+            reveal(tag)
+            val target = requireNotNull(node(tag))
+            val bounds = Rect().also(target::getBoundsInScreen)
+            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+            yes(
+                bounds.intersect(screen) && bounds.width() >= 48 && bounds.height() >= 48,
+                "SWIPE_REAL_TARGET_$tag",
+            )
+            val start = bounds.left + bounds.width() * if (right) 0.15f else 0.85f
+            val end = bounds.left + bounds.width() * if (right) 0.85f else 0.15f
+            val down = SystemClock.uptimeMillis()
+            fun event(action: Int, x: Float) {
+                val motion =
+                    MotionEvent.obtain(
+                        down,
+                        SystemClock.uptimeMillis(),
+                        action,
+                        x,
+                        bounds.exactCenterY(),
+                        0,
+                    )
+                motion.source = InputDevice.SOURCE_TOUCHSCREEN
+                try {
+                    yes(automation.injectInputEvent(motion, true), "SWIPE_INPUT_$tag")
+                } finally {
+                    motion.recycle()
+                }
+            }
+            event(MotionEvent.ACTION_DOWN, start)
+            for (step in 1..12) {
+                SystemClock.sleep(16)
+                event(MotionEvent.ACTION_MOVE, start + (end - start) * step / 12f)
+            }
+            event(MotionEvent.ACTION_UP, end)
+        }
+        try {
+            click(UiTags.area("customers"))
+            click(UiTags.area("customers"))
+            swipe(UiTags.swipe("customer", customerId), right = false)
+            click(UiTags.UNDO)
+            waitUntil("SWIPE_CUSTOMER_UNDONE") {
+                rows("customer", customerId).lastOrNull()?.optString("state") == "undone" &&
+                    record("customers", customerId) != null
+            }
+            shown(UiTags.swipe("customer", customerId))
+            swipe(UiTags.swipe("customer", customerId), right = false)
+            waitUntil("SWIPE_CUSTOMER_QUEUED") {
+                rows("customer", customerId).lastOrNull()?.optString("state") == "queued"
+            }
+            recreate()
+            waitUntil("SWIPE_CUSTOMER_PERMANENT_AFTER_RECREATION") {
+                rows("customer", customerId).lastOrNull()?.optString("state") == "done" &&
+                    record("customers", customerId) == null
+            }
+            yes(
+                !OwnerJournalRules.archives(PixelMcpReadTools.effective(store.getState()))
+                    .has("customer:$customerId"),
+                "SWIPE_NO_TRASH_AFTER_WINDOW",
+            )
+            click(UiTags.area("today"))
+            click(UiTags.area("today"))
+            click(UiTags.MORE)
+            click(UiTags.area("orders"))
+            val workBefore =
+                PixelMcpWriteTools.hash(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                )
+            swipe(UiTags.swipe("order", orderId), right = true)
+            click(UiTags.UNDO)
+            waitUntil("SWIPE_ORDER_UNDONE") {
+                rows("order", orderId).lastOrNull()?.optString("state") == "undone" &&
+                    record("orders", orderId)?.optString("status") == "Geplant"
+            }
+            swipe(UiTags.swipe("order", orderId), right = true)
+            waitUntil("SWIPE_ORDER_COMPLETED") {
+                rows("order", orderId).lastOrNull()?.optString("state") == "done" &&
+                    record("orders", orderId)?.optString("status") == "Erledigt"
+            }
+            val completedCount = rows("order", orderId).size
+            swipe(UiTags.swipe("order", orderId), right = true)
+            waitStable("SWIPE_COMPLETED_ORDER_REPEAT", stableMs = 500) {
+                rows("order", orderId).size == completedCount &&
+                    record("orders", orderId)?.optString("status") == "Erledigt"
+            }
+            yes(
+                PixelMcpWriteTools.hash(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                ) == workBefore,
+                "SWIPE_ORDER_DOES_NOT_INVENT_WORK",
+            )
+            click(UiTags.area("accounting"))
+            click(UiTags.area("accounting"))
+            click(UiTags.billingTab(1))
+            val invoiceBefore = store.ownerValue(SettlementRules.KEY, "{}")
+            swipe(UiTags.swipe("settlement", invoiceId), right = false)
+            swipe(UiTags.swipe("settlement", invoiceId), right = true)
+            waitStable("SWIPE_ISSUED_INVOICE_PROTECTED", stableMs = 500) {
+                rows("settlement", invoiceId).isEmpty() &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == invoiceBefore
+            }
+            yes(node(UiTags.UNDO) == null, "SWIPE_INVOICE_HAS_NO_UNDO_ACTION")
+            captureSyntheticScreen("list-swipe-protection")
+        } finally {
+            waitUntil("SWIPE_TEST_ACTIONS_FINISHED") {
+                listOf("customer" to customerId, "order" to orderId, "settlement" to invoiceId)
+                    .none { (entity, id) ->
+                        rows(entity, id).any {
+                            it.optString("state") in setOf("queued", "applying", "uncertain")
+                        }
+                    }
+            }
+            store.putOwnerValue("snapshot", beforeMaster.toString())
+            store.putOwnerValue(SettlementRules.KEY, beforeLedger)
+            store.putOwnerValue(ListActionTools.KEY, beforeQueue)
+            store.notifyCommittedChange()
+        }
+    }
+
     private fun groupedSearchJourney() {
         val name = "[TEST] QA Gruppensuche Kunde"
         val source = JSONObject(store.getState().getJSONObject("master").toString())

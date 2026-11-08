@@ -2655,6 +2655,38 @@
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeAppController.kt"
+    },
+    {
+      "id": "listen.1",
+      "area": "listen",
+      "action": "Wischen und Rückgängig",
+      "source": "NativeListActions.kt",
+      "mcp": [
+        "queue_list_action",
+        "get_list_actions",
+        "undo_list_action"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "JVM queue/deletion tests and native list_actions gesture journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeListActions.kt"
+    },
+    {
+      "id": "abrechnung.entwurf_loeschen",
+      "area": "abrechnung",
+      "action": "Abrechnungsentwurf löschen",
+      "source": "NativeSettlementScreen.kt",
+      "mcp": [
+        "delete_settlement_draft"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "JVM queue/deletion tests and native list_actions gesture journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeListActions.kt"
     }
   ]
 }

@@ -2136,7 +2136,7 @@ private fun nativeRequiredFieldsReady(schema: JSONObject, values: JSONObject): B
     }
 }
 
-private fun nativeActionError(failure: Exception, fallback: String): String {
+internal fun nativeActionError(failure: Exception, fallback: String): String {
     val message = failure.message.orEmpty()
     return if (
         message.isBlank() ||
@@ -2359,7 +2359,16 @@ internal suspend fun NativeAppController.deleteDirect(
     flushDrafts()
     onPrepared(JSONObject(args.toString()))
     try {
-        val result = query(tool, args)
+        val result =
+            if (tool in setOf("delete_entity", "delete_work_records")) {
+                query(
+                    "queue_list_action",
+                    JSONObject()
+                        .put("request_id", "ui-delete-" + PixelMcpWriteTools.hash(args))
+                        .put("original_tool", tool)
+                        .put("original_args", args),
+                )
+            } else query(tool, args)
         removeDraft(key)
         return result
     } catch (failure: NativeCallFailure) {

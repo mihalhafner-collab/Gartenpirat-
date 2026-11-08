@@ -12,6 +12,8 @@ class LocalWorkflowApplicationService : OwnerCommand {
 
     @Throws(Exception::class)
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
+        if (name in ListActionTools.WRITES)
+            return ListActionService(repository).perform(name, args, request)
         if (LocalWorkflowTools.backup(name)) {
             return repository.fullBackupAction(name, args)
         }

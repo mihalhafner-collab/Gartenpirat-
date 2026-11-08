@@ -1092,25 +1092,35 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             if (!listLoading && page.rows.isEmpty() && error.isEmpty())
                 item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
             items(page.rows, key = { it.id }) { row ->
-                OutlinedCard(
-                    Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable {
-                        controller.navigate(
-                            section,
-                            row.id,
-                            args =
-                                JSONObject(controller.route.args.toString())
-                                    .put("customer_id", customer),
-                        )
-                    }
+                NativeSwipeRow(
+                    controller,
+                    if (section == "catalog") "service_template"
+                    else if (section == "offers") "offer" else "invoice",
+                    row.id,
+                    canDelete =
+                        section == "catalog" || row.status.lowercase() in setOf("draft", "entwurf"),
                 ) {
-                    Column(
-                        Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                    OutlinedCard(
+                        Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable {
+                            controller.navigate(
+                                section,
+                                row.id,
+                                args =
+                                    JSONObject(controller.route.args.toString())
+                                        .put("customer_id", customer),
+                            )
+                        }
                     ) {
-                        Text(row.title, style = MaterialTheme.typography.titleMedium)
-                        if (row.subtitle.isNotEmpty()) Text(nativeDisplayText(row.subtitle))
-                        if (row.status.isNotEmpty()) NativeStatus(financeStatus(row.status))
-                        if (section == "catalog") Text(if (row.active) "Aktiv" else "Deaktiviert")
+                        Column(
+                            Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+                            Text(row.title, style = MaterialTheme.typography.titleMedium)
+                            if (row.subtitle.isNotEmpty()) Text(nativeDisplayText(row.subtitle))
+                            if (row.status.isNotEmpty()) NativeStatus(financeStatus(row.status))
+                            if (section == "catalog")
+                                Text(if (row.active) "Aktiv" else "Deaktiviert")
+                        }
                     }
                 }
             }
