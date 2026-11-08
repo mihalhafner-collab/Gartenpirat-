@@ -1035,14 +1035,7 @@ class BusinessTableStore {
         var out = StringBuilder()
         run {
             var offset: Long = 0
-            var firstIteration6 = true
-            while (true) {
-                if (firstIteration6) firstIteration6 = false
-                else {
-                    offset += 32768
-                }
-                if (!(offset < count)) break
-
+            while (offset < count) {
                 val chunk = Array(arguments.size + 1) { "" }
                 chunk[0] = (offset + 1).toString()
                 System.arraycopy(arguments, 0, chunk, 1, arguments.size)
@@ -1054,6 +1047,7 @@ class BusinessTableStore {
                         require(rows.next(), "TABLE_TEXT_CHANGED")
                         out.append(rows.text(0))
                     }
+                offset += 32768
             }
         }
         return out.toString()

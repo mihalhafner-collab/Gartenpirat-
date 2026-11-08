@@ -268,19 +268,13 @@ class BusinessQueries {
                         var unbilled: Int = 0
                         run {
                             var i: Int = 0
-                            var firstIteration11 = true
-                            while (true) {
-                                if (firstIteration11) firstIteration11 = false
-                                else {
-                                    i++
-                                }
-                                if (!(logs != null && i < logs.length())) break
-
+                            while (logs != null && i < logs.length()) {
                                 val row = logs.getJSONObject(i)
                                 hours += row.optDouble("hours", 0.0)
                                 if (row.optInt("billed", 0) == 0) {
                                     unbilled++
                                 }
+                                i++
                             }
                         }
                         data =

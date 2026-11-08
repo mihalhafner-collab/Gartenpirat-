@@ -283,9 +283,9 @@ class PixelTunnelWire {
                     connection.setRequestProperty("Content-Type", "application/json")
                     val bytes = body.toString().toByteArray(StandardCharsets.UTF_8)
                     connection.setFixedLengthStreamingMode(bytes.size)
-                    connection.getOutputStream().use { out -> out.write(bytes) }
+                    connection.outputStream.use { out -> out.write(bytes) }
                 }
-                val code: Int = connection.getResponseCode()
+                val code: Int = connection.responseCode
                 val receipt: Long = System.nanoTime()
                 if (code == 204) {
                     return Reply(code, JSONObject(), receipt)
@@ -306,7 +306,7 @@ class PixelTunnelWire {
                     }
                     return Reply(code, safe, receipt)
                 }
-                connection.getInputStream().use { input ->
+                connection.inputStream.use { input ->
                     ByteArrayOutputStream().use { out ->
                         val buffer = ByteArray(8192)
                         var count: Int
@@ -339,7 +339,7 @@ class PixelTunnelWire {
         companion object {
             private @JvmStatic fun readAccessReason(connection: HttpURLConnection): String {
                 try {
-                    connection.getErrorStream().use { input ->
+                    connection.errorStream.use { input ->
                         ByteArrayOutputStream().use { out ->
                             if (input == null) {
                                 return "auth_denied"

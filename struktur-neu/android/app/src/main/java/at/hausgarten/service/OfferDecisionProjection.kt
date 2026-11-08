@@ -8,7 +8,7 @@ internal object OfferDecisionProjection {
     @JvmStatic
     @Throws(Exception::class)
     fun apply(store: PixelLocalStore, master: JSONObject): Unit {
-        apply(store!!.getReadableDatabase(), master)
+        apply(store!!.readableDatabase, master)
     }
 
     @JvmStatic

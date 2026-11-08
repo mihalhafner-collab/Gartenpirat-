@@ -92,7 +92,7 @@ class AppointmentRules {
             ) {
                 return 2
             }
-            return (if (((x && (y || until.isAfter(start))) || (y && (x || end.isAfter(other))))) 1
+            return (if ((x && (y || until.isAfter(start))) || (y && (x || end.isAfter(other)))) 1
             else 0)
         }
 
@@ -113,7 +113,7 @@ class AppointmentRules {
         fun local(value: String, zone: String, offset: String): Instant {
             val time: LocalDateTime = LocalDateTime.parse(value)
             var id: ZoneId = ZoneId.of(zone)
-            val valid: MutableList<ZoneOffset> = id.getRules().getValidOffsets(time)
+            val valid: MutableList<ZoneOffset> = id.rules.getValidOffsets(time)
             if (valid.isEmpty()) {
                 throw IllegalArgumentException(
                     "Diese Uhrzeit existiert wegen der Zeitumstellung nicht."
@@ -139,7 +139,7 @@ class AppointmentRules {
                     s.getJSONArray("customers"),
                     row.optString("customer_id"),
                 )
-            if (((customer == null) || ((old == null) && (customer!!.optInt("active", 1) == 0)))) {
+            if ((customer == null) || ((old == null) && (customer!!.optInt("active", 1) == 0))) {
                 throw IllegalArgumentException(
                     "Bitte einen vorhandenen aktiven Einsatzkunden wählen."
                 )
@@ -155,7 +155,7 @@ class AppointmentRules {
                 throw IllegalArgumentException("Bitte eine Tätigkeit eintragen.")
             }
             val zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))
-            row.put("timezone", zone.getId())
+            row.put("timezone", zone.id)
             val endValue: String = row.getString("ends_at")
             val open: Boolean = endValue.isEmpty()
             val start: Instant = instant(row.getString("starts_at"))

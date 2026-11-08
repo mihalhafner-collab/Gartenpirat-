@@ -42,7 +42,7 @@ class WorkSessionStore {
             if (context != null) {
                 var count: Int =
                     android.provider.Settings.Global.getInt(
-                        context!!.getContentResolver(),
+                        context!!.contentResolver,
                         android.provider.Settings.Global.BOOT_COUNT,
                         -1,
                     )
@@ -338,7 +338,7 @@ class WorkSessionStore {
                 }
                 run {
                     var i: Int = 0
-                    while (i < original.getColumnCount()) {
+                    while (i < original.columnCount) {
                         var value: Any =
                             (if (original.isNull(i)) JSONObject.NULL
                             else

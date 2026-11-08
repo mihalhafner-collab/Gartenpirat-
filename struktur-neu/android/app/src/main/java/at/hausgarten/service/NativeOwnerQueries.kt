@@ -19,7 +19,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
 
     private fun exportSettlements(args: JSONObject): JSONObject {
         McpSchema.validate(args, SettlementTools.schema("export_settlements"))
-        val db = store.getWritableDatabase()
+        val db = store.writableDatabase
         store.beginBusinessTransaction(db)
         try {
             val ledger = SettlementRules.ledger(repository)
@@ -238,7 +238,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                                     .isEmpty()),
                             )
                             .put("app_version_name", BuildConfig.VERSION_NAME)
-                            .put("package_name", context.getPackageName())
+                            .put("package_name", context.packageName)
                             .put("database_version", PixelLocalStore.SCHEMA_VERSION)
                             .put("app_version_code", BuildConfig.VERSION_CODE)
                             .put("snapshot_available", !(store.snapshotText("").isEmpty()))
@@ -450,14 +450,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                     val limit: Int = args.optInt("limit", 20)
                     run {
                         var i: Int = skip
-                        var firstIteration16 = true
-                        while (true) {
-                            if (firstIteration16) firstIteration16 = false
-                            else {
-                                i++
-                            }
-                            if (!(i < keys.size && out.length() < limit)) break
-
+                        while (i < keys.size && out.length() < limit) {
                             val key = keys.get(i)
                             val saved = archive.getJSONObject(key)
                             out.put(
@@ -466,6 +459,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                                     .put("entry", saved)
                                     .put("record_hash", OwnerJournalRules.version(saved))
                             )
+                            i++
                         }
                     }
                     return JSONObject().put("archive", out).put("total", keys.size)
@@ -592,7 +586,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                 )
                 .put("actions", actions.length())
         )
-        val docs = File(context.getFilesDir(), "business-documents")
+        val docs = File(context.filesDir, "business-documents")
         checks.put(
             JSONObject()
                 .put("name", "private_document_storage")
