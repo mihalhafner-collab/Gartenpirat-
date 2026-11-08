@@ -8,11 +8,9 @@ internal class OfferMoney {
     constructor() {}
 
     companion object {
-
         @JvmStatic
         @Throws(Exception::class)
         fun minor(value: Any?): Long {
-
             if ((value == null) || (value == JSONObject.NULL)) {
                 throw IllegalArgumentException("MONEY_REQUIRED")
             }
@@ -24,14 +22,12 @@ internal class OfferMoney {
 
         @JvmStatic
         fun decimal(value: Long): String {
-
             return BigDecimal.valueOf(value, 2).toPlainString()
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun exactTotals(offer: JSONObject): JSONObject {
-
             var net: Long = 0
             var tax: Long = 0
             val positions = JSONArray(offer.getJSONArray("positions").toString())

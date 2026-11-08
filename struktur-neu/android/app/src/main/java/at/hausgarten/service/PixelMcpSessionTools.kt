@@ -23,14 +23,12 @@ internal class PixelMcpSessionTools {
 
         @JvmStatic
         fun handles(name: String): Boolean {
-
             return NAMES.asList().contains(name)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
             var props =
                 JSONObject()
                     .put(
@@ -118,7 +116,6 @@ internal class PixelMcpSessionTools {
         @JvmStatic
         @Throws(Exception::class)
         fun tools(): JSONArray {
-
             var out = JSONArray()
             for (name in NAMES) {
                 out.put(
@@ -145,7 +142,6 @@ internal class PixelMcpSessionTools {
         @JvmStatic
         @Throws(Exception::class)
         fun prepare(name: String, args: JSONObject, state: JSONObject): JSONObject {
-
             PixelMcpWriteTools.validate(args, schema(name))
             var current = state.optJSONObject("work_session")
             var out = JSONObject(args.toString())

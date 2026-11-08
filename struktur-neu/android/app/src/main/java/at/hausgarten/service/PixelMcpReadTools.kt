@@ -9,13 +9,11 @@ class PixelMcpReadTools {
 
         @Throws(Exception::class)
         fun stateFor(name: String, arguments: JSONObject): JSONObject {
-
             return state()
         }
 
         @Throws(Exception::class)
         fun metadata(): JSONObject {
-
             return state()
         }
     }
@@ -42,13 +40,11 @@ class PixelMcpReadTools {
     }
 
     private fun writable(): Boolean {
-
         return ((writer != null) && writer.writable())
     }
 
     @Throws(Exception::class)
     fun tools(): JSONArray {
-
         val rows = JSONArray()
         for (name in NAMES) {
             rows.put(
@@ -99,7 +95,6 @@ class PixelMcpReadTools {
 
     @Throws(Exception::class)
     fun call(name: String, a: JSONObject): JSONObject {
-
         if (
             (((((AppointmentTools.write(name) || OfferTools.write(name)) ||
                 PixelMcpOwnerTools.write(name)) || PixelMcpWriteTools.handles(name)) ||
@@ -379,7 +374,6 @@ class PixelMcpReadTools {
 
     @Throws(Exception::class)
     fun rpc(request: JSONObject): JSONObject? {
-
         var id = request.opt("id")
         val method = request.optString("method")
         var answer =
@@ -430,7 +424,6 @@ class PixelMcpReadTools {
         if (method == "tools/call") {
             var data: JSONObject?
             try {
-
                 var p = request.getJSONObject("params")
                 data =
                     call(
@@ -480,12 +473,10 @@ class PixelMcpReadTools {
             )
 
         private @JvmStatic @Throws(Exception::class) fun obj(value: String): JSONObject {
-
             return JSONObject(value)
         }
 
         private @JvmStatic @Throws(Exception::class) fun schema(name: String): JSONObject {
-
             val props = JSONObject()
             val required = JSONArray()
             var fields: Array<String>
@@ -592,7 +583,6 @@ class PixelMcpReadTools {
         @JvmStatic
         @Throws(Exception::class)
         fun effective(state: JSONObject): JSONObject {
-
             if (state.optBoolean("storage_point_read")) {
                 val row = JSONObject(state.getJSONObject("master").toString())
                 return row

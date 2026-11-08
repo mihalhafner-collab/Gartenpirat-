@@ -53,19 +53,20 @@
   },
   "current_task": {
     "name": "Repository-Bereinigung nach Fehleranalyse (1.62.1/135)",
-    "status": "Regeln an tatsächlichen Stand angeglichen (kein TEST-Paket, Java nur in Tests, CI-Freigabe über PR). Ungenutzte Assets, Schriften, leere Ordner, toter Signier- und Klartext-Code entfernt. CI in Bau- und Emulator-Job geteilt, PR-Auslöser und Abbruch überholter Läufe. Version 135 (134 belegt der offene Oberflächen-Branch ccr-51374233-11uky3), keine Installation, keine Verteilung. Danach Codepflege: Kotlin-Compiler- und Lint-Warnungen auf 0, Warnungen gelten als Fehler; Berechtigungen und Datei-/Kontoauswahl über Activity-Result-API; Parameternamen wie in den Schnittstellen; J2K-Reste bei Nullprüfungen bereinigt. Kotlin-Quellen mit ktfmt formatiert (außer den fünf Dateien des offenen Oberflächen-Branches); 57 von 78 Umwandlungsschleifen (while(true)/firstIteration) in for/while-Schleifen überführt, die übrigen 21 verändern Zähler oder Liste im Rumpf.",
+    "status": "Regeln an tatsächlichen Stand angeglichen (kein TEST-Paket, Java nur in Tests, CI-Freigabe über PR). Ungenutzte Assets, Schriften, leere Ordner, toter Signier- und Klartext-Code entfernt. CI in Bau- und Emulator-Job geteilt, PR-Auslöser und Abbruch überholter Läufe. Version 135 (134 belegt der offene Oberflächen-Branch ccr-51374233-11uky3), keine Installation, keine Verteilung. Danach Codepflege: Kotlin-Compiler- und Lint-Warnungen auf 0, Warnungen gelten als Fehler; Berechtigungen und Datei-/Kontoauswahl über Activity-Result-API; Parameternamen wie in den Schnittstellen; J2K-Reste bei Nullprüfungen bereinigt. Kotlin-Quellen mit ktfmt formatiert (außer den fünf Dateien des offenen Oberflächen-Branches); 57 von 78 Umwandlungsschleifen (while(true)/firstIteration) in for/while-Schleifen überführt, die übrigen 21 verändern Zähler oder Liste im Rumpf. 1216 nie neu zugewiesene var als val, 1642 doppelte Klammern und 366 Leerzeilen nach Blockbeginn entfernt.",
     "owner_instruction": "Ausdrücklicher Auftrag 08.11.2026: Repository nach vollständiger Fehleranalyse bereinigen und Historie prüfen.",
     "next": [
       "Nach Merge des Oberflächen-Branches dessen fünf Dateien mit ktfmt formatieren und Formatprüfung in CI aufnehmen.",
       "Compose-Tests auf testTag und ComposeTestRule umstellen; Zählwerte aus qa-apk.yml in die Tests verlagern.",
       "Oberfläche an APP.md angleichen: Schritt 1 (vier Reiter, + unten rechts, Abrechnung Offen · Abschlüsse · Summen) liegt ungemergt auf ccr-51374233-11uky3; danach Wischgesten.",
-      "JVM-Tests als Gradle-Unit-Tests statt run-followup-java.py."
+      "JVM-Tests als Gradle-Unit-Tests statt run-followup-java.py.",
+      "Restliche Umwandlungsspuren schrittweise beim Bearbeiten: 1.890 !!, Java-Getter statt Kotlin-Eigenschaften, 21 Schleifen mit verändertem Zähler, große Dateien nach Fachbereich teilen."
     ],
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline.",
       "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease mit 0 Warnungen (Warnungen als Fehler), APK-Datenschutzprüfung; APK 9,8 MB statt 11,6 MB.",
       "jvm": "PASS; alle 12 JVM-Suiten einschließlich Tabellenmodul.",
-      "ci_gate": "Bereinigung c5f660b: voller CI-Lauf 42454900913 grün (Bau, Lint, JVM, alle Emulator-Suiten). Codepflege: voller CI-Lauf ausstehend."
+      "ci_gate": "Bereinigung c5f660b: voller CI-Lauf 42454900913 grün. Codepflege bis HEAD: voller CI-Lauf ausstehend."
     }
   },
   "open_checks": [

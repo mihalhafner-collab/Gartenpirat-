@@ -16,14 +16,12 @@ internal class LocalTestCleanup {
         @JvmStatic
         @Throws(Exception::class)
         fun overlay(store: PixelLocalStore, master: JSONObject): Unit {
-
             overlay(store::ownerValue, master)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun overlay(values: Values, master: JSONObject): Unit {
-
             val tombstones = JSONObject(values.get(KEY, "{}"))
             run {
                 val it = tombstones.keys()
@@ -36,7 +34,6 @@ internal class LocalTestCleanup {
 
         @JvmStatic
         fun sameTarget(event: JSONObject, entity: String, id: String): Boolean {
-
             val kind = event.optString("kind")
             var p = event.optJSONObject("payload")
             if ((p == null) || !(id == p.optString("id"))) {
@@ -57,7 +54,6 @@ internal class LocalTestCleanup {
             entity: String,
             id: String,
         ): Boolean {
-
             var record =
                 OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)), id)
             if (record == null) {

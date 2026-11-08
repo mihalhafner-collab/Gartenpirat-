@@ -132,7 +132,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
             .put("invoice_finalization", "LOCAL_KU_EUR_PREPARE_COMPLETE")
 
     private @Throws(Exception::class) fun withStorageContract(result: JSONObject): JSONObject {
-
         val contract = storageContract()
         run {
             val keys = contract.keys()
@@ -145,7 +144,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
     }
 
     override @Throws(Exception::class) fun query(name: String, args: JSONObject): JSONObject? {
-
         if (name == "export_settlements") return exportSettlements(args)
         if (name in SettlementTools.READS && name != "export_settlements")
             return SettlementTools.query(name, args, repository)
@@ -316,7 +314,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                             .put("expected_record_hash", OwnerJournalRules.version(entry))
                             .put("allowed", true)
                     try {
-
                         TrashRules.purge(
                             JSONObject(all.toString()),
                             JSONObject()
@@ -493,7 +490,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
     }
 
     private @Throws(Exception::class) fun selfTest(): JSONObject {
-
         val checks = JSONArray()
         var all = repository.effective()
         val settings = all.optJSONObject("business_settings")
@@ -503,7 +499,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                 store.readSource(),
                 object : PixelMcpWriteTools.Sink {
                     override fun writable(): Boolean {
-
                         return PixelTunnelConfig(context).writeEnabled()
                     }
 
@@ -511,7 +506,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         tool: String,
                         args: JSONObject,
                     ): JSONObject {
-
                         return store.execute(tool, args)
                     }
 
@@ -519,7 +513,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         id: String,
                         state: JSONObject,
                     ): JSONObject {
-
                         return store.status(id, state)
                     }
                 },

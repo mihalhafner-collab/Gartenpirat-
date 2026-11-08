@@ -46,7 +46,6 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun schema(): Unit {
-
         for (action in arrayOf("INSERT", "UPDATE", "DELETE")) {
             sql.execute(
                 "CREATE TRIGGER IF NOT EXISTS business_tables_journal_" +
@@ -96,7 +95,6 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun fence(enabled: Boolean): Unit {
-
         val names = java.util.ArrayList<String>()
         sql.query(
                 "SELECT name FROM sqlite_master WHERE type='trigger' AND name GLOB 'business_tables_fence_*'"
@@ -170,7 +168,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun cancel(requestId: String?): JSONObject {
-
         return sql.transaction(
             LAM@{
                 val meta = transfer(requestId)
@@ -188,17 +185,14 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun owner(key: String): String? {
-
         return textChunks("owner_state", "value", "key=?", arrayOf(key))
     }
 
     private @Throws(Exception::class) fun owner(key: String, value: String): Unit {
-
         sql.execute("INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,?)", key, value)
     }
 
     private @Throws(Exception::class) fun metadata(): JSONObject? {
-
         var value = owner(META)
         if (value == null) {
             return null
@@ -218,7 +212,6 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun transfer(requestId: String?): JSONObject {
-
         request(requestId)
         val meta = metadata()
         require(meta != null && (requestId == meta.optString("request")), "TABLE_TRANSFER_MISMATCH")
@@ -227,14 +220,12 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun active(): Boolean {
-
         val meta = metadata()
         return meta != null && ("ACTIVE" == meta.getString("phase"))
     }
 
     @Throws(Exception::class)
     fun status(): JSONObject {
-
         return sql.transaction(
             LAM@{
                 val meta = metadata()
@@ -254,7 +245,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun snapshot(fallback: String): JSONObject {
-
         return sql.transaction(
             LAM@{
                 val meta = metadata()
@@ -269,7 +259,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun metadataSnapshot(): JSONObject {
-
         return sql.transaction({
             JSONObject(activeMetadata().getJSONObject("remainder").toString())
         })
@@ -277,13 +266,11 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun all(collection: String): JSONArray {
-
         return sql.transaction({ collection(activeMetadata(), collection) })
     }
 
     @Throws(Exception::class)
     fun projectionCurrent(): Boolean {
-
         val meta = metadata()
         val projected = owner(PROJECTED_REVISION)
         return meta != null &&
@@ -295,7 +282,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun invalidateJournal(): Unit {
-
         if (active()) {
             sql.execute(
                 "INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,CAST(COALESCE((SELECT value FROM owner_state WHERE key=?),'0') AS INTEGER)+1)",
@@ -307,7 +293,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun commitJournal(actions: JSONArray, prepare: PrepareJournal): Unit {
-
         sql.transaction(
             LAM@{
                 if (
@@ -330,7 +315,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun candidates(collection: String, filters: JSONObject): JSONArray {
-
         return sql.transaction(
             LAM@{
                 val meta = activeMetadata()
@@ -350,7 +334,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun replaceSnapshot(next: JSONObject): Unit {
-
         sql.transaction(
             LAM@{
                 val meta = activeMetadata()
@@ -434,7 +417,6 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun selectionColumns(collection: String): Boolean {
-
         if (selectionSchemas.containsKey(collection)) {
             return selectionSchemas.getValue(collection)
         }
@@ -457,7 +439,6 @@ class BusinessTableStore {
         filters: JSONObject,
         context: JSONObject,
     ): JSONArray {
-
         return sql.transaction(
             LAM@{
                 val meta = activeMetadata()
@@ -525,7 +506,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun referenceContext(): JSONObject {
-
         val context = JSONObject()
         for (collection in arrayOf("customers", "orders")) {
             val result = JSONArray()
@@ -571,7 +551,6 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun source(meta: JSONObject, check: Evidence?): JSONObject {
-
         val raw = owner("snapshot")
         require(
             raw != null && (hash(raw) == meta.getString("source_text_hash")),
@@ -585,7 +564,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun prepare(requestId: String?, expectedSourceHash: String?, check: Evidence?): JSONObject {
-
         request(requestId)
         return sql.transaction(
             LAM@{
@@ -649,7 +627,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun copyBatch(requestId: String?, maximumRows: Int, check: Evidence?): JSONObject {
-
         require(maximumRows > 0 && maximumRows <= 1000, "TABLE_BATCH_OUT_OF_RANGE")
         return sql.transaction(
             LAM@{
@@ -701,7 +678,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun activate(requestId: String?, expectedSourceHash: String?, check: Evidence?): JSONObject {
-
         return sql.transaction(
             LAM@{
                 val meta = transfer(requestId)
@@ -729,7 +705,6 @@ class BusinessTableStore {
     }
 
     private @Throws(Exception::class) fun activeMetadata(): JSONObject {
-
         val meta = metadata()
         require(meta != null && ("ACTIVE" == meta.getString("phase")), "TABLE_STORAGE_NOT_ACTIVE")
         return meta!!
@@ -741,7 +716,6 @@ class BusinessTableStore {
         position: Long,
         row: JSONObject,
     ): Unit {
-
         val selected = selection(row)
         val indexed: Boolean = selectionColumns(collection)
         var args =
@@ -780,7 +754,6 @@ class BusinessTableStore {
         collection: String,
         id: String,
     ): JSONObject? {
-
         val name = table(collection)
         val generation = meta.getString("generation")
         var expected: String
@@ -804,7 +777,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun get(collection: String, id: String): JSONObject? {
-
         return sql.transaction({ row(activeMetadata(), collection, id) })
     }
 
@@ -816,7 +788,6 @@ class BusinessTableStore {
         offset: Int,
         limit: Int,
     ): JSONArray {
-
         require(FILTERS.contains(field), "TABLE_FILTER_UNSUPPORTED")
         require(offset >= 0 && limit >= 1 && limit <= 100, "TABLE_PAGE_OUT_OF_RANGE")
         return sql.transaction(
@@ -855,7 +826,6 @@ class BusinessTableStore {
         expectedHash: String?,
         requestId: String?,
     ): JSONObject {
-
         return mutate(collection, id(value), value, expectedHash, requestId)
     }
 
@@ -866,7 +836,6 @@ class BusinessTableStore {
         expectedHash: String?,
         requestId: String?,
     ): JSONObject {
-
         require(expectedHash != null && !(expectedHash.isEmpty()), "TABLE_EXPECTED_HASH_REQUIRED")
         return mutate(collection, id, null, expectedHash, requestId)
     }
@@ -878,7 +847,6 @@ class BusinessTableStore {
         expectedHash: String?,
         requestId: String?,
     ): JSONObject {
-
         request(requestId)
         table(collection)
         require(expectedHash != null, "TABLE_EXPECTED_HASH_REQUIRED")
@@ -955,12 +923,10 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun exportSnapshot(): JSONObject {
-
         return sql.transaction({ materialize(activeMetadata()) })
     }
 
     private @Throws(Exception::class) fun materialize(meta: JSONObject): JSONObject {
-
         val result = JSONObject(meta.getJSONObject("remainder").toString())
         for (collection in COLLECTIONS) {
             result.put(collection, collection(meta, collection))
@@ -972,7 +938,6 @@ class BusinessTableStore {
         meta: JSONObject,
         collection: String,
     ): JSONArray {
-
         return collection(meta, collection, "generation=?", arrayOf(meta.getString("generation")))
     }
 
@@ -982,7 +947,6 @@ class BusinessTableStore {
         where: String,
         arguments: Array<String>,
     ): JSONArray {
-
         val result = JSONArray()
         val name = table(collection)
         val generation = meta.getString("generation")
@@ -1019,7 +983,6 @@ class BusinessTableStore {
 
     @Throws(Exception::class)
     fun rollback(requestId: String?, expectedCurrentHash: String?, check: Evidence?): JSONObject {
-
         request(requestId)
         return sql.transaction(
             LAM@{
@@ -1061,7 +1024,6 @@ class BusinessTableStore {
         where: String,
         arguments: Array<String>,
     ): String? {
-
         var count: Long
         sql.query("SELECT length(" + column + ") FROM " + table + " WHERE " + where, *arguments)
             .use { rows ->
@@ -1118,7 +1080,6 @@ class BusinessTableStore {
         private val PROJECTED_REVISION: String = "business_tables:projected_revision"
 
         private @JvmStatic @Throws(Exception::class) fun table(collection: String): String {
-
             for (value in COLLECTIONS) {
                 if (value == collection) {
                     return "business_" + collection
@@ -1131,26 +1092,22 @@ class BusinessTableStore {
             condition: Boolean,
             error: String,
         ): Unit {
-
             if (!(condition)) {
                 throw IOException(error)
             }
         }
 
         private @JvmStatic @Throws(Exception::class) fun hash(value: Any?): String {
-
             return PixelMcpWriteTools.hash(value)
         }
 
         private @JvmStatic @Throws(Exception::class) fun id(row: JSONObject): String {
-
             var value = row.opt("id")
             require(value is String && !((value as String).isEmpty()), "TABLE_ID_REQUIRED")
             return (value as String)
         }
 
         private @JvmStatic @Throws(Exception::class) fun request(value: String?): Unit {
-
             require(
                 value != null && value.matches(Regex("[A-Za-z0-9_-]{8,200}")),
                 "TABLE_REQUEST_ID_REQUIRED",
@@ -1158,7 +1115,6 @@ class BusinessTableStore {
         }
 
         private @JvmStatic @Throws(Exception::class) fun selection(row: JSONObject): JSONObject {
-
             val result = JSONObject()
             for (key in
                 arrayOf(
@@ -1206,7 +1162,6 @@ class BusinessTableStore {
         }
 
         private @JvmStatic @Throws(Exception::class) fun remainder(source: JSONObject): JSONObject {
-
             val result = JSONObject(source.toString())
             for (collection in COLLECTIONS) {
                 result.remove(collection)
@@ -1215,7 +1170,6 @@ class BusinessTableStore {
         }
 
         private @JvmStatic @Throws(Exception::class) fun validateRows(source: JSONObject): Unit {
-
             for (collection in COLLECTIONS) {
                 val rows = source.getJSONArray(collection)
                 val seen = HashSet<String>()
@@ -1229,7 +1183,6 @@ class BusinessTableStore {
             check: Evidence?,
             source: JSONObject,
         ): String {
-
             require(check != null, "TABLE_BACKUP_EVIDENCE_REQUIRED")
             val before = hash(source)
             val result = check!!.verify(JSONObject(source.toString()))

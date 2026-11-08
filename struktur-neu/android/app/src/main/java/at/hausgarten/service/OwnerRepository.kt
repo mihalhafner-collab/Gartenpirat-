@@ -8,13 +8,11 @@ interface OwnerRepository {
 
     @Throws(Exception::class)
     fun effective(): JSONObject {
-
         return SnapshotProjection.effective(state())
     }
 
     @Throws(Exception::class)
     fun settings(): JSONObject {
-
         return JSONObject(ownerValue("settings", "{}"))
     }
 
@@ -73,25 +71,21 @@ interface OwnerRepository {
 
     @Throws(Exception::class)
     fun fullBackupStatus(args: JSONObject): JSONObject {
-
         throw UnsupportedOperationException("Native full backup required")
     }
 
     @Throws(Exception::class)
     fun fullBackupAction(name: String, args: JSONObject): JSONObject {
-
         throw UnsupportedOperationException("Native full backup required")
     }
 
     @Throws(Exception::class)
     fun revierQuery(name: String, args: JSONObject): JSONObject {
-
         throw UnsupportedOperationException("Native Revier store required")
     }
 
     @Throws(Exception::class)
     fun revierAction(name: String, args: JSONObject): JSONObject {
-
         throw UnsupportedOperationException("Native Revier store required")
     }
 }

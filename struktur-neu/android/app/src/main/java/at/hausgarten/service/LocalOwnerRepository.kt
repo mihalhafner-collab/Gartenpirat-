@@ -17,27 +17,22 @@ class LocalOwnerRepository : OwnerRepository {
         this.requests =
             object : OwnerRequestTransactions.Store {
                 override fun begin(): Unit {
-
                     store!!.beginBusinessTransaction(store!!.getWritableDatabase())
                 }
 
                 override fun read(key: String): String {
-
                     return store!!.ownerValue(key, "")!!
                 }
 
                 override fun write(key: String, value: String): Unit {
-
                     store!!.putOwnerValue(key, value)
                 }
 
                 override fun successful(): Unit {
-
                     store!!.getWritableDatabase().setTransactionSuccessful()
                 }
 
                 override fun end(): Unit {
-
                     store!!.getWritableDatabase().endTransaction()
                 }
             }
@@ -50,19 +45,16 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     override fun state(): JSONObject {
-
         return store!!.getState()
     }
 
     @Throws(Exception::class)
     override fun effective(): JSONObject {
-
         return PixelMcpReadTools.effective(state())
     }
 
     @Throws(Exception::class)
     override fun settings(): JSONObject {
-
         return JSONObject(store!!.ownerValue("settings", "{}"))
     }
 
@@ -83,7 +75,6 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     override fun fileMeta(id: String): JSONObject {
-
         store!!
             .getReadableDatabase()
             .rawQuery("SELECT metadata FROM mcp_uploads WHERE id=?", arrayOf(id))
@@ -97,7 +88,6 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     override fun fileBytes(id: String): ByteArray {
-
         val metadata = fileMeta(id)
         if (metadata.has("private_upload_storage_name")) {
             val name = metadata.getString("private_upload_storage_name")
@@ -306,7 +296,6 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     fun asset(path: String): ByteArray {
-
         context!!.getAssets().open(path).use { input ->
             var out = ByteArrayOutputStream()
             val buffer = ByteArray(8192)
@@ -324,7 +313,6 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     private fun localOriginalMissing(): PixelMcpWriteTools.Rejected {
-
         return PixelMcpWriteTools.Rejected(
             "LOCAL_ORIGINAL_MISSING",
             "Das benötigte Original fehlt im lokalen Bestand. Das Original gezielt importieren oder eine geprüfte vollständige Sicherung am Gerät prüfen; nichts geändert.",
@@ -333,7 +321,6 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     fun readChunk(a: JSONObject): JSONObject {
-
         val type = a.getString("resource_type")
         var id = a.getString("resource_id")
         var mime: String
@@ -360,7 +347,6 @@ class LocalOwnerRepository : OwnerRepository {
                         throw localOriginalMissing()
                     }
                     try {
-
                         bytes = store!!.photoAttachmentStore().read(m)
                     } catch (absent: IOException) {
                         throw localOriginalMissing()
@@ -378,7 +364,6 @@ class LocalOwnerRepository : OwnerRepository {
                         throw localOriginalMissing()
                     }
                     try {
-
                         bytes = BusinessDocumentStore(context!!).read(offer)
                     } catch (missing: IOException) {
                         throw localOriginalMissing()
@@ -425,11 +410,9 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     override fun enqueue(kind: String, payload: JSONObject, request: String): JSONObject {
-
         val db = store!!.getWritableDatabase()
         store!!.beginBusinessTransaction(db)
         try {
-
             // All guards before Revier's optional detach see the same journal version.
             // Replaying it for every guard made even a two-work selection needlessly slow.
             val currentBeforeRevier by lazy { effective() }
@@ -619,17 +602,14 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     override @Throws(Exception::class) fun pendingActions(): JSONArray {
-
         return store!!.pendingActions()
     }
 
     override fun ownerValue(key: String, fallback: String): String {
-
         return store!!.ownerValue(key, fallback)!!
     }
 
     override fun putOwnerValue(key: String, value: String): Unit {
-
         if (key == "personal_paid") {
             val before = AccountingRules.ids(JSONArray(store!!.ownerValue("personal_paid", "[]")))
             val added = AccountingRules.ids(JSONArray(value)) - before
@@ -652,12 +632,10 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     override @Throws(Exception::class) fun savePhoto(payload: JSONObject): String {
-
         return store!!.savePhoto(payload)
     }
 
     override @Throws(Exception::class) fun replaceWorklog(payload: JSONObject): Unit {
-
         val prior = HashSet<String>()
         val before = store!!.pendingActions()
         for (i in 0 until before.length()) {
@@ -680,12 +658,10 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     override @Throws(Exception::class) fun createDocument(record: JSONObject): JSONObject {
-
         return BusinessDocumentStore(context!!).create(record)
     }
 
     override @Throws(Exception::class) fun readDocument(record: JSONObject): Unit {
-
         BusinessDocumentStore(context!!).read(record)
     }
 
@@ -693,22 +669,18 @@ class LocalOwnerRepository : OwnerRepository {
         messageId: String,
         offer: JSONObject,
     ): JSONObject {
-
         return MailAccount.client(context!!).verify(messageId, offer)
     }
 
     override @Throws(Exception::class) fun planningSettings(): JSONObject {
-
         return AppointmentRuntime.publicSettings(context!!, store!!)
     }
 
     override fun calendarConnected(): Boolean {
-
         return PlanningAccount.connected(context!!)
     }
 
     override fun weatherCredentialAvailable(): Boolean {
-
         return PlanningAccount.prefs(context!!).contains("weather_secret")
     }
 
@@ -716,32 +688,26 @@ class LocalOwnerRepository : OwnerRepository {
         settings: JSONObject,
         expected: String,
     ): Unit {
-
         AppointmentRuntime.saveSettings(context!!, store!!, settings, expected)
     }
 
     override @Throws(Exception::class) fun requestPlanning(): JSONObject {
-
         return AppointmentRuntime.request(context!!, store!!)
     }
 
     override @Throws(Exception::class) fun acknowledgeWeather(args: JSONObject): JSONObject {
-
         return AppointmentRuntime.acknowledge(context!!, store!!, args)
     }
 
     override @Throws(Exception::class) fun resolveCalendar(args: JSONObject): JSONObject {
-
         return AppointmentRuntime.resolve(context!!, store!!, args)
     }
 
     override @Throws(Exception::class) fun checkBusy(appointment: JSONObject): Unit {
-
         AppointmentRuntime.checkBusy(context!!, store!!, appointment)
     }
 
     override @Throws(Exception::class) fun fullBackupStatus(args: JSONObject): JSONObject {
-
         return PixelBackupService(context!!, store!!).status(args)
     }
 
@@ -749,7 +715,6 @@ class LocalOwnerRepository : OwnerRepository {
         name: String,
         args: JSONObject,
     ): JSONObject {
-
         val control = PixelBackupService(context!!, store!!)
         if (name == "request_full_backup") {
             return control.request(args)
@@ -761,7 +726,6 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     private @Throws(Exception::class) fun revier(): RevierApplicationService {
-
         return RevierApplicationService(
             RevierLocalRepository(
                 store!!,
@@ -781,7 +745,6 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     override @Throws(Exception::class) fun revierQuery(name: String, args: JSONObject): JSONObject {
-
         return revier().query(name, args)
     }
 
@@ -789,7 +752,6 @@ class LocalOwnerRepository : OwnerRepository {
         name: String,
         args: JSONObject,
     ): JSONObject {
-
         return revier().execute(name, args)
     }
 
@@ -799,7 +761,6 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     fun runRequest(request: String, fingerprint: String, command: Request): JSONObject {
-
         return OwnerRequestTransactions.runRequest(
             requests,
             request,
@@ -811,16 +772,13 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     fun photoStorageSummary(): JSONObject {
-
         return store!!.photoAttachmentStore().storageSummary()
     }
 
     fun migratePersonalPaid(value: String): String {
-
         val db = store!!.getWritableDatabase()
         db.beginTransaction()
         try {
-
             if (!("1" == store!!.ownerValue("personal_paid_migrated", ""))) {
                 val old = JSONArray(value)
                 var current = JSONArray(store!!.ownerValue("personal_paid", "[]"))
@@ -847,9 +805,7 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     fun setPersonalPaid(value: String): String {
-
         try {
-
             val ids = JSONArray(value)
             var all = SnapshotProjection.effective(store!!.getState())
             for (i in 0 until ids.length()) {
@@ -873,7 +829,6 @@ class LocalOwnerRepository : OwnerRepository {
         private val UPLOAD_PUBLICATION_LOCK = Any()
 
         private @JvmStatic @Throws(Exception::class) fun digest(bytes: ByteArray): String {
-
             return PhotoAttachmentStore.sha256(bytes)
         }
     }

@@ -19,7 +19,6 @@ internal class LocalJournalRules {
 
         @JvmStatic
         fun collection(kind: String): String {
-
             when (kind) {
                 "appointment" -> {
                     return "appointments"
@@ -54,7 +53,6 @@ internal class LocalJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun validateSnapshot(snapshot: JSONObject): Unit {
-
             for (key in arrayOf("offers", "service_catalog", "appointments")) {
                 if (!(snapshot.has(key))) {
                     snapshot.put(key, JSONArray())
@@ -93,7 +91,6 @@ internal class LocalJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun guard(row: JSONObject?, kind: String): JSONObject {
-
             val base = JSONObject()
             if (row == null) {
                 return base
@@ -177,7 +174,6 @@ internal class LocalJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun clean(value: JSONObject): JSONObject {
-
             var out = JSONObject(value.toString())
             run {
                 val keys = value.keys()
@@ -197,7 +193,6 @@ internal class LocalJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun comparable(key: String, value: Any?): Any {
-
             if (
                 ((key == "garden_area") &&
                     (((value == null) || (value == JSONObject.NULL)) || value.toString().isEmpty()))
@@ -241,7 +236,6 @@ internal class LocalJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun compare(expected: JSONObject, current: JSONObject?): Unit {
-
             if ((current == null) || !(expected.optString("id") == current.optString("id"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
@@ -267,7 +261,6 @@ internal class LocalJournalRules {
 
         @JvmStatic
         fun ids(values: JSONArray?): MutableSet<String> {
-
             val ids = HashSet<String>()
             run {
                 var i: Int = 0
@@ -404,7 +397,6 @@ internal class LocalJournalRules {
         private @JvmStatic @Throws(Exception::class) fun refreshDisplayFields(
             snapshot: JSONObject
         ): Unit {
-
             val names = HashMap<String, String>()
             val titles = HashMap<String, String>()
             val totals = HashMap<String, Double>()
@@ -452,7 +444,6 @@ internal class LocalJournalRules {
         }
 
         private @JvmStatic fun errorCode(error: Exception): String {
-
             return (if (error is PixelMcpWriteTools.Rejected)
                 (error as PixelMcpWriteTools.Rejected).code
             else
@@ -463,7 +454,6 @@ internal class LocalJournalRules {
         @JvmStatic
         @Throws(Exception::class)
         fun validateTemplate(row: JSONObject): Unit {
-
             if (!(row.has("pricing_type"))) {
                 row.put("pricing_type", "unit")
             }
@@ -508,7 +498,6 @@ internal class LocalJournalRules {
             old: JSONObject?,
             snapshot: JSONObject,
         ): Unit {
-
             if (TrashRules.purged(snapshot, kind, row.getString("id"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "RECORD_PURGED",

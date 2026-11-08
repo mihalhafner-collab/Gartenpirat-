@@ -29,7 +29,6 @@ internal class LocalBusinessState {
         @JvmStatic
         @Throws(Exception::class)
         fun prepare(snapshot: JSONObject): Unit {
-
             LocalJournalRules.validateSnapshot(snapshot)
             if (!(snapshot.has("business_settings"))) {
                 val known = JSONObject()

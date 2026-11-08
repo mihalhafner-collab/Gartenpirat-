@@ -19,7 +19,6 @@ import org.json.JSONObject
 
 /** User-visible and user-stoppable private MCP responder. */
 class PixelTunnelService : Service() {
-
     private val closing = AtomicBoolean()
     private var worker: Thread? = null
     @Volatile private var http: PixelTunnelWire.HttpTransport? = null

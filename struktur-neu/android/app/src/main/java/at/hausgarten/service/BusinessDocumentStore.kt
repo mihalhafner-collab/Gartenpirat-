@@ -190,12 +190,10 @@ class BusinessDocumentStore {
 
     @Throws(Exception::class)
     fun create(offer: JSONObject): JSONObject {
-
         val bytes = ByteArrayOutputStream()
         val pdf = PdfDocument()
         var w: Writer? = null
         try {
-
             w = Writer(pdf, offer.optString("offer_number"))
             val issuer = offer.getJSONObject("issuer")
             var recipient = offer.getJSONObject("recipient")
@@ -304,7 +302,6 @@ class BusinessDocumentStore {
 
     @Throws(Exception::class)
     fun store(raw: ByteArray, meta: JSONObject): Unit {
-
         verify(raw, meta)
         synchronized(FILE_LOCK) {
             if (!(directory.isDirectory()) && !(directory.mkdirs())) {
@@ -338,7 +335,6 @@ class BusinessDocumentStore {
 
     @Throws(Exception::class)
     fun read(meta: JSONObject): ByteArray {
-
         val f = file(meta)
         if (f.length() > 20 * 1024 * 1024) {
             throw IOException("Dokument ist zu groß.")
@@ -350,7 +346,6 @@ class BusinessDocumentStore {
 
     @Throws(Exception::class)
     fun deleteVerified(meta: JSONObject): Unit {
-
         val f = file(meta)
         if (!(f.exists())) {
             return
@@ -362,7 +357,6 @@ class BusinessDocumentStore {
     }
 
     private @Throws(Exception::class) fun file(meta: JSONObject): File {
-
         val name = meta.getString("pdf_storage_name")
         if (!(name.matches(Regex("[0-9a-f]{64}\\.pdf")))) {
             throw IllegalArgumentException("Ungültige Dokumentreferenz.")
@@ -386,7 +380,6 @@ class BusinessDocumentStore {
         }
 
         fun newPage(): Unit {
-
             if (page != null) {
                 pdf.finishPage(page)
             }
@@ -400,7 +393,6 @@ class BusinessDocumentStore {
         }
 
         fun line(text: String): Unit {
-
             for (paragraph in java.lang.String.valueOf(text).split(Regex("\n"))) {
                 var rest = paragraph
                 do {
@@ -426,7 +418,6 @@ class BusinessDocumentStore {
         }
 
         fun finish(): Unit {
-
             if (page != null) {
                 pdf.finishPage(page)
                 page = null
@@ -456,7 +447,6 @@ class BusinessDocumentStore {
             raw: ByteArray,
             meta: JSONObject,
         ): Unit {
-
             if (
                 raw.size < 5 ||
                     raw.size > 20 * 1024 * 1024 ||
@@ -471,7 +461,6 @@ class BusinessDocumentStore {
         }
 
         private @JvmStatic fun money(n: Any): String {
-
             return java.math
                 .BigDecimal(n.toString())
                 .setScale(2, java.math.RoundingMode.HALF_UP)

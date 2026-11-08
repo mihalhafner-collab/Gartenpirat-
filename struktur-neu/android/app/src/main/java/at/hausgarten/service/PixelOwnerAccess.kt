@@ -19,13 +19,11 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
     }
 
     override @Throws(Exception::class) fun query(name: String, args: JSONObject): JSONObject? {
-
         return queries.query(name, args)
     }
 
     @Throws(Exception::class)
     fun execute(name: String, args: JSONObject): JSONObject {
-
         if (AppointmentTools.write(name)) {
             McpSchema.validate(args, AppointmentTools.schema(name))
         } else {
@@ -90,7 +88,6 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
         }
         if (name in setOf("purge_entity", "empty_trash", "delete_entity", "delete_work_records")) {
             try {
-
                 LocalStorageMaintenance(context, store).clean(false)
             } catch (pending: Exception) {
                 store.putOwnerValue(
@@ -109,7 +106,6 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
         }
         if (name == "plan_inquiry_inspection") {
             try {
-
                 PlanningJob.schedule(context, 1000)
             } catch (deferred: Exception) {
                 result.put("external_scheduling_pending", true)

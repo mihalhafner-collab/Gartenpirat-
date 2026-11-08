@@ -67,7 +67,6 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun concat(first: Array<String>, second: Array<String>): Array<String> {
-
             var all = ArrayList<String>(first.asList())
             all.addAll(second.asList())
             return all.toTypedArray()
@@ -75,13 +74,11 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun backup(name: String): Boolean {
-
             return (BACKUP_READS.asList().contains(name) || BACKUP_WRITES.asList().contains(name))
         }
 
         @JvmStatic
         fun revier(name: String): Boolean {
-
             return (REVIER_READS.asList().contains(name) || REVIER_WRITES.asList().contains(name))
         }
 
@@ -89,26 +86,22 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun offerDecision(name: String): Boolean {
-
             return (OFFER_DECISION_READS.asList().contains(name) ||
                 OFFER_DECISION_WRITES.asList().contains(name))
         }
 
         @JvmStatic
         fun handles(name: String): Boolean {
-
             return backup(name) || revier(name) || offerDecision(name)
         }
 
         @JvmStatic
         fun write(name: String): Boolean {
-
             return WRITES.asList().contains(name)
         }
 
         @JvmStatic
         fun description(name: String): String {
-
             if (name == "save_equipment") {
                 return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
             }
@@ -167,17 +160,14 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun date(): JSONObject {
-
             return McpFields.text(10).put("pattern", "[0-9]{4}-[0-9]{2}-[0-9]{2}")
         }
 
         private @JvmStatic @Throws(Exception::class) fun clock(): JSONObject {
-
             return McpFields.text(5).put("pattern", "(?:[01][0-9]|2[0-3]):[0-5][0-9]")
         }
 
         private @JvmStatic @Throws(Exception::class) fun clearable(field: JSONObject): JSONObject {
-
             field.remove("minLength")
             if (field.has("pattern")) {
                 field.put("pattern", (("(?:" + field.getString("pattern")) + ")?"))
@@ -186,12 +176,10 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun instant(): JSONObject {
-
             return McpFields.text(80).put("minLength", 1)
         }
 
         private @JvmStatic @Throws(Exception::class) fun decimal(signed: Boolean): JSONObject {
-
             return McpFields.text(64)
                 .put(
                     "pattern",
@@ -208,12 +196,10 @@ internal class LocalWorkflowTools {
             item: JSONObject,
             max: Int,
         ): JSONObject {
-
             return JSONObject().put("type", "array").put("items", item).put("maxItems", max)
         }
 
         private @JvmStatic @Throws(Exception::class) fun materialNeeds(): JSONObject {
-
             return array(
                 McpFields.`object`(
                     JSONObject()
@@ -227,7 +213,6 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun list(p: JSONObject): Unit {
-
             p.put("offset", McpFields.number(0, 1000000))
                 .put("limit", McpFields.number(1, 100))
                 .put("query", McpFields.text(200))
@@ -242,7 +227,6 @@ internal class LocalWorkflowTools {
         private @JvmStatic @Throws(Exception::class) fun propertyFields(
             create: Boolean
         ): JSONObject {
-
             var p =
                 JSONObject()
                     .put("name", McpFields.text(500).put("minLength", 1))
@@ -275,7 +259,6 @@ internal class LocalWorkflowTools {
         private @JvmStatic @Throws(Exception::class) fun inquiryFields(
             create: Boolean
         ): JSONObject {
-
             var p =
                 JSONObject()
                     .put("title", McpFields.text(500).put("minLength", 1))
@@ -323,7 +306,6 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun careFields(create: Boolean): JSONObject {
-
             var p =
                 JSONObject()
                     .put("title", McpFields.text(500).put("minLength", 1))
@@ -346,7 +328,6 @@ internal class LocalWorkflowTools {
         }
 
         private @JvmStatic @Throws(Exception::class) fun visitFields(create: Boolean): JSONObject {
-
             var p =
                 JSONObject()
                     .put("date", date())
@@ -382,7 +363,6 @@ internal class LocalWorkflowTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
             if (!(handles(name))) {
                 throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
             }
@@ -791,7 +771,6 @@ internal class LocalWorkflowTools {
             target: JSONObject,
             fields: JSONObject,
         ): JSONObject {
-
             run {
                 val keys = fields.keys()
                 while (keys.hasNext()) {

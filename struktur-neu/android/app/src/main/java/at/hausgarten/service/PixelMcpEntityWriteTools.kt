@@ -13,32 +13,26 @@ internal class PixelMcpEntityWriteTools {
 
         @JvmStatic
         fun handles(name: String): Boolean {
-
             return NAMES.asList().contains(name)
         }
 
         private @JvmStatic @Throws(Exception::class) fun string(max: Int): JSONObject {
-
             return JSONObject().put("type", "string").put("maxLength", max)
         }
 
         private @JvmStatic @Throws(Exception::class) fun number(): JSONObject {
-
             return JSONObject().put("type", "number").put("minimum", 0)
         }
 
         private @JvmStatic @Throws(Exception::class) fun integer(): JSONObject {
-
             return JSONObject().put("type", "integer").put("minimum", 0)
         }
 
         private @JvmStatic @Throws(Exception::class) fun bool(): JSONObject {
-
             return JSONObject().put("type", "boolean")
         }
 
         private @JvmStatic @Throws(Exception::class) fun field(key: String): JSONObject {
-
             if (
                 Arrays.asList(
                         "active",
@@ -124,7 +118,6 @@ internal class PixelMcpEntityWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun tools(): JSONArray {
-
             var out = JSONArray()
             for (name in NAMES) {
                 var description =
@@ -160,7 +153,6 @@ internal class PixelMcpEntityWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun validate(name: String, args: JSONObject): Unit {
-
             validateObject(args, schema(name))
         }
 
@@ -168,7 +160,6 @@ internal class PixelMcpEntityWriteTools {
             args: JSONObject,
             schema: JSONObject,
         ): Unit {
-
             val props = schema.getJSONObject("properties")
             run {
                 val it = args.keys()
@@ -295,7 +286,6 @@ internal class PixelMcpEntityWriteTools {
             state: JSONObject,
             actionId: String,
         ): JSONObject {
-
             validate(name, args)
             return EntityApplicationService.prepare(name, args, state, actionId)
         }
@@ -303,7 +293,6 @@ internal class PixelMcpEntityWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun recordForHash(entity: String, row: JSONObject): JSONObject {
-
             return EntityContract.editable(
                 row,
                 (if (entity == "customer") CUSTOMER_FIELDS else ORDER_FIELDS),

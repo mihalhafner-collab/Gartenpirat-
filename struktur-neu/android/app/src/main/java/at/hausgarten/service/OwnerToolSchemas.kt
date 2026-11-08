@@ -98,7 +98,6 @@ internal class OwnerToolSchemas {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String, writable: Boolean): JSONObject {
-
             if (LocalWorkflowTools.handles(name)) {
                 return LocalWorkflowTools.schema(name)
             }
@@ -128,7 +127,6 @@ internal class OwnerToolSchemas {
         }
 
         private @JvmStatic @Throws(Exception::class) fun photoFields(p: JSONObject): JSONObject {
-
             return p.put("session_id", McpFields.text(500))
                 .put("capture_time", McpFields.text(80))
                 .put("order_id", McpFields.text(500))
@@ -157,7 +155,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("expected_catalog_hash", McpFields.hash())
                 .put("offset", McpFields.number(0, 1000000))
                 .put("limit", McpFields.number(1, 100))
@@ -168,7 +165,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put(
                 "work_record_ids",
                 JSONObject()
@@ -190,7 +186,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("expected_preview_hash", McpFields.hash())
                 .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
             required.add("confirmed")
@@ -201,7 +196,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("photo_id", McpFields.id())
             required.add("photo_id")
         }
@@ -211,7 +205,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("limit", McpFields.number(1, 100))
                 .put("offset", McpFields.number(0, 1000000))
                 .put("entity", McpFields.enumeration(*DeletionRules.ENTITIES))
@@ -223,7 +216,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("query", McpFields.text(200))
                 .put("offset", McpFields.number(0, 1000000))
                 .put("limit", McpFields.number(1, 100))
@@ -234,7 +226,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("entry_id", McpFields.id())
             required.add("entry_id")
         }
@@ -244,7 +235,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("resource_type", McpFields.enumeration("photo", "offer"))
                 .put("resource_id", McpFields.id())
                 .put("offset", McpFields.number(0, ((1024 * 1024) * 1024)))
@@ -261,7 +251,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("byte_size", McpFields.number(1, ((20 * 1024) * 1024)))
                 .put("sha256", McpFields.hash())
                 .put(
@@ -282,7 +271,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("upload_id", McpFields.id())
                 .put("offset", McpFields.number(0, ((20 * 1024) * 1024)))
                 .put("chunk_base64", McpFields.text((McpFields.CHUNK / 3) * 4).put("minLength", 4))
@@ -295,7 +283,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("upload_id", McpFields.id()).put("customer_id", McpFields.id())
             required.addAll(Arrays.asList("upload_id", "customer_id"))
             photoFields(p)
@@ -306,7 +293,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             run {
                 p.put("work_record_id", McpFields.id())
                     .put("expected_record_hash", McpFields.hash())
@@ -329,7 +315,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("photo_id", McpFields.id())
                 .put("expected_record_hash", McpFields.hash())
                 .put(
@@ -344,7 +329,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("entity", McpFields.enumeration(*DeletionRules.ENTITIES))
                 .put("entity_id", McpFields.id())
             required.addAll(Arrays.asList("entity", "entity_id"))
@@ -355,7 +339,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             if (name == "purge_entity") {
                 p.put(
                     "confirmed",
@@ -378,7 +361,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             run {
                 val fields = JSONObject()
                 for (key in McpFields.BUSINESS_KEYS) {
@@ -399,7 +381,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("expected_record_hash", McpFields.hash())
                 .put(
                     "updates",
@@ -422,7 +403,6 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-
             p.put("work_record_id", McpFields.id()).put("paid", McpFields.bool())
             required.addAll(Arrays.asList("work_record_id", "paid"))
         }

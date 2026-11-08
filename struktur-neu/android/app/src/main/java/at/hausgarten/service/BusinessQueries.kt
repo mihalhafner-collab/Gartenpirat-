@@ -45,7 +45,6 @@ class BusinessQueries {
             master: JSONObject,
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
-
             val query = QUERIES.get(name)
             if (query == null) {
                 throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
@@ -92,7 +91,6 @@ class BusinessQueries {
             master: JSONObject,
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
-
             val customers = master.optJSONArray("customers")
             val orders = master.optJSONArray("orders")
             val logs = master.optJSONArray("worklogs")
@@ -147,7 +145,6 @@ class BusinessQueries {
             master: JSONObject,
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
-
             val customers = master.optJSONArray("customers")
             val orders = master.optJSONArray("orders")
             val logs = master.optJSONArray("worklogs")
@@ -236,7 +233,6 @@ class BusinessQueries {
             master: JSONObject,
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
-
             val customers = master.optJSONArray("customers")
             val orders = master.optJSONArray("orders")
             val logs = master.optJSONArray("worklogs")
@@ -260,7 +256,6 @@ class BusinessQueries {
             master: JSONObject,
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
-
             val customers = master.optJSONArray("customers")
             val orders = master.optJSONArray("orders")
             val logs = master.optJSONArray("worklogs")

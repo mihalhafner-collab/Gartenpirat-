@@ -8,7 +8,6 @@ import org.json.*
 class PixelMcpWriteTools {
     interface Sink {
         fun writable(): Boolean {
-
             return true
         }
 
@@ -77,14 +76,12 @@ class PixelMcpWriteTools {
 
         @JvmStatic
         fun handles(name: String): Boolean {
-
             return NAMES.asList().contains(name)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun field(key: String): JSONObject {
-
             var type =
                 (if (
                     (((key == "hours") || (key == "kilometers")) ||
@@ -113,7 +110,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
             var props =
                 JSONObject()
                     .put(
@@ -158,7 +154,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun tools(): JSONArray {
-
             val result = JSONArray()
             for (name in NAMES) {
                 result.put(
@@ -188,7 +183,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun validate(args: JSONObject, schema: JSONObject): Unit {
-
             val props = schema.getJSONObject("properties")
             run {
                 val it = args.keys()
@@ -266,7 +260,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun canonical(value: Any?): String {
-
             if (value is JSONObject) {
                 val obj = (value as JSONObject)
                 val keys = ArrayList<String>()
@@ -301,7 +294,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun hash(value: Any?): String {
-
             var digest =
                 MessageDigest.getInstance("SHA-256")
                     .digest(canonical(value).toByteArray(StandardCharsets.UTF_8))
@@ -315,7 +307,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun base(row: JSONObject): JSONObject {
-
             val result = JSONObject()
             for (key in BASE_FIELDS) {
                 if (row.has(key)) {
@@ -328,7 +319,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun applyMaterialCost(payload: JSONObject): Unit {
-
             if (!(payload.has("material_cost"))) {
                 return
             }
@@ -358,7 +348,6 @@ class PixelMcpWriteTools {
         @JvmStatic
         @Throws(Exception::class)
         fun find(rows: JSONArray?, id: String): JSONObject {
-
             run {
                 var i: Int = 0
                 var firstIteration104 = true
@@ -388,7 +377,6 @@ class PixelMcpWriteTools {
             state: JSONObject,
             actionId: String,
         ): JSONObject {
-
             validate(args, schema(name))
             val master = PixelMcpReadTools.effective(state)
             var payload: JSONObject

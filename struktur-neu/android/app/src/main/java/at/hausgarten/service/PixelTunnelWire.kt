@@ -48,7 +48,6 @@ class PixelTunnelWire {
         }
 
         fun userMessage(): String {
-
             when (reason) {
                 "organization_required" -> {
                     return "Die OpenAI-Organisationsangabe fehlt. Verbindungseinstellungen öffnen und die Organisation des Pixel-Tunnels bestätigen."
@@ -95,7 +94,6 @@ class PixelTunnelWire {
     private val results: MutableMap<String, Cached> =
         object : LinkedHashMap<String, Cached>() {
             override fun removeEldestEntry(e: MutableMap.MutableEntry<String, Cached>?): Boolean {
-
                 return (size > 128)
             }
         }
@@ -108,19 +106,16 @@ class PixelTunnelWire {
     }
 
     private fun path(suffix: String): String {
-
         return (("/v1/tunnels/" + id) + suffix)
     }
 
     @Throws(Exception::class)
     fun verify(): Unit {
-
         check(transport.request("GET", path(""), null, null, 15000))
     }
 
     @Throws(Exception::class)
     fun cycle(): Int {
-
         var poll =
             transport.request("GET", path("/poll?limit=1&timeout_ms=15000"), null, null, 35000)
         check(poll)
@@ -245,7 +240,6 @@ class PixelTunnelWire {
         }
 
         fun close(): Unit {
-
             var current = active
             if (current != null) {
                 current.disconnect()
@@ -259,14 +253,12 @@ class PixelTunnelWire {
             shard: String?,
             timeoutMs: Int,
         ): Reply {
-
             if (!(path.startsWith("/v1/tunnels/")) || path.contains("..")) {
                 throw IOException("Ungültiger Tunnel-Pfad.")
             }
             val connection = (URL(root + path).openConnection() as HttpURLConnection)
             active = connection
             try {
-
                 connection.setInstanceFollowRedirects(false)
                 connection.setConnectTimeout(Math.min(timeoutMs, 15000))
                 connection.setReadTimeout(timeoutMs)
@@ -346,7 +338,6 @@ class PixelTunnelWire {
 
         companion object {
             private @JvmStatic fun readAccessReason(connection: HttpURLConnection): String {
-
                 try {
                     connection.getErrorStream().use { input ->
                         ByteArrayOutputStream().use { out ->
@@ -380,12 +371,10 @@ class PixelTunnelWire {
     companion object {
         @JvmStatic
         fun retryAfter(value: String?, now: Long): Long {
-
             if (value == null) {
                 return 15000
             }
             try {
-
                 return Math.max(
                     1000,
                     Math.min(
@@ -395,7 +384,6 @@ class PixelTunnelWire {
                 )
             } catch (ignored: Exception) {
                 try {
-
                     return Math.max(
                         1000,
                         Math.min(
@@ -415,7 +403,6 @@ class PixelTunnelWire {
         }
 
         private @JvmStatic @Throws(Exception::class) fun check(r: Reply): Unit {
-
             if (r.code == 429) {
                 throw RateLimit(r.json.optLong("retry_after_ms", 15000))
             }
@@ -431,7 +418,6 @@ class PixelTunnelWire {
 
         @JvmStatic
         fun deadline(timeout: Any?, receipt: Long): Long {
-
             if (
                 (!(timeout is String) ||
                     !((timeout as String).matches(Regex("[0-9]+(?:ns|us|ms|s|m|h)"))))
@@ -441,7 +427,6 @@ class PixelTunnelWire {
             val m = java.util.regex.Pattern.compile("([0-9]+)([a-z]+)").matcher(timeout as String)
             m.matches()
             try {
-
                 var amount: Long = java.lang.Long.parseLong(m.group(1)!!)
                 var factor: Long
                 when (m.group(2)) {
@@ -471,7 +456,6 @@ class PixelTunnelWire {
         }
 
         private @JvmStatic @Throws(Exception::class) fun canonical(value: Any?): String {
-
             if (value is JSONObject) {
                 val obj = (value as JSONObject)
                 val keys = ArrayList<String>()
@@ -503,7 +487,6 @@ class PixelTunnelWire {
 
         @JvmStatic
         fun accessReason(json: JSONObject): String {
-
             var error = json.optJSONObject("error")
             var message =
                 ((((java.lang.String.valueOf(

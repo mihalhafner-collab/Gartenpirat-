@@ -24,7 +24,6 @@ internal class PixelMcpBusinessTools {
 
         @JvmStatic
         fun overlap(a: JSONObject, b: JSONObject): Boolean {
-
             if (
                 (!(a.optString("work_date") == b.optString("work_date")) ||
                     (a.optString("id") == b.optString("id")))
@@ -32,7 +31,6 @@ internal class PixelMcpBusinessTools {
                 return false
             }
             try {
-
                 var `as`: Int = java.time.LocalTime.parse(a.getString("start_time")).toSecondOfDay()
                 val ae: Int = java.time.LocalTime.parse(a.getString("end_time")).toSecondOfDay()
                 val bs: Int = java.time.LocalTime.parse(b.getString("start_time")).toSecondOfDay()
@@ -46,7 +44,6 @@ internal class PixelMcpBusinessTools {
         @JvmStatic
         @Throws(Exception::class)
         fun preventOverlap(payload: JSONObject, logs: JSONArray?): Unit {
-
             run {
                 var i: Int = 0
                 var firstIteration82 = true
@@ -70,7 +67,6 @@ internal class PixelMcpBusinessTools {
         @JvmStatic
         @Throws(Exception::class)
         fun report(logs: JSONArray, master: JSONObject): JSONObject {
-
             var hours: Double = 0.0
             var marked: Int = 0
             val issues = JSONArray()
@@ -104,7 +100,6 @@ internal class PixelMcpBusinessTools {
                     )
                 }
                 try {
-
                     val normalized = JSONObject(row.toString())
                     WorklogRules.validate(normalized, false)
                     if (
@@ -177,7 +172,6 @@ internal class PixelMcpBusinessTools {
             row: JSONObject,
             message: String,
         ): JSONObject {
-
             return JSONObject()
                 .put("code", code)
                 .put("work_record_id", row.optString("id"))

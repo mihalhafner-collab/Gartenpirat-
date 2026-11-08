@@ -75,20 +75,17 @@ internal class PixelMcpOwnerTools {
 
         @JvmStatic
         fun read(n: String): Boolean {
-
             return READS.asList().contains(n)
         }
 
         @JvmStatic
         fun write(n: String): Boolean {
-
             return WRITES.asList().contains(n)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
-
             return if (name in SettlementTools.READS || name in SettlementTools.WRITES)
                 SettlementTools.schema(name)
             else OwnerToolSchemas.schema(name, write(name))
@@ -97,7 +94,6 @@ internal class PixelMcpOwnerTools {
         @JvmStatic
         @Throws(Exception::class)
         fun tools(writable: Boolean): JSONArray {
-
             var out = JSONArray()
             val names = ArrayList<String>(READS.asList())
             if (writable) {
@@ -137,7 +133,6 @@ internal class PixelMcpOwnerTools {
         }
 
         private @JvmStatic fun description(n: String): String {
-
             if (n in SettlementTools.READS || n in SettlementTools.WRITES)
                 return SettlementTools.description(n)
             if (LocalWorkflowTools.handles(n)) {
@@ -244,14 +239,12 @@ internal class PixelMcpOwnerTools {
         @JvmStatic
         @Throws(Exception::class)
         fun validate(name: String, args: JSONObject): Unit {
-
             McpSchema.validate(args, schema(name))
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun photoHash(row: JSONObject): JSONObject {
-
             return LocalJournalRules.guard(row, "photo")
         }
     }

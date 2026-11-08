@@ -187,13 +187,11 @@ internal class McpErrors {
             )
 
         private @JvmStatic fun localCode(error: Exception): String? {
-
             var value = error.message
             return (if ((value != null) && LOCAL_CODES.contains(value)) value else null)
         }
 
         private @JvmStatic fun localMessage(code: String): String {
-
             if (code == "LOCAL_STATE_BUILD_FAILED") {
                 return "Der lokale Datenstand konnte nicht vollständig aufgebaut werden. Lokalen Stand und geprüfte Sicherung am Gerät prüfen; keine automatische Rückspielung starten."
             }
@@ -228,7 +226,6 @@ internal class McpErrors {
         }
 
         private @JvmStatic fun code(error: Exception, fallback: String): String {
-
             val local = localCode(error)
             return (if (error is PixelMcpWriteTools.Rejected)
                 (error as PixelMcpWriteTools.Rejected).code
@@ -238,7 +235,6 @@ internal class McpErrors {
         @JvmStatic
         @Throws(Exception::class)
         fun rpc(error: Exception): JSONObject {
-
             val local = localCode(error)
             var problem =
                 JSONObject()
@@ -281,7 +277,6 @@ internal class McpErrors {
         @JvmStatic
         @Throws(Exception::class)
         fun bridge(error: Exception): JSONObject {
-
             val local = localCode(error)
             var problem =
                 JSONObject()
@@ -302,7 +297,6 @@ internal class McpErrors {
             problem: JSONObject,
             error: Exception,
         ): Unit {
-
             val code = problem.optString("code")
             if (
                 (error is PixelMcpWriteTools.Rejected &&
@@ -313,7 +307,6 @@ internal class McpErrors {
         }
 
         private @JvmStatic @Throws(Exception::class) fun envelope(problem: JSONObject): JSONObject {
-
             if (problem.optString("code") == "RESTORE_FULL_REPLACEMENT_REQUIRED") {
                 problem
                     .put("device_step", "open_full_backup_restore")
