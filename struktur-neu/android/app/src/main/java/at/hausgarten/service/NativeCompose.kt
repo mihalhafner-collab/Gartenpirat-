@@ -26,6 +26,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.semantics.testTag
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,7 +112,10 @@ fun HausGartenTheme(content: @Composable () -> Unit) {
                 large = RoundedCornerShape(18.dp),
                 extraLarge = RoundedCornerShape(24.dp),
             ),
-        content = content,
+        content = {
+            // Test tags become accessibility resource ids: tests find controls by id, not text.
+            Box(Modifier.semantics { testTagsAsResourceId = true }) { content() }
+        },
     )
 }
 
@@ -159,7 +165,7 @@ internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null)
 @Composable
 internal fun NativeBackButton(onBack: () -> Unit) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onBack, Modifier.semantics { contentDescription = "‹ Zurück" }) {
+    IconButton(onBack, Modifier.semantics { contentDescription = "‹ Zurück"; testTag = UiTags.BACK }) {
         Canvas(Modifier.size(24.dp)) {
             val unit = size.minDimension / 24f
             drawLine(color, Offset(20 * unit, 12 * unit), Offset(4 * unit, 12 * unit), 2 * unit)

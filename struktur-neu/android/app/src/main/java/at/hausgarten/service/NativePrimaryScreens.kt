@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.contentDescription
@@ -110,7 +111,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                     if (quick) {
                         NativeSearchButton { controller.navigate("revier_search") }
                         // Design: rare areas (former office) sit behind ⋮ in the header, not in a fifth tab.
-                        if (route.section !in listOf("office", "more")) IconButton({ controller.openMore() }, Modifier.semantics { contentDescription = "Mehr" }) { Text("⋮", style = MaterialTheme.typography.headlineSmall) }
+                        if (route.section !in listOf("office", "more")) IconButton({ controller.openMore() }, Modifier.semantics { contentDescription = "Mehr"; testTag = UiTags.MORE }) { Text("⋮", style = MaterialTheme.typography.headlineSmall) }
                     }
                 }
             }
@@ -180,7 +181,7 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                 entries.forEach { (section, label) ->
                     val active = controller.route.area == section
                     TextButton({ controller.openSection(section) }, Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics {
-                        selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen"
+                        testTag = UiTags.area(section); selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen"
                     }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp), colors = ButtonDefaults.textButtonColors(
                         containerColor = if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)) { Text(label) }
                 }
@@ -196,7 +197,7 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                     group.forEach { (section, label) ->
                         val active = controller.route.area == section
                         TextButton(onClick = { controller.openSection(section) },
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen" },
+                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { testTag = UiTags.area(section); selected = active; stateDescription = if (active) "Ausgewählter Bereich" else "Bereich öffnen" },
                             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                             colors = ButtonDefaults.textButtonColors(
                                 containerColor = if (large && active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
@@ -218,7 +219,7 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
 /** The one "+" of the design; opens "Neu anlegen". */
 @Composable
 internal fun NativeCreateButton(controller: NativeAppController, modifier: Modifier = Modifier) {
-    FloatingActionButton({ controller.createOpen = true }, modifier.semantics { contentDescription = "Neu anlegen" }) {
+    FloatingActionButton({ controller.createOpen = true }, modifier.semantics { contentDescription = "Neu anlegen"; testTag = UiTags.CREATE }) {
         Text("+", style = MaterialTheme.typography.headlineMedium)
     }
 }
