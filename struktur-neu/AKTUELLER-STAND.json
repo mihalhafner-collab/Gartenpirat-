@@ -52,17 +52,17 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Version 1.64.0/137: Oberfläche Schritt 2 – Suche",
-    "status": "Suche nach Art gruppiert (Objekte, Kunden, Abschlüsse, Arbeiten zuerst), Anrufen und Route im Treffer, ohne Eingabe zuletzt Geöffnetes, Spracheingabe; Suchfeld oben auf Heute und Mikrofon in der Kundenliste. search_local findet Abschlüsse und liefert Telefon und Adresse. JVM-Test und Emulator-Ablauf grouped_search neu. Keine Installation, keine Verteilung.",
-    "owner_instruction": "Eigentümer 08.11.2026: Oberfläche Schritt 2 umsetzen.",
+    "name": "Version 1.65.0/138: Oberfläche Schritt 3 – Detailseiten",
+    "status": "Schritt 2 (Suche) in PR #21. Schritt 3: „Gehört zu“-Chips mit Kunde, Objekt, Auftrag und Einsatz; bei Arbeiten leere Angaben gesammelt als „+ ergänzen“, unten „Abrechnen · Bearbeiten“, seltene Aktionen im ⋮-Menü; „Löschen“ ganz unten, ziegelrot mit Symbol, bei Kunden, Aufträgen und Arbeiten. Lupe entfällt auf Heute und Kunden, Mikrofon gezeichnet. Keine Installation, keine Verteilung.",
+    "owner_instruction": "Eigentümer 08.11.2026: Lupe weg, Mikrofon-Symbol zeichnen, dann Schritt 3.",
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline.",
-      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest (12 Suiten, 358 Domänenprüfungen).",
+      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest.",
       "ci_gate": "Voller CI-Lauf über PR ausstehend."
     },
     "next": [
-      "Oberfläche Schritt 3: Detailseiten mit „Gehört zu“-Chips, Status-Chip, Angaben in Gruppen, nächste Aktion unten, Löschen ganz unten.",
-      "Danach 4 Wischen mit 5 s „Rückgängig“; 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste."
+      "Oberfläche Schritt 4: Wischen in Listen (rechts positive Aktion, links löschen) mit 5 s „Rückgängig“.",
+      "Danach 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste; Detailseiten von Objekten, Einsätzen und Geräten im selben Aufbau."
     ]
   },
   "open_checks": [
