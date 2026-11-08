@@ -537,7 +537,13 @@ internal fun NativeSearchList(
                                     ) {
                                         Text("×")
                                     }
-                                else if (onFilters != null) TextButton(onFilters) { Text("Filter") }
+                                else if (onFilters != null)
+                                    TextButton(
+                                        onFilters,
+                                        Modifier.semantics { testTag = UiTags.FILTER },
+                                    ) {
+                                        Text("Filter")
+                                    }
                                 if (large && !landscape)
                                     Text(shortCount, style = MaterialTheme.typography.labelLarge)
                             }

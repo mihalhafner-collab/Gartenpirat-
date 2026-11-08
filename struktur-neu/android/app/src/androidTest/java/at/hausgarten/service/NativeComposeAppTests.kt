@@ -940,7 +940,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             enter("Tatsächlich geleistete Menge", "1")
             enter("Einheit", "Leistung")
             enter("Preis je Einheit (€)", "3,00")
-            click("Entwurf speichern und prüfen")
+            click(UiTags.PRIMARY)
             reveal("[TEST] Erste manuelle Abrechnung")
             shown("[TEST] Erste manuelle Abrechnung")
             reveal("Entwurf")
@@ -969,7 +969,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             enter("Tatsächlich geleistete Menge", "2")
             enter("Einheit", "Stück")
             enter("Preis je Einheit (€)", "2,00")
-            click("Entwurf speichern und prüfen")
+            click(UiTags.PRIMARY)
             reveal("[TEST] Zweite manuelle Abrechnung")
             shown("[TEST] Zweite manuelle Abrechnung")
             reveal("Entwurf")
@@ -1003,7 +1003,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT",
             )
             enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft")
-            click("Entwurf speichern und prüfen")
+            click(UiTags.PRIMARY)
             var lastSaveScroll = 0L
             waitUntil("SETTLEMENT_UI_EXISTING_DRAFT_SAVE_COMPLETED") {
                 // The edited text already exists in the busy editor. Require the
@@ -1632,7 +1632,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         captureSyntheticScreen("work-search", requireKeyboard = true)
         back()
         waitUntil("WORK_SEARCH_IME_CLOSED") { !keyboardVisible() }
-        click("Filter")
+        click(UiTags.FILTER)
         shown("Arbeiten filtern")
         chooseDate("Ab Datum", day)
         click("Ergebnisse anzeigen")
@@ -1651,7 +1651,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "WORK_ACTIVITY_EDITOR_ISOLATED",
         )
         enter("Was wurde erledigt? *", prefix + "1 korrigiert")
-        click("Arbeit speichern")
+        click(UiTags.PRIMARY)
         waitUntil("WORK_ACTIVITY_SAVED") {
             works().first { it.getString("id") == ids.first() }.getString("activity") ==
                 prefix + "1 korrigiert"
@@ -1671,14 +1671,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "WORK_NOTE_EDITOR_ISOLATED",
         )
         enter("Notizen", "[TEST] Einzelne Notiz korrigiert")
-        click("Arbeit speichern")
+        click(UiTags.PRIMARY)
         waitUntil("WORK_NOTE_SAVED") {
             first().optString("notes") == "[TEST] Einzelne Notiz korrigiert"
         }
         click("Pause")
         shown("Pause (Minuten)")
         enter("Freie Minuten", "15")
-        click("Arbeit speichern")
+        click(UiTags.PRIMARY)
         waitUntil("WORK_PAUSE_RECALCULATES_DURATION") {
             first().getInt("break_minutes") == 15 && first().getDouble("hours") == 3.75
         }
@@ -2192,7 +2192,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         yes(customers(createdName).isEmpty(), "RECREATION_DOES_NOT_SAVE_CUSTOMER")
         primaryPosition("Kunde speichern", "Zurück")
-        click("Kunde speichern")
+        click(UiTags.PRIMARY)
         waitUntil("CUSTOMER_CREATED") { customers(createdName).size == 1 }
         val id = customers(createdName).single().getString("id")
         openCustomerList()
@@ -2215,7 +2215,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         // The open form still owns its original baseline. A remote write must cause
         // an explicit conflict, rather than silently refreshing the hash at save time.
-        click("Kunde speichern")
+        click(UiTags.PRIMARY)
         scrollTop()
         shown(
             "Der Eintrag wurde zwischenzeitlich verändert. Vergleiche den aktuellen Stand mit deinen Eingaben."
@@ -2236,7 +2236,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             field("Anzeigename *")?.text?.toString()?.contains(editedName) == true
         }
         yes(customers(editedName).isEmpty(), "EXPLICIT_REBASE_REMAINS_UNSAVED_DRAFT")
-        click("Kunde speichern")
+        click(UiTags.PRIMARY)
         waitUntil("CUSTOMER_EDITED") { customers(editedName).singleOrNull()?.optString("id") == id }
         yes(
             customers(editedName).single().optString("notes") == remoteNote,
@@ -2366,7 +2366,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "FREE_DISPOSAL_SURVIVES_RECREATION",
         )
         primaryPosition("Arbeit speichern", "Zurück")
-        click("Arbeit speichern")
+        click(UiTags.PRIMARY)
         fun saved(): JSONObject? {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
             return (0 until rows.length())
@@ -2418,7 +2418,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // The new-work route retains the expanded details from the first entry.
         enter("Kilometer", "7,25")
         enter("Materialkosten", "12,50")
-        click("Arbeit speichern")
+        click(UiTags.PRIMARY)
         waitUntil("DECIMAL_WORK_SAVED") {
             val rows = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
             (0 until rows.length())
@@ -2488,9 +2488,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Freie Minuten", "12")
         enter("Was wurde erledigt? *", "[TEST] QA Picker und lokale Auswahl")
         primaryPosition("Arbeit speichern", "Zurück")
-        val fixed = actionBounds("Arbeit speichern")
+        val fixed = actionBounds(UiTags.PRIMARY)
         reveal("Entwurf verwerfen")
-        yes(actionBounds("Arbeit speichern") == fixed, "PRIMARY_POSITION_FIXED_WHEN_FORM_SCROLLS")
+        yes(actionBounds(UiTags.PRIMARY) == fixed, "PRIMARY_POSITION_FIXED_WHEN_FORM_SCROLLS")
         recreate()
         waitUntil("PICKER_VALUES_SURVIVE_RECREATION") {
             val values = workDraft().optJSONObject("values")
@@ -2600,7 +2600,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD &&
                         it.root?.isVisibleToUser == true
                 }
-            val save = runCatching { actionBounds("Arbeit speichern") }.getOrNull()
+            val save = runCatching { actionBounds(UiTags.PRIMARY) }.getOrNull()
             val discard = runCatching { actionBounds("Zurück") }.getOrNull()
             val clear =
                 keyboardShown &&
@@ -2866,7 +2866,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val workCount =
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         shown("Arbeit speichern")
-        yes(!actionEnabled("Arbeit speichern"), "PHOTO_CUSTOMER_REQUIRED_BEFORE_SAVE_ENABLED")
+        yes(!actionEnabled(UiTags.PRIMARY), "PHOTO_CUSTOMER_REQUIRED_BEFORE_SAVE_ENABLED")
         yes(
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
                 workCount,
@@ -2949,7 +2949,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .filter { it.isNotBlank() }
                 .joinToString("\n")
         enter("Notizen", note)
-        click("Kunde speichern")
+        click(UiTags.PRIMARY)
         waitUntil("CUSTOMER_NOTE_SAVED") {
             customers(fixturePrefix + "000").single().optString("notes") == note
         }
@@ -3413,7 +3413,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Tätigkeit *", "[TEST] QA native Timer\nRasen gemäht")
         awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
         captureSyntheticScreen("timer-completion")
-        click("Arbeit speichern")
+        click(UiTags.PRIMARY)
         waitUntil("TIMER_EXPLICIT_SAVE_CREATES_ONE_WORKLOG") {
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
                 before + 1
@@ -3538,7 +3538,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val draft = runCatching { JSONObject(store.ownerValue(key, "")) }.getOrNull()
                 val values = draft?.optJSONObject("values")
                 val entered = field("Tätigkeit *")?.text?.toString()
-                val enabled = runCatching { actionEnabled("Arbeit speichern") }.getOrDefault(false)
+                val enabled = runCatching { actionEnabled(UiTags.PRIMARY) }.getOrDefault(false)
                 observed =
                     JSONObject()
                         .put("draft", draft ?: JSONObject.NULL)
@@ -5117,7 +5117,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }
         launch()
         openWorklogs()
-        click("Filter")
+        click(UiTags.FILTER)
         chooseDate("Ab Datum", "2020-01-01")
         revealContaining("1. Jan. 2020")
         click("Ergebnisse anzeigen")
@@ -5126,7 +5126,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         back()
         waitUntil("WORK_FILTER_IME_CLOSED") { !keyboardVisible() }
         recreate()
-        click("Filter")
+        click(UiTags.FILTER)
         revealContaining("1. Jan. 2020")
         yes(field("Ab Datum") == null, "WORK_FILTER_RECREATION_RETAINS_NATIVE_PICKER")
         chooseDate("Ab Datum", "2027-05-19", confirm = false)
@@ -5135,13 +5135,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }
         launch()
         openOfficeEntry("Suche")
-        click("Filter")
+        click(UiTags.FILTER)
         edit("Zeitraum ab · JJJJ-MM-TT", "2020-01-01", "local-date")
         showKeyboard("Name, Objekt, Tätigkeit, Notiz oder Beleg")
         waitUntil("LOCAL_SEARCH_CLOSES_FILTERS") { field("Zeitraum ab · JJJJ-MM-TT") == null }
         back()
         waitUntil("LOCAL_FILTER_IME_CLOSED") { !keyboardVisible() }
-        click("Filter")
+        click(UiTags.FILTER)
         reveal("Zeitraum ab · JJJJ-MM-TT")
         yes(
             field("Zeitraum ab · JJJJ-MM-TT")?.text?.toString()?.contains("2020-01-01") == true,
@@ -5478,7 +5478,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         checks++
         primaryPosition("Arbeit speichern", "Zurück")
-        val saveWork = actionBounds("Arbeit speichern")
+        val saveWork = actionBounds(UiTags.PRIMARY)
         val returnWork = actionBounds("Zurück")
         yes(
             !Rect.intersects(saveWork, returnWork) &&

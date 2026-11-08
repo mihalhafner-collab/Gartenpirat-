@@ -964,6 +964,7 @@ private fun NativeBillingOverview(controller: NativeAppController) {
                 "Filter",
                 if (from.isEmpty() && to.isEmpty()) "Alle Daten" else "Zeitraum eingeschränkt",
                 { filters = !filters },
+                modifier = Modifier.semantics { testTag = UiTags.FILTER },
             )
             if (filters) {
                 NativeRecordPicker(

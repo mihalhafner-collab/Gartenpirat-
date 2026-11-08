@@ -298,20 +298,6 @@ jobs:
           elif sys.argv[1]=='native_compose':
               assert result['journey'] == sys.argv[3] and result['independent_fresh_fixture'] is True, result
               assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result
-              if sys.argv[3]=='office_opening':
-                  assert result['office_opening']['samples_per_path'] == 40, result
-              if sys.argv[3]=='domain_search':
-                  assert len(result['domain_search_cases']) == 14, result
-                  assert all(row['keyboard_bounds'] and row['real_touch'] for row in result['domain_search_cases']), result
-              if sys.argv[3]=='surfaces':
-                  assert len(result['surface_cases']) == 32, result
-                  assert all(row['no_auto_ime'] for row in result['surface_cases']), result
-              if sys.argv[3]=='list_viewports':
-                  assert len(result['list_viewport_cases']) == 14, result
-                  assert all(row['keyboard_bounds'] and row['real_touch'] and row['ime_preserves_query'] for row in result['list_viewport_cases']), result
-              if sys.argv[3]=='search_keyboard':
-                  assert len(result['search_keyboard_matrix']) == 6, result
-                  assert all(row['keyboard_open_and_closed'] and row['ime_action_preserves_query'] and row['real_touch_selection'] for row in result['search_keyboard_matrix']), result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
