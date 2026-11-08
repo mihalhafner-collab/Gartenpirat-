@@ -109,59 +109,59 @@ internal class LocalWorkflowTools {
         @JvmStatic
         fun description(name: String): String {
 
-            if ((name == "save_equipment")) {
+            if (name == "save_equipment") {
                 return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
             }
-            if ((name == "get_equipment_maintenance")) {
+            if (name == "get_equipment_maintenance") {
                 return "Liest eigene Wartungspläne und paginierten erledigten Wartungsverlauf genau eines lokalen Geräts, einschließlich nächster Fälligkeit und record_hash. Kein Schreiben, keine Gerätefreigabe, keine Herstellerintervalle oder automatische Erledigung."
             }
-            if ((name == "save_equipment_maintenance_plan")) {
+            if (name == "save_equipment_maintenance_plan") {
                 return "Speichert einen ausdrücklich gewählten eigenen Wartungsplan am vorhandenen Gerät. configure benötigt Tätigkeit, Kalenderintervall und starts_on; Änderungen benötigen Grund und aktuellen Gerätehash. bring_forward zieht nur den nächsten Termin vor; shorten verkürzt das Intervall dauerhaft. Keine erledigte Wartung, Zustandsfreigabe, Herstellerempfehlung oder Drive-Arbeit. request_id bei unklarer Antwort erhalten und zuerst lesend prüfen."
             }
-            if ((name == "record_equipment_maintenance")) {
+            if (name == "record_equipment_maintenance") {
                 return "Erfasst eine tatsächlich erledigte Wartung am vorhandenen Plan mit explizitem performed_on, aktuellem Gerätehash und stabiler request_id. Kein Zukunftsdatum. Ein älterer Nachtrag verdrängt keine neuere Erledigung. Optionale kürzere Intervalle nur mit Grund, etwa Fehlschnitten oder erneutem Nachschärfen. Historie bleibt erhalten; Gerätezustand und Backup bleiben unabhängig."
             }
-            if ((name == "get_restore_status")) {
+            if (name == "get_restore_status") {
                 return "Liest ausschließlich den nicht geheimen Zustand einer am Gerät bestätigten vollständigen Wiederherstellung: Phase, Vorschauhash, Neustartbedarf und lokale Integritätsprüfung. Kein Recovery-Code, Dateipfad oder Inhalt und keine Aktivierung durch Lesen."
             }
-            if ((name == "get_offer_decision_history")) {
+            if (name == "get_offer_decision_history") {
                 return "Liest Annahme-/Ablehnungshistorie der unveränderlichen Angebotsversion mit Nachweis und Zeitpunkt. Kein Versand-/Zustellbeleg aus bloßem Teilen."
             }
-            if ((name == "record_offer_acceptance")) {
+            if (name == "record_offer_acceptance") {
                 return "Hält die ausdrücklich bestätigte Annahme genau dieser finalen Angebotsversion mit tatsächlichem Zeitpunkt und nachvollziehbarem Nachweis fest. record_hash prüfen; keine Annahme erfinden und noch keinen zweiten Auftrag erzeugen. request_id bei Retry unverändert lassen."
             }
-            if ((name == "decline_offer")) {
+            if (name == "decline_offer") {
                 return "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen."
             }
-            if ((name == "get_full_backup_status")) {
+            if (name == "get_full_backup_status") {
                 return "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät."
             }
-            if ((name == "request_full_backup")) {
+            if (name == "request_full_backup") {
                 return "Liefert den Hinweis, die lokale Sicherungsansicht und Android-Dateiwahl auf dem Pixel zu öffnen. Startet keinen Upload und erzeugt ohne Dateiwahl keine Sicherung. Zuerst get_full_backup_status lesen; request_id bei Wiederholung erhalten."
             }
-            if ((name == "retry_full_backup")) {
+            if (name == "retry_full_backup") {
                 return "Liefert den Hinweis, einen bestehenden lokalen Speicherversuch in der Sicherungsansicht am Pixel fortzusetzen. Keine neue Sicherung oder Dateifreigabe durch MCP; kein Drive-Zugriff."
             }
-            if ((name == "inspect_edit_action")) {
+            if (name == "inspect_edit_action") {
                 return "Prüft ausschließlich lesend den vorhandenen Beleg einer ursprünglichen Editoraktion mit unveränderten Argumenten. state=confirmed, content_removed oder unknown; keine Wiederholung einer Geschäftsaktion und keine Freigabe allein anhand restaurierter Requests. Unbekanntes Ergebnis separat anhand aktueller Originale klären."
             }
-            if ((name == "list_revier_archive")) {
+            if (name == "list_revier_archive") {
                 return "Liest archivierte Revier-Einträge mit Eintragsart und Pagination, unveränderten IDs sowie record_hash. Kein Wiederöffnen oder Löschen durch Lesen."
             }
-            if ((name == "set_revier_archived")) {
+            if (name == "set_revier_archived") {
                 return "Archiviert oder öffnet genau einen ausdrücklich bestätigten Revier-Eintrag mit aktuellem record_hash. Aktive Einsätze zuerst gesondert beenden; laufende Arbeit und Abhängigkeiten bleiben geschützt. Stabile request_id bei Wiederholung."
             }
-            if ((name == "purge_revier_entity")) {
+            if (name == "purge_revier_entity") {
                 return "Entfernt genau einen aktiven oder früher archivierten Revier-Eintrag endgültig nach aktueller Versions- und Abhängigkeitsprüfung. Die lokale Oberfläche führt die beschriftete Löschung direkt aus. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests."
             }
-            if ((name == "accept_inquiry_direct")) {
+            if (name == "accept_inquiry_direct") {
                 return "Nimmt eine Anfrage ausdrücklich ohne vorheriges Angebot an: tatsächlichen Annahmezeitpunkt, Nachweis und gegebenenfalls getrennten Rechnungsempfänger angeben. Aktuellen record_hash prüfen. Derselbe request_id erzeugt höchstens einen verknüpften Auftrag; kein Rechnungsversand."
             }
             return (java.lang.String.valueOf(
-                ((if (write(name))
+                (if (write(name))
                     "Speichert den ausdrücklich beauftragten lokalen Revier-Vorgang mit request_id und Versionsschutz. "
                 else
-                    "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. "))
+                    "Liest den vollständigen lokalen Revier-Bestand mit Typ-/Status-/Zeitraumfiltern und Pagination. ")
             ) +
                 "Kunden, Objekte, Rechnungsempfänger und tatsächliche Arbeit bleiben getrennt. Historische Zuordnungen und Zeiten nicht erraten; keine operative Drive-Synchronisierung oder automatische Rechnung auslösen.")
         }
@@ -195,7 +195,7 @@ internal class LocalWorkflowTools {
             return McpFields.text(64)
                 .put(
                     "pattern",
-                    (java.lang.String.valueOf(((if (signed) "-?" else ""))) +
+                    (java.lang.String.valueOf(if (signed) "-?" else "") +
                         "(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?"),
                 )
         }
@@ -458,7 +458,7 @@ internal class LocalWorkflowTools {
                 "list_materials",
                 "list_equipment" -> {
                     list(p)
-                    if ((name == "list_care_plans")) {
+                    if (name == "list_care_plans") {
                         p.put("care_plan_id", McpFields.id())
                     }
                 }
@@ -520,7 +520,7 @@ internal class LocalWorkflowTools {
                     required.addAll(
                         Arrays.asList("entity", "entity_id", "expected_record_hash", "confirmed")
                     )
-                    if ((name == "set_revier_archived")) {
+                    if (name == "set_revier_archived") {
                         p.put("archived", McpFields.bool())
                         required.add("archived")
                     }

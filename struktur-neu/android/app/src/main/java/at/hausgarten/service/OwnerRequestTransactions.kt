@@ -37,12 +37,12 @@ class OwnerRequestTransactions {
             store.begin()
             var result: JSONObject
             try {
-                val old: String = store.read(("receipt:" + request))
-                val guard: String = store.read(("receipt_guard:" + request))
-                if ((!old.isEmpty())) {
+                val old: String = store.read("receipt:" + request)
+                val guard: String = store.read("receipt_guard:" + request)
+                if (!old.isEmpty()) {
                     val receipt: JSONObject = JSONObject(old)
                     requireFingerprint(receipt, fingerprint)
-                    if ((receipt.getJSONObject("result").optBoolean("_result_content_removed"))) {
+                    if (receipt.getJSONObject("result").optBoolean("_result_content_removed")) {
                         throw PixelMcpWriteTools.Rejected(
                             "REQUEST_EXPIRED",
                             "Dieser verarbeitete Vorgang wurde endgültig entfernt. Aktuellen Stand prüfen; keine erneute Ausführung.",
@@ -50,7 +50,7 @@ class OwnerRequestTransactions {
                     }
                     result = receipt.getJSONObject("result").put("replayed", true)
                 } else {
-                    if ((!guard.isEmpty())) {
+                    if (!guard.isEmpty()) {
                         requireFingerprint(JSONObject(guard), fingerprint)
                         throw PixelMcpWriteTools.Rejected(
                             "REQUEST_EXPIRED",
@@ -77,7 +77,7 @@ class OwnerRequestTransactions {
 
         @Throws(Exception::class)
         private fun requireFingerprint(receipt: JSONObject, fingerprint: String) {
-            if ((!fingerprint.equals(receipt.getString("fingerprint")))) {
+            if (!fingerprint.equals(receipt.getString("fingerprint"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "REPLAY_MISMATCH",
                     "Die Anfragekennung gehört zu anderen Angaben.",

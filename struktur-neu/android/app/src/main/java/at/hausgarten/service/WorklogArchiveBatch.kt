@@ -13,7 +13,7 @@ class WorklogArchiveBatch {
         @Throws(Exception::class)
         @JvmStatic
         fun preview(snapshot: JSONObject, ids: JSONArray): JSONObject {
-            if ((((ids.length() < 1) || (ids.length() > MAX)))) {
+            if ((ids.length() < 1) || (ids.length() > MAX)) {
                 throw IllegalArgumentException("Bitte 1 bis 200 Arbeiten auswählen.")
             }
             val seen: MutableSet<String> = HashSet()
@@ -22,9 +22,9 @@ class WorklogArchiveBatch {
             var allowed: Boolean = true
             run {
                 var i: Int = 0
-                while ((i < ids.length())) {
+                while (i < ids.length()) {
                     var id: String = ids.getString(i)
-                    if (((id.isEmpty() || !seen.add(id)))) {
+                    if (id.isEmpty() || !seen.add(id)) {
                         throw IllegalArgumentException(
                             "Auswahl enthält eine leere oder doppelte ID."
                         )
@@ -67,13 +67,13 @@ class WorklogArchiveBatch {
             stamp: String,
         ): JSONArray {
             val preview: JSONObject = preview(snapshot, ids)
-            if ((!preview.getString("preview_hash").equals(expected))) {
+            if (!preview.getString("preview_hash").equals(expected)) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
                     "Ausgewählte Arbeiten oder Fotozuordnungen wurden geändert. Nichts entfernt; Auswahl erneut prüfen.",
                 )
             }
-            if ((!preview.getBoolean("allowed"))) {
+            if (!preview.getBoolean("allowed")) {
                 throw IllegalArgumentException(
                     "Mindestens eine Arbeit ist geschützt. Nichts entfernt; Auswahl prüfen."
                 )
@@ -82,7 +82,7 @@ class WorklogArchiveBatch {
             var out: JSONArray = JSONArray()
             run {
                 var i: Int = 0
-                while ((i < ids.length())) {
+                while (i < ids.length()) {
                     var id: String = ids.getString(i)
                     var p: JSONObject =
                         DeletionRules.payload(

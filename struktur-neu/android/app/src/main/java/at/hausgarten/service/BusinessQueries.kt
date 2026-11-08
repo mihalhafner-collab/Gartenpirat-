@@ -51,14 +51,14 @@ class BusinessQueries {
                 throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
             }
             if (state.optBoolean("storage_list_selected")) {
-                if ((name == "search_business_data")) {
+                if (name == "search_business_data") {
                     return JSONObject()
                         .put("customers", master.getJSONArray("customers"))
                         .put("orders", master.getJSONArray("orders"))
                         .put("work_records", master.getJSONArray("worklogs"))
                 }
                 var collection =
-                    (if ((name == "search_customers")) "customers"
+                    (if (name == "search_customers") "customers"
                     else
                         (if ((name == "search_orders") || (name == "get_open_orders")) "orders"
                         else
@@ -67,15 +67,15 @@ class BusinessQueries {
                                     (name == "get_customer_work_records")
                             )
                                 "worklogs"
-                            else (if ((name == "list_photos")) "photos" else ""))))
+                            else (if (name == "list_photos") "photos" else ""))))
                 if (collection.isEmpty()) {
                     throw IllegalArgumentException("TABLE_LIST_QUERY_UNSUPPORTED")
                 }
                 val rows = master.getJSONArray(collection)
                 var result =
                     JSONObject()
-                        .put((if ((collection == "worklogs")) "work_records" else collection), rows)
-                if ((name == "search_customers")) {
+                        .put((if (collection == "worklogs") "work_records" else collection), rows)
+                if (name == "search_customers") {
                     result
                         .put("count", rows.length())
                         .put("requires_clarification", rows.length() > 1)
@@ -176,15 +176,15 @@ class BusinessQueries {
                                 val row = logs.getJSONObject(i)
                                 if (
                                     !(a.optString("customer_id").isEmpty()) &&
-                                        !((a.getString("customer_id") ==
-                                            row.optString("customer_id")))
+                                        !(a.getString("customer_id") ==
+                                            row.optString("customer_id"))
                                 ) {
                                     continue
                                 }
                                 if (
                                     !(a.optString("billing_customer_id").isEmpty()) &&
-                                        !((a.getString("billing_customer_id") ==
-                                            BillingRules.recipient(row)))
+                                        !(a.getString("billing_customer_id") ==
+                                            BillingRules.recipient(row))
                                 ) {
                                     continue
                                 }
@@ -207,7 +207,7 @@ class BusinessQueries {
                         }
                         data = PixelMcpBusinessTools.report(matching, master)
                         if (a.optBoolean("group_by_billing_customer")) {
-                            ((data as JSONObject)).put(
+                            (data as JSONObject).put(
                                 "billing_groups",
                                 BillingRules.groups(matching, master),
                             )

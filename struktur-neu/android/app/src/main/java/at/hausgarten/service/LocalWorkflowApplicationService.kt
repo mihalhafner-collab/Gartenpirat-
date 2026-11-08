@@ -12,13 +12,13 @@ class LocalWorkflowApplicationService : OwnerCommand {
 
     @Throws(Exception::class)
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
-        if ((LocalWorkflowTools.backup(name))) {
+        if (LocalWorkflowTools.backup(name)) {
             return repository.fullBackupAction(name, args)
         }
-        if ((LocalWorkflowTools.revier(name))) {
+        if (LocalWorkflowTools.revier(name)) {
             return repository.revierAction(name, args)
         }
-        if ((LocalWorkflowTools.offerDecision(name))) {
+        if (LocalWorkflowTools.offerDecision(name)) {
             return OfferApplicationService(repository).perform(name, args, request)
         }
         throw IllegalArgumentException("Lokaler Anwendungsfall fehlt.")

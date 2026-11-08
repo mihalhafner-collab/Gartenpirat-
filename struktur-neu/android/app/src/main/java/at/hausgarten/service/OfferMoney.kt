@@ -13,7 +13,7 @@ internal class OfferMoney {
         @Throws(Exception::class)
         fun minor(value: Any?): Long {
 
-            if (((value == null) || (value == JSONObject.NULL))) {
+            if ((value == null) || (value == JSONObject.NULL)) {
                 throw IllegalArgumentException("MONEY_REQUIRED")
             }
             return BigDecimal(value.toString())

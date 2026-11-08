@@ -107,7 +107,7 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
         if (AppointmentTools.write(name)) {
             PlanningJob.schedule(context, 1000)
         }
-        if ((name == "plan_inquiry_inspection")) {
+        if (name == "plan_inquiry_inspection") {
             try {
 
                 PlanningJob.schedule(context, 1000)

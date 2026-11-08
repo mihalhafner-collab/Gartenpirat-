@@ -152,7 +152,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
         if (AppointmentTools.read(name)) {
             return AppointmentRuntime.query(context, store, name, args)
         }
-        if ((name == "get_restore_status")) {
+        if (name == "get_restore_status") {
             return BackupRestoreService.pendingStatus(context)
         }
         if (LocalWorkflowTools.backup(name)) {
@@ -179,7 +179,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                     val hash = PixelMcpWriteTools.hash(catalog)
                     if (
                         args.has("expected_catalog_hash") &&
-                            !((hash == args.getString("expected_catalog_hash")))
+                            !(hash == args.getString("expected_catalog_hash"))
                     ) {
                         throw PixelMcpWriteTools.Rejected(
                             "CATALOG_CHANGED",
@@ -260,7 +260,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         )
                     data.put(
                         "capabilities",
-                        ((if (caps == null) JSONObject() else JSONObject(caps.toString())))
+                        (if (caps == null) JSONObject() else JSONObject(caps.toString()))
                             .put("local_settlements_v1", true)
                             .put("local_payment_ledger_v1", true)
                             .put("native_editor_storage_v1", true)
@@ -421,13 +421,13 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                             val split: Int = key.indexOf(':')
                             if (
                                 args.has("entity") &&
-                                    !((key.substring(0, split) == args.getString("entity")))
+                                    !(key.substring(0, split) == args.getString("entity"))
                             ) {
                                 continue
                             }
                             if (
                                 args.has("entity_id") &&
-                                    !((key.substring(split + 1) == args.getString("entity_id")))
+                                    !(key.substring(split + 1) == args.getString("entity_id"))
                             ) {
                                 continue
                             }
@@ -580,7 +580,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
         for (i in 0 until actions.length()) {
             val action = actions.getJSONObject(i)
             val path = action.getJSONArray("mcp")
-            if ((action.getString("kind") == "business")) {
+            if (action.getString("kind") == "business") {
                 parity = parity and (path.length() > 0)
                 for (j in 0 until path.length()) {
                     parity = parity and (names.contains(path.getString(j)))

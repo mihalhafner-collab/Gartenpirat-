@@ -49,7 +49,7 @@ internal class OfferDecisionService {
         val limit: Int = RevierRules.integer(args, "limit", 1, 100, 50)
         run {
             var i: Int = ((rows!!.length() - 1) - offset)
-            while (((i >= 0) && (items!!.length() < limit))) {
+            while ((i >= 0) && (items!!.length() < limit)) {
                 items!!.put(OfferDecisionRules.publicDecision(rows!!.getJSONObject(i)))
 
                 i--
@@ -65,7 +65,7 @@ internal class OfferDecisionService {
                         .put("total", rows!!.length()))!!
                     .put("record_hash", PixelMcpWriteTools.hash(LocalJournalRules.clean(offer))))!!
                 .put("document_status", offer!!.optString("status"))
-        if ((decision !== null)) {
+        if (decision !== null) {
             val map: JSONObject = (JSONObject())!!.put(id, decision)
             val shown = OfferDecisionRules.matching(offer, map)
             (result!!.put("decision", shown))!!.put(
@@ -92,7 +92,7 @@ internal class OfferDecisionService {
             throw IllegalArgumentException("Unbekannte Angebotsentscheidung.")
         }
         val requestId = RevierRules.text(args, "request_id", 128, true)
-        if ((requestId!!.length < 8)) {
+        if (requestId!!.length < 8) {
             throw PixelMcpWriteTools.Rejected(
                 "INVALID_INPUT",
                 "Stabile Anfragekennung erforderlich.",
@@ -133,7 +133,7 @@ internal class OfferDecisionService {
         repository!!.readDocument(offer)
         val existing = current(id)
         val version = OfferDecisionRules.contentVersion(offer)
-        if ((existing !== null)) {
+        if (existing !== null) {
             throw PixelMcpWriteTools.Rejected(
                 (if ((existing!!.getString("content_version"))!!.equals(version))
                     "OFFER_DECISION_ALREADY_RECORDED"
@@ -142,7 +142,7 @@ internal class OfferDecisionService {
             )
         }
         val acceptance: Boolean = name!!.equals("record_offer_acceptance")
-        if ((!acceptance && (offer!!.optString("status"))!!.equals("accepted"))) {
+        if (!acceptance && (offer!!.optString("status"))!!.equals("accepted")) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_ALREADY_CONVERTED",
                 "Angenommenen Auftrag nicht durch eine Ablehnungsmarkierung aufheben. Bestehenden Vorgang gesondert klären.",
@@ -210,7 +210,7 @@ internal class OfferDecisionService {
     @Throws(Exception::class)
     fun requireConversionDecision(offer: JSONObject): Unit {
         val decision = current(offer!!.getString("id"))
-        if ((decision !== null)) {
+        if (decision !== null) {
             if (
                 !(decision!!.getString("content_version"))!!.equals(
                     OfferDecisionRules.contentVersion(offer)
@@ -228,7 +228,7 @@ internal class OfferDecisionService {
                 )
             }
         }
-        if ((OfferDecisionRules.local(repository!!.state()) && (decision === null))) {
+        if (OfferDecisionRules.local(repository!!.state()) && (decision === null)) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_ACCEPTANCE_EVIDENCE_REQUIRED",
                 "Annahmezeit und nachvollziehbaren Nachweis für genau diese Version erfassen, bevor ein Auftrag angelegt wird.",

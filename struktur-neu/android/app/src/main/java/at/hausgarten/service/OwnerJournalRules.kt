@@ -19,7 +19,7 @@ class OwnerJournalRules {
         @JvmStatic
         fun archives(snapshot: JSONObject): JSONObject {
             var a: JSONObject? = snapshot.optJSONObject("owner_archive")
-            if (((a == null))) {
+            if (a == null) {
                 a = JSONObject()
                 snapshot.put("owner_archive", a)
             }
@@ -37,8 +37,8 @@ class OwnerJournalRules {
         fun findOrNull(rows: JSONArray?, id: String): JSONObject? {
             run {
                 var i: Int = 0
-                while (((rows != null) && (i < rows!!.length()))) {
-                    if ((id.equals(rows!!.getJSONObject(i).optString("id")))) {
+                while ((rows != null) && (i < rows!!.length())) {
+                    if (id.equals(rows!!.getJSONObject(i).optString("id"))) {
                         return rows!!.getJSONObject(i)
                     }
                     i++
@@ -50,16 +50,16 @@ class OwnerJournalRules {
         @Throws(Exception::class)
         @JvmStatic
         fun version(row: JSONObject?): String {
-            if (((row == null))) {
+            if (row == null) {
                 return PixelMcpWriteTools.hash(JSONObject.NULL)
             }
-            if ((row!!.has("starts_at"))) {
+            if (row!!.has("starts_at")) {
                 return AppointmentRules.hash(row)
             }
-            if ((row!!.has("id"))) {
+            if (row!!.has("id")) {
                 if (
-                    (((row!!.has("offer_number") || row!!.has("pricing_mode")) ||
-                        ((row!!.has("unit") && row!!.has("default_price")))))
+                    ((row!!.has("offer_number") || row!!.has("pricing_mode")) ||
+                        (row!!.has("unit") && row!!.has("default_price")))
                 ) {
                     return PixelMcpWriteTools.hash(LocalJournalRules.clean(row))
                 }
@@ -84,7 +84,7 @@ class OwnerJournalRules {
         @Throws(Exception::class)
         @JvmStatic
         fun checkHash(row: JSONObject?, expected: String) {
-            if ((!version(row).equals(expected))) {
+            if (!version(row).equals(expected)) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
                     "Der geprüfte Stand hat sich verändert. Beide Varianten bleiben erhalten.",
@@ -102,21 +102,21 @@ class OwnerJournalRules {
         ) {
             val kind: String = action.getString("kind")
             var p: JSONObject = action.getJSONObject("payload")
-            if ((kind.equals(TrashPurgeBatch.KIND))) {
+            if (kind.equals(TrashPurgeBatch.KIND)) {
                 TrashPurgeBatch.apply(snapshot, action)
                 return
             }
-            if ((kind.equals("purge_v1"))) {
+            if (kind.equals("purge_v1")) {
                 TrashRules.purge(snapshot, action)
                 return
             }
-            if ((OfferJournalRules.handles(kind))) {
+            if (OfferJournalRules.handles(kind)) {
                 OfferJournalRules.apply(snapshot, action)
                 return
             }
-            if ((kind.equals("business_settings"))) {
+            if (kind.equals("business_settings")) {
                 var current: JSONObject? = snapshot.optJSONObject("business_settings")
-                if (((current == null))) {
+                if (current == null) {
                     throw IllegalArgumentException(
                         "Fachliche Einstellungen fehlen; Pixel-Datenstand erneut prüfen."
                     )
@@ -145,18 +145,17 @@ class OwnerJournalRules {
                         var value: Any = changes.get(key)
                         updated.put(
                             key,
-                            (if (value is Boolean) ((if (value) "1" else "0"))
-                            else value.toString()),
+                            (if (value is Boolean) (if (value) "1" else "0") else value.toString()),
                         )
                     }
                 }
                 snapshot.put("business_settings", updated)
                 var issuer: JSONObject? = snapshot.optJSONObject("invoice_issuer")
-                if (((issuer == null))) {
+                if (issuer == null) {
                     issuer = JSONObject()
                 }
                 for (key in PixelMcpOwnerTools.BUSINESS_KEYS) {
-                    if ((!key.startsWith("invoice_"))) {
+                    if (!key.startsWith("invoice_")) {
                         issuer!!.put(key, updated.optString(key))
                     }
                 }
@@ -166,30 +165,30 @@ class OwnerJournalRules {
             val entity: String = p.getString("entity")
             var id: String = p.getString("id")
             var collection: String = group(entity)
-            if ((collection.isEmpty())) {
+            if (collection.isEmpty()) {
                 throw IllegalArgumentException("Unbekannter Archivbereich.")
             }
             val rows: JSONArray = snapshot.getJSONArray(collection)
             var current: JSONObject? = findOrNull(rows, id)
             val archive: JSONObject = archives(snapshot)
             val key: String = (("" + entity + ":") + id)
-            if ((kind.equals("restore"))) {
+            if (kind.equals("restore")) {
                 val saved: JSONObject? = archive.optJSONObject(key)
-                if (((saved == null))) {
+                if (saved == null) {
                     throw IllegalArgumentException("Archiveintrag fehlt.")
                 }
                 checkHash(saved, p.getString("expected_record_hash"))
-                if ((saved!!.optBoolean("purged"))) {
+                if (saved!!.optBoolean("purged")) {
                     throw IllegalArgumentException(
                         "Endgültig gelöschte Einträge sind nicht wiederherstellbar."
                     )
                 }
                 var original: JSONObject = saved!!.getJSONObject("record")
-                if (((entity.equals("customer") || entity.equals("service_template")))) {
+                if (entity.equals("customer") || entity.equals("service_template")) {
                     if (
-                        (((current == null) ||
-                            ((current!!.optBoolean("active", true) &&
-                                (current!!.optInt("active", 1) != 0)))))
+                        ((current == null) ||
+                            (current!!.optBoolean("active", true) &&
+                                (current!!.optInt("active", 1) != 0)))
                     ) {
                         throw IllegalArgumentException(
                             "Der archivierte Kunde wurde inzwischen geändert."
@@ -197,11 +196,11 @@ class OwnerJournalRules {
                     }
                     checkHash(current, saved!!.getString("archived_record_hash"))
                 } else {
-                    if (((current != null))) {
+                    if (current != null) {
                         throw IllegalArgumentException("Die Original-ID ist bereits belegt.")
                     }
                 }
-                if ((!entity.equals("invoice"))) {
+                if (!entity.equals("invoice")) {
                     LocalJournalRules.validateChange(entity, original, null, snapshot)
                 }
                 replace(snapshot, collection, id, original)
@@ -210,11 +209,11 @@ class OwnerJournalRules {
                 return
             }
             checkHash(current, p.getString("expected_record_hash"))
-            if (((current == null))) {
+            if (current == null) {
                 throw IllegalArgumentException("Der Eintrag fehlt.")
             }
             validateArchive(entity, current, snapshot)
-            if ((archive.has(key))) {
+            if (archive.has(key)) {
                 throw IllegalArgumentException("Für diese ID besteht bereits ein Archivstand.")
             }
             var saved: JSONObject? =
@@ -222,14 +221,14 @@ class OwnerJournalRules {
                     .put("record", current)
                     .put("archived_at", action.optString("created_at"))
                     .put("archive_action", action.getString("client_id"))
-            if ((p.has("deletion_policy"))) {
+            if (p.has("deletion_policy")) {
                 saved!!.put("deletion_policy", p.getString("deletion_policy"))
             }
             val related: JSONArray = TrashRules.related(snapshot, entity, id)
             if (
-                (("recoverable_v2".equals(p.optString("deletion_policy")) &&
+                ("recoverable_v2".equals(p.optString("deletion_policy")) &&
                     !PixelMcpWriteTools.hash(related)
-                        .equals(p.getString("expected_photo_links_hash"))))
+                        .equals(p.getString("expected_photo_links_hash")))
             ) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
@@ -237,11 +236,11 @@ class OwnerJournalRules {
                 )
             }
             if (
-                (((related.length() > 0) &&
-                    (((entity.equals("order") || entity.equals("worklog")) ||
-                        "recoverable_v2".equals(p.optString("deletion_policy"))))))
+                ((related.length() > 0) &&
+                    ((entity.equals("order") || entity.equals("worklog")) ||
+                        "recoverable_v2".equals(p.optString("deletion_policy"))))
             ) {
-                if ((!"recoverable_v2".equals(p.optString("deletion_policy")))) {
+                if (!"recoverable_v2".equals(p.optString("deletion_policy"))) {
                     throw IllegalArgumentException(
                         "Fotozuordnungen mit aktuellem Löschdialog erneut prüfen; alte Aktion bleibt erhalten."
                     )
@@ -260,7 +259,7 @@ class OwnerJournalRules {
                     TrashRules.detachRelated(snapshot, entity, id, p.getString("updated_at")),
                 )
             }
-            if (((entity.equals("customer") || entity.equals("service_template")))) {
+            if (entity.equals("customer") || entity.equals("service_template")) {
                 var inactive: JSONObject =
                     JSONObject(current!!.toString())
                         .put("active", (if (entity.equals("customer")) 0 else false))
@@ -281,25 +280,25 @@ class OwnerJournalRules {
                 TrashRules.requireDeletableParent(snapshot, entity, row.getString("id"))
                 return
             }
-            if ((entity.equals("customer"))) {
+            if (entity.equals("customer")) {
                 for (group in arrayOf("customers", "orders", "worklogs")) {
                     val records: JSONArray? = snapshot.optJSONArray(group)
                     run {
                         var i: Int = 0
-                        while (((records != null) && (i < records!!.length()))) {
+                        while ((records != null) && (i < records!!.length())) {
                             val r: JSONObject = records!!.getJSONObject(i)
                             var key: String =
                                 (if (group.equals("customers")) "default_billing_customer_id"
                                 else "billing_customer_id")
                             if (
-                                ((row.getString("id").equals(r.optString(key)) &&
+                                (row.getString("id").equals(r.optString(key)) &&
                                     !row.getString("id")
                                         .equals(
                                             r.optString(
                                                 (if (group.equals("customers")) "id"
                                                 else "customer_id")
                                             )
-                                        )))
+                                        ))
                             ) {
                                 throw IllegalArgumentException(
                                     "Dieser Kunde wird als Rechnungsempfänger verwendet. Zuerst die Abrechnungszuordnungen prüfen."
@@ -311,42 +310,42 @@ class OwnerJournalRules {
                 }
                 return
             }
-            if (((entity.equals("offer") && !OfferRules.editable(row)))) {
+            if (entity.equals("offer") && !OfferRules.editable(row)) {
                 throw IllegalArgumentException(
                     "Finalisierte oder angenommene Angebote bleiben als Beleg erhalten."
                 )
             }
-            if ((entity.equals("service_template"))) {
+            if (entity.equals("service_template")) {
                 return
             }
             var id: String = row.getString("id")
-            if ((entity.equals("invoice"))) {
+            if (entity.equals("invoice")) {
                 EntityProtectionRules.validateInvoiceDelete(row)
             }
             for (collection in arrayOf("orders", "worklogs", "photos", "invoices", "offers")) {
                 val rows: JSONArray = snapshot.getJSONArray(collection)
                 run {
                     var i: Int = 0
-                    while ((i < rows.length())) {
+                    while (i < rows.length()) {
                         val other: JSONObject = rows.getJSONObject(i)
                         if (
-                            ((!collection.equals("photos") &&
-                                (((entity.equals("order") &&
+                            (!collection.equals("photos") &&
+                                ((entity.equals("order") &&
                                     id.equals(other.optString("order_id"))) ||
                                     (entity.equals("worklog") &&
-                                        id.equals(other.optString("worklog_id")))))))
+                                        id.equals(other.optString("worklog_id")))))
                         ) {
                             throw IllegalArgumentException(
                                 "Verknüpfte Daten zuerst prüfen; nichts entfernt."
                             )
                         }
-                        if (((entity.equals("worklog") && collection.equals("invoices")))) {
+                        if (entity.equals("worklog") && collection.equals("invoices")) {
                             val refs: JSONArray? = other.optJSONArray("worklog_ids")
                             val positions: JSONArray? = other.optJSONArray("positions")
                             run {
                                 var j: Int = 0
-                                while (((refs != null) && (j < refs!!.length()))) {
-                                    if ((id.equals(refs!!.optString(j)))) {
+                                while ((refs != null) && (j < refs!!.length())) {
+                                    if (id.equals(refs!!.optString(j))) {
                                         throw IllegalArgumentException(
                                             "Die Arbeit ist mit einer Rechnung verknüpft."
                                         )
@@ -356,7 +355,7 @@ class OwnerJournalRules {
                             }
                             run {
                                 var j: Int = 0
-                                while (((positions != null) && (j < positions!!.length()))) {
+                                while ((positions != null) && (j < positions!!.length())) {
                                     if (
                                         (id.equals(
                                             positions!!.getJSONObject(j).optString("worklog_id")
@@ -389,11 +388,11 @@ class OwnerJournalRules {
             var found: Boolean = false
             run {
                 var i: Int = 0
-                while ((i < rows.length())) {
+                while (i < rows.length()) {
                     val old: JSONObject = rows.getJSONObject(i)
-                    if ((id.equals(old.optString("id")))) {
+                    if (id.equals(old.optString("id"))) {
                         found = true
-                        if (((replacement != null))) {
+                        if (replacement != null) {
                             next.put(replacement)
                         }
                     } else {
@@ -402,7 +401,7 @@ class OwnerJournalRules {
                     i++
                 }
             }
-            if (((!found && (replacement != null)))) {
+            if (!found && (replacement != null)) {
                 next.put(replacement)
             }
             snapshot.put(collection, next)

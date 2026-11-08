@@ -36,10 +36,10 @@ class TrashPurgeBatch {
             archive.keys().forEachRemaining(archiveKeys::add)
             for (key in archiveKeys) {
                 val entry: JSONObject = archive.getJSONObject(key)
-                if ((entry.optBoolean("purged"))) {
+                if (entry.optBoolean("purged")) {
                     continue
                 }
-                if ((((key.indexOf(':') < 1) || !entry.has("record")))) {
+                if ((key.indexOf(':') < 1) || !entry.has("record")) {
                     throw IllegalArgumentException("Ungültiger Papierkorbeintrag. Nichts entfernt.")
                 }
                 candidates.add(key)
@@ -51,15 +51,15 @@ class TrashPurgeBatch {
             for (group in GROUPS) {
                 val guards: TreeMap<String, String> = TreeMap()
                 var rows: JSONArray? = snapshot.optJSONArray(group)
-                if ((((rows == null) && group.equals("appointments")))) {
+                if ((rows == null) && group.equals("appointments")) {
                     rows = JSONArray()
                 }
-                if (((rows == null))) {
+                if (rows == null) {
                     throw IllegalArgumentException("Unvollständiger Geschäftsstand.")
                 }
                 run {
                     var i: Int = 0
-                    while ((i < rows!!.length())) {
+                    while (i < rows!!.length()) {
                         val row: JSONObject = rows!!.getJSONObject(i)
                         guards.put(row.getString("id"), OwnerJournalRules.version(row))
                         i++
@@ -80,7 +80,7 @@ class TrashPurgeBatch {
                         changed = true
                     }
                 }
-            } while ((changed))
+            } while (changed)
             val entries: JSONArray = JSONArray()
             val remaining: JSONArray = JSONArray()
             for (key in candidates) {
@@ -88,7 +88,7 @@ class TrashPurgeBatch {
                 entries.put(
                     JSONObject()
                         .put("entity", key.substring(0, split))
-                        .put("entity_id", key.substring((split + 1)))
+                        .put("entity_id", key.substring(split + 1))
                         .put(
                             "expected_record_hash",
                             OwnerJournalRules.version(archive.getJSONObject(key)),
@@ -131,11 +131,11 @@ class TrashPurgeBatch {
                 archive.remove(key)
                 val split: Int = key.indexOf(':')
                 val type: String = key.substring(0, split)
-                if (((type.equals("customer") || type.equals("service_template")))) {
+                if (type.equals("customer") || type.equals("service_template")) {
                     OwnerJournalRules.replace(
                         view,
                         OwnerJournalRules.group(type),
-                        key.substring((split + 1)),
+                        key.substring(split + 1),
                         null,
                     )
                 }
@@ -147,13 +147,13 @@ class TrashPurgeBatch {
         private fun validate(original: JSONObject, view: JSONObject, key: String) {
             val split: Int = key.indexOf(':')
             val type: String = key.substring(0, split)
-            var id: String = key.substring((split + 1))
-            if ((!Arrays.asList(*DeletionRules.ENTITIES).contains(type))) {
+            var id: String = key.substring(split + 1)
+            if (!Arrays.asList(*DeletionRules.ENTITIES).contains(type)) {
                 throw IllegalArgumentException("Geschützter oder unbekannter Papierkorbbereich.")
             }
             val saved: JSONObject = OwnerJournalRules.archives(original).getJSONObject(key)
             var record: JSONObject = saved.getJSONObject("record")
-            if ((!id.equals(record.getString("id")))) {
+            if (!id.equals(record.getString("id"))) {
                 throw IllegalArgumentException(
                     "Papierkorb-ID stimmt nicht mit dem Original überein."
                 )
@@ -163,13 +163,13 @@ class TrashPurgeBatch {
                     original.getJSONArray(OwnerJournalRules.group(type)),
                     id,
                 )
-            if (((type.equals("customer") || type.equals("service_template")))) {
+            if (type.equals("customer") || type.equals("service_template")) {
                 OwnerJournalRules.checkHash((active)!!, saved.getString("archived_record_hash"))
                 if (active.optBoolean("active", true) && active.optInt("active", 1) != 0) {
                     throw IllegalArgumentException("Eintrag ist wieder aktiv. Nichts gelöscht.")
                 }
             } else {
-                if (((active != null))) {
+                if (active != null) {
                     throw IllegalArgumentException("Eintrag ist wieder aktiv. Nichts gelöscht.")
                 }
             }
@@ -191,17 +191,17 @@ class TrashPurgeBatch {
         @Throws(Exception::class)
         @JvmStatic
         fun payload(snapshot: JSONObject, expected: String, confirmed: Boolean): JSONObject {
-            if ((!confirmed)) {
+            if (!confirmed) {
                 throw IllegalArgumentException("Papierkorb leeren ausdrücklich bestätigen.")
             }
             val preview: JSONObject = preview(snapshot)
-            if ((!preview.getString("preview_hash").equals(expected))) {
+            if (!preview.getString("preview_hash").equals(expected)) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
                     "Papierkorb oder Verknüpfungen wurden geändert. Nichts gelöscht; Vorschau neu öffnen.",
                 )
             }
-            if ((!preview.getBoolean("allowed"))) {
+            if (!preview.getBoolean("allowed")) {
                 throw IllegalArgumentException("Keine freigegebenen Papierkorbeinträge vorhanden.")
             }
             return JSONObject()
@@ -261,7 +261,7 @@ class TrashPurgeBatch {
             TrashRules.removeTestTargets(snapshot, testTargets(snapshot, entries))
             run {
                 var i: Int = 0
-                while ((i < entries.length())) {
+                while (i < entries.length()) {
                     val e: JSONObject = entries.getJSONObject(i)
                     val type: String = e.getString("entity")
                     var id: String = e.getString("entity_id")
@@ -270,7 +270,7 @@ class TrashPurgeBatch {
                         action,
                         type,
                         id,
-                        originals.getJSONObject((("" + type + ":") + id)),
+                        originals.getJSONObject(("" + type + ":") + id),
                     )
                     i++
                 }

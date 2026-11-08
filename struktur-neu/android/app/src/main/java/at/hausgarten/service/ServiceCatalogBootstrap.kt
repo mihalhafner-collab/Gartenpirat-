@@ -15,8 +15,8 @@ class ServiceCatalogBootstrap {
         @JvmStatic
         fun seed(snapshot: JSONObject, source: Source) {
             if (
-                ((!snapshot.optBoolean("service_catalog_initialized") &&
-                    (snapshot.getJSONArray("service_catalog").length() == 0)))
+                (!snapshot.optBoolean("service_catalog_initialized") &&
+                    (snapshot.getJSONArray("service_catalog").length() == 0))
             ) {
                 snapshot.put("service_catalog", JSONArray(source.read()))
             }

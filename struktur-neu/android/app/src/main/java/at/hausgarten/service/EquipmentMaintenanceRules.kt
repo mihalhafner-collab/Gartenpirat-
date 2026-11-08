@@ -16,7 +16,7 @@ class EquipmentMaintenanceRules {
         fun interval(row: JSONObject) {
             val unit: String = RevierRules.text(row, "interval_unit", 12, true)
             var maximum: Int
-            when ((unit)) {
+            when (unit) {
                 "days" -> {
                     maximum = 3650
                 }
@@ -37,7 +37,7 @@ class EquipmentMaintenanceRules {
                 }
             }
             var value: Int = RevierRules.integer(row, "interval_value", 1, maximum, -1)
-            if (((value < 1))) {
+            if (value < 1) {
                 throw RevierRules.error("INVALID_INPUT", "Eine positive Intervalllänge angeben.")
             }
             row.put("interval_value", value).put("interval_unit", unit)
@@ -49,7 +49,7 @@ class EquipmentMaintenanceRules {
             interval(interval)
             var value: Int = interval.getInt("interval_value")
             try {
-                when ((interval.getString("interval_unit"))) {
+                when (interval.getString("interval_unit")) {
                     "days" -> {
                         return anchor.plusDays((value).toLong())
                     }
@@ -76,7 +76,7 @@ class EquipmentMaintenanceRules {
         fun recalculate(plan: JSONObject) {
             var regular: String =
                 advance(RevierRules.date(plan.getString("anchor_on")), plan).toString()
-            if (((regular.length != 10))) {
+            if (regular.length != 10) {
                 throw RevierRules.error(
                     "INVALID_INPUT",
                     "Das Wartungsdatum liegt außerhalb des gültigen Bereichs.",
@@ -84,7 +84,7 @@ class EquipmentMaintenanceRules {
             }
             plan.put("regular_due_on", regular)
             var once: String = RevierRules.date(plan, "one_off_due_on", false)
-            if (((!once.isEmpty() && (once.compareTo(regular) >= 0)))) {
+            if (!once.isEmpty() && (once.compareTo(regular) >= 0)) {
                 plan.remove("one_off_due_on")
                 once = ""
             }
@@ -94,17 +94,17 @@ class EquipmentMaintenanceRules {
         @Throws(Exception::class)
         @JvmStatic
         fun plans(equipment: JSONObject): JSONArray {
-            if ((!equipment.has("maintenance_plans"))) {
+            if (!equipment.has("maintenance_plans")) {
                 return JSONArray()
             }
-            if ((!(equipment.get("maintenance_plans") is JSONArray))) {
+            if (!(equipment.get("maintenance_plans") is JSONArray)) {
                 throw RevierRules.error(
                     "REVIER_RELATION_INVALID",
                     "Wartungspläne sind nicht als Liste gespeichert.",
                 )
             }
             val plans: JSONArray = equipment.getJSONArray("maintenance_plans")
-            if (((plans.length() > MAX_PLANS))) {
+            if (plans.length() > MAX_PLANS) {
                 throw RevierRules.error(
                     "REVIER_RELATION_INVALID",
                     "Zu viele Wartungspläne an diesem Gerät.",
@@ -113,10 +113,10 @@ class EquipmentMaintenanceRules {
             val ids: MutableSet<String> = HashSet()
             run {
                 var i: Int = 0
-                while ((i < plans.length())) {
+                while (i < plans.length()) {
                     var p: JSONObject = plans.getJSONObject(i)
                     var id: String = RevierRules.id(p, "id", true)
-                    if ((!ids.add(id))) {
+                    if (!ids.add(id)) {
                         throw RevierRules.error(
                             "REVIER_RELATION_INVALID",
                             "Wartungsplan ist mehrfach vorhanden.",
@@ -128,14 +128,14 @@ class EquipmentMaintenanceRules {
                     val expected: JSONObject = RevierRules.copy(p)
                     recalculate(expected)
                     for (field in arrayOf("regular_due_on", "next_due_on")) {
-                        if ((!expected.getString(field).equals(p.optString(field)))) {
+                        if (!expected.getString(field).equals(p.optString(field))) {
                             throw RevierRules.error(
                                 "REVIER_RELATION_INVALID",
                                 "Wartungsintervall und Fälligkeit widersprechen sich.",
                             )
                         }
                     }
-                    if (((expected.has("one_off_due_on") != p.has("one_off_due_on")))) {
+                    if (expected.has("one_off_due_on") != p.has("one_off_due_on")) {
                         throw RevierRules.error(
                             "REVIER_RELATION_INVALID",
                             "Einzeltermin und regelmäßige Fälligkeit widersprechen sich.",
@@ -143,9 +143,9 @@ class EquipmentMaintenanceRules {
                     }
                     val completed: String = RevierRules.date(p, "last_completed_on", false)
                     if (
-                        ((!completed.isEmpty() &&
-                            ((!completed.equals(p.getString("anchor_on")) ||
-                                p.optString("last_event_id").isEmpty()))))
+                        (!completed.isEmpty() &&
+                            (!completed.equals(p.getString("anchor_on")) ||
+                                p.optString("last_event_id").isEmpty()))
                     ) {
                         throw RevierRules.error(
                             "REVIER_RELATION_INVALID",
@@ -163,8 +163,8 @@ class EquipmentMaintenanceRules {
         fun find(plans: JSONArray, id: String): JSONObject {
             run {
                 var i: Int = 0
-                while ((i < plans.length())) {
-                    if ((id.equals(plans.getJSONObject(i).getString("id")))) {
+                while (i < plans.length()) {
+                    if (id.equals(plans.getJSONObject(i).getString("id"))) {
                         return plans.getJSONObject(i)
                     }
                     i++
@@ -179,12 +179,12 @@ class EquipmentMaintenanceRules {
         @Throws(Exception::class)
         @JvmStatic
         fun shorten(plan: JSONObject, requested: JSONObject, reason: String) {
-            if ((reason.trim().isEmpty())) {
+            if (reason.trim().isEmpty()) {
                 throw RevierRules.error("INVALID_INPUT", "Grund für das kürzere Intervall angeben.")
             }
             interval(requested)
             val anchor: LocalDate = RevierRules.date(plan.getString("anchor_on"))
-            if ((!advance(anchor, requested).isBefore(advance(anchor, plan)))) {
+            if (!advance(anchor, requested).isBefore(advance(anchor, plan))) {
                 throw RevierRules.error(
                     "INVALID_INPUT",
                     "Ein tatsächlich kürzeres Intervall wählen.",
@@ -203,9 +203,9 @@ class EquipmentMaintenanceRules {
             val plans: JSONArray = plans(equipment)
             run {
                 var i: Int = 0
-                while ((i < plans.length())) {
+                while (i < plans.length()) {
                     val due: String = plans.getJSONObject(i).getString("next_due_on")
-                    if (((next.isEmpty() || (due.compareTo(next) < 0)))) {
+                    if (next.isEmpty() || (due.compareTo(next) < 0)) {
                         next = due
                     }
                     i++

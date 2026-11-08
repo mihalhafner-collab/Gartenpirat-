@@ -13,16 +13,16 @@ class ActiveWorkProtection {
         fun require(state: JSONObject, entity: String, id: String) {
             val session: JSONObject? = state.optJSONObject("work_session")
             if (
-                (((session == null) ||
+                ((session == null) ||
                     Arrays.asList("IDLE", "FINALIZED", "CANCELLED")
-                        .contains(session!!.optString("state"))))
+                        .contains(session!!.optString("state")))
             ) {
                 return
             }
             if (
-                ((id.equals(session!!.optString(("" + entity + "_id"))) ||
+                (id.equals(session!!.optString("" + entity + "_id")) ||
                     (entity.equals("worklog") &&
-                        id.equals(session!!.optString("finalized_worklog_id")))))
+                        id.equals(session!!.optString("finalized_worklog_id"))))
             ) {
                 throw PixelMcpWriteTools.Rejected(
                     "ACTIVE_WORK_SESSION",

@@ -39,14 +39,14 @@ class WorkSessionStore {
         }
 
         override fun bootMarker(): String {
-            if (((context != null))) {
+            if (context != null) {
                 var count: Int =
                     android.provider.Settings.Global.getInt(
                         context!!.getContentResolver(),
                         android.provider.Settings.Global.BOOT_COUNT,
                         -1,
                     )
-                if (((count >= 0))) {
+                if (count >= 0) {
                     return ("boot:" + count)
                 }
             }
@@ -75,16 +75,16 @@ class WorkSessionStore {
         try {
             val request: String = required(input, "request_id")
             val existing: String = sessionForRequest(request)
-            if ((!existing.isEmpty())) {
+            if (!existing.isEmpty()) {
                 db.rawQuery(
                         "SELECT event_type,payload FROM work_session_events WHERE request_id=?",
                         arrayOf(request),
                     )
                     .use { start ->
                         if (
-                            ((!start.moveToFirst() ||
+                            (!start.moveToFirst() ||
                                 !java.util.Arrays.asList("START", "START_EXISTING")
-                                    .contains(start.getString(0))))
+                                    .contains(start.getString(0)))
                         ) {
                             throw PixelMcpWriteTools.Rejected(
                                 "REPLAY_MISMATCH",
@@ -93,11 +93,11 @@ class WorkSessionStore {
                         }
                         var original: JSONObject = JSONObject(start.getString(1))
                         original.remove("_clock")
-                        if ((original.has("_request_input_hash"))) {
+                        if (original.has("_request_input_hash")) {
                             val saved: String = original.optString("_request_input_hash")
                             if (
-                                ((!saved.matches(Regex("[0-9a-f]{64}")) ||
-                                    !saved.equals(input.optString("_request_input_hash"))))
+                                (!saved.matches(Regex("[0-9a-f]{64}")) ||
+                                    !saved.equals(input.optString("_request_input_hash")))
                             ) {
                                 throw PixelMcpWriteTools.Rejected(
                                     "REPLAY_MISMATCH",
@@ -122,7 +122,7 @@ class WorkSessionStore {
                 db.setTransactionSuccessful()
                 return replayed
             }
-            if (((activeId() != null))) {
+            if (activeId() != null) {
                 val active: String = activeId()!!
                 event(active, "START_EXISTING", request, input)
                 db.setTransactionSuccessful()
@@ -177,8 +177,8 @@ class WorkSessionStore {
         db.beginTransaction()
         try {
             val replay: String = sessionForRequest(request)
-            if ((!replay.isEmpty())) {
-                if ((!id.equals(replay))) {
+            if (!replay.isEmpty()) {
+                if (!id.equals(replay)) {
                     throw IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.")
                 }
                 requireEvent(request, "DISCARD")
@@ -188,7 +188,7 @@ class WorkSessionStore {
             }
             val before: JSONObject = current(id)
             val state: String = before.getString("state")
-            if ((((!RUNNING.equals(state) && !PAUSED.equals(state)) && !STOPPED.equals(state)))) {
+            if ((!RUNNING.equals(state) && !PAUSED.equals(state)) && !STOPPED.equals(state)) {
                 throw IllegalStateException(
                     "Nur eine noch nicht gespeicherte Zeiterfassung kann verworfen werden."
                 )
@@ -213,8 +213,8 @@ class WorkSessionStore {
         db.beginTransaction()
         try {
             val replay: String = sessionForRequest(request)
-            if ((!replay.isEmpty())) {
-                if ((!id.equals(replay))) {
+            if (!replay.isEmpty()) {
+                if (!id.equals(replay)) {
                     throw IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.")
                 }
                 requireEvent(request, "RESTORE")
@@ -222,12 +222,12 @@ class WorkSessionStore {
                 db.setTransactionSuccessful()
                 return replayed
             }
-            if (((activeId() != null))) {
+            if (activeId() != null) {
                 throw IllegalStateException(
                     "Eine andere Zeiterfassung ist aktiv. Bitte diese zuerst abschließen."
                 )
             }
-            if ((!CANCELLED.equals(current(id).getString("state")))) {
+            if (!CANCELLED.equals(current(id).getString("state"))) {
                 throw IllegalStateException("Diese Zeiterfassung wurde nicht verworfen.")
             }
             val values: ContentValues = ContentValues()
@@ -256,14 +256,14 @@ class WorkSessionStore {
     fun stop(id: String, request: String): JSONObject {
         var current: JSONObject = current(id)
         val state: String = current.getString("state")
-        if ((STOPPED.equals(state))) {
-            if ((id.equals(sessionForRequest(request)))) {
+        if (STOPPED.equals(state)) {
+            if (id.equals(sessionForRequest(request))) {
                 requireEvent(request, "STOP")
                 return current
             }
             throw IllegalStateException("Die Arbeit ist bereits gestoppt.")
         }
-        if (((!RUNNING.equals(state) && !PAUSED.equals(state)))) {
+        if (!RUNNING.equals(state) && !PAUSED.equals(state)) {
             throw IllegalStateException("Diese Arbeitssitzung kann nicht gestoppt werden.")
         }
         return transition(id, request, state, STOPPED, "STOP", RUNNING.equals(state))
@@ -271,21 +271,21 @@ class WorkSessionStore {
 
     @Throws(Exception::class)
     fun finalizeSession(id: String, worklogId: String?, request: String): JSONObject {
-        if ((((worklogId == null) || worklogId!!.trim().isEmpty()))) {
+        if ((worklogId == null) || worklogId!!.trim().isEmpty()) {
             throw IllegalArgumentException("Die Arbeitsaufzeichnung fehlt.")
         }
         val before: JSONObject = current(id)
-        if ((FINALIZED.equals(before.getString("state")))) {
+        if (FINALIZED.equals(before.getString("state"))) {
             if (
-                ((worklogId!!.equals(before.optString("finalized_worklog_id")) &&
-                    id.equals(sessionForRequest(request))))
+                (worklogId!!.equals(before.optString("finalized_worklog_id")) &&
+                    id.equals(sessionForRequest(request)))
             ) {
                 requireEvent(request, "FINALIZE")
                 return before
             }
             throw IllegalStateException("Diese Arbeitssitzung wurde bereits abgeschlossen.")
         }
-        if ((!STOPPED.equals(before.getString("state")))) {
+        if (!STOPPED.equals(before.getString("state"))) {
             throw IllegalStateException("Bitte die Arbeit zuerst stoppen und prüfen.")
         }
         val values: ContentValues = ContentValues()
@@ -307,8 +307,8 @@ class WorkSessionStore {
         try {
             val request: String = required(input, "request_id")
             val replay: String = sessionForRequest(request)
-            if ((!replay.isEmpty())) {
-                if ((!id.equals(replay))) {
+            if (!replay.isEmpty()) {
+                if (!id.equals(replay)) {
                     throw IllegalArgumentException("Anfrage gehört zu einer anderen Sitzung.")
                 }
                 db.rawQuery(
@@ -317,10 +317,10 @@ class WorkSessionStore {
                     )
                     .use { row ->
                         if (
-                            ((!row.moveToFirst() ||
+                            (!row.moveToFirst() ||
                                 !JSONObject(row.getString(0))
                                     .getString("input_hash")
-                                    .equals(PixelMcpWriteTools.hash(input))))
+                                    .equals(PixelMcpWriteTools.hash(input)))
                         ) {
                             throw PixelMcpWriteTools.Rejected(
                                 "REPLAY_MISMATCH",
@@ -333,19 +333,19 @@ class WorkSessionStore {
             val before: JSONObject = current(id)
             val originalStorage: JSONObject = JSONObject()
             db.rawQuery("SELECT * FROM work_sessions WHERE id=?", arrayOf(id)).use { original ->
-                if ((!original.moveToFirst())) {
+                if (!original.moveToFirst()) {
                     throw IllegalArgumentException("Sitzung fehlt.")
                 }
                 run {
                     var i: Int = 0
-                    while ((i < original.getColumnCount())) {
+                    while (i < original.getColumnCount()) {
                         var value: Any =
                             (if (original.isNull(i)) JSONObject.NULL
                             else
-                                (if ((original.getType(i) == Cursor.FIELD_TYPE_INTEGER))
+                                (if (original.getType(i) == Cursor.FIELD_TYPE_INTEGER)
                                     original.getLong(i)
                                 else
-                                    (if ((original.getType(i) == Cursor.FIELD_TYPE_FLOAT))
+                                    (if (original.getType(i) == Cursor.FIELD_TYPE_FLOAT)
                                         original.getDouble(i)
                                     else original.getString(i))))
                         originalStorage.put(original.getColumnName(i), value)
@@ -374,13 +374,13 @@ class WorkSessionStore {
             var pause: Long =
                 java.math.BigDecimal(input.get("break_minutes").toString()).longValueExact()
             val reason: String = required(input, "reason")
-            if (((reason.length > 4000))) {
+            if (reason.length > 4000) {
                 throw IllegalArgumentException("Korrekturgrund ist zu lang.")
             }
             if (
-                (((((((minutes <= 0) || (minutes > 10080)) || (pause < 0)) || (pause > 10080)) ||
+                ((((((minutes <= 0) || (minutes > 10080)) || (pause < 0)) || (pause > 10080)) ||
                     !input.optBoolean("confirmed")) ||
-                    ((((minutes + pause) > 1440) && !input.optBoolean("allow_overnight")))))
+                    (((minutes + pause) > 1440) && !input.optBoolean("allow_overnight")))
             ) {
                 throw IllegalArgumentException(
                     "Nettozeit, Pause und gegebenenfalls Übernachtarbeit ausdrücklich bestätigen."
@@ -417,7 +417,7 @@ class WorkSessionStore {
     @Throws(Exception::class)
     fun current(): JSONObject {
         var id: String? = activeId()
-        return (if ((id == null)) JSONObject().put("state", "IDLE") else current(id))
+        return (if (id == null) JSONObject().put("state", "IDLE") else current(id))
     }
 
     @Throws(Exception::class)
@@ -427,7 +427,7 @@ class WorkSessionStore {
                 arrayOf(id),
             )
             .use { c ->
-                if ((!c.moveToFirst())) {
+                if (!c.moveToFirst()) {
                     throw IllegalArgumentException("Arbeitssitzung nicht gefunden.")
                 }
                 var worked: Long = c.getLong(10)
@@ -438,7 +438,7 @@ class WorkSessionStore {
                         arrayOf(id),
                     )
                     .use { last ->
-                        if ((last.moveToFirst())) {
+                        if (last.moveToFirst()) {
                             revisionEvent = last.getString(0)
                         }
                     }
@@ -449,7 +449,7 @@ class WorkSessionStore {
                         arrayOf(id),
                     )
                     .use { corrected ->
-                        if ((corrected.moveToFirst())) {
+                        if (corrected.moveToFirst()) {
                             manuallyReviewed = true
                             correctionReason =
                                 JSONObject(corrected.getString(0)).optString("reason")
@@ -459,20 +459,20 @@ class WorkSessionStore {
                     (if (RUNNING.equals(state))
                         reviewReason(c.getLong(7), c.getLong(8), c.getString(9))
                     else "")
-                if ((RUNNING.equals(state))) {
+                if (RUNNING.equals(state)) {
                     worked += runningDelta(c.getLong(7), c.getLong(8), c.getString(9))
                 }
-                if ((PAUSED.equals(state))) {
+                if (PAUSED.equals(state)) {
                     db.rawQuery(
                             "SELECT payload FROM work_session_events WHERE session_id=? ORDER BY rowid DESC LIMIT 1",
                             arrayOf(id),
                         )
                         .use { last ->
-                            if ((last.moveToFirst())) {
+                            if (last.moveToFirst()) {
                                 var mark: JSONObject? =
                                     JSONObject(last.getString(0)).optJSONObject("_clock")
                                 review =
-                                    (if ((mark == null)) "LEGACY_PAUSE_REVIEW_REQUIRED"
+                                    (if (mark == null) "LEGACY_PAUSE_REVIEW_REQUIRED"
                                     else
                                         reviewReason(
                                             mark!!.getLong("wall_ms"),
@@ -492,7 +492,7 @@ class WorkSessionStore {
                         arrayOf(id),
                     )
                     .use { start ->
-                        if ((start.moveToFirst())) {
+                        if (start.moveToFirst()) {
                             val origin: JSONObject = JSONObject(start.getString(0))
                             location = origin.optString("location")
                             appointment = origin.optString("appointment_id")
@@ -508,7 +508,7 @@ class WorkSessionStore {
                         arrayOf(id),
                     )
                     .use { events ->
-                        while ((events.moveToNext())) {
+                        while (events.moveToNext()) {
                             pauseEvents.put(
                                 JSONObject()
                                     .put("event_type", events.getString(0))
@@ -527,7 +527,7 @@ class WorkSessionStore {
                     )
                 val pauseMs: Long = pauses.getLong("pause_ms")
                 val pauseUnverified: Boolean = pauses.getBoolean("pause_unverified")
-                if (((pauseUnverified && review.isEmpty()))) {
+                if (pauseUnverified && review.isEmpty()) {
                     review = "PAUSE_REVIEW_REQUIRED"
                 }
                 var reviewLatched: Boolean = false
@@ -537,14 +537,14 @@ class WorkSessionStore {
                     )
                     .use { marker ->
                         if (
-                            ((marker.moveToFirst() &&
-                                "TIME_REVIEW_REQUIRED".equals(marker.getString(0))))
+                            (marker.moveToFirst() &&
+                                "TIME_REVIEW_REQUIRED".equals(marker.getString(0)))
                         ) {
                             review = JSONObject(marker.getString(1)).getString("reason")
                             reviewLatched = true
                         }
                     }
-                if (((!review.isEmpty() && !reviewLatched))) {
+                if (!review.isEmpty() && !reviewLatched) {
                     var marker: ContentValues = ContentValues()
                     marker.put(
                         "id",
@@ -566,12 +566,12 @@ class WorkSessionStore {
                             arrayOf(id),
                         )
                         .use { last ->
-                            if ((last.moveToFirst())) {
+                            if (last.moveToFirst()) {
                                 revisionEvent = last.getString(0)
                             }
                         }
                 }
-                if (((!review.isEmpty() && RUNNING.equals(state)))) {
+                if (!review.isEmpty() && RUNNING.equals(state)) {
                     worked = c.getLong(10)
                 }
                 var result: JSONObject =
@@ -586,8 +586,8 @@ class WorkSessionStore {
                         .put("billing_customer_id", billingCustomer)
                         .put("started_at_ms", c.getLong(6))
                         .put("worked_ms", worked)
-                        .put("hours", (Math.round((worked / 36000.0)) / 100.0))
-                        .put("break_minutes", Math.round((pauseMs / 60000.0)))
+                        .put("hours", (Math.round(worked / 36000.0) / 100.0))
+                        .put("break_minutes", Math.round(pauseMs / 60000.0))
                         .put("pause_unverified", pauseUnverified)
                         .put("pause_measurement", "persistent_event_boundaries")
                         .put("finalized_worklog_id", c.getString(11))
@@ -610,13 +610,13 @@ class WorkSessionStore {
                     .put("review_required", !review.isEmpty())
                     .put("review_reason", review)
                     .put("time_measurement", "persistent_segments_monotonic")
-                if ((!appointment.isEmpty())) {
+                if (!appointment.isEmpty()) {
                     result.put("appointment_id", appointment)
                 }
-                if ((!property.isEmpty())) {
+                if (!property.isEmpty()) {
                     result.put("property_id", property)
                 }
-                if ((!visit.isEmpty())) {
+                if (!visit.isEmpty()) {
                     result.put("visit_id", visit)
                 }
                 return result
@@ -635,8 +635,8 @@ class WorkSessionStore {
         db.beginTransaction()
         try {
             val replay: String = sessionForRequest(request)
-            if ((!replay.isEmpty())) {
-                if ((!replay.equals(id))) {
+            if (!replay.isEmpty()) {
+                if (!replay.equals(id)) {
                     throw IllegalArgumentException(
                         "Diese Anfragekennung gehört zu einer anderen Sitzung."
                     )
@@ -647,25 +647,25 @@ class WorkSessionStore {
                 return replayed
             }
             val before: JSONObject = current(id)
-            if ((before.optBoolean("review_required"))) {
+            if (before.optBoolean("review_required")) {
                 throw IllegalStateException(
                     "Sitzung prüfen: Geräte-Neustart, Uhränderung oder unplausible Dauer. Es wurde kein Arbeitsende geschätzt."
                 )
             }
-            if ((!expected.equals(before.getString("state")))) {
+            if (!expected.equals(before.getString("state"))) {
                 throw IllegalStateException("Aktion passt nicht zum aktuellen Sitzungszustand.")
             }
             val wall: Long = clock.wallMillis()
             val elapsed: Long = clock.elapsedMillis()
             var worked: Long = before.getLong("worked_ms")
-            if ((accrue)) {
+            if (accrue) {
                 worked = (storedWorked(id) + runningDeltaFor(id))
             }
             val values: ContentValues = ContentValues()
             values.put("state", next)
             values.put("worked_ms", worked)
             values.put("updated_at", Instant.ofEpochMilli(wall).toString())
-            if ((RUNNING.equals(next))) {
+            if (RUNNING.equals(next)) {
                 values.put("segment_started_wall_ms", wall)
                 values.put("segment_started_elapsed_ms", elapsed)
                 values.put("boot_marker", clock.bootMarker())
@@ -688,7 +688,7 @@ class WorkSessionStore {
 
     private fun storedWorked(id: String): Long {
         db.rawQuery("SELECT worked_ms FROM work_sessions WHERE id=?", arrayOf(id)).use { c ->
-            if ((c.moveToFirst())) {
+            if (c.moveToFirst()) {
                 return c.getLong(0)
             }
         }
@@ -701,7 +701,7 @@ class WorkSessionStore {
                 arrayOf(id),
             )
             .use { c ->
-                if ((c.moveToFirst())) {
+                if (c.moveToFirst()) {
                     return runningDelta(c.getLong(0), c.getLong(1), c.getString(2))
                 }
             }
@@ -747,7 +747,7 @@ class WorkSessionStore {
                 arrayOf(request),
             )
             .use { row ->
-                if (((!row.moveToFirst() || !expected.equals(row.getString(0))))) {
+                if (!row.moveToFirst() || !expected.equals(row.getString(0))) {
                     throw PixelMcpWriteTools.Rejected(
                         "REPLAY_MISMATCH",
                         "Anfragekennung gehört zu einer anderen Zeitaktion.",
@@ -769,7 +769,7 @@ class WorkSessionStore {
     @Throws(Exception::class)
     private fun event(session: String, type: String, request: String?, payload: JSONObject) {
         var payload = payload
-        if ((((request == null) || request!!.trim().isEmpty()))) {
+        if ((request == null) || request!!.trim().isEmpty()) {
             throw IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.")
         }
         val e: ContentValues = ContentValues()
@@ -794,7 +794,7 @@ class WorkSessionStore {
 
     private fun required(value: JSONObject, name: String): String {
         val result: String = value.optString(name).trim()
-        if ((result.isEmpty())) {
+        if (result.isEmpty()) {
             throw IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.")
         }
         return result

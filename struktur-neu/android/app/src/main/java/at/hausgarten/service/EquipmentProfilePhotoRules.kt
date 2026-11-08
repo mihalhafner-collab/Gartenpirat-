@@ -26,17 +26,17 @@ class EquipmentProfilePhotoRules {
                             (if (mime.equals("image/gif")) ".gif"
                             else (if (mime.equals("image/heic")) ".heic" else "")))))
             if (
-                (((((((((((((((photo.optInt("format_version") != 1) ||
+                ((((((((((((((photo.optInt("format_version") != 1) ||
                     !photo.optString("id").matches(Regex("eqp_photo_[0-9a-f]{32}"))) ||
                     !equipmentId.equals(photo.optString("equipment_id"))) ||
                     !photo.optString("role").equals("profile")) ||
                     !hash.matches(Regex("[0-9a-f]{64}"))) || extension.isEmpty()) ||
-                    !photo.optString("storage_name").equals((hash + extension))) ||
+                    !photo.optString("storage_name").equals(hash + extension)) ||
                     (photo.optLong("byte_size") < 1)) ||
                     (photo.optLong("byte_size") > MAX_BYTES)) || (photo.optInt("width") < 1)) ||
                     (photo.optInt("height") < 1)) || (photo.optInt("width") > 16384)) ||
                     (photo.optInt("height") > 16384)) ||
-                    (((photo.optInt("width")).toLong() * photo.optInt("height")) > 120000000L)))
+                    (((photo.optInt("width")).toLong() * photo.optInt("height")) > 120000000L))
             ) {
                 throw RevierRules.error(
                     "EQUIPMENT_PHOTO_INVALID",
@@ -46,9 +46,9 @@ class EquipmentProfilePhotoRules {
             val thumb: String = photo.optString("thumbnail_storage_name")
             val thumbHash: String = photo.optString("thumbnail_sha256")
             if (
-                ((!thumb.isEmpty() &&
-                    ((!thumbHash.matches(Regex("[0-9a-f]{64}")) ||
-                        !thumb.equals(("" + thumbHash + ".jpg"))))))
+                (!thumb.isEmpty() &&
+                    (!thumbHash.matches(Regex("[0-9a-f]{64}")) ||
+                        !thumb.equals("" + thumbHash + ".jpg")))
             ) {
                 throw RevierRules.error(
                     "EQUIPMENT_PHOTO_INVALID",
@@ -61,11 +61,11 @@ class EquipmentProfilePhotoRules {
         @JvmStatic
         fun upload(metadata: JSONObject, bytes: ByteArray) {
             if (
-                ((((((!metadata.optString("kind").equals("photo_upload") ||
+                (((((!metadata.optString("kind").equals("photo_upload") ||
                     metadata.has("attached_photo")) || (bytes.size < 1)) ||
                     (bytes.size > MAX_BYTES)) ||
                     (bytes.size.toLong() != metadata.optLong("byte_size"))) ||
-                    !McpFileTransfer.sha(bytes).equals(metadata.optString("sha256"))))
+                    !McpFileTransfer.sha(bytes).equals(metadata.optString("sha256")))
             ) {
                 throw RevierRules.error(
                     "EQUIPMENT_PHOTO_UPLOAD_INVALID",
@@ -77,7 +77,7 @@ class EquipmentProfilePhotoRules {
         @Throws(Exception::class)
         @JvmStatic
         fun attachment(photo: JSONObject, attachment: JSONObject?) {
-            if (((attachment == null))) {
+            if (attachment == null) {
                 throw RevierRules.error(
                     "EQUIPMENT_PHOTO_ORIGINAL_MISSING",
                     "Das lokale Gerätefoto fehlt.",
@@ -86,8 +86,8 @@ class EquipmentProfilePhotoRules {
             for (field in
                 arrayOf("content_sha256", "mime_type", "byte_size", "storage_name", "role")) {
                 if (
-                    (((!photo.has(field) || !attachment!!.has(field)) ||
-                        !photo.get(field).toString().equals(attachment!!.get(field).toString())))
+                    ((!photo.has(field) || !attachment!!.has(field)) ||
+                        !photo.get(field).toString().equals(attachment!!.get(field).toString()))
                 ) {
                     throw RevierRules.error(
                         "EQUIPMENT_PHOTO_INVALID",
@@ -100,7 +100,7 @@ class EquipmentProfilePhotoRules {
         @Throws(Exception::class)
         @JvmStatic
         fun original(photoDirectory: File?, photo: JSONObject) {
-            if (((photoDirectory == null))) {
+            if (photoDirectory == null) {
                 throw RevierRules.error(
                     "EQUIPMENT_PHOTO_ORIGINAL_MISSING",
                     "Der geprüfte Fotospeicher fehlt.",
@@ -109,12 +109,12 @@ class EquipmentProfilePhotoRules {
             validate(photo, photo.getString("equipment_id"))
             val file: File = File(photoDirectory, photo.getString("storage_name"))
             if (
-                ((((((file.canonicalFile.parentFile != photoDirectory.canonicalFile ||
+                (((((file.canonicalFile.parentFile != photoDirectory.canonicalFile ||
                     Files.isSymbolicLink(file.toPath())) || !file.isFile()) ||
                     (file.length() != photo.getLong("byte_size"))) ||
                     (file.length() > MAX_BYTES)) ||
                     !McpFileTransfer.sha(Files.readAllBytes(file.toPath()))
-                        .equals(photo.getString("content_sha256"))))
+                        .equals(photo.getString("content_sha256")))
             ) {
                 throw RevierRules.error(
                     "EQUIPMENT_PHOTO_ORIGINAL_MISSING",

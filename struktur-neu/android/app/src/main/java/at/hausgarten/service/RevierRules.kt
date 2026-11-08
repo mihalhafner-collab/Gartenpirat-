@@ -30,17 +30,17 @@ class RevierRules {
         @JvmStatic
         fun text(row: JSONObject, key: String, max: Int, required: Boolean): String {
             val raw: Any? = row.opt(key)
-            if ((((raw == null) || (raw == JSONObject.NULL)))) {
-                if ((required)) {
+            if ((raw == null) || (raw == JSONObject.NULL)) {
+                if (required) {
                     throw error("INVALID_INPUT", ("" + ("Bitte " + key) + " angeben."))
                 }
                 return ""
             }
-            if ((!(raw is String))) {
+            if (!(raw is String)) {
                 throw error("INVALID_INPUT", ("" + key + " benötigt Text."))
             }
-            var value: String = ((raw as String)).trim()
-            if ((((value.length > max) || (required && value.isEmpty())))) {
+            var value: String = (raw as String).trim()
+            if ((value.length > max) || (required && value.isEmpty())) {
                 throw error("INVALID_INPUT", ("" + key + " ist leer oder zu lang."))
             }
             return value
@@ -50,7 +50,7 @@ class RevierRules {
         @JvmStatic
         fun id(row: JSONObject, key: String, required: Boolean): String {
             var value: String = text(row, key, 200, required)
-            if (((!value.isEmpty() && !value.matches(Regex("[A-Za-z0-9_.:-]{1,200}"))))) {
+            if (!value.isEmpty() && !value.matches(Regex("[A-Za-z0-9_.:-]{1,200}"))) {
                 throw error("INVALID_INPUT", ("" + ("Ungültige Kennung für " + key) + "."))
             }
             return value
@@ -84,8 +84,8 @@ class RevierRules {
         @JvmStatic
         fun cas(old: JSONObject, expected: String?) {
             if (
-                ((((expected == null) || !expected!!.matches(Regex("[0-9a-f]{64}"))) ||
-                    !hash(old).equals(expected)))
+                (((expected == null) || !expected!!.matches(Regex("[0-9a-f]{64}"))) ||
+                    !hash(old).equals(expected))
             ) {
                 throw error(
                     "WRITE_CONFLICT",
@@ -97,17 +97,17 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun integer(row: JSONObject, key: String, min: Int, max: Int, fallback: Int): Int {
-            if ((!row.has(key))) {
+            if (!row.has(key)) {
                 return fallback
             }
             val raw: Any = row.get(key)
             var value: String = raw.toString()
-            if ((!value.matches(Regex("-?(0|[1-9][0-9]*)")))) {
+            if (!value.matches(Regex("-?(0|[1-9][0-9]*)"))) {
                 throw error("INVALID_INPUT", ("" + key + " benötigt eine ganze Zahl."))
             }
             try {
                 val n: Int = Integer.parseInt(value)
-                if ((((n < min) || (n > max)))) {
+                if ((n < min) || (n > max)) {
                     throw NumberFormatException()
                 }
                 return n
@@ -119,10 +119,10 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun bool(row: JSONObject, key: String, fallback: Boolean): Boolean {
-            if ((!row.has(key))) {
+            if (!row.has(key)) {
                 return fallback
             }
-            if ((!(row.get(key) is Boolean))) {
+            if (!(row.get(key) is Boolean)) {
                 throw error("INVALID_INPUT", ("" + key + " benötigt Ja oder Nein."))
             }
             return row.getBoolean(key)
@@ -132,15 +132,15 @@ class RevierRules {
         @JvmStatic
         fun decimal(row: JSONObject, key: String, positive: Boolean, optional: Boolean): String {
             if (
-                ((optional &&
-                    (((!row.has(key) || row.isNull(key)) || row.optString(key).trim().isEmpty()))))
+                (optional &&
+                    ((!row.has(key) || row.isNull(key)) || row.optString(key).trim().isEmpty()))
             ) {
                 return ""
             }
             val raw: Any? = row.opt(key)
             if (
-                ((!(raw is String) ||
-                    !((raw as String)).matches(Regex("-?(0|[1-9][0-9]*)(\\.[0-9]{1,6})?"))))
+                (!(raw is String) ||
+                    !(raw as String).matches(Regex("-?(0|[1-9][0-9]*)(\\.[0-9]{1,6})?")))
             ) {
                 throw error(
                     "INVALID_INPUT",
@@ -149,8 +149,8 @@ class RevierRules {
                         " als Dezimalzahl mit Punkt und höchstens sechs Nachkommastellen angeben."),
                 )
             }
-            val n: BigDecimal = BigDecimal((raw as String))
-            if ((((n.precision() > 24) || (positive && (n.signum() < 0))))) {
+            val n: BigDecimal = BigDecimal(raw as String)
+            if ((n.precision() > 24) || (positive && (n.signum() < 0))) {
                 throw error("INVALID_INPUT", ("" + ("Ungültige Menge für " + key) + "."))
             }
             return n.stripTrailingZeros().toPlainString()
@@ -160,7 +160,7 @@ class RevierRules {
         @JvmStatic
         fun minor(row: JSONObject, key: String): Long {
             var value: String = row.get(key).toString()
-            if ((!value.matches(Regex("0|[1-9][0-9]*")))) {
+            if (!value.matches(Regex("0|[1-9][0-9]*"))) {
                 throw error(
                     "INVALID_INPUT",
                     ("" + key + " in kleinsten Währungseinheiten angeben."),
@@ -168,7 +168,7 @@ class RevierRules {
             }
             try {
                 val result: Long = BigDecimal(value).longValueExact()
-                if (((result > 9007199254740991L))) {
+                if (result > 9007199254740991L) {
                     throw ArithmeticException()
                 }
                 return result
@@ -194,7 +194,7 @@ class RevierRules {
         @JvmStatic
         fun date(row: JSONObject, key: String, required: Boolean): String {
             var value: String = text(row, key, 10, required)
-            if ((!value.isEmpty())) {
+            if (!value.isEmpty()) {
                 date(value)
             }
             return value
@@ -204,9 +204,9 @@ class RevierRules {
         @JvmStatic
         fun time(row: JSONObject, key: String): String {
             var value: String = text(row, key, 5, false)
-            if ((!value.isEmpty())) {
+            if (!value.isEmpty()) {
                 try {
-                    if ((!value.matches(Regex("[0-9]{2}:[0-9]{2}")))) {
+                    if (!value.matches(Regex("[0-9]{2}:[0-9]{2}"))) {
                         throw IllegalArgumentException()
                     }
                     LocalTime.parse(value)
@@ -237,7 +237,7 @@ class RevierRules {
             run {
                 val it: MutableIterator<String> = args.keys()
                 while (it.hasNext()) {
-                    if ((!names.contains(it.next()))) {
+                    if (!names.contains(it.next())) {
                         throw error(
                             "INVALID_INPUT",
                             "Unbekanntes Feld; Eingaben unverändert prüfen.",
@@ -250,7 +250,7 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun bounded(row: JSONObject) {
-            if (((row.toString().toByteArray(StandardCharsets.UTF_8).size > ROW_BYTES))) {
+            if (row.toString().toByteArray(StandardCharsets.UTF_8).size > ROW_BYTES) {
                 throw error(
                     "RECORD_TOO_LARGE",
                     "Dieser technische Eintrag ist zu groß. Notizen kürzen oder mehrere getrennte Einträge verwenden.",
@@ -266,17 +266,17 @@ class RevierRules {
             var maintenanceKind: Boolean =
                 (kind.equals("equipment") || kind.equals("equipment_maintenance"))
             if (
-                ((version is Number &&
-                    (((version.toString().equals("1") ||
+                (version is Number &&
+                    ((version.toString().equals("1") ||
                         (version.toString().equals("2") && maintenanceKind)) ||
                         ((version.toString().equals("3") && kind.equals("equipment")) &&
-                            (row.optJSONObject("profile_photo") != null))))))
+                            (row.optJSONObject("profile_photo") != null))))
             ) {
                 if (
-                    ((version.toString().equals("1") &&
-                        ((kind.equals("equipment_maintenance") ||
-                            ((kind.equals("equipment") &&
-                                (row.optJSONArray("maintenance_plans")?.length() ?: 0) > 0))))))
+                    (version.toString().equals("1") &&
+                        (kind.equals("equipment_maintenance") ||
+                            (kind.equals("equipment") &&
+                                (row.optJSONArray("maintenance_plans")?.length() ?: 0) > 0)))
                 ) {
                     throw error(
                         "REVIER_SCHEMA_UPGRADE_REQUIRED",
@@ -284,8 +284,8 @@ class RevierRules {
                     )
                 }
                 if (
-                    (((kind.equals("equipment") && row.has("profile_photo")) &&
-                        !version.toString().equals("3")))
+                    ((kind.equals("equipment") && row.has("profile_photo")) &&
+                        !version.toString().equals("3"))
                 ) {
                     throw error(
                         "REVIER_SCHEMA_UPGRADE_REQUIRED",
@@ -310,9 +310,9 @@ class RevierRules {
         @JvmStatic
         fun season(rule: JSONObject, date: LocalDate): Boolean {
             var day: MonthDay = MonthDay.from(date)
-            val start: MonthDay = MonthDay.parse(("--" + rule.optString("season_start", "01-01")))
-            val end: MonthDay = MonthDay.parse(("--" + rule.optString("season_end", "12-31")))
-            return (if ((start.compareTo(end) <= 0))
+            val start: MonthDay = MonthDay.parse("--" + rule.optString("season_start", "01-01"))
+            val end: MonthDay = MonthDay.parse("--" + rule.optString("season_end", "12-31"))
+            return (if (start.compareTo(end) <= 0)
                 ((day.compareTo(start) >= 0) && (day.compareTo(end) <= 0))
             else ((day.compareTo(start) >= 0) || (day.compareTo(end) <= 0)))
         }
@@ -330,11 +330,11 @@ class RevierRules {
         @JvmStatic
         fun seasonField(row: JSONObject, key: String) {
             var value: String = text(row, key, 5, false)
-            if ((value.isEmpty())) {
+            if (value.isEmpty()) {
                 value = (if (key.equals("season_start")) "01-01" else "12-31")
             }
             try {
-                MonthDay.parse(("--" + value))
+                MonthDay.parse("--" + value)
             } catch (invalid: Exception) {
                 throw error("INVALID_INPUT", "Saisonbeginn/-ende als MM-TT angeben.")
             }

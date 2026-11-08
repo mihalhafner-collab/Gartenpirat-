@@ -27,14 +27,14 @@ internal object OfferDecisionProjection {
                     while (rows!!.moveToNext()) {
                         val key = rows!!.getString(0)
                         if (
-                            (!key!!.startsWith((prefix.toString() + "current:")) &&
-                                !key!!.startsWith((prefix.toString() + "revision:")))
+                            (!key!!.startsWith(prefix.toString() + "current:") &&
+                                !key!!.startsWith(prefix.toString() + "revision:"))
                         ) {
                             continue
                         }
                         var value: JSONObject = JSONObject(rows!!.getString(1))
                         OfferDecisionRules.version(value)
-                        if (key!!.startsWith((prefix.toString() + "current:"))) {
+                        if (key!!.startsWith(prefix.toString() + "current:")) {
                             decisions!!.put(value!!.getString("offer_id"), value)
                         } else {
                             revisions!!.put(value!!.getString("offer_id"), value)
@@ -42,12 +42,12 @@ internal object OfferDecisionProjection {
                     }
                 }
         }
-        if ((decisions!!.length() > 0)) {
+        if (decisions!!.length() > 0) {
             master!!.put("offer_decisions", decisions)
         } else {
             master!!.remove("offer_decisions")
         }
-        if ((revisions!!.length() > 0)) {
+        if (revisions!!.length() > 0) {
             master!!.put("offer_revisions", revisions)
         } else {
             master!!.remove("offer_revisions")

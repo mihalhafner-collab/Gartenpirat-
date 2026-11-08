@@ -8,7 +8,7 @@ internal class BillingRules {
     companion object {
         @JvmStatic
         fun text(row: JSONObject?, key: String): String {
-            return (if (((row === null) || row!!.isNull(key))) ""
+            return (if ((row === null) || row!!.isNull(key)) ""
             else (row!!.optString(key))!!.trim())
         }
 
@@ -39,7 +39,7 @@ internal class BillingRules {
             }
             val target = text(row, "default_billing_customer_id")
             if (mode!!.equals("direct")) {
-                if ((!target!!.isEmpty() && !target!!.equals(text(row, "id")))) {
+                if (!target!!.isEmpty() && !target!!.equals(text(row, "id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "BILLING_MISMATCH",
                         "Bei Direktabrechnung bitte keinen anderen Standard-Rechnungsempfänger angeben.",
@@ -47,7 +47,7 @@ internal class BillingRules {
                 }
                 row!!.put("default_billing_customer_id", "")
             } else {
-                if ((target!!.isEmpty() || target!!.equals(text(row, "id")))) {
+                if (target!!.isEmpty() || target!!.equals(text(row, "id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "MISSING_BILLING_CUSTOMER",
                         "Bitte einen anderen vorhandenen Rechnungsempfänger auswählen.",
@@ -112,7 +112,7 @@ internal class BillingRules {
             var target = text(row, "billing_customer_id")
             if (target!!.isEmpty()) {
                 target =
-                    (if ((old !== null)) recipient(old)
+                    (if (old !== null) recipient(old)
                     else defaultRecipient(workCustomer, text(row, "order_id"), master))
             }
             customer(master!!.optJSONArray("customers"), target)

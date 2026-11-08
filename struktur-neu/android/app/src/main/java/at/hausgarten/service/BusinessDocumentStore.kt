@@ -217,9 +217,9 @@ class BusinessDocumentStore {
                     }
                 }
                 w.line(
-                    p.optString((if (p == issuer) "business_postal_code" else "postal_code")) +
+                    p.optString(if (p == issuer) "business_postal_code" else "postal_code") +
                         " " +
-                        p.optString((if (p == issuer) "business_city" else "city"))
+                        p.optString(if (p == issuer) "business_city" else "city")
                 )
             }
             w.line("")
@@ -233,7 +233,7 @@ class BusinessDocumentStore {
             for (i in 0 until lines.length()) {
                 var p = lines.getJSONObject(i)
                 w.line("")
-                w.line(java.lang.String.valueOf((i + 1)) + ". " + p.optString("title"))
+                w.line(java.lang.String.valueOf(i + 1) + ". " + p.optString("title"))
                 w.line(p.optString("description"))
                 w.line(
                     java.lang.String.valueOf(p.opt("quantity")) +
@@ -252,7 +252,7 @@ class BusinessDocumentStore {
             w.line("Netto: " + money(offer.get("net_total")))
             w.line("Umsatzsteuer: " + money(offer.get("tax_total")))
             w.line("Gesamt inklusive Umsatzsteuer: " + money(offer.get("gross_total")))
-            if ((offer.optString("tax_mode") == "small_business")) {
+            if (offer.optString("tax_mode") == "small_business") {
                 w.line(issuer.optString("tax_exemption_text"))
             } else {
                 w.line("UID: " + issuer.optString("business_vat_id"))
@@ -460,11 +460,11 @@ class BusinessDocumentStore {
             if (
                 raw.size < 5 ||
                     raw.size > 20 * 1024 * 1024 ||
-                    !((meta.getString("pdf_storage_name") ==
-                        meta.getString("pdf_sha256") + ".pdf")) ||
-                    !((String(raw, 0, 5, java.nio.charset.StandardCharsets.US_ASCII) == "%PDF-")) ||
+                    !(meta.getString("pdf_storage_name") ==
+                        meta.getString("pdf_sha256") + ".pdf") ||
+                    !(String(raw, 0, 5, java.nio.charset.StandardCharsets.US_ASCII) == "%PDF-") ||
                     raw.size.toLong() != meta.getLong("pdf_byte_size") ||
-                    !((PhotoAttachmentStore.sha256(raw) == meta.getString("pdf_sha256")))
+                    !(PhotoAttachmentStore.sha256(raw) == meta.getString("pdf_sha256"))
             ) {
                 throw IOException("Dokument-Prüfsumme stimmt nicht überein.")
             }

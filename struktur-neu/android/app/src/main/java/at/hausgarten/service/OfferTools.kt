@@ -386,11 +386,11 @@ internal class OfferTools {
                         ))!!
                     .put(
                         "business_settings",
-                        (if ((settings === null)) JSONObject() else settings),
+                        (if (settings === null) JSONObject() else settings),
                     ))!!
                 .put(
                     "service_catalog",
-                    (if ((s!!.optJSONArray("service_catalog") === null)) JSONArray()
+                    (if (s!!.optJSONArray("service_catalog") === null) JSONArray()
                     else s!!.getJSONArray("service_catalog")),
                 )
         }
@@ -404,7 +404,7 @@ internal class OfferTools {
             }
             val s = PixelMcpReadTools.effective(state)
             val offers = s!!.getJSONArray("offers")
-            if ((n!!.equals("get_offer") || n!!.equals("validate_offer"))) {
+            if (n!!.equals("get_offer") || n!!.equals("validate_offer")) {
                 var p = PixelMcpWriteTools.find(offers, a!!.getString("offer_id"))
                 var result: JSONObject =
                     (((((JSONObject())!!.put("offer", p))!!.put(
@@ -484,7 +484,7 @@ internal class OfferTools {
                 var all = s!!.getJSONArray("worklogs")
                 run {
                     var i: Int = (all!!.length() - 1)
-                    while (((i >= 0) && (logs!!.length() < 10))) {
+                    while ((i >= 0) && (logs!!.length() < 10)) {
                         if (id!!.equals((all!!.getJSONObject(i))!!.optString("customer_id"))) {
                             logs!!.put(all!!.getJSONObject(i))
                         }
@@ -495,7 +495,7 @@ internal class OfferTools {
                 all = s!!.getJSONArray("orders")
                 run {
                     var i: Int = 0
-                    while (((i < all!!.length()) && (orders!!.length() < 10))) {
+                    while ((i < all!!.length()) && (orders!!.length() < 10)) {
                         if (
                             (id!!.equals((all!!.getJSONObject(i))!!.optString("customer_id")) &&
                                 !(Arrays.asList("Erledigt", "Abgeschlossen", "Storniert"))!!
@@ -510,7 +510,7 @@ internal class OfferTools {
                 all = s!!.getJSONArray("service_catalog")
                 run {
                     var i: Int = 0
-                    while ((i < all!!.length())) {
+                    while (i < all!!.length()) {
                         val e = all!!.getJSONObject(i)
                         if (
                             ((e!!.optBoolean("active", true) &&
@@ -546,7 +546,7 @@ internal class OfferTools {
                 val ordered: MutableList<JSONObject> = ArrayList()
                 run {
                     var i: Int = 0
-                    while ((i < rows!!.length())) {
+                    while (i < rows!!.length()) {
                         ordered!!.add(rows!!.getJSONObject(i))
 
                         i++
@@ -560,7 +560,7 @@ internal class OfferTools {
                                 y!!.optString("category"),
                                 collator,
                             )
-                        if ((order == 0)) {
+                        if (order == 0) {
                             order =
                                 SnapshotReadSupport.natural(
                                     x!!.optString("title"),
@@ -568,7 +568,7 @@ internal class OfferTools {
                                     collator,
                                 )
                         }
-                        return@lambda (if ((order == 0))
+                        return@lambda (if (order == 0)
                             (x!!.optString("id"))!!.compareTo(y!!.optString("id"))
                         else order)
                     }
@@ -577,7 +577,7 @@ internal class OfferTools {
             }
             run {
                 var i: Int = 0
-                while ((i < rows!!.length())) {
+                while (i < rows!!.length()) {
                     var p = rows!!.getJSONObject(i)
                     if (
                         (!(a!!.optString("customer_id"))!!.isEmpty() &&
@@ -657,7 +657,7 @@ internal class OfferTools {
                     .put("limit", a!!.optInt("limit", 30)))!!
                 .put(
                     "next_cursor",
-                    (if (((a!!.optInt("offset") + out!!.length()) < total))
+                    (if ((a!!.optInt("offset") + out!!.length()) < total)
                         (a!!.optInt("offset") + out!!.length())
                     else JSONObject.NULL),
                 )

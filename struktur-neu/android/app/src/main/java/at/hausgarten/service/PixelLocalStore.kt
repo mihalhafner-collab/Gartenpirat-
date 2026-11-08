@@ -247,7 +247,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 throw IllegalArgumentException()
             }
             for (key in supported) {
-                if (!((java.lang.Boolean.TRUE == capabilities.get(key)))) {
+                if (!(java.lang.Boolean.TRUE == capabilities.get(key))) {
                     throw IllegalArgumentException()
                 }
             }
@@ -358,7 +358,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     "INSERT OR REPLACE INTO owner_state(key,value) VALUES(?,?)",
                     arrayOf(key, value),
                 )
-                if ((key == "purged_local_test_records_v1")) {
+                if (key == "purged_local_test_records_v1") {
                     tables.invalidateJournal()
                 }
             }
@@ -376,7 +376,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     private fun ownerValueNullable(key: String, fallback: String?): String? {
 
-        if ((key == "snapshot")) {
+        if (key == "snapshot") {
             try {
 
                 val tables = businessTables()
@@ -610,7 +610,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             if (order == null) {
                 throw IllegalArgumentException("Der ausgewählte Auftrag existiert nicht.")
             }
-            if (!((customerId == order.optString("customer_id")))) {
+            if (!(customerId == order.optString("customer_id"))) {
                 throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
             }
             if (payload.optString("location").trim().isEmpty()) {
@@ -701,7 +701,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     private @Throws(Exception::class) fun startWorkSessionLocked(payload: JSONObject): JSONObject {
 
         val active = workSessions().current()
-        if (!(("IDLE" == active.optString("state")))) {
+        if (!("IDLE" == active.optString("state"))) {
             return workSessions().start(payload)
         }
         val master = PixelMcpReadTools.effective(getState())
@@ -721,7 +721,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         }
         if (!(order.isEmpty())) {
             val row = findById(master.getJSONArray("orders"), order)
-            if (row == null || !((customer == row.optString("customer_id")))) {
+            if (row == null || !(customer == row.optString("customer_id"))) {
                 throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
             }
         }
@@ -734,8 +734,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             if (
                 !(AppointmentRules.active(appointment)) ||
                     (appointment.optString("status") == "draft") ||
-                    !((customer == appointment.optString("customer_id"))) ||
-                    !((order == appointment.optString("order_id")))
+                    !(customer == appointment.optString("customer_id")) ||
+                    !(order == appointment.optString("order_id"))
             ) {
                 throw IllegalArgumentException(
                     "Termin, Kunde und Auftrag passen nicht zu einer aktiven Arbeit."
@@ -756,14 +756,14 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             val sessions = workSessions()
             val session = sessions.current(sessionId)
             if (
-                !((WorkSessionStore.STOPPED == session.optString("state"))) &&
-                    !((WorkSessionStore.FINALIZED == session.optString("state")))
+                !(WorkSessionStore.STOPPED == session.optString("state")) &&
+                    !(WorkSessionStore.FINALIZED == session.optString("state"))
             ) {
                 throw IllegalStateException("Bitte die laufende Arbeit zuerst stoppen.")
             }
             val stableId = "wrk_session_" + sessionId.replace("ses_pixel_", "")
-            if ((WorkSessionStore.FINALIZED == session.optString("state"))) {
-                if ((stableId == session.optString("finalized_worklog_id"))) {
+            if (WorkSessionStore.FINALIZED == session.optString("state")) {
+                if (stableId == session.optString("finalized_worklog_id")) {
                     return stableId
                 }
                 throw IllegalStateException("Diese Arbeitssitzung ist bereits abgeschlossen.")
@@ -797,7 +797,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     " h netto, " +
                     session.optInt("break_minutes", 0) +
                     " min Pause."
-            if (("manual_review" == session.optString("time_origin"))) {
+            if ("manual_review" == session.optString("time_origin")) {
                 timing =
                     "Geprüfte Timerzeit: " +
                         session.getDouble("hours") +
@@ -810,8 +810,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 payload.put(
                     "notes",
                     java.lang.String.valueOf(
-                        ((if (payload.optString("notes").isEmpty()) ""
-                        else payload.getString("notes") + "\n"))
+                        (if (payload.optString("notes").isEmpty()) ""
+                        else payload.getString("notes") + "\n")
                     ) + timing,
                 )
             }
@@ -823,7 +823,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             }
             if (
                 !(session.optString("order_id").isEmpty()) &&
-                    !((session.optString("order_id") == payload.optString("order_id")))
+                    !(session.optString("order_id") == payload.optString("order_id"))
             ) {
                 throw IllegalArgumentException(
                     "Der Auftrag der gestarteten Sitzung bleibt erhalten."
@@ -831,7 +831,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             }
             if (
                 !(session.optString("customer_id").isEmpty()) &&
-                    !((session.optString("customer_id") == payload.optString("customer_id")))
+                    !(session.optString("customer_id") == payload.optString("customer_id"))
             ) {
                 throw IllegalArgumentException("Die Sitzung gehört zu einem anderen Einsatzkunden.")
             }
@@ -857,7 +857,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             for (i in 0 until sessionPhotos.length()) {
                 val old = sessionPhotos.getJSONObject(i)
                 if (
-                    !((sessionId == old.optString("session_id"))) ||
+                    !(sessionId == old.optString("session_id")) ||
                         !(old.optString("worklog_id").isEmpty())
                 ) {
                     continue
@@ -890,9 +890,9 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             val row = JSONObject(raw)
             RevierRules.version(row)
             if (
-                !((property == row.getString("property_id"))) ||
-                    !((payload.optString("customer_id") == row.getString("customer_id"))) ||
-                    !((payload.optString("order_id") == row.optString("order_id")))
+                !(property == row.getString("property_id")) ||
+                    !(payload.optString("customer_id") == row.getString("customer_id")) ||
+                    !(payload.optString("order_id") == row.optString("order_id"))
             ) {
                 throw IllegalArgumentException(
                     "Besuch, Objekt, Kunde und Auftrag passen nicht zusammen."
@@ -912,7 +912,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             val row = JSONObject(raw)
             RevierRules.version(row)
             if (
-                !((payload.optString("customer_id") == row.getString("customer_id"))) ||
+                !(payload.optString("customer_id") == row.getString("customer_id")) ||
                     starting && !(row.optBoolean("active", true))
             ) {
                 throw IllegalArgumentException(
@@ -954,7 +954,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
             val receipt = receipt(clientId)
             if (receipt != null) {
-                if (!((fingerprint == receipt.optString("fingerprint")))) {
+                if (!(fingerprint == receipt.optString("fingerprint"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "REPLAY_MISMATCH",
                         "Diese Anfragekennung wurde bereits für andere Angaben verwendet. Bitte die ursprüngliche Anfrage prüfen.",
@@ -1035,7 +1035,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         .put("tool", tool)
                         .put("entity_type", entityType)
                         .put("entity_id", entityId)
-                        .put("work_record_id", (if ((entityType == "worklog")) entityId else ""))
+                        .put("work_record_id", (if (entityType == "worklog") entityId else ""))
                         .put("uploaded", false)
                         .put("test_local_only", payload.optBoolean("_local_only"))
                 val saved = ContentValues()
@@ -1056,7 +1056,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             database.endTransaction()
         }
         notifyCommittedChange()
-        if (("worklog" == result.optString("entity_type"))) {
+        if ("worklog" == result.optString("entity_type")) {
             result.put("work_record_id", result.getString("entity_id"))
         }
         result
@@ -1101,7 +1101,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
             val existing = receipt(clientId)
             if (existing != null) {
-                if (!((fingerprint == existing.optString("fingerprint")))) {
+                if (!(fingerprint == existing.optString("fingerprint"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "REPLAY_MISMATCH",
                         "Anfragekennung wurde für andere Angaben verwendet.",
@@ -1113,7 +1113,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 val timer = workSessions()
                 var id = args.optString("session_id")
                 val request = "mcp-session-" + clientId
-                if ((tool == "finish_work")) {
+                if (tool == "finish_work") {
                     var current = timer.current(id)
                     if (
                         java.util.Arrays.asList("RUNNING", "PAUSED")
@@ -1163,7 +1163,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                             .rawQuery("SELECT id,payload FROM pending WHERE kind='worklog'", null)
                             .use { rows ->
                                 while (rows.moveToNext()) {
-                                    if ((saved == JSONObject(rows.getString(1)).optString("id"))) {
+                                    if (saved == JSONObject(rows.getString(1)).optString("id")) {
                                         database.delete(
                                             "pending",
                                             "id=?",
@@ -1195,13 +1195,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         .put("tool", tool)
                         .put(
                             "entity_type",
-                            (if (((tool == "complete_work_session") || (tool == "finish_work")))
+                            (if ((tool == "complete_work_session") || (tool == "finish_work"))
                                 "worklog"
                             else "work_session"),
                         )
                         .put(
                             "entity_id",
-                            (if (((tool == "complete_work_session") || (tool == "finish_work")))
+                            (if ((tool == "complete_work_session") || (tool == "finish_work"))
                                 session.optString("finalized_worklog_id")
                             else session.getString("id")),
                         )
@@ -1220,7 +1220,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         } finally {
             database.endTransaction()
         }
-        if (((tool == "complete_work_session") || (tool == "finish_work"))) {
+        if ((tool == "complete_work_session") || (tool == "finish_work")) {
             notifyCommittedChange()
             val sync = status(clientId, getState())
             result.put("sync", sync).put("sync_state", sync.optString("sync_state"))
@@ -1230,7 +1230,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             .put("data", result)
             .put(
                 "message",
-                (if ((tool == "stop_work"))
+                (if (tool == "stop_work")
                     "Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen."
                 else
                     "Aktion dauerhaft auf dem Pixel gespeichert. Timer und Arbeitsaufzeichnungen bleiben lokal; Sicherungen werden als unverschlüsselte ZIP auf dem Pixel gespeichert."),
@@ -1320,7 +1320,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 val raw = ownerValue(key, "")!!
                 if (!(raw.isEmpty())) {
                     val receipt = JSONObject(raw)
-                    if (!((fingerprint == receipt.getString("fingerprint")))) {
+                    if (!(fingerprint == receipt.getString("fingerprint"))) {
                         throw IllegalArgumentException(
                             "REQUEST_ID_REUSED: Ursprüngliche Speicherung unverändert prüfen."
                         )
@@ -1560,7 +1560,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             val saved = ownerValue("photo-ui:" + request, "")!!
             if (!(saved.isEmpty())) {
                 val receipt = JSONObject(saved)
-                if (!((fingerprint == receipt.getString("hash")))) {
+                if (!(fingerprint == receipt.getString("hash"))) {
                     throw IllegalArgumentException(
                         "Die Foto-Anfragekennung enthält andere Angaben."
                     )
@@ -1583,7 +1583,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 val saved = ownerValue("photo-ui:" + request, "")!!
                 if (!(saved.isEmpty())) {
                     val receipt = JSONObject(saved)
-                    if (!((fingerprint == receipt.getString("hash")))) {
+                    if (!(fingerprint == receipt.getString("hash"))) {
                         throw IllegalArgumentException(
                             "Die Foto-Anfragekennung enthält andere Angaben."
                         )
@@ -1597,8 +1597,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             if (!(payload.optString("session_id").isEmpty())) {
                 val session = workSessions().current(payload.getString("session_id"))
                 if (
-                    !((payload.getString("customer_id") == session.optString("customer_id"))) ||
-                        !((payload.optString("order_id") == session.optString("order_id")))
+                    !(payload.getString("customer_id") == session.optString("customer_id")) ||
+                        !(payload.optString("order_id") == session.optString("order_id"))
                 ) {
                     throw IllegalArgumentException(
                         "Foto und gestartete Sitzung gehören nicht zum selben Kunden/Auftrag."
@@ -1760,20 +1760,20 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         val name = metadata.optString("storage_name")
         var role = metadata.optString("role", "documentation").trim().lowercase(Locale.ROOT)
         var extension =
-            (if ((mime == "image/jpeg")) ".jpg"
+            (if (mime == "image/jpeg") ".jpg"
             else
-                (if ((mime == "image/png")) ".png"
+                (if (mime == "image/png") ".png"
                 else
-                    (if ((mime == "image/webp")) ".webp"
+                    (if (mime == "image/webp") ".webp"
                     else
-                        (if ((mime == "image/gif")) ".gif"
-                        else (if ((mime == "image/heic")) ".heic" else "")))))
+                        (if (mime == "image/gif") ".gif"
+                        else (if (mime == "image/heic") ".heic" else "")))))
         if (
             photoId.trim().isEmpty() ||
                 photoId.length > 180 ||
                 !(PhotoAttachmentStore.canonicalName(name)) ||
                 !(hash.matches(Regex("[0-9a-f]{64}"))) ||
-                !((name == hash + extension)) ||
+                !(name == hash + extension) ||
                 metadata.optLong("byte_size") < 1 ||
                 metadata.optLong("byte_size") > PhotoAttachmentStore.MAX_BYTES ||
                 !(HashSet(
@@ -1873,7 +1873,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             val action = actions.getJSONObject(i)
             val payload = action.optJSONObject("payload")
             if (
-                !(("photo" == action.optString("kind"))) ||
+                !("photo" == action.optString("kind")) ||
                     payload == null ||
                     !(payload.optString("data").isEmpty())
             ) {
@@ -1934,8 +1934,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         )
                     if (
                         local != null &&
-                            !((local.getString("content_sha256") ==
-                                prepared.metadata.getString("content_sha256")))
+                            !(local.getString("content_sha256") ==
+                                prepared.metadata.getString("content_sha256"))
                     ) {
                         if (prepared.created) {
                             photoAttachments.discardCreated(prepared.metadata)
@@ -1991,7 +1991,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                             var sameHash: Boolean =
                                 (existing.getString(0) == photo.getString("content_sha256"))
                             var authoritativeLocal: Boolean =
-                                !(("remote_available" == existing.getString(1)))
+                                !("remote_available" == existing.getString(1))
                             keepExisting = sameHash || authoritativeLocal
                         }
                     }
@@ -2499,7 +2499,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
             for (field in arrayOf("property_id", "visit_id")) {
                 var value = session.optString(field)
-                if (payload.has(field) && !((payload.optString(field) == value))) {
+                if (payload.has(field) && !(payload.optString(field) == value)) {
                     throw IllegalArgumentException(
                         "Der Objekt-/Besuchsbezug der gestarteten Sitzung bleibt erhalten."
                     )

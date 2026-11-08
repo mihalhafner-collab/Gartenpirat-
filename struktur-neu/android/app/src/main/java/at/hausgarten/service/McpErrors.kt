@@ -189,15 +189,15 @@ internal class McpErrors {
         private @JvmStatic fun localCode(error: Exception): String? {
 
             var value = error.message
-            return (if (((value != null) && LOCAL_CODES.contains(value))) value else null)
+            return (if ((value != null) && LOCAL_CODES.contains(value)) value else null)
         }
 
         private @JvmStatic fun localMessage(code: String): String {
 
-            if ((code == "LOCAL_STATE_BUILD_FAILED")) {
+            if (code == "LOCAL_STATE_BUILD_FAILED") {
                 return "Der lokale Datenstand konnte nicht vollständig aufgebaut werden. Lokalen Stand und geprüfte Sicherung am Gerät prüfen; keine automatische Rückspielung starten."
             }
-            if ((code == "LOCAL_BOOTSTRAP_INVALID")) {
+            if (code == "LOCAL_BOOTSTRAP_INVALID") {
                 return "Der leere lokale App-Ausgangsstand konnte nicht geprüft werden. App-Version und Sicherungsstand prüfen; keine automatische Übernahme externer Daten und keine Änderung ausgeführt."
             }
             if (code == "LOCAL_ORIGINAL_MISSING") {
@@ -212,11 +212,11 @@ internal class McpErrors {
             if (code.contains("REPLAY_MISMATCH")) {
                 return "Die Anfragekennung gehört zu anderen Angaben. Die ursprüngliche Aktion prüfen."
             }
-            if ((code.contains("DECIMAL") || code.startsWith("MONEY_"))) {
+            if (code.contains("DECIMAL") || code.startsWith("MONEY_")) {
                 return "Beträge und Mengen mit exakten Dezimalwerten beziehungsweise kleinsten Währungseinheiten prüfen."
             }
             if (code == "BACKUP_FORMAT_UNSUPPORTED") return BackupStatusRules.failureMessage(code)
-            if ((code.contains("STORAGE") || code.contains("SPACE"))) {
+            if (code.contains("STORAGE") || code.contains("SPACE")) {
                 return "Freien Speicher und gewähltes Sicherungsziel prüfen. Die letzte geprüfte Sicherung bleibt erhalten."
             }
             if (
@@ -231,8 +231,8 @@ internal class McpErrors {
 
             val local = localCode(error)
             return (if (error is PixelMcpWriteTools.Rejected)
-                ((error as PixelMcpWriteTools.Rejected)).code
-            else (if ((local != null)) local else fallback))
+                (error as PixelMcpWriteTools.Rejected).code
+            else (if (local != null) local else fallback))
         }
 
         @JvmStatic
@@ -247,7 +247,7 @@ internal class McpErrors {
                         code(
                             error,
                             (if (error is HttpTransport.Failure)
-                                ((error as HttpTransport.Failure)).code
+                                (error as HttpTransport.Failure).code
                             else
                                 (if (error is IllegalArgumentException) "INVALID_INPUT"
                                 else "READ_ERROR")),
@@ -255,7 +255,7 @@ internal class McpErrors {
                     )
                     .put(
                         "message",
-                        (if ((local != null)) localMessage(local)
+                        (if (local != null) localMessage(local)
                         else
                             (if (
                                 (error is IllegalArgumentException ||
@@ -271,7 +271,7 @@ internal class McpErrors {
                     .put("retry_after_ms", Math.max(0, Math.min(3600000, failure.retryAfter)))
                     .put("user_action_required", failure.userAction)
             }
-            if ((local != null)) {
+            if (local != null) {
                 problem.put("user_action_required", true)
             }
             rejection(problem, error)
@@ -288,7 +288,7 @@ internal class McpErrors {
                     .put("code", code(error, "VALIDATION_ERROR"))
                     .put(
                         "message",
-                        (if ((local != null)) localMessage(local)
+                        (if (local != null) localMessage(local)
                         else
                             (if (error is IllegalArgumentException) error.message
                             else
@@ -314,7 +314,7 @@ internal class McpErrors {
 
         private @JvmStatic @Throws(Exception::class) fun envelope(problem: JSONObject): JSONObject {
 
-            if ((problem.optString("code") == "RESTORE_FULL_REPLACEMENT_REQUIRED")) {
+            if (problem.optString("code") == "RESTORE_FULL_REPLACEMENT_REQUIRED") {
                 problem
                     .put("device_step", "open_full_backup_restore")
                     .put("required_restore_contract", "pixel_full_replacement_v2")

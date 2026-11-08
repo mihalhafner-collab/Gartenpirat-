@@ -26,7 +26,7 @@ internal class PixelMcpBusinessTools {
         fun overlap(a: JSONObject, b: JSONObject): Boolean {
 
             if (
-                (!((a.optString("work_date") == b.optString("work_date"))) ||
+                (!(a.optString("work_date") == b.optString("work_date")) ||
                     (a.optString("id") == b.optString("id")))
             ) {
                 return false
@@ -55,7 +55,7 @@ internal class PixelMcpBusinessTools {
                     else {
                         i++
                     }
-                    if (!(((logs != null) && (i < logs.length())))) break
+                    if (!((logs != null) && (i < logs.length()))) break
 
                     if (overlap(payload, logs.getJSONObject(i))) {
                         throw PixelMcpWriteTools.Rejected(
@@ -84,12 +84,12 @@ internal class PixelMcpBusinessTools {
                     else {
                         i++
                     }
-                    if (!(((customers != null) && (i < customers.length())))) break
+                    if (!((customers != null) && (i < customers.length()))) break
 
                     customerIds.add(customers.getJSONObject(i).optString("id"))
                 }
             }
-            if ((logs.length() > 5000)) {
+            if (logs.length() > 5000) {
                 throw IllegalArgumentException(
                     "Bitte einen engeren Zeitraum für die Qualitätsprüfung wählen."
                 )
@@ -108,7 +108,7 @@ internal class PixelMcpBusinessTools {
                     val normalized = JSONObject(row.toString())
                     WorklogRules.validate(normalized, false)
                     if (
-                        (Math.abs((normalized.optDouble("hours") - row.optDouble("hours"))) > 0.005)
+                        (Math.abs(normalized.optDouble("hours") - row.optDouble("hours")) > 0.005)
                     ) {
                         issues.put(
                             issue(
@@ -141,7 +141,7 @@ internal class PixelMcpBusinessTools {
                     if (
                         ((((row.optString("customer_id") == other.optString("customer_id")) &&
                             (row.optString("work_date") == other.optString("work_date"))) &&
-                            (Math.abs((row.optDouble("hours") - other.optDouble("hours"))) <
+                            (Math.abs(row.optDouble("hours") - other.optDouble("hours")) <
                                 0.005)) &&
                             row.optString("activity")
                                 .trim()
@@ -160,7 +160,7 @@ internal class PixelMcpBusinessTools {
             var result =
                 JSONObject()
                     .put("work_records", logs.length())
-                    .put("hours", (Math.round((hours * 100)) / 100.0))
+                    .put("hours", (Math.round(hours * 100) / 100.0))
                     .put("marked_open", marked)
                     .put("marked_billed", logs.length() - marked)
                     .put("issues", issues)

@@ -64,7 +64,7 @@ class AppointmentRules {
         @JvmStatic
         fun weatherStart(row: JSONObject, now: Instant): Instant {
             val start: Instant = instant(row.getString("starts_at"))
-            return (if ((openEnd(row) && start.isBefore(now))) now else start)
+            return (if (openEnd(row) && start.isBefore(now)) now else start)
         }
 
         @Throws(Exception::class)
@@ -81,21 +81,18 @@ class AppointmentRules {
             val b: Instant = instant(right.getString("starts_at"))
             val x: Boolean = openEnd(left)
             val y: Boolean = openEnd(right)
-            val start: Instant = a.minusSeconds((left.optInt("travel_minutes") * 60L))
-            val other: Instant = b.minusSeconds((right.optInt("travel_minutes") * 60L))
+            val start: Instant = a.minusSeconds(left.optInt("travel_minutes") * 60L)
+            val other: Instant = b.minusSeconds(right.optInt("travel_minutes") * 60L)
             val end: Instant = (if (x) a else instant(left.getString("ends_at")))
             val until: Instant = (if (y) b else instant(right.getString("ends_at")))
             if (
-                (((((start.isBefore(until) && end.isAfter(other)) ||
+                ((((start.isBefore(until) && end.isAfter(other)) ||
                     ((x && !a.isBefore(other)) && a.isBefore(until))) ||
-                    ((y && !b.isBefore(start)) && b.isBefore(end))) || ((x && y) && a.equals(b))))
+                    ((y && !b.isBefore(start)) && b.isBefore(end))) || ((x && y) && a.equals(b)))
             ) {
                 return 2
             }
-            return (if (
-                ((x && ((y || until.isAfter(start)))) || (y && ((x || end.isAfter(other)))))
-            )
-                1
+            return (if (((x && (y || until.isAfter(start))) || (y && (x || end.isAfter(other))))) 1
             else 0)
         }
 
@@ -117,18 +114,18 @@ class AppointmentRules {
             val time: LocalDateTime = LocalDateTime.parse(value)
             var id: ZoneId = ZoneId.of(zone)
             val valid: MutableList<ZoneOffset> = id.getRules().getValidOffsets(time)
-            if ((valid.isEmpty())) {
+            if (valid.isEmpty()) {
                 throw IllegalArgumentException(
                     "Diese Uhrzeit existiert wegen der Zeitumstellung nicht."
                 )
             }
-            if ((((valid.size > 1) && offset.isEmpty()))) {
+            if ((valid.size > 1) && offset.isEmpty()) {
                 throw IllegalArgumentException(
                     "Diese Uhrzeit gibt es zweimal. Bitte den Zeitzonenoffset auswählen."
                 )
             }
             val chosen: ZoneOffset = (if (offset.isEmpty()) valid.get(0) else ZoneOffset.of(offset))
-            if ((!valid.contains(chosen))) {
+            if (!valid.contains(chosen)) {
                 throw IllegalArgumentException("Zeitzonenoffset passt nicht zur Ortszeit.")
             }
             return time.toInstant(chosen)
@@ -142,21 +139,19 @@ class AppointmentRules {
                     s.getJSONArray("customers"),
                     row.optString("customer_id"),
                 )
-            if (
-                (((customer == null) || (((old == null) && (customer!!.optInt("active", 1) == 0)))))
-            ) {
+            if (((customer == null) || ((old == null) && (customer!!.optInt("active", 1) == 0)))) {
                 throw IllegalArgumentException(
                     "Bitte einen vorhandenen aktiven Einsatzkunden wählen."
                 )
             }
             val orderId: String = row.optString("order_id")
-            if ((!orderId.isEmpty())) {
+            if (!orderId.isEmpty()) {
                 var order: JSONObject = PixelMcpWriteTools.find(s.getJSONArray("orders"), orderId)
-                if ((!row.getString("customer_id").equals(order.optString("customer_id")))) {
+                if (!row.getString("customer_id").equals(order.optString("customer_id"))) {
                     throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
                 }
             }
-            if ((row.optString("title").trim().isEmpty())) {
+            if (row.optString("title").trim().isEmpty()) {
                 throw IllegalArgumentException("Bitte eine Tätigkeit eintragen.")
             }
             val zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))
@@ -166,14 +161,14 @@ class AppointmentRules {
             val start: Instant = instant(row.getString("starts_at"))
             val end: Instant? = (if (open) null else instant(endValue))
             val minutes: Long = (if (open) 0 else Duration.between(start, end).toMinutes())
-            if (((!open && (((minutes < 5) || (minutes > (24 * 60))))))) {
+            if (!open && ((minutes < 5) || (minutes > (24 * 60)))) {
                 throw IllegalArgumentException(
                     "Ein Einsatz dauert mindestens5Minuten und höchstens24Stunden. Mehrtägige Arbeit bitte auf Einsätze aufteilen."
                 )
             }
             row.put("starts_at", start.toString())
                 .put("ends_at", (if (open) "" else end!!.toString()))
-            if ((!row.has("status"))) {
+            if (!row.has("status")) {
                 row.put("status", "tentative")
             }
             if (
@@ -182,30 +177,30 @@ class AppointmentRules {
             ) {
                 throw IllegalArgumentException("Ungültiger Terminstatus.")
             }
-            if ((!row.has("purpose"))) {
+            if (!row.has("purpose")) {
                 row.put("purpose", "work")
             }
-            if ((!Arrays.asList("work", "inspection").contains(row.optString("purpose")))) {
+            if (!Arrays.asList("work", "inspection").contains(row.optString("purpose"))) {
                 throw IllegalArgumentException("Ungültiger Terminzweck.")
             }
-            if ((!row.has("weather_profile"))) {
+            if (!row.has("weather_profile")) {
                 row.put("weather_profile", "general")
             }
-            if ((!Arrays.asList(*PROFILES).contains(row.optString("weather_profile")))) {
+            if (!Arrays.asList(*PROFILES).contains(row.optString("weather_profile"))) {
                 throw IllegalArgumentException("Wetterprofil bitte bewusst wählen.")
             }
-            if ((row.has("scope_refs"))) {
+            if (row.has("scope_refs")) {
                 val refs: JSONArray? = row.optJSONArray("scope_refs")
-                if ((((refs == null) || (refs!!.length() > 200)))) {
+                if ((refs == null) || (refs!!.length() > 200)) {
                     throw IllegalArgumentException("Ungültige Leistungsreferenzen.")
                 }
                 val seen: MutableSet<String> = HashSet()
                 run {
                     var i: Int = 0
-                    while ((i < refs!!.length())) {
+                    while (i < refs!!.length()) {
                         val ref: String = refs!!.getString(i)
                         val split: Int = ref.lastIndexOf('#')
-                        if ((((split < 1) || !seen.add(ref)))) {
+                        if ((split < 1) || !seen.add(ref)) {
                             throw IllegalArgumentException(
                                 "Leistungsreferenz als Angebots-ID#Positionsindex angeben."
                             )
@@ -215,9 +210,9 @@ class AppointmentRules {
                                 s.getJSONArray("offers"),
                                 ref.substring(0, split),
                             )
-                        val position: Int = Integer.parseInt(ref.substring((split + 1)))
+                        val position: Int = Integer.parseInt(ref.substring(split + 1))
                         if (
-                            ((((((!offer.optString("status").equals("accepted") ||
+                            (((((!offer.optString("status").equals("accepted") ||
                                 !row.getString("customer_id")
                                     .equals(offer.optString("customer_id"))) ||
                                 orderId.isEmpty()) ||
@@ -227,7 +222,7 @@ class AppointmentRules {
                                         offer.optString("order_id"),
                                     )
                                 )) || (position < 0)) ||
-                                (position >= offer.getJSONArray("positions").length())))
+                                (position >= offer.getJSONArray("positions").length()))
                         ) {
                             throw IllegalArgumentException(
                                 "Leistung gehört nicht zu einem angenommenen Angebot dieses Auftrags."
@@ -239,98 +234,98 @@ class AppointmentRules {
             }
             for (key in arrayOf("travel_minutes", "break_minutes")) {
                 val n: Int = row.optInt(key, 0)
-                if ((((n < 0) || (n > 720)))) {
+                if ((n < 0) || (n > 720)) {
                     throw IllegalArgumentException(
                         "Pause/Anfahrt muss zwischen0und720Minuten liegen."
                     )
                 }
                 row.put(key, n)
             }
-            if (((!open && (row.getInt("break_minutes") >= minutes)))) {
+            if (!open && (row.getInt("break_minutes") >= minutes)) {
                 throw IllegalArgumentException("Die Pause muss kürzer als der Einsatz sein.")
             }
             val lat: Boolean = (row.has("latitude") && !row.isNull("latitude"))
             val lon: Boolean = (row.has("longitude") && !row.isNull("longitude"))
-            if (((lat != lon))) {
+            if (lat != lon) {
                 throw IllegalArgumentException("Breiten- und Längengrad gemeinsam angeben.")
             }
             if (
-                ((lat &&
-                    ((((!java.lang.Double.isFinite(row.getDouble("latitude")) ||
+                (lat &&
+                    (((!java.lang.Double.isFinite(row.getDouble("latitude")) ||
                         (Math.abs(row.getDouble("latitude")) > 90)) ||
                         !java.lang.Double.isFinite(row.getDouble("longitude"))) ||
-                        (Math.abs(row.getDouble("longitude")) > 180)))))
+                        (Math.abs(row.getDouble("longitude")) > 180)))
             ) {
                 throw IllegalArgumentException("Ungültige Einsatzkoordinaten.")
             }
             for (field in arrayOf("flexible_from", "flexible_until")) {
-                if ((!row.optString(field).isEmpty())) {
+                if (!row.optString(field).isEmpty()) {
                     LocalDate.parse(row.getString(field))
                 }
             }
             if (
-                ((!row.optString("flexible_from").isEmpty() &&
+                (!row.optString("flexible_from").isEmpty() &&
                     start
                         .atZone(zone)
                         .toLocalDate()
-                        .isBefore(LocalDate.parse(row.getString("flexible_from")))))
+                        .isBefore(LocalDate.parse(row.getString("flexible_from"))))
             ) {
                 throw IllegalArgumentException(
                     "Termin liegt vor dem vereinbarten Ausführungsfenster."
                 )
             }
             if (
-                ((!row.optString("flexible_until").isEmpty() &&
-                    ((if (open) start else end!!.minusMillis(1)))
+                (!row.optString("flexible_until").isEmpty() &&
+                    (if (open) start else end!!.minusMillis(1))
                         .atZone(zone)
                         .toLocalDate()
-                        .isAfter(LocalDate.parse(row.getString("flexible_until")))))
+                        .isAfter(LocalDate.parse(row.getString("flexible_until"))))
             ) {
                 throw IllegalArgumentException(
                     "Termin liegt nach dem vereinbarten Ausführungsfenster."
                 )
             }
             if (
-                (((old != null) &&
-                    ((!old!!.optString("customer_id").equals(row.optString("customer_id")) ||
-                        !old!!.optString("order_id").equals(orderId)))))
+                ((old != null) &&
+                    (!old!!.optString("customer_id").equals(row.optString("customer_id")) ||
+                        !old!!.optString("order_id").equals(orderId)))
             ) {
                 throw IllegalArgumentException(
                     "Die ursprüngliche Kundenzuordnung bleibt erhalten. Bei falschem Kontext Termin absagen und neu planen."
                 )
             }
             if (
-                ((((old != null) && old!!.optString("status").equals("cancelled")) &&
-                    !row.optString("status").equals("cancelled")))
+                (((old != null) && old!!.optString("status").equals("cancelled")) &&
+                    !row.optString("status").equals("cancelled"))
             ) {
                 throw IllegalArgumentException(
                     "Abgesagten Termin nicht still reaktivieren. Bitte einen neuen Termin planen."
                 )
             }
             if (
-                ((((old != null) && !old!!.optString("status").equals("draft")) &&
-                    row.optString("status").equals("draft")))
+                (((old != null) && !old!!.optString("status").equals("draft")) &&
+                    row.optString("status").equals("draft"))
             ) {
                 throw IllegalArgumentException(
                     "Geplanten Termin verschieben oder ausdrücklich absagen; nicht zum Entwurf zurückstufen."
                 )
             }
-            if (((!active(row) || row.optString("status").equals("draft")))) {
+            if (!active(row) || row.optString("status").equals("draft")) {
                 return
             }
             var all: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
-                while (((all != null) && (i < all!!.length()))) {
+                while ((all != null) && (i < all!!.length())) {
                     val other: JSONObject = all!!.getJSONObject(i)
                     if (
-                        (((row.getString("id").equals(other.optString("id")) || !active(other)) ||
-                            other.optString("status").equals("draft")))
+                        ((row.getString("id").equals(other.optString("id")) || !active(other)) ||
+                            other.optString("status").equals("draft"))
                     ) {
                         i++
                         continue
                     }
-                    if (((overlapKind(row, other) == 2))) {
+                    if (overlapKind(row, other) == 2) {
                         throw PixelMcpWriteTools.Rejected(
                             "APPOINTMENT_OVERLAP",
                             "Zeit oder Anfahrt überschneidet sich mit einem vorhandenen Einsatz. Bitte eine freie Zeit wählen.",
@@ -358,33 +353,32 @@ class AppointmentRules {
                         s.getJSONArray("appointments"),
                         a.getString("appointment_id"),
                     ))
-            if ((((old != null) && !hash(old).equals(a.getString("expected_record_hash"))))) {
+            if ((old != null) && !hash(old).equals(a.getString("expected_record_hash"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
                     "Termin wurde inzwischen geändert. Eingaben bleiben erhalten.",
                 )
             }
-            var row: JSONObject =
-                (if ((old == null)) JSONObject() else LocalJournalRules.clean(old))
+            var row: JSONObject = (if (old == null) JSONObject() else LocalJournalRules.clean(old))
             val changes: JSONObject? = (if (create) a else a.optJSONObject("updates"))
-            if (((changes != null))) {
+            if (changes != null) {
                 for (key in FIELDS) {
-                    if ((changes!!.has(key))) {
+                    if (changes!!.has(key)) {
                         row.put(key, changes!!.get(key))
                     }
                 }
             }
-            if ((create)) {
+            if (create) {
                 row.put("id", ("apt_" + PixelMcpWriteTools.hash(request).substring(0, 32)))
                     .put("created_at", stamp)
                     .put("source", "owner_app_mcp")
             }
-            if ((name.equals("cancel_appointment"))) {
+            if (name.equals("cancel_appointment")) {
                 row.put("status", "cancelled")
             }
             row.put("updated_at", stamp)
             validate(row, old, s)
-            if (((old == null))) {
+            if (old == null) {
                 row.put("_mcp_create", true)
             } else {
                 row.put("_mcp_base", LocalJournalRules.guard(old, "appointment"))
@@ -399,7 +393,7 @@ class AppointmentRules {
             var all: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
-                while (((all != null) && (i < all!!.length()))) {
+                while ((all != null) && (i < all!!.length())) {
                     rows.add(all!!.getJSONObject(i))
                     i++
                 }
@@ -411,14 +405,14 @@ class AppointmentRules {
         @Throws(Exception::class)
         @JvmStatic
         fun protectParent(s: JSONObject, entity: String, id: String) {
-            if (((!entity.equals("customer") && !entity.equals("order")))) {
+            if (!entity.equals("customer") && !entity.equals("order")) {
                 return
             }
             val rows: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
-                while (((rows != null) && (i < rows!!.length()))) {
-                    if ((id.equals(rows!!.getJSONObject(i).optString(("" + entity + "_id"))))) {
+                while ((rows != null) && (i < rows!!.length())) {
+                    if (id.equals(rows!!.getJSONObject(i).optString("" + entity + "_id"))) {
                         throw IllegalArgumentException(
                             "Zugeordnete Termine zuerst in den Papierkorb verschieben. Terminverlauf und Kundenbeziehungen bleiben geschützt."
                         )
@@ -433,20 +427,20 @@ class AppointmentRules {
         fun worklog(row: JSONObject, old: JSONObject?, snapshot: JSONObject) {
             var id: String = row.optString("appointment_id")
             if (
-                ((((old != null) && !old!!.optString("appointment_id").isEmpty()) &&
-                    !old!!.optString("appointment_id").equals(id)))
+                (((old != null) && !old!!.optString("appointment_id").isEmpty()) &&
+                    !old!!.optString("appointment_id").equals(id))
             ) {
                 throw IllegalArgumentException(
                     "Die ursprüngliche Terminreferenz der Arbeit bleibt erhalten."
                 )
             }
-            if ((id.isEmpty())) {
+            if (id.isEmpty()) {
                 return
             }
             val a: JSONObject = PixelMcpWriteTools.find(snapshot.getJSONArray("appointments"), id)
             if (
-                ((!a.getString("customer_id").equals(row.optString("customer_id")) ||
-                    !a.optString("order_id").equals(row.optString("order_id"))))
+                (!a.getString("customer_id").equals(row.optString("customer_id")) ||
+                    !a.optString("order_id").equals(row.optString("order_id")))
             ) {
                 throw IllegalArgumentException(
                     "Arbeit und Termin gehören zu verschiedenen Kunden/Aufträgen."

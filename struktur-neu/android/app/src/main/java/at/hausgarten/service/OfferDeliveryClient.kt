@@ -24,13 +24,13 @@ internal class OfferDeliveryClient {
                 null,
                 ((28 * 1024) * 1024),
             )
-        if (((r!!.status == 401) || (r!!.status == 403))) {
+        if ((r!!.status == 401) || (r!!.status == 403)) {
             throw PixelMcpWriteTools.Rejected(
                 "MAIL_AUTH_REQUIRED",
                 "Gmail-Lesefreigabe für Versandbelege am Gerät bestätigen.",
             )
         }
-        if (((r!!.status == 429) || (r!!.status >= 500))) {
+        if ((r!!.status == 429) || (r!!.status >= 500)) {
             throw HttpTransport.Failure(
                 "MAIL_TEMPORARY_UNAVAILABLE",
                 "Mailanbieter vorübergehend nicht verfügbar. Später erneut prüfen; kein Versand wiederholen.",
@@ -38,7 +38,7 @@ internal class OfferDeliveryClient {
                 false,
             )
         }
-        if ((r!!.status != 200)) {
+        if (r!!.status != 200) {
             throw PixelMcpWriteTools.Rejected(
                 "MAIL_READBACK_REQUIRED",
                 "Versand nicht vom Mailanbieter bestätigt; kein sent-Status.",
@@ -52,7 +52,7 @@ internal class OfferDeliveryClient {
         if (!id!!.matches(Regex("[A-Za-z0-9_-]{1,200}"))) {
             throw IllegalArgumentException("Ungültige Nachrichtenkennung.")
         }
-        val message = read(((("messages/" + id)).toString() + "?format=full"))
+        val message = read(("messages/" + id).toString() + "?format=full")
         if (
             (!id!!.equals(message!!.optString("id")) ||
                 !((message!!.getJSONArray("labelIds"))!!.toString())!!.contains("\"SENT\""))
@@ -64,9 +64,9 @@ internal class OfferDeliveryClient {
         val h = payload!!.getJSONArray("headers")
         run {
             var i: Int = 0
-            while ((i < h!!.length())) {
+            while (i < h!!.length()) {
                 val key = ((h!!.getJSONObject(i))!!.getString("name"))!!.lowercase(Locale.ROOT)
-                if (((key!!.equals("to") || key!!.equals("from")) && headers!!.containsKey(key))) {
+                if ((key!!.equals("to") || key!!.equals("from")) && headers!!.containsKey(key)) {
                     throw IllegalArgumentException("Mehrdeutige Versandköpfe.")
                 }
                 headers!!.put(key, (h!!.getJSONObject(i))!!.getString("value"))
@@ -113,25 +113,26 @@ internal class OfferDeliveryClient {
         depth: Int,
         count: IntArray,
     ): Boolean {
-        if (((depth > 8) || (++count!![0] > 100))) {
+        if ((depth > 8) || (++count!![0] > 100)) {
             throw IllegalArgumentException("Mailstruktur überschreitet Prüfgrenze.")
         }
         if ((p!!.optString("mimeType"))!!.equals("application/pdf")) {
             val body = p!!.getJSONObject("body")
-            if ((body!!.optLong("size") > ((20 * 1024) * 1024))) {
+            if (body!!.optLong("size") > ((20 * 1024) * 1024)) {
                 throw IllegalArgumentException("PDF zu groß.")
             }
             var data = body!!.optString("data")
-            if ((data!!.isEmpty() && !(body!!.optString("attachmentId"))!!.isEmpty())) {
+            if (data!!.isEmpty() && !(body!!.optString("attachmentId"))!!.isEmpty()) {
                 var id = body!!.getString("attachmentId")
                 if (!id!!.matches(Regex("[A-Za-z0-9_-]{1,1000}"))) {
                     throw IllegalArgumentException("Ungültige Anhangkennung.")
                 }
                 data =
-                    (read((((("messages/" + message)).toString() + "/attachments/") + id)))!!
-                        .getString("data")
+                    (read((("messages/" + message).toString() + "/attachments/") + id))!!.getString(
+                        "data"
+                    )
             }
-            if ((data!!.length > ((28 * 1024) * 1024))) {
+            if (data!!.length > ((28 * 1024) * 1024)) {
                 throw IllegalArgumentException("Anhang überschreitet Prüfgrenze.")
             }
             val raw: ByteArray = (Base64.getUrlDecoder())!!.decode(data)
@@ -145,7 +146,7 @@ internal class OfferDeliveryClient {
         val parts = p!!.optJSONArray("parts")
         run {
             var i: Int = 0
-            while (((parts !== null) && (i < parts!!.length()))) {
+            while ((parts !== null) && (i < parts!!.length())) {
                 if (part(parts!!.getJSONObject(i), message, hash, (depth + 1), count)) {
                     return true
                 }
@@ -168,7 +169,7 @@ internal class OfferDeliveryClient {
             val l: Int = value!!.indexOf('<')
             val r: Int = value!!.indexOf('>')
             var address =
-                (if (((l >= 0) && (r > l))) value!!.substring((l + 1), r) else value!!.trim())
+                (if ((l >= 0) && (r > l)) value!!.substring((l + 1), r) else value!!.trim())
             return (if (address!!.matches(Regex("[^\\s<>@,;]+@[^\\s<>@,;]+\\.[^\\s<>@,;]+")))
                 address
             else "")

@@ -12,7 +12,7 @@ internal object OfferDecisionRules {
     @Throws(Exception::class)
     fun version(value: JSONObject): Unit {
         val version = value!!.opt("formatVersion")
-        if ((!(version is Number) || !(version!!.toString())!!.equals("1"))) {
+        if (!(version is Number) || !(version!!.toString())!!.equals("1")) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_DECISION_VERSION_UNSUPPORTED",
                 "Neuere Angebotsentscheidungen benötigen eine passende Appversion.",
@@ -104,14 +104,14 @@ internal object OfferDecisionRules {
     @Throws(Exception::class)
     fun decorateQuery(name: String, result: JSONObject, effectiveState: JSONObject): JSONObject {
         val decisions = effectiveState!!.optJSONObject("offer_decisions")
-        if (((decisions === null) || (decisions!!.length() == 0))) {
+        if ((decisions === null) || (decisions!!.length() == 0)) {
             return result
         }
-        if ((name!!.equals("get_offer") || name!!.equals("validate_offer"))) {
+        if (name!!.equals("get_offer") || name!!.equals("validate_offer")) {
             val offer = result!!.optJSONObject("offer")
-            if ((offer !== null)) {
+            if (offer !== null) {
                 val decision = matching(offer, decisions)
-                if ((decision !== null)) {
+                if (decision !== null) {
                     (result!!.put("decision", decision))!!.put(
                         "decision_status",
                         decision!!.getString("decision"),
@@ -124,17 +124,17 @@ internal object OfferDecisionRules {
             val rows = result!!.optJSONArray("offers")
             run {
                 var i: Int = 0
-                while (((rows !== null) && (i < rows!!.length()))) {
+                while ((rows !== null) && (i < rows!!.length())) {
                     val wrapper = rows!!.getJSONObject(i)
                     val offer = wrapper!!.optJSONObject("offer")
-                    if ((offer === null)) {
+                    if (offer === null) {
                         run {
                             i++
                             continue
                         }
                     }
                     val decision = matching(offer, decisions)
-                    if ((decision !== null)) {
+                    if (decision !== null) {
                         wrapper!!.put("decision", decision)
                         visible!!.put(offer!!.getString("id"), decision)
                     }
@@ -142,7 +142,7 @@ internal object OfferDecisionRules {
                     i++
                 }
             }
-            if ((visible!!.length() > 0)) {
+            if (visible!!.length() > 0) {
                 result!!.put("decisions", visible)
             }
         }

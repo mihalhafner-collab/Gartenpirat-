@@ -234,8 +234,8 @@ internal class PixelMcpOwnerTools {
                 }
                 else -> {
                     return (java.lang.String.valueOf(
-                        ((if (read(n)) "Liest vorhandene App-Daten ohne Geheimwerte."
-                        else "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen."))
+                        (if (read(n)) "Liest vorhandene App-Daten ohne Geheimwerte."
+                        else "Verwendet die bestehenden App-Speicher und fachlichen Prüfungen.")
                     ) + common)
                 }
             }

@@ -15,7 +15,7 @@ class SettingsApplicationService : OwnerCommand {
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
         val stamp: String = java.time.Instant.now().toString()
-        when ((name)) {
+        when (name) {
             "update_business_settings" -> {
                 run {
                     var p: JSONObject = JSONObject(args.toString())

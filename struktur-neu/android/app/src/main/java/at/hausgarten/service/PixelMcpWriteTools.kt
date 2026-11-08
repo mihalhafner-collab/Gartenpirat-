@@ -92,19 +92,19 @@ class PixelMcpWriteTools {
                 )
                     "number"
                 else
-                    (if ((key == "break_minutes")) "integer"
+                    (if (key == "break_minutes") "integer"
                     else
-                        (if (((key == "customer_visible") || (key == "allow_overnight"))) "boolean"
+                        (if ((key == "customer_visible") || (key == "allow_overnight")) "boolean"
                         else "string")))
             val spec = JSONObject().put("type", type)
-            if ((type == "string")) {
+            if (type == "string") {
                 spec.put(
                     "maxLength",
-                    (if ((((key == "activity") || (key == "material")) || (key == "notes"))) 10000
+                    (if (((key == "activity") || (key == "material")) || (key == "notes")) 10000
                     else 500),
                 )
             }
-            if (((type == "number") || (type == "integer"))) {
+            if ((type == "number") || (type == "integer")) {
                 spec.put("minimum", 0)
             }
             return spec
@@ -121,7 +121,7 @@ class PixelMcpWriteTools {
                         JSONObject().put("type", "string").put("minLength", 8).put("maxLength", 128),
                     )
             val required = JSONArray().put("request_id")
-            if ((name == "update_work_record")) {
+            if (name == "update_work_record") {
                 props
                     .put("work_record_id", field("work_record_id"))
                     .put("expected_record_hash", field("expected_record_hash"))
@@ -144,7 +144,7 @@ class PixelMcpWriteTools {
                 }
                 props.put("customer_id", field("customer_id"))
                 required
-                    .put((if ((name == "create_work_record")) "order_id" else "customer_id"))
+                    .put(if (name == "create_work_record") "order_id" else "customer_id")
                     .put("work_date")
                     .put("activity")
             }
@@ -167,7 +167,7 @@ class PixelMcpWriteTools {
                         .put("inputSchema", schema(name))
                         .put(
                             "description",
-                            (if ((name == "update_work_record"))
+                            (if (name == "update_work_record")
                                 "Korrigiert eine Arbeitsaufzeichnung. Zuerst get_work_record aufrufen und record_hash als expected_record_hash übernehmen. Keine Änderung von Kunden-ID, Abrechnung oder Rechnungen."
                             else
                                 "Legt eine Arbeitsaufzeichnung mit tatsächlichen Kunden-/Auftrags-IDs dauerhaft auf dem Pixel an. request_id bei Wiederholung unverändert lassen. storage_contract_version 3: lokale Speicherung; get_full_backup_status liest den getrennten Vollsicherungsstand."),
@@ -201,18 +201,17 @@ class PixelMcpWriteTools {
                     val spec = props.getJSONObject(key)
                     val type = spec.getString("type")
                     var valid: Boolean =
-                        (if ((type == "string")) value is String
+                        (if (type == "string") value is String
                         else
-                            (if ((type == "boolean")) value is Boolean
-                            else
-                                (if ((type == "object")) value is JSONObject else value is Number)))
+                            (if (type == "boolean") value is Boolean
+                            else (if (type == "object") value is JSONObject else value is Number)))
                     if (!(valid)) {
                         throw Rejected("INVALID_INPUT", ("Ungültiger Eingabetyp: " + key))
                     }
                     if (
                         (value is String &&
-                            (((((value as String)).length > spec.optInt("maxLength", 10000)) ||
-                                (((value as String)).length < spec.optInt("minLength", 0)))))
+                            (((value as String).length > spec.optInt("maxLength", 10000)) ||
+                                ((value as String).length < spec.optInt("minLength", 0))))
                     ) {
                         throw Rejected(
                             "INVALID_INPUT",
@@ -220,10 +219,10 @@ class PixelMcpWriteTools {
                         )
                     }
                     if (value is Number) {
-                        val n: Double = ((value as Number)).toDouble()
+                        val n: Double = (value as Number).toDouble()
                         if (
                             ((!(java.lang.Double.isFinite(n)) || (n < 0)) ||
-                                (((type == "integer") && (n != Math.floor(n)))))
+                                ((type == "integer") && (n != Math.floor(n))))
                         ) {
                             throw Rejected(
                                 "INVALID_INPUT",
@@ -231,8 +230,8 @@ class PixelMcpWriteTools {
                             )
                         }
                     }
-                    if ((type == "object")) {
-                        if ((((value as JSONObject)).length() == 0)) {
+                    if (type == "object") {
+                        if ((value as JSONObject).length() == 0) {
                             throw Rejected(
                                 "INVALID_INPUT",
                                 "Bitte mindestens eine Änderung angeben.",
@@ -251,12 +250,12 @@ class PixelMcpWriteTools {
                     else {
                         i++
                     }
-                    if (!(((required != null) && (i < required.length())))) break
+                    if (!((required != null) && (i < required.length()))) break
 
                     val key = required.getString(i)
                     if (
                         (!(args.has(key)) ||
-                            ((args.get(key) is String && args.getString(key).trim().isEmpty())))
+                            (args.get(key) is String && args.getString(key).trim().isEmpty()))
                     ) {
                         throw Rejected("MISSING_FIELD", ("Pflichtangabe fehlt: " + key))
                     }
@@ -290,13 +289,13 @@ class PixelMcpWriteTools {
                 }
                 return out.toString()
             }
-            if (((value == null) || (value == JSONObject.NULL))) {
+            if ((value == null) || (value == JSONObject.NULL)) {
                 return "null"
             }
             if (value is Number) {
                 return java.math.BigDecimal(value.toString()).stripTrailingZeros().toPlainString()
             }
-            return (if (value is String) JSONObject.quote((value as String)) else value.toString())
+            return (if (value is String) JSONObject.quote(value as String) else value.toString())
         }
 
         @JvmStatic
@@ -337,7 +336,7 @@ class PixelMcpWriteTools {
                 java.math.BigDecimal(
                     payload.get("material_cost").toString().trim().replace(',', '.')
                 )
-            if (((cost.scale() > 2) || (cost.signum() < 0))) {
+            if ((cost.scale() > 2) || (cost.signum() < 0)) {
                 throw Rejected(
                     "INVALID_INPUT",
                     "Materialkosten müssen nicht negativ sein und höchstens zwei Nachkommastellen haben.",
@@ -350,7 +349,7 @@ class PixelMcpWriteTools {
                     .trim()
             payload.put(
                 "material",
-                ((java.lang.String.valueOf(((if (material.isEmpty()) "" else (material + "\n")))) +
+                ((java.lang.String.valueOf(if (material.isEmpty()) "" else (material + "\n")) +
                     "Materialkosten [EUR]: ") + cost.setScale(2).toPlainString()),
             )
             payload.remove("material_cost")
@@ -368,9 +367,9 @@ class PixelMcpWriteTools {
                     else {
                         i++
                     }
-                    if (!(((rows != null) && (i < rows.length())))) break
+                    if (!((rows != null) && (i < rows.length()))) break
 
-                    if ((id == rows.getJSONObject(i).optString("id"))) {
+                    if (id == rows.getJSONObject(i).optString("id")) {
                         return rows.getJSONObject(i)
                     }
                 }
@@ -398,7 +397,7 @@ class PixelMcpWriteTools {
                 val capabilities = master.optJSONObject("capabilities")
                 if (
                     ((capabilities == null) ||
-                        !((true == capabilities.opt("worklog_compare_and_save"))))
+                        !(true == capabilities.opt("worklog_compare_and_save")))
                 ) {
                     throw Rejected(
                         "REMOTE_GUARD_REQUIRED",
@@ -406,7 +405,7 @@ class PixelMcpWriteTools {
                     )
                 }
                 val old = find(master.optJSONArray("worklogs"), args.getString("work_record_id"))
-                if (!((hash(base(old)) == args.getString("expected_record_hash")))) {
+                if (!(hash(base(old)) == args.getString("expected_record_hash"))) {
                     throw Rejected(
                         "WRITE_CONFLICT",
                         "Der Eintrag wurde inzwischen geändert. Bitte erneut öffnen und die Änderung prüfen.",
@@ -423,7 +422,7 @@ class PixelMcpWriteTools {
                         else {
                             i++
                         }
-                        if (!(((invoices != null) && (i < invoices.length())))) break
+                        if (!((invoices != null) && (i < invoices.length()))) break
 
                         val inv = invoices.getJSONObject(i)
                         val ids = inv.optJSONArray("worklog_ids")
@@ -435,9 +434,9 @@ class PixelMcpWriteTools {
                                 else {
                                     j++
                                 }
-                                if (!(((ids != null) && (j < ids.length())))) break
+                                if (!((ids != null) && (j < ids.length()))) break
 
-                                if ((old.getString("id") == ids.optString(j))) {
+                                if (old.getString("id") == ids.optString(j)) {
                                     invoiced = true
                                 }
                             }
@@ -448,7 +447,7 @@ class PixelMcpWriteTools {
                     run {
                         val it = patch.keys()
                         while (it.hasNext()) {
-                            if (!((it.next() == "notes"))) {
+                            if (!(it.next() == "notes")) {
                                 throw Rejected(
                                     "BILLED_RECORD_LOCKED",
                                     "Abgerechnete Leistungsdaten bleiben unverändert. Nur interne Notizen können ergänzt werden.",
@@ -475,8 +474,7 @@ class PixelMcpWriteTools {
                 if (!(orderId.isEmpty())) {
                     var order = find(master.optJSONArray("orders"), orderId)
                     if (
-                        (!(customerId.isEmpty()) &&
-                            !((customerId == order.optString("customer_id"))))
+                        (!(customerId.isEmpty()) && !(customerId == order.optString("customer_id")))
                     ) {
                         throw Rejected(
                             "REFERENCE_MISMATCH",
@@ -501,7 +499,7 @@ class PixelMcpWriteTools {
                         else {
                             i++
                         }
-                        if (!(((existing != null) && (i < existing.length())))) break
+                        if (!((existing != null) && (i < existing.length()))) break
 
                         if (
                             (payload.getString("id") == existing.getJSONObject(i).optString("id"))
@@ -521,7 +519,7 @@ class PixelMcpWriteTools {
             find(master.optJSONArray("customers"), customerId)
             if (!(orderId.isEmpty())) {
                 var order = find(master.optJSONArray("orders"), orderId)
-                if (!((customerId == order.optString("customer_id")))) {
+                if (!(customerId == order.optString("customer_id"))) {
                     throw Rejected("REFERENCE_MISMATCH", "Kunde und Auftrag passen nicht zusammen.")
                 }
                 if (payload.optString("location").trim().isEmpty()) {
@@ -531,7 +529,7 @@ class PixelMcpWriteTools {
             if (payload.optString("activity").trim().isEmpty()) {
                 throw Rejected("MISSING_FIELD", "Die Tätigkeit fehlt.")
             }
-            if ((payload.has("customer_visible") && payload.get("customer_visible") is Boolean)) {
+            if (payload.has("customer_visible") && payload.get("customer_visible") is Boolean) {
                 payload.put(
                     "customer_visible",
                     (if (payload.getBoolean("customer_visible")) 1 else 0),
@@ -549,7 +547,7 @@ class PixelMcpWriteTools {
             if (
                 (((submitted.has("hours") && !(payload.isNull("start_time"))) &&
                     !(payload.optString("start_time").isEmpty())) &&
-                    (Math.abs((submitted.getDouble("hours") - payload.getDouble("hours"))) > 0.005))
+                    (Math.abs(submitted.getDouble("hours") - payload.getDouble("hours")) > 0.005))
             ) {
                 throw Rejected(
                     "TIME_MISMATCH",
@@ -566,7 +564,7 @@ class PixelMcpWriteTools {
                         else {
                             i++
                         }
-                        if (!(((logs != null) && (i < logs.length())))) break
+                        if (!((logs != null) && (i < logs.length()))) break
 
                         val row = logs.getJSONObject(i)
                         if (

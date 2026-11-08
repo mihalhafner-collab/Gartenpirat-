@@ -39,7 +39,7 @@ internal class LocalTestCleanup {
 
             val kind = event.optString("kind")
             var p = event.optJSONObject("payload")
-            if (((p == null) || !((id == p.optString("id"))))) {
+            if ((p == null) || !(id == p.optString("id"))) {
                 return false
             }
             return ((((entity == kind) ||
@@ -60,10 +60,10 @@ internal class LocalTestCleanup {
 
             var record =
                 OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)), id)
-            if ((record == null)) {
+            if (record == null) {
                 val a = raw.optJSONObject("owner_archive")
-                val saved = (if ((a == null)) null else a.optJSONObject(((entity + ":") + id)))
-                record = (if ((saved == null)) null else saved.optJSONObject("record"))
+                val saved = (if (a == null) null else a.optJSONObject((entity + ":") + id))
+                record = (if (saved == null) null else saved.optJSONObject("record"))
             }
             run {
                 var i: Int = 0
@@ -73,23 +73,23 @@ internal class LocalTestCleanup {
                     else {
                         i++
                     }
-                    if (!(((record == null) && (i < pending.length())))) break
+                    if (!((record == null) && (i < pending.length()))) break
 
                     val event = pending.getJSONObject(i)
                     var p = event.getJSONObject("payload")
-                    if ((!(sameTarget(event, entity, id)) || !(p.optBoolean("_local_only")))) {
+                    if (!(sameTarget(event, entity, id)) || !(p.optBoolean("_local_only"))) {
                         continue
                     }
                     record = p.optJSONObject("_archive_record")
-                    if (((record == null) && (entity == event.optString("kind")))) {
+                    if ((record == null) && (entity == event.optString("kind"))) {
                         record = p
                     }
                 }
             }
-            if ((record == null)) {
+            if (record == null) {
                 return false
             }
-            if ((entity == "customer")) {
+            if (entity == "customer") {
                 return TestDataRules.customer(record)
             }
             if (TestDataRules.marked(record)) {

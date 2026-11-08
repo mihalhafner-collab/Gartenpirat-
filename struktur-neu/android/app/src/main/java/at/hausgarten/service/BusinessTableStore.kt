@@ -124,7 +124,7 @@ class BusinessTableStore {
         for (name in names) {
             var target: Boolean = false
             for (collection in COLLECTIONS) {
-                if ((name == table(collection))) {
+                if (name == table(collection)) {
                     target = true
                 }
             }
@@ -141,11 +141,11 @@ class BusinessTableStore {
             for (action in arrayOf("INSERT", "UPDATE", "DELETE")) {
                 var guard =
                     "EXISTS(SELECT 1 FROM owner_state WHERE key='business_tables:write_lock')"
-                if ((name == "owner_state")) {
+                if (name == "owner_state") {
                     var changed =
-                        (if ((action == "DELETE")) "OLD.key NOT GLOB 'business_tables:*'"
+                        (if (action == "DELETE") "OLD.key NOT GLOB 'business_tables:*'"
                         else
-                            (if ((action == "INSERT")) "NEW.key NOT GLOB 'business_tables:*'"
+                            (if (action == "INSERT") "NEW.key NOT GLOB 'business_tables:*'"
                             else
                                 "(NEW.key NOT GLOB 'business_tables:*' OR OLD.key NOT GLOB 'business_tables:*')"))
                     guard += " AND " + changed
@@ -262,7 +262,7 @@ class BusinessTableStore {
                     return@LAM materialize(meta)
                 }
                 val raw = owner("snapshot")
-                return@LAM JSONObject((if (raw == null) fallback else raw))
+                return@LAM JSONObject(if (raw == null) fallback else raw)
             }
         )
     }
@@ -402,7 +402,7 @@ class BusinessTableStore {
                     for (i in 0 until rows.length()) {
                         val row = rows.getJSONObject(i)
                         var id = id(row)
-                        if (!((hash(row) == hashes.get(id)))) {
+                        if (!(hash(row) == hashes.get(id))) {
                             sql.execute(
                                 "DELETE FROM " + name + " WHERE generation=? AND id=?",
                                 generation,
@@ -424,7 +424,7 @@ class BusinessTableStore {
                     }
                 }
                 val rest = remainder(next)
-                if (!((hash(rest) == meta.getString("remainder_hash")))) {
+                if (!(hash(rest) == meta.getString("remainder_hash"))) {
                     meta.put("remainder", rest).put("remainder_hash", hash(rest))
                     owner(META, meta.toString())
                 }
@@ -441,7 +441,7 @@ class BusinessTableStore {
         var found: Boolean = false
         sql.query("PRAGMA table_info(" + table(collection) + ")").use { rows ->
             while (rows.next()) {
-                if (("selection_json" == rows.text(1))) {
+                if ("selection_json" == rows.text(1)) {
                     found = true
                 }
             }
@@ -604,7 +604,7 @@ class BusinessTableStore {
                         "TABLE_TRANSFER_EXISTS",
                     )
                     require(
-                        !(("ROLLED_BACK" == existing.getString("phase"))),
+                        !("ROLLED_BACK" == existing.getString("phase")),
                         "TABLE_TRANSFER_ALREADY_ROLLED_BACK",
                     )
                     if (existing.optInt("journal_tracking_version") != 1) {
@@ -613,7 +613,7 @@ class BusinessTableStore {
                         owner(META, existing.toString())
                         invalidateJournal()
                     }
-                    if (("ABORTED" == existing.getString("phase"))) {
+                    if ("ABORTED" == existing.getString("phase")) {
                         source(existing, check)
                         existing.put(
                             "phase",
@@ -655,7 +655,7 @@ class BusinessTableStore {
             LAM@{
                 val meta = transfer(requestId)
                 val source = source(meta, check)
-                if (("READY" == meta.getString("phase"))) {
+                if ("READY" == meta.getString("phase")) {
                     return@LAM meta
                 }
                 require(("COPYING" == meta.getString("phase")), "TABLE_COPY_PHASE_REQUIRED")
@@ -709,7 +709,7 @@ class BusinessTableStore {
                     (expectedSourceHash == meta.getString("source_hash")),
                     "TABLE_SOURCE_CHANGED",
                 )
-                if (("ACTIVE" == meta.getString("phase"))) {
+                if ("ACTIVE" == meta.getString("phase")) {
                     return@LAM meta
                 }
                 require(("READY" == meta.getString("phase")), "TABLE_NOT_READY")
@@ -767,7 +767,7 @@ class BusinessTableStore {
             "INSERT INTO " +
                 table(collection) +
                 "(generation,id,position,record_json,record_hash," +
-                ((if (indexed) "selection_json,selection_hash," else "")) +
+                (if (indexed) "selection_json,selection_hash," else "") +
                 "customer_id,billing_customer_id,order_id,worklog_id,work_date,status,name) VALUES(" +
                 java.util.Collections.nCopies(args.size, "?").joinToString(",") +
                 ")",
@@ -1026,7 +1026,7 @@ class BusinessTableStore {
                 val meta = metadata()
                 require(meta != null, "TABLE_STORAGE_NOT_ACTIVE")
                 meta!!
-                if (("ROLLED_BACK" == meta.getString("phase"))) {
+                if ("ROLLED_BACK" == meta.getString("phase")) {
                     require(
                         (requestId == meta.optString("rollback_request")) &&
                             (expectedCurrentHash == meta.optString("rollback_hash")),
@@ -1120,7 +1120,7 @@ class BusinessTableStore {
         private @JvmStatic @Throws(Exception::class) fun table(collection: String): String {
 
             for (value in COLLECTIONS) {
-                if ((value == collection)) {
+                if (value == collection) {
                     return "business_" + collection
                 }
             }
@@ -1145,7 +1145,7 @@ class BusinessTableStore {
         private @JvmStatic @Throws(Exception::class) fun id(row: JSONObject): String {
 
             var value = row.opt("id")
-            require(value is String && !(((value as String)).isEmpty()), "TABLE_ID_REQUIRED")
+            require(value is String && !((value as String).isEmpty()), "TABLE_ID_REQUIRED")
             return (value as String)
         }
 

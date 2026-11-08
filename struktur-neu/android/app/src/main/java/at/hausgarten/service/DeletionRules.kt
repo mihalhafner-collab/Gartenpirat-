@@ -23,7 +23,7 @@ class DeletionRules {
         @Throws(Exception::class)
         @JvmStatic
         fun preview(snapshot: JSONObject, entity: String, id: String): JSONObject {
-            if ((!java.util.Arrays.asList(*ENTITIES).contains(entity))) {
+            if (!java.util.Arrays.asList(*ENTITIES).contains(entity)) {
                 throw IllegalArgumentException("Dieser Bereich kann nicht gelöscht werden.")
             }
             var current: JSONObject? =
@@ -31,7 +31,7 @@ class DeletionRules {
                     snapshot.optJSONArray(OwnerJournalRules.group(entity)),
                     id,
                 )
-            if (((current == null))) {
+            if (current == null) {
                 throw IllegalArgumentException(
                     "Der Eintrag fehlt oder liegt bereits im Papierkorb."
                 )
@@ -50,12 +50,12 @@ class DeletionRules {
                     .put("expected_photo_links_hash", PixelMcpWriteTools.hash(related))
                     .put(
                         "mode",
-                        (if ((entity.equals("customer") || entity.equals("service_template")))
+                        (if (entity.equals("customer") || entity.equals("service_template"))
                             "deactivate"
                         else "trash"),
                     )
             val archived: JSONObject? = snapshot.optJSONObject("owner_archive")
-            if ((((archived != null) && archived!!.has((("" + entity + ":") + id))))) {
+            if ((archived != null) && archived!!.has(("" + entity + ":") + id)) {
                 return out.put("allowed", false)
                     .put("message", "Der Eintrag liegt bereits im Papierkorb.")
             }
@@ -87,7 +87,7 @@ class DeletionRules {
                     id,
                 )
             OwnerJournalRules.checkHash(current, expected)
-            if (((current == null))) {
+            if (current == null) {
                 throw IllegalArgumentException("Der Eintrag fehlt.")
             }
             OwnerJournalRules.validateArchive(entity, current, snapshot)

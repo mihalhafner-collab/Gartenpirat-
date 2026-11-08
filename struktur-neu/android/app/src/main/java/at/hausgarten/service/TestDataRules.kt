@@ -11,8 +11,8 @@ class TestDataRules {
         @JvmStatic
         fun customer(c: JSONObject?): Boolean {
             return ((c != null) &&
-                ((c!!.optString("name").startsWith("[TEST]") ||
-                    c!!.optString("name").equals("MCP FUNKTIONSTEST – KEIN ECHTER KUNDE"))))
+                (c!!.optString("name").startsWith("[TEST]") ||
+                    c!!.optString("name").equals("MCP FUNKTIONSTEST – KEIN ECHTER KUNDE")))
         }
 
         @JvmStatic
@@ -22,12 +22,12 @@ class TestDataRules {
 
         @JvmStatic
         fun customerChange(row: JSONObject, old: JSONObject?) {
-            if ((((old != null) && (customer(old) != customer(row))))) {
+            if ((old != null) && (customer(old) != customer(row))) {
                 throw IllegalArgumentException(
                     "Test-/Produktivzuordnung eines Kunden darf nicht gewechselt werden."
                 )
             }
-            if (((row.optBoolean("test_record") && !customer(row)))) {
+            if (row.optBoolean("test_record") && !customer(row)) {
                 throw IllegalArgumentException("Testkunde eindeutig mit [TEST] markieren.")
             }
         }
@@ -41,18 +41,16 @@ class TestDataRules {
                     p.optString("customer_id"),
                 )
             val test: Boolean = (marked(p) || customer(customer))
-            if ((!test)) {
+            if (!test) {
                 return
             }
             var recipient: String = p.optString("billing_customer_id", p.optString("customer_id"))
-            if ((recipient.isEmpty())) {
+            if (recipient.isEmpty()) {
                 recipient = p.optString("customer_id")
             }
             if (
-                ((!customer(customer) ||
-                    !customer(
-                        OwnerJournalRules.findOrNull(s.optJSONArray("customers"), recipient)
-                    )))
+                (!customer(customer) ||
+                    !customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"), recipient)))
             ) {
                 throw PixelMcpWriteTools.Rejected(
                     "TEST_DATA_ISOLATION",
@@ -67,13 +65,13 @@ class TestDataRules {
         fun noDelivery(p: JSONObject, s: JSONObject) {
             guard(JSONObject(p.toString()), s)
             if (
-                ((marked(p) ||
+                (marked(p) ||
                     customer(
                         OwnerJournalRules.findOrNull(
                             s.optJSONArray("customers"),
                             p.optString("customer_id"),
                         )
-                    )))
+                    ))
             ) {
                 throw PixelMcpWriteTools.Rejected(
                     "TEST_DELIVERY_BLOCKED",
@@ -86,16 +84,16 @@ class TestDataRules {
         @JvmStatic
         fun localOnly(a: JSONObject, s: JSONObject): Boolean {
             var p: JSONObject = a.getJSONObject("payload")
-            if ((p.optBoolean("_local_only"))) {
+            if (p.optBoolean("_local_only")) {
                 return true
             }
-            if ((a.optString("kind").equals(TrashPurgeBatch.KIND))) {
+            if (a.optString("kind").equals(TrashPurgeBatch.KIND)) {
                 // Storage contract 3 keeps the whole deletion on this device.
                 return true
             }
             if (
-                (((p.optBoolean("_local_only") || marked(p)) ||
-                    (a.optString("kind").equals("customer") && customer(p))))
+                ((p.optBoolean("_local_only") || marked(p)) ||
+                    (a.optString("kind").equals("customer") && customer(p)))
             ) {
                 return true
             }
@@ -110,7 +108,7 @@ class TestDataRules {
                 return true
             }
             var kind: String = a.optString("kind")
-            if ((java.util.Arrays.asList("archive", "restore", "purge_v1").contains(kind))) {
+            if (java.util.Arrays.asList("archive", "restore", "purge_v1").contains(kind)) {
                 kind = p.optString("entity")
             }
             var group: String =
@@ -120,23 +118,23 @@ class TestDataRules {
                     else LocalJournalRules.collection(kind)))
             var existing: JSONObject? =
                 OwnerJournalRules.findOrNull(s.optJSONArray(group), p.optString("id"))
-            if (((existing == null))) {
+            if (existing == null) {
                 val archive: JSONObject? = s.optJSONObject("owner_archive")
                 var entry: JSONObject? =
-                    (if ((archive == null)) null
-                    else archive!!.optJSONObject((("" + kind + ":") + p.optString("id"))))
-                if (((entry != null))) {
+                    (if (archive == null) null
+                    else archive!!.optJSONObject(("" + kind + ":") + p.optString("id")))
+                if (entry != null) {
                     existing = entry!!.optJSONObject("record")
                 }
             }
             return ((existing != null) &&
-                (((marked(existing) || (kind.equals("customer") && customer(existing))) ||
+                ((marked(existing) || (kind.equals("customer") && customer(existing))) ||
                     customer(
                         OwnerJournalRules.findOrNull(
                             s.optJSONArray("customers"),
                             existing!!.optString("customer_id"),
                         )
-                    ))))
+                    )))
         }
     }
 }

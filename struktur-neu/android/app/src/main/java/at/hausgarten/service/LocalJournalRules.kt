@@ -72,7 +72,7 @@ internal class LocalJournalRules {
                     "appointments",
                 )) {
                 val rows = snapshot.optJSONArray(key)
-                if ((rows == null)) {
+                if (rows == null) {
                     throw IllegalArgumentException("Der lokale Gesamtstand ist unvollständig.")
                 }
                 val ids = HashSet<String>()
@@ -95,19 +95,19 @@ internal class LocalJournalRules {
         fun guard(row: JSONObject?, kind: String): JSONObject {
 
             val base = JSONObject()
-            if ((row == null)) {
+            if (row == null) {
                 return base
             }
-            if ((((kind == "offer") || (kind == "service_template")) || (kind == "appointment"))) {
+            if (((kind == "offer") || (kind == "service_template")) || (kind == "appointment")) {
                 return clean(row)
             }
-            if (((kind == "worklog") && !(row.optString("appointment_id").isEmpty()))) {
+            if ((kind == "worklog") && !(row.optString("appointment_id").isEmpty())) {
                 base.put("appointment_id", row.getString("appointment_id"))
             }
             var keys =
-                (if ((kind == "worklog")) PixelMcpWriteTools.BASE_FIELDS
+                (if (kind == "worklog") PixelMcpWriteTools.BASE_FIELDS
                 else
-                    (if ((kind == "customer"))
+                    (if (kind == "customer")
                         arrayOf(
                             "id",
                             "updated_at",
@@ -130,7 +130,7 @@ internal class LocalJournalRules {
                             "default_billing_customer_id",
                         )
                     else
-                        (if ((kind == "order"))
+                        (if (kind == "order")
                             arrayOf(
                                 "id",
                                 "updated_at",
@@ -167,7 +167,7 @@ internal class LocalJournalRules {
             for (key in keys) {
                 base.put(
                     key,
-                    (if ((key == "custom_fields")) comparable(key, row.opt(key))
+                    (if (key == "custom_fields") comparable(key, row.opt(key))
                     else (if (row.has(key)) row.get(key) else JSONObject.NULL)),
                 )
             }
@@ -200,15 +200,14 @@ internal class LocalJournalRules {
 
             if (
                 ((key == "garden_area") &&
-                    ((((value == null) || (value == JSONObject.NULL)) ||
-                        value.toString().isEmpty())))
+                    (((value == null) || (value == JSONObject.NULL)) || value.toString().isEmpty()))
             ) {
                 return JSONObject.NULL
             }
-            if ((key == "custom_fields")) {
-                return (if ((((value == null) || (value == JSONObject.NULL)) || ("" == value)))
+            if (key == "custom_fields") {
+                return (if (((value == null) || (value == JSONObject.NULL)) || ("" == value))
                     JSONObject()
-                else (if (value is String) JSONObject((value as String)) else value))
+                else (if (value is String) JSONObject(value as String) else value))
             }
             if (
                 Arrays.asList(
@@ -222,18 +221,18 @@ internal class LocalJournalRules {
                     )
                     .contains(key)
             ) {
-                if (((value == null) || (value == JSONObject.NULL))) {
+                if ((value == null) || (value == JSONObject.NULL)) {
                     return 0
                 }
                 if (value is Boolean) {
-                    return (if (((value as Boolean))) 1 else 0)
+                    return (if (value as Boolean) 1 else 0)
                 }
                 if (value.toString().isEmpty()) {
                     return 0
                 }
                 return java.math.BigDecimal(value.toString()).stripTrailingZeros()
             }
-            if (((value == null) || (value == JSONObject.NULL))) {
+            if ((value == null) || (value == JSONObject.NULL)) {
                 return ""
             }
             return value
@@ -243,7 +242,7 @@ internal class LocalJournalRules {
         @Throws(Exception::class)
         fun compare(expected: JSONObject, current: JSONObject?): Unit {
 
-            if (((current == null) || !((expected.optString("id") == current.optString("id"))))) {
+            if ((current == null) || !(expected.optString("id") == current.optString("id"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
                     "Der ursprüngliche Datensatz fehlt. Keine Wiederanlage vorgenommen.",
@@ -254,8 +253,8 @@ internal class LocalJournalRules {
                 while (keys.hasNext()) {
                     val key = keys.next()
                     if (
-                        !((PixelMcpWriteTools.canonical(comparable(key, expected.get(key))) ==
-                            PixelMcpWriteTools.canonical(comparable(key, current.opt(key)))))
+                        !(PixelMcpWriteTools.canonical(comparable(key, expected.get(key))) ==
+                            PixelMcpWriteTools.canonical(comparable(key, current.opt(key))))
                     ) {
                         throw PixelMcpWriteTools.Rejected(
                             "WRITE_CONFLICT",
@@ -278,7 +277,7 @@ internal class LocalJournalRules {
                     else {
                         i++
                     }
-                    if (!(((values != null) && (i < values.length())))) break
+                    if (!((values != null) && (i < values.length()))) break
 
                     ids.add(values.optString(i))
                 }
@@ -441,10 +440,10 @@ internal class LocalJournalRules {
                     if (row.has("order_title")) {
                         row.put("order_title", titles.getOrDefault(row.optString("order_id"), ""))
                     }
-                    if (((group == "orders") && row.has("total_hours"))) {
+                    if ((group == "orders") && row.has("total_hours")) {
                         row.put(
                             "total_hours",
-                            (Math.round((totals.getOrDefault(row.optString("id"), 0.0) * 100)) /
+                            (Math.round(totals.getOrDefault(row.optString("id"), 0.0) * 100) /
                                 100.0),
                         )
                     }
@@ -455,9 +454,9 @@ internal class LocalJournalRules {
         private @JvmStatic fun errorCode(error: Exception): String {
 
             return (if (error is PixelMcpWriteTools.Rejected)
-                ((error as PixelMcpWriteTools.Rejected)).code
+                (error as PixelMcpWriteTools.Rejected).code
             else
-                (if (error is HttpTransport.Failure) ((error as HttpTransport.Failure)).code
+                (if (error is HttpTransport.Failure) (error as HttpTransport.Failure).code
                 else (if (error is java.io.IOException) "IO_RETRY_REQUIRED" else "INVALID_ACTION")))
         }
 
@@ -521,14 +520,14 @@ internal class LocalJournalRules {
             val logs = snapshot.getJSONArray("worklogs")
             val photos = snapshot.getJSONArray("photos")
             val invoices = snapshot.getJSONArray("invoices")
-            if ((kind == "customer")) {
+            if (kind == "customer") {
                 TestDataRules.customerChange(row, old)
                 GardenRules.normalize(row)
                 BillingRules.customerConfig(row, customers)
                 if (row.optString("name").trim().isEmpty()) {
                     throw IllegalArgumentException("Der Kundenname fehlt.")
                 }
-                if ((old == null)) {
+                if (old == null) {
                     EntityProtectionRules.validateNewCustomer(row, customers)
                     if (!(row.has("active"))) {
                         row.put("active", 1)
@@ -539,19 +538,19 @@ internal class LocalJournalRules {
                 }
                 return
             }
-            if ((kind == "appointment")) {
+            if (kind == "appointment") {
                 AppointmentRules.validate(row, old, snapshot)
                 return
             }
-            if ((kind == "offer")) {
+            if (kind == "offer") {
                 OfferRules.normalize(row, old, snapshot)
                 return
             }
-            if ((kind == "service_template")) {
+            if (kind == "service_template") {
                 validateTemplate(row)
                 return
             }
-            if ((kind == "photo")) {
+            if (kind == "photo") {
                 EntityProtectionRules.validatePhoto(row, customers, orders, logs)
                 return
             }
@@ -559,18 +558,18 @@ internal class LocalJournalRules {
             val orderId = (if (row.isNull("order_id")) "" else row.optString("order_id"))
             if (
                 (!(orderId.isEmpty()) &&
-                    !((row.optString("customer_id") ==
-                        PixelMcpWriteTools.find(orders, orderId).optString("customer_id"))))
+                    !(row.optString("customer_id") ==
+                        PixelMcpWriteTools.find(orders, orderId).optString("customer_id")))
             ) {
                 throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
             }
-            if ((kind == "order")) {
+            if (kind == "order") {
                 TestDataRules.guard(row, snapshot)
                 BillingRules.order(row, snapshot)
                 if (row.optString("title").trim().isEmpty()) {
                     throw IllegalArgumentException("Auftragsbezeichnung fehlt.")
                 }
-                if ((old == null)) {
+                if (old == null) {
                     if (row.optString("status").isEmpty()) {
                         row.put("status", "Geplant")
                     }
@@ -586,7 +585,7 @@ internal class LocalJournalRules {
                 }
                 EntityProtectionRules.validateOrderChange(row, old, logs, invoices, photos)
             }
-            if ((kind == "worklog")) {
+            if (kind == "worklog") {
                 AppointmentRules.worklog(row, old, snapshot)
                 if (
                     (row.optString("activity").trim().isEmpty() ||
@@ -596,19 +595,19 @@ internal class LocalJournalRules {
                 }
                 BillingRules.work(
                     row,
-                    (if (((old == null) && !(row.has("billing_customer_id"))))
+                    (if ((old == null) && !(row.has("billing_customer_id")))
                         JSONObject().put("customer_id", row.getString("customer_id"))
                     else old),
                     snapshot,
                 )
                 val hours: Double = row.optDouble("hours", 0.0)
                 WorklogRules.validate(row, (old == null))
-                if ((Math.abs((hours - row.optDouble("hours"))) > 0.005)) {
+                if (Math.abs(hours - row.optDouble("hours")) > 0.005) {
                     throw IllegalArgumentException("Stunden und Uhrzeiten widersprechen sich.")
                 }
                 WorklogRelationRules.validate(row, old, photos, invoices)
             }
-            if ((kind == "photo")) {
+            if (kind == "photo") {
                 EntityProtectionRules.validatePhoto(row, customers, orders, logs)
             }
         }

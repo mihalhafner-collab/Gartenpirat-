@@ -41,16 +41,16 @@ class WorklogRules {
             val km: Double = payload.optDouble("kilometers", (0).toDouble())
             var hours: Double = payload.optDouble("hours", (0).toDouble())
             if (
-                (((((((!java.lang.Double.isFinite(pause) || !java.lang.Double.isFinite(km)) ||
+                ((((((!java.lang.Double.isFinite(pause) || !java.lang.Double.isFinite(km)) ||
                     !java.lang.Double.isFinite(hours)) || (pause < 0)) || (km < 0)) ||
-                    (hours < 0)) || (pause != Math.floor(pause))))
+                    (hours < 0)) || (pause != Math.floor(pause)))
             ) {
                 throw IllegalArgumentException(
                     "Bitte gültige Stunden, Kilometer und eine Pause in ganzen Minuten eingeben."
                 )
             }
             var day: String = payload.optString("work_date")
-            if ((day.isEmpty())) {
+            if (day.isEmpty()) {
                 day = java.time.LocalDate.now().toString()
                 payload.put("work_date", day)
             }
@@ -63,28 +63,28 @@ class WorklogRules {
                 (if (payload.isNull("start_time")) "" else payload.optString("start_time"))
             var end: String =
                 (if (payload.isNull("end_time")) "" else payload.optString("end_time"))
-            if (((start.isEmpty() != end.isEmpty()))) {
+            if (start.isEmpty() != end.isEmpty()) {
                 throw IllegalArgumentException(
                     "Bitte Beginn und Ende gemeinsam angeben oder nur die Arbeitsdauer."
                 )
             }
-            if ((!start.isEmpty())) {
+            if (!start.isEmpty()) {
                 var minutes: Int = (timeMinutes(end) - timeMinutes(start))
-                if ((((minutes < 0) && payload.optBoolean("allow_overnight", false)))) {
+                if ((minutes < 0) && payload.optBoolean("allow_overnight", false)) {
                     minutes += 1440
                 }
-                if (((minutes <= 0))) {
+                if (minutes <= 0) {
                     throw IllegalArgumentException("Die Endzeit muss nach dem Beginn liegen.")
                 }
-                if (((pause >= minutes))) {
+                if (pause >= minutes) {
                     throw IllegalArgumentException(
                         "Die Pause muss kürzer als der gesamte Einsatz sein."
                     )
                 }
-                hours = (Math.round(((((minutes - pause)) / 60.0) * 100.0)) / 100.0)
+                hours = (Math.round(((minutes - pause) / 60.0) * 100.0) / 100.0)
                 payload.put("hours", hours)
             }
-            if (((isNew && (hours <= 0)))) {
+            if (isNew && (hours <= 0)) {
                 throw IllegalArgumentException("Bitte Arbeitsdauer oder Beginn und Ende eintragen.")
             }
             payload
@@ -95,7 +95,7 @@ class WorklogRules {
         }
 
         private fun timeMinutes(value: String): Int {
-            if ((!value.matches(Regex("(?:[01]\\d|2[0-3]):[0-5]\\d")))) {
+            if (!value.matches(Regex("(?:[01]\\d|2[0-3]):[0-5]\\d"))) {
                 throw IllegalArgumentException("Bitte gültige Uhrzeiten im Format HH:MM eingeben.")
             }
             return ((Integer.parseInt(value.substring(0, 2)) * 60) +

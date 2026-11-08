@@ -20,7 +20,7 @@ class RevierSessionContexts {
                     arrayOf(id),
                 )
                 .use { row ->
-                    if ((!row.moveToFirst())) {
+                    if (!row.moveToFirst()) {
                         return null
                     }
                     result =
@@ -36,17 +36,17 @@ class RevierSessionContexts {
                     arrayOf(id),
                 )
                 .use { start ->
-                    if ((start.moveToFirst())) {
+                    if (start.moveToFirst()) {
                         val origin: JSONObject = JSONObject(start.getString(0))
                         for (key in arrayOf("property_id", "visit_id")) {
-                            if ((origin.has(key))) {
+                            if (origin.has(key)) {
                                 result.put(key, origin.get(key))
                             }
                         }
                         result
                             .put("_start_customer_id", origin.optString("customer_id"))
                             .put("_start_order_id", origin.optString("order_id"))
-                        if ((start.moveToNext())) {
+                        if (start.moveToNext()) {
                             throw PixelMcpWriteTools.Rejected(
                                 "REVIER_RELATION_INVALID",
                                 "Eine Sitzung besitzt mehrere ursprüngliche Startzuordnungen.",
@@ -62,7 +62,7 @@ class RevierSessionContexts {
         fun all(database: SQLiteDatabase): JSONArray {
             var out: JSONArray = JSONArray()
             database.rawQuery("SELECT id FROM work_sessions ORDER BY id", null).use { rows ->
-                while ((rows.moveToNext())) {
+                while (rows.moveToNext()) {
                     out.put(session(database, rows.getString(0)))
                 }
             }
@@ -72,7 +72,7 @@ class RevierSessionContexts {
                     null,
                 )
                 .use { orphan ->
-                    if ((orphan.moveToFirst())) {
+                    if (orphan.moveToFirst()) {
                         throw PixelMcpWriteTools.Rejected(
                             "REVIER_RELATION_INVALID",
                             "Ursprüngliche Startzuordnung besitzt keine Sitzung.",

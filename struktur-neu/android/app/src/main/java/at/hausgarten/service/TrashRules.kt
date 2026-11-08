@@ -10,13 +10,13 @@ class TrashRules {
     companion object {
         private fun existingArchive(s: JSONObject): JSONObject {
             val a: JSONObject? = s.optJSONObject("owner_archive")
-            return (if ((a == null)) JSONObject() else a)
+            return (if (a == null) JSONObject() else a)
         }
 
         @Throws(Exception::class)
         @JvmStatic
         fun purged(s: JSONObject, entity: String, id: String): Boolean {
-            val a: JSONObject? = existingArchive(s).optJSONObject((("" + entity + ":") + id))
+            val a: JSONObject? = existingArchive(s).optJSONObject(("" + entity + ":") + id)
             return ((a != null) && a!!.optBoolean("purged"))
         }
 
@@ -24,7 +24,7 @@ class TrashRules {
         @JvmStatic
         fun links(photo: JSONObject, entity: String, id: String): JSONObject {
             val fields: JSONObject = JSONObject()
-            if (((entity.equals("customer") && id.equals(photo.optString("customer_id"))))) {
+            if (entity.equals("customer") && id.equals(photo.optString("customer_id"))) {
                 for (key in
                     arrayOf(
                         "customer_id",
@@ -37,14 +37,14 @@ class TrashRules {
                     fields.put(key, (if (photo.has(key)) photo.get(key) else JSONObject.NULL))
                 }
             } else {
-                if (((entity.equals("order") && id.equals(photo.optString("order_id"))))) {
+                if (entity.equals("order") && id.equals(photo.optString("order_id"))) {
                     fields.put("order_id", photo.get("order_id"))
                 } else {
-                    if (((entity.equals("worklog") && id.equals(photo.optString("worklog_id"))))) {
+                    if (entity.equals("worklog") && id.equals(photo.optString("worklog_id"))) {
                         fields.put("worklog_id", photo.get("worklog_id"))
                         fields.put(
                             "session_id",
-                            (if ((photo.opt("session_id") == null)) JSONObject.NULL
+                            (if (photo.opt("session_id") == null) JSONObject.NULL
                             else photo.get("session_id")),
                         )
                     }
@@ -60,9 +60,9 @@ class TrashRules {
             val photos: JSONArray = s.getJSONArray("photos")
             run {
                 var i: Int = 0
-                while ((i < photos.length())) {
+                while (i < photos.length()) {
                     var p: JSONObject? = photos.getJSONObject(i)
-                    if (((links((p)!!, entity, id).length() > 0))) {
+                    if (links((p)!!, entity, id).length() > 0) {
                         sorted.put(
                             p!!.getString("id"),
                             JSONObject()
@@ -81,8 +81,8 @@ class TrashRules {
                     val entry: JSONObject = archive.getJSONObject(key)
                     var p: JSONObject? = entry.optJSONObject("record")
                     if (
-                        (((key.startsWith("photo:") && (p != null)) &&
-                            (links(p, entity, id).length() > 0)))
+                        ((key.startsWith("photo:") && (p != null)) &&
+                            (links(p, entity, id).length() > 0))
                     ) {
                         sorted.put(
                             ("archive:" + p!!.getString("id")),
@@ -122,10 +122,10 @@ class TrashRules {
             val rows: JSONArray = s.getJSONArray("photos")
             run {
                 var i: Int = 0
-                while ((i < rows.length())) {
+                while (i < rows.length()) {
                     var p: JSONObject? = rows.getJSONObject(i)
                     val fields: JSONObject = links((p)!!, entity, id)
-                    if (((fields.length() == 0))) {
+                    if (fields.length() == 0) {
                         i++
                         continue
                     }
@@ -147,11 +147,11 @@ class TrashRules {
                     val key: String = it.next()
                     val entry: JSONObject = archive.getJSONObject(key)
                     var p: JSONObject? = entry.optJSONObject("record")
-                    if (((!key.startsWith("photo:") || (p == null)))) {
+                    if (!key.startsWith("photo:") || (p == null)) {
                         continue
                     }
                     val fields: JSONObject = links(p, entity, id)
-                    if (((fields.length() == 0))) {
+                    if (fields.length() == 0) {
                         continue
                     }
                     entry.put("record", detached(p, fields, stamp))
@@ -173,26 +173,26 @@ class TrashRules {
             val links: JSONArray? = archive.optJSONArray("photo_links")
             run {
                 var i: Int = 0
-                while (((links != null) && (i < links!!.length()))) {
+                while ((links != null) && (i < links!!.length())) {
                     val link: JSONObject = links!!.getJSONObject(i)
                     val archived: Boolean = "archive".equals(link.optString("location"))
                     var entry: JSONObject? =
                         (if (archived)
                             OwnerJournalRules.archives(s)
-                                .optJSONObject(("photo:" + link.getString("id")))
+                                .optJSONObject("photo:" + link.getString("id"))
                         else null)
                     var p: JSONObject? =
                         (if (archived)
-                            ((if ((entry == null)) null else entry!!.optJSONObject("record")))
+                            (if (entry == null) null else entry!!.optJSONObject("record"))
                         else
                             OwnerJournalRules.findOrNull(
                                 s.getJSONArray("photos"),
                                 link.getString("id"),
                             ))
                     if (
-                        (((p == null) ||
-                            !OwnerJournalRules.version((if (archived) entry else p))
-                                .equals(link.getString("detached_hash"))))
+                        ((p == null) ||
+                            !OwnerJournalRules.version(if (archived) entry else p)
+                                .equals(link.getString("detached_hash")))
                     ) {
                         i++
                         continue
@@ -217,7 +217,7 @@ class TrashRules {
                         i++
                         continue
                     }
-                    if ((archived)) {
+                    if (archived) {
                         entry!!.put("record", restored)
                     } else {
                         OwnerJournalRules.replace(s, "photos", p!!.getString("id"), restored)
@@ -303,7 +303,7 @@ class TrashRules {
                         else
                             (if (entity.equals("offer")) "offer_id"
                             else (if (entity.equals("appointment")) "appointment_id" else "")))))
-            if ((ref.isEmpty())) {
+            if (ref.isEmpty()) {
                 return
             }
             for (group in
@@ -317,31 +317,30 @@ class TrashRules {
                     "appointments",
                 )) {
                 val rows: JSONArray? = s.optJSONArray(group)
-                if ((((rows == null) && group.equals("appointments")))) {
+                if ((rows == null) && group.equals("appointments")) {
                     continue
                 }
-                if (((rows == null))) {
+                if (rows == null) {
                     throw IllegalArgumentException("Unvollständiger Geschäftsstand.")
                 }
                 run {
                     var i: Int = 0
-                    while ((i < rows!!.length())) {
+                    while (i < rows!!.length()) {
                         val row: JSONObject = rows!!.getJSONObject(i)
                         if (
-                            ((group.equals(OwnerJournalRules.group(entity)) &&
-                                id.equals(row.optString("id"))))
+                            (group.equals(OwnerJournalRules.group(entity)) &&
+                                id.equals(row.optString("id")))
                         ) {
                             i++
                             continue
                         }
                         if (
-                            (((id.equals(EntityProtectionRules.text(row, ref)) ||
-                                ((entity.equals("customer") &&
-                                    ((id.equals(row.optString("billing_customer_id")) ||
+                            ((id.equals(EntityProtectionRules.text(row, ref)) ||
+                                (entity.equals("customer") &&
+                                    (id.equals(row.optString("billing_customer_id")) ||
                                         id.equals(
                                             row.optString("default_billing_customer_id")
-                                        )))))) ||
-                                ((entity.equals("worklog") && containsWork(row, id)))))
+                                        )))) || (entity.equals("worklog") && containsWork(row, id)))
                         ) {
                             throw IllegalArgumentException(
                                 ("" +
@@ -358,20 +357,20 @@ class TrashRules {
                 val it: MutableIterator<String> = archive.keys()
                 while (it.hasNext()) {
                     val key: String = it.next()
-                    if ((key.equals((("" + entity + ":") + id)))) {
+                    if (key.equals(("" + entity + ":") + id)) {
                         continue
                     }
                     val r: JSONObject? = archive.getJSONObject(key).optJSONObject("record")
-                    if (((r == null))) {
+                    if (r == null) {
                         continue
                     }
                     var billing: Boolean =
                         (entity.equals("customer") &&
-                            ((id.equals(r!!.optString("billing_customer_id")) ||
-                                id.equals(r!!.optString("default_billing_customer_id")))))
+                            (id.equals(r!!.optString("billing_customer_id")) ||
+                                id.equals(r!!.optString("default_billing_customer_id"))))
                     if (
-                        (((id.equals(r!!.optString(ref)) || billing) ||
-                            ((entity.equals("worklog") && containsWork(r, id)))))
+                        ((id.equals(r!!.optString(ref)) || billing) ||
+                            (entity.equals("worklog") && containsWork(r, id)))
                     ) {
                         throw IllegalArgumentException(
                             "Ein anderer Papierkorbeintrag verweist darauf. Diesen zuerst wiederherstellen und die Zuordnung lösen oder einzeln löschen."
@@ -386,8 +385,8 @@ class TrashRules {
             val positions: JSONArray? = row.optJSONArray("positions")
             run {
                 var i: Int = 0
-                while (((refs != null) && (i < refs!!.length()))) {
-                    if ((id.equals(refs!!.optString(i)))) {
+                while ((refs != null) && (i < refs!!.length())) {
+                    if (id.equals(refs!!.optString(i))) {
                         return true
                     }
                     i++
@@ -395,10 +394,10 @@ class TrashRules {
             }
             run {
                 var i: Int = 0
-                while (((positions != null) && (i < positions!!.length()))) {
+                while ((positions != null) && (i < positions!!.length())) {
                     if (
                         (id.equals(
-                            (if ((positions!!.optJSONObject(i) == null)) ""
+                            (if (positions!!.optJSONObject(i) == null) ""
                             else positions!!.optJSONObject(i).optString("worklog_id"))
                         ))
                     ) {
@@ -546,7 +545,7 @@ class TrashRules {
         @JvmStatic
         fun purge(s: JSONObject, action: JSONObject) {
             var p: JSONObject = action.getJSONObject("payload")
-            if ((!p.optBoolean("confirmed"))) {
+            if (!p.optBoolean("confirmed")) {
                 throw IllegalArgumentException("Endgültiges Löschen ausdrücklich bestätigen.")
             }
             val entity: String = p.getString("entity")
@@ -554,7 +553,7 @@ class TrashRules {
             val key: String = (("" + entity + ":") + id)
             val archive: JSONObject = OwnerJournalRules.archives(s)
             val saved: JSONObject? = archive.optJSONObject(key)
-            if ((((saved == null) || saved!!.optBoolean("purged")))) {
+            if ((saved == null) || saved!!.optBoolean("purged")) {
                 throw IllegalArgumentException(
                     "Eintrag nicht im Papierkorb oder bereits endgültig gelöscht."
                 )
@@ -598,10 +597,10 @@ class TrashRules {
             }
             var current: JSONObject? =
                 OwnerJournalRules.findOrNull(s.getJSONArray(OwnerJournalRules.group(entity)), id)
-            if (((entity.equals("customer") || entity.equals("service_template")))) {
+            if (entity.equals("customer") || entity.equals("service_template")) {
                 OwnerJournalRules.checkHash(current, saved!!.getString("archived_record_hash"))
             } else {
-                if (((current != null))) {
+                if (current != null) {
                     throw IllegalArgumentException(
                         "Die ID ist inzwischen wieder aktiv. Nichts gelöscht."
                     )
@@ -628,11 +627,11 @@ class TrashRules {
         @Throws(Exception::class)
         @JvmStatic
         fun referenced(s: JSONObject, pending: JSONArray?, name: String): Boolean {
-            if ((name.isEmpty())) {
+            if (name.isEmpty()) {
                 return false
             }
             for (group in arrayOf("photos", "invoices", "offers", "appointments")) {
-                if ((hasFile(s.optJSONArray(group), name))) {
+                if (hasFile(s.optJSONArray(group), name)) {
                     return true
                 }
             }
@@ -642,8 +641,8 @@ class TrashRules {
                 while (it.hasNext()) {
                     val entry: JSONObject = a.getJSONObject(it.next())
                     if (
-                        ((!entry.optBoolean("purged") &&
-                            hasFile(entry.optJSONObject("record"), name)))
+                        (!entry.optBoolean("purged") &&
+                            hasFile(entry.optJSONObject("record"), name))
                     ) {
                         return true
                     }
@@ -654,30 +653,30 @@ class TrashRules {
 
         @Throws(Exception::class)
         private fun hasFile(value: Any?, name: String): Boolean {
-            if ((value is JSONObject)) {
+            if (value is JSONObject) {
                 val row: JSONObject = (value as JSONObject)
                 if (
-                    (((name.equals(row.optString("storage_name")) ||
+                    ((name.equals(row.optString("storage_name")) ||
                         name.equals(row.optString("thumbnail_storage_name"))) ||
-                        name.equals(row.optString("pdf_storage_name"))))
+                        name.equals(row.optString("pdf_storage_name")))
                 ) {
                     return true
                 }
                 run {
                     val it: MutableIterator<String> = row.keys()
                     while (it.hasNext()) {
-                        if ((hasFile(row.get(it.next()), name))) {
+                        if (hasFile(row.get(it.next()), name)) {
                             return true
                         }
                     }
                 }
             }
-            if ((value is JSONArray)) {
+            if (value is JSONArray) {
                 val rows: JSONArray = (value as JSONArray)
                 run {
                     var i: Int = 0
-                    while ((i < rows.length())) {
-                        if ((hasFile(rows.get(i), name))) {
+                    while (i < rows.length()) {
+                        if (hasFile(rows.get(i), name)) {
                             return true
                         }
                         i++

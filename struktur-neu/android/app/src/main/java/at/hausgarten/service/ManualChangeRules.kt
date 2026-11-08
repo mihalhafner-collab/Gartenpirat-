@@ -9,11 +9,11 @@ class ManualChangeRules {
         @Throws(Exception::class)
         @JvmStatic
         fun editor(incoming: JSONObject, current: JSONObject?, kind: String): JSONObject {
-            if ((!incoming.has("_edit_base"))) {
+            if (!incoming.has("_edit_base")) {
                 return incoming
             }
             val base: JSONObject = incoming.getJSONObject("_edit_base")
-            if ((!incoming.optString("id").equals(base.optString("id")))) {
+            if (!incoming.optString("id").equals(base.optString("id"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
                     "Die Formularzuordnung wurde verändert.",
@@ -44,7 +44,7 @@ class ManualChangeRules {
                 val keys: MutableIterator<String> = changes.keys()
                 while (keys.hasNext()) {
                     val key: String = keys.next()
-                    if ((!allowed.contains(key))) {
+                    if (!allowed.contains(key)) {
                         throw IllegalArgumentException("Ungültiges Formularfeld.")
                     }
                     result.put(key, changes.get(key))
@@ -70,34 +70,34 @@ class ManualChangeRules {
                 payload.remove(key)
             }
             payload.put("_mcp_create", (previous == null))
-            if (((previous != null))) {
+            if (previous != null) {
                 payload.put("_sync_base", LocalJournalRules.guard(previous, kind))
             }
-            if ((((previous == null) && kind.equals("customer")))) {
-                if ((!payload.has("active"))) {
+            if ((previous == null) && kind.equals("customer")) {
+                if (!payload.has("active")) {
                     payload.put("active", 1)
                 }
-                if ((!payload.has("custom_fields"))) {
+                if (!payload.has("custom_fields")) {
                     payload.put("custom_fields", JSONObject())
                 }
             }
             if (
-                ((((previous == null) && ((kind.equals("order") || kind.equals("photo")))) &&
-                    !payload.has("customer_visible")))
+                (((previous == null) && (kind.equals("order") || kind.equals("photo"))) &&
+                    !payload.has("customer_visible"))
             ) {
                 payload.put("customer_visible", 1)
             }
             if (
-                ((((previous == null) && kind.equals("order")) &&
-                    payload.optString("status").isEmpty()))
+                (((previous == null) && kind.equals("order")) &&
+                    payload.optString("status").isEmpty())
             ) {
                 payload.put("status", "Geplant")
             }
             payload.put("updated_at", stamp)
-            if ((!payload.has("created_at"))) {
+            if (!payload.has("created_at")) {
                 payload.put(
                     "created_at",
-                    (if (((previous != null) && previous!!.has("created_at")))
+                    (if ((previous != null) && previous!!.has("created_at"))
                         previous!!.get("created_at")
                     else stamp),
                 )

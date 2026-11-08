@@ -50,10 +50,10 @@ internal class PixelMcpEntityWriteTools {
             ) {
                 return bool()
             }
-            if (("garden_area" == key)) {
+            if ("garden_area" == key) {
                 return number().put("type", JSONArray().put("number").put("null"))
             }
-            if (("custom_fields" == key)) {
+            if ("custom_fields" == key) {
                 return JSONObject()
                     .put("type", "object")
                     .put("maxProperties", 50)
@@ -71,10 +71,10 @@ internal class PixelMcpEntityWriteTools {
                         "Vorhandene frei benannte Kunden-Zusatzfelder. Änderungen werden mit bestehenden Feldern zusammengeführt; nicht genannte Felder bleiben erhalten. Werte sind Text, Zahl, Ja/Nein oder null.",
                     )
             }
-            if (("billing_mode" == key)) {
+            if ("billing_mode" == key) {
                 return string(30).put("enum", JSONArray().put("direct").put("via_customer"))
             }
-            return string((if (Arrays.asList("notes", "description").contains(key)) 10000 else 500))
+            return string(if (Arrays.asList("notes", "description").contains(key)) 10000 else 500)
         }
 
         @JvmStatic
@@ -87,7 +87,7 @@ internal class PixelMcpEntityWriteTools {
             val update: Boolean = name.startsWith("update_")
             val entity = (if (name.contains("customer")) "customer" else "order")
             val idKey = (entity + "_id")
-            val fields = (if ((entity == "customer")) CUSTOMER_FIELDS else ORDER_FIELDS)
+            val fields = (if (entity == "customer") CUSTOMER_FIELDS else ORDER_FIELDS)
             if (update) {
                 props.put(idKey, string(500)).put("expected_record_hash", string(128))
                 val patch = JSONObject()
@@ -107,10 +107,10 @@ internal class PixelMcpEntityWriteTools {
                 for (key in fields) {
                     props.put(key, field(key))
                 }
-                if ((entity == "customer")) {
+                if (entity == "customer") {
                     required.put("name")
                 }
-                if ((entity == "order")) {
+                if (entity == "order") {
                     required.put("customer_id").put("title")
                 }
             }
@@ -128,11 +128,11 @@ internal class PixelMcpEntityWriteTools {
             var out = JSONArray()
             for (name in NAMES) {
                 var description =
-                    (if ((name == "create_customer"))
+                    (if (name == "create_customer")
                         "Legt einen neuen Kunden mit Stammdaten und Zusatzfeldern an. Vorher Kunden einschließlich inaktiver Kunden suchen; mögliche Dubletten werden abgewiesen. Kunden-ID wird sicher auf dem Pixel erzeugt."
                     else
                         "Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen.")
-                if ((name == "update_customer")) {
+                if (name == "update_customer") {
                     description =
                         "Korrigiert ausdrücklich genannte Stammdaten eines vorhandenen Kunden anhand customer_id. Zuerst get_customer aufrufen und dessen record_hash als expected_record_hash übernehmen. Nicht genannte Felder, IDs, Zeitstempel und Verknüpfungen bleiben erhalten. Zusatzfelder werden ergänzt, nicht blind ersetzt."
                 }
@@ -184,13 +184,13 @@ internal class PixelMcpEntityWriteTools {
                     val spec = props.getJSONObject(key)
                     val declared = spec.get("type")
                     var type =
-                        (if (declared is JSONArray) ((declared as JSONArray)).getString(0)
+                        (if (declared is JSONArray) (declared as JSONArray).getString(0)
                         else (declared as String))
-                    if (((value == JSONObject.NULL) && declared is JSONArray)) {
+                    if ((value == JSONObject.NULL) && declared is JSONArray) {
                         var nullable: Boolean = false
                         val types = (declared as JSONArray)
                         for (i in 0 until types.length()) {
-                            if (("null" == types.optString(i))) {
+                            if ("null" == types.optString(i)) {
                                 nullable = true
                             }
                         }
@@ -199,13 +199,13 @@ internal class PixelMcpEntityWriteTools {
                         }
                     }
                     var valid: Boolean =
-                        (if ((type == "string")) value is String
+                        (if (type == "string") value is String
                         else
-                            (if ((type == "boolean")) value is Boolean
+                            (if (type == "boolean") value is Boolean
                             else
-                                (if ((type == "object")) value is JSONObject
+                                (if (type == "object") value is JSONObject
                                 else
-                                    (if ((type == "array")) value is JSONArray
+                                    (if (type == "array") value is JSONArray
                                     else value is Number))))
                     if (!(valid)) {
                         throw PixelMcpWriteTools.Rejected(
@@ -215,8 +215,8 @@ internal class PixelMcpEntityWriteTools {
                     }
                     if (
                         (value is String &&
-                            (((((value as String)).length > spec.optInt("maxLength", 10000)) ||
-                                (((value as String)).length < spec.optInt("minLength", 0)))))
+                            (((value as String).length > spec.optInt("maxLength", 10000)) ||
+                                ((value as String).length < spec.optInt("minLength", 0))))
                     ) {
                         throw PixelMcpWriteTools.Rejected(
                             "INVALID_INPUT",
@@ -224,10 +224,10 @@ internal class PixelMcpEntityWriteTools {
                         )
                     }
                     if (value is Number) {
-                        val n: Double = ((value as Number)).toDouble()
+                        val n: Double = (value as Number).toDouble()
                         if (
                             ((!(java.lang.Double.isFinite(n)) || (n < 0)) ||
-                                (((type == "integer") && (n != Math.floor(n)))))
+                                ((type == "integer") && (n != Math.floor(n))))
                         ) {
                             throw PixelMcpWriteTools.Rejected(
                                 "INVALID_INPUT",
@@ -235,11 +235,11 @@ internal class PixelMcpEntityWriteTools {
                             )
                         }
                     }
-                    if ((type == "object")) {
-                        if ((key == "custom_fields")) {
-                            EntityContract.validateCustomFields((value as JSONObject))
+                    if (type == "object") {
+                        if (key == "custom_fields") {
+                            EntityContract.validateCustomFields(value as JSONObject)
                         } else {
-                            if ((((value as JSONObject)).length() == 0)) {
+                            if ((value as JSONObject).length() == 0) {
                                 throw PixelMcpWriteTools.Rejected(
                                     "INVALID_INPUT",
                                     "Bitte mindestens eine Änderung angeben.",
@@ -248,8 +248,8 @@ internal class PixelMcpEntityWriteTools {
                             validateObject((value as JSONObject), spec)
                         }
                     }
-                    if ((type == "array")) {
-                        val length: Int = ((value as JSONArray)).length()
+                    if (type == "array") {
+                        val length: Int = (value as JSONArray).length()
                         if (
                             ((length < spec.optInt("minItems", 0)) ||
                                 (length > spec.optInt("maxItems", 200)))
@@ -271,12 +271,12 @@ internal class PixelMcpEntityWriteTools {
                     else {
                         i++
                     }
-                    if (!(((required != null) && (i < required.length())))) break
+                    if (!((required != null) && (i < required.length()))) break
 
                     val key = required.getString(i)
                     if (
                         (!(args.has(key)) ||
-                            ((args.opt(key) is String && args.optString(key).trim().isEmpty())))
+                            (args.opt(key) is String && args.optString(key).trim().isEmpty()))
                     ) {
                         throw PixelMcpWriteTools.Rejected(
                             "MISSING_FIELD",
@@ -306,7 +306,7 @@ internal class PixelMcpEntityWriteTools {
 
             return EntityContract.editable(
                 row,
-                (if ((entity == "customer")) CUSTOMER_FIELDS else ORDER_FIELDS),
+                (if (entity == "customer") CUSTOMER_FIELDS else ORDER_FIELDS),
             )
         }
     }

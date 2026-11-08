@@ -15,7 +15,7 @@ class WorkApplicationService : OwnerCommand {
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
         val stamp: String = java.time.Instant.now().toString()
-        when ((name)) {
+        when (name) {
             "set_accounting_record" -> return setAccounting(all, args, request)
             "set_work_record_billed",
             "reassign_work_record" -> {
@@ -35,7 +35,7 @@ class WorkApplicationService : OwnerCommand {
                         )
                     }
                     var p: JSONObject = LocalJournalRules.clean(old)
-                    if ((name.equals("set_work_record_billed"))) {
+                    if (name.equals("set_work_record_billed")) {
                         p.put("billed", (if (args.getBoolean("billed")) 1 else 0))
                     } else {
                         p.put("customer_id", args.getString("customer_id"))
@@ -57,7 +57,7 @@ class WorkApplicationService : OwnerCommand {
             }
             "set_personal_paid" -> {
                 run {
-                    if ((!"1".equals(repository.ownerValue("personal_paid_migrated", "")))) {
+                    if (!"1".equals(repository.ownerValue("personal_paid_migrated", ""))) {
                         throw PixelMcpWriteTools.Rejected(
                             "DEVICE_MIGRATION_REQUIRED",
                             "App einmal öffnen, damit vorhandene persönliche Markierungen verlustfrei übernommen werden.",
@@ -69,12 +69,12 @@ class WorkApplicationService : OwnerCommand {
                     val old: JSONArray = JSONArray(repository.ownerValue("personal_paid", "[]"))
                     run {
                         var i: Int = 0
-                        while ((i < old.length())) {
+                        while (i < old.length()) {
                             ids.add(old.getString(i))
                             i++
                         }
                     }
-                    if ((args.getBoolean("paid"))) {
+                    if (args.getBoolean("paid")) {
                         val (collection, record) = AccountingRules.canonical(all, "worklogs", id)
                         SettlementSourceProtection.requireRouteChange(
                             all,

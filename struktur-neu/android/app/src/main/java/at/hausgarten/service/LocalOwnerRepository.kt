@@ -344,7 +344,7 @@ class LocalOwnerRepository : OwnerRepository {
                     var listed: Boolean = false
                     val photos = effective().getJSONArray("photos")
                     for (i in 0 until photos.length()) {
-                        if ((id == photos.getJSONObject(i).optString("id"))) {
+                        if (id == photos.getJSONObject(i).optString("id")) {
                             listed = true
                         }
                     }
@@ -398,7 +398,7 @@ class LocalOwnerRepository : OwnerRepository {
                 .put("byte_size", bytes.size)
                 .put("sha256", hash)
         }
-        if (!((hash == a.getString("expected_sha256")))) {
+        if (!(hash == a.getString("expected_sha256"))) {
             throw PixelMcpWriteTools.Rejected(
                 "FILE_VERSION_CONFLICT",
                 "Prüfsumme des Originals stimmt nicht mit dem angeforderten Stand überein.",
@@ -494,7 +494,7 @@ class LocalOwnerRepository : OwnerRepository {
             if ((kind == "photo") && (payload.optString("role") == "profile")) {
                 revier().protectParent("photo", payload.optString("id"))
             }
-            if ((kind == TrashPurgeBatch.KIND)) {
+            if (kind == TrashPurgeBatch.KIND) {
                 val entries = payload.getJSONArray("entries")
                 val targets = TrashPurgeBatch.testTargets(currentBeforeRevier, entries)
                 for (i in 0 until targets.length()) {
@@ -581,7 +581,7 @@ class LocalOwnerRepository : OwnerRepository {
                             converted =
                                 "ord_offer_" + PixelMcpWriteTools.hash(previous).substring(0, 32)
                         }
-                        if ((targetOrder == converted)) {
+                        if (targetOrder == converted) {
                             parent = true
                         }
                     }
@@ -751,10 +751,10 @@ class LocalOwnerRepository : OwnerRepository {
     ): JSONObject {
 
         val control = PixelBackupService(context!!, store!!)
-        if ((name == "request_full_backup")) {
+        if (name == "request_full_backup") {
             return control.request(args)
         }
-        if ((name == "retry_full_backup")) {
+        if (name == "retry_full_backup") {
             return control.retry(args)
         }
         throw IllegalArgumentException("Sicherungsaktion fehlt.")
@@ -821,7 +821,7 @@ class LocalOwnerRepository : OwnerRepository {
         db.beginTransaction()
         try {
 
-            if (!(("1" == store!!.ownerValue("personal_paid_migrated", "")))) {
+            if (!("1" == store!!.ownerValue("personal_paid_migrated", ""))) {
                 val old = JSONArray(value)
                 var current = JSONArray(store!!.ownerValue("personal_paid", "[]"))
                 val union = java.util.LinkedHashSet<String>()

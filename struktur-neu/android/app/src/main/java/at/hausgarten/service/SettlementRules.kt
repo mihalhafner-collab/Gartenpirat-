@@ -270,7 +270,7 @@ internal object SettlementRules {
         val positions = rows(view.optJSONArray("positions"))
         if (positions.isEmpty()) errors.add("Mindestens eine tatsächliche Leistung angeben.")
         for ((i, p) in positions.withIndex()) {
-            if ((p.optString("source_collection").isEmpty() != p.optString("source_id").isEmpty()))
+            if (p.optString("source_collection").isEmpty() != p.optString("source_id").isEmpty())
                 errors.add("Position ${i+1}: Quellzuordnung ist unvollständig.")
             if (
                 p.optString("title").isBlank() ||

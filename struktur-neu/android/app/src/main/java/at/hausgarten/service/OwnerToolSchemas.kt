@@ -109,7 +109,7 @@ internal class OwnerToolSchemas {
                 required.add("request_id")
             }
             val fields = BUILDERS.get(name)
-            if ((fields != null)) {
+            if (fields != null) {
                 fields.build(name, p, required)
             }
             if (p.has("expected_record_hash")) {
@@ -119,7 +119,7 @@ internal class OwnerToolSchemas {
                         (if (Arrays.asList("delete_entity", "archive_entity").contains(name))
                             "entity_hash des zuvor gelesenen Datensatzes."
                         else
-                            (if ((name == "restore_entity"))
+                            (if (name == "restore_entity")
                                 "record_hash des Eintrags aus list_archive."
                             else "record_hash des zuvor gelesenen Datensatzes.")),
                     )
@@ -251,7 +251,7 @@ internal class OwnerToolSchemas {
                 .put("length", McpFields.number(1, McpFields.CHUNK))
                 .put("expected_sha256", McpFields.hash())
             required.addAll(Arrays.asList("resource_type", "resource_id"))
-            if ((name == "read_file_chunk")) {
+            if (name == "read_file_chunk") {
                 required.addAll(Arrays.asList("offset", "expected_sha256"))
             }
         }
@@ -285,10 +285,7 @@ internal class OwnerToolSchemas {
 
             p.put("upload_id", McpFields.id())
                 .put("offset", McpFields.number(0, ((20 * 1024) * 1024)))
-                .put(
-                    "chunk_base64",
-                    McpFields.text(((McpFields.CHUNK / 3) * 4)).put("minLength", 4),
-                )
+                .put("chunk_base64", McpFields.text((McpFields.CHUNK / 3) * 4).put("minLength", 4))
                 .put("chunk_sha256", McpFields.hash())
             required.addAll(Arrays.asList("upload_id", "offset", "chunk_base64", "chunk_sha256"))
         }
@@ -315,7 +312,7 @@ internal class OwnerToolSchemas {
                     .put("expected_record_hash", McpFields.hash())
                     .put("reason", McpFields.text(2000).put("minLength", 1))
                 required.addAll(Arrays.asList("work_record_id", "expected_record_hash", "reason"))
-                if ((name == "set_work_record_billed")) {
+                if (name == "set_work_record_billed") {
                     p.put("billed", McpFields.bool())
                     required.add("billed")
                 } else {
@@ -359,7 +356,7 @@ internal class OwnerToolSchemas {
             required: MutableList<String>,
         ): Unit {
 
-            if ((name == "purge_entity")) {
+            if (name == "purge_entity") {
                 p.put(
                     "confirmed",
                     JSONObject().put("type", "boolean").put("enum", JSONArray().put(true)),
@@ -371,7 +368,7 @@ internal class OwnerToolSchemas {
                 .put("expected_record_hash", McpFields.hash())
             required.addAll(Arrays.asList("entity", "entity_id"))
             if (name == "restore_entity") required.add("expected_record_hash")
-            if (((name == "delete_entity") || (name == "archive_entity"))) {
+            if ((name == "delete_entity") || (name == "archive_entity")) {
                 p.put("expected_photo_links_hash", McpFields.hash())
             }
         }

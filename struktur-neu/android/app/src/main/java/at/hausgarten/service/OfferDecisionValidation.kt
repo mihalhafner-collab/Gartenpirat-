@@ -26,7 +26,7 @@ internal object OfferDecisionValidation {
         val offers = state!!.optJSONArray("offers")
         run {
             var i: Int = 0
-            while (((offers !== null) && (i < offers!!.length()))) {
+            while ((offers !== null) && (i < offers!!.length())) {
                 if (id!!.equals((offers!!.getJSONObject(i))!!.optString("id"))) {
                     return offers!!.getJSONObject(i)
                 }
@@ -67,35 +67,32 @@ internal object OfferDecisionValidation {
         try {
             run {
                 var i: Int = 0
-                while ((i < entries!!.length())) {
+                while (i < entries!!.length()) {
                     val entry = entries!!.getJSONObject(i)
                     val key = entry!!.getString("key")
                     val raw = entry!!.getString("value")
                     require(keys!!.add(key))
-                    if (key!!.startsWith((prefix.toString() + "current:"))) {
-                        var id = key!!.substring(((prefix.toString() + "current:"))!!.length)
+                    if (key!!.startsWith(prefix.toString() + "current:")) {
+                        var id = key!!.substring((prefix.toString() + "current:")!!.length)
                         var value: JSONObject = JSONObject(raw)
                         require(id!!.equals(value!!.optString("offer_id")))
                         OfferDecisionRules.version(value)
                         current!!.put(id, value)
                     } else {
-                        if (key!!.startsWith((prefix.toString() + "history:"))) {
-                            var id = key!!.substring(((prefix.toString() + "history:"))!!.length)
+                        if (key!!.startsWith(prefix.toString() + "history:")) {
+                            var id = key!!.substring((prefix.toString() + "history:")!!.length)
                             histories!!.put(id, JSONArray(raw))
                         } else {
-                            if (key!!.startsWith((prefix.toString() + "revision:"))) {
-                                var id =
-                                    key!!.substring(((prefix.toString() + "revision:"))!!.length)
+                            if (key!!.startsWith(prefix.toString() + "revision:")) {
+                                var id = key!!.substring((prefix.toString() + "revision:")!!.length)
                                 var value: JSONObject = JSONObject(raw)
                                 require(id!!.equals(value!!.optString("offer_id")))
                                 OfferDecisionRules.version(value)
                                 revisions!!.put(id, value)
                             } else {
-                                if (key!!.startsWith((prefix.toString() + "request:"))) {
+                                if (key!!.startsWith(prefix.toString() + "request:")) {
                                     receipts!!.put(
-                                        key!!.substring(
-                                            ((prefix.toString() + "request:"))!!.length
-                                        ),
+                                        key!!.substring((prefix.toString() + "request:")!!.length),
                                         JSONObject(raw),
                                     )
                                 } else {
@@ -145,15 +142,15 @@ internal object OfferDecisionValidation {
                     text(decision, "reason", 10000, false)
                 }
                 val history = histories!!.get(id)
-                require((history!!.length() == 1))
+                require(history!!.length() == 1)
                 val recorded = history!!.getJSONObject(0)
                 OfferDecisionRules.version(recorded)
                 require((hash(recorded))!!.equals(hash(decision)))
                 val receipt = receipts!!.get(hash(request))
-                require((receipt !== null))
+                require(receipt !== null)
                 validateReceipt(receipt!!, decision, id)
             }
-            require((receipts!!.size == current!!.size))
+            require(receipts!!.size == current!!.size)
             for (item in (revisions!!.entries)!!) {
                 var id = item!!.key
                 val revision = item!!.value
@@ -183,7 +180,7 @@ internal object OfferDecisionValidation {
                 while (!ancestor!!.isEmpty()) {
                     require(visited!!.add(ancestor))
                     val link = revisions!!.get(ancestor)
-                    ancestor = (if ((link === null)) "" else link!!.optString("parent_offer_id"))
+                    ancestor = (if (link === null) "" else link!!.optString("parent_offer_id"))
                 }
             }
             return ((((((JSONObject())!!.put("formatVersion", 1))!!.put("status", "PASS"))!!.put(

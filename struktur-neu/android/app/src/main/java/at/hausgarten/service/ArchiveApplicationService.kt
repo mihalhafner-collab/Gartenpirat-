@@ -18,7 +18,7 @@ class ArchiveApplicationService : OwnerCommand {
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
         val stamp: String = java.time.Instant.now().toString()
-        when ((name)) {
+        when (name) {
             "empty_trash" -> {
                 run {
                     val payload =
@@ -68,7 +68,7 @@ class ArchiveApplicationService : OwnerCommand {
                     val saved: JSONArray = JSONArray()
                     run {
                         var i: Int = 0
-                        while ((i < events.length())) {
+                        while (i < events.length()) {
                             val event: JSONObject = events.getJSONObject(i)
                             saved.put(
                                 repository.enqueue(
@@ -152,7 +152,7 @@ class ArchiveApplicationService : OwnerCommand {
                     p.remove("entity_id")
                     p.put(
                         "_archive_entry",
-                        OwnerJournalRules.archives(all).getJSONObject((("" + entity + ":") + id)),
+                        OwnerJournalRules.archives(all).getJSONObject(("" + entity + ":") + id),
                     )
                     OwnerJournalRules.apply(
                         JSONObject(all.toString()),
@@ -305,12 +305,12 @@ class ArchiveApplicationService : OwnerCommand {
         stamp: String,
     ): Pair<JSONObject, JSONObject> {
         requireInactiveSession(args.getString("entity"), args.getString("entity_id"))
-        if ((args.getString("entity").equals("appointment"))) {
+        if (args.getString("entity").equals("appointment")) {
             val session: JSONObject = repository.state().getJSONObject("work_session")
             if (
-                ((args.getString("entity_id").equals(session.optString("appointment_id")) &&
+                (args.getString("entity_id").equals(session.optString("appointment_id")) &&
                     !Arrays.asList("IDLE", "FINALIZED", "CANCELLED")
-                        .contains(session.optString("state"))))
+                        .contains(session.optString("state")))
             ) {
                 throw IllegalArgumentException(
                     "Zeiterfassung dieses Termins zuerst abschließen oder bewusst verwerfen. Nichts archiviert."

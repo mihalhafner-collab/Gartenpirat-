@@ -45,7 +45,7 @@ class OwnerApplicationService {
 
     private fun register(command: OwnerCommand, names: Array<String>) {
         for (name in names) {
-            if (((commands.put(name, command) != null))) {
+            if (commands.put(name, command) != null) {
                 throw IllegalStateException("Duplicate owner operation")
             }
         }
@@ -58,7 +58,7 @@ class OwnerApplicationService {
     @Throws(Exception::class)
     fun perform(name: String, args: JSONObject, request: String): JSONObject {
         val command: OwnerCommand? = commands.get(name)
-        if (((command == null))) {
+        if (command == null) {
             throw IllegalArgumentException("Eigentümerfunktion fehlt.")
         }
         return command!!.perform(name, args, request)

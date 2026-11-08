@@ -29,11 +29,11 @@ class EntityApplicationService {
                 if (entity == "customer") EntityContract.CUSTOMER_FIELDS
                 else EntityContract.ORDER_FIELDS
             var payload: JSONObject
-            if ((update)) {
+            if (update) {
                 val capabilities: JSONObject? = master.optJSONObject("capabilities")
                 if (
-                    (((capabilities == null) ||
-                        !true.equals(capabilities!!.opt("entity_compare_and_save"))))
+                    ((capabilities == null) ||
+                        !true.equals(capabilities!!.opt("entity_compare_and_save")))
                 ) {
                     throw PixelMcpWriteTools.Rejected(
                         "REMOTE_GUARD_REQUIRED",
@@ -43,7 +43,7 @@ class EntityApplicationService {
                 val idKey: String = ("" + entity + "_id")
                 var id: String = args.getString(idKey)
                 val old: JSONObject = PixelMcpWriteTools.find(master.optJSONArray(collection), id)
-                if ((old.optString("updated_at").isEmpty())) {
+                if (old.optString("updated_at").isEmpty()) {
                     throw PixelMcpWriteTools.Rejected(
                         "REMOTE_GUARD_REQUIRED",
                         "Der Änderungsstand fehlt. Bitte den lokalen Eintrag erneut öffnen.",
@@ -80,12 +80,12 @@ class EntityApplicationService {
                 }
                 payload = JSONObject().put("id", id)
                 for (key in fields) {
-                    if ((old.has(key))) {
+                    if (old.has(key)) {
                         payload.put(key, old.get(key))
                     }
                 }
                 for (key in arrayOf("status", "order_id", "created_at")) {
-                    if ((old.has(key))) {
+                    if (old.has(key)) {
                         payload.put(key, old.get(key))
                     }
                 }
@@ -97,8 +97,8 @@ class EntityApplicationService {
                         payload.put(key, patch.get(key))
                     }
                 }
-                if (((entity.equals("customer") && patch.has("custom_fields")))) {
-                    if ((!capabilities!!.optBoolean("customer_custom_fields_compare_and_save"))) {
+                if (entity.equals("customer") && patch.has("custom_fields")) {
+                    if (!capabilities!!.optBoolean("customer_custom_fields_compare_and_save")) {
                         throw PixelMcpWriteTools.Rejected(
                             "REMOTE_GUARD_REQUIRED",
                             "Der Pixel-Vergleichsschutz für Kunden-Zusatzfelder fehlt; keine Änderung gespeichert.",
@@ -122,18 +122,18 @@ class EntityApplicationService {
                     }
                 }
                 for (key in arrayOf("updated_at", "status")) {
-                    if ((old.has(key))) {
+                    if (old.has(key)) {
                         base.put(key, old.get(key))
                     }
                 }
                 if (
-                    ((entity.equals("customer") &&
-                        !capabilities!!.optBoolean("customer_custom_fields_compare_and_save")))
+                    (entity.equals("customer") &&
+                        !capabilities!!.optBoolean("customer_custom_fields_compare_and_save"))
                 ) {
                     base.remove("custom_fields")
                     payload.remove("custom_fields")
                 } else {
-                    if ((entity.equals("customer"))) {
+                    if (entity.equals("customer")) {
                         base.put("custom_fields", EntityContract.customFields(old))
                     }
                 }
@@ -142,7 +142,7 @@ class EntityApplicationService {
             } else {
                 payload = JSONObject()
                 for (key in fields) {
-                    if ((args.has(key))) {
+                    if (args.has(key)) {
                         payload.put(key, args.get(key))
                     }
                 }
@@ -154,7 +154,7 @@ class EntityApplicationService {
                 val rows: JSONArray? = master.optJSONArray(collection)
                 run {
                     var i: Int = 0
-                    while (((rows != null) && (i < rows!!.length()))) {
+                    while ((rows != null) && (i < rows!!.length())) {
                         if (
                             (payload
                                 .getString("id")
@@ -170,16 +170,16 @@ class EntityApplicationService {
                 }
                 payload.put("_mcp_create", true).put("_new_record", true)
             }
-            if ((entity.equals("customer"))) {
+            if (entity.equals("customer")) {
                 BillingRules.customerConfig(payload, master.getJSONArray("customers"))
-                if ((payload.optString("name").trim().isEmpty())) {
+                if (payload.optString("name").trim().isEmpty()) {
                     throw PixelMcpWriteTools.Rejected("MISSING_FIELD", "Der Kundenname fehlt.")
                 }
-                if ((!update)) {
+                if (!update) {
                     try {
                         EntityProtectionRules.validateNewCustomer(
                             payload,
-                            (if ((master.optJSONArray("customers") == null)) JSONArray()
+                            (if (master.optJSONArray("customers") == null) JSONArray()
                             else master.getJSONArray("customers")),
                         )
                     } catch (duplicate: IllegalArgumentException) {
@@ -192,17 +192,17 @@ class EntityApplicationService {
                 }
                 val incoming: JSONObject = (if (update) args.getJSONObject("updates") else args)
                 if (
-                    (((incoming.has("email") && !incoming.optString("email").isEmpty()) &&
+                    ((incoming.has("email") && !incoming.optString("email").isEmpty()) &&
                         !incoming
                             .optString("email")
-                            .matches(Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))))
+                            .matches(Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")))
                 ) {
                     throw PixelMcpWriteTools.Rejected(
                         "INVALID_INPUT",
                         "Bitte eine gültige E-Mail-Adresse angeben oder das Feld leer lassen.",
                     )
                 }
-                if (((!update && !payload.has("custom_fields")))) {
+                if (!update && !payload.has("custom_fields")) {
                     payload.put("custom_fields", JSONObject())
                 }
                 payload.put(
@@ -210,26 +210,26 @@ class EntityApplicationService {
                     (if (payload.optBoolean("active", (payload.optInt("active", 1) != 0))) 1 else 0),
                 )
             } else {
-                if ((entity.equals("order"))) {
+                if (entity.equals("order")) {
                     BillingRules.order(payload, master)
                     PixelMcpWriteTools.find(
                         master.optJSONArray("customers"),
                         payload.optString("customer_id"),
                     )
-                    if ((payload.optString("title").trim().isEmpty())) {
+                    if (payload.optString("title").trim().isEmpty()) {
                         throw PixelMcpWriteTools.Rejected(
                             "MISSING_FIELD",
                             "Die Auftragsbezeichnung fehlt.",
                         )
                     }
-                    if ((!update)) {
+                    if (!update) {
                         val rows: JSONArray? = master.optJSONArray("orders")
                         run {
                             var i: Int = 0
-                            while (((rows != null) && (i < rows!!.length()))) {
+                            while ((rows != null) && (i < rows!!.length())) {
                                 val row: JSONObject = rows!!.getJSONObject(i)
                                 if (
-                                    (((payload
+                                    ((payload
                                         .optString("customer_id")
                                         .equals(row.optString("customer_id")) &&
                                         payload
@@ -241,7 +241,7 @@ class EntityApplicationService {
                                             )) &&
                                         payload
                                             .optString("scheduled_date")
-                                            .equals(row.optString("scheduled_date"))))
+                                            .equals(row.optString("scheduled_date")))
                                 ) {
                                     throw PixelMcpWriteTools.Rejected(
                                         "POSSIBLE_DUPLICATE",
@@ -252,7 +252,7 @@ class EntityApplicationService {
                             }
                         }
                     }
-                    if ((update)) {
+                    if (update) {
                         var previous: JSONObject =
                             PixelMcpWriteTools.find(
                                 master.optJSONArray("orders"),
@@ -266,7 +266,7 @@ class EntityApplicationService {
                             master.optJSONArray("photos"),
                         )
                     }
-                    if ((!payload.optString("scheduled_date").isEmpty())) {
+                    if (!payload.optString("scheduled_date").isEmpty()) {
                         try {
                             java.time.LocalDate.parse(payload.optString("scheduled_date"))
                         } catch (e: Exception) {

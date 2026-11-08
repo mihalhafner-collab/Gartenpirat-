@@ -88,7 +88,7 @@ internal class OfferRules {
         @JvmStatic
         @Throws(Exception::class)
         fun normalize(p: JSONObject, old: JSONObject?, snapshot: JSONObject): JSONObject {
-            if (((old !== null) && !editable(old))) {
+            if ((old !== null) && !editable(old)) {
                 throw IllegalArgumentException(
                     "Finalisierte Angebote bleiben unverändert. Für Änderungen duplizieren."
                 )
@@ -116,7 +116,7 @@ internal class OfferRules {
                 throw IllegalArgumentException("Kunde und Auftrag widersprechen sich.")
             }
             val type = p!!.optString("document_type")
-            if ((!type!!.isEmpty() && !(Arrays.asList(*(TYPES)))!!.contains(type))) {
+            if (!type!!.isEmpty() && !(Arrays.asList(*(TYPES)))!!.contains(type)) {
                 throw IllegalArgumentException("Unbekannte Angebotsart.")
             }
             val definition = OfferContract.type(type)
@@ -136,7 +136,7 @@ internal class OfferRules {
                 else
                     (if (type!!.equals("estimate_nonbinding")) "offer_nonbinding_text"
                     else "offer_time_material_text"))
-            var defaultNotice = (if ((config === null)) "" else config!!.optString(noticeKey))
+            var defaultNotice = (if (config === null) "" else config!!.optString(noticeKey))
             if ((defaultNotice!!.trim())!!.isEmpty()) {
                 defaultNotice = definition!!.optString("notice")
             }
@@ -190,8 +190,8 @@ internal class OfferRules {
                 if (!p!!.has(k)) {
                     p!!.put(k, "")
                 }
-                if ((!(p!!.get(k) is String) || ((p!!.getString(k))!!.length > 10000))) {
-                    throw IllegalArgumentException(("Ungültiger Angebotstext: " + k))
+                if (!(p!!.get(k) is String) || ((p!!.getString(k))!!.length > 10000)) {
+                    throw IllegalArgumentException("Ungültiger Angebotstext: " + k)
                 }
             }
             for (k in (arrayOf("issue_date", "valid_until"))!!) {
@@ -200,10 +200,10 @@ internal class OfferRules {
                 }
             }
             var settings = snapshot!!.optJSONObject("business_settings")
-            if ((settings === null)) {
+            if (settings === null) {
                 settings = JSONObject()
             }
-            if ((!p!!.has("tax_mode") || (p!!.optString("tax_mode"))!!.isEmpty())) {
+            if (!p!!.has("tax_mode") || (p!!.optString("tax_mode"))!!.isEmpty()) {
                 p!!.put("tax_mode", settings!!.optString("tax_mode"))
             }
             for (e in
@@ -231,7 +231,7 @@ internal class OfferRules {
                     "consumer_information_confirmed",
                     "test_record",
                 ))!!) {
-                if ((p!!.has(key) && !(p!!.get(key) is Boolean))) {
+                if (p!!.has(key) && !(p!!.get(key) is Boolean)) {
                     throw PixelMcpWriteTools.Rejected(
                         "INVALID_INPUT",
                         ("Bestätigung muss Ja/Nein sein: " + key),
@@ -239,10 +239,10 @@ internal class OfferRules {
                 }
             }
             var lines = p!!.optJSONArray("positions")
-            if ((lines === null)) {
+            if (lines === null) {
                 lines = JSONArray()
             }
-            if ((lines!!.length() > 200)) {
+            if (lines!!.length() > 200) {
                 throw IllegalArgumentException("Höchstens 200 Angebotspositionen.")
             }
             var net = BigDecimal.ZERO
@@ -250,7 +250,7 @@ internal class OfferRules {
             var complete: Boolean = true
             run {
                 var i: Int = 0
-                while ((i < lines!!.length())) {
+                while (i < lines!!.length()) {
                     val line = lines!!.getJSONObject(i)
                     if (!line!!.has("price_basis")) {
                         line!!.put(
@@ -303,7 +303,7 @@ internal class OfferRules {
                     val price = decimal(line!!.get("price"))
                     var rate =
                         decimal(
-                            (if ((!line!!.has("tax_rate") || line!!.isNull("tax_rate"))) "0"
+                            (if (!line!!.has("tax_rate") || line!!.isNull("tax_rate")) "0"
                             else line!!.get("tax_rate"))
                         )
                     if (
@@ -343,7 +343,7 @@ internal class OfferRules {
                     i++
                 }
             }
-            if (((net!!.add(tax))!!.compareTo(BigDecimal("1000000000")) > 0)) {
+            if ((net!!.add(tax))!!.compareTo(BigDecimal("1000000000")) > 0) {
                 throw IllegalArgumentException(
                     "Angebot überschreitet die sichere Betragsgrenze von einer Milliarde EUR."
                 )
@@ -377,16 +377,16 @@ internal class OfferRules {
             var out: StringJoiner = StringJoiner("\n")
             run {
                 var i: Int = 0
-                while ((i < positions!!.length())) {
+                while (i < positions!!.length()) {
                     var p = positions!!.getJSONObject(i)
                     out!!.add(
-                        (((((((((((p!!.getString("title")).toString() + " — ") +
+                        ((((((((p!!.getString("title")).toString() + " — ") +
                                         ((decimal(p!!.get("quantity")))!!.stripTrailingZeros())!!
-                                            .toPlainString()))
-                                    .toString() + " ") + p!!.optString("unit")))
+                                            .toPlainString())
+                                    .toString() + " ") + p!!.optString("unit"))
                                 .toString() + " × ") +
                                 ((decimal(p!!.get("price")))!!.stripTrailingZeros())!!
-                                    .toPlainString()))
+                                    .toPlainString())
                             .toString() + " EUR")
                     )
 
@@ -399,11 +399,11 @@ internal class OfferRules {
         @JvmStatic
         fun decimal(n: Any?): BigDecimal {
             try {
-                if (((n === null) || (n === JSONObject.NULL))) {
+                if ((n === null) || (n === JSONObject.NULL)) {
                     throw Exception()
                 }
                 val d: BigDecimal = BigDecimal(n!!.toString())
-                if (((d!!.precision() > 24) || (Math.abs(d!!.scale()) > 10))) {
+                if ((d!!.precision() > 24) || (Math.abs(d!!.scale()) > 10)) {
                     throw Exception()
                 }
                 return d
@@ -422,7 +422,7 @@ internal class OfferRules {
         fun validate(p: JSONObject, snapshot: JSONObject): JSONObject {
             var snapshot = snapshot
 
-            if (((!editable(p) && p!!.has("issuer")) && p!!.has("recipient"))) {
+            if ((!editable(p) && p!!.has("issuer")) && p!!.has("recipient")) {
                 snapshot =
                     (JSONObject(snapshot!!.toString()))!!.put(
                         "business_settings",
@@ -445,12 +445,12 @@ internal class OfferRules {
             val warnings: JSONArray = JSONArray()
             val fieldErrors: JSONObject = JSONObject()
             var s = snapshot!!.optJSONObject("business_settings")
-            if ((s === null)) {
+            if (s === null) {
                 s = JSONObject()
             }
             for (k in (OfferContract.values("issuer_required_fields"))!!) {
                 if (((s!!.optString(k))!!.trim())!!.isEmpty()) {
-                    errors!!.put(("Aussteller: " + k))
+                    errors!!.put("Aussteller: " + k)
                 }
             }
             if (
@@ -460,7 +460,7 @@ internal class OfferRules {
             }
             for (k in (OfferContract.values("required_fields"))!!) {
                 if (((p!!.optString(k))!!.trim())!!.isEmpty()) {
-                    errors!!.put((k.toString() + " fehlt"))
+                    errors!!.put(k.toString() + " fehlt")
                 }
             }
             if (!(Arrays.asList(*(TYPES)))!!.contains(p!!.optString("document_type"))) {
@@ -482,12 +482,12 @@ internal class OfferRules {
                 recipient = p!!.optString("customer_id")
             }
             val c = OwnerJournalRules.findOrNull(snapshot!!.optJSONArray("customers"), recipient)
-            if ((c === null)) {
+            if (c === null) {
                 errors!!.put("Eindeutiger Kunde fehlt")
             } else {
                 for (k in (arrayOf("name", "street", "postal_code", "city"))!!) {
                     if (((c!!.optString(k))!!.trim())!!.isEmpty()) {
-                        errors!!.put(("Empfänger: " + k))
+                        errors!!.put("Empfänger: " + k)
                     }
                 }
                 val country = (c!!.optString("country"))!!.lowercase(Locale.GERMAN)
@@ -527,26 +527,26 @@ internal class OfferRules {
                 errors!!.put("Steuerbefreiungshinweis fehlt")
             }
             val lines = p!!.optJSONArray("positions")
-            if (((lines === null) || (lines!!.length() == 0))) {
+            if ((lines === null) || (lines!!.length() == 0)) {
                 errors!!.put("Mindestens eine Leistung erforderlich")
             }
             run {
                 var i: Int = 0
-                while (((lines !== null) && (i < lines!!.length()))) {
+                while ((lines !== null) && (i < lines!!.length())) {
                     val line = lines!!.getJSONObject(i)
-                    val at = ((("Position " + (i + 1))).toString() + ": ")
+                    val at = (("Position " + (i + 1)).toString() + ": ")
                     for (key in (arrayOf("title", "unit"))!!) {
                         if (((line!!.optString(key))!!.trim())!!.isEmpty()) {
                             fieldErrors!!.put(
-                                (((("positions." + i)).toString() + ".") + key),
+                                ((("positions." + i).toString() + ".") + key),
                                 "Pflichtangabe fehlt",
                             )
                         }
                     }
                     for (key in (arrayOf("price", "quantity"))!!) {
-                        if ((!line!!.has(key) || line!!.isNull(key))) {
+                        if (!line!!.has(key) || line!!.isNull(key)) {
                             fieldErrors!!.put(
-                                (((("positions." + i)).toString() + ".") + key),
+                                ((("positions." + i).toString() + ".") + key),
                                 (if (key!!.equals("price")) "Preis fehlt – nachfragen"
                                 else "Menge fehlt"),
                             )
@@ -556,16 +556,16 @@ internal class OfferRules {
                         (((line!!.optString("title"))!!.trim())!!.isEmpty() ||
                             ((line!!.optString("unit"))!!.trim())!!.isEmpty())
                     ) {
-                        errors!!.put((at.toString() + "Leistung und Einheit fehlen"))
+                        errors!!.put(at.toString() + "Leistung und Einheit fehlen")
                     }
-                    if ((!line!!.has("price") || line!!.isNull("price"))) {
-                        errors!!.put((at.toString() + "Preis fehlt – nachfragen"))
+                    if (!line!!.has("price") || line!!.isNull("price")) {
+                        errors!!.put(at.toString() + "Preis fehlt – nachfragen")
                     }
                     if (
                         ((!line!!.has("quantity") || line!!.isNull("quantity")) ||
                             (line!!.optDouble("quantity", (0).toDouble()) <= 0))
                     ) {
-                        errors!!.put((at.toString() + "Menge fehlt"))
+                        errors!!.put(at.toString() + "Menge fehlt")
                     }
                     if (!(line!!.optString("catalog_entry_id"))!!.isEmpty()) {
                         var template =
@@ -612,7 +612,7 @@ internal class OfferRules {
                             (basis!!.equals("catalog") !=
                                 !(line!!.optString("catalog_entry_id"))!!.isEmpty()))
                     ) {
-                        errors!!.put((at.toString() + "Preisgrundlage widerspricht Preisquelle"))
+                        errors!!.put(at.toString() + "Preisgrundlage widerspricht Preisquelle")
                     }
                     if (
                         ((Arrays.asList("calculated", "estimated"))!!.contains(basis) &&
@@ -633,12 +633,12 @@ internal class OfferRules {
                                         ))!!
                                         .add(
                                             decimal(
-                                                (if ((calculation!!.opt("surcharge") === null)) 0
+                                                (if (calculation!!.opt("surcharge") === null) 0
                                                 else calculation!!.get("surcharge"))
                                             )
                                         )
                                 )
-                            if ((derived!!.compareTo(decimal(line!!.get("price"))) != 0)) {
+                            if (derived!!.compareTo(decimal(line!!.get("price"))) != 0) {
                                 errors!!.put(
                                     (at.toString() +
                                         "Berechnung stimmt nicht mit dem Einzelpreis überein")
@@ -654,7 +654,7 @@ internal class OfferRules {
                         ((p!!.optString("tax_mode"))!!.equals("standard") &&
                             (!line!!.has("tax_rate") || line!!.isNull("tax_rate")))
                     ) {
-                        errors!!.put((at.toString() + "Steuersatz fehlt"))
+                        errors!!.put(at.toString() + "Steuersatz fehlt")
                     }
 
                     i++
@@ -698,7 +698,7 @@ internal class OfferRules {
             ) {
                 for (key in (arrayOf("business_phone", "business_email"))!!) {
                     if (((s!!.optString(key))!!.trim())!!.isEmpty()) {
-                        errors!!.put(("FAGG-Kontaktangaben: " + key))
+                        errors!!.put("FAGG-Kontaktangaben: " + key)
                     }
                 }
             }

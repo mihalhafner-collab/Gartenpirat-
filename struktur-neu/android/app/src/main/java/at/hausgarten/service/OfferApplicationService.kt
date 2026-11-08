@@ -203,7 +203,7 @@ internal class OfferApplicationService : OwnerCommand {
                             }
                         }
                     }
-                    if ((old === null)) {
+                    if (old === null) {
                         p!!.put(
                             "id",
                             ("svc_" + (PixelMcpWriteTools.hash(request))!!.substring(0, 32)),
@@ -381,7 +381,7 @@ internal class OfferApplicationService : OwnerCommand {
                                 .put("sent", (receipt !== null)))!!
                             .put(
                                 "state",
-                                (if ((receipt !== null)) "sent"
+                                (if (receipt !== null) "sent"
                                 else
                                     (if (offer!!.optBoolean("test_record")) "test_preview_only"
                                     else
@@ -413,8 +413,8 @@ internal class OfferApplicationService : OwnerCommand {
                                 ))!!
                             .put(
                                 "body",
-                                ((((((offer!!.getString("title")).toString() + "\n") +
-                                        offer!!.optString("binding_notice")))
+                                (((((offer!!.getString("title")).toString() + "\n") +
+                                        offer!!.optString("binding_notice"))
                                     .toString() + "\n") + offer!!.optString("payment_terms")),
                             )
                     }
@@ -423,7 +423,7 @@ internal class OfferApplicationService : OwnerCommand {
                     ) {
                         repository!!.putOwnerValue("offer_share_handoff", offer!!.getString("id"))
                     }
-                    if ((receipt !== null)) {
+                    if (receipt !== null) {
                         out!!.put("delivery_receipt", receipt)
                     }
                     return out

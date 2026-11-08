@@ -46,7 +46,7 @@ class EntityContract {
         @Throws(Exception::class)
         @JvmStatic
         fun validateCustomFields(fields: JSONObject) {
-            if (((fields.length() > 50))) {
+            if (fields.length() > 50) {
                 throw PixelMcpWriteTools.Rejected(
                     "INVALID_INPUT",
                     "Bitte höchstens 50 Kunden-Zusatzfelder angeben.",
@@ -58,27 +58,26 @@ class EntityContract {
                     val key: String = it.next()
                     var value: Any = fields.get(key)
                     if (
-                        ((((key.trim().isEmpty() || (key.length > 80)) ||
+                        (((key.trim().isEmpty() || (key.length > 80)) ||
                             key.matches(Regex(".*[\\p{Cntrl}].*"))) ||
-                            Arrays.asList("__proto__", "constructor", "prototype").contains(key)))
+                            Arrays.asList("__proto__", "constructor", "prototype").contains(key))
                     ) {
                         throw PixelMcpWriteTools.Rejected(
                             "INVALID_INPUT",
                             "Bitte eine eindeutige Zusatzfeld-Bezeichnung mit höchstens 80 Zeichen verwenden.",
                         )
                     }
-                    if (((value == JSONObject.NULL))) {
+                    if (value == JSONObject.NULL) {
                         continue
                     }
-                    if (((value is String && (((value as String)).length <= 2000)))) {
+                    if (value is String && ((value as String).length <= 2000)) {
                         continue
                     }
-                    if ((value is Boolean)) {
+                    if (value is Boolean) {
                         continue
                     }
                     if (
-                        ((value is Number &&
-                            java.lang.Double.isFinite(((value as Number)).toDouble())))
+                        (value is Number && java.lang.Double.isFinite((value as Number).toDouble()))
                     ) {
                         continue
                     }
@@ -94,15 +93,15 @@ class EntityContract {
         @JvmStatic
         fun customFields(row: JSONObject): JSONObject {
             var value: Any? = row.opt("custom_fields")
-            if (((((value == null) || (value == JSONObject.NULL)) || "".equals(value)))) {
+            if (((value == null) || (value == JSONObject.NULL)) || "".equals(value)) {
                 return JSONObject()
             }
-            if ((value is JSONObject)) {
+            if (value is JSONObject) {
                 return JSONObject(value!!.toString())
             }
-            if ((value is String)) {
+            if (value is String) {
                 try {
-                    return JSONObject((value as String))
+                    return JSONObject(value as String)
                 } catch (ignored: Exception) {}
             }
             throw PixelMcpWriteTools.Rejected(
@@ -115,11 +114,11 @@ class EntityContract {
         @JvmStatic
         fun editable(row: JSONObject, fields: Array<String>): JSONObject {
             var out: JSONObject = JSONObject().put("id", row.optString("id"))
-            if ((row.has("updated_at"))) {
+            if (row.has("updated_at")) {
                 out.put("updated_at", row.get("updated_at"))
             }
             for (key in fields) {
-                if ((row.has(key))) {
+                if (row.has(key)) {
                     out.put(key, row.get(key))
                 }
             }

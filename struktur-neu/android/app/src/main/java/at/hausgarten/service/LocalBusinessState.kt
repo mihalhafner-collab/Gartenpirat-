@@ -35,7 +35,7 @@ internal class LocalBusinessState {
                 val known = JSONObject()
                 val issuer = snapshot.optJSONObject("invoice_issuer")
                 for (key in PixelMcpOwnerTools.BUSINESS_KEYS) {
-                    if (((issuer != null) && issuer.has(key))) {
+                    if ((issuer != null) && issuer.has(key)) {
                         known.put(key, issuer.get(key))
                     }
                 }
@@ -43,7 +43,7 @@ internal class LocalBusinessState {
                     .put("business_settings", known)
                     .put("business_settings_origin", "legacy_known_fields_only")
             }
-            if ((snapshot.optJSONObject("business_settings") == null)) {
+            if (snapshot.optJSONObject("business_settings") == null) {
                 throw IllegalArgumentException(
                     "Ungültige Geschäftseinstellungen; keine Vorgaben eingesetzt."
                 )
