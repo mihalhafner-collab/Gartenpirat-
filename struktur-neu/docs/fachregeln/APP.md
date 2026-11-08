@@ -122,32 +122,68 @@ Quellen (gelesen 06.11.2026): USP/BMF zu
 
 ## Oberfläche
 
+Verbindlich ist der Entwurf „Gartenpirat Optik-Entwürfe“ (Claude, 06.11.2026);
+dieser Abschnitt hält ihn fest. Abweichungen nur mit Freigabe des Eigentümers.
 Ziel: jede wichtige Aufgabe in höchstens zwei Tipps.
 
 - **Roter Faden:** Kunde → Objekt → Anfrage → Angebot → Auftrag → Einsatz →
-  Arbeit → Abrechnung → Zahlung. Detailseiten zeigen oben „Gehört zu“ (Kunde,
-  Objekt, Auftrag, Einsatz) als antippbare Chips; Verknüpfungen in beide Richtungen.
-- **Objekt als Anker:** Arbeiten gehören zu einem Objekt; das Objekt zeigt seinen
-  Verlauf von der Anfrage bis zur Zahlung.
-- **Navigation:** Heute · Planung · Kunden · Abrechnung · Büro. Ein „+“ für alles
-  Neue, eine Suche für alles.
-- **Heute:** Einsätze des Tages mit Uhrzeit und „Start“, darunter nur Punkte mit
-  Handlungsbedarf.
-- **Planung:** ein Objekt „Einsatz“; Termin, Tour und Pflegeplan sind Ansichten.
-- **Abrechnung:** Reiter Offen · Rechnungen & Labor · Summen.
-- **Laufende Zeit:** Benachrichtigung mit Pause, Foto und Stopp; Schnellkachel und
-  App-Verknüpfungen.
+  Arbeit → Abrechnung → Zahlung. Arbeiten gehören zu einem Objekt.
+- **Navigation:** genau vier Reiter Heute · Planung · Kunden · Abrechnung. Kein
+  Reiter „Büro“; Seltenes (Arbeiten, Archiv, Geräte, Material, Einstellungen,
+  Sicherung) liegt im ⋮-Menü der Kopfzeile oder unter „Mehr“ in Kunden.
+- **Heute:** Titel ist das Datum („Freitag, 6. Nov.“), darunter „3 Einsätze ·
+  ca. 6 Std. · 14 km Tour“ und rechts ein Wetter-Chip, wenn Wetter aktiv ist.
+  Dann die Einsätze des Tages in Tourreihenfolge: Uhrzeit als linke Spalte, Titel,
+  Kunde · Objekt; der nächste hervorgehoben mit „▶ Start“, die anderen mit „Route“.
+  Darunter „Zu erledigen“ nur bei Bedarf: offene Stunden (Bernstein, € ›),
+  fällige Wartung, neue Anfragen, fehlgeschlagene Sicherung (Gelb, ! ›).
+  Keine Kennzahlen-Kacheln, keine „Gespeicherten Arbeiten“, keine
+  „Weiteren Tageshinweise“, keine untere Knopfleiste.
+- **„+“:** fester Knopf unten rechts auf allen vier Reitern. Öffnet „Neu anlegen“
+  mit sechs festen Zielen in dieser Reihenfolge: Arbeit nachtragen, Anfrage,
+  Kunde, Einsatz, Foto, Material; darunter „Zuletzt: Kunde · Objekt“. Auf einem
+  Kunden oder Objekt wird der Zusammenhang vorausgefüllt.
+- **Suche:** ein Suchfeld oben auf Heute und Kunden mit Mikrofon. Ergebnisse
+  nach Art gruppiert (Objekte, Kunden, Abschlüsse, Arbeiten) mit Anrufen und
+  Route direkt im Ergebnis; ohne Eingabe zuletzt Geöffnetes.
+- **Detailseiten:** Titel ist der Inhalt (z. B. „Hecke geschnitten“), nicht der
+  Bereichsname. Oben „Gehört zu“-Chips (Kunde, Objekt, Auftrag, Einsatz), jeder
+  antippbar; Verknüpfungen in beide Richtungen. Status als Chip. Angaben in
+  Gruppen wie auf einem Lieferschein; leere Felder gesammelt als „+ ergänzen“.
+  Unten die nächste sinnvolle Aktion (z. B. Bearbeiten · Abrechnen). Seltene
+  Aktionen im ⋮-Menü; „Löschen“ ganz unten, eigene Zeile, Ziegelrot mit Symbol.
+- **Objekt:** Kopf mit Foto oder Farbfläche, Knöpfe Route · Anrufen · Einsatz
+  planen, Reiter Verlauf · Pflege · Fotos · Geld. Verlauf als Zeitleiste von der
+  Anfrage bis zur Zahlung (voll = erledigt, leer = geplant).
+- **Planung:** ein Objekt „Einsatz“; Ansichten Tag · Woche · Karte. Verschieben
+  durch langes Drücken und Ziehen; Wetterwarnung im Raster. Tour mit
+  nummerierten Stopps, „Reihenfolge“ und „Navigation starten“ (Übergabe an die
+  Karten-App, keine eigene Kartendienst-Anbindung).
+- **Abrechnung:** Reiter Offen · Abschlüsse · Summen. Offen: Bernstein-Karte
+  „Noch nicht abgerechnet“, je Rechnungsempfänger Kürzel, Arbeiten, Stunden,
+  Fortschrittsbalken fertig → abgerechnet → bezahlt und „Abrechnen“. „Abrechnen“
+  öffnet den vorbefüllten Entwurf (Umschalter Rechnung | Labor clandestino,
+  Abwählen statt Hinzufügen), dann Vorschau mit einem Knopf „Ausstellen“.
+- **Listen:** Kürzel-Avatar, rechts der wichtigste Zustand (offene Stunden in
+  Bernstein oder nächster Termin). Wischen nach rechts = häufigste positive
+  Aktion (bezahlt, erledigt), nach links = löschen; ausgestellte Rechnungen
+  lassen sich nicht wegwischen. Danach Snackbar mit „Rückgängig“ (5 s).
+- **Laufende Zeit:** große Uhr mit gleich breiten Ziffern, Tätigkeit als Chips,
+  Foto · Material · Gerät als drei Knöpfe, unten Pause · Zeit stoppen.
+  Benachrichtigung mit Pause, Foto und Stopp; Schnellkachel und App-Verknüpfungen.
 - **Farben im Theme:** Waldgrün = Handeln, Bernstein = Geld, Gelb = Prüfen,
-  Ziegelrot nur für Löschen und Fehler. Keine Farbwerte im Feature-Code.
+  Ziegelrot nur für Löschen und Fehler. Keine Farbwerte im Feature-Code. Dunkle
+  Ansicht nach Systemeinstellung (optional).
 - **Bausteine:** Material-3-Standardkomponenten. Große Schrift muss funktionieren.
 - **Texte:** kurz und deutsch, keine technischen Zustände, keine Textwände;
   Hinweise einmal zeigen, danach als ⓘ.
 - **Rückmeldung:** Erfolg als kurze Snackbar, Fehler am Ort. Leere Listen nennen
-  die erste Aktion.
+  in einem Satz den Zweck und bieten die erste Aktion an.
 - **Eingabe:** passende Tastatur (Telefon, E-Mail, Zahl), Spracheingabe in
   Textfeldern, zuletzt Verwendetes oben.
 - **Prüfungen:** unklare Vorgänge automatisch intern prüfen, ohne doppelte
-  Ausführung; nur echte Konflikte zeigen.
+  Ausführung; nur echte Konflikte zeigen. Wiederherstellung als Hinweisbalken,
+  nicht als Sperre.
 
 ## Verbindungen
 
