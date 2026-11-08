@@ -359,7 +359,7 @@ class AppointmentRules {
                     "Termin wurde inzwischen geändert. Eingaben bleiben erhalten.",
                 )
             }
-            var row: JSONObject = (if (old == null) JSONObject() else LocalJournalRules.clean(old))
+            val row: JSONObject = (if (old == null) JSONObject() else LocalJournalRules.clean(old))
             val changes: JSONObject? = (if (create) a else a.optJSONObject("updates"))
             if (changes != null) {
                 for (key in FIELDS) {
