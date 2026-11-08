@@ -59,8 +59,8 @@ class TrashPurgeBatch {
                 }
                 run {
                     var i: Int = 0
-                    while (i < rows!!.length()) {
-                        val row: JSONObject = rows!!.getJSONObject(i)
+                    while (i < rows.length()) {
+                        val row: JSONObject = rows.getJSONObject(i)
                         guards.put(row.getString("id"), OwnerJournalRules.version(row))
                         i++
                     }

@@ -8,14 +8,13 @@ internal class BillingRules {
     companion object {
         @JvmStatic
         fun text(row: JSONObject?, key: String): String {
-            return (if ((row === null) || row!!.isNull(key)) ""
-            else (row!!.optString(key))!!.trim())
+            return (if ((row === null) || row.isNull(key)) "" else (row.optString(key)).trim())
         }
 
         @JvmStatic
         fun recipient(work: JSONObject): String {
             var id = text(work, "billing_customer_id")
-            return (if (id!!.isEmpty()) text(work, "customer_id") else id)
+            return (if (id.isEmpty()) text(work, "customer_id") else id)
         }
 
         @JvmStatic
@@ -28,10 +27,10 @@ internal class BillingRules {
         @Throws(Exception::class)
         fun customerConfig(row: JSONObject, customers: JSONArray): Unit {
             var mode = text(row, "billing_mode")
-            if (mode!!.isEmpty()) {
+            if (mode.isEmpty()) {
                 mode = "direct"
             }
-            if (!(Arrays.asList("direct", "via_customer"))!!.contains(mode)) {
+            if (!(Arrays.asList("direct", "via_customer")).contains(mode)) {
                 throw PixelMcpWriteTools.Rejected(
                     "INVALID_BILLING_MODE",
                     "Abrechnung muss Direkt oder Über einen anderen Kunden sein.",
@@ -39,15 +38,15 @@ internal class BillingRules {
             }
             val target = text(row, "default_billing_customer_id")
             if (mode!!.equals("direct")) {
-                if (!target!!.isEmpty() && !target!!.equals(text(row, "id"))) {
+                if (!target.isEmpty() && !target!!.equals(text(row, "id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "BILLING_MISMATCH",
                         "Bei Direktabrechnung bitte keinen anderen Standard-Rechnungsempfänger angeben.",
                     )
                 }
-                row!!.put("default_billing_customer_id", "")
+                row.put("default_billing_customer_id", "")
             } else {
-                if (target!!.isEmpty() || target!!.equals(text(row, "id"))) {
+                if (target.isEmpty() || target!!.equals(text(row, "id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "MISSING_BILLING_CUSTOMER",
                         "Bitte einen anderen vorhandenen Rechnungsempfänger auswählen.",
@@ -55,10 +54,10 @@ internal class BillingRules {
                 }
                 customer(customers, target)
                 val visited: MutableSet<String> = HashSet()
-                visited!!.add(text(row, "id"))
+                visited.add(text(row, "id"))
                 var next = target
-                while (!next!!.isEmpty()) {
-                    if (!visited!!.add(next)) {
+                while (!next.isEmpty()) {
+                    if (!visited.add(next)) {
                         throw PixelMcpWriteTools.Rejected(
                             "BILLING_CYCLE",
                             "Die Standard-Abrechnung würde einen Kreis bilden. Bitte Zuordnung prüfen.",
@@ -71,36 +70,36 @@ internal class BillingRules {
                         else "")
                 }
             }
-            row!!.put("billing_mode", mode)
+            row.put("billing_mode", mode)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun defaultRecipient(customerId: String, orderId: String, master: JSONObject): String {
-            val workCustomer = customer(master!!.optJSONArray("customers"), customerId)
+            val workCustomer = customer(master.optJSONArray("customers"), customerId)
             var recipient = customerId
             if (("via_customer")!!.equals(text(workCustomer, "billing_mode"))) {
                 recipient = text(workCustomer, "default_billing_customer_id")
             }
-            if (!orderId!!.isEmpty()) {
-                var order = PixelMcpWriteTools.find(master!!.optJSONArray("orders"), orderId)
+            if (!orderId.isEmpty()) {
+                var order = PixelMcpWriteTools.find(master.optJSONArray("orders"), orderId)
                 if (!customerId!!.equals(text(order, "customer_id"))) {
                     throw PixelMcpWriteTools.Rejected(
                         "REFERENCE_MISMATCH",
                         "Einsatzkunde und Auftrag passen nicht zusammen.",
                     )
                 }
-                if (!(text(order, "billing_customer_id"))!!.isEmpty()) {
+                if (!(text(order, "billing_customer_id")).isEmpty()) {
                     recipient = text(order, "billing_customer_id")
                 }
             }
-            if (recipient!!.isEmpty()) {
+            if (recipient.isEmpty()) {
                 throw PixelMcpWriteTools.Rejected(
                     "MISSING_BILLING_CUSTOMER",
                     "Der Standard-Rechnungsempfänger fehlt. Bitte Kundenabrechnung prüfen.",
                 )
             }
-            customer(master!!.optJSONArray("customers"), recipient)
+            customer(master.optJSONArray("customers"), recipient)
             return recipient
         }
 
@@ -108,22 +107,22 @@ internal class BillingRules {
         @Throws(Exception::class)
         fun work(row: JSONObject, old: JSONObject?, master: JSONObject): Unit {
             val workCustomer = text(row, "customer_id")
-            customer(master!!.optJSONArray("customers"), workCustomer)
+            customer(master.optJSONArray("customers"), workCustomer)
             var target = text(row, "billing_customer_id")
-            if (target!!.isEmpty()) {
+            if (target.isEmpty()) {
                 target =
                     (if (old !== null) recipient(old)
                     else defaultRecipient(workCustomer, text(row, "order_id"), master))
             }
-            customer(master!!.optJSONArray("customers"), target)
-            row!!.put("billing_customer_id", target)
+            customer(master.optJSONArray("customers"), target)
+            row.put("billing_customer_id", target)
         }
 
         @JvmStatic
         @Throws(Exception::class)
         fun order(row: JSONObject, master: JSONObject): Unit {
-            if (!(text(row, "billing_customer_id"))!!.isEmpty()) {
-                customer(master!!.optJSONArray("customers"), text(row, "billing_customer_id"))
+            if (!(text(row, "billing_customer_id")).isEmpty()) {
+                customer(master.optJSONArray("customers"), text(row, "billing_customer_id"))
             }
         }
 
@@ -138,21 +137,19 @@ internal class BillingRules {
                         text(row, "default_billing_customer_id")
                     else customerId))
             var out: JSONObject =
-                (((JSONObject())!!.put("work_customer_id", customerId))!!.put(
+                (((JSONObject()).put("work_customer_id", customerId)).put(
                         "billing_customer_id",
                         recipient,
                     ))!!
                     .put("mode", (if (recipient!!.equals(customerId)) "direct" else "via_customer"))
             try {
-                (out!!.put(
+                (out.put(
                         "billing_customer_name",
-                        (customer(master!!.optJSONArray("customers"), recipient))!!.optString(
-                            "name"
-                        ),
+                        (customer(master.optJSONArray("customers"), recipient)).optString("name"),
                     ))!!
                     .put("valid", true)
             } catch (missing: Exception) {
-                (out!!.put("valid", false))!!.put(
+                (out.put("valid", false)).put(
                     "notice",
                     "Rechnungsempfänger nicht vorhanden. Keine automatische Neuzuordnung.",
                 )

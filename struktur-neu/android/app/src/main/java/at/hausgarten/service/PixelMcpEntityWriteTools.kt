@@ -256,14 +256,7 @@ internal class PixelMcpEntityWriteTools {
             val required = schema.optJSONArray("required")
             run {
                 var i: Int = 0
-                var firstIteration88 = true
-                while (true) {
-                    if (firstIteration88) firstIteration88 = false
-                    else {
-                        i++
-                    }
-                    if (!((required != null) && (i < required.length()))) break
-
+                while ((required != null) && (i < required.length())) {
                     val key = required.getString(i)
                     if (
                         (!(args.has(key)) ||
@@ -274,6 +267,7 @@ internal class PixelMcpEntityWriteTools {
                             ("Pflichtangabe fehlt: " + key),
                         )
                     }
+                    i++
                 }
             }
         }

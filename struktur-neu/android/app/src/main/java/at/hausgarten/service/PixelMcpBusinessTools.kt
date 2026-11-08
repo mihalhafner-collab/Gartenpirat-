@@ -46,20 +46,14 @@ internal class PixelMcpBusinessTools {
         fun preventOverlap(payload: JSONObject, logs: JSONArray?): Unit {
             run {
                 var i: Int = 0
-                var firstIteration82 = true
-                while (true) {
-                    if (firstIteration82) firstIteration82 = false
-                    else {
-                        i++
-                    }
-                    if (!((logs != null) && (i < logs.length()))) break
-
+                while ((logs != null) && (i < logs.length())) {
                     if (overlap(payload, logs.getJSONObject(i))) {
                         throw PixelMcpWriteTools.Rejected(
                             "TIME_OVERLAP",
                             "Diese Uhrzeiten überschneiden sich mit einer vorhandenen Arbeitsaufzeichnung. Bitte den Tag prüfen; keine Änderung wurde gespeichert.",
                         )
                     }
+                    i++
                 }
             }
         }
@@ -74,15 +68,9 @@ internal class PixelMcpBusinessTools {
             val customers = master.optJSONArray("customers")
             run {
                 var i: Int = 0
-                var firstIteration83 = true
-                while (true) {
-                    if (firstIteration83) firstIteration83 = false
-                    else {
-                        i++
-                    }
-                    if (!((customers != null) && (i < customers.length()))) break
-
+                while ((customers != null) && (i < customers.length())) {
                     customerIds.add(customers.getJSONObject(i).optString("id"))
+                    i++
                 }
             }
             if (logs.length() > 5000) {

@@ -16,8 +16,8 @@ public final class SettlementProtectionTests {
         try { action.run(); } catch (IllegalArgumentException expected) { checks++; return; }
         throw new AssertionError(reason);
     }
-    private static JSONObject copy(JSONObject value) { return new JSONObject(value.toString()); }
-    private static JSONObject ledger(String status, String route, String kind, String collection, String id) {
+    private static JSONObject copy(JSONObject value) throws Exception { return new JSONObject(value.toString()); }
+    private static JSONObject ledger(String status, String route, String kind, String collection, String id) throws Exception {
         return new JSONObject().put("records",new JSONArray().put(new JSONObject().put("id","qa_settlement")
             .put("status",status).put("route",route).put("kind",kind)
             .put("sources",new JSONArray().put(new JSONObject().put("collection",collection).put("id",id)))));

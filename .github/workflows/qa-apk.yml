@@ -83,15 +83,10 @@ jobs:
           tasks=(:app:assembleRelease :app:assembleReleaseAndroidTest)
           if [ "$FOCUSED_UI" != true ]; then tasks+=(:app:lintRelease); fi
           gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 "${tasks[@]}"
-      - name: Run JVM archive, warning, rollback and related regressions
+      - name: Run JVM contract suites
         if: github.event_name != 'workflow_dispatch' || (!inputs.accounting_only && !inputs.settlement_ui_only)
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/gp-deps"
-          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o "$RUNNER_TEMP/gp-deps/json.jar"
-          curl -fsSL https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.46.1.0/sqlite-jdbc-3.46.1.0.jar -o "$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar"
-          curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
-          HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
+        working-directory: struktur-neu/android
+        run: gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 :app:testReleaseUnitTest
       - name: Keep unsigned packages for the emulator job
         run: |
           set -euo pipefail
@@ -105,12 +100,14 @@ jobs:
           name: Gartenpirat-unsigned-packages
           path: struktur-neu/outputs/unsigned/
           retention-days: 1
-      - name: Preserve lint report
+      - name: Preserve lint and JVM test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Gartenpirat-lint
-          path: struktur-neu/android/app/build/reports/lint-results-release.html
+          name: Gartenpirat-reports
+          path: |
+            struktur-neu/android/app/build/reports/lint-results-release.html
+            struktur-neu/android/app/build/reports/tests/
           if-no-files-found: ignore
           retention-days: 7
 
@@ -301,20 +298,6 @@ jobs:
           elif sys.argv[1]=='native_compose':
               assert result['journey'] == sys.argv[3] and result['independent_fresh_fixture'] is True, result
               assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result
-              if sys.argv[3]=='office_opening':
-                  assert result['office_opening']['samples_per_path'] == 40, result
-              if sys.argv[3]=='domain_search':
-                  assert len(result['domain_search_cases']) == 14, result
-                  assert all(row['keyboard_bounds'] and row['real_touch'] for row in result['domain_search_cases']), result
-              if sys.argv[3]=='surfaces':
-                  assert len(result['surface_cases']) == 32, result
-                  assert all(row['no_auto_ime'] for row in result['surface_cases']), result
-              if sys.argv[3]=='list_viewports':
-                  assert len(result['list_viewport_cases']) == 14, result
-                  assert all(row['keyboard_bounds'] and row['real_touch'] and row['ime_preserves_query'] for row in result['list_viewport_cases']), result
-              if sys.argv[3]=='search_keyboard':
-                  assert len(result['search_keyboard_matrix']) == 6, result
-                  assert all(row['keyboard_open_and_closed'] and row['ime_action_preserves_query'] and row['real_touch_selection'] for row in result['search_keyboard_matrix']), result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result

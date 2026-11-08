@@ -33,7 +33,7 @@ class EntityApplicationService {
                 val capabilities: JSONObject? = master.optJSONObject("capabilities")
                 if (
                     ((capabilities == null) ||
-                        !true.equals(capabilities!!.opt("entity_compare_and_save")))
+                        !true.equals(capabilities.opt("entity_compare_and_save")))
                 ) {
                     throw PixelMcpWriteTools.Rejected(
                         "REMOTE_GUARD_REQUIRED",
@@ -98,7 +98,7 @@ class EntityApplicationService {
                     }
                 }
                 if (entity.equals("customer") && patch.has("custom_fields")) {
-                    if (!capabilities!!.optBoolean("customer_custom_fields_compare_and_save")) {
+                    if (!capabilities.optBoolean("customer_custom_fields_compare_and_save")) {
                         throw PixelMcpWriteTools.Rejected(
                             "REMOTE_GUARD_REQUIRED",
                             "Der Pixel-Vergleichsschutz für Kunden-Zusatzfelder fehlt; keine Änderung gespeichert.",
@@ -128,7 +128,7 @@ class EntityApplicationService {
                 }
                 if (
                     (entity.equals("customer") &&
-                        !capabilities!!.optBoolean("customer_custom_fields_compare_and_save"))
+                        !capabilities.optBoolean("customer_custom_fields_compare_and_save"))
                 ) {
                     base.remove("custom_fields")
                     payload.remove("custom_fields")
@@ -154,11 +154,9 @@ class EntityApplicationService {
                 val rows: JSONArray? = master.optJSONArray(collection)
                 run {
                     var i: Int = 0
-                    while ((rows != null) && (i < rows!!.length())) {
+                    while ((rows != null) && (i < rows.length())) {
                         if (
-                            (payload
-                                .getString("id")
-                                .equals(rows!!.getJSONObject(i).optString("id")))
+                            (payload.getString("id").equals(rows.getJSONObject(i).optString("id")))
                         ) {
                             throw PixelMcpWriteTools.Rejected(
                                 "ID_ALREADY_EXISTS",
@@ -226,8 +224,8 @@ class EntityApplicationService {
                         val rows: JSONArray? = master.optJSONArray("orders")
                         run {
                             var i: Int = 0
-                            while ((rows != null) && (i < rows!!.length())) {
-                                val row: JSONObject = rows!!.getJSONObject(i)
+                            while ((rows != null) && (i < rows.length())) {
+                                val row: JSONObject = rows.getJSONObject(i)
                                 if (
                                     ((payload
                                         .optString("customer_id")

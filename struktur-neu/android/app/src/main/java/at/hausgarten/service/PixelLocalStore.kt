@@ -71,7 +71,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             }
             if (!(registeredOpen)) {
                 OPEN_STORES.computeIfAbsent(
-                        context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath(),
+                        context.getDatabasePath("haus-garten-mobile.db").canonicalPath,
                         { key -> java.util.concurrent.atomic.AtomicInteger() },
                     )
                     .incrementAndGet()
@@ -93,7 +93,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     try {
                         var count =
                             OPEN_STORES.get(
-                                context.getDatabasePath("haus-garten-mobile.db").getCanonicalPath()
+                                context.getDatabasePath("haus-garten-mobile.db").canonicalPath
                             )
                         if (count != null) {
                             count.decrementAndGet()
@@ -120,7 +120,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     }
 
     fun businessTables(): BusinessTableStore {
-        return businessTables(getWritableDatabase())
+        return businessTables(writableDatabase)
     }
 
     fun beginBusinessTransaction(db: SQLiteDatabase): Unit {
@@ -154,11 +154,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     }
 
     fun workSessions(): WorkSessionStore {
-        return WorkSessionStore(getWritableDatabase(), clock)
+        return WorkSessionStore(writableDatabase, clock)
     }
 
     private @Throws(Exception::class) fun readAsset(name: String): String {
-        context.getAssets().open(name).use { input ->
+        context.assets.open(name).use { input ->
             BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { reader ->
                 var out = StringBuilder()
                 while (true) {
@@ -260,19 +260,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             var inline: Boolean = false
             run {
                 var i: Int = 0
-                var firstIteration35 = true
-                while (true) {
-                    if (firstIteration35) firstIteration35 = false
-                    else {
-                        i++
-                    }
-                    if (!(photos != null && i < photos.length())) break
-
+                while (photos != null && i < photos.length()) {
                     val photo = photos.optJSONObject(i)
                     if (photo != null && (photo.has("data") || photo.has("full_data"))) {
                         inline = true
                         break
                     }
+                    i++
                 }
             }
             if (!(inline)) {
@@ -325,7 +319,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     }
 
     fun putOwnerValue(key: String, value: String): Unit {
-        val db = getWritableDatabase()
+        val db = writableDatabase
         beginBusinessTransaction(db)
         try {
             val tables = businessTables(db)
@@ -364,7 +358,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             }
         }
         var count: Int
-        getReadableDatabase()
+        readableDatabase
             .rawQuery("SELECT length(value) FROM owner_state WHERE key=?", arrayOf(key))
             .use { row ->
                 if (!(row.moveToFirst())) {
@@ -375,15 +369,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         var out = StringBuilder()
         run {
             var offset: Int = 0
-            var firstIteration37 = true
-            while (true) {
-                if (firstIteration37) firstIteration37 = false
-                else {
-                    offset += 32768
-                }
-                if (!(offset < count)) break
-
-                getReadableDatabase()
+            while (offset < count) {
+                readableDatabase
                     .rawQuery(
                         "SELECT substr(value,?,32768) FROM owner_state WHERE key=?",
                         arrayOf((offset + 1).toString(), key),
@@ -394,6 +381,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         }
                         out.append(row.getString(0))
                     }
+                offset += 32768
             }
         }
         return out.toString()
@@ -438,7 +426,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     }
 
     fun getState(): JSONObject {
-        val db = getWritableDatabase()
+        val db = writableDatabase
         // Activity destruction may close the helper while an IO query finishes.
         // Keep the connection pool alive through endTransaction, including failures.
         db.acquireReference()
@@ -525,7 +513,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun saveWorklog(payload: JSONObject): String {
-        val transaction = getWritableDatabase()
+        val transaction = writableDatabase
         beginBusinessTransaction(transaction)
         try {
             val result = saveWorklogLocked(payload)
@@ -623,7 +611,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             payload,
         )
         val actionId = "worklog_change_" + UUID.randomUUID().toString().replace("-", "")
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             val values = ContentValues()
@@ -645,7 +633,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         request.remove("_request_input_hash")
         val inputHash = PixelMcpWriteTools.hash(request)
         request.put("_request_input_hash", inputHash)
-        val db = getWritableDatabase()
+        val db = writableDatabase
         beginBusinessTransaction(db)
         try {
             val result = startWorkSessionLocked(request)
@@ -705,7 +693,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun completeWorkSession(sessionId: String, payload: JSONObject, requestId: String): String {
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             val sessions = workSessions()
@@ -900,7 +888,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         var clientId =
             "mcp_pixel_" + PixelMcpWriteTools.hash(args.getString("request_id")).substring(0, 40)
         val fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args))
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         var result: JSONObject
         try {
@@ -1026,7 +1014,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         receipt("mcp_pixel_" + PixelMcpWriteTools.hash(request).substring(0, 40))
 
     private @Throws(Exception::class) fun receipt(clientId: String): JSONObject? {
-        getReadableDatabase()
+        readableDatabase
             .rawQuery(
                 "SELECT payload FROM pending WHERE id=? AND kind='mcp_receipt'",
                 arrayOf("receipt_" + clientId),
@@ -1044,7 +1032,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         var clientId =
             "mcp_pixel_" + PixelMcpWriteTools.hash(args.getString("request_id")).substring(0, 40)
         val fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args))
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         var result: JSONObject
         try {
@@ -1255,7 +1243,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (!(request.isEmpty()) && !(request.matches(Regex("[A-Za-z0-9_-]{8,200}")))) {
             throw IllegalArgumentException("Ungültige Aktionskennung.")
         }
-        val db = getWritableDatabase()
+        val db = writableDatabase
         beginBusinessTransaction(db)
         try {
             val key = "editor_commit:" + PixelMcpWriteTools.hash(request)
@@ -1330,7 +1318,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (payload.optString("name").trim().isEmpty()) {
             throw IllegalArgumentException("Der Kundenname fehlt.")
         }
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             val master = PixelMcpReadTools.effective(getState())
@@ -1372,7 +1360,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun saveOrder(payload: JSONObject): String {
-        val tx = getWritableDatabase()
+        val tx = writableDatabase
         beginBusinessTransaction(tx)
         try {
             val result = saveOrderLocked(payload)
@@ -1401,7 +1389,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         ) {
             throw IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.")
         }
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             val master = PixelMcpReadTools.effective(getState())
@@ -1515,7 +1503,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         payload.put("id", entityId)
         var prepared: PhotoAttachmentStore.Prepared? = null
         var committed: Boolean = false
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             if (!(request.isEmpty())) {
@@ -1607,7 +1595,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             database.endTransaction()
             if (!(committed) && prepared != null && prepared.created) {
                 try {
-                    getReadableDatabase()
+                    readableDatabase
                         .rawQuery(
                             "SELECT 1 FROM photo_attachments WHERE content_sha256=? LIMIT 1",
                             arrayOf(prepared.metadata.getString("content_sha256")),
@@ -1680,7 +1668,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 .put("id", "eqp_photo_" + PixelMcpWriteTools.hash(request).substring(0, 32))
                 .put("equipment_id", equipment)
         EquipmentProfilePhotoRules.validate(photo, equipment)
-        saveAttachmentMetadata(getWritableDatabase(), photo.getString("id"), photo, "local")
+        saveAttachmentMetadata(writableDatabase, photo.getString("id"), photo, "local")
         return photo
     }
 
@@ -1745,12 +1733,12 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun restoreAttachmentMetadata(photoId: String, metadata: JSONObject): Unit {
-        saveAttachmentMetadata(getWritableDatabase(), photoId, metadata, "local")
+        saveAttachmentMetadata(writableDatabase, photoId, metadata, "local")
     }
 
     @Throws(Exception::class)
     fun photoAttachment(photoId: String): JSONObject? {
-        getReadableDatabase()
+        readableDatabase
             .rawQuery(
                 "SELECT photo_id,content_sha256,mime_type,byte_size,storage_name,role,transfer_state,created_at FROM photo_attachments WHERE photo_id=?",
                 arrayOf(photoId),
@@ -1831,7 +1819,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     fun markPhotoAttachmentTransferred(photoId: String): Unit {
         val values = ContentValues()
         values.put("transfer_state", "provider_readback")
-        getWritableDatabase().update("photo_attachments", values, "photo_id=?", arrayOf(photoId))
+        writableDatabase.update("photo_attachments", values, "photo_id=?", arrayOf(photoId))
     }
 
     @Throws(Exception::class)
@@ -1840,7 +1828,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (photos == null) {
             return
         }
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             for (i in 0 until photos.length()) {
@@ -1956,18 +1944,12 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         val photos = snapshot.optJSONArray("photos")
         run {
             var i: Int = 0
-            var firstIteration52 = true
-            while (true) {
-                if (firstIteration52) firstIteration52 = false
-                else {
-                    i++
-                }
-                if (!(photos != null && i < photos.length())) break
-
+            while (photos != null && i < photos.length()) {
                 val photo = photos.optJSONObject(i)
                 if (photo != null && !(photo.optString("id").isEmpty())) {
                     active.add(photo.optString("id"))
                 }
+                i++
             }
         }
         for (i in 0 until submitted.length()) {
@@ -1998,7 +1980,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (candidates.isEmpty()) {
             return
         }
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             for (photoId in candidates) {
@@ -2085,7 +2067,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun removeEntity(entity: String, entityId: String): String {
-        val db = getWritableDatabase()
+        val db = writableDatabase
         beginBusinessTransaction(db)
         try {
             ActiveWorkProtection.require(getState(), entity, entityId)
@@ -2155,7 +2137,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     fun remainingDeleteUndoMs(): Long {
         var remaining: Long = 0
         try {
-            getReadableDatabase()
+            readableDatabase
                 .rawQuery("SELECT payload FROM pending WHERE kind IN ('delete','archive')", null)
                 .use { cursor ->
                     while (cursor.moveToNext()) {
@@ -2207,7 +2189,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun saveAction(kind: String, prefix: String, payload: JSONObject): String {
-        val db = getWritableDatabase()
+        val db = writableDatabase
         beginBusinessTransaction(db)
         try {
             if (testLocalOnly(kind, payload)) {
@@ -2233,10 +2215,10 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun pendingActions(): JSONArray =
-        LocalPendingActions.read(getReadableDatabase(), this::photoAttachment)
+        LocalPendingActions.read(readableDatabase, this::photoAttachment)
 
     fun acknowledge(ids: MutableSet<String>): Unit {
-        val database = getWritableDatabase()
+        val database = writableDatabase
         beginBusinessTransaction(database)
         try {
             for (id in ids) {
@@ -2372,19 +2354,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             val photos = snapshot.optJSONArray("photos")
             run {
                 var i: Int = 0
-                var firstIteration58 = true
-                while (true) {
-                    if (firstIteration58) firstIteration58 = false
-                    else {
-                        i++
-                    }
-                    if (!(photos != null && i < photos.length())) break
-
+                while (photos != null && i < photos.length()) {
                     val photo = photos.optJSONObject(i)
                     if (photo != null) {
                         photo.remove("data")
                         photo.remove("full_data")
                     }
+                    i++
                 }
             }
         }

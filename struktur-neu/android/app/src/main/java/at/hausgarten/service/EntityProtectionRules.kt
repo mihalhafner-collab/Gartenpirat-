@@ -9,7 +9,7 @@ class EntityProtectionRules {
     companion object {
         @JvmStatic
         fun text(row: JSONObject?, key: String): String {
-            return (if ((row == null) || row!!.isNull(key)) "" else row!!.optString(key).trim())
+            return (if ((row == null) || row.isNull(key)) "" else row.optString(key).trim())
         }
 
         private fun normalized(value: String): String {
@@ -23,8 +23,8 @@ class EntityProtectionRules {
         private fun find(rows: JSONArray?, id: String): JSONObject? {
             run {
                 var i: Int = 0
-                while ((rows != null) && (i < rows!!.length())) {
-                    val row: JSONObject? = rows!!.optJSONObject(i)
+                while ((rows != null) && (i < rows.length())) {
+                    val row: JSONObject? = rows.optJSONObject(i)
                     if ((row != null) && id.equals(text(row, "id"))) {
                         return row
                     }
@@ -48,8 +48,8 @@ class EntityProtectionRules {
             val source: String = text(payload, "sevdesk_contact_id")
             run {
                 var i: Int = 0
-                while ((customers != null) && (i < customers!!.length())) {
-                    val row: JSONObject? = customers!!.optJSONObject(i)
+                while ((customers != null) && (i < customers.length())) {
+                    val row: JSONObject? = customers.optJSONObject(i)
                     if ((row == null) || text(payload, "id").equals(text(row, "id"))) {
                         i++
                         continue
@@ -101,8 +101,8 @@ class EntityProtectionRules {
             for (rows in arrayOf(worklogs, invoices, photos)) {
                 run {
                     var i: Int = 0
-                    while ((rows != null) && (i < rows!!.length())) {
-                        val row: JSONObject? = rows!!.optJSONObject(i)
+                    while ((rows != null) && (i < rows.length())) {
+                        val row: JSONObject? = rows.optJSONObject(i)
                         if (((row != null) && text(previous, "id").equals(text(row, "order_id")))) {
                             throw IllegalArgumentException(
                                 "Der Kunde kann nicht geändert werden: Dieser Auftrag besitzt bereits zugeordnete Arbeiten, Rechnungen oder Fotos."

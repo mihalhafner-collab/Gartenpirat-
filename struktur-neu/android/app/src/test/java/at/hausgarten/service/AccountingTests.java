@@ -8,19 +8,19 @@ import org.json.*;
 public final class AccountingTests {
     private static int checks;
     private static void yes(boolean value, String reason) { checks++; if (!value) throw new AssertionError(reason); }
-    private static JSONObject order(String id, String status, String amount) {
+    private static JSONObject order(String id, String status, String amount) throws Exception {
         return new JSONObject().put("id",id).put("title","QA Auftrag "+id).put("status",status).put("scheduled_date","2026-11-01")
             .put("accounting_amount",amount).put("property_id","qa_property");
     }
-    private static JSONObject work(String id, String parent, int billed, String amount) {
+    private static JSONObject work(String id, String parent, int billed, String amount) throws Exception {
         return new JSONObject().put("id",id).put("activity","QA Arbeit "+id).put("order_id",parent).put("billed",billed)
             .put("work_date","2026-11-02").put("accounting_amount",amount);
     }
-    private static JSONObject master(JSONArray orders, JSONArray works) { return new JSONObject().put("orders",orders).put("worklogs",works); }
-    private static List<JSONObject> project(JSONObject data, String... personal) {
+    private static JSONObject master(JSONArray orders, JSONArray works) throws Exception { return new JSONObject().put("orders",orders).put("worklogs",works); }
+    private static List<JSONObject> project(JSONObject data, String... personal) throws Exception {
         return AccountingRules.INSTANCE.project(data,new LinkedHashSet<>(Arrays.asList(personal)),new JSONArray().put(new JSONObject().put("id","qa_property").put("name","QA Haus/Garten")));
     }
-    private static long total(List<JSONObject> rows, String route) {
+    private static long total(List<JSONObject> rows, String route) throws Exception {
         long sum=0;
         for (JSONObject row:rows) if(row.getString("issue").isEmpty() && (route.isEmpty() || row.getString("route").equals(route))) sum=Math.addExact(sum,row.getLong("amount_minor"));
         return sum;
@@ -46,7 +46,7 @@ public final class AccountingTests {
             repository=(OwnerRepository)Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(),new Class<?>[]{OwnerRepository.class},this);
         }
         JSONObject effective() throws Exception { return SnapshotProjection.effective(new JSONObject().put("master",new JSONObject(master.toString())).put("pending",new JSONArray(pending.toString()))); }
-        Set<String> personal() { return AccountingRules.INSTANCE.ids(new JSONArray(owner.get("personal_paid"))); }
+        Set<String> personal() throws Exception { return AccountingRules.INSTANCE.ids(new JSONArray(owner.get("personal_paid"))); }
         JSONObject args(String request,String route) throws Exception {
             return new JSONObject().put("request_id",request).put("collection","orders").put("entity_id","qa_order_1").put("route",route)
                 .put("expected_record_hash",AccountingRules.INSTANCE.hash(effective(),personal(),"orders","qa_order_1"));
@@ -78,7 +78,7 @@ public final class AccountingTests {
         public String read(String key) { return owner.getOrDefault(key,""); }
         public void write(String key,String value) { owner.put(key,value); }
         public void successful() { committed=true; }
-        public void end() { if(!committed){pending=new JSONArray(pendingBefore);owner.clear();owner.putAll(ownerBefore);} }
+        public void end() { if(!committed){try{pending=new JSONArray(pendingBefore);}catch(org.json.JSONException e){throw new IllegalStateException(e);}owner.clear();owner.putAll(ownerBefore);} }
     }
     private static void writes() throws Exception {
         Memory memory=new Memory(); JSONObject change=memory.args("qa_accounting_switch","labor");
@@ -118,7 +118,7 @@ public final class AccountingTests {
         yes(total(project(data),"billed")==90000,"Repeated identical work IDs do not duplicate amounts");
         a.put("accounting_amount","900.00");
         rows=project(data,"a1");
-        yes(rows.stream().filter(row->row.getString("id").equals("a")).findFirst().get().getString("issue").contains("Widersprüchliche"),"Opposing marks are made visible");
+        yes(rows.stream().filter(row->row.optString("id").equals("a")).findFirst().get().optString("issue").contains("Widersprüchliche"),"Opposing marks are made visible");
         yes(total(rows,"")==20000,"A conflicting order is never arbitrarily assigned or counted");
         String proof=AccountingRules.INSTANCE.hash(data,Set.of(),"orders","a");
         yes(!proof.equals(AccountingRules.INSTANCE.hash(data,Set.of("a1"),"orders","a")),"CAS covers owner marks");

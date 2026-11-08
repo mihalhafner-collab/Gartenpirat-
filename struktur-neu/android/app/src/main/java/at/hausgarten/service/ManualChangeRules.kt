@@ -97,8 +97,8 @@ class ManualChangeRules {
             if (!payload.has("created_at")) {
                 payload.put(
                     "created_at",
-                    (if ((previous != null) && previous!!.has("created_at"))
-                        previous!!.get("created_at")
+                    (if ((previous != null) && previous.has("created_at"))
+                        previous.get("created_at")
                     else stamp),
                 )
             }

@@ -10,8 +10,8 @@ public final class WorkEntryAccessoryTests {
     static void yes(boolean value) { if (!value) throw new AssertionError("work/accessory check " + checks); checks++; }
     interface Check { void run() throws Exception; }
     static void rejects(Check action) throws Exception { try { action.run(); throw new AssertionError("Expected invalid input"); } catch (IllegalArgumentException expected) { checks++; } }
-    static JSONObject work() { return new JSONObject().put("work_date", "2026-10-30").put("activity", "QA synthetic garden").put("start_time", "08:00").put("end_time", "12:00"); }
-    static JSONObject item(String id) { return new JSONObject().put("id", id).put("type", "chain").put("name", "QA chain " + id); }
+    static JSONObject work() throws Exception { return new JSONObject().put("work_date", "2026-10-30").put("activity", "QA synthetic garden").put("start_time", "08:00").put("end_time", "12:00"); }
+    static JSONObject item(String id) throws Exception { return new JSONObject().put("id", id).put("type", "chain").put("name", "QA chain " + id); }
     public static void main(String[] ignored) throws Exception {
         for (int pause : new int[]{15,30,45,60,23,0}) {
             JSONObject row = work().put("break_minutes", pause);

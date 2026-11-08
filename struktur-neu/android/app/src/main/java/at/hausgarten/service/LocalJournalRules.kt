@@ -264,15 +264,9 @@ internal class LocalJournalRules {
             val ids = HashSet<String>()
             run {
                 var i: Int = 0
-                var firstIteration5 = true
-                while (true) {
-                    if (firstIteration5) firstIteration5 = false
-                    else {
-                        i++
-                    }
-                    if (!((values != null) && (i < values.length()))) break
-
+                while ((values != null) && (i < values.length())) {
                     ids.add(values.optString(i))
+                    i++
                 }
             }
             return ids

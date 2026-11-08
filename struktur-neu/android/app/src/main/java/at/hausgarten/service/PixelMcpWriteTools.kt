@@ -238,14 +238,7 @@ class PixelMcpWriteTools {
             val required = schema.optJSONArray("required")
             run {
                 var i: Int = 0
-                var firstIteration102 = true
-                while (true) {
-                    if (firstIteration102) firstIteration102 = false
-                    else {
-                        i++
-                    }
-                    if (!((required != null) && (i < required.length()))) break
-
+                while ((required != null) && (i < required.length())) {
                     val key = required.getString(i)
                     if (
                         (!(args.has(key)) ||
@@ -253,6 +246,7 @@ class PixelMcpWriteTools {
                     ) {
                         throw Rejected("MISSING_FIELD", ("Pflichtangabe fehlt: " + key))
                     }
+                    i++
                 }
             }
         }
@@ -350,17 +344,11 @@ class PixelMcpWriteTools {
         fun find(rows: JSONArray?, id: String): JSONObject {
             run {
                 var i: Int = 0
-                var firstIteration104 = true
-                while (true) {
-                    if (firstIteration104) firstIteration104 = false
-                    else {
-                        i++
-                    }
-                    if (!((rows != null) && (i < rows.length()))) break
-
+                while ((rows != null) && (i < rows.length())) {
                     if (id == rows.getJSONObject(i).optString("id")) {
                         return rows.getJSONObject(i)
                     }
+                    i++
                 }
             }
             throw Rejected(
@@ -404,31 +392,19 @@ class PixelMcpWriteTools {
                 val invoices = master.optJSONArray("invoices")
                 run {
                     var i: Int = 0
-                    var firstIteration107 = true
-                    while (true) {
-                        if (firstIteration107) firstIteration107 = false
-                        else {
-                            i++
-                        }
-                        if (!((invoices != null) && (i < invoices.length()))) break
-
+                    while ((invoices != null) && (i < invoices.length())) {
                         val inv = invoices.getJSONObject(i)
                         val ids = inv.optJSONArray("worklog_ids")
                         run {
                             var j: Int = 0
-                            var firstIteration106 = true
-                            while (true) {
-                                if (firstIteration106) firstIteration106 = false
-                                else {
-                                    j++
-                                }
-                                if (!((ids != null) && (j < ids.length()))) break
-
+                            while ((ids != null) && (j < ids.length())) {
                                 if (old.getString("id") == ids.optString(j)) {
                                     invoiced = true
                                 }
+                                j++
                             }
                         }
+                        i++
                     }
                 }
                 if (invoiced) {
@@ -481,14 +457,7 @@ class PixelMcpWriteTools {
                 val existing = master.optJSONArray("worklogs")
                 run {
                     var i: Int = 0
-                    var firstIteration110 = true
-                    while (true) {
-                        if (firstIteration110) firstIteration110 = false
-                        else {
-                            i++
-                        }
-                        if (!((existing != null) && (i < existing.length()))) break
-
+                    while ((existing != null) && (i < existing.length())) {
                         if (
                             (payload.getString("id") == existing.getJSONObject(i).optString("id"))
                         ) {
@@ -497,6 +466,7 @@ class PixelMcpWriteTools {
                                 "Diese Anfrage gehört zu einem bereits vorhandenen Eintrag. Bitte den Eintrag prüfen statt ihn erneut anzulegen.",
                             )
                         }
+                        i++
                     }
                 }
             }
@@ -546,14 +516,7 @@ class PixelMcpWriteTools {
                 val logs = master.optJSONArray("worklogs")
                 run {
                     var i: Int = 0
-                    var firstIteration111 = true
-                    while (true) {
-                        if (firstIteration111) firstIteration111 = false
-                        else {
-                            i++
-                        }
-                        if (!((logs != null) && (i < logs.length()))) break
-
+                    while ((logs != null) && (i < logs.length())) {
                         val row = logs.getJSONObject(i)
                         if (
                             ((((customerId == row.optString("customer_id")) &&
@@ -571,6 +534,7 @@ class PixelMcpWriteTools {
                                 "Eine gleiche Arbeitsaufzeichnung ist bereits vorhanden. Bitte zuerst prüfen.",
                             )
                         }
+                        i++
                     }
                 }
             }

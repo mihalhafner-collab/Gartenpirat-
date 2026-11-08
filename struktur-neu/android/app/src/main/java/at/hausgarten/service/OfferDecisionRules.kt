@@ -11,7 +11,7 @@ internal object OfferDecisionRules {
     @JvmStatic
     @Throws(Exception::class)
     fun version(value: JSONObject): Unit {
-        val version = value!!.opt("formatVersion")
+        val version = value.opt("formatVersion")
         if (!(version is Number) || !(version!!.toString())!!.equals("1")) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_DECISION_VERSION_UNSUPPORTED",
@@ -25,8 +25,8 @@ internal object OfferDecisionRules {
     fun contentVersion(offer: JSONObject): String {
         val fixed: JSONObject = JSONObject()
         for (field in (OfferRules.FIELDS)!!) {
-            if (offer!!.has(field)) {
-                fixed!!.put(field, offer!!.get(field))
+            if (offer.has(field)) {
+                fixed.put(field, offer.get(field))
             }
         }
         for (field in
@@ -41,8 +41,8 @@ internal object OfferDecisionRules {
                 "document_id",
                 "money_minor",
             ))!!) {
-            if (offer!!.has(field)) {
-                fixed!!.put(field, offer!!.get(field))
+            if (offer.has(field)) {
+                fixed.put(field, offer.get(field))
             }
         }
         return PixelMcpWriteTools.hash(fixed)
@@ -71,28 +71,26 @@ internal object OfferDecisionRules {
                 "pdf_sha256",
                 "request_id",
             ))!!) {
-            if (decision!!.has(key)) {
-                value!!.put(key, decision!!.get(key))
+            if (decision.has(key)) {
+                value.put(key, decision.get(key))
             }
         }
-        value!!.put("decision_hash", PixelMcpWriteTools.hash(decision))
+        value.put("decision_hash", PixelMcpWriteTools.hash(decision))
         return value
     }
 
     @JvmStatic
     @Throws(Exception::class)
     fun matching(offer: JSONObject, decisions: JSONObject?): JSONObject? {
-        if (
-            ((decisions === null) || (decisions!!.optJSONObject(offer!!.optString("id")) === null))
-        ) {
+        if (((decisions === null) || (decisions.optJSONObject(offer.optString("id")) === null))) {
             return null
         }
-        val decision = decisions!!.getJSONObject(offer!!.getString("id"))
+        val decision = decisions.getJSONObject(offer.getString("id"))
         version(decision)
-        if (!(decision!!.optString("content_version"))!!.equals(contentVersion(offer))) {
-            return ((((JSONObject())!!.put("formatVersion", 1))!!.put(
+        if (!(decision.optString("content_version"))!!.equals(contentVersion(offer))) {
+            return ((((JSONObject()).put("formatVersion", 1)).put(
                         "offer_id",
-                        offer!!.getString("id"),
+                        offer.getString("id"),
                     ))!!
                     .put("decision", "review_required"))!!
                 .put("reason", "OFFER_DOCUMENT_VERSION_CHANGED")
@@ -103,30 +101,30 @@ internal object OfferDecisionRules {
     @JvmStatic
     @Throws(Exception::class)
     fun decorateQuery(name: String, result: JSONObject, effectiveState: JSONObject): JSONObject {
-        val decisions = effectiveState!!.optJSONObject("offer_decisions")
-        if ((decisions === null) || (decisions!!.length() == 0)) {
+        val decisions = effectiveState.optJSONObject("offer_decisions")
+        if ((decisions === null) || (decisions.length() == 0)) {
             return result
         }
         if (name!!.equals("get_offer") || name!!.equals("validate_offer")) {
-            val offer = result!!.optJSONObject("offer")
+            val offer = result.optJSONObject("offer")
             if (offer !== null) {
                 val decision = matching(offer, decisions)
                 if (decision !== null) {
-                    (result!!.put("decision", decision))!!.put(
+                    (result.put("decision", decision)).put(
                         "decision_status",
-                        decision!!.getString("decision"),
+                        decision.getString("decision"),
                     )
                 }
             }
         }
         if (name!!.equals("list_offers")) {
             val visible: JSONObject = JSONObject()
-            val rows = result!!.optJSONArray("offers")
+            val rows = result.optJSONArray("offers")
             run {
                 var i: Int = 0
-                while ((rows !== null) && (i < rows!!.length())) {
-                    val wrapper = rows!!.getJSONObject(i)
-                    val offer = wrapper!!.optJSONObject("offer")
+                while ((rows !== null) && (i < rows.length())) {
+                    val wrapper = rows.getJSONObject(i)
+                    val offer = wrapper.optJSONObject("offer")
                     if (offer === null) {
                         run {
                             i++
@@ -135,15 +133,15 @@ internal object OfferDecisionRules {
                     }
                     val decision = matching(offer, decisions)
                     if (decision !== null) {
-                        wrapper!!.put("decision", decision)
-                        visible!!.put(offer!!.getString("id"), decision)
+                        wrapper.put("decision", decision)
+                        visible.put(offer.getString("id"), decision)
                     }
 
                     i++
                 }
             }
-            if (visible!!.length() > 0) {
-                result!!.put("decisions", visible)
+            if (visible.length() > 0) {
+                result.put("decisions", visible)
             }
         }
         return result
@@ -153,9 +151,9 @@ internal object OfferDecisionRules {
     @Throws(Exception::class)
     fun requireFinal(offer: JSONObject): JSONObject {
         if (
-            ((!(Arrays.asList("finalized", "accepted"))!!.contains(offer!!.optString("status")) ||
-                (offer!!.optString("finalized_at"))!!.isEmpty()) ||
-                !(offer!!.optString("pdf_sha256"))!!.matches(Regex("[0-9a-f]{64}")))
+            ((!(Arrays.asList("finalized", "accepted")).contains(offer.optString("status")) ||
+                (offer.optString("finalized_at")).isEmpty()) ||
+                !(offer.optString("pdf_sha256")).matches(Regex("[0-9a-f]{64}")))
         ) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_FINAL_VERSION_REQUIRED",

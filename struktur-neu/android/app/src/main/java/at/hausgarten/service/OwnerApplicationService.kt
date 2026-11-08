@@ -61,6 +61,6 @@ class OwnerApplicationService {
         if (command == null) {
             throw IllegalArgumentException("Eigentümerfunktion fehlt.")
         }
-        return command!!.perform(name, args, request)
+        return command.perform(name, args, request)
     }
 }

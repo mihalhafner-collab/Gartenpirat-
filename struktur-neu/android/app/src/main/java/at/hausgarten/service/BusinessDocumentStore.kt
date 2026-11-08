@@ -17,7 +17,7 @@ class BusinessDocumentStore {
     private val staging: File
 
     constructor(c: Context) {
-        directory = File(c.getFilesDir(), "business-documents")
+        directory = File(c.filesDir, "business-documents")
         staging = File(c.cacheDir, "immutable-document-staging")
     }
 
@@ -388,7 +388,7 @@ class BusinessDocumentStore {
             }
             page = pdf.startPage(PdfDocument.PageInfo.Builder(595, 842, count).create())
             y = 50f
-            page!!.getCanvas().drawText(number + " · " + count, 45f, y, paint)
+            page!!.canvas.drawText(number + " · " + count, 45f, y, paint)
             y += 30
         }
 
@@ -410,7 +410,7 @@ class BusinessDocumentStore {
                             n = space
                         }
                     }
-                    page!!.getCanvas().drawText(rest.substring(0, n), 45f, y, paint)
+                    page!!.canvas.drawText(rest.substring(0, n), 45f, y, paint)
                     y += 16
                     rest = rest.substring(n).replaceFirst(Regex("^ +"), "")
                 } while (!(rest.isEmpty()))

@@ -17,23 +17,23 @@ class LocalOwnerRepository : OwnerRepository {
         this.requests =
             object : OwnerRequestTransactions.Store {
                 override fun begin(): Unit {
-                    store!!.beginBusinessTransaction(store!!.getWritableDatabase())
+                    store.beginBusinessTransaction(store.writableDatabase)
                 }
 
                 override fun read(key: String): String {
-                    return store!!.ownerValue(key, "")!!
+                    return store.ownerValue(key, "")!!
                 }
 
                 override fun write(key: String, value: String): Unit {
-                    store!!.putOwnerValue(key, value)
+                    store.putOwnerValue(key, value)
                 }
 
                 override fun successful(): Unit {
-                    store!!.getWritableDatabase().setTransactionSuccessful()
+                    store.writableDatabase.setTransactionSuccessful()
                 }
 
                 override fun end(): Unit {
-                    store!!.getWritableDatabase().endTransaction()
+                    store.writableDatabase.endTransaction()
                 }
             }
     }
@@ -76,7 +76,7 @@ class LocalOwnerRepository : OwnerRepository {
     @Throws(Exception::class)
     override fun fileMeta(id: String): JSONObject {
         store!!
-            .getReadableDatabase()
+            .readableDatabase
             .rawQuery("SELECT metadata FROM mcp_uploads WHERE id=?", arrayOf(id))
             .use { row ->
                 if (!(row.moveToFirst())) {
@@ -105,7 +105,7 @@ class LocalOwnerRepository : OwnerRepository {
 
         var size: Int
         store!!
-            .getReadableDatabase()
+            .readableDatabase
             .rawQuery("SELECT length(data) FROM mcp_uploads WHERE id=?", arrayOf(id))
             .use { row ->
                 if (!(row.moveToFirst())) {
@@ -119,16 +119,9 @@ class LocalOwnerRepository : OwnerRepository {
         var out = ByteArrayOutputStream(size)
         run {
             var offset: Int = 0
-            var firstIteration20 = true
-            while (true) {
-                if (firstIteration20) firstIteration20 = false
-                else {
-                    offset += PixelMcpOwnerTools.CHUNK
-                }
-                if (!(offset < size)) break
-
+            while (offset < size) {
                 store!!
-                    .getReadableDatabase()
+                    .readableDatabase
                     .rawQuery(
                         "SELECT substr(data,?,?) FROM mcp_uploads WHERE id=?",
                         arrayOf(
@@ -143,6 +136,7 @@ class LocalOwnerRepository : OwnerRepository {
                         }
                         out.write(row.getBlob(0))
                     }
+                offset += PixelMcpOwnerTools.CHUNK
             }
         }
         return out.toByteArray()
@@ -296,7 +290,7 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     fun asset(path: String): ByteArray {
-        context!!.getAssets().open(path).use { input ->
+        context!!.assets.open(path).use { input ->
             var out = ByteArrayOutputStream()
             val buffer = ByteArray(8192)
             var n: Int
@@ -410,7 +404,7 @@ class LocalOwnerRepository : OwnerRepository {
 
     @Throws(Exception::class)
     override fun enqueue(kind: String, payload: JSONObject, request: String): JSONObject {
-        val db = store!!.getWritableDatabase()
+        val db = store!!.writableDatabase
         store!!.beginBusinessTransaction(db)
         try {
             // All guards before Revier's optional detach see the same journal version.
@@ -584,7 +578,7 @@ class LocalOwnerRepository : OwnerRepository {
             a.put("kind", kind)
             a.put("payload", payload.toString())
             a.put("created_at", java.time.Instant.now().toString())
-            store!!.getWritableDatabase().insertOrThrow("pending", null, a)
+            store!!.writableDatabase.insertOrThrow("pending", null, a)
             var result =
                 JSONObject()
                     .put("client_id", request)
@@ -651,7 +645,7 @@ class LocalOwnerRepository : OwnerRepository {
                     (payload.getString("id") == added.getJSONObject("payload").optString("id"))
             ) {
                 store!!
-                    .getWritableDatabase()
+                    .writableDatabase
                     .delete("pending", "id=?", arrayOf(added.getString("client_id")))
             }
         }
@@ -776,7 +770,7 @@ class LocalOwnerRepository : OwnerRepository {
     }
 
     fun migratePersonalPaid(value: String): String {
-        val db = store!!.getWritableDatabase()
+        val db = store!!.writableDatabase
         db.beginTransaction()
         try {
             if (!("1" == store!!.ownerValue("personal_paid_migrated", ""))) {

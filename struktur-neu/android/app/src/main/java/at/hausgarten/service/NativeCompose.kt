@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,9 +27,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.semantics.testTag
-import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -151,11 +151,14 @@ internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null)
             style = MaterialTheme.typography.labelLarge,
         )
         if (onFilters != null)
-            TextButton({
-                keyboard?.hide()
-                focus.clearFocus()
-                onFilters()
-            }) {
+            TextButton(
+                modifier = Modifier.semantics { testTag = UiTags.FILTER },
+                onClick = {
+                    keyboard?.hide()
+                    focus.clearFocus()
+                    onFilters()
+                },
+            ) {
                 Text("Filter")
             }
     }
@@ -165,7 +168,13 @@ internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null)
 @Composable
 internal fun NativeBackButton(onBack: () -> Unit) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onBack, Modifier.semantics { contentDescription = "‹ Zurück"; testTag = UiTags.BACK }) {
+    IconButton(
+        onBack,
+        Modifier.semantics {
+            contentDescription = "‹ Zurück"
+            testTag = UiTags.BACK
+        },
+    ) {
         Canvas(Modifier.size(24.dp)) {
             val unit = size.minDimension / 24f
             drawLine(color, Offset(20 * unit, 12 * unit), Offset(4 * unit, 12 * unit), 2 * unit)
@@ -279,7 +288,9 @@ internal fun NativeActionBar(
                     if (secondaryLabel != null && onSecondary != null) {
                         OutlinedButton(
                             onSecondary,
-                            Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                            Modifier.semantics { testTag = UiTags.SECONDARY }
+                                .fillMaxWidth()
+                                .heightIn(min = 56.dp),
                             enabled = secondaryEnabled,
                             shape = MaterialTheme.shapes.medium,
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -289,7 +300,9 @@ internal fun NativeActionBar(
                     }
                     Button(
                         onPrimary,
-                        Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        Modifier.semantics { testTag = UiTags.PRIMARY }
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp),
                         enabled = enabled,
                         colors = primaryColors,
                         shape = MaterialTheme.shapes.medium,
@@ -307,7 +320,9 @@ internal fun NativeActionBar(
                     if (secondaryLabel != null && onSecondary != null) {
                         OutlinedButton(
                             onSecondary,
-                            Modifier.weight(1f).heightIn(min = 56.dp),
+                            Modifier.semantics { testTag = UiTags.SECONDARY }
+                                .weight(1f)
+                                .heightIn(min = 56.dp),
                             enabled = secondaryEnabled,
                             shape = MaterialTheme.shapes.medium,
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -317,7 +332,8 @@ internal fun NativeActionBar(
                     }
                     Button(
                         onPrimary,
-                        Modifier.weight(if (secondaryLabel == null) 1f else 1.25f)
+                        Modifier.semantics { testTag = UiTags.PRIMARY }
+                            .weight(if (secondaryLabel == null) 1f else 1.25f)
                             .heightIn(min = 56.dp),
                         enabled = enabled,
                         colors = primaryColors,

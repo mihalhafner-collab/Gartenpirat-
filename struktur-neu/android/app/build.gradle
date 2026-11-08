@@ -18,6 +18,10 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:22.0.0'
     syntheticDocumentProviderRuntime 'org.jetbrains.kotlin:kotlin-stdlib:2.2.10@jar'
     androidTestImplementation files(configurations.syntheticDocumentProviderRuntime)
+    // JVM contract suites (src/test) with real JSON and SQLite instead of Android stubs.
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+    testImplementation 'org.xerial:sqlite-jdbc:3.46.1.0'
 }
 
 // Mandatory for ALL future builds. Prevent accidental productive seed/config packaging.
@@ -78,20 +82,24 @@ android {
         buildConfigField 'boolean', 'SOURCE_DIRTY', releaseFingerprint.source_dirty.toString()
         minSdk 26
         targetSdk 37
-        versionCode 135
-        versionName '1.63.1'
+        versionCode 136
+        versionName '1.63.2'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
     lint {
         warningsAsErrors true
-        // Domain classes also compile on the plain JVM (tools/run-followup-java.py)
-        // without AndroidX, so AndroidX KTX shortcuts cannot be used there.
+        // Domain classes use framework APIs directly and stay free of AndroidX;
+        // KTX shortcuts would add a dependency without changing behavior.
         disable 'UseKtx'
         // commit() is intentional where a value must be on disk before continuing.
         disable 'ApplySharedPref'
         // Backups deliberately budget only immediately usable space.
         disable 'UsableSpace'
+    }
+
+    testOptions {
+        unitTests.all { maxHeapSize = '1g' }
     }
 
     // Release stays unsigned here; original signing: docs/entwicklung/SIGNIERUNG.md.

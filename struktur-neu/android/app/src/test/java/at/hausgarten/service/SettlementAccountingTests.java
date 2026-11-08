@@ -7,20 +7,20 @@ import org.json.*;
 public final class SettlementAccountingTests {
     private static int checks;
     private static void yes(boolean value,String message) { checks++;if(!value)throw new AssertionError(message); }
-    private static JSONObject copy(JSONObject value) { return new JSONObject(value.toString()); }
-    private static JSONObject order(String id,String status) { return new JSONObject().put("id",id).put("title","QA "+id).put("status",status).put("scheduled_date","2026-01-01").put("accounting_amount","9999.99"); }
-    private static JSONObject work(String id,String order,int billed,String date) { return new JSONObject().put("id",id).put("order_id",order).put("billed",billed).put("activity","QA "+id).put("work_date",date).put("property_id","qa_property"); }
-    private static JSONObject line(String id,String collection,String source,long amount) { return new JSONObject().put("id",id).put("source_collection",collection).put("source_id",source).put("amount_minor",amount); }
-    private static JSONObject settlement(String id,String status,String route,JSONObject... lines) {
+    private static JSONObject copy(JSONObject value) throws Exception { return new JSONObject(value.toString()); }
+    private static JSONObject order(String id,String status) throws Exception { return new JSONObject().put("id",id).put("title","QA "+id).put("status",status).put("scheduled_date","2026-01-01").put("accounting_amount","9999.99"); }
+    private static JSONObject work(String id,String order,int billed,String date) throws Exception { return new JSONObject().put("id",id).put("order_id",order).put("billed",billed).put("activity","QA "+id).put("work_date",date).put("property_id","qa_property"); }
+    private static JSONObject line(String id,String collection,String source,long amount) throws Exception { return new JSONObject().put("id",id).put("source_collection",collection).put("source_id",source).put("amount_minor",amount); }
+    private static JSONObject settlement(String id,String status,String route,JSONObject... lines) throws Exception {
         JSONArray refs=new JSONArray();Set<String>seen=new HashSet<>();
         for(JSONObject line:lines)if(!line.getString("source_collection").isEmpty()&&seen.add(line.getString("source_collection")+":"+line.getString("source_id"))) refs.put(new JSONObject().put("collection",line.getString("source_collection")).put("id",line.getString("source_id")));
         return new JSONObject().put("id",id).put("status",status).put("kind",route.equals("labor")?"internal":"invoice").put("route",route).put("title","QA Abschluss "+id).put("service_to","2026-02-01").put("issue_date","2026-11-06").put("positions",new JSONArray(Arrays.asList(lines))).put("sources",refs);
     }
-    private static JSONObject ledger(JSONObject... records) { return new JSONObject().put("records",new JSONArray(Arrays.asList(records))); }
-    private static List<JSONObject> rows(JSONObject master,JSONObject ledger,String...personal) { return AccountingRules.INSTANCE.project(master,new LinkedHashSet<>(Arrays.asList(personal)),new JSONArray(),ledger); }
-    private static JSONObject row(List<JSONObject>rows,String key) { return rows.stream().filter(row->row.getString("key").equals(key)).findFirst().orElseThrow(); }
-    private static long total(List<JSONObject>rows,String route) { long amount=0;for(JSONObject row:rows)if((row.getString("issue_code").equals("")||row.getString("issue_code").equals("partial_amount"))&&!row.isNull("amount_minor")&&(route.isEmpty()||route.equals(row.getString("route"))))amount=Math.addExact(amount,row.getLong("amount_minor"));return amount; }
-    public static void main(String[]args) {
+    private static JSONObject ledger(JSONObject... records) throws Exception { return new JSONObject().put("records",new JSONArray(Arrays.asList(records))); }
+    private static List<JSONObject> rows(JSONObject master,JSONObject ledger,String...personal) throws Exception { return AccountingRules.INSTANCE.project(master,new LinkedHashSet<>(Arrays.asList(personal)),new JSONArray(),ledger); }
+    private static JSONObject row(List<JSONObject>rows,String key) throws Exception { return rows.stream().filter(row->row.optString("key").equals(key)).findFirst().orElseThrow(); }
+    private static long total(List<JSONObject>rows,String route) throws Exception { long amount=0;for(JSONObject row:rows)if((row.getString("issue_code").equals("")||row.getString("issue_code").equals("partial_amount"))&&!row.isNull("amount_minor")&&(route.isEmpty()||route.equals(row.getString("route"))))amount=Math.addExact(amount,row.getLong("amount_minor"));return amount; }
+    public static void main(String[]args) throws Exception {
         JSONObject master=new JSONObject().put("orders",new JSONArray().put(order("o1","Abgerechnet")).put(order("o2","labor clandestinus")))
             .put("worklogs",new JSONArray().put(work("w1","o1",1,"2026-02-01")).put(work("w2","o2",0,"2026-02-02")));
         JSONObject invoice=settlement("invoice","confirmed","billed",line("p1","worklogs","w1",80000),line("p2","worklogs","w1",10000));

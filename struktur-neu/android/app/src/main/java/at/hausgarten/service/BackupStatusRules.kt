@@ -96,7 +96,7 @@ object BackupStatusRules {
                 proven &&
                     (clockInvalid(checked, now) ||
                         clockInvalid(capture, now) ||
-                        clockInvalid(archive!!.optString("localVerifiedAt"), now) ||
+                        clockInvalid(archive.optString("localVerifiedAt"), now) ||
                         instant(capture).isAfter(instant(checked)) ||
                         instant(archive.optString("localVerifiedAt")).isAfter(instant(checked)))
             clockReview = clockReview || badClock

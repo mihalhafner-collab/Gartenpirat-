@@ -92,7 +92,7 @@ class AppointmentRules {
             ) {
                 return 2
             }
-            return (if (((x && (y || until.isAfter(start))) || (y && (x || end.isAfter(other))))) 1
+            return (if ((x && (y || until.isAfter(start))) || (y && (x || end.isAfter(other)))) 1
             else 0)
         }
 
@@ -113,7 +113,7 @@ class AppointmentRules {
         fun local(value: String, zone: String, offset: String): Instant {
             val time: LocalDateTime = LocalDateTime.parse(value)
             var id: ZoneId = ZoneId.of(zone)
-            val valid: MutableList<ZoneOffset> = id.getRules().getValidOffsets(time)
+            val valid: MutableList<ZoneOffset> = id.rules.getValidOffsets(time)
             if (valid.isEmpty()) {
                 throw IllegalArgumentException(
                     "Diese Uhrzeit existiert wegen der Zeitumstellung nicht."
@@ -139,7 +139,7 @@ class AppointmentRules {
                     s.getJSONArray("customers"),
                     row.optString("customer_id"),
                 )
-            if (((customer == null) || ((old == null) && (customer!!.optInt("active", 1) == 0)))) {
+            if ((customer == null) || ((old == null) && (customer.optInt("active", 1) == 0))) {
                 throw IllegalArgumentException(
                     "Bitte einen vorhandenen aktiven Einsatzkunden wählen."
                 )
@@ -155,7 +155,7 @@ class AppointmentRules {
                 throw IllegalArgumentException("Bitte eine Tätigkeit eintragen.")
             }
             val zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))
-            row.put("timezone", zone.getId())
+            row.put("timezone", zone.id)
             val endValue: String = row.getString("ends_at")
             val open: Boolean = endValue.isEmpty()
             val start: Instant = instant(row.getString("starts_at"))
@@ -191,14 +191,14 @@ class AppointmentRules {
             }
             if (row.has("scope_refs")) {
                 val refs: JSONArray? = row.optJSONArray("scope_refs")
-                if ((refs == null) || (refs!!.length() > 200)) {
+                if ((refs == null) || (refs.length() > 200)) {
                     throw IllegalArgumentException("Ungültige Leistungsreferenzen.")
                 }
                 val seen: MutableSet<String> = HashSet()
                 run {
                     var i: Int = 0
-                    while (i < refs!!.length()) {
-                        val ref: String = refs!!.getString(i)
+                    while (i < refs.length()) {
+                        val ref: String = refs.getString(i)
                         val split: Int = ref.lastIndexOf('#')
                         if ((split < 1) || !seen.add(ref)) {
                             throw IllegalArgumentException(
@@ -287,15 +287,15 @@ class AppointmentRules {
             }
             if (
                 ((old != null) &&
-                    (!old!!.optString("customer_id").equals(row.optString("customer_id")) ||
-                        !old!!.optString("order_id").equals(orderId)))
+                    (!old.optString("customer_id").equals(row.optString("customer_id")) ||
+                        !old.optString("order_id").equals(orderId)))
             ) {
                 throw IllegalArgumentException(
                     "Die ursprüngliche Kundenzuordnung bleibt erhalten. Bei falschem Kontext Termin absagen und neu planen."
                 )
             }
             if (
-                (((old != null) && old!!.optString("status").equals("cancelled")) &&
+                (((old != null) && old.optString("status").equals("cancelled")) &&
                     !row.optString("status").equals("cancelled"))
             ) {
                 throw IllegalArgumentException(
@@ -303,7 +303,7 @@ class AppointmentRules {
                 )
             }
             if (
-                (((old != null) && !old!!.optString("status").equals("draft")) &&
+                (((old != null) && !old.optString("status").equals("draft")) &&
                     row.optString("status").equals("draft"))
             ) {
                 throw IllegalArgumentException(
@@ -316,8 +316,8 @@ class AppointmentRules {
             var all: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
-                while ((all != null) && (i < all!!.length())) {
-                    val other: JSONObject = all!!.getJSONObject(i)
+                while ((all != null) && (i < all.length())) {
+                    val other: JSONObject = all.getJSONObject(i)
                     if (
                         ((row.getString("id").equals(other.optString("id")) || !active(other)) ||
                             other.optString("status").equals("draft"))
@@ -363,8 +363,8 @@ class AppointmentRules {
             val changes: JSONObject? = (if (create) a else a.optJSONObject("updates"))
             if (changes != null) {
                 for (key in FIELDS) {
-                    if (changes!!.has(key)) {
-                        row.put(key, changes!!.get(key))
+                    if (changes.has(key)) {
+                        row.put(key, changes.get(key))
                     }
                 }
             }
@@ -393,8 +393,8 @@ class AppointmentRules {
             var all: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
-                while ((all != null) && (i < all!!.length())) {
-                    rows.add(all!!.getJSONObject(i))
+                while ((all != null) && (i < all.length())) {
+                    rows.add(all.getJSONObject(i))
                     i++
                 }
             }
@@ -411,8 +411,8 @@ class AppointmentRules {
             val rows: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
-                while ((rows != null) && (i < rows!!.length())) {
-                    if (id.equals(rows!!.getJSONObject(i).optString("" + entity + "_id"))) {
+                while ((rows != null) && (i < rows.length())) {
+                    if (id.equals(rows.getJSONObject(i).optString("" + entity + "_id"))) {
                         throw IllegalArgumentException(
                             "Zugeordnete Termine zuerst in den Papierkorb verschieben. Terminverlauf und Kundenbeziehungen bleiben geschützt."
                         )
@@ -427,8 +427,8 @@ class AppointmentRules {
         fun worklog(row: JSONObject, old: JSONObject?, snapshot: JSONObject) {
             var id: String = row.optString("appointment_id")
             if (
-                (((old != null) && !old!!.optString("appointment_id").isEmpty()) &&
-                    !old!!.optString("appointment_id").equals(id))
+                (((old != null) && !old.optString("appointment_id").isEmpty()) &&
+                    !old.optString("appointment_id").equals(id))
             ) {
                 throw IllegalArgumentException(
                     "Die ursprüngliche Terminreferenz der Arbeit bleibt erhalten."
