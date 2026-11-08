@@ -427,7 +427,19 @@ internal fun NativeInfoRow(
     isSelected: Boolean = false,
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .then(
+                    if (onClick != null && onLongClick != null)
+                        Modifier.combinedClickable(
+                            onClick = onClick,
+                            onLongClick = onLongClick,
+                            onLongClickLabel = "Auswählen",
+                        )
+                    else if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+                ),
         shape = MaterialTheme.shapes.large,
         color =
             if (isSelected) MaterialTheme.colorScheme.secondaryContainer
@@ -441,15 +453,6 @@ internal fun NativeInfoRow(
     ) {
         Row(
             Modifier.fillMaxWidth()
-                .then(
-                    if (onClick != null && onLongClick != null)
-                        Modifier.combinedClickable(
-                            onClick = onClick,
-                            onLongClick = onLongClick,
-                            onLongClickLabel = "Auswählen",
-                        )
-                    else if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
-                )
                 .heightIn(min = 64.dp)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,

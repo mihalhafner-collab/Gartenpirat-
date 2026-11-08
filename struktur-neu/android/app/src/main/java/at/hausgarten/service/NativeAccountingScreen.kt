@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +31,7 @@ internal fun NativeAccounting(controller: NativeAppController) {
                 Tab(
                     selected = tab == index,
                     onClick = { tab = index },
+                    modifier = Modifier.semantics { testTag = UiTags.billingTab(index) },
                     text = { Text(label, maxLines = 2) },
                 )
             }

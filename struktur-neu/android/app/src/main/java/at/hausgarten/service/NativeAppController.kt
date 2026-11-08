@@ -68,6 +68,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
         get() = NativeImages.loader(context)
 
     val messages = MutableStateFlow("")
+    var listActions by mutableStateOf<List<JSONObject>>(emptyList())
     var route by mutableStateOf(NativeRoute())
         private set
 
@@ -138,6 +139,12 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun openMore() {
         areaNavigation.remove("office")
         navigate("office")
+    }
+
+    /** An entry in More opens its overview while retaining that list's filters and position. */
+    fun openOverview(section: String) {
+        navigate(section)
+        if (section in mainAreas) openSection(section)
     }
 
     fun openSection(section: String) {

@@ -550,75 +550,86 @@ private fun PlanningList(
                 if (!listLoading && failure.isEmpty() && page.rows.isEmpty())
                     item { Text("Keine Termine in diesem Zeitraum. Zeitraum und Filter prüfen.") }
                 items(page.rows.sortedBy { it.workDate }, key = { it.id }) { row ->
-                    OutlinedCard(
-                        Modifier.fillMaxWidth().clickable { onSelect(row.id) },
-                        colors =
-                            CardDefaults.outlinedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    NativeSwipeRow(
+                        controller,
+                        "appointment",
+                        row.id,
+                        positive =
+                            if (row.status !in setOf("completed", "cancelled")) "Erledigt" else "",
                     ) {
-                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                            Surface(
-                                Modifier.width(4.dp).fillMaxHeight(),
-                                color = MaterialTheme.colorScheme.primary,
-                            ) {}
-                            Column(
-                                Modifier.weight(1f).padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                if (row.workDate.isNotBlank())
+                        OutlinedCard(
+                            Modifier.fillMaxWidth().clickable { onSelect(row.id) },
+                            colors =
+                                CardDefaults.outlinedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        ) {
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                                Surface(
+                                    Modifier.width(4.dp).fillMaxHeight(),
+                                    color = MaterialTheme.colorScheme.primary,
+                                ) {}
+                                Column(
+                                    Modifier.weight(1f).padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    if (row.workDate.isNotBlank())
+                                        Text(
+                                            nativeDisplayDate(row.workDate),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
                                     Text(
-                                        nativeDisplayDate(row.workDate),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        row.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
                                     )
-                                Text(
-                                    row.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    nativeDisplayText(row.subtitle),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                NativeStatus(planningStatuses[row.status] ?: row.status)
-                                val entry = risks[row.id]
-                                val risk = entry?.optJSONObject("weather")
-                                if (weatherView) {
                                     Text(
-                                        if (risk?.optString("checked_at").isNullOrBlank())
-                                            "Wetter noch nicht geprüft"
-                                        else risk?.optString("label").orEmpty()
+                                        nativeDisplayText(row.subtitle),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
-                                    if (risk?.optString("location_precision") == "locality")
-                                        Text("Ortsvorhersage · " + risk.optString("location_area"))
-                                    val reasons = risk?.optJSONArray("reasons")
-                                    if (reasons != null)
-                                        for (i in 0 until reasons.length()) Text(
-                                            reasons.optString(i),
-                                            style = MaterialTheme.typography.bodySmall,
+                                    NativeStatus(planningStatuses[row.status] ?: row.status)
+                                    val entry = risks[row.id]
+                                    val risk = entry?.optJSONObject("weather")
+                                    if (weatherView) {
+                                        Text(
+                                            if (risk?.optString("checked_at").isNullOrBlank())
+                                                "Wetter noch nicht geprüft"
+                                            else risk?.optString("label").orEmpty()
+                                        )
+                                        if (risk?.optString("location_precision") == "locality")
+                                            Text(
+                                                "Ortsvorhersage · " +
+                                                    risk.optString("location_area")
+                                            )
+                                        val reasons = risk?.optJSONArray("reasons")
+                                        if (reasons != null)
+                                            for (i in 0 until reasons.length()) Text(
+                                                reasons.optString(i),
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                    }
+                                    if (
+                                        entry?.optJSONObject("calendar")?.optString("state") ==
+                                            "review_required"
+                                    )
+                                        Text(
+                                            "Kalenderänderung prüfen",
+                                            color = MaterialTheme.colorScheme.error,
+                                        )
+                                    if (
+                                        (entry
+                                            ?.optJSONObject("collisions")
+                                            ?.optJSONArray("conflicts")
+                                            ?.length() ?: 0) > 0
+                                    )
+                                        Text(
+                                            "Mögliche Terminkollision prüfen",
+                                            color = MaterialTheme.colorScheme.error,
                                         )
                                 }
-                                if (
-                                    entry?.optJSONObject("calendar")?.optString("state") ==
-                                        "review_required"
-                                )
-                                    Text(
-                                        "Kalenderänderung prüfen",
-                                        color = MaterialTheme.colorScheme.error,
-                                    )
-                                if (
-                                    (entry
-                                        ?.optJSONObject("collisions")
-                                        ?.optJSONArray("conflicts")
-                                        ?.length() ?: 0) > 0
-                                )
-                                    Text(
-                                        "Mögliche Terminkollision prüfen",
-                                        color = MaterialTheme.colorScheme.error,
-                                    )
                             }
                         }
                     }

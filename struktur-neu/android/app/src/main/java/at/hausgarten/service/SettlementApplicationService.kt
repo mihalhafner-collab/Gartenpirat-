@@ -29,6 +29,14 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
             when (name) {
                 "save_settlement_draft" -> {
                     val actualId = id.ifBlank { "st_" + PixelMcpWriteTools.hash(request).take(32) }
+                    require(
+                        actualId !in
+                            AccountingRules.ids(
+                                ledger.optJSONArray("deleted_drafts") ?: JSONArray()
+                            )
+                    ) {
+                        "Dieser Entwurf wurde gelöscht. Bitte eine neue Abrechnung anlegen."
+                    }
                     val old =
                         SettlementRules.records(ledger).firstOrNull {
                             it.getString("id") == actualId
@@ -45,6 +53,25 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                         .put("settlement_id", actualId)
                         .put("record_hash", SettlementRules.hash(draft))
                         .put("status", "draft")
+                }
+                "delete_settlement_draft" -> {
+                    val old = SettlementRules.find(ledger, id)
+                    require(old.optString("status") == "draft" && args.getBoolean("confirmed")) {
+                        "Nur einen noch nicht vorbereiteten Entwurf löschen. Abschlüsse bleiben geschützt."
+                    }
+                    expected(old, args)
+                    records.remove(
+                        (0 until records.length()).single {
+                            records.getJSONObject(it).optString("id") == id
+                        }
+                    )
+                    val removed =
+                        ledger.optJSONArray("deleted_drafts")
+                            ?: JSONArray().also { ledger.put("deleted_drafts", it) }
+                    removed.put(id)
+                    for (key in listOf("settlement-editor:$id", "settlement-review:$id")) repository
+                        .putOwnerValue("native_form_draft:" + PixelMcpWriteTools.hash(key), "")
+                    JSONObject().put("settlement_id", id).put("deleted", true)
                 }
                 "prepare_settlement" -> {
                     require(repository.ownerValue("personal_paid_migrated", "") == "1") {

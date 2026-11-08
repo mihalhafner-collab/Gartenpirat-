@@ -114,6 +114,7 @@ internal fun NativeApplication(controller: NativeAppController) {
     val scope = rememberCoroutineScope()
     val routeStates = rememberSaveableStateHolder()
     val snackbar = remember { SnackbarHostState() }
+    NativeListUndo(controller, snackbar)
     LaunchedEffect(notice) {
         if (notice.isBlank()) return@LaunchedEffect
         snackbar.showSnackbar(notice, withDismissAction = true, duration = SnackbarDuration.Long)
@@ -165,7 +166,25 @@ internal fun NativeApplication(controller: NativeAppController) {
         Scaffold(
             modifier = Modifier.weight(1f),
             containerColor = MaterialTheme.colorScheme.background,
-            snackbarHost = { SnackbarHost(snackbar) },
+            snackbarHost = {
+                SnackbarHost(snackbar) { data ->
+                    if (data.visuals.actionLabel == "Rückgängig")
+                        Snackbar(
+                            actionOnNewLine = LocalDensity.current.fontScale > 1.3f,
+                            action = {
+                                TextButton(
+                                    { data.performAction() },
+                                    Modifier.semantics { testTag = UiTags.UNDO },
+                                ) {
+                                    Text("Rückgängig")
+                                }
+                            },
+                        ) {
+                            Text(data.visuals.message)
+                        }
+                    else Snackbar(data)
+                }
+            },
             topBar = {
                 if (!imeVisible)
                     Column(Modifier.statusBarsPadding()) {
@@ -615,7 +634,12 @@ private fun NativeOffice(controller: NativeAppController) {
                 )
             }
             items(rows, key = { it.first }) { (section, title, subtitle) ->
-                NativeInfoRow(title, subtitle, { controller.navigate(section) })
+                NativeInfoRow(
+                    title,
+                    subtitle,
+                    { controller.openOverview(section) },
+                    modifier = Modifier.semantics { testTag = UiTags.area(section) },
+                )
             }
         }
     }
@@ -1817,90 +1841,105 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     }
                 }
             items(page.rows, key = { it.id }) { row ->
-                val worklog = collection == "worklogs"
-                val checked = row.id in selected
-                val open =
-                    openHours[row.id]
-                        ?.takeIf { it > 0 }
-                        ?.let { nativeDuration(it) + " offen" }
-                        .orEmpty()
-                NativeInfoRow(
-                    row.title,
-                    listOf(row.address, nativeDisplayText(row.subtitle), open)
-                        .filter { it.isNotBlank() }
-                        .distinct()
-                        .joinToString(" · "),
-                    {
-                        if (worklog && selected.isNotEmpty()) {
-                            toggleSelection(row.id)
-                        } else
-                            controller.navigate(
-                                collection,
-                                row.id,
-                                mode =
-                                    if (
-                                        collection == "customers" &&
-                                            controller.route.args.optBoolean("_note_first")
-                                    )
-                                        "edit"
-                                    else "list",
-                                args =
-                                    JSONObject(controller.route.args.toString())
-                                        .put("customer_id", customer)
-                                        .put("date_from", from)
-                                        .put("date_to", to),
-                            )
-                    },
-                    modifier =
-                        Modifier.semantics {
-                            if (worklog) {
-                                this.selected = checked
-                                stateDescription =
-                                    if (checked) "Ausgewählt" else "Zum Auswählen gedrückt halten"
-                            }
+                NativeSwipeRow(
+                    controller,
+                    primaryKind(collection),
+                    row.id,
+                    positive =
+                        if (
+                            collection == "orders" &&
+                                row.status !in setOf("Erledigt", "Abgerechnet")
+                        )
+                            "Erledigt"
+                        else "",
+                    enabled = selected.isEmpty() && !deleting,
+                ) {
+                    val worklog = collection == "worklogs"
+                    val checked = row.id in selected
+                    val open =
+                        openHours[row.id]
+                            ?.takeIf { it > 0 }
+                            ?.let { nativeDuration(it) + " offen" }
+                            .orEmpty()
+                    NativeInfoRow(
+                        row.title,
+                        listOf(row.address, nativeDisplayText(row.subtitle), open)
+                            .filter { it.isNotBlank() }
+                            .distinct()
+                            .joinToString(" · "),
+                        {
+                            if (worklog && selected.isNotEmpty()) {
+                                toggleSelection(row.id)
+                            } else
+                                controller.navigate(
+                                    collection,
+                                    row.id,
+                                    mode =
+                                        if (
+                                            collection == "customers" &&
+                                                controller.route.args.optBoolean("_note_first")
+                                        )
+                                            "edit"
+                                        else "list",
+                                    args =
+                                        JSONObject(controller.route.args.toString())
+                                            .put("customer_id", customer)
+                                            .put("date_from", from)
+                                            .put("date_to", to),
+                                )
                         },
-                    leading =
-                        if (collection == "customers") ({ NativeInitials(row.title) })
-                        else if (worklog)
-                            ({
-                                Surface(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                ) {
-                                    Box(
-                                        Modifier.sizeIn(minWidth = 40.dp, minHeight = 40.dp)
-                                            .padding(8.dp),
-                                        contentAlignment = Alignment.Center,
+                        modifier =
+                            Modifier.semantics {
+                                if (worklog) {
+                                    this.selected = checked
+                                    stateDescription =
+                                        if (checked) "Ausgewählt"
+                                        else "Zum Auswählen gedrückt halten"
+                                }
+                            },
+                        leading =
+                            if (collection == "customers") ({ NativeInitials(row.title) })
+                            else if (worklog)
+                                ({
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                     ) {
-                                        if (worklog && !checked) NativeAreaIcon("worklogs")
-                                        else
-                                            Text(
-                                                "✓",
-                                                style = MaterialTheme.typography.labelLarge,
-                                                maxLines = 1,
-                                                softWrap = false,
-                                            )
+                                        Box(
+                                            Modifier.sizeIn(minWidth = 40.dp, minHeight = 40.dp)
+                                                .padding(8.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            if (worklog && !checked) NativeAreaIcon("worklogs")
+                                            else
+                                                Text(
+                                                    "✓",
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    maxLines = 1,
+                                                    softWrap = false,
+                                                )
+                                        }
                                     }
-                                }
-                            })
-                        else null,
-                    onLongClick =
-                        if (worklog)
-                            ({
-                                if (!deleting) {
-                                    keyboard?.hide()
-                                    focus.clearFocus()
-                                    filtersOpen = false
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    toggleSelection(row.id)
-                                }
-                            })
-                        else null,
-                    isSelected = checked,
-                )
-                if (row.status.isNotBlank() && !worklog && collection != "customers")
-                    NativeStatus(nativeValue(row.status))
+                                })
+                            else null,
+                        onLongClick =
+                            if (worklog)
+                                ({
+                                    if (!deleting) {
+                                        keyboard?.hide()
+                                        focus.clearFocus()
+                                        filtersOpen = false
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        toggleSelection(row.id)
+                                    }
+                                })
+                            else null,
+                        isSelected = checked,
+                    )
+                    if (row.status.isNotBlank() && !worklog && collection != "customers")
+                        NativeStatus(nativeValue(row.status))
+                }
             }
             if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty())
                 item {

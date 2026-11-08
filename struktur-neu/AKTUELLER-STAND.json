@@ -52,19 +52,18 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Version 1.66.2/141: Oberfläche Schritte 2–4; CI-Korrekturen in PR #21",
-    "status": "Schritte 2–4 in PR #21: gruppierte Suche mit Anrufen, Route und zuletzt Geöffnetem; Detailseiten mit Gehört-zu-Chips, Ergänzen, nächsten Aktionen und seltenen Aktionen im Menü; Abrechnung mit einem Ausstellen-Knopf, Stundensatz und Fortschritt fertig → abgerechnet → bezahlt. Querformat-Listen und Vollformularprüfung im Lauf 42494724116 grün. Die Suchauswahl wartet nun vor echter Berührung auf stabile Bildschirmgeometrie nach Tastatur-/Systemleistenanimation und adressiert den Treffer per Test-Tag; die gewählte Kunden-ID wird im Entwurf nachgelesen. Keine Tests deaktiviert oder übersprungen. Keine Installation oder Verteilung.",
-    "owner_instruction": "Eigentümer 08.11.2026: Konzept „Gartenpirat Optik-Entwürfe“ abarbeiten, Abrechnung zuerst, dann der Rest.",
+    "name": "Version 1.67.3/145: Oberfläche Schritt 5 – Wischen in Listen",
+    "status": "Wischen nach rechts markiert offene Aufträge, Einsätze und Termine als erledigt oder interne Abschlüsse als bezahlt; nach links wird gelöscht. Ausgestellte Rechnungen und vorbereitete Abschlüsse sind gegen Wischen geschützt. Snackbar Rückgängig für genau fünf Sekunden; der gemeinsame Fachschreiber führt erst danach aus. Dauerhafte Warteschlange über bestehenden owner_state, Wiederholungsschutz und Schutz nach Wiederherstellung. Bestehende undoRemoveEntity und remainingDeleteUndoMs einbezogen. Abrechnungsentwürfe lassen sich geschützt endgültig löschen; abgeschlossene Belege und Zahlungen bleiben erhalten. Neue MCP-Werkzeuge und zehn JVM-Tests sowie Emulatorablauf list_actions. Kein SQLite-Schemawechsel; pixel.snapshot.v2 unverändert. Keine Installation oder Verteilung. Fehlgeschlagene Datenbanktransaktionen beim Vormerken oder Bestätigen stoppen den Hintergrundablauf ohne App-Abbruch; die ursprüngliche Aktion bleibt für den nächsten Start erhalten. Emulatorablauf erzwingt einen solchen Fehler per SQLite-Trigger und prüft Fortsetzung nach Neustart. NativeInfoRow trägt Tag und Klick auf derselben Oberfläche. Mehr → Arbeiten öffnet die Übersicht mit erhaltenen Filtern; die überholte Mehrfach-Zurück-Schleife im Test ist entfernt. Der Auftragspunktleser liefert den Datensatz direkt: Wischen verwendet jetzt denselben Vergleichshash wie update_order. Neuer JVM-Regressionstest prüft den echten Lesevertrag, unveränderte Notizen und Ablehnung bei zwischenzeitlicher Änderung. Der Emulatorauftrag trägt die üblichen Erstellungs- und Änderungszeitpunkte.",
+    "owner_instruction": "Eigentümer 08.11.2026: Schritte 5–8 jeweils eigener PR nach main; vor jedem Schritt Branch neu ab origin/main, Merge nur nach vollem grünem PR-CI-Lauf.",
     "validation": {
-      "source": "PASS; check_current.py und Release-Baseline für 1.66.2/141.",
-      "android": "PASS lokal für den vollständigen Stand 1.66.2/141; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Befunde), testReleaseUnitTest (alle 12 Vertragssuiten ohne Fehler oder übersprungene Tests).",
-      "ci_gate": "Voller PR-Lauf 42494724116: build grün, emulator rot, nur search_keyboard (erneutes Öffnen der Tastatur verschiebt den Treffer während der Koordinatenprüfung). Neuer voller PR-Lauf nach Korrektur erforderlich."
+      "source": "PASS; check_current.py und Release-Baseline für 1.67.3/145.",
+      "android": "PASS lokal für den Test-Commit bei unverändertem App-Code 1.67.3/145: assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Befunde) und testReleaseUnitTest (22 Tests, keine Fehler oder übersprungenen Tests). Rückgängig wird über denselben testTag ohne Listenscroll betätigt; sämtliche fachlichen Ergebnisprüfungen bleiben erhalten. Emulator ausschließlich in CI.",
+      "ci_gate": "PR #21 nach vollem grünem Lauf 42499798100 gemergt. PR #22: voller Lauf 42519366629: build grün; im Emulator allein list_actions rot (CLICK_action:undo, Zeile 4726). Die allgemeine Klickhilfe startete bei noch nicht sichtbarer Snackbar einen Listenscroll und verbrauchte damit das feste Fünf-Sekunden-Fenster. Beide Rückgängig-Zugriffe warten jetzt mit scrollTo=false direkt auf denselben festen testTag. Alle Fachprüfungen einschließlich Rückgängig bleiben erhalten. Keine App-Code-Änderung, Version weiter 1.67.3/145. Neuer voller PR-Lauf nach Push erforderlich; Merge erst nach grünem build und emulator."
     },
     "next": [
-      "Schritt 5: Wischen in Listen (rechts positive Aktion, links löschen) mit 5 s „Rückgängig“.",
-      "Schritt 6: Planung Tag · Woche · Karte.",
+      "Schritt 6: Planung Tag · Woche · Karte, langes Drücken und Ziehen, Wetterwarnungen im Raster und Tour mit Reihenfolge und Navigation starten.",
       "Schritt 7: Objekt-Zeitleiste; Objekt-, Einsatz-, Termin-, Foto- und Abschlussdetail im Aufbau von Schritt 3.",
-      "Schritt 8: Prüfungen im Hintergrund, Leerzustände mit erster Aktion, Snackbar mit „Ansehen“; optional dunkle Ansicht."
+      "Schritt 8: Prüfungen im Hintergrund, Wiederherstellung als Hinweisbalken, Leerzustände mit erster Aktion, Snackbar mit Ansehen; optional dunkle Ansicht."
     ]
   },
   "open_checks": [

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -130,7 +131,10 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
     var attempt by remember { mutableIntStateOf(0) }
     var paying by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(attempt) {
+    val committed by
+        remember(controller) { controller.store.nativeData().watchCommittedChanges() }
+            .collectAsStateWithLifecycle(-1L)
+    LaunchedEffect(attempt, committed) {
         try {
             result = controller.query("list_settlements")
             error = ""
@@ -173,68 +177,90 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
             if (result == null && error.isEmpty())
                 item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             items(records, key = { it.getString("id") }) { record ->
-                NativeInfoRow(
-                    record.optString("title").ifBlank { "Abschluss" },
-                    listOf(
-                            AccountingRules.label(record.optString("route")),
-                            settlementStatus(record),
-                            record.optString("invoice_number"),
-                            if (record.has("total_minor"))
-                                settlementMoney(record.optLong("total_minor"))
-                            else "Betrag ausstehend",
-                        )
-                        .filter { it.isNotBlank() }
-                        .joinToString(" · "),
-                    { controller.navigate("settlement_review", record.getString("id")) },
-                )
-                val open = settlementOpen(record)
-                when (record.optString("status")) {
-                    "draft" -> NativeProgressSteps(1)
-                    "prepared" -> NativeProgressSteps(2)
-                    "confirmed" ->
-                        NativeProgressSteps(if (open > 0) 2 else 3, paymentOpen = open > 0)
-                }
-                if (open > 0)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        NativeStatus("Offen " + settlementMoney(open), NativeStatusTone.Attention)
-                        Button(
-                            {
-                                val id = record.getString("id")
-                                paying = id
-                                scope.launch {
-                                    try {
-                                        controller.message(
-                                            "Bezahlt erfasst: " +
-                                                settlementMoney(settlementPaid(controller, id))
-                                        )
-                                    } catch (cancelled: CancellationException) {
-                                        throw cancelled
-                                    } catch (failure: Exception) {
-                                        controller.message(
-                                            failure.message
-                                                ?: "Zahlung nicht bestätigt. Bitte im Abschluss prüfen."
-                                        )
-                                    } finally {
-                                        paying = ""
-                                        attempt++
-                                    }
-                                }
-                            },
-                            enabled = paying.isEmpty(),
-                        ) {
-                            Text(
-                                if (paying == record.getString("id")) "Wird erfasst …"
-                                else "Bezahlt"
+                NativeSwipeRow(
+                    controller,
+                    "settlement",
+                    record.getString("id"),
+                    canDelete = record.optString("status") == "draft",
+                    positive =
+                        if (record.optString("kind") == "internal" && settlementOpen(record) > 0)
+                            "Bezahlt"
+                        else "",
+                ) {
+                    NativeInfoRow(
+                        record.optString("title").ifBlank { "Abschluss" },
+                        listOf(
+                                AccountingRules.label(record.optString("route")),
+                                settlementStatus(record),
+                                record.optString("invoice_number"),
+                                if (record.has("total_minor"))
+                                    settlementMoney(record.optLong("total_minor"))
+                                else "Betrag ausstehend",
                             )
-                        }
+                            .filter { it.isNotBlank() }
+                            .joinToString(" · "),
+                        { controller.navigate("settlement_review", record.getString("id")) },
+                    )
+                    val open = settlementOpen(record)
+                    when (record.optString("status")) {
+                        "draft" -> NativeProgressSteps(1)
+                        "prepared" -> NativeProgressSteps(2)
+                        "confirmed" ->
+                            NativeProgressSteps(if (open > 0) 2 else 3, paymentOpen = open > 0)
                     }
-                else if (
-                    record.optString("status") == "confirmed" && record.optLong("total_minor") > 0
-                )
-                    NativeStatus("Bezahlt", NativeStatusTone.Confirmed)
+                    if (open > 0)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            NativeStatus(
+                                "Offen " + settlementMoney(open),
+                                NativeStatusTone.Attention,
+                            )
+                            Button(
+                                {
+                                    val id = record.getString("id")
+                                    paying = id
+                                    scope.launch {
+                                        try {
+                                            controller.message(
+                                                "Bezahlt erfasst: " +
+                                                    settlementMoney(settlementPaid(controller, id))
+                                            )
+                                        } catch (cancelled: CancellationException) {
+                                            throw cancelled
+                                        } catch (failure: Exception) {
+                                            controller.message(
+                                                failure.message
+                                                    ?: "Zahlung nicht bestätigt. Bitte im Abschluss prüfen."
+                                            )
+                                        } finally {
+                                            paying = ""
+                                            attempt++
+                                        }
+                                    }
+                                },
+                                enabled =
+                                    paying.isEmpty() &&
+                                        controller.listActions.none { queued ->
+                                            ("settlement" to record.getString("id")) in
+                                                ListActionTools.targets(queued) &&
+                                                queued.optString("state") in
+                                                    setOf("queued", "applying", "uncertain")
+                                        },
+                            ) {
+                                Text(
+                                    if (paying == record.getString("id")) "Wird erfasst …"
+                                    else "Bezahlt"
+                                )
+                            }
+                        }
+                    else if (
+                        record.optString("status") == "confirmed" &&
+                            record.optLong("total_minor") > 0
+                    )
+                        NativeStatus("Bezahlt", NativeStatusTone.Confirmed)
+                }
             }
             if (result != null && records.isEmpty())
                 item { Text("Keine Abschlüsse für diese Suche.") }

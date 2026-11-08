@@ -45,6 +45,7 @@ internal class PixelMcpOwnerTools {
             LocalWorkflowTools.concat(
                 arrayOf(
                     "save_settlement_draft",
+                    "delete_settlement_draft",
                     "prepare_settlement",
                     "complete_settlement",
                     "correct_settlement",
@@ -113,6 +114,7 @@ internal class PixelMcpOwnerTools {
                                     "destructiveHint",
                                     (Arrays.asList(
                                             "empty_trash",
+                                            "delete_settlement_draft",
                                             "archive_work_records",
                                             "delete_work_records",
                                             "set_work_record_billed",

@@ -100,6 +100,7 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                 result.put("storage_cleanup_pending", true)
             }
         }
+        if (name == "queue_list_action") ListActionRunner.schedule(context)
         MainActivity.refreshBusinessView()
         if (AppointmentTools.write(name)) {
             PlanningJob.schedule(context, 1000)

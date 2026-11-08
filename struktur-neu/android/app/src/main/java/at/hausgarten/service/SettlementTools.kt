@@ -16,6 +16,7 @@ internal object SettlementTools {
     val WRITES =
         arrayOf(
             "save_settlement_draft",
+            "delete_settlement_draft",
             "prepare_settlement",
             "complete_settlement",
             "correct_settlement",
@@ -54,6 +55,7 @@ internal object SettlementTools {
                 setOf(
                     "get_settlement",
                     "get_settlement_pdf",
+                    "delete_settlement_draft",
                     "prepare_settlement",
                     "complete_settlement",
                     "correct_settlement",
@@ -69,6 +71,7 @@ internal object SettlementTools {
             name in
                 setOf(
                     "correct_settlement",
+                    "delete_settlement_draft",
                     "abandon_prepared_settlement",
                     "add_settlement_payment",
                     "record_settlement_delivery",
@@ -78,6 +81,10 @@ internal object SettlementTools {
             required.add("expected_record_hash")
         }
         when (name) {
+            "delete_settlement_draft" -> {
+                p.put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
+                required.add("confirmed")
+            }
             "save_settlement_draft" -> {
                 p.put("settlement_id", string()).put("expected_record_hash", McpFields.hash())
                 val draft =
@@ -162,6 +169,8 @@ internal object SettlementTools {
 
     fun description(name: String) =
         when (name) {
+            "delete_settlement_draft" ->
+                "Löscht ausschließlich einen unveränderten, unvorbereiteten Abrechnungsentwurf mit aktuellem record_hash endgültig. Vorbereitete und ausgestellte Abschlüsse, Zahlungen und Nummern bleiben geschützt. Dieselbe request_id wiederholen; gelöschte Entwurfs-IDs werden nicht erneut verwendet."
             "abandon_prepared_settlement" ->
                 "Hebt ausdrücklich nur eine noch nicht abgeschlossene Vorbereitung mit Begründung auf. Reservierte Nummer und eingefrorene Historie bleiben erhalten und werden nie wiederverwendet. Kein künstlicher Stornobeleg. Bestätigte Belege nur über Storno oder interne Korrektur berichtigen; restaurierte Vorbereitungen zuvor aktuell abgleichen."
             "prepare_settlement" ->

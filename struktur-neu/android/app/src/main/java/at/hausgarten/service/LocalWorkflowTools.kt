@@ -60,10 +60,17 @@ internal class LocalWorkflowTools {
         val OFFER_DECISION_WRITES: Array<String> =
             arrayOf("record_offer_acceptance", "decline_offer")
         @JvmField
-        val READS: Array<String> = concat(concat(BACKUP_READS, REVIER_READS), OFFER_DECISION_READS)
+        val READS: Array<String> =
+            concat(
+                concat(concat(BACKUP_READS, REVIER_READS), OFFER_DECISION_READS),
+                ListActionTools.READS,
+            )
         @JvmField
         val WRITES: Array<String> =
-            concat(concat(BACKUP_WRITES, REVIER_WRITES), OFFER_DECISION_WRITES)
+            concat(
+                concat(concat(BACKUP_WRITES, REVIER_WRITES), OFFER_DECISION_WRITES),
+                ListActionTools.WRITES,
+            )
 
         @JvmStatic
         fun concat(first: Array<String>, second: Array<String>): Array<String> {
@@ -82,7 +89,9 @@ internal class LocalWorkflowTools {
             return (REVIER_READS.asList().contains(name) || REVIER_WRITES.asList().contains(name))
         }
 
-        @JvmStatic fun critical(name: String): Boolean = name == "purge_revier_entity"
+        @JvmStatic
+        fun critical(name: String): Boolean =
+            name in setOf("purge_revier_entity", "queue_list_action")
 
         @JvmStatic
         fun offerDecision(name: String): Boolean {
@@ -92,7 +101,10 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun handles(name: String): Boolean {
-            return backup(name) || revier(name) || offerDecision(name)
+            return backup(name) ||
+                revier(name) ||
+                offerDecision(name) ||
+                ListActionTools.handles(name)
         }
 
         @JvmStatic
@@ -102,6 +114,7 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun description(name: String): String {
+            if (ListActionTools.handles(name)) return ListActionTools.description(name)
             if (name == "save_equipment") {
                 return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
             }
@@ -363,6 +376,7 @@ internal class LocalWorkflowTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
+            if (ListActionTools.handles(name)) return ListActionTools.schema(name)
             if (!(handles(name))) {
                 throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
             }

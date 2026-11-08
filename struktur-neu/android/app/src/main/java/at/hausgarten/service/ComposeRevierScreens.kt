@@ -541,28 +541,40 @@ private fun RevierList(
                     )
                 }
             items(page.rows, key = { it.id }) { row ->
-                ListItem(
-                    headlineContent = { Text(row.title) },
-                    supportingContent = {
-                        Column {
-                            if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
-                            if (row.address.isNotBlank()) Text(row.address)
-                            if (row.status.isNotBlank())
-                                NativeStatus(
-                                    revierLabel(row.status),
-                                    if (row.status == "defective") NativeStatusTone.Attention
-                                    else NativeStatusTone.Neutral,
-                                )
-                            if (!row.active) Text("Archiviert / inaktiv")
-                        }
-                    },
-                    leadingContent =
-                        if (row.thumbnailReference.isNotBlank())
-                            ({ RevierEquipmentThumbnail(row.thumbnailReference, controller) })
-                        else null,
-                    modifier = Modifier.fillMaxWidth().clickable { onSelect(row.id) },
-                )
-                HorizontalDivider()
+                NativeSwipeRow(
+                    controller,
+                    config.kind,
+                    row.id,
+                    positive =
+                        if (
+                            config.kind == "visit" && row.status !in setOf("completed", "cancelled")
+                        )
+                            "Erledigt"
+                        else "",
+                ) {
+                    ListItem(
+                        headlineContent = { Text(row.title) },
+                        supportingContent = {
+                            Column {
+                                if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
+                                if (row.address.isNotBlank()) Text(row.address)
+                                if (row.status.isNotBlank())
+                                    NativeStatus(
+                                        revierLabel(row.status),
+                                        if (row.status == "defective") NativeStatusTone.Attention
+                                        else NativeStatusTone.Neutral,
+                                    )
+                                if (!row.active) Text("Archiviert / inaktiv")
+                            }
+                        },
+                        leadingContent =
+                            if (row.thumbnailReference.isNotBlank())
+                                ({ RevierEquipmentThumbnail(row.thumbnailReference, controller) })
+                            else null,
+                        modifier = Modifier.fillMaxWidth().clickable { onSelect(row.id) },
+                    )
+                    HorizontalDivider()
+                }
             }
             if (offset > 0 || page.hasMore)
                 item {

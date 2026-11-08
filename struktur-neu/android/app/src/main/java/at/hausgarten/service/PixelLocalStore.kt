@@ -2115,6 +2115,23 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     @Throws(Exception::class)
     fun undoRemoveEntity(entity: String, entityId: String): String {
+        val queued =
+            SettlementRules.rows(
+                    JSONObject(ownerValue(ListActionTools.KEY, "{}")).optJSONArray("actions")
+                )
+                .lastOrNull {
+                    (entity to entityId) in ListActionTools.targets(it) &&
+                        it.optString("state") == "queued"
+                }
+        if (queued != null)
+            return PixelOwnerAccess(context, this)
+                .execute(
+                    "undo_list_action",
+                    JSONObject()
+                        .put("request_id", "ui-list-undo-" + UUID.randomUUID())
+                        .put("action_id", queued.getString("id")),
+                )
+                .toString()
         var all = PixelMcpReadTools.effective(getState())
         val entry = OwnerJournalRules.archives(all).optJSONObject(entity + ":" + entityId)
         if (entry == null) {
@@ -2137,6 +2154,14 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     fun remainingDeleteUndoMs(): Long {
         var remaining: Long = 0
         try {
+            for (row in
+                SettlementRules.rows(
+                    JSONObject(ownerValue(ListActionTools.KEY, "{}")).optJSONArray("actions")
+                )) {
+                if (row.optString("state") == "queued")
+                    remaining =
+                        maxOf(remaining, row.optLong("undo_until") - System.currentTimeMillis())
+            }
             readableDatabase
                 .rawQuery("SELECT payload FROM pending WHERE kind IN ('delete','archive')", null)
                 .use { cursor ->
