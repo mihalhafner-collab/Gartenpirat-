@@ -46,26 +46,19 @@
     "verification": "PASS; check_release_baseline.py, check_current.py und source_preservation.py; assembleRelease einschließlich lintVital und Datenschutzprüfung. verify_app_candidate.py gegen vollständig zurückgeladene 132: Paket und Originalzertifikat identisch, 133 > 132, leere Startdaten. Commit, source_sha256, release und source_dirty=false direkt aus signierter APK gelesen. Keine Pflanzenbibliothek oder alten App-WebView-Assets/-Komponenten; einzig AndroidX LinkifyCompat.findAddress referenziert WebView. Drive-Datei vollständig zurückgeladen, SHA256 und Bytevergleich identisch. Voller grüner CI-Lauf 42405244554 auf codeidentischem 061b9e0 bestätigt; keine Installation."
   },
   "current_test_candidate": {
-    "version_name": "1.62.0",
-    "version_code": 133,
-    "source_sha256": "72ad38c718a4e3bfadb961443cc6f70aabdd3078bf3ba15ee7fd06e5459122b2",
-    "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; nach Meldung „133 installiert“ Identität und Pixel-open_checks einschließlich QA06 und C04 prüfen, eigene Testdaten löschen und Datenstand nachlesen."
+    "version_name": "1.63.0",
+    "version_code": 134,
+    "status": "Prüfstand auf Branch ccr-51374233-11uky3 (Claude baut, Codex prüft). Lokal grün: check_current.py, assembleRelease, assembleReleaseAndroidTest, lintRelease. Voller CI-Lauf mit Emulator steht aus. Keine Installation, keine Verteilung.",
+    "content": "Oberfläche nach dem verbindlichen Entwurf (APP.md, Oberfläche), Schritt 1: vier Reiter ohne Büro, ⋮ „Mehr“ in der Kopfzeile; „+“ unten rechts mit sechs Zielen und „Zuletzt“; Heute mit Datum, Tageszeile, Einsätzen und „Zu erledigen“ (inkl. fehlgeschlagene Sicherung), ohne Tageshinweise, gespeicherte Arbeiten und Knopfleiste; Abrechnungsreiter Offen · Abschlüsse · Summen."
   },
   "current_task": {
-    "name": "Version 133: Compose-Abläufe isolieren und volle CI grün machen",
-    "status": "21 Compose- und sechs Grafikabläufe starten einzeln nach pm clear in neuem Prozess mit eigenen synthetischen Abhängigkeiten. Testkorrekturen warten auf sichtbare Eingaben, wirkliche Listen, abgeschlossenes Entwurfsverwerfen und das externe Kamerafenster; überholte Rückfrageprüfungen entfernt. Die Testnavigation öffnet Kunden- und Büroübersichten durch erneutes Anwählen des Bereichs, ohne nachträgliches Zurückspringen. Abrechnungsübersichten erkennen bereits ausgewählte Reiter am sichtbaren Inhalt statt an erneuter Klickbarkeit. Suchdialoge verwenden beim Drehen die aktuelle Host-Konfiguration. Gemeinsame Arbeitsprüfung und Materialkosten-Schreiber normalisieren Dezimalkomma, damit gültige Stunden, Kilometer und Eurobeträge gespeichert werden können; Grenzen für negative, nicht endliche und ungültig genaue Werte bleiben erhalten. Die Listenprojektion formatiert gleichwertige Stundenwerte 1 und 1.0 identisch, damit ein anderer Schreibvorgang keine unveränderten Zeilen verändert. Settlement, Accounting und Graphics sind im vollen Standardlauf. Freigabe erst über grünen vollen CI-Lauf des abschließenden Stands, danach PR nach main zur Claude-Prüfung; kein Merge, keine Pixel-Installation, keine Verteilung.",
-    "owner_instruction": "Ausdrücklicher Auftrag 07.11.2026: Isolation, rote Ursachen beheben, native_settlement/native_accounting/native_graphics in vollen Lauf aufnehmen; je Schritt prüfen, bauen mit Lint, committen, pushen und volle CI mit emulator=true.",
-    "validation": {
-      "source": "PASS; check_current.py und Release-Baseline.",
-      "android": "PASS; assembleRelease, assembleReleaseAndroidTest und lintRelease; APK-Datenschutzprüfung.",
-      "diagnostic_ci": "42401738391: Settlement-UI mit 167 Prüfungen und alle sechs Grafikabläufe grün. Heute-Felddifferenz beweist Formatwechsel 1.0 h → 1 h in unveränderter Zeile beim Cache-Neuaufbau; Stundenanzeige deshalb normalisiert. Drei externe Änderungen bleiben mit vollständigem Zeilenvergleich geprüft. Accounting wartet nach Tastaturschließen auf das wieder sichtbare Suchfeld samt unverändertem Suchtext. Reopen fehlte nur wegen des abgebrochenen Accounting-Vorlaufs. Freigabe ausschließlich durch vollständig grünen Lauf des abschließenden Commits.",
-      "ci_gate": "Je Commit qa-apk.yml mit emulator=true ohne *_only; nur vollständig grüner Lauf zählt.",
-      "jvm": "PASS; alle 11 lokalen JVM-Suiten ohne Tabellenmodul, einschließlich 61 Arbeits-/Zubehörprüfungen. Neuer Dezimalkomma-Fall vor der Korrektur reproduzierbar rot, danach grün; negative Werte, NaN und unzulässige Genauigkeit abgewiesen. Tabellenmodul und Emulator bleiben Teil der vollen CI."
-    }
+    "name": "Version 134: Entwurf umsetzen",
+    "status": "Schritt 1 erledigt (siehe current_test_candidate). Offen: 2 Suche gruppiert; 3 Detailseiten mit „Gehört zu“-Chips und Löschen unten; 4 Wischen mit 5 s „Rückgängig“; 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste. Danach ein voller CI-Lauf, PR nach main, Prüfung durch Codex.",
+    "owner_instruction": "Eigentümer 08.11.2026: Entwurf so genau wie möglich umsetzen; Claude baut 134, neuer Branch freigegeben."
   },
   "open_checks": [
     "Eigentümer meldet 07.11.2026: 1.61.1 läuft auf dem Pixel. Bestätigung über get_capabilities (1.61.1/132, eabc0e0, e24e42e4) ausstehend; last_observed_installed_build erst danach auf 132 setzen.",
-    "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und + oben rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
+    "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und ⋮ oben rechts, + unten rechts; Sicherung wiederherstellen unten. Eigene Testdaten anschließend löschen.",
     "Pixel-Teilabnahme 131: 49 bestanden; fehlgeschlagen QA06 (Hinweise bei Gerätefoto-Übernahme) und C04 (nach Löschen nicht zur Kundenliste zurück), Nachtest nach Installation; Kamera (QA11) und Randgeste offen.",
     "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe nach 1.58.2 nicht produktiv geprüft.",
     "Ältere native Backup- und Speicherbereinigungsabnahmen offen."

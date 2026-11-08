@@ -309,7 +309,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Kunden"); click("Kunden")
         waitUntil("CUSTOMER_LIST_READY") {
             selectedArea("Kunden") && field("Suchen")?.isEditable == true &&
-                (keyboardVisible() || node("Kunde anlegen")?.let(::clickable) != null)
+                (keyboardVisible() || node("Neu anlegen")?.let(::clickable) != null)
         }
         checks++
     }
@@ -349,9 +349,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         // A restored overview can already have this tab selected. Its search
         // field proves the actual list; no second tab action is needed then.
         waitUntil("SETTLEMENT_TAB_OR_VIEW_READY") {
-            field("Abschluss oder Rechnungsnummer") != null || node("Rechnungen & Labor")?.let(::clickable) != null
+            field("Abschluss oder Rechnungsnummer") != null || node("Abschlüsse")?.let(::clickable) != null
         }
-        if (field("Abschluss oder Rechnungsnummer") == null) click("Rechnungen & Labor")
+        if (field("Abschluss oder Rechnungsnummer") == null) click("Abschlüsse")
         waitUntil("SETTLEMENT_LIST_READY") { field("Abschluss oder Rechnungsnummer")?.isEditable == true }
     }
 
@@ -367,10 +367,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         throw AssertionError("QA_NATIVE_COMPOSE_WORK_LIST_BACK_PATH")
     }
 
+    /** Design: rare areas sit behind ⋮ "Mehr" in Today's header; there is no office tab. */
     private fun openOffice() {
-        click("Büro"); click("Büro")
-        waitUntil("OFFICE_AREA_SELECTED") { selectedArea("Büro") }
+        click("Heute"); click("Heute"); click("Mehr")
         reveal("Organisieren")
+    }
+
+    /** New work starts from the "+" of a main area, or from a list's own bottom action. */
+    private fun newWork() {
+        waitUntil("NEW_WORK_ENTRY") { node("Neu anlegen")?.let(::clickable) != null || node("Arbeit nachtragen")?.let(::clickable) != null }
+        if (node("Neu anlegen")?.let(::clickable) != null) click("Neu anlegen")
+        click("Arbeit nachtragen")
     }
 
     private fun discardWork() {
@@ -873,14 +880,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun graphicsNavigationJourney() {
-        click("Heute"); shown("Heute gespeichert")
-        for ((label, rootText) in listOf("Planung" to "Termin planen", "Kunden" to "Kunde anlegen", "Abrechnung" to "Summen", "Büro" to "Organisieren", "Heute" to "Heute gespeichert")) {
+        click("Heute"); shown("Einsätze heute")
+        yes(node("Büro") == null, "FOUR_MAIN_AREAS_WITHOUT_OFFICE_TAB")
+        for ((label, rootText) in listOf("Planung" to "Termin planen", "Kunden" to "Suchen", "Abrechnung" to "Summen", "Heute" to "Einsätze heute")) {
             click(label); click(label); shown(rootText)
             recreate(); shown(rootText)
             if (keyboardVisible()) { back(); waitUntil("MAIN_BACK_IME_HIDDEN_$label") { !keyboardVisible() } }
-            back(); shown("Heute gespeichert")
+            back(); shown("Einsätze heute")
             yes(activity?.isFinishing == false, "MAIN_BACK_STAYS_IN_APP_$label")
         }
+        click("Mehr"); shown("Organisieren")
+        back(); shown("Einsätze heute")
         openCustomerList(); enter("Suchen", fixturePrefix)
         shown("55 Treffer · 1–50"); shown(fixturePrefix + "000")
         captureSyntheticScreen("graphics-customers")
@@ -1121,7 +1131,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Suchen", fixturePrefix + "054")
         shown("1 Treffer · 1–1")
         shown(fixturePrefix + "054")
-        click("Kunde anlegen")
+        click("Neu anlegen"); click("Kunde")
         waitUntil("BLANK_CUSTOMER_FORM") { field("Anzeigename *") != null }
         val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("editor:customer:new")
         yes(store.ownerValue(draftKey, "").isEmpty(), "UNTOUCHED_FORM_HAS_NO_DRAFT")
@@ -1186,7 +1196,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Löschen")
         waitUntil("CUSTOMER_ARCHIVED") { customers(flowName).isEmpty() || customers(flowName).all { it.opt("active") == false || it.optInt("active", 1) == 0 || it.optBoolean("archived") } }
         waitUntil("CUSTOMER_DELETE_RETURNS_TO_LIST") {
-            selectedArea("Kunden") && field("Suchen")?.isEditable == true && node("Kunde anlegen")?.let(::clickable) != null
+            selectedArea("Kunden") && field("Suchen")?.isEditable == true && node("Neu anlegen")?.let(::clickable) != null
         }
         enter("Suchen", "QA Native F")
         shown("0 Treffer · 0–0")
@@ -1195,9 +1205,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun usabilityJourney() {
         click("Heute")
-        reveal("Heute gespeichert")
-        reveal("Weitere Tageshinweise")
-        yes(node("Mehr") == null, "NO_TODAY_MORE_MENU")
+        reveal("Einsätze heute")
+        yes(node("Weitere Tageshinweise") == null, "TODAY_HAS_NO_EXTRA_HINT_CARD")
+        yes(node("Mehr")?.let(::clickable) != null && node("Neu anlegen")?.let(::clickable) != null, "TODAY_HEADER_MORE_AND_CREATE_BUTTON")
         openCustomerList()
         enter("Suchen", fixturePrefix)
         click("Weitere 50")
@@ -1213,7 +1223,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(actionBounds(fixturePrefix + "054") == retainedBounds, "CUSTOMER_SCROLL_POSITION_PRESERVED_ON_ENTRY")
         recreate(); shown("55 Treffer · 51–55")
         yes(actionBounds(fixturePrefix + "054") == retainedBounds, "CUSTOMER_PAGE_AND_SCROLL_SURVIVE_RECREATION")
-        click("Heute"); click("Arbeit nachtragen")
+        click("Heute"); newWork()
         openWorkCustomerPicker()
         enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         chooseTime("Beginn", "08:00"); chooseTime("Ende", "12:00")
@@ -1248,7 +1258,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         discardWork()
         yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
         yes(saved()?.getString("activity") == row.getString("activity"), "DISCARD_DOES_NOT_SAVE_CHANGES")
-        click("Heute"); click("Arbeit nachtragen")
+        click("Heute"); newWork()
         openWorkCustomerPicker(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         enter("Was wurde erledigt? *", "[TEST] QA freie Dezimalwerte")
         chooseTime("Beginn", "08:00"); chooseTime("Ende", "12:00"); click("30")
@@ -1273,7 +1283,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun workDraft(): JSONObject = JSONObject(store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new"), "{}").ifBlank { "{}" })
 
     private fun pickerJourney() {
-        click("Heute"); click("Arbeit nachtragen")
+        click("Heute"); newWork()
         val count = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         openWorkCustomerPicker(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         chooseDate("Datum *", "2026-11-03")
@@ -1303,10 +1313,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val values = workDraft().optJSONObject("values")
             values?.optString("work_date") == "2026-11-03" && values.optString("start_time") == "09:00" && values.optString("end_time") == "10:36" && values.optInt("break_minutes") == 12
         }
-        click("Zurück"); shown("Heute gespeichert")
+        click("Zurück"); shown("Einsätze heute")
         yes(node("‹ Zurück") == null, "TWELVE_LOCAL_SELECTIONS_CREATE_NO_BACK_HISTORY_CHAIN")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() == count, "PICKERS_AND_LOCAL_SELECTIONS_DO_NOT_SAVE_WORK")
-        click("Arbeit nachtragen"); discardWork()
+        newWork(); discardWork()
     }
 
     private fun pendingResultJourney() {
@@ -1316,7 +1326,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("activity", "[TEST] QA unknown save result").put("hours", 1)
         controller.saveDraft("editor:worklog:new", JSONObject().put("values", JSONObject(original.toString())).put("original_args", JSONObject(original.toString())))
         runBlocking { controller.flushDrafts() }
-        click("Heute"); click("Arbeit nachtragen"); shown("Ergebnis prüfen")
+        click("Heute"); newWork(); shown("Ergebnis prüfen")
         val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
         val count = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         val requestBefore = PixelMcpWriteTools.hash(workDraft().getJSONObject("original_args"))
@@ -1497,7 +1507,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .put("_request_id", "qa_discard_work_photo").put("activity", "QA unsaved photo draft").put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString()).put("hours", 1))
             .put("selected_photo_uri", other.toString()))
         controller.flushDrafts()
-        click("Heute"); click("Arbeit nachtragen")
+        click("Heute"); newWork()
         // The form remembers whether "Weitere Angaben" was open; open it only when closed.
         reveal("Weitere Angaben")
         if (runCatching { waitUntil("EXTRA_DETAILS_OPEN", 1500) { node("Foto · optional") != null || node("Foto hinzufügen") != null } }.isFailure) click("Weitere Angaben")
@@ -1519,20 +1529,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun todayJourney() {
-        click("Heute"); shown("Arbeit starten")
-        for (label in listOf("Heute", "Planung", "Kunden", "Abrechnung", "Büro")) shown(label)
-        primaryPosition("Arbeit starten", "Arbeit nachtragen")
+        click("Heute"); reveal("Arbeit starten")
+        for (label in listOf("Heute", "Planung", "Kunden", "Abrechnung", "Neu anlegen", "Mehr")) shown(label)
+        // Design: four areas, only the day and due items; creating sits behind "+".
+        yes(node("Büro") == null && node("Weitere Tageshinweise") == null && node("Arbeit nachtragen") == null, "TODAY_FOLLOWS_DESIGN")
         yes(visibleTexts().none { it.contains("Externe Sicherung") }, "TODAY_HAS_NO_FABRICATED_EXTERNAL_BACKUP_PROOF")
         captureSyntheticScreen("today-idle")
         val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
-        click("Weitere Tageshinweise")
-        for (label in listOf("Planung", "Gerätewartung", "Anfragen", "Wetter", "Sicherung")) reveal(label)
-        captureSyntheticScreen("today-hints")
-        click("Weitere Tageshinweise"); click("Arbeit starten")
+        click("Neu anlegen")
+        for (label in listOf("Arbeit nachtragen", "Anfrage", "Kunde", "Einsatz", "Foto", "Material")) shown(label)
+        captureSyntheticScreen("today-create")
+        back(); waitUntil("CREATE_SHEET_CLOSED") { node("Einsatz") == null && node("Neu anlegen")?.let(::clickable) != null }
+        click("Arbeit starten")
         shown("Kunde *: Nicht zugeordnet")
         yes(!keyboardVisible(), "START_HAS_NO_FORCED_IME")
-        click("Zurück"); shown("Arbeit starten")
-        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before, "TODAY_START_AND_HINTS_BACK_DO_NOT_WRITE")
+        click("Zurück"); reveal("Arbeit starten")
+        yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before, "TODAY_START_AND_CREATE_BACK_DO_NOT_WRITE")
         val noteCustomer = customers(fixturePrefix + "000").single()
         val originalNotes = noteCustomer.optString("notes")
         val workBeforeNote = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs"))
@@ -1543,12 +1555,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Notizen", note); click("Kunde speichern")
         waitUntil("CUSTOMER_NOTE_SAVED") { customers(fixturePrefix + "000").single().optString("notes") == note }
         yes(PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")) == workBeforeNote, "CUSTOMER_NOTE_PRESERVES_WORK_RECORDS")
-        click("Heute"); shown("Arbeit starten")
+        click("Heute"); reveal("Arbeit starten")
         val oldFont = shell("settings get system font_scale")
         try {
             activity?.let { current -> test.runOnMainSync { current.finish() } }
             shell("settings put system font_scale 2.0"); launch()
-            val labels = listOf("Arbeit starten", "Arbeit nachtragen", "Heute", "Planung", "Kunden", "Abrechnung", "Büro")
+            val labels = listOf("Arbeit starten", "Neu anlegen", "Heute", "Planung", "Kunden", "Abrechnung")
             waitUntil("TODAY_LARGE_TEXT_LAYOUT_READY") {
                 var fontReady = false
                 test.runOnMainSync { fontReady = (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f }
@@ -1563,11 +1575,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val bounds = actionBounds(label)
                 val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
                 val density = activity!!.resources.displayMetrics.density
-                val minimum = if (label in labels.take(2)) 56 else 48
+                val minimum = 48
                 yes(screen.contains(bounds) && bounds.height() >= minimum * density - 1,
                     "TODAY_LARGE_TEXT_ACTION_${label}_bounds=${bounds}_screen=${screen}")
             }
-            primaryPosition("Arbeit starten", "Arbeit nachtragen")
             captureSyntheticScreen("today-large-font")
         } catch (failure: Throwable) {
             captureSyntheticScreen("failure-today-large-font"); throw failure
@@ -1662,7 +1673,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(session.optString("customer_id") == customers(fixturePrefix + "000").single().getString("id"), "TIMER_SYNTHETIC_CUSTOMER")
         // "Zeit läuft" also stands on the timer screen; wait for Today's own heading.
         click("Heute"); shown("Aktuelle Arbeit"); shown("Zeit läuft"); shown("Arbeitszeit ohne Pause")
-        yes(node("Einsätze geplant") == null && node("Heute gespeichert") == null, "TODAY_PRIORITIZES_ACTIVE_TIME_OVER_STATISTICS")
         val activeTimeBounds = Rect().also { requireNotNull(node("Arbeitszeit ohne Pause")).getBoundsInScreen(it) }
         val titleBounds = Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
         yes(activeTimeBounds.top >= titleBounds.bottom && activeTimeBounds.height() > 0, "TODAY_ACTIVE_TIME_VISIBLE_WITHOUT_SCROLL")
@@ -1846,6 +1856,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
+    /** Today shows open hours, not saved work rows; an external edit updates them in place. */
     private fun todayOlderWorkJourney() {
         val day = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
         val customer = customers(fixturePrefix + "000").single().getString("id")
@@ -1858,17 +1869,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val data = store.nativeData()
         val args = JSONObject().put("date_from", day).put("date_to", day)
         val before = read("get_work_record_summary", args)
-        fun summaryText(hours: Double, count: Int): String {
-            val minutes = kotlin.math.round(hours * 60).toLong()
-            return "${minutes / 60} Std. ${minutes % 60} Min. · $count Arbeiten"
+        // Expected text from the stored open hours, never from the screen itself.
+        fun openHoursText(): String {
+            val groups = read("get_work_record_summary", JSONObject().put("group_by_billing_customer", true)).optJSONArray("billing_groups") ?: JSONArray()
+            val minutes = kotlin.math.round((0 until groups.length()).sumOf { groups.getJSONObject(it).optDouble("hours") } * 60).toLong()
+            return "${minutes / 60} Std. ${minutes % 60} Min. bei " + (if (groups.length() == 1) "1 Empfänger" else "${groups.length()} Empfängern") + " · jetzt abrechnen"
         }
-        click("Heute"); reveal(summaryText(before.getDouble("hours"), before.getInt("work_records"))); scrollTop()
-        // Capture the visible list's baseline only after the initial screen has
-        // finished loading, immediately before the external edit under test.
-        val beforePage = runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 4) }
-        yes(beforePage.rows.size == 4, "TODAY_TOTAL_FIXTURE_HAS_FOUR_ROWS")
-        val topThree = beforePage.rows.take(3)
-        val fourth = beforePage.rows[3]
+        click("Heute"); reveal(openHoursText())
+        val fourth = runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 4) }.rows.let { rows ->
+            yes(rows.size == 4, "TODAY_TOTAL_FIXTURE_HAS_FOUR_ROWS"); rows[3]
+        }
         repeat(3) { edit ->
             val envelope = tools.call("get_work_record", JSONObject().put("work_record_id", fourth.id))
             yes(!envelope.has("ok") || envelope.getBoolean("ok"), "TODAY_FOURTH_WORK_CAS_BASE")
@@ -1876,11 +1886,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             read("update_work_record", JSONObject().put("request_id", "qa_native_today_older_hours_$edit")
                 .put("work_record_id", fourth.id).put("expected_record_hash", envelope.getString("record_hash"))
                 .put("updates", JSONObject().put("hours", record.getDouble("hours") + 0.5).put("start_time", "").put("end_time", "").put("break_minutes", 0)))
+            yes(read("get_work_record", JSONObject().put("work_record_id", fourth.id)).let { (it.optJSONObject("data") ?: it).getDouble("hours") } == record.getDouble("hours") + 0.5,
+                "TODAY_EXTERNAL_EDIT_STORED_$edit")
             // No navigation or refresh between the external writer and the visible assertion.
-            reveal(summaryText(before.getDouble("hours") + 0.5 * (edit + 1), before.getInt("work_records")))
-            val afterRows = runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 3) }.rows
-            yes(afterRows == topThree,
-                "TODAY_TOTAL_UPDATES_WITH_IDENTICAL_THREE_VISIBLE_WORK_ROWS; edit=$edit; expected=$topThree; actual=$afterRows")
+            reveal(openHoursText())
         }
         yes(read("get_work_record_summary", args).getInt("work_records") == before.getInt("work_records"), "TODAY_OLDER_EDIT_DOES_NOT_ADD_WORK")
     }
@@ -2227,7 +2236,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     automation.setRotation(UiAutomation.ROTATION_FREEZE_0)
                     launch()
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
-                    click("Arbeit nachtragen"); openWorkCustomerPicker()
+                    newWork(); openWorkCustomerPicker()
                     test.runOnMainSync { requireNotNull(activity).requestedOrientation = if (landscape) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
                     waitUntil("SEARCH_CONFIGURATION_$key") {
                         var correct = false
@@ -2281,7 +2290,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             throw failure
         }
         yes(searchMatrix.length() == 6, "ALL_SEARCH_DISPLAY_COMBINATIONS")
-        click("Arbeit nachtragen"); val priorCustomer = openWorkCustomerPicker()
+        newWork(); val priorCustomer = openWorkCustomerPicker()
         enter("Suchen", "NO_SYNTHETIC_MATCH_48273"); shown("0 Treffer"); shown("Keine Treffer. Suchtext oder Filter ändern.")
         shown("Keine Zuordnung")
         showKeyboard("Suchen"); captureSyntheticScreen("search-no-results", requireKeyboard = true)
@@ -2314,7 +2323,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shell("cmd overlay enable-exclusive --category --user 0 com.android.internal.systemui.navbar.gestural")
             waitUntil("GESTURE_NAVIGATION_ENABLED") { shell("settings get secure navigation_mode") == "2" }
             activity?.let { current -> test.runOnMainSync { current.finish() } }; launch()
-            click("Arbeit nachtragen"); val priorCustomer = openWorkCustomerPicker()
+            newWork(); val priorCustomer = openWorkCustomerPicker()
             enter("Suchen", fixturePrefix+"000"); visibleResult(fixturePrefix+"000")
             yes(!keyboardVisible(), "GESTURE_PICKER_IME_INITIALLY_CLOSED")
             fun gestureDump(): String = shell("dumpsys activity service com.android.systemui/.SystemUIService --dump-priority NORMAL") +
@@ -2452,14 +2461,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             keyboardSearchProof("local", "Name, Objekt, Tätigkeit, Notiz oder Beleg", fixturePrefix+"000", fixturePrefix+"000", manual = true)
         }
         case("phrases") {
-            click("Arbeit nachtragen"); click("Textbausteine ▾")
+            newWork(); click("Textbausteine ▾")
             keyboardSearchProof("phrases", "Vorschläge durchsuchen", "Rasen gemäht", "Rasen gemäht")
             reveal("Was wurde erledigt? *")
             waitUntil("PHRASE_TRANSFERRED") { field("Was wurde erledigt? *")?.text?.toString()?.contains("Rasen gemäht") == true }
             discardWork()
         }
         case("duplicate-customers") {
-            click("Arbeit nachtragen"); openWorkCustomerPicker()
+            newWork(); openWorkCustomerPicker()
             enter("Suchen", "QA Gleichnamig"); shown("2 Treffer"); reveal("QA TestNord"); reveal("QA TestSüd")
             enter("Suchen", "QA TestSüd"); showKeyboard("Suchen"); visibleResult(duplicateName, requireKeyboard = true)
             captureSyntheticScreen("domain-duplicate-customers", requireKeyboard = true); visibleResult(duplicateName, tap = true, requireKeyboard = true)
@@ -2661,8 +2670,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("today", "Arbeit starten", true) { }
         case("work", "Arbeit nachtragen") { openWorklogs() }
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
-        case("customers", "Kunde anlegen") { click("Kunden") }
-        case("office", "Organisieren", true) { click("Büro") }
+        case("customers", "Neu anlegen") { click("Kunden") }
+        case("office", "Organisieren", true) { click("Heute"); click("Mehr") }
         case("properties", "Objekt anlegen") { openOfficeEntry("Objekte") }
         case("inquiries", "Anfrage anlegen") { openOfficeEntry("Anfragen") }
         case("orders", "Auftrag anlegen") { openOfficeEntry("Aufträge") }
@@ -2787,9 +2796,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Termin planen")
         yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
         yes(PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() == before, "PLANNING_DISCARD_DOES_NOT_CREATE_RECORD")
-        click("Heute"); reveal("Heute gespeichert")
+        click("Heute"); reveal("Einsätze heute")
         val workBefore = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
-        click("Arbeit nachtragen"); shown("Arbeit speichern"); reveal("Datum *")
+        newWork(); shown("Arbeit speichern"); reveal("Datum *")
         openWorkCustomerPicker(); enter("Suchen", fixturePrefix + "000"); click(fixturePrefix + "000")
         chooseTime("Beginn", "08:00"); chooseTime("Ende", "12:00")
         reveal("Pause (Minuten)"); click("60"); reveal("Freie Minuten")

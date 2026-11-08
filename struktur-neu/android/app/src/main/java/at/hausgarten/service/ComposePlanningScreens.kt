@@ -141,6 +141,7 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
     val planningActions: @Composable () -> Unit = {
         NativeActionBar(if(savedDraft) "Entwurf fortsetzen" else "Termin planen", {onNew(false,anchor)},enabled=!busy)
     }
+    Box(Modifier.fillMaxSize()) {
     NativeSearchList("Suche", search, { search = it; offset = 0 },
         if (listLoading) "Wird geladen …" else "${page.total} Treffer · ${page.rows.size} auf dieser Seite",
         onFilters = { filtersOpen = !filtersOpen }, onFocus = { filtersOpen = false }) {
@@ -237,6 +238,9 @@ private fun PlanningList(controller: NativeAppController, repository: NativeData
             } }
         }
         if (!imeVisible && search.isBlank()) planningActions()
+    }
+    // Design: the "+" of every main area, here above the single "Termin planen" bar.
+    if (!imeVisible) NativeCreateButton(controller, Modifier.align(Alignment.BottomEnd).padding(16.dp).padding(bottom = if (search.isBlank()) 72.dp else 0.dp))
     }
 }
 
