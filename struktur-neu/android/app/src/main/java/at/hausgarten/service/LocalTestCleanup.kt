@@ -24,11 +24,11 @@ internal class LocalTestCleanup {
         @Throws(Exception::class)
         fun overlay(values: Values, master: JSONObject): Unit {
 
-            var tombstones = JSONObject(values.get(KEY, "{}"))
+            val tombstones = JSONObject(values.get(KEY, "{}"))
             run {
-                var it = tombstones.keys()
+                val it = tombstones.keys()
                 while (it.hasNext()) {
-                    var key = it.next()
+                    val key = it.next()
                     LocalTestTombstone.project(master, key, tombstones.getJSONObject(key))
                 }
             }
@@ -37,7 +37,7 @@ internal class LocalTestCleanup {
         @JvmStatic
         fun sameTarget(event: JSONObject, entity: String, id: String): Boolean {
 
-            var kind = event.optString("kind")
+            val kind = event.optString("kind")
             var p = event.optJSONObject("payload")
             if (((p == null) || !((id == p.optString("id"))))) {
                 return false
@@ -61,8 +61,8 @@ internal class LocalTestCleanup {
             var record =
                 OwnerJournalRules.findOrNull(raw.optJSONArray(OwnerJournalRules.group(entity)), id)
             if ((record == null)) {
-                var a = raw.optJSONObject("owner_archive")
-                var saved = (if ((a == null)) null else a.optJSONObject(((entity + ":") + id)))
+                val a = raw.optJSONObject("owner_archive")
+                val saved = (if ((a == null)) null else a.optJSONObject(((entity + ":") + id)))
                 record = (if ((saved == null)) null else saved.optJSONObject("record"))
             }
             run {
@@ -75,7 +75,7 @@ internal class LocalTestCleanup {
                     }
                     if (!(((record == null) && (i < pending.length())))) break
 
-                    var event = pending.getJSONObject(i)
+                    val event = pending.getJSONObject(i)
                     var p = event.getJSONObject("payload")
                     if ((!(sameTarget(event, entity, id)) || !(p.optBoolean("_local_only")))) {
                         continue
@@ -95,13 +95,13 @@ internal class LocalTestCleanup {
             if (TestDataRules.marked(record)) {
                 return true
             }
-            var customer = record.optString("customer_id")
-            var c = OwnerJournalRules.findOrNull(raw.optJSONArray("customers"), customer)
+            val customer = record.optString("customer_id")
+            val c = OwnerJournalRules.findOrNull(raw.optJSONArray("customers"), customer)
             if (TestDataRules.customer(c)) {
                 return true
             }
             for (i in 0 until pending.length()) {
-                var a = pending.getJSONObject(i)
+                val a = pending.getJSONObject(i)
                 if (
                     (((a.optString("kind") == "customer") &&
                         (a.getJSONObject("payload").optString("id") == customer)) &&

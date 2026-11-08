@@ -37,7 +37,7 @@ class RevierSessionContexts {
                 )
                 .use { start ->
                     if ((start.moveToFirst())) {
-                        var origin: JSONObject = JSONObject(start.getString(0))
+                        val origin: JSONObject = JSONObject(start.getString(0))
                         for (key in arrayOf("property_id", "visit_id")) {
                             if ((origin.has(key))) {
                                 result.put(key, origin.get(key))

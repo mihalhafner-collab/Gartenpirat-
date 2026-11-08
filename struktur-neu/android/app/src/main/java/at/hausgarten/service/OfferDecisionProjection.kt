@@ -14,9 +14,9 @@ internal object OfferDecisionProjection {
     @JvmStatic
     @Throws(Exception::class)
     fun apply(database: SQLiteDatabase, master: JSONObject): Unit {
-        var decisions: JSONObject = JSONObject()
-        var revisions: JSONObject = JSONObject()
-        var prefix = OfferDecisionRules.PREFIX
+        val decisions: JSONObject = JSONObject()
+        val revisions: JSONObject = JSONObject()
+        val prefix = OfferDecisionRules.PREFIX
         run {
             database!!
                 .rawQuery(
@@ -25,7 +25,7 @@ internal object OfferDecisionProjection {
                 )
                 .use { rows ->
                     while (rows!!.moveToNext()) {
-                        var key = rows!!.getString(0)
+                        val key = rows!!.getString(0)
                         if (
                             (!key!!.startsWith((prefix.toString() + "current:")) &&
                                 !key!!.startsWith((prefix.toString() + "revision:")))

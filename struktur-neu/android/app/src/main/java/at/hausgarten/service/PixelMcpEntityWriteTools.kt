@@ -82,15 +82,15 @@ internal class PixelMcpEntityWriteTools {
         fun schema(name: String): JSONObject {
             require(handles(name)) { "UNKNOWN_TOOL" }
 
-            var props = JSONObject().put("request_id", string(128).put("minLength", 8))
-            var required = JSONArray().put("request_id")
-            var update: Boolean = name.startsWith("update_")
-            var entity = (if (name.contains("customer")) "customer" else "order")
-            var idKey = (entity + "_id")
-            var fields = (if ((entity == "customer")) CUSTOMER_FIELDS else ORDER_FIELDS)
+            val props = JSONObject().put("request_id", string(128).put("minLength", 8))
+            val required = JSONArray().put("request_id")
+            val update: Boolean = name.startsWith("update_")
+            val entity = (if (name.contains("customer")) "customer" else "order")
+            val idKey = (entity + "_id")
+            val fields = (if ((entity == "customer")) CUSTOMER_FIELDS else ORDER_FIELDS)
             if (update) {
                 props.put(idKey, string(500)).put("expected_record_hash", string(128))
-                var patch = JSONObject()
+                val patch = JSONObject()
                 for (key in fields) {
                     patch.put(key, field(key))
                 }
@@ -169,11 +169,11 @@ internal class PixelMcpEntityWriteTools {
             schema: JSONObject,
         ): Unit {
 
-            var props = schema.getJSONObject("properties")
+            val props = schema.getJSONObject("properties")
             run {
-                var it = args.keys()
+                val it = args.keys()
                 while (it.hasNext()) {
-                    var key = it.next()
+                    val key = it.next()
                     if (!(props.has(key))) {
                         throw PixelMcpWriteTools.Rejected(
                             "INVALID_INPUT",
@@ -181,14 +181,14 @@ internal class PixelMcpEntityWriteTools {
                         )
                     }
                     var value = args.get(key)
-                    var spec = props.getJSONObject(key)
-                    var declared = spec.get("type")
+                    val spec = props.getJSONObject(key)
+                    val declared = spec.get("type")
                     var type =
                         (if (declared is JSONArray) ((declared as JSONArray)).getString(0)
                         else (declared as String))
                     if (((value == JSONObject.NULL) && declared is JSONArray)) {
                         var nullable: Boolean = false
-                        var types = (declared as JSONArray)
+                        val types = (declared as JSONArray)
                         for (i in 0 until types.length()) {
                             if (("null" == types.optString(i))) {
                                 nullable = true
@@ -224,7 +224,7 @@ internal class PixelMcpEntityWriteTools {
                         )
                     }
                     if (value is Number) {
-                        var n: Double = ((value as Number)).toDouble()
+                        val n: Double = ((value as Number)).toDouble()
                         if (
                             ((!(java.lang.Double.isFinite(n)) || (n < 0)) ||
                                 (((type == "integer") && (n != Math.floor(n)))))
@@ -249,7 +249,7 @@ internal class PixelMcpEntityWriteTools {
                         }
                     }
                     if ((type == "array")) {
-                        var length: Int = ((value as JSONArray)).length()
+                        val length: Int = ((value as JSONArray)).length()
                         if (
                             ((length < spec.optInt("minItems", 0)) ||
                                 (length > spec.optInt("maxItems", 200)))
@@ -262,7 +262,7 @@ internal class PixelMcpEntityWriteTools {
                     }
                 }
             }
-            var required = schema.optJSONArray("required")
+            val required = schema.optJSONArray("required")
             run {
                 var i: Int = 0
                 var firstIteration88 = true
@@ -273,7 +273,7 @@ internal class PixelMcpEntityWriteTools {
                     }
                     if (!(((required != null) && (i < required.length())))) break
 
-                    var key = required.getString(i)
+                    val key = required.getString(i)
                     if (
                         (!(args.has(key)) ||
                             ((args.opt(key) is String && args.optString(key).trim().isEmpty())))

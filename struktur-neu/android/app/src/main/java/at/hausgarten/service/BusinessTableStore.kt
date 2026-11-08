@@ -64,7 +64,7 @@ class BusinessTableStore {
             owner(JOURNAL_REVISION, "0")
         }
         for (collection in COLLECTIONS) {
-            var name = table(collection)
+            val name = table(collection)
             sql.execute(
                 "CREATE TABLE IF NOT EXISTS " +
                     name +
@@ -97,7 +97,7 @@ class BusinessTableStore {
 
     private @Throws(Exception::class) fun fence(enabled: Boolean): Unit {
 
-        var names = java.util.ArrayList<String>()
+        val names = java.util.ArrayList<String>()
         sql.query(
                 "SELECT name FROM sqlite_master WHERE type='trigger' AND name GLOB 'business_tables_fence_*'"
             )
@@ -173,7 +173,7 @@ class BusinessTableStore {
 
         return sql.transaction(
             LAM@{
-                var meta = transfer(requestId)
+                val meta = transfer(requestId)
                 require(
                     java.util.Arrays.asList("COPYING", "READY", "ABORTED")
                         .contains(meta.getString("phase")),
@@ -203,7 +203,7 @@ class BusinessTableStore {
         if (value == null) {
             return null
         }
-        var result = JSONObject(value)
+        val result = JSONObject(value)
         require(result.getInt("format") == 1, "TABLE_FORMAT_UNSUPPORTED")
         require(
             Arrays.asList("COPYING", "READY", "ACTIVE", "ROLLED_BACK", "ABORTED")
@@ -220,7 +220,7 @@ class BusinessTableStore {
     private @Throws(Exception::class) fun transfer(requestId: String?): JSONObject {
 
         request(requestId)
-        var meta = metadata()
+        val meta = metadata()
         require(meta != null && (requestId == meta.optString("request")), "TABLE_TRANSFER_MISMATCH")
         return meta!!
     }
@@ -228,7 +228,7 @@ class BusinessTableStore {
     @Throws(Exception::class)
     fun active(): Boolean {
 
-        var meta = metadata()
+        val meta = metadata()
         return meta != null && ("ACTIVE" == meta.getString("phase"))
     }
 
@@ -237,7 +237,7 @@ class BusinessTableStore {
 
         return sql.transaction(
             LAM@{
-                var meta = metadata()
+                val meta = metadata()
                 if (meta == null) {
                     return@LAM JSONObject().put("phase", "SNAPSHOT")
                 }
@@ -257,11 +257,11 @@ class BusinessTableStore {
 
         return sql.transaction(
             LAM@{
-                var meta = metadata()
+                val meta = metadata()
                 if (meta != null && ("ACTIVE" == meta.getString("phase"))) {
                     return@LAM materialize(meta)
                 }
-                var raw = owner("snapshot")
+                val raw = owner("snapshot")
                 return@LAM JSONObject((if (raw == null) fallback else raw))
             }
         )
@@ -284,8 +284,8 @@ class BusinessTableStore {
     @Throws(Exception::class)
     fun projectionCurrent(): Boolean {
 
-        var meta = metadata()
-        var projected = owner(PROJECTED_REVISION)
+        val meta = metadata()
+        val projected = owner(PROJECTED_REVISION)
         return meta != null &&
             ("ACTIVE" == meta.getString("phase")) &&
             meta.optInt("journal_tracking_version") == 1 &&
@@ -317,9 +317,9 @@ class BusinessTableStore {
                 ) {
                     return@LAM null
                 }
-                var master = materialize(activeMetadata())
+                val master = materialize(activeMetadata())
                 prepare.prepare(master)
-                var journal = actions
+                val journal = actions
                 LocalJournalRules.apply(master, journal)
                 replaceSnapshot(master)
                 owner(PROJECTED_REVISION, owner(JOURNAL_REVISION)!!)
@@ -333,9 +333,9 @@ class BusinessTableStore {
 
         return sql.transaction(
             LAM@{
-                var meta = activeMetadata()
-                var where = StringBuilder("generation=?")
-                var args = java.util.ArrayList<String>()
+                val meta = activeMetadata()
+                val where = StringBuilder("generation=?")
+                val args = java.util.ArrayList<String>()
                 args.add(meta.getString("generation"))
                 for (field in arrayOf("customer_id", "order_id", "status", "worklog_id")) {
                     if (!(filters.optString(field).isEmpty())) {
@@ -353,15 +353,15 @@ class BusinessTableStore {
 
         sql.transaction(
             LAM@{
-                var meta = activeMetadata()
+                val meta = activeMetadata()
                 validateRows(next)
                 invalidateJournal()
-                var generation = meta.getString("generation")
+                val generation = meta.getString("generation")
                 for (collection in COLLECTIONS) {
-                    var name = table(collection)
-                    var rows = next.getJSONArray(collection)
-                    var hashes = LinkedHashMap<String, String>()
-                    var positions = LinkedHashMap<String, Long>()
+                    val name = table(collection)
+                    val rows = next.getJSONArray(collection)
+                    val hashes = LinkedHashMap<String, String>()
+                    val positions = LinkedHashMap<String, Long>()
                     sql.query(
                             "SELECT id,record_hash,position FROM " +
                                 name +
@@ -374,7 +374,7 @@ class BusinessTableStore {
                                 positions.put(old.text(0), old.number(2))
                             }
                         }
-                    var retained = HashSet<String>()
+                    val retained = HashSet<String>()
                     for (i in 0 until rows.length()) {
                         retained.add(id(rows.getJSONObject(i)))
                     }
@@ -389,7 +389,7 @@ class BusinessTableStore {
                     }
                     for (i in 0 until rows.length()) {
                         var id = id(rows.getJSONObject(i))
-                        var old = positions.get(id)
+                        val old = positions.get(id)
                         if (old != null && old != i.toLong()) {
                             sql.execute(
                                 "UPDATE " + name + " SET position=? WHERE generation=? AND id=?",
@@ -400,7 +400,7 @@ class BusinessTableStore {
                         }
                     }
                     for (i in 0 until rows.length()) {
-                        var row = rows.getJSONObject(i)
+                        val row = rows.getJSONObject(i)
                         var id = id(row)
                         if (!((hash(row) == hashes.get(id)))) {
                             sql.execute(
@@ -423,7 +423,7 @@ class BusinessTableStore {
                         }
                     }
                 }
-                var rest = remainder(next)
+                val rest = remainder(next)
                 if (!((hash(rest) == meta.getString("remainder_hash")))) {
                     meta.put("remainder", rest).put("remainder_hash", hash(rest))
                     owner(META, meta.toString())
@@ -460,8 +460,8 @@ class BusinessTableStore {
 
         return sql.transaction(
             LAM@{
-                var meta = activeMetadata()
-                var candidates = JSONArray()
+                val meta = activeMetadata()
+                val candidates = JSONArray()
                 if (!(selectionColumns(collection))) {
                     return@LAM SnapshotReadSupport.select(
                         candidates(collection, filters),
@@ -470,8 +470,8 @@ class BusinessTableStore {
                         context,
                     )
                 }
-                var where = StringBuilder("generation=?")
-                var args = java.util.ArrayList<String>()
+                val where = StringBuilder("generation=?")
+                val args = java.util.ArrayList<String>()
                 args.add(meta.getString("generation"))
                 for (field in arrayOf("customer_id", "order_id", "status", "worklog_id")) {
                     if (!(filters.optString(field).isEmpty())) {
@@ -498,7 +498,7 @@ class BusinessTableStore {
                                         "generation=? AND id=?",
                                         arrayOf(meta.getString("generation"), rows.text(0)),
                                     ))
-                            var selected = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
+                            val selected = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
                             require(
                                 (rows.text(0) == id(selected)) && (rows.text(1) == hash(selected)),
                                 "TABLE_SELECTION_HASH_MISMATCH",
@@ -506,11 +506,11 @@ class BusinessTableStore {
                             candidates.put(selected)
                         }
                     }
-                var page = SnapshotReadSupport.select(candidates, filters, kind, context)
-                var result = JSONArray()
+                val page = SnapshotReadSupport.select(candidates, filters, kind, context)
+                val result = JSONArray()
                 for (i in 0 until page.length()) {
-                    var selected = page.getJSONObject(i)
-                    var full = row(meta, collection, id(selected))
+                    val selected = page.getJSONObject(i)
+                    val full = row(meta, collection, id(selected))
                     require(
                         (hash(selected) ==
                             hash(SnapshotReadSupport.withoutBinary(selection(full!!)))),
@@ -526,10 +526,10 @@ class BusinessTableStore {
     @Throws(Exception::class)
     fun referenceContext(): JSONObject {
 
-        var context = JSONObject()
+        val context = JSONObject()
         for (collection in arrayOf("customers", "orders")) {
-            var result = JSONArray()
-            var meta = activeMetadata()
+            val result = JSONArray()
+            val meta = activeMetadata()
             if (!(selectionColumns(collection))) {
                 context.put(collection, all(collection))
                 continue
@@ -556,7 +556,7 @@ class BusinessTableStore {
                             (rows.text(0) == id(value)) && (rows.text(1) == hash(value)),
                             "TABLE_SELECTION_HASH_MISMATCH",
                         )
-                        var reference = JSONObject().put("id", value.getString("id"))
+                        val reference = JSONObject().put("id", value.getString("id"))
                         for (key in arrayOf("name", "company", "title")) {
                             if (value.has(key)) {
                                 reference.put(key, value.get(key))
@@ -572,7 +572,7 @@ class BusinessTableStore {
 
     private @Throws(Exception::class) fun source(meta: JSONObject, check: Evidence?): JSONObject {
 
-        var raw = owner("snapshot")
+        val raw = owner("snapshot")
         require(
             raw != null && (hash(raw) == meta.getString("source_text_hash")),
             "TABLE_SOURCE_CHANGED",
@@ -589,13 +589,13 @@ class BusinessTableStore {
         request(requestId)
         return sql.transaction(
             LAM@{
-                var raw = owner("snapshot")
+                val raw = owner("snapshot")
                 require(raw != null, "TABLE_PERSISTED_SNAPSHOT_REQUIRED")
-                var source = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
+                val source = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
                 require((hash(source) == expectedSourceHash), "TABLE_SOURCE_CHANGED")
                 validateRows(source)
-                var backup = evidence(check, source)
-                var existing = metadata()
+                val backup = evidence(check, source)
+                val existing = metadata()
                 if (existing != null) {
                     require(
                         (requestId == existing.getString("request")) &&
@@ -653,8 +653,8 @@ class BusinessTableStore {
         require(maximumRows > 0 && maximumRows <= 1000, "TABLE_BATCH_OUT_OF_RANGE")
         return sql.transaction(
             LAM@{
-                var meta = transfer(requestId)
-                var source = source(meta, check)
+                val meta = transfer(requestId)
+                val source = source(meta, check)
                 if (("READY" == meta.getString("phase"))) {
                     return@LAM meta
                 }
@@ -663,7 +663,7 @@ class BusinessTableStore {
                 var offset: Int = meta.getInt("offset")
                 var copied: Int = 0
                 while (collection < COLLECTIONS.size && copied < maximumRows) {
-                    var rows = source.getJSONArray(COLLECTIONS[collection])
+                    val rows = source.getJSONArray(COLLECTIONS[collection])
                     if (offset == rows.length()) {
                         collection++
                         offset = 0
@@ -704,7 +704,7 @@ class BusinessTableStore {
 
         return sql.transaction(
             LAM@{
-                var meta = transfer(requestId)
+                val meta = transfer(requestId)
                 require(
                     (expectedSourceHash == meta.getString("source_hash")),
                     "TABLE_SOURCE_CHANGED",
@@ -714,7 +714,7 @@ class BusinessTableStore {
                 }
                 require(("READY" == meta.getString("phase")), "TABLE_NOT_READY")
                 source(meta, check)
-                var readback = materialize(meta)
+                val readback = materialize(meta)
                 require((hash(readback) == expectedSourceHash), "TABLE_READBACK_MISMATCH")
                 require(
                     (evidence(check, readback) == meta.getString("backup_hash")),
@@ -730,7 +730,7 @@ class BusinessTableStore {
 
     private @Throws(Exception::class) fun activeMetadata(): JSONObject {
 
-        var meta = metadata()
+        val meta = metadata()
         require(meta != null && ("ACTIVE" == meta.getString("phase")), "TABLE_STORAGE_NOT_ACTIVE")
         return meta!!
     }
@@ -742,8 +742,8 @@ class BusinessTableStore {
         row: JSONObject,
     ): Unit {
 
-        var selected = selection(row)
-        var indexed: Boolean = selectionColumns(collection)
+        val selected = selection(row)
+        val indexed: Boolean = selectionColumns(collection)
         var args =
             java.util.ArrayList<Any>(
                 java.util.Arrays.asList(generation, id(row), position, row.toString(), hash(row))
@@ -781,8 +781,8 @@ class BusinessTableStore {
         id: String,
     ): JSONObject? {
 
-        var name = table(collection)
-        var generation = meta.getString("generation")
+        val name = table(collection)
+        val generation = meta.getString("generation")
         var expected: String
         sql.query(
                 "SELECT record_hash FROM " + name + " WHERE generation=? AND id=?",
@@ -795,9 +795,9 @@ class BusinessTableStore {
                 }
                 expected = rows.text(0)
             }
-        var raw = textChunks(name, "record_json", "generation=? AND id=?", arrayOf(generation, id))
+        val raw = textChunks(name, "record_json", "generation=? AND id=?", arrayOf(generation, id))
         require(raw != null, "TABLE_ROW_MISSING")
-        var result = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
+        val result = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
         require((id == id(result)) && (expected == hash(result)), "TABLE_ROW_HASH_MISMATCH")
         return result
     }
@@ -821,8 +821,8 @@ class BusinessTableStore {
         require(offset >= 0 && limit >= 1 && limit <= 100, "TABLE_PAGE_OUT_OF_RANGE")
         return sql.transaction(
             LAM@{
-                var meta = activeMetadata()
-                var ids = JSONArray()
+                val meta = activeMetadata()
+                val ids = JSONArray()
                 var out = JSONArray()
                 sql.query(
                         "SELECT id FROM " +
@@ -884,7 +884,7 @@ class BusinessTableStore {
         require(expectedHash != null, "TABLE_EXPECTED_HASH_REQUIRED")
         return sql.transaction(
             LAM@{
-                var meta = activeMetadata()
+                val meta = activeMetadata()
                 var fingerprint =
                     hash(
                         JSONObject()
@@ -894,10 +894,10 @@ class BusinessTableStore {
                             .put("value", (if (value == null) JSONObject.NULL else value))
                             .put("expected", expectedHash)
                     )
-                var key = "business_tables:receipt:" + requestId
-                var saved = owner(key)
+                val key = "business_tables:receipt:" + requestId
+                val saved = owner(key)
                 if (saved != null) {
-                    var receipt = JSONObject(saved)
+                    val receipt = JSONObject(saved)
                     require(
                         (fingerprint == receipt.getString("fingerprint")),
                         "TABLE_REQUEST_REUSED",
@@ -961,7 +961,7 @@ class BusinessTableStore {
 
     private @Throws(Exception::class) fun materialize(meta: JSONObject): JSONObject {
 
-        var result = JSONObject(meta.getJSONObject("remainder").toString())
+        val result = JSONObject(meta.getJSONObject("remainder").toString())
         for (collection in COLLECTIONS) {
             result.put(collection, collection(meta, collection))
         }
@@ -983,9 +983,9 @@ class BusinessTableStore {
         arguments: Array<String>,
     ): JSONArray {
 
-        var result = JSONArray()
-        var name = table(collection)
-        var generation = meta.getString("generation")
+        val result = JSONArray()
+        val name = table(collection)
+        val generation = meta.getString("generation")
         sql.query(
                 "SELECT id,record_hash,length(record_json),substr(record_json,1,32768) FROM " +
                     name +
@@ -1037,7 +1037,7 @@ class BusinessTableStore {
                 require(("ACTIVE" == meta.getString("phase")), "TABLE_STORAGE_NOT_ACTIVE")
                 var current = materialize(meta)
                 require((hash(current) == expectedCurrentHash), "TABLE_WRITE_CONFLICT")
-                var backup = evidence(check, current)
+                val backup = evidence(check, current)
                 owner("snapshot", current.toString())
                 require(
                     (hash(JSONObject(owner("snapshot") ?: error("TABLE_ROW_MISSING"))) ==
@@ -1081,7 +1081,7 @@ class BusinessTableStore {
                 }
                 if (!(offset < count)) break
 
-                var chunk = Array(arguments.size + 1) { "" }
+                val chunk = Array(arguments.size + 1) { "" }
                 chunk[0] = (offset + 1).toString()
                 System.arraycopy(arguments, 0, chunk, 1, arguments.size)
                 sql.query(
@@ -1159,7 +1159,7 @@ class BusinessTableStore {
 
         private @JvmStatic @Throws(Exception::class) fun selection(row: JSONObject): JSONObject {
 
-            var result = JSONObject()
+            val result = JSONObject()
             for (key in
                 arrayOf(
                     "id",
@@ -1207,7 +1207,7 @@ class BusinessTableStore {
 
         private @JvmStatic @Throws(Exception::class) fun remainder(source: JSONObject): JSONObject {
 
-            var result = JSONObject(source.toString())
+            val result = JSONObject(source.toString())
             for (collection in COLLECTIONS) {
                 result.remove(collection)
             }
@@ -1217,8 +1217,8 @@ class BusinessTableStore {
         private @JvmStatic @Throws(Exception::class) fun validateRows(source: JSONObject): Unit {
 
             for (collection in COLLECTIONS) {
-                var rows = source.getJSONArray(collection)
-                var seen = HashSet<String>()
+                val rows = source.getJSONArray(collection)
+                val seen = HashSet<String>()
                 for (i in 0 until rows.length()) {
                     require(seen.add(id(rows.getJSONObject(i))), "TABLE_DUPLICATE_ID")
                 }
@@ -1231,8 +1231,8 @@ class BusinessTableStore {
         ): String {
 
             require(check != null, "TABLE_BACKUP_EVIDENCE_REQUIRED")
-            var before = hash(source)
-            var result = check!!.verify(JSONObject(source.toString()))
+            val before = hash(source)
+            val result = check!!.verify(JSONObject(source.toString()))
             require(
                 result.matches(Regex("[a-f0-9]{64}")) && (before == hash(source)),
                 "TABLE_BACKUP_EVIDENCE_INVALID",

@@ -16,9 +16,9 @@ class WorklogArchiveBatch {
             if ((((ids.length() < 1) || (ids.length() > MAX)))) {
                 throw IllegalArgumentException("Bitte 1 bis 200 Arbeiten auswählen.")
             }
-            var seen: MutableSet<String> = HashSet()
-            var entries: JSONArray = JSONArray()
-            var guards: JSONArray = JSONArray()
+            val seen: MutableSet<String> = HashSet()
+            val entries: JSONArray = JSONArray()
+            val guards: JSONArray = JSONArray()
             var allowed: Boolean = true
             run {
                 var i: Int = 0
@@ -66,7 +66,7 @@ class WorklogArchiveBatch {
             request: String,
             stamp: String,
         ): JSONArray {
-            var preview: JSONObject = preview(snapshot, ids)
+            val preview: JSONObject = preview(snapshot, ids)
             if ((!preview.getString("preview_hash").equals(expected))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
@@ -78,7 +78,7 @@ class WorklogArchiveBatch {
                     "Mindestens eine Arbeit ist geschützt. Nichts entfernt; Auswahl prüfen."
                 )
             }
-            var copy: JSONObject = JSONObject(snapshot.toString())
+            val copy: JSONObject = JSONObject(snapshot.toString())
             var out: JSONArray = JSONArray()
             run {
                 var i: Int = 0

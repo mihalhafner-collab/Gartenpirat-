@@ -63,7 +63,7 @@ class AppointmentRules {
         @Throws(Exception::class)
         @JvmStatic
         fun weatherStart(row: JSONObject, now: Instant): Instant {
-            var start: Instant = instant(row.getString("starts_at"))
+            val start: Instant = instant(row.getString("starts_at"))
             return (if ((openEnd(row) && start.isBefore(now))) now else start)
         }
 
@@ -77,14 +77,14 @@ class AppointmentRules {
         @Throws(Exception::class)
         @JvmStatic
         fun overlapKind(left: JSONObject, right: JSONObject): Int {
-            var a: Instant = instant(left.getString("starts_at"))
-            var b: Instant = instant(right.getString("starts_at"))
-            var x: Boolean = openEnd(left)
-            var y: Boolean = openEnd(right)
-            var start: Instant = a.minusSeconds((left.optInt("travel_minutes") * 60L))
-            var other: Instant = b.minusSeconds((right.optInt("travel_minutes") * 60L))
-            var end: Instant = (if (x) a else instant(left.getString("ends_at")))
-            var until: Instant = (if (y) b else instant(right.getString("ends_at")))
+            val a: Instant = instant(left.getString("starts_at"))
+            val b: Instant = instant(right.getString("starts_at"))
+            val x: Boolean = openEnd(left)
+            val y: Boolean = openEnd(right)
+            val start: Instant = a.minusSeconds((left.optInt("travel_minutes") * 60L))
+            val other: Instant = b.minusSeconds((right.optInt("travel_minutes") * 60L))
+            val end: Instant = (if (x) a else instant(left.getString("ends_at")))
+            val until: Instant = (if (y) b else instant(right.getString("ends_at")))
             if (
                 (((((start.isBefore(until) && end.isAfter(other)) ||
                     ((x && !a.isBefore(other)) && a.isBefore(until))) ||
@@ -114,9 +114,9 @@ class AppointmentRules {
         @Throws(Exception::class)
         @JvmStatic
         fun local(value: String, zone: String, offset: String): Instant {
-            var time: LocalDateTime = LocalDateTime.parse(value)
+            val time: LocalDateTime = LocalDateTime.parse(value)
             var id: ZoneId = ZoneId.of(zone)
-            var valid: MutableList<ZoneOffset> = id.getRules().getValidOffsets(time)
+            val valid: MutableList<ZoneOffset> = id.getRules().getValidOffsets(time)
             if ((valid.isEmpty())) {
                 throw IllegalArgumentException(
                     "Diese Uhrzeit existiert wegen der Zeitumstellung nicht."
@@ -127,7 +127,7 @@ class AppointmentRules {
                     "Diese Uhrzeit gibt es zweimal. Bitte den Zeitzonenoffset auswählen."
                 )
             }
-            var chosen: ZoneOffset = (if (offset.isEmpty()) valid.get(0) else ZoneOffset.of(offset))
+            val chosen: ZoneOffset = (if (offset.isEmpty()) valid.get(0) else ZoneOffset.of(offset))
             if ((!valid.contains(chosen))) {
                 throw IllegalArgumentException("Zeitzonenoffset passt nicht zur Ortszeit.")
             }
@@ -149,7 +149,7 @@ class AppointmentRules {
                     "Bitte einen vorhandenen aktiven Einsatzkunden wählen."
                 )
             }
-            var orderId: String = row.optString("order_id")
+            val orderId: String = row.optString("order_id")
             if ((!orderId.isEmpty())) {
                 var order: JSONObject = PixelMcpWriteTools.find(s.getJSONArray("orders"), orderId)
                 if ((!row.getString("customer_id").equals(order.optString("customer_id")))) {
@@ -159,13 +159,13 @@ class AppointmentRules {
             if ((row.optString("title").trim().isEmpty())) {
                 throw IllegalArgumentException("Bitte eine Tätigkeit eintragen.")
             }
-            var zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))
+            val zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))
             row.put("timezone", zone.getId())
-            var endValue: String = row.getString("ends_at")
-            var open: Boolean = endValue.isEmpty()
-            var start: Instant = instant(row.getString("starts_at"))
-            var end: Instant? = (if (open) null else instant(endValue))
-            var minutes: Long = (if (open) 0 else Duration.between(start, end).toMinutes())
+            val endValue: String = row.getString("ends_at")
+            val open: Boolean = endValue.isEmpty()
+            val start: Instant = instant(row.getString("starts_at"))
+            val end: Instant? = (if (open) null else instant(endValue))
+            val minutes: Long = (if (open) 0 else Duration.between(start, end).toMinutes())
             if (((!open && (((minutes < 5) || (minutes > (24 * 60))))))) {
                 throw IllegalArgumentException(
                     "Ein Einsatz dauert mindestens5Minuten und höchstens24Stunden. Mehrtägige Arbeit bitte auf Einsätze aufteilen."
@@ -195,16 +195,16 @@ class AppointmentRules {
                 throw IllegalArgumentException("Wetterprofil bitte bewusst wählen.")
             }
             if ((row.has("scope_refs"))) {
-                var refs: JSONArray? = row.optJSONArray("scope_refs")
+                val refs: JSONArray? = row.optJSONArray("scope_refs")
                 if ((((refs == null) || (refs!!.length() > 200)))) {
                     throw IllegalArgumentException("Ungültige Leistungsreferenzen.")
                 }
-                var seen: MutableSet<String> = HashSet()
+                val seen: MutableSet<String> = HashSet()
                 run {
                     var i: Int = 0
                     while ((i < refs!!.length())) {
-                        var ref: String = refs!!.getString(i)
-                        var split: Int = ref.lastIndexOf('#')
+                        val ref: String = refs!!.getString(i)
+                        val split: Int = ref.lastIndexOf('#')
                         if ((((split < 1) || !seen.add(ref)))) {
                             throw IllegalArgumentException(
                                 "Leistungsreferenz als Angebots-ID#Positionsindex angeben."
@@ -215,7 +215,7 @@ class AppointmentRules {
                                 s.getJSONArray("offers"),
                                 ref.substring(0, split),
                             )
-                        var position: Int = Integer.parseInt(ref.substring((split + 1)))
+                        val position: Int = Integer.parseInt(ref.substring((split + 1)))
                         if (
                             ((((((!offer.optString("status").equals("accepted") ||
                                 !row.getString("customer_id")
@@ -238,7 +238,7 @@ class AppointmentRules {
                 }
             }
             for (key in arrayOf("travel_minutes", "break_minutes")) {
-                var n: Int = row.optInt(key, 0)
+                val n: Int = row.optInt(key, 0)
                 if ((((n < 0) || (n > 720)))) {
                     throw IllegalArgumentException(
                         "Pause/Anfahrt muss zwischen0und720Minuten liegen."
@@ -249,8 +249,8 @@ class AppointmentRules {
             if (((!open && (row.getInt("break_minutes") >= minutes)))) {
                 throw IllegalArgumentException("Die Pause muss kürzer als der Einsatz sein.")
             }
-            var lat: Boolean = (row.has("latitude") && !row.isNull("latitude"))
-            var lon: Boolean = (row.has("longitude") && !row.isNull("longitude"))
+            val lat: Boolean = (row.has("latitude") && !row.isNull("latitude"))
+            val lon: Boolean = (row.has("longitude") && !row.isNull("longitude"))
             if (((lat != lon))) {
                 throw IllegalArgumentException("Breiten- und Längengrad gemeinsam angeben.")
             }
@@ -322,7 +322,7 @@ class AppointmentRules {
             run {
                 var i: Int = 0
                 while (((all != null) && (i < all!!.length()))) {
-                    var other: JSONObject = all!!.getJSONObject(i)
+                    val other: JSONObject = all!!.getJSONObject(i)
                     if (
                         (((row.getString("id").equals(other.optString("id")) || !active(other)) ||
                             other.optString("status").equals("draft")))
@@ -350,7 +350,7 @@ class AppointmentRules {
             request: String,
             stamp: String,
         ): JSONObject {
-            var create: Boolean = name.equals("create_appointment")
+            val create: Boolean = name.equals("create_appointment")
             var old: JSONObject? =
                 (if (create) null
                 else
@@ -366,7 +366,7 @@ class AppointmentRules {
             }
             var row: JSONObject =
                 (if ((old == null)) JSONObject() else LocalJournalRules.clean(old))
-            var changes: JSONObject? = (if (create) a else a.optJSONObject("updates"))
+            val changes: JSONObject? = (if (create) a else a.optJSONObject("updates"))
             if (((changes != null))) {
                 for (key in FIELDS) {
                     if ((changes!!.has(key))) {
@@ -395,7 +395,7 @@ class AppointmentRules {
         @Throws(Exception::class)
         @JvmStatic
         fun sorted(s: JSONObject): JSONArray {
-            var rows: MutableList<JSONObject> = ArrayList()
+            val rows: MutableList<JSONObject> = ArrayList()
             var all: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
@@ -414,7 +414,7 @@ class AppointmentRules {
             if (((!entity.equals("customer") && !entity.equals("order")))) {
                 return
             }
-            var rows: JSONArray? = s.optJSONArray("appointments")
+            val rows: JSONArray? = s.optJSONArray("appointments")
             run {
                 var i: Int = 0
                 while (((rows != null) && (i < rows!!.length()))) {
@@ -443,7 +443,7 @@ class AppointmentRules {
             if ((id.isEmpty())) {
                 return
             }
-            var a: JSONObject = PixelMcpWriteTools.find(snapshot.getJSONArray("appointments"), id)
+            val a: JSONObject = PixelMcpWriteTools.find(snapshot.getJSONArray("appointments"), id)
             if (
                 ((!a.getString("customer_id").equals(row.optString("customer_id")) ||
                     !a.optString("order_id").equals(row.optString("order_id"))))

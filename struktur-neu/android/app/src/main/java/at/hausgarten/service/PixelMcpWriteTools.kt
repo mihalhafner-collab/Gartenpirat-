@@ -96,7 +96,7 @@ class PixelMcpWriteTools {
                     else
                         (if (((key == "customer_visible") || (key == "allow_overnight"))) "boolean"
                         else "string")))
-            var spec = JSONObject().put("type", type)
+            val spec = JSONObject().put("type", type)
             if ((type == "string")) {
                 spec.put(
                     "maxLength",
@@ -120,12 +120,12 @@ class PixelMcpWriteTools {
                         "request_id",
                         JSONObject().put("type", "string").put("minLength", 8).put("maxLength", 128),
                     )
-            var required = JSONArray().put("request_id")
+            val required = JSONArray().put("request_id")
             if ((name == "update_work_record")) {
                 props
                     .put("work_record_id", field("work_record_id"))
                     .put("expected_record_hash", field("expected_record_hash"))
-                var patch = JSONObject()
+                val patch = JSONObject()
                 for (key in EDITABLE) {
                     patch.put(key, field(key))
                 }
@@ -159,7 +159,7 @@ class PixelMcpWriteTools {
         @Throws(Exception::class)
         fun tools(): JSONArray {
 
-            var result = JSONArray()
+            val result = JSONArray()
             for (name in NAMES) {
                 result.put(
                     JSONObject()
@@ -189,17 +189,17 @@ class PixelMcpWriteTools {
         @Throws(Exception::class)
         fun validate(args: JSONObject, schema: JSONObject): Unit {
 
-            var props = schema.getJSONObject("properties")
+            val props = schema.getJSONObject("properties")
             run {
-                var it = args.keys()
+                val it = args.keys()
                 while (it.hasNext()) {
-                    var key = it.next()
+                    val key = it.next()
                     if (!(props.has(key))) {
                         throw Rejected("INVALID_INPUT", ("Diese Angabe ist nicht erlaubt: " + key))
                     }
                     var value = args.get(key)
-                    var spec = props.getJSONObject(key)
-                    var type = spec.getString("type")
+                    val spec = props.getJSONObject(key)
+                    val type = spec.getString("type")
                     var valid: Boolean =
                         (if ((type == "string")) value is String
                         else
@@ -220,7 +220,7 @@ class PixelMcpWriteTools {
                         )
                     }
                     if (value is Number) {
-                        var n: Double = ((value as Number)).toDouble()
+                        val n: Double = ((value as Number)).toDouble()
                         if (
                             ((!(java.lang.Double.isFinite(n)) || (n < 0)) ||
                                 (((type == "integer") && (n != Math.floor(n)))))
@@ -242,7 +242,7 @@ class PixelMcpWriteTools {
                     }
                 }
             }
-            var required = schema.optJSONArray("required")
+            val required = schema.optJSONArray("required")
             run {
                 var i: Int = 0
                 var firstIteration102 = true
@@ -253,7 +253,7 @@ class PixelMcpWriteTools {
                     }
                     if (!(((required != null) && (i < required.length())))) break
 
-                    var key = required.getString(i)
+                    val key = required.getString(i)
                     if (
                         (!(args.has(key)) ||
                             ((args.get(key) is String && args.getString(key).trim().isEmpty())))
@@ -269,8 +269,8 @@ class PixelMcpWriteTools {
         fun canonical(value: Any?): String {
 
             if (value is JSONObject) {
-                var obj = (value as JSONObject)
-                var keys = ArrayList<String>()
+                val obj = (value as JSONObject)
+                val keys = ArrayList<String>()
                 obj.keys().forEachRemaining(keys::add)
                 Collections.sort(keys)
                 var out = StringJoiner(",", "{", "}")
@@ -284,7 +284,7 @@ class PixelMcpWriteTools {
             }
             if (value is JSONArray) {
                 var out = StringJoiner(",", "[", "]")
-                var a = (value as JSONArray)
+                val a = (value as JSONArray)
                 for (i in 0 until a.length()) {
                     out.add(canonical(a.get(i)))
                 }
@@ -317,7 +317,7 @@ class PixelMcpWriteTools {
         @Throws(Exception::class)
         fun base(row: JSONObject): JSONObject {
 
-            var result = JSONObject()
+            val result = JSONObject()
             for (key in BASE_FIELDS) {
                 if (row.has(key)) {
                     result.put(key, row.get(key))
@@ -391,11 +391,11 @@ class PixelMcpWriteTools {
         ): JSONObject {
 
             validate(args, schema(name))
-            var master = PixelMcpReadTools.effective(state)
+            val master = PixelMcpReadTools.effective(state)
             var payload: JSONObject
-            var update: Boolean = (name == "update_work_record")
+            val update: Boolean = (name == "update_work_record")
             if (update) {
-                var capabilities = master.optJSONObject("capabilities")
+                val capabilities = master.optJSONObject("capabilities")
                 if (
                     ((capabilities == null) ||
                         !((true == capabilities.opt("worklog_compare_and_save"))))
@@ -405,7 +405,7 @@ class PixelMcpWriteTools {
                         "Der gemeinsame Änderungsschutz fehlt im Gesamtstand. Bitte Pixel-Datenstand und App-Version prüfen.",
                     )
                 }
-                var old = find(master.optJSONArray("worklogs"), args.getString("work_record_id"))
+                val old = find(master.optJSONArray("worklogs"), args.getString("work_record_id"))
                 if (!((hash(base(old)) == args.getString("expected_record_hash")))) {
                     throw Rejected(
                         "WRITE_CONFLICT",
@@ -414,7 +414,7 @@ class PixelMcpWriteTools {
                 }
                 val patch = args.getJSONObject("updates")
                 var invoiced: Boolean = (old.optInt("billed", 0) != 0)
-                var invoices = master.optJSONArray("invoices")
+                val invoices = master.optJSONArray("invoices")
                 run {
                     var i: Int = 0
                     var firstIteration107 = true
@@ -425,8 +425,8 @@ class PixelMcpWriteTools {
                         }
                         if (!(((invoices != null) && (i < invoices.length())))) break
 
-                        var inv = invoices.getJSONObject(i)
-                        var ids = inv.optJSONArray("worklog_ids")
+                        val inv = invoices.getJSONObject(i)
+                        val ids = inv.optJSONArray("worklog_ids")
                         run {
                             var j: Int = 0
                             var firstIteration106 = true
@@ -446,7 +446,7 @@ class PixelMcpWriteTools {
                 }
                 if (invoiced) {
                     run {
-                        var it = patch.keys()
+                        val it = patch.keys()
                         while (it.hasNext()) {
                             if (!((it.next() == "notes"))) {
                                 throw Rejected(
@@ -459,9 +459,9 @@ class PixelMcpWriteTools {
                 }
                 payload = JSONObject(old.toString())
                 run {
-                    var it = patch.keys()
+                    val it = patch.keys()
                     while (it.hasNext()) {
-                        var key = it.next()
+                        val key = it.next()
                         payload.put(key, patch.get(key))
                     }
                 }
@@ -470,7 +470,7 @@ class PixelMcpWriteTools {
             } else {
                 payload = JSONObject(args.toString())
                 payload.remove("request_id")
-                var orderId = payload.optString("order_id").trim()
+                val orderId = payload.optString("order_id").trim()
                 var customerId = payload.optString("customer_id").trim()
                 if (!(orderId.isEmpty())) {
                     var order = find(master.optJSONArray("orders"), orderId)
@@ -492,7 +492,7 @@ class PixelMcpWriteTools {
                     .put("billed", 0)
                     .put("source", "ChatGPT Sprache")
                     .put("_mcp_create", true)
-                var existing = master.optJSONArray("worklogs")
+                val existing = master.optJSONArray("worklogs")
                 run {
                     var i: Int = 0
                     var firstIteration110 = true
@@ -514,7 +514,7 @@ class PixelMcpWriteTools {
                     }
                 }
             }
-            var customerId = payload.optString("customer_id").trim()
+            val customerId = payload.optString("customer_id").trim()
             var orderId =
                 (if (payload.isNull("order_id")) "" else payload.optString("order_id").trim())
             payload.put("order_id", orderId)
@@ -545,7 +545,7 @@ class PixelMcpWriteTools {
             )
             applyMaterialCost(payload)
             WorklogRules.validate(payload, true)
-            var submitted = (if (update) args.getJSONObject("updates") else args)
+            val submitted = (if (update) args.getJSONObject("updates") else args)
             if (
                 (((submitted.has("hours") && !(payload.isNull("start_time"))) &&
                     !(payload.optString("start_time").isEmpty())) &&
@@ -557,7 +557,7 @@ class PixelMcpWriteTools {
                 )
             }
             if (!(update)) {
-                var logs = master.optJSONArray("worklogs")
+                val logs = master.optJSONArray("worklogs")
                 run {
                     var i: Int = 0
                     var firstIteration111 = true
@@ -568,7 +568,7 @@ class PixelMcpWriteTools {
                         }
                         if (!(((logs != null) && (i < logs.length())))) break
 
-                        var row = logs.getJSONObject(i)
+                        val row = logs.getJSONObject(i)
                         if (
                             ((((customerId == row.optString("customer_id")) &&
                                 (payload.getString("work_date") == row.optString("work_date"))) &&

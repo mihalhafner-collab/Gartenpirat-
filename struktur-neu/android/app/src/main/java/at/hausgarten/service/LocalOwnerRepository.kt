@@ -309,7 +309,7 @@ class LocalOwnerRepository : OwnerRepository {
 
         context!!.getAssets().open(path).use { input ->
             var out = ByteArrayOutputStream()
-            var buffer = ByteArray(8192)
+            val buffer = ByteArray(8192)
             var n: Int
             while (true) {
                 n = input.read(buffer)
@@ -334,7 +334,7 @@ class LocalOwnerRepository : OwnerRepository {
     @Throws(Exception::class)
     fun readChunk(a: JSONObject): JSONObject {
 
-        var type = a.getString("resource_type")
+        val type = a.getString("resource_type")
         var id = a.getString("resource_id")
         var mime: String
         var bytes: ByteArray
@@ -342,7 +342,7 @@ class LocalOwnerRepository : OwnerRepository {
             "photo" -> {
                 run {
                     var listed: Boolean = false
-                    var photos = effective().getJSONArray("photos")
+                    val photos = effective().getJSONArray("photos")
                     for (i in 0 until photos.length()) {
                         if ((id == photos.getJSONObject(i).optString("id"))) {
                             listed = true
@@ -355,7 +355,7 @@ class LocalOwnerRepository : OwnerRepository {
                     ) {
                         throw IllegalArgumentException("Das Foto besitzt keine aktuelle Zuordnung.")
                     }
-                    var m = store!!.photoAttachment(id)
+                    val m = store!!.photoAttachment(id)
                     if (m == null) {
                         throw localOriginalMissing()
                     }
@@ -370,7 +370,7 @@ class LocalOwnerRepository : OwnerRepository {
             }
             "offer" -> {
                 run {
-                    var offer = PixelMcpWriteTools.find(effective().getJSONArray("offers"), id)
+                    val offer = PixelMcpWriteTools.find(effective().getJSONArray("offers"), id)
                     if (
                         (offer.optString("pdf_storage_name").isEmpty() ||
                             offer.optString("pdf_sha256").isEmpty())
@@ -389,7 +389,7 @@ class LocalOwnerRepository : OwnerRepository {
             else -> throw IllegalArgumentException("Unbekannter Dateityp.")
         }
 
-        var hash = digest(bytes)
+        val hash = digest(bytes)
         if (!(a.has("expected_sha256"))) {
             return JSONObject()
                 .put("resource_type", type)
@@ -405,11 +405,11 @@ class LocalOwnerRepository : OwnerRepository {
             )
         }
         var offset: Int = a.getInt("offset")
-        var length: Int = a.optInt("length", PixelMcpOwnerTools.CHUNK)
+        val length: Int = a.optInt("length", PixelMcpOwnerTools.CHUNK)
         if (offset > bytes.size) {
             throw IllegalArgumentException("Dateibereich fehlt.")
         }
-        var part = Arrays.copyOfRange(bytes, offset, Math.min(bytes.size, offset + length))
+        val part = Arrays.copyOfRange(bytes, offset, Math.min(bytes.size, offset + length))
         return JSONObject()
             .put("resource_type", type)
             .put("resource_id", id)
@@ -426,7 +426,7 @@ class LocalOwnerRepository : OwnerRepository {
     @Throws(Exception::class)
     override fun enqueue(kind: String, payload: JSONObject, request: String): JSONObject {
 
-        var db = store!!.getWritableDatabase()
+        val db = store!!.getWritableDatabase()
         store!!.beginBusinessTransaction(db)
         try {
 
@@ -495,7 +495,7 @@ class LocalOwnerRepository : OwnerRepository {
                 revier().protectParent("photo", payload.optString("id"))
             }
             if ((kind == TrashPurgeBatch.KIND)) {
-                var entries = payload.getJSONArray("entries")
+                val entries = payload.getJSONArray("entries")
                 val targets = TrashPurgeBatch.testTargets(currentBeforeRevier, entries)
                 for (i in 0 until targets.length()) {
                     val target = targets.getJSONObject(i)
@@ -509,7 +509,7 @@ class LocalOwnerRepository : OwnerRepository {
                         .protectParent(target.getString("entity"), target.getString("entity_id"))
                 }
                 for (i in 0 until entries.length()) {
-                    var entry = entries.getJSONObject(i)
+                    val entry = entries.getJSONObject(i)
                     protectSettlement(entry.getString("entity"), entry.getString("entity_id"))
                     revier().protectParent(entry.getString("entity"), entry.getString("entity_id"))
                     revier()
@@ -520,7 +520,7 @@ class LocalOwnerRepository : OwnerRepository {
                         )
                 }
             }
-            var prior = store!!.pendingActions()
+            val prior = store!!.pendingActions()
             // Only order/appointment detach and a mixed trash batch can change Revier state.
             // Re-read after those paths; ordinary work deletion has no intervening mutation.
             val currentAfterRevier by lazy {
@@ -550,17 +550,17 @@ class LocalOwnerRepository : OwnerRepository {
                 )
             if (predecessors.length() > 0) payload.put("_sync_predecessors", predecessors)
             if ((kind == "appointment") || (kind == "offer_convert")) {
-                var parentProjection = JSONObject(state().getJSONObject("master").toString())
+                val parentProjection = JSONObject(state().getJSONObject("master").toString())
                 LocalJournalRules.apply(parentProjection, prior)
                 var incorporated =
                     LocalJournalRules.ids(parentProjection.optJSONArray("drive_applied_ids"))
                 var targetOrder =
                     payload.optString("order_id", payload.optString("existing_order_id"))
                 for (i in 0 until prior.length()) {
-                    var event = prior.getJSONObject(i)
+                    val event = prior.getJSONObject(i)
                     var p = event.getJSONObject("payload")
-                    var previous = event.getString("client_id")
-                    var type = event.getString("kind")
+                    val previous = event.getString("client_id")
+                    val type = event.getString("kind")
                     if (!(incorporated.contains(previous))) {
                         continue
                     }
@@ -596,7 +596,7 @@ class LocalOwnerRepository : OwnerRepository {
             if (store!!.testLocalOnly(kind, payload)) {
                 payload.put("_local_only", true)
             }
-            var a = ContentValues()
+            val a = ContentValues()
             a.put("id", request)
             a.put("kind", kind)
             a.put("payload", payload.toString())
@@ -658,15 +658,15 @@ class LocalOwnerRepository : OwnerRepository {
 
     override @Throws(Exception::class) fun replaceWorklog(payload: JSONObject): Unit {
 
-        var prior = HashSet<String>()
-        var before = store!!.pendingActions()
+        val prior = HashSet<String>()
+        val before = store!!.pendingActions()
         for (i in 0 until before.length()) {
             prior.add(before.getJSONObject(i).getString("client_id"))
         }
         store!!.saveWorklog(payload)
-        var after = store!!.pendingActions()
+        val after = store!!.pendingActions()
         for (i in 0 until after.length()) {
-            var added = after.getJSONObject(i)
+            val added = after.getJSONObject(i)
             if (
                 !(prior.contains(added.getString("client_id"))) &&
                     ("worklog" == added.getString("kind")) &&
@@ -750,7 +750,7 @@ class LocalOwnerRepository : OwnerRepository {
         args: JSONObject,
     ): JSONObject {
 
-        var control = PixelBackupService(context!!, store!!)
+        val control = PixelBackupService(context!!, store!!)
         if ((name == "request_full_backup")) {
             return control.request(args)
         }
@@ -766,7 +766,7 @@ class LocalOwnerRepository : OwnerRepository {
             RevierLocalRepository(
                 store!!,
                 LAM@{ a ->
-                    var operation = a.optString("_operation", "create_appointment")
+                    val operation = a.optString("_operation", "create_appointment")
                     a.remove("_operation")
                     return@LAM PlanningApplicationService(this)
                         .perform(
@@ -817,14 +817,14 @@ class LocalOwnerRepository : OwnerRepository {
 
     fun migratePersonalPaid(value: String): String {
 
-        var db = store!!.getWritableDatabase()
+        val db = store!!.getWritableDatabase()
         db.beginTransaction()
         try {
 
             if (!(("1" == store!!.ownerValue("personal_paid_migrated", "")))) {
-                var old = JSONArray(value)
+                val old = JSONArray(value)
                 var current = JSONArray(store!!.ownerValue("personal_paid", "[]"))
-                var union = java.util.LinkedHashSet<String>()
+                val union = java.util.LinkedHashSet<String>()
                 for (list in arrayOf(old, current)) {
                     for (i in 0 until list.length()) {
                         var id = list.getString(i)
@@ -850,7 +850,7 @@ class LocalOwnerRepository : OwnerRepository {
 
         try {
 
-            var ids = JSONArray(value)
+            val ids = JSONArray(value)
             var all = SnapshotProjection.effective(store!!.getState())
             for (i in 0 until ids.length()) {
                 PixelMcpWriteTools.find(all.getJSONArray("worklogs"), ids.getString(i))

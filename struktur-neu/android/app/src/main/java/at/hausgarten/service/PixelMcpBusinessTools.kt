@@ -34,9 +34,9 @@ internal class PixelMcpBusinessTools {
             try {
 
                 var `as`: Int = java.time.LocalTime.parse(a.getString("start_time")).toSecondOfDay()
-                var ae: Int = java.time.LocalTime.parse(a.getString("end_time")).toSecondOfDay()
-                var bs: Int = java.time.LocalTime.parse(b.getString("start_time")).toSecondOfDay()
-                var be: Int = java.time.LocalTime.parse(b.getString("end_time")).toSecondOfDay()
+                val ae: Int = java.time.LocalTime.parse(a.getString("end_time")).toSecondOfDay()
+                val bs: Int = java.time.LocalTime.parse(b.getString("start_time")).toSecondOfDay()
+                val be: Int = java.time.LocalTime.parse(b.getString("end_time")).toSecondOfDay()
                 return ((((ae > `as`) && (be > bs)) && (`as` < be)) && (bs < ae))
             } catch (e: Exception) {
                 return false
@@ -73,9 +73,9 @@ internal class PixelMcpBusinessTools {
 
             var hours: Double = 0.0
             var marked: Int = 0
-            var issues = JSONArray()
-            var customerIds = HashSet<String>()
-            var customers = master.optJSONArray("customers")
+            val issues = JSONArray()
+            val customerIds = HashSet<String>()
+            val customers = master.optJSONArray("customers")
             run {
                 var i: Int = 0
                 var firstIteration83 = true
@@ -95,7 +95,7 @@ internal class PixelMcpBusinessTools {
                 )
             }
             for (i in 0 until logs.length()) {
-                var row = logs.getJSONObject(i)
+                val row = logs.getJSONObject(i)
                 hours += row.optDouble("hours", 0.0)
                 if (row.optInt("billed", 0) == 0) marked++
                 if (!(customerIds.contains(row.optString("customer_id")))) {
@@ -105,7 +105,7 @@ internal class PixelMcpBusinessTools {
                 }
                 try {
 
-                    var normalized = JSONObject(row.toString())
+                    val normalized = JSONObject(row.toString())
                     WorklogRules.validate(normalized, false)
                     if (
                         (Math.abs((normalized.optDouble("hours") - row.optDouble("hours"))) > 0.005)
@@ -128,7 +128,7 @@ internal class PixelMcpBusinessTools {
                     )
                 }
                 for (j in 0 until i) {
-                    var other = logs.getJSONObject(j)
+                    val other = logs.getJSONObject(j)
                     if (overlap(row, other)) {
                         issues.put(
                             issue(

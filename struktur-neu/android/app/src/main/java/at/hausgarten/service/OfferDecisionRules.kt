@@ -11,7 +11,7 @@ internal object OfferDecisionRules {
     @JvmStatic
     @Throws(Exception::class)
     fun version(value: JSONObject): Unit {
-        var version = value!!.opt("formatVersion")
+        val version = value!!.opt("formatVersion")
         if ((!(version is Number) || !(version!!.toString())!!.equals("1"))) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_DECISION_VERSION_UNSUPPORTED",
@@ -23,7 +23,7 @@ internal object OfferDecisionRules {
     @JvmStatic
     @Throws(Exception::class)
     fun contentVersion(offer: JSONObject): String {
-        var fixed: JSONObject = JSONObject()
+        val fixed: JSONObject = JSONObject()
         for (field in (OfferRules.FIELDS)!!) {
             if (offer!!.has(field)) {
                 fixed!!.put(field, offer!!.get(field))
@@ -87,7 +87,7 @@ internal object OfferDecisionRules {
         ) {
             return null
         }
-        var decision = decisions!!.getJSONObject(offer!!.getString("id"))
+        val decision = decisions!!.getJSONObject(offer!!.getString("id"))
         version(decision)
         if (!(decision!!.optString("content_version"))!!.equals(contentVersion(offer))) {
             return ((((JSONObject())!!.put("formatVersion", 1))!!.put(
@@ -103,14 +103,14 @@ internal object OfferDecisionRules {
     @JvmStatic
     @Throws(Exception::class)
     fun decorateQuery(name: String, result: JSONObject, effectiveState: JSONObject): JSONObject {
-        var decisions = effectiveState!!.optJSONObject("offer_decisions")
+        val decisions = effectiveState!!.optJSONObject("offer_decisions")
         if (((decisions === null) || (decisions!!.length() == 0))) {
             return result
         }
         if ((name!!.equals("get_offer") || name!!.equals("validate_offer"))) {
-            var offer = result!!.optJSONObject("offer")
+            val offer = result!!.optJSONObject("offer")
             if ((offer !== null)) {
-                var decision = matching(offer, decisions)
+                val decision = matching(offer, decisions)
                 if ((decision !== null)) {
                     (result!!.put("decision", decision))!!.put(
                         "decision_status",
@@ -120,20 +120,20 @@ internal object OfferDecisionRules {
             }
         }
         if (name!!.equals("list_offers")) {
-            var visible: JSONObject = JSONObject()
-            var rows = result!!.optJSONArray("offers")
+            val visible: JSONObject = JSONObject()
+            val rows = result!!.optJSONArray("offers")
             run {
                 var i: Int = 0
                 while (((rows !== null) && (i < rows!!.length()))) {
-                    var wrapper = rows!!.getJSONObject(i)
-                    var offer = wrapper!!.optJSONObject("offer")
+                    val wrapper = rows!!.getJSONObject(i)
+                    val offer = wrapper!!.optJSONObject("offer")
                     if ((offer === null)) {
                         run {
                             i++
                             continue
                         }
                     }
-                    var decision = matching(offer, decisions)
+                    val decision = matching(offer, decisions)
                     if ((decision !== null)) {
                         wrapper!!.put("decision", decision)
                         visible!!.put(offer!!.getString("id"), decision)

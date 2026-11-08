@@ -14,7 +14,7 @@ class EquipmentMaintenanceRules {
         @Throws(Exception::class)
         @JvmStatic
         fun interval(row: JSONObject) {
-            var unit: String = RevierRules.text(row, "interval_unit", 12, true)
+            val unit: String = RevierRules.text(row, "interval_unit", 12, true)
             var maximum: Int
             when ((unit)) {
                 "days" -> {
@@ -103,14 +103,14 @@ class EquipmentMaintenanceRules {
                     "Wartungspläne sind nicht als Liste gespeichert.",
                 )
             }
-            var plans: JSONArray = equipment.getJSONArray("maintenance_plans")
+            val plans: JSONArray = equipment.getJSONArray("maintenance_plans")
             if (((plans.length() > MAX_PLANS))) {
                 throw RevierRules.error(
                     "REVIER_RELATION_INVALID",
                     "Zu viele Wartungspläne an diesem Gerät.",
                 )
             }
-            var ids: MutableSet<String> = HashSet()
+            val ids: MutableSet<String> = HashSet()
             run {
                 var i: Int = 0
                 while ((i < plans.length())) {
@@ -125,7 +125,7 @@ class EquipmentMaintenanceRules {
                     RevierRules.text(p, "title", 240, true)
                     interval(p)
                     RevierRules.date(p, "anchor_on", true)
-                    var expected: JSONObject = RevierRules.copy(p)
+                    val expected: JSONObject = RevierRules.copy(p)
                     recalculate(expected)
                     for (field in arrayOf("regular_due_on", "next_due_on")) {
                         if ((!expected.getString(field).equals(p.optString(field)))) {
@@ -141,7 +141,7 @@ class EquipmentMaintenanceRules {
                             "Einzeltermin und regelmäßige Fälligkeit widersprechen sich.",
                         )
                     }
-                    var completed: String = RevierRules.date(p, "last_completed_on", false)
+                    val completed: String = RevierRules.date(p, "last_completed_on", false)
                     if (
                         ((!completed.isEmpty() &&
                             ((!completed.equals(p.getString("anchor_on")) ||
@@ -183,7 +183,7 @@ class EquipmentMaintenanceRules {
                 throw RevierRules.error("INVALID_INPUT", "Grund für das kürzere Intervall angeben.")
             }
             interval(requested)
-            var anchor: LocalDate = RevierRules.date(plan.getString("anchor_on"))
+            val anchor: LocalDate = RevierRules.date(plan.getString("anchor_on"))
             if ((!advance(anchor, requested).isBefore(advance(anchor, plan)))) {
                 throw RevierRules.error(
                     "INVALID_INPUT",
@@ -200,11 +200,11 @@ class EquipmentMaintenanceRules {
         @JvmStatic
         fun nextDue(equipment: JSONObject): String {
             var next: String = ""
-            var plans: JSONArray = plans(equipment)
+            val plans: JSONArray = plans(equipment)
             run {
                 var i: Int = 0
                 while ((i < plans.length())) {
-                    var due: String = plans.getJSONObject(i).getString("next_due_on")
+                    val due: String = plans.getJSONObject(i).getString("next_due_on")
                     if (((next.isEmpty() || (due.compareTo(next) < 0)))) {
                         next = due
                     }

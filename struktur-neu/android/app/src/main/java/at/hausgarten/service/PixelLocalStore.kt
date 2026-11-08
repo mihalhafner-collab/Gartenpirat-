@@ -135,7 +135,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         beginJournalTransaction(
             db,
             LAM@{
-                var tables = businessTables(db, true)
+                val tables = businessTables(db, true)
                 if (tables.active() && !(tables.projectionCurrent())) {
                     tables.commitJournal(
                         LocalPendingActions.read(db, { id -> BackupSnapshotState.photo(db, id) }),
@@ -211,7 +211,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 throw IllegalArgumentException()
             }
             run {
-                var names = value.keys()
+                val names = value.keys()
                 while (names.hasNext()) {
                     if (!(keys.contains(names.next()))) {
                         throw IllegalArgumentException()
@@ -235,7 +235,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     throw IllegalArgumentException()
                 }
             }
-            var capabilities = value.getJSONObject("capabilities")
+            val capabilities = value.getJSONObject("capabilities")
             var supported =
                 arrayOf(
                     "worklog_compare_and_save",
@@ -266,12 +266,12 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
         try {
 
-            var saved = preferences.getString("drive_snapshot", "")!!
+            val saved = preferences.getString("drive_snapshot", "")!!
             if (saved.isEmpty()) {
                 return
             }
-            var snapshot = JSONObject(saved)
-            var photos = snapshot.optJSONArray("photos")
+            val snapshot = JSONObject(saved)
+            val photos = snapshot.optJSONArray("photos")
             var inline: Boolean = false
             run {
                 var i: Int = 0
@@ -283,7 +283,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     }
                     if (!(photos != null && i < photos.length())) break
 
-                    var photo = photos.optJSONObject(i)
+                    val photo = photos.optJSONObject(i)
                     if (photo != null && (photo.has("data") || photo.has("full_data"))) {
                         inline = true
                         break
@@ -346,11 +346,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     fun putOwnerValue(key: String, value: String): Unit {
 
-        var db = getWritableDatabase()
+        val db = getWritableDatabase()
         beginBusinessTransaction(db)
         try {
 
-            var tables = businessTables(db)
+            val tables = businessTables(db)
             if ((key == "snapshot") && tables.active()) {
                 tables.replaceSnapshot(JSONObject(value))
             } else {
@@ -379,7 +379,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if ((key == "snapshot")) {
             try {
 
-                var tables = businessTables()
+                val tables = businessTables()
                 if (tables.active()) {
                     return tables.exportSnapshot().toString()
                 }
@@ -447,13 +447,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 while (rows.moveToNext()) {
                     try {
 
-                        var payload = JSONObject(rows.getString(0))
+                        val payload = JSONObject(rows.getString(0))
                         if (
                             payload.optString("data").isEmpty() || payload.optString("id").isEmpty()
                         ) {
                             continue
                         }
-                        var prepared = photoAttachments.prepareLegacy(payload)
+                        val prepared = photoAttachments.prepareLegacy(payload)
                         saveAttachmentMetadata(
                             database,
                             payload.getString("id"),
@@ -467,7 +467,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     fun getState(): JSONObject {
 
-        var db = getWritableDatabase()
+        val db = getWritableDatabase()
         // Activity destruction may close the helper while an IO query finishes.
         // Keep the connection pool alive through endTransaction, including failures.
         db.acquireReference()
@@ -478,7 +478,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             else db.beginTransactionReadOnly()
             try {
 
-                var result = getStateLocked(db)
+                val result = getStateLocked(db)
                 db.setTransactionSuccessful()
                 return result
             } finally {
@@ -563,11 +563,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun saveWorklog(payload: JSONObject): String {
 
-        var transaction = getWritableDatabase()
+        val transaction = getWritableDatabase()
         beginBusinessTransaction(transaction)
         try {
 
-            var result = saveWorklogLocked(payload)
+            val result = saveWorklogLocked(payload)
             transaction.setTransactionSuccessful()
             return result
         } finally {
@@ -585,7 +585,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 findById(current.getJSONArray("worklogs"), payload.optString("id")),
                 "worklog",
             )
-        var customerId = payload.optString("customer_id").trim()
+        val customerId = payload.optString("customer_id").trim()
         if (customerId.isEmpty() || payload.optString("activity").trim().isEmpty()) {
             throw IllegalArgumentException("Kunde und Tätigkeit sind erforderlich.")
         }
@@ -593,11 +593,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         var requireOrder: Boolean =
             payload.optBoolean("_require_order", false) ||
                 payload.optBoolean("require_order", false)
-        var orderId = (if (payload.isNull("order_id")) "" else payload.optString("order_id").trim())
-        var master = current
-        var customers = master.getJSONArray("customers")
-        var orders = master.getJSONArray("orders")
-        var previous = findById(master.getJSONArray("worklogs"), payload.optString("id"))
+        val orderId = (if (payload.isNull("order_id")) "" else payload.optString("order_id").trim())
+        val master = current
+        val customers = master.getJSONArray("customers")
+        val orders = master.getJSONArray("orders")
+        val previous = findById(master.getJSONArray("worklogs"), payload.optString("id"))
         isNew = previous == null
         if (!(containsId(customers, customerId))) {
             throw IllegalArgumentException("Der ausgewählte Kunde existiert nicht.")
@@ -661,12 +661,12 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             "worklogs",
             payload,
         )
-        var actionId = "worklog_change_" + UUID.randomUUID().toString().replace("-", "")
-        var database = getWritableDatabase()
+        val actionId = "worklog_change_" + UUID.randomUUID().toString().replace("-", "")
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
-            var values = ContentValues()
+            val values = ContentValues()
             values.put("id", actionId)
             values.put("kind", "worklog")
             values.put("payload", payload.toString())
@@ -682,15 +682,15 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun startWorkSession(payload: JSONObject): JSONObject {
 
-        var request = JSONObject(payload.toString())
+        val request = JSONObject(payload.toString())
         request.remove("_request_input_hash")
-        var inputHash = PixelMcpWriteTools.hash(request)
+        val inputHash = PixelMcpWriteTools.hash(request)
         request.put("_request_input_hash", inputHash)
-        var db = getWritableDatabase()
+        val db = getWritableDatabase()
         beginBusinessTransaction(db)
         try {
 
-            var result = startWorkSessionLocked(request)
+            val result = startWorkSessionLocked(request)
             db.setTransactionSuccessful()
             return result
         } finally {
@@ -700,12 +700,12 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     private @Throws(Exception::class) fun startWorkSessionLocked(payload: JSONObject): JSONObject {
 
-        var active = workSessions().current()
+        val active = workSessions().current()
         if (!(("IDLE" == active.optString("state")))) {
             return workSessions().start(payload)
         }
-        var master = PixelMcpReadTools.effective(getState())
-        var customer = payload.optString("customer_id").trim()
+        val master = PixelMcpReadTools.effective(getState())
+        val customer = payload.optString("customer_id").trim()
         var order = payload.optString("order_id").trim()
         if (!(customer.isEmpty()) && !(containsId(master.getJSONArray("customers"), customer))) {
             throw IllegalArgumentException("Der ausgewählte Kunde existiert nicht.")
@@ -720,7 +720,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             )
         }
         if (!(order.isEmpty())) {
-            var row = findById(master.getJSONArray("orders"), order)
+            val row = findById(master.getJSONArray("orders"), order)
             if (row == null || !((customer == row.optString("customer_id")))) {
                 throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
             }
@@ -749,19 +749,19 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun completeWorkSession(sessionId: String, payload: JSONObject, requestId: String): String {
 
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
-            var sessions = workSessions()
-            var session = sessions.current(sessionId)
+            val sessions = workSessions()
+            val session = sessions.current(sessionId)
             if (
                 !((WorkSessionStore.STOPPED == session.optString("state"))) &&
                     !((WorkSessionStore.FINALIZED == session.optString("state")))
             ) {
                 throw IllegalStateException("Bitte die laufende Arbeit zuerst stoppen.")
             }
-            var stableId = "wrk_session_" + sessionId.replace("ses_pixel_", "")
+            val stableId = "wrk_session_" + sessionId.replace("ses_pixel_", "")
             if ((WorkSessionStore.FINALIZED == session.optString("state"))) {
                 if ((stableId == session.optString("finalized_worklog_id"))) {
                     return stableId
@@ -851,11 +851,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 payload.put("appointment_id", session.getString("appointment_id"))
             }
             retainSessionContext(payload, session)
-            var saved = saveWorklog(payload)
-            var photos = PixelMcpReadTools.effective(getState())
-            var sessionPhotos = photos.getJSONArray("photos")
+            val saved = saveWorklog(payload)
+            val photos = PixelMcpReadTools.effective(getState())
+            val sessionPhotos = photos.getJSONArray("photos")
             for (i in 0 until sessionPhotos.length()) {
-                var old = sessionPhotos.getJSONObject(i)
+                val old = sessionPhotos.getJSONObject(i)
                 if (
                     !((sessionId == old.optString("session_id"))) ||
                         !(old.optString("worklog_id").isEmpty())
@@ -880,14 +880,14 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         starting: Boolean,
     ): Unit {
 
-        var property = payload.optString("property_id")
-        var visit = payload.optString("visit_id")
+        val property = payload.optString("property_id")
+        val visit = payload.optString("visit_id")
         if (!(visit.isEmpty())) {
-            var raw = ownerValue("revier:v1:entity:visit:" + visit, "")!!
+            val raw = ownerValue("revier:v1:entity:visit:" + visit, "")!!
             if (raw.isEmpty()) {
                 throw IllegalArgumentException("Der ausgewählte Besuch existiert nicht.")
             }
-            var row = JSONObject(raw)
+            val row = JSONObject(raw)
             RevierRules.version(row)
             if (
                 !((property == row.getString("property_id"))) ||
@@ -905,11 +905,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             }
         }
         if (!(property.isEmpty())) {
-            var raw = ownerValue("revier:v1:entity:property:" + property, "")!!
+            val raw = ownerValue("revier:v1:entity:property:" + property, "")!!
             if (raw.isEmpty()) {
                 throw IllegalArgumentException("Das ausgewählte Objekt existiert nicht.")
             }
-            var row = JSONObject(raw)
+            val row = JSONObject(raw)
             RevierRules.version(row)
             if (
                 !((payload.optString("customer_id") == row.getString("customer_id"))) ||
@@ -946,13 +946,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         }
         var clientId =
             "mcp_pixel_" + PixelMcpWriteTools.hash(args.getString("request_id")).substring(0, 40)
-        var fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args))
-        var database = getWritableDatabase()
+        val fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args))
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         var result: JSONObject
         try {
 
-            var receipt = receipt(clientId)
+            val receipt = receipt(clientId)
             if (receipt != null) {
                 if (!((fingerprint == receipt.optString("fingerprint")))) {
                     throw PixelMcpWriteTools.Rejected(
@@ -983,15 +983,15 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                             )
                     else PixelMcpEntityWriteTools.prepare(tool, args, getState(), clientId))
                 var entityType = prepared.getString("entity_type")
-                var payload = prepared.getJSONObject("payload")
-                var source = payload.optString("source", "ChatGPT Sprache")
-                var changedAt = isoNow()
+                val payload = prepared.getJSONObject("payload")
+                val source = payload.optString("source", "ChatGPT Sprache")
+                val changedAt = isoNow()
                 payload.put("updated_at", changedAt)
                 if (!(payload.has("created_at"))) {
                     payload.put("created_at", changedAt)
                 }
-                var existingActions = HashSet<String>()
-                var priorActions = pendingActions()
+                val existingActions = HashSet<String>()
+                val priorActions = pendingActions()
                 for (i in 0 until priorActions.length()) {
                     existingActions.add(priorActions.getJSONObject(i).getString("client_id"))
                 }
@@ -1023,7 +1023,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                             }
                         }
                     }
-                var action = ContentValues()
+                val action = ContentValues()
                 action.put("id", clientId)
                 action.put("kind", entityType)
                 action.put("payload", payload.toString())
@@ -1038,7 +1038,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         .put("work_record_id", (if ((entityType == "worklog")) entityId else ""))
                         .put("uploaded", false)
                         .put("test_local_only", payload.optBoolean("_local_only"))
-                var saved = ContentValues()
+                val saved = ContentValues()
                 saved.put("id", "receipt_" + clientId)
                 saved.put("kind", "mcp_receipt")
                 saved.put("payload", metadata.toString())
@@ -1093,13 +1093,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         PixelMcpWriteTools.validate(args, PixelMcpSessionTools.schema(tool))
         var clientId =
             "mcp_pixel_" + PixelMcpWriteTools.hash(args.getString("request_id")).substring(0, 40)
-        var fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args))
-        var database = getWritableDatabase()
+        val fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args))
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         var result: JSONObject
         try {
 
-            var existing = receipt(clientId)
+            val existing = receipt(clientId)
             if (existing != null) {
                 if (!((fingerprint == existing.optString("fingerprint")))) {
                     throw PixelMcpWriteTools.Rejected(
@@ -1110,9 +1110,9 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 result =
                     JSONObject(existing.getJSONObject("result").toString()).put("replayed", true)
             } else {
-                var timer = workSessions()
+                val timer = workSessions()
                 var id = args.optString("session_id")
-                var request = "mcp-session-" + clientId
+                val request = "mcp-session-" + clientId
                 if ((tool == "finish_work")) {
                     var current = timer.current(id)
                     if (
@@ -1122,7 +1122,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         timer.stop(id, request + "-stop")
                     }
                 }
-                var payload = PixelMcpSessionTools.prepare(tool, args, getState())
+                val payload = PixelMcpSessionTools.prepare(tool, args, getState())
                 var session: JSONObject
                 when (tool) {
                     "review_work_session" -> {
@@ -1154,7 +1154,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     else -> {
                         payload.remove("request_id")
                         payload.remove("session_id")
-                        var saved = completeWorkSession(id, payload, request)
+                        val saved = completeWorkSession(id, payload, request)
                         payload.put("id", saved).put("_mcp_create", true)
                         if (testLocalOnly("worklog", payload)) {
                             payload.put("_local_only", true)
@@ -1172,7 +1172,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                                     }
                                 }
                             }
-                        var action = ContentValues()
+                        val action = ContentValues()
                         action.put("id", clientId)
                         action.put("kind", "worklog")
                         action.put("payload", payload.toString())
@@ -1209,7 +1209,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         .put("uploaded", false)
                         .put("test_local_only", payload.optBoolean("_local_only"))
                         .put("result", result)
-                var row = ContentValues()
+                val row = ContentValues()
                 row.put("id", "receipt_" + clientId)
                 row.put("kind", "mcp_receipt")
                 row.put("payload", meta.toString())
@@ -1222,7 +1222,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         }
         if (((tool == "complete_work_session") || (tool == "finish_work"))) {
             notifyCommittedChange()
-            var sync = status(clientId, getState())
+            val sync = status(clientId, getState())
             result.put("sync", sync).put("sync_state", sync.optString("sync_state"))
         }
         return JSONObject()
@@ -1284,7 +1284,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     private @Throws(Exception::class) fun findById(rows: JSONArray, id: String): JSONObject? {
 
         for (i in 0 until rows.length()) {
-            var row = rows.optJSONObject(i)
+            val row = rows.optJSONObject(i)
             if (row != null && (id == row.optString("id"))) {
                 return row
             }
@@ -1300,8 +1300,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun saveEditorRecord(kind: String, input: JSONObject): String {
 
-        var payload = JSONObject(input.toString())
-        var request = payload.optString("_request_id")
+        val payload = JSONObject(input.toString())
+        val request = payload.optString("_request_id")
         payload.remove("_request_id")
         if ((kind == "worklog") && payload.optString("_session_id").isEmpty()) {
             payload.remove("_session_id")
@@ -1309,17 +1309,17 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (!(request.isEmpty()) && !(request.matches(Regex("[A-Za-z0-9_-]{8,200}")))) {
             throw IllegalArgumentException("Ungültige Aktionskennung.")
         }
-        var db = getWritableDatabase()
+        val db = getWritableDatabase()
         beginBusinessTransaction(db)
         try {
 
-            var key = "editor_commit:" + PixelMcpWriteTools.hash(request)
+            val key = "editor_commit:" + PixelMcpWriteTools.hash(request)
             var fingerprint =
                 PixelMcpWriteTools.hash(JSONObject().put("kind", kind).put("payload", payload))
             if (!(request.isEmpty())) {
-                var raw = ownerValue(key, "")!!
+                val raw = ownerValue(key, "")!!
                 if (!(raw.isEmpty())) {
-                    var receipt = JSONObject(raw)
+                    val receipt = JSONObject(raw)
                     if (!((fingerprint == receipt.getString("fingerprint")))) {
                         throw IllegalArgumentException(
                             "REQUEST_ID_REUSED: Ursprüngliche Speicherung unverändert prüfen."
@@ -1339,8 +1339,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 }
                 "worklog" -> {
                     run {
-                        var work = JSONObject(payload.toString())
-                        var session = work.optString("_session_id")
+                        val work = JSONObject(payload.toString())
+                        val session = work.optString("_session_id")
                         work.remove("_session_id")
                         if (
                             !(session.isEmpty()) &&
@@ -1385,12 +1385,12 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (payload.optString("name").trim().isEmpty()) {
             throw IllegalArgumentException("Der Kundenname fehlt.")
         }
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
-            var master = PixelMcpReadTools.effective(getState())
-            var customers = master.getJSONArray("customers")
+            val master = PixelMcpReadTools.effective(getState())
+            val customers = master.getJSONArray("customers")
             payload =
                 ManualChangeRules.editor(
                     payload,
@@ -1412,8 +1412,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             if (TestDataRules.customer(payload)) {
                 payload.put("_local_only", true)
             }
-            var actionId = "customer_change_" + UUID.randomUUID().toString().replace("-", "")
-            var values = ContentValues()
+            val actionId = "customer_change_" + UUID.randomUUID().toString().replace("-", "")
+            val values = ContentValues()
             values.put("id", actionId)
             values.put("kind", "customer")
             values.put("payload", payload.toString())
@@ -1429,11 +1429,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun saveOrder(payload: JSONObject): String {
 
-        var tx = getWritableDatabase()
+        val tx = getWritableDatabase()
         beginBusinessTransaction(tx)
         try {
 
-            var result = saveOrderLocked(payload)
+            val result = saveOrderLocked(payload)
             tx.setTransactionSuccessful()
             return result
         } finally {
@@ -1459,11 +1459,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         ) {
             throw IllegalArgumentException("Kunde und Auftragsbezeichnung sind erforderlich.")
         }
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
-            var master = PixelMcpReadTools.effective(getState())
+            val master = PixelMcpReadTools.effective(getState())
             if (!(containsId(master.getJSONArray("customers"), payload.optString("customer_id")))) {
                 throw IllegalArgumentException("Der ausgewählte Kunde existiert nicht.")
             }
@@ -1506,7 +1506,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 "orders",
                 payload,
             )
-            var saved = saveAction("order", "ord_mobile_", payload)
+            val saved = saveAction("order", "ord_mobile_", payload)
             database.setTransactionSuccessful()
             return saved
         } finally {
@@ -1549,17 +1549,17 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (!(payload.optString("capture_time").isEmpty())) {
             java.time.Instant.parse(payload.getString("capture_time"))
         }
-        var immutableRequest = JSONObject(payload.toString())
+        val immutableRequest = JSONObject(payload.toString())
         immutableRequest.remove("thumbnail_data")
-        var request = payload.optString("_photo_request_id")
-        var fingerprint = PixelMcpWriteTools.hash(immutableRequest)
+        val request = payload.optString("_photo_request_id")
+        val fingerprint = PixelMcpWriteTools.hash(immutableRequest)
         if (!(request.isEmpty()) && !(request.matches(Regex("[A-Za-z0-9_-]{8,128}")))) {
             throw IllegalArgumentException("Ungültige Foto-Anfragekennung.")
         }
         if (!(request.isEmpty())) {
-            var saved = ownerValue("photo-ui:" + request, "")!!
+            val saved = ownerValue("photo-ui:" + request, "")!!
             if (!(saved.isEmpty())) {
-                var receipt = JSONObject(saved)
+                val receipt = JSONObject(saved)
                 if (!((fingerprint == receipt.getString("hash")))) {
                     throw IllegalArgumentException(
                         "Die Foto-Anfragekennung enthält andere Angaben."
@@ -1575,14 +1575,14 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         payload.put("id", entityId)
         var prepared: PhotoAttachmentStore.Prepared? = null
         var committed: Boolean = false
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
             if (!(request.isEmpty())) {
-                var saved = ownerValue("photo-ui:" + request, "")!!
+                val saved = ownerValue("photo-ui:" + request, "")!!
                 if (!(saved.isEmpty())) {
-                    var receipt = JSONObject(saved)
+                    val receipt = JSONObject(saved)
                     if (!((fingerprint == receipt.getString("hash")))) {
                         throw IllegalArgumentException(
                             "Die Foto-Anfragekennung enthält andere Angaben."
@@ -1593,9 +1593,9 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     return receipt.getString("id")
                 }
             }
-            var master = PixelMcpReadTools.effective(getState())
+            val master = PixelMcpReadTools.effective(getState())
             if (!(payload.optString("session_id").isEmpty())) {
-                var session = workSessions().current(payload.getString("session_id"))
+                val session = workSessions().current(payload.getString("session_id"))
                 if (
                     !((payload.getString("customer_id") == session.optString("customer_id"))) ||
                         !((payload.optString("order_id") == session.optString("order_id")))
@@ -1629,14 +1629,14 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 findById(master.getJSONArray("photos"), payload.optString("id")),
             )
             run {
-                var keys = prepared.metadata.keys()
+                val keys = prepared.metadata.keys()
                 while (keys.hasNext()) {
-                    var key = keys.next()
+                    val key = keys.next()
                     payload.put(key, prepared.metadata.get(key))
                 }
             }
             var original = payload.optString("original_name", "foto.jpg").replace('\\', '/')
-            var slash: Int = original.lastIndexOf('/')
+            val slash: Int = original.lastIndexOf('/')
             if (slash >= 0) {
                 original = original.substring(slash + 1)
             }
@@ -1650,7 +1650,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             payload.put("filename", prepared.metadata.getString("storage_name"))
             payload.remove("thumbnail_data")
             saveAttachmentMetadata(database, entityId, prepared.metadata, "local")
-            var saved = saveAction("photo", "pho_mobile_", payload)
+            val saved = saveAction("photo", "pho_mobile_", payload)
             if (!(request.isEmpty())) {
                 putOwnerValue(
                     "photo-ui:" + request,
@@ -1690,9 +1690,9 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         request: String,
     ): JSONObject {
 
-        var files = LocalOwnerRepository(context, this)
-        var meta = files.fileMeta(upload)
-        var bytes = files.fileBytes(upload)
+        val files = LocalOwnerRepository(context, this)
+        val meta = files.fileMeta(upload)
+        val bytes = files.fileBytes(upload)
         EquipmentProfilePhotoRules.upload(meta, bytes)
         var photo =
             storeEquipmentProfilePhoto(bytes, meta.getString("mime_type"), equipment, request)
@@ -1755,9 +1755,9 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         state: String,
     ): Unit {
 
-        var hash = metadata.optString("content_sha256")
-        var mime = PhotoAttachmentStore.canonicalMime(metadata.optString("mime_type"))
-        var name = metadata.optString("storage_name")
+        val hash = metadata.optString("content_sha256")
+        val mime = PhotoAttachmentStore.canonicalMime(metadata.optString("mime_type"))
+        val name = metadata.optString("storage_name")
         var role = metadata.optString("role", "documentation").trim().lowercase(Locale.ROOT)
         var extension =
             (if ((mime == "image/jpeg")) ".jpg"
@@ -1791,7 +1791,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         ) {
             throw IllegalArgumentException("Ungültige lokale Foto-Metadaten.")
         }
-        var values = ContentValues()
+        val values = ContentValues()
         values.put("photo_id", photoId)
         values.put("content_sha256", hash)
         values.put("mime_type", mime)
@@ -1845,16 +1845,16 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     private fun persistedConfirmedActionIds(): MutableSet<String> {
 
-        var confirmed = HashSet<String>()
+        val confirmed = HashSet<String>()
         try {
 
-            var snapshot = JSONObject(snapshotText("{}"))
+            val snapshot = JSONObject(snapshotText("{}"))
             confirmed.addAll(LocalJournalRules.ids(snapshot.optJSONArray("accepted_ids")))
             confirmed.addAll(LocalJournalRules.ids(snapshot.optJSONArray("rejected_invoice_ids")))
             confirmed.addAll(LocalJournalRules.ids(snapshot.optJSONArray("drive_applied_ids")))
-            var resolved = snapshot.optJSONObject("drive_resolved_actions")
+            val resolved = snapshot.optJSONObject("drive_resolved_actions")
             if (resolved != null) {
-                var keys = resolved.keys()
+                val keys = resolved.keys()
                 while (keys.hasNext()) {
                     confirmed.add(keys.next())
                 }
@@ -1867,11 +1867,11 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun pendingPhotoAttachments(actions: JSONArray): JSONArray {
 
-        var result = JSONArray()
-        var confirmed = persistedConfirmedActionIds()
+        val result = JSONArray()
+        val confirmed = persistedConfirmedActionIds()
         for (i in 0 until actions.length()) {
-            var action = actions.getJSONObject(i)
-            var payload = action.optJSONObject("payload")
+            val action = actions.getJSONObject(i)
+            val payload = action.optJSONObject("payload")
             if (
                 !(("photo" == action.optString("kind"))) ||
                     payload == null ||
@@ -1879,7 +1879,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             ) {
                 continue
             }
-            var metadata = photoAttachment(payload.optString("id"))
+            val metadata = photoAttachment(payload.optString("id"))
             if (metadata == null) {
                 if (confirmed.contains(action.optString("client_id"))) {
                     continue
@@ -1901,7 +1901,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     fun markPhotoAttachmentTransferred(photoId: String): Unit {
 
-        var values = ContentValues()
+        val values = ContentValues()
         values.put("transfer_state", "provider_readback")
         getWritableDatabase().update("photo_attachments", values, "photo_id=?", arrayOf(photoId))
     }
@@ -1909,16 +1909,16 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun recordSnapshotPhotoAttachments(snapshot: JSONObject): Unit {
 
-        var photos = snapshot.optJSONArray("photos")
+        val photos = snapshot.optJSONArray("photos")
         if (photos == null) {
             return
         }
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
             for (i in 0 until photos.length()) {
-                var photo = photos.optJSONObject(i)
+                val photo = photos.optJSONObject(i)
                 if (photo == null || photo.optString("id").isEmpty()) {
                     continue
                 }
@@ -2025,10 +2025,10 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         snapshot: JSONObject,
     ): Unit {
 
-        var active = HashSet<String>()
-        var protectedPending = HashSet<String>()
-        var candidates = HashSet<String>()
-        var photos = snapshot.optJSONArray("photos")
+        val active = HashSet<String>()
+        val protectedPending = HashSet<String>()
+        val candidates = HashSet<String>()
+        val photos = snapshot.optJSONArray("photos")
         run {
             var i: Int = 0
             var firstIteration52 = true
@@ -2039,20 +2039,20 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 }
                 if (!(photos != null && i < photos.length())) break
 
-                var photo = photos.optJSONObject(i)
+                val photo = photos.optJSONObject(i)
                 if (photo != null && !(photo.optString("id").isEmpty())) {
                     active.add(photo.optString("id"))
                 }
             }
         }
         for (i in 0 until submitted.length()) {
-            var action = submitted.optJSONObject(i)
-            var payload = (if (action == null) null else action.optJSONObject("payload"))
+            val action = submitted.optJSONObject(i)
+            val payload = (if (action == null) null else action.optJSONObject("payload"))
             if (payload == null) {
                 continue
             }
-            var client = action.optString("client_id")
-            var kind = action.optString("kind")
+            val client = action.optString("client_id")
+            val kind = action.optString("kind")
             var id = payload.optString("id")
             if (("photo" == kind) && !(confirmed.contains(client)) && !(id.isEmpty())) {
                 protectedPending.add(id)
@@ -2073,16 +2073,16 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         if (candidates.isEmpty()) {
             return
         }
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
             for (photoId in candidates) {
-                var metadata = photoAttachment(photoId)
+                val metadata = photoAttachment(photoId)
                 if (metadata == null) {
                     continue
                 }
-                var hash = metadata.getString("content_sha256")
+                val hash = metadata.getString("content_sha256")
                 var shared: Boolean
                 database
                     .rawQuery(
@@ -2105,7 +2105,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun loadPhotoData(photoId: String): String {
 
-        var metadata = photoAttachment(photoId)
+        val metadata = photoAttachment(photoId)
         if (metadata == null) {
             throw IllegalArgumentException(
                 "Für dieses Foto ist noch kein dauerhaftes Original hinterlegt."
@@ -2126,13 +2126,13 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     ): Unit {
 
         ManualChangeRules.prepare(kind, payload, previous, isoNow())
-        var queued = pendingActions()
-        var dependencies = JSONArray()
+        val queued = pendingActions()
+        val dependencies = JSONArray()
         var last = ""
         for (i in 0 until queued.length()) {
-            var a = queued.getJSONObject(i)
+            val a = queued.getJSONObject(i)
             var p = a.getJSONObject("payload")
-            var type = a.optString("kind")
+            val type = a.optString("kind")
             if ((kind == type) && (payload.optString("id") == p.optString("id"))) {
                 last = a.getString("client_id")
             }
@@ -2165,7 +2165,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun removeEntity(entity: String, entityId: String): String {
 
-        var db = getWritableDatabase()
+        val db = getWritableDatabase()
         beginBusinessTransaction(db)
         try {
 
@@ -2204,7 +2204,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 entityId,
                 "archive_local_" + java.util.UUID.randomUUID(),
             )
-            var saved = saveAction("archive", "archive_mobile_", payload)
+            val saved = saveAction("archive", "archive_mobile_", payload)
             db.setTransactionSuccessful()
             return saved
         } finally {
@@ -2216,7 +2216,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     fun undoRemoveEntity(entity: String, entityId: String): String {
 
         var all = PixelMcpReadTools.effective(getState())
-        var entry = OwnerJournalRules.archives(all).optJSONObject(entity + ":" + entityId)
+        val entry = OwnerJournalRules.archives(all).optJSONObject(entity + ":" + entityId)
         if (entry == null) {
             throw IllegalArgumentException(
                 "Der Eintrag ist nicht im Papierkorb. Aktuellen Stand prüfen."
@@ -2242,7 +2242,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 .rawQuery("SELECT payload FROM pending WHERE kind IN ('delete','archive')", null)
                 .use { cursor ->
                     while (cursor.moveToNext()) {
-                        var payload = JSONObject(cursor.getString(0))
+                        val payload = JSONObject(cursor.getString(0))
                         remaining =
                             Math.max(
                                 remaining,
@@ -2258,8 +2258,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun testLocalOnly(kind: String, payload: JSONObject): Boolean {
 
-        var event = JSONObject().put("kind", kind).put("payload", payload)
-        var master = JSONObject(snapshotText("{}"))
+        val event = JSONObject().put("kind", kind).put("payload", payload)
+        val master = JSONObject(snapshotText("{}"))
         if (TestDataRules.localOnly(event, master)) {
             return true
         }
@@ -2269,9 +2269,9 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             else
                 (if (kind.startsWith("offer_")) "offer"
                 else (if (kind.startsWith("invoice_")) "invoice" else kind)))
-        var pending = pendingActions()
+        val pending = pendingActions()
         for (i in 0 until pending.length()) {
-            var a = pending.getJSONObject(i)
+            val a = pending.getJSONObject(i)
             var p = a.getJSONObject("payload")
             if (!(p.optBoolean("_local_only")) && !(p.optBoolean("test_record"))) {
                 continue
@@ -2292,7 +2292,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
     @Throws(Exception::class)
     fun saveAction(kind: String, prefix: String, payload: JSONObject): String {
 
-        var db = getWritableDatabase()
+        val db = getWritableDatabase()
         beginBusinessTransaction(db)
         try {
 
@@ -2304,7 +2304,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 id = prefix + UUID.randomUUID().toString().replace("-", "")
             }
             payload.put("id", id)
-            var values = ContentValues()
+            val values = ContentValues()
             values.put("id", kind + "_change_" + UUID.randomUUID())
             values.put("kind", kind)
             values.put("payload", payload.toString())
@@ -2323,7 +2323,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     fun acknowledge(ids: MutableSet<String>): Unit {
 
-        var database = getWritableDatabase()
+        val database = getWritableDatabase()
         beginBusinessTransaction(database)
         try {
 
@@ -2353,7 +2353,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         fun assertNoOpenStores(context: Context): Unit {
 
             val path = context.getDatabasePath("haus-garten-mobile.db").canonicalPath
-            var count = OPEN_STORES.get(path)
+            val count = OPEN_STORES.get(path)
             val databases =
                 synchronized(OPEN_DATABASES) { OPEN_DATABASES.entries.map { it.key to it.value } }
             if (
@@ -2380,7 +2380,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         vararg arguments: String,
                     ): BusinessTableStore.Rows {
 
-                        var rows = database.rawQuery(sql, arguments)
+                        val rows = database.rawQuery(sql, arguments)
                         return object : BusinessTableStore.Rows {
                             override fun next(): Boolean {
 
@@ -2419,7 +2419,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         database.beginTransaction()
                         try {
 
-                            var result = action.run()
+                            val result = action.run()
                             database.setTransactionSuccessful()
                             return result
                         } finally {
@@ -2472,7 +2472,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         @JvmStatic
         fun removeSnapshotPhotoBinaries(snapshot: JSONObject): Unit {
 
-            var photos = snapshot.optJSONArray("photos")
+            val photos = snapshot.optJSONArray("photos")
             run {
                 var i: Int = 0
                 var firstIteration58 = true
@@ -2483,7 +2483,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                     }
                     if (!(photos != null && i < photos.length())) break
 
-                    var photo = photos.optJSONObject(i)
+                    val photo = photos.optJSONObject(i)
                     if (photo != null) {
                         photo.remove("data")
                         photo.remove("full_data")
@@ -2514,7 +2514,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         @Throws(Exception::class)
         fun photoMetadataHash(original: JSONObject): String {
 
-            var metadata = JSONObject(original.toString())
+            val metadata = JSONObject(original.toString())
             metadata.remove("data")
             metadata.remove("thumbnail_data")
             metadata.remove("_capture_context")

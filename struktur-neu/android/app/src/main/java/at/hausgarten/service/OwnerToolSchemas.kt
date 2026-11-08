@@ -103,12 +103,12 @@ internal class OwnerToolSchemas {
                 return LocalWorkflowTools.schema(name)
             }
             var p = JSONObject()
-            var required = ArrayList<String>()
+            val required = ArrayList<String>()
             if (writable) {
                 p.put("request_id", McpFields.text(128).put("minLength", 8))
                 required.add("request_id")
             }
-            var fields = BUILDERS.get(name)
+            val fields = BUILDERS.get(name)
             if ((fields != null)) {
                 fields.build(name, p, required)
             }
@@ -383,7 +383,7 @@ internal class OwnerToolSchemas {
         ): Unit {
 
             run {
-                var fields = JSONObject()
+                val fields = JSONObject()
                 for (key in McpFields.BUSINESS_KEYS) {
                     fields.put(
                         key,

@@ -14,7 +14,7 @@ class WorkApplicationService : OwnerCommand {
     @Throws(Exception::class)
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
-        var stamp: String = java.time.Instant.now().toString()
+        val stamp: String = java.time.Instant.now().toString()
         when ((name)) {
             "set_accounting_record" -> return setAccounting(all, args, request)
             "set_work_record_billed",
@@ -65,8 +65,8 @@ class WorkApplicationService : OwnerCommand {
                     }
                     var id: String = args.getString("work_record_id")
                     PixelMcpWriteTools.find(all.getJSONArray("worklogs"), id)
-                    var ids: MutableSet<String> = LinkedHashSet()
-                    var old: JSONArray = JSONArray(repository.ownerValue("personal_paid", "[]"))
+                    val ids: MutableSet<String> = LinkedHashSet()
+                    val old: JSONArray = JSONArray(repository.ownerValue("personal_paid", "[]"))
                     run {
                         var i: Int = 0
                         while ((i < old.length())) {

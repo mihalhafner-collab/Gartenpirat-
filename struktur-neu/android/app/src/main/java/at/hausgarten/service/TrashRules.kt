@@ -9,21 +9,21 @@ class TrashRules {
 
     companion object {
         private fun existingArchive(s: JSONObject): JSONObject {
-            var a: JSONObject? = s.optJSONObject("owner_archive")
+            val a: JSONObject? = s.optJSONObject("owner_archive")
             return (if ((a == null)) JSONObject() else a)
         }
 
         @Throws(Exception::class)
         @JvmStatic
         fun purged(s: JSONObject, entity: String, id: String): Boolean {
-            var a: JSONObject? = existingArchive(s).optJSONObject((("" + entity + ":") + id))
+            val a: JSONObject? = existingArchive(s).optJSONObject((("" + entity + ":") + id))
             return ((a != null) && a!!.optBoolean("purged"))
         }
 
         @Throws(Exception::class)
         @JvmStatic
         fun links(photo: JSONObject, entity: String, id: String): JSONObject {
-            var fields: JSONObject = JSONObject()
+            val fields: JSONObject = JSONObject()
             if (((entity.equals("customer") && id.equals(photo.optString("customer_id"))))) {
                 for (key in
                     arrayOf(
@@ -56,8 +56,8 @@ class TrashRules {
         @Throws(Exception::class)
         @JvmStatic
         fun related(s: JSONObject, entity: String, id: String): JSONArray {
-            var sorted: TreeMap<String, JSONObject> = TreeMap()
-            var photos: JSONArray = s.getJSONArray("photos")
+            val sorted: TreeMap<String, JSONObject> = TreeMap()
+            val photos: JSONArray = s.getJSONArray("photos")
             run {
                 var i: Int = 0
                 while ((i < photos.length())) {
@@ -73,12 +73,12 @@ class TrashRules {
                     i++
                 }
             }
-            var archive: JSONObject = existingArchive(s)
+            val archive: JSONObject = existingArchive(s)
             run {
-                var it: MutableIterator<String> = archive.keys()
+                val it: MutableIterator<String> = archive.keys()
                 while (it.hasNext()) {
-                    var key: String = it.next()
-                    var entry: JSONObject = archive.getJSONObject(key)
+                    val key: String = it.next()
+                    val entry: JSONObject = archive.getJSONObject(key)
                     var p: JSONObject? = entry.optJSONObject("record")
                     if (
                         (((key.startsWith("photo:") && (p != null)) &&
@@ -100,11 +100,11 @@ class TrashRules {
         @Throws(Exception::class)
         @JvmStatic
         fun detached(p: JSONObject, fields: JSONObject, stamp: String): JSONObject {
-            var next: JSONObject = JSONObject(p.toString())
+            val next: JSONObject = JSONObject(p.toString())
             run {
-                var it: MutableIterator<String> = fields.keys()
+                val it: MutableIterator<String> = fields.keys()
                 while (it.hasNext()) {
-                    var key: String = it.next()
+                    val key: String = it.next()
                     next.put(
                         key,
                         (if (key.equals("role")) "documentation"
@@ -118,18 +118,18 @@ class TrashRules {
         @Throws(Exception::class)
         @JvmStatic
         fun detachRelated(s: JSONObject, entity: String, id: String, stamp: String): JSONArray {
-            var saved: JSONArray = JSONArray()
-            var rows: JSONArray = s.getJSONArray("photos")
+            val saved: JSONArray = JSONArray()
+            val rows: JSONArray = s.getJSONArray("photos")
             run {
                 var i: Int = 0
                 while ((i < rows.length())) {
                     var p: JSONObject? = rows.getJSONObject(i)
-                    var fields: JSONObject = links((p)!!, entity, id)
+                    val fields: JSONObject = links((p)!!, entity, id)
                     if (((fields.length() == 0))) {
                         i++
                         continue
                     }
-                    var next: JSONObject = detached((p)!!, fields, stamp)
+                    val next: JSONObject = detached((p)!!, fields, stamp)
                     saved.put(
                         JSONObject()
                             .put("id", p!!.getString("id"))
@@ -140,17 +140,17 @@ class TrashRules {
                     i++
                 }
             }
-            var archive: JSONObject = OwnerJournalRules.archives(s)
+            val archive: JSONObject = OwnerJournalRules.archives(s)
             run {
-                var it: MutableIterator<String> = archive.keys()
+                val it: MutableIterator<String> = archive.keys()
                 while (it.hasNext()) {
-                    var key: String = it.next()
-                    var entry: JSONObject = archive.getJSONObject(key)
+                    val key: String = it.next()
+                    val entry: JSONObject = archive.getJSONObject(key)
                     var p: JSONObject? = entry.optJSONObject("record")
                     if (((!key.startsWith("photo:") || (p == null)))) {
                         continue
                     }
-                    var fields: JSONObject = links(p, entity, id)
+                    val fields: JSONObject = links(p, entity, id)
                     if (((fields.length() == 0))) {
                         continue
                     }
@@ -170,12 +170,12 @@ class TrashRules {
         @Throws(Exception::class)
         @JvmStatic
         fun restoreLinks(s: JSONObject, archive: JSONObject) {
-            var links: JSONArray? = archive.optJSONArray("photo_links")
+            val links: JSONArray? = archive.optJSONArray("photo_links")
             run {
                 var i: Int = 0
                 while (((links != null) && (i < links!!.length()))) {
-                    var link: JSONObject = links!!.getJSONObject(i)
-                    var archived: Boolean = "archive".equals(link.optString("location"))
+                    val link: JSONObject = links!!.getJSONObject(i)
+                    val archived: Boolean = "archive".equals(link.optString("location"))
                     var entry: JSONObject? =
                         (if (archived)
                             OwnerJournalRules.archives(s)
@@ -197,12 +197,12 @@ class TrashRules {
                         i++
                         continue
                     }
-                    var restored: JSONObject = JSONObject(p!!.toString())
-                    var fields: JSONObject = link.getJSONObject("fields")
+                    val restored: JSONObject = JSONObject(p!!.toString())
+                    val fields: JSONObject = link.getJSONObject("fields")
                     run {
-                        var it: MutableIterator<String> = fields.keys()
+                        val it: MutableIterator<String> = fields.keys()
                         while (it.hasNext()) {
-                            var key: String = it.next()
+                            val key: String = it.next()
                             restored.put(key, fields.get(key))
                         }
                     }
@@ -316,7 +316,7 @@ class TrashRules {
                     "offers",
                     "appointments",
                 )) {
-                var rows: JSONArray? = s.optJSONArray(group)
+                val rows: JSONArray? = s.optJSONArray(group)
                 if ((((rows == null) && group.equals("appointments")))) {
                     continue
                 }
@@ -326,7 +326,7 @@ class TrashRules {
                 run {
                     var i: Int = 0
                     while ((i < rows!!.length())) {
-                        var row: JSONObject = rows!!.getJSONObject(i)
+                        val row: JSONObject = rows!!.getJSONObject(i)
                         if (
                             ((group.equals(OwnerJournalRules.group(entity)) &&
                                 id.equals(row.optString("id"))))
@@ -353,15 +353,15 @@ class TrashRules {
                     }
                 }
             }
-            var archive: JSONObject = OwnerJournalRules.archives(s)
+            val archive: JSONObject = OwnerJournalRules.archives(s)
             run {
-                var it: MutableIterator<String> = archive.keys()
+                val it: MutableIterator<String> = archive.keys()
                 while (it.hasNext()) {
-                    var key: String = it.next()
+                    val key: String = it.next()
                     if ((key.equals((("" + entity + ":") + id)))) {
                         continue
                     }
-                    var r: JSONObject? = archive.getJSONObject(key).optJSONObject("record")
+                    val r: JSONObject? = archive.getJSONObject(key).optJSONObject("record")
                     if (((r == null))) {
                         continue
                     }
@@ -382,8 +382,8 @@ class TrashRules {
         }
 
         private fun containsWork(row: JSONObject, id: String): Boolean {
-            var refs: JSONArray? = row.optJSONArray("worklog_ids")
-            var positions: JSONArray? = row.optJSONArray("positions")
+            val refs: JSONArray? = row.optJSONArray("worklog_ids")
+            val positions: JSONArray? = row.optJSONArray("positions")
             run {
                 var i: Int = 0
                 while (((refs != null) && (i < refs!!.length()))) {
@@ -549,11 +549,11 @@ class TrashRules {
             if ((!p.optBoolean("confirmed"))) {
                 throw IllegalArgumentException("Endgültiges Löschen ausdrücklich bestätigen.")
             }
-            var entity: String = p.getString("entity")
+            val entity: String = p.getString("entity")
             var id: String = p.getString("id")
-            var key: String = (("" + entity + ":") + id)
-            var archive: JSONObject = OwnerJournalRules.archives(s)
-            var saved: JSONObject? = archive.optJSONObject(key)
+            val key: String = (("" + entity + ":") + id)
+            val archive: JSONObject = OwnerJournalRules.archives(s)
+            val saved: JSONObject? = archive.optJSONObject(key)
             if ((((saved == null) || saved!!.optBoolean("purged")))) {
                 throw IllegalArgumentException(
                     "Eintrag nicht im Papierkorb oder bereits endgültig gelöscht."
@@ -636,11 +636,11 @@ class TrashRules {
                     return true
                 }
             }
-            var a: JSONObject = OwnerJournalRules.archives(s)
+            val a: JSONObject = OwnerJournalRules.archives(s)
             run {
-                var it: MutableIterator<String> = a.keys()
+                val it: MutableIterator<String> = a.keys()
                 while (it.hasNext()) {
-                    var entry: JSONObject = a.getJSONObject(it.next())
+                    val entry: JSONObject = a.getJSONObject(it.next())
                     if (
                         ((!entry.optBoolean("purged") &&
                             hasFile(entry.optJSONObject("record"), name)))
@@ -655,7 +655,7 @@ class TrashRules {
         @Throws(Exception::class)
         private fun hasFile(value: Any?, name: String): Boolean {
             if ((value is JSONObject)) {
-                var row: JSONObject = (value as JSONObject)
+                val row: JSONObject = (value as JSONObject)
                 if (
                     (((name.equals(row.optString("storage_name")) ||
                         name.equals(row.optString("thumbnail_storage_name"))) ||
@@ -664,7 +664,7 @@ class TrashRules {
                     return true
                 }
                 run {
-                    var it: MutableIterator<String> = row.keys()
+                    val it: MutableIterator<String> = row.keys()
                     while (it.hasNext()) {
                         if ((hasFile(row.get(it.next()), name))) {
                             return true
@@ -673,7 +673,7 @@ class TrashRules {
                 }
             }
             if ((value is JSONArray)) {
-                var rows: JSONArray = (value as JSONArray)
+                val rows: JSONArray = (value as JSONArray)
                 run {
                     var i: Int = 0
                     while ((i < rows.length())) {

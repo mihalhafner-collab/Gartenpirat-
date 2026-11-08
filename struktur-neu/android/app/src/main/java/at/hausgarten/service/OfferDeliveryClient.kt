@@ -52,20 +52,20 @@ internal class OfferDeliveryClient {
         if (!id!!.matches(Regex("[A-Za-z0-9_-]{1,200}"))) {
             throw IllegalArgumentException("Ungültige Nachrichtenkennung.")
         }
-        var message = read(((("messages/" + id)).toString() + "?format=full"))
+        val message = read(((("messages/" + id)).toString() + "?format=full"))
         if (
             (!id!!.equals(message!!.optString("id")) ||
                 !((message!!.getJSONArray("labelIds"))!!.toString())!!.contains("\"SENT\""))
         ) {
             throw IllegalArgumentException("Nachricht ist nicht als versendet bestätigt.")
         }
-        var payload = message!!.getJSONObject("payload")
-        var headers: MutableMap<String, String> = HashMap()
-        var h = payload!!.getJSONArray("headers")
+        val payload = message!!.getJSONObject("payload")
+        val headers: MutableMap<String, String> = HashMap()
+        val h = payload!!.getJSONArray("headers")
         run {
             var i: Int = 0
             while ((i < h!!.length())) {
-                var key = ((h!!.getJSONObject(i))!!.getString("name"))!!.lowercase(Locale.ROOT)
+                val key = ((h!!.getJSONObject(i))!!.getString("name"))!!.lowercase(Locale.ROOT)
                 if (((key!!.equals("to") || key!!.equals("from")) && headers!!.containsKey(key))) {
                     throw IllegalArgumentException("Mehrdeutige Versandköpfe.")
                 }
@@ -75,7 +75,7 @@ internal class OfferDeliveryClient {
             }
         }
         var recipient = offer!!.optString("delivery_recipient")
-        var sender = (offer!!.getJSONObject("issuer"))!!.optString("business_email")
+        val sender = (offer!!.getJSONObject("issuer"))!!.optString("business_email")
         if (
             (((recipient!!.isEmpty() ||
                 !(oneAddress(headers!!.get("to")))!!.equals(recipient, ignoreCase = true)) ||
@@ -117,7 +117,7 @@ internal class OfferDeliveryClient {
             throw IllegalArgumentException("Mailstruktur überschreitet Prüfgrenze.")
         }
         if ((p!!.optString("mimeType"))!!.equals("application/pdf")) {
-            var body = p!!.getJSONObject("body")
+            val body = p!!.getJSONObject("body")
             if ((body!!.optLong("size") > ((20 * 1024) * 1024))) {
                 throw IllegalArgumentException("PDF zu groß.")
             }
@@ -134,7 +134,7 @@ internal class OfferDeliveryClient {
             if ((data!!.length > ((28 * 1024) * 1024))) {
                 throw IllegalArgumentException("Anhang überschreitet Prüfgrenze.")
             }
-            var raw: ByteArray = (Base64.getUrlDecoder())!!.decode(data)
+            val raw: ByteArray = (Base64.getUrlDecoder())!!.decode(data)
             if (
                 (((raw!!.size > 0) && (raw!!.size <= ((20 * 1024) * 1024))) &&
                     (HttpTransport.sha256(raw))!!.equals(hash))
@@ -142,7 +142,7 @@ internal class OfferDeliveryClient {
                 return true
             }
         }
-        var parts = p!!.optJSONArray("parts")
+        val parts = p!!.optJSONArray("parts")
         run {
             var i: Int = 0
             while (((parts !== null) && (i < parts!!.length()))) {
@@ -165,8 +165,8 @@ internal class OfferDeliveryClient {
             ) {
                 return ""
             }
-            var l: Int = value!!.indexOf('<')
-            var r: Int = value!!.indexOf('>')
+            val l: Int = value!!.indexOf('<')
+            val r: Int = value!!.indexOf('>')
             var address =
                 (if (((l >= 0) && (r > l))) value!!.substring((l + 1), r) else value!!.trim())
             return (if (address!!.matches(Regex("[^\\s<>@,;]+@[^\\s<>@,;]+\\.[^\\s<>@,;]+")))

@@ -34,13 +34,13 @@ internal class OfferMoney {
 
             var net: Long = 0
             var tax: Long = 0
-            var positions = JSONArray(offer.getJSONArray("positions").toString())
+            val positions = JSONArray(offer.getJSONArray("positions").toString())
             for (i in 0 until positions.length()) {
-                var line = positions.getJSONObject(i)
-                var quantity = BigDecimal(line.get("quantity").toString())
-                var price = BigDecimal(line.get("price").toString())
-                var discount = BigDecimal(line.optString("discount", "0"))
-                var rate = BigDecimal(line.optString("tax_rate", "0"))
+                val line = positions.getJSONObject(i)
+                val quantity = BigDecimal(line.get("quantity").toString())
+                val price = BigDecimal(line.get("price").toString())
+                val discount = BigDecimal(line.optString("discount", "0"))
+                val rate = BigDecimal(line.optString("tax_rate", "0"))
                 if (
                     (((((quantity.signum() < 0) || (price.signum() < 0)) ||
                         (discount.signum() < 0)) || (discount.compareTo(BigDecimal("100")) > 0)) ||
@@ -53,7 +53,7 @@ internal class OfferMoney {
                         .multiply(price)
                         .multiply(BigDecimal.ONE.subtract(discount.movePointLeft(2)))
                         .setScale(2, RoundingMode.HALF_UP)
-                var n: Long = minor(calculated)
+                val n: Long = minor(calculated)
                 var t: Long =
                     minor(
                         calculated.multiply(rate).movePointLeft(2).setScale(2, RoundingMode.HALF_UP)

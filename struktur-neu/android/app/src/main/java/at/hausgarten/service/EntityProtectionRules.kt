@@ -24,7 +24,7 @@ class EntityProtectionRules {
             run {
                 var i: Int = 0
                 while (((rows != null) && (i < rows!!.length()))) {
-                    var row: JSONObject? = rows!!.optJSONObject(i)
+                    val row: JSONObject? = rows!!.optJSONObject(i)
                     if ((((row != null) && id.equals(text(row, "id"))))) {
                         return row
                     }
@@ -39,17 +39,17 @@ class EntityProtectionRules {
             if ((payload.optBoolean("allow_duplicate", false))) {
                 return
             }
-            var name: String = normalized(text(payload, "name"))
+            val name: String = normalized(text(payload, "name"))
             var fullName: String =
                 normalized((("" + text(payload, "first_name") + " ") + text(payload, "last_name")))
-            var company: String = normalized(text(payload, "company"))
-            var email: String = normalized(text(payload, "email"))
-            var phone: String = digits(text(payload, "phone"))
-            var source: String = text(payload, "sevdesk_contact_id")
+            val company: String = normalized(text(payload, "company"))
+            val email: String = normalized(text(payload, "email"))
+            val phone: String = digits(text(payload, "phone"))
+            val source: String = text(payload, "sevdesk_contact_id")
             run {
                 var i: Int = 0
                 while (((customers != null) && (i < customers!!.length()))) {
-                    var row: JSONObject? = customers!!.optJSONObject(i)
+                    val row: JSONObject? = customers!!.optJSONObject(i)
                     if ((((row == null) || text(payload, "id").equals(text(row, "id"))))) {
                         i++
                         continue
@@ -102,7 +102,7 @@ class EntityProtectionRules {
                 run {
                     var i: Int = 0
                     while (((rows != null) && (i < rows!!.length()))) {
-                        var row: JSONObject? = rows!!.optJSONObject(i)
+                        val row: JSONObject? = rows!!.optJSONObject(i)
                         if (
                             (((row != null) && text(previous, "id").equals(text(row, "order_id"))))
                         ) {
@@ -123,9 +123,9 @@ class EntityProtectionRules {
             orders: JSONArray?,
             worklogs: JSONArray?,
         ) {
-            var customer: String = text(payload, "customer_id")
-            var orderId: String = text(payload, "order_id")
-            var workId: String = text(payload, "worklog_id")
+            val customer: String = text(payload, "customer_id")
+            val orderId: String = text(payload, "order_id")
+            val workId: String = text(payload, "worklog_id")
             if (
                 (((((customer.isEmpty() && orderId.isEmpty()) && workId.isEmpty()) &&
                     text(payload, "session_id").isEmpty()) &&
@@ -148,7 +148,7 @@ class EntityProtectionRules {
                 }
             }
             if ((!workId.isEmpty())) {
-                var work: JSONObject? = find(worklogs, workId)
+                val work: JSONObject? = find(worklogs, workId)
                 if (((work == null))) {
                     throw IllegalArgumentException(
                         "Die ausgewählte Arbeitsaufzeichnung existiert nicht."

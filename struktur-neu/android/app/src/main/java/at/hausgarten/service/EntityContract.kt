@@ -53,9 +53,9 @@ class EntityContract {
                 )
             }
             run {
-                var it: MutableIterator<String> = fields.keys()
+                val it: MutableIterator<String> = fields.keys()
                 while (it.hasNext()) {
-                    var key: String = it.next()
+                    val key: String = it.next()
                     var value: Any = fields.get(key)
                     if (
                         ((((key.trim().isEmpty() || (key.length > 80)) ||

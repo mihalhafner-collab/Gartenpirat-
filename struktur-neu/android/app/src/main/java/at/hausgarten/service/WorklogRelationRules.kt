@@ -22,12 +22,12 @@ class WorklogRelationRules {
                 return
             }
             var id: String = old!!.getString("id")
-            var customer: String = text(payload, "customer_id")
+            val customer: String = text(payload, "customer_id")
             var order: String = text(payload, "order_id")
             run {
                 var i: Int = 0
                 while (((photos != null) && (i < photos!!.length()))) {
-                    var photo: JSONObject? = photos!!.optJSONObject(i)
+                    val photo: JSONObject? = photos!!.optJSONObject(i)
                     if ((((photo == null) || !id.equals(text(photo, "worklog_id"))))) {
                         i++
                         continue
@@ -47,12 +47,12 @@ class WorklogRelationRules {
             run {
                 var i: Int = 0
                 while (((invoices != null) && (i < invoices!!.length()))) {
-                    var invoice: JSONObject? = invoices!!.optJSONObject(i)
+                    val invoice: JSONObject? = invoices!!.optJSONObject(i)
                     if (((invoice == null))) {
                         i++
                         continue
                     }
-                    var ids: JSONArray? = invoice!!.optJSONArray("worklog_ids")
+                    val ids: JSONArray? = invoice!!.optJSONArray("worklog_ids")
                     var linked: Boolean = false
                     run {
                         var j: Int = 0
@@ -63,11 +63,11 @@ class WorklogRelationRules {
                             j++
                         }
                     }
-                    var positions: JSONArray? = invoice!!.optJSONArray("positions")
+                    val positions: JSONArray? = invoice!!.optJSONArray("positions")
                     run {
                         var j: Int = 0
                         while (((positions != null) && (j < positions!!.length()))) {
-                            var position: JSONObject? = positions!!.optJSONObject(j)
+                            val position: JSONObject? = positions!!.optJSONObject(j)
                             if (
                                 (((position != null) &&
                                     id.equals(position!!.optString("worklog_id"))))

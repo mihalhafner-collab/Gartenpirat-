@@ -57,7 +57,7 @@ class OwnerApplicationService {
 
     @Throws(Exception::class)
     fun perform(name: String, args: JSONObject, request: String): JSONObject {
-        var command: OwnerCommand? = commands.get(name)
+        val command: OwnerCommand? = commands.get(name)
         if (((command == null))) {
             throw IllegalArgumentException("Eigentümerfunktion fehlt.")
         }

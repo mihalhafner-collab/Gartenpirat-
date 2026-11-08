@@ -37,7 +37,7 @@ internal class BillingRules {
                     "Abrechnung muss Direkt oder Über einen anderen Kunden sein.",
                 )
             }
-            var target = text(row, "default_billing_customer_id")
+            val target = text(row, "default_billing_customer_id")
             if (mode!!.equals("direct")) {
                 if ((!target!!.isEmpty() && !target!!.equals(text(row, "id")))) {
                     throw PixelMcpWriteTools.Rejected(
@@ -54,7 +54,7 @@ internal class BillingRules {
                     )
                 }
                 customer(customers, target)
-                var visited: MutableSet<String> = HashSet()
+                val visited: MutableSet<String> = HashSet()
                 visited!!.add(text(row, "id"))
                 var next = target
                 while (!next!!.isEmpty()) {
@@ -64,7 +64,7 @@ internal class BillingRules {
                             "Die Standard-Abrechnung würde einen Kreis bilden. Bitte Zuordnung prüfen.",
                         )
                     }
-                    var other = customer(customers, next)
+                    val other = customer(customers, next)
                     next =
                         (if (("via_customer")!!.equals(text(other, "billing_mode")))
                             text(other, "default_billing_customer_id")
@@ -77,7 +77,7 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun defaultRecipient(customerId: String, orderId: String, master: JSONObject): String {
-            var workCustomer = customer(master!!.optJSONArray("customers"), customerId)
+            val workCustomer = customer(master!!.optJSONArray("customers"), customerId)
             var recipient = customerId
             if (("via_customer")!!.equals(text(workCustomer, "billing_mode"))) {
                 recipient = text(workCustomer, "default_billing_customer_id")
@@ -107,7 +107,7 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun work(row: JSONObject, old: JSONObject?, master: JSONObject): Unit {
-            var workCustomer = text(row, "customer_id")
+            val workCustomer = text(row, "customer_id")
             customer(master!!.optJSONArray("customers"), workCustomer)
             var target = text(row, "billing_customer_id")
             if (target!!.isEmpty()) {
@@ -130,7 +130,7 @@ internal class BillingRules {
         @JvmStatic
         @Throws(Exception::class)
         fun assignment(row: JSONObject, master: JSONObject, work: Boolean): JSONObject {
-            var customerId = text(row, (if (work) "customer_id" else "id"))
+            val customerId = text(row, (if (work) "customer_id" else "id"))
             var recipient =
                 (if (work) recipient(row)
                 else

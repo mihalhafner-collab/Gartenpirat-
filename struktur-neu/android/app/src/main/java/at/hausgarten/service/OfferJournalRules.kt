@@ -21,7 +21,7 @@ internal class OfferJournalRules {
         @Throws(Exception::class)
         fun apply(s: JSONObject, a: JSONObject): Unit {
             var p = a!!.getJSONObject("payload")
-            var old = PixelMcpWriteTools.find(s!!.getJSONArray("offers"), p!!.getString("id"))
+            val old = PixelMcpWriteTools.find(s!!.getJSONArray("offers"), p!!.getString("id"))
             if (
                 !(PixelMcpWriteTools.hash(LocalJournalRules.clean(old)))!!.equals(
                     p!!.getString("expected_record_hash")
@@ -39,11 +39,11 @@ internal class OfferJournalRules {
             ) {
                 throw IllegalArgumentException("Ausdrückliche Bestätigung erforderlich.")
             }
-            var next: JSONObject = JSONObject(old!!.toString())
-            var kind = a!!.getString("kind")
+            val next: JSONObject = JSONObject(old!!.toString())
+            val kind = a!!.getString("kind")
             if (kind!!.equals("offer_validate")) {
                 OfferRules.normalize(next, old, s)
-                var validation = OfferRules.validate(next, s)
+                val validation = OfferRules.validate(next, s)
                 if (!validation!!.getBoolean("valid")) {
                     throw PixelMcpWriteTools.Rejected(
                         "DOCUMENT_VALIDATION_FAILED",
@@ -79,7 +79,7 @@ internal class OfferJournalRules {
                             next!!.put("delivery_recipient", p!!.getString("recipient_email"))
                         }
                     } else {
-                        var receipt = p!!.getJSONObject("receipt")
+                        val receipt = p!!.getJSONObject("receipt")
                         if (
                             (((!("pixel_gmail_readback")!!.equals(
                                 receipt!!.optString("verified_by")
@@ -112,7 +112,7 @@ internal class OfferJournalRules {
                             )
                         }
                         OfferRules.normalize(next, old, s)
-                        var v = OfferRules.validate(next, s)
+                        val v = OfferRules.validate(next, s)
                         if (!v!!.getBoolean("valid")) {
                             throw IllegalArgumentException(
                                 (v!!.getJSONArray("errors"))!!.join("; ")
@@ -139,7 +139,7 @@ internal class OfferJournalRules {
                         run {
                             var i: Int = 0
                             while ((i < (s!!.getJSONArray("offers"))!!.length())) {
-                                var other = (s!!.getJSONArray("offers"))!!.getJSONObject(i)
+                                val other = (s!!.getJSONArray("offers"))!!.getJSONObject(i)
                                 if (
                                     (!(other!!.getString("id"))!!.equals(next!!.getString("id")) &&
                                         (next!!.getString("offer_number"))!!.equals(

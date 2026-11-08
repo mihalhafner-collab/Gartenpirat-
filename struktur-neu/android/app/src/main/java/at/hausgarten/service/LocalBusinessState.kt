@@ -32,8 +32,8 @@ internal class LocalBusinessState {
 
             LocalJournalRules.validateSnapshot(snapshot)
             if (!(snapshot.has("business_settings"))) {
-                var known = JSONObject()
-                var issuer = snapshot.optJSONObject("invoice_issuer")
+                val known = JSONObject()
+                val issuer = snapshot.optJSONObject("invoice_issuer")
                 for (key in PixelMcpOwnerTools.BUSINESS_KEYS) {
                     if (((issuer != null) && issuer.has(key))) {
                         known.put(key, issuer.get(key))

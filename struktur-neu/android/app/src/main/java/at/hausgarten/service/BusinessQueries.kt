@@ -46,7 +46,7 @@ class BusinessQueries {
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
 
-            var query = QUERIES.get(name)
+            val query = QUERIES.get(name)
             if (query == null) {
                 throw IllegalArgumentException("Dieses Werkzeug ist hier nicht verfügbar.")
             }
@@ -71,7 +71,7 @@ class BusinessQueries {
                 if (collection.isEmpty()) {
                     throw IllegalArgumentException("TABLE_LIST_QUERY_UNSUPPORTED")
                 }
-                var rows = master.getJSONArray(collection)
+                val rows = master.getJSONArray(collection)
                 var result =
                     JSONObject()
                         .put((if ((collection == "worklogs")) "work_records" else collection), rows)
@@ -93,15 +93,15 @@ class BusinessQueries {
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
 
-            var customers = master.optJSONArray("customers")
-            var orders = master.optJSONArray("orders")
-            var logs = master.optJSONArray("worklogs")
-            var photos = master.optJSONArray("photos")
+            val customers = master.optJSONArray("customers")
+            val orders = master.optJSONArray("orders")
+            val logs = master.optJSONArray("worklogs")
+            val photos = master.optJSONArray("photos")
             var data: Any
             when (name) {
                 "search_customers" -> {
                     run {
-                        var matches = select(customers, a, "customer", master)
+                        val matches = select(customers, a, "customer", master)
                         data =
                             JSONObject()
                                 .put("customers", matches)
@@ -148,10 +148,10 @@ class BusinessQueries {
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
 
-            var customers = master.optJSONArray("customers")
-            var orders = master.optJSONArray("orders")
-            var logs = master.optJSONArray("worklogs")
-            var photos = master.optJSONArray("photos")
+            val customers = master.optJSONArray("customers")
+            val orders = master.optJSONArray("orders")
+            val logs = master.optJSONArray("worklogs")
+            val photos = master.optJSONArray("photos")
             var data: Any
             when (name) {
                 "list_work_records" -> {
@@ -162,7 +162,7 @@ class BusinessQueries {
                 }
                 "get_work_record_summary" -> {
                     run {
-                        var matching = JSONArray()
+                        val matching = JSONArray()
                         run {
                             var i: Int = 0
                             var firstIteration8 = true
@@ -173,7 +173,7 @@ class BusinessQueries {
                                 }
                                 if (!(logs != null && i < logs.length())) break
 
-                                var row = logs.getJSONObject(i)
+                                val row = logs.getJSONObject(i)
                                 if (
                                     !(a.optString("customer_id").isEmpty()) &&
                                         !((a.getString("customer_id") ==
@@ -237,10 +237,10 @@ class BusinessQueries {
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
 
-            var customers = master.optJSONArray("customers")
-            var orders = master.optJSONArray("orders")
-            var logs = master.optJSONArray("worklogs")
-            var photos = master.optJSONArray("photos")
+            val customers = master.optJSONArray("customers")
+            val orders = master.optJSONArray("orders")
+            val logs = master.optJSONArray("worklogs")
+            val photos = master.optJSONArray("photos")
             var data: Any
             when (name) {
                 "list_photos" -> {
@@ -261,10 +261,10 @@ class BusinessQueries {
             writer: PixelMcpWriteTools.Sink?,
         ): Any {
 
-            var customers = master.optJSONArray("customers")
-            var orders = master.optJSONArray("orders")
-            var logs = master.optJSONArray("worklogs")
-            var photos = master.optJSONArray("photos")
+            val customers = master.optJSONArray("customers")
+            val orders = master.optJSONArray("orders")
+            val logs = master.optJSONArray("worklogs")
+            val photos = master.optJSONArray("photos")
             var data: Any
             when (name) {
                 "get_business_summary" -> {
@@ -281,7 +281,7 @@ class BusinessQueries {
                                 }
                                 if (!(logs != null && i < logs.length())) break
 
-                                var row = logs.getJSONObject(i)
+                                val row = logs.getJSONObject(i)
                                 hours += row.optDouble("hours", 0.0)
                                 if (row.optInt("billed", 0) == 0) {
                                     unbilled++

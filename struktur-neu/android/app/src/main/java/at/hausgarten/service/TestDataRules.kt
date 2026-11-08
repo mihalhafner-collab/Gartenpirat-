@@ -40,7 +40,7 @@ class TestDataRules {
                     s.optJSONArray("customers"),
                     p.optString("customer_id"),
                 )
-            var test: Boolean = (marked(p) || customer(customer))
+            val test: Boolean = (marked(p) || customer(customer))
             if ((!test)) {
                 return
             }
@@ -121,7 +121,7 @@ class TestDataRules {
             var existing: JSONObject? =
                 OwnerJournalRules.findOrNull(s.optJSONArray(group), p.optString("id"))
             if (((existing == null))) {
-                var archive: JSONObject? = s.optJSONObject("owner_archive")
+                val archive: JSONObject? = s.optJSONObject("owner_archive")
                 var entry: JSONObject? =
                     (if ((archive == null)) null
                     else archive!!.optJSONObject((("" + kind + ":") + p.optString("id"))))

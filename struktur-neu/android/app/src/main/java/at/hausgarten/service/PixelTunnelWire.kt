@@ -127,19 +127,19 @@ class PixelTunnelWire {
         if ((poll.code == 204)) {
             return 0
         }
-        var commands = poll.json.getJSONArray("commands")
+        val commands = poll.json.getJSONArray("commands")
         var delivered: Int = 0
         for (i in 0 until commands.length()) {
             if (Thread.currentThread().isInterrupted()) {
                 throw InterruptedException()
             }
-            var command = commands.getJSONObject(i)
-            var expiry: Long = deadline(command.opt("response_timeout"), poll.receivedNanos)
+            val command = commands.getJSONObject(i)
+            val expiry: Long = deadline(command.opt("response_timeout"), poll.receivedNanos)
             if (((expiry != Long.MAX_VALUE) && (System.nanoTime() >= expiry))) {
                 continue
             }
-            var requestId = command.getString("request_id")
-            var shard = command.getString("shard_token")
+            val requestId = command.getString("request_id")
+            val shard = command.getString("shard_token")
             if (
                 (((((requestId.isEmpty() || (requestId.length > 4096)) || shard.isEmpty()) ||
                     (shard.length > 16384)) || (shard.indexOf('\r') >= 0)) ||
@@ -147,14 +147,14 @@ class PixelTunnelWire {
             ) {
                 throw IOException("Ungültige Tunnel-Antwort.")
             }
-            var type = command.optString("command_type")
-            var channel = command.optString("channel", "main")
+            val type = command.optString("command_type")
+            val channel = command.optString("channel", "main")
             if ((!(("jsonrpc" == type)) && !(("session_termination" == type)))) {
                 continue
             }
             var fingerprint =
                 ((((type + "\n") + channel) + "\n") + canonical(command.optJSONObject("jsonrpc")))
-            var cached = results.get(requestId)
+            val cached = results.get(requestId)
             if (((cached != null) && !((cached.fingerprint == fingerprint)))) {
                 throw IOException("Widersprüchliche Anfrage-ID. Verbindung wird erneut geprüft.")
             }
@@ -164,7 +164,7 @@ class PixelTunnelWire {
                 if ((type == "session_termination")) {
                     response.put("resp_code", 204).put("resp_type", "session_termination_response")
                 } else {
-                    var rpc = command.getJSONObject("jsonrpc")
+                    val rpc = command.getJSONObject("jsonrpc")
                     var result: JSONObject?
                     if (!(("main" == channel))) {
                         result =
@@ -264,7 +264,7 @@ class PixelTunnelWire {
             if ((!(path.startsWith("/v1/tunnels/")) || path.contains(".."))) {
                 throw IOException("Ungültiger Tunnel-Pfad.")
             }
-            var connection = (URL((root + path)).openConnection() as HttpURLConnection)
+            val connection = (URL((root + path)).openConnection() as HttpURLConnection)
             active = connection
             try {
 
@@ -290,17 +290,17 @@ class PixelTunnelWire {
                 if ((body != null)) {
                     connection.setDoOutput(true)
                     connection.setRequestProperty("Content-Type", "application/json")
-                    var bytes = body.toString().toByteArray(StandardCharsets.UTF_8)
+                    val bytes = body.toString().toByteArray(StandardCharsets.UTF_8)
                     connection.setFixedLengthStreamingMode(bytes.size)
                     connection.getOutputStream().use { out -> out.write(bytes) }
                 }
-                var code: Int = connection.getResponseCode()
-                var receipt: Long = System.nanoTime()
+                val code: Int = connection.getResponseCode()
+                val receipt: Long = System.nanoTime()
                 if ((code == 204)) {
                     return Reply(code, JSONObject(), receipt)
                 }
                 if (((code < 200) || (code >= 300))) {
-                    var safe = JSONObject()
+                    val safe = JSONObject()
                     if ((code == 429)) {
                         safe.put(
                             "retry_after_ms",
@@ -317,7 +317,7 @@ class PixelTunnelWire {
                 }
                 connection.getInputStream().use { input ->
                     ByteArrayOutputStream().use { out ->
-                        var buffer = ByteArray(8192)
+                        val buffer = ByteArray(8192)
                         var count: Int
                         var total: Int = 0
                         while (true) {
@@ -354,7 +354,7 @@ class PixelTunnelWire {
                             if ((input == null)) {
                                 return "auth_denied"
                             }
-                            var buffer = ByteArray(4096)
+                            val buffer = ByteArray(4096)
                             var count: Int
                             var total: Int = 0
                             while (true) {
@@ -439,7 +439,7 @@ class PixelTunnelWire {
             ) {
                 return Long.MAX_VALUE
             }
-            var m = java.util.regex.Pattern.compile("([0-9]+)([a-z]+)").matcher((timeout as String))
+            val m = java.util.regex.Pattern.compile("([0-9]+)([a-z]+)").matcher((timeout as String))
             m.matches()
             try {
 
@@ -474,9 +474,9 @@ class PixelTunnelWire {
         private @JvmStatic @Throws(Exception::class) fun canonical(value: Any?): String {
 
             if (value is JSONObject) {
-                var obj = (value as JSONObject)
-                var keys = ArrayList<String>()
-                var iterator = obj.keys()
+                val obj = (value as JSONObject)
+                val keys = ArrayList<String>()
+                val iterator = obj.keys()
                 while (iterator.hasNext()) {
                     keys.add(iterator.next())
                 }
@@ -491,7 +491,7 @@ class PixelTunnelWire {
                 return out.append('}').toString()
             }
             if (value is JSONArray) {
-                var array = (value as JSONArray)
+                val array = (value as JSONArray)
                 var out = StringBuilder("[")
                 for (i in 0 until array.length()) {
                     out.append(canonical(array.get(i))).append(',')

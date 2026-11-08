@@ -387,7 +387,7 @@ internal class LocalWorkflowTools {
                 throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
             }
             var p = JSONObject()
-            var required = ArrayList<String>()
+            val required = ArrayList<String>()
             if (write(name)) {
                 p.put("request_id", McpFields.text(128).put("minLength", 8))
                 required.add("request_id")
@@ -793,9 +793,9 @@ internal class LocalWorkflowTools {
         ): JSONObject {
 
             run {
-                var keys = fields.keys()
+                val keys = fields.keys()
                 while (keys.hasNext()) {
-                    var key = keys.next()
+                    val key = keys.next()
                     target.put(key, fields.get(key))
                 }
             }

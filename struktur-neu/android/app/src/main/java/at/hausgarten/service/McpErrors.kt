@@ -229,7 +229,7 @@ internal class McpErrors {
 
         private @JvmStatic fun code(error: Exception, fallback: String): String {
 
-            var local = localCode(error)
+            val local = localCode(error)
             return (if (error is PixelMcpWriteTools.Rejected)
                 ((error as PixelMcpWriteTools.Rejected)).code
             else (if ((local != null)) local else fallback))
@@ -239,7 +239,7 @@ internal class McpErrors {
         @Throws(Exception::class)
         fun rpc(error: Exception): JSONObject {
 
-            var local = localCode(error)
+            val local = localCode(error)
             var problem =
                 JSONObject()
                     .put(
@@ -266,7 +266,7 @@ internal class McpErrors {
                                 "Anfrage nicht möglich. Pflichtangaben, Datensatz-ID oder gespeicherten lokalen Stand prüfen.")),
                     )
             if (error is HttpTransport.Failure) {
-                var failure = (error as HttpTransport.Failure)
+                val failure = (error as HttpTransport.Failure)
                 problem
                     .put("retry_after_ms", Math.max(0, Math.min(3600000, failure.retryAfter)))
                     .put("user_action_required", failure.userAction)
@@ -282,7 +282,7 @@ internal class McpErrors {
         @Throws(Exception::class)
         fun bridge(error: Exception): JSONObject {
 
-            var local = localCode(error)
+            val local = localCode(error)
             var problem =
                 JSONObject()
                     .put("code", code(error, "VALIDATION_ERROR"))
@@ -303,7 +303,7 @@ internal class McpErrors {
             error: Exception,
         ): Unit {
 
-            var code = problem.optString("code")
+            val code = problem.optString("code")
             if (
                 (error is PixelMcpWriteTools.Rejected &&
                     !(Arrays.asList("REPLAY_MISMATCH", "REQUEST_EXPIRED").contains(code)))

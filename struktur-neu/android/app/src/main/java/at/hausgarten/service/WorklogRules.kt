@@ -37,8 +37,8 @@ class WorklogRules {
                     payload.put(field, number)
                 }
             }
-            var pause: Double = payload.optDouble("break_minutes", (0).toDouble())
-            var km: Double = payload.optDouble("kilometers", (0).toDouble())
+            val pause: Double = payload.optDouble("break_minutes", (0).toDouble())
+            val km: Double = payload.optDouble("kilometers", (0).toDouble())
             var hours: Double = payload.optDouble("hours", (0).toDouble())
             if (
                 (((((((!java.lang.Double.isFinite(pause) || !java.lang.Double.isFinite(km)) ||

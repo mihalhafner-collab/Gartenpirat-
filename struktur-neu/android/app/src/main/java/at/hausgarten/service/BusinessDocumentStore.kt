@@ -191,13 +191,13 @@ class BusinessDocumentStore {
     @Throws(Exception::class)
     fun create(offer: JSONObject): JSONObject {
 
-        var bytes = ByteArrayOutputStream()
-        var pdf = PdfDocument()
+        val bytes = ByteArrayOutputStream()
+        val pdf = PdfDocument()
         var w: Writer? = null
         try {
 
             w = Writer(pdf, offer.optString("offer_number"))
-            var issuer = offer.getJSONObject("issuer")
+            val issuer = offer.getJSONObject("issuer")
             var recipient = offer.getJSONObject("recipient")
             w.line(OfferRules.label(offer.getString("document_type")))
             w.line(offer.getString("offer_number"))
@@ -229,7 +229,7 @@ class BusinessDocumentStore {
             if (!(offer.optString("location").isEmpty())) {
                 w.line("Einsatzort: " + offer.getString("location"))
             }
-            var lines = offer.getJSONArray("positions")
+            val lines = offer.getJSONArray("positions")
             for (i in 0 until lines.length()) {
                 var p = lines.getJSONObject(i)
                 w.line("")
@@ -286,11 +286,11 @@ class BusinessDocumentStore {
             }
             pdf.close()
         }
-        var raw = bytes.toByteArray()
+        val raw = bytes.toByteArray()
         if (raw.size < 5 || raw.size > 20 * 1024 * 1024) {
             throw IOException("Angebots-PDF überschreitet die sichere Dateigrenze.")
         }
-        var hash = PhotoAttachmentStore.sha256(raw)
+        val hash = PhotoAttachmentStore.sha256(raw)
         var meta =
             JSONObject()
                 .put("document_id", "offer:" + offer.getString("id"))
@@ -310,7 +310,7 @@ class BusinessDocumentStore {
             if (!(directory.isDirectory()) && !(directory.mkdirs())) {
                 throw IOException("Dokumentspeicher fehlt.")
             }
-            var f = file(meta)
+            val f = file(meta)
             if (f.exists()) {
                 read(meta)
                 return
@@ -339,11 +339,11 @@ class BusinessDocumentStore {
     @Throws(Exception::class)
     fun read(meta: JSONObject): ByteArray {
 
-        var f = file(meta)
+        val f = file(meta)
         if (f.length() > 20 * 1024 * 1024) {
             throw IOException("Dokument ist zu groß.")
         }
-        var raw = java.nio.file.Files.readAllBytes(f.toPath())
+        val raw = java.nio.file.Files.readAllBytes(f.toPath())
         verify(raw, meta)
         return raw
     }
@@ -351,7 +351,7 @@ class BusinessDocumentStore {
     @Throws(Exception::class)
     fun deleteVerified(meta: JSONObject): Unit {
 
-        var f = file(meta)
+        val f = file(meta)
         if (!(f.exists())) {
             return
         }
@@ -363,7 +363,7 @@ class BusinessDocumentStore {
 
     private @Throws(Exception::class) fun file(meta: JSONObject): File {
 
-        var name = meta.getString("pdf_storage_name")
+        val name = meta.getString("pdf_storage_name")
         if (!(name.matches(Regex("[0-9a-f]{64}\\.pdf")))) {
             throw IllegalArgumentException("Ungültige Dokumentreferenz.")
         }
@@ -413,7 +413,7 @@ class BusinessDocumentStore {
                         n = 1
                     }
                     if (n < rest.length) {
-                        var space: Int = rest.lastIndexOf(' ', n)
+                        val space: Int = rest.lastIndexOf(' ', n)
                         if (space > 0) {
                             n = space
                         }

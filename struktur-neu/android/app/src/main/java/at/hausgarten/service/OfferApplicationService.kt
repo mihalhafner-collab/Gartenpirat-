@@ -17,7 +17,7 @@ internal class OfferApplicationService : OwnerCommand {
         request: String,
     ): JSONObject {
         var all = repository!!.effective()
-        var stamp = (java.time.Instant.now())!!.toString()
+        val stamp = (java.time.Instant.now())!!.toString()
         when (name) {
             "record_offer_acceptance",
             "decline_offer" -> {
@@ -95,11 +95,11 @@ internal class OfferApplicationService : OwnerCommand {
                             )
                         }
                         p = LocalJournalRules.clean(old)
-                        var changes = args!!.getJSONObject("updates")
+                        val changes = args!!.getJSONObject("updates")
                         run {
-                            var it = changes!!.keys()
+                            val it = changes!!.keys()
                             while (it!!.hasNext()) {
-                                var key = it!!.next()
+                                val key = it!!.next()
                                 p!!.put(key, changes!!.get(key))
                             }
                         }
@@ -193,11 +193,11 @@ internal class OfferApplicationService : OwnerCommand {
                     var changes =
                         (if (name!!.equals("update_catalog_entry")) args!!.getJSONObject("updates")
                         else args)
-                    var fields = OfferTools.catalogFields()
+                    val fields = OfferTools.catalogFields()
                     run {
-                        var it = fields!!.keys()
+                        val it = fields!!.keys()
                         while (it!!.hasNext()) {
-                            var key = it!!.next()
+                            val key = it!!.next()
                             if (changes!!.has(key)) {
                                 p!!.put(key, changes!!.get(key))
                             }
@@ -280,7 +280,7 @@ internal class OfferApplicationService : OwnerCommand {
                                 p,
                             ))!!
                             .put("created_at", stamp)
-                    var copy: JSONObject = JSONObject(all!!.toString())
+                    val copy: JSONObject = JSONObject(all!!.toString())
                     OfferJournalRules.apply(copy, event)
                     if (kind!!.equals("offer_finalize")) {
                         var finalized =
@@ -288,11 +288,11 @@ internal class OfferApplicationService : OwnerCommand {
                                 copy!!.getJSONArray("offers"),
                                 p!!.getString("id"),
                             )
-                        var media = repository!!.createDocument(finalized)
+                        val media = repository!!.createDocument(finalized)
                         run {
-                            var it = media!!.keys()
+                            val it = media!!.keys()
                             while (it!!.hasNext()) {
-                                var key = it!!.next()
+                                val key = it!!.next()
                                 p!!.put(key, media!!.get(key))
                             }
                         }

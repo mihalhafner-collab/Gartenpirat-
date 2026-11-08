@@ -37,10 +37,10 @@ class OwnerRequestTransactions {
             store.begin()
             var result: JSONObject
             try {
-                var old: String = store.read(("receipt:" + request))
-                var guard: String = store.read(("receipt_guard:" + request))
+                val old: String = store.read(("receipt:" + request))
+                val guard: String = store.read(("receipt_guard:" + request))
                 if ((!old.isEmpty())) {
-                    var receipt: JSONObject = JSONObject(old)
+                    val receipt: JSONObject = JSONObject(old)
                     requireFingerprint(receipt, fingerprint)
                     if ((receipt.getJSONObject("result").optBoolean("_result_content_removed"))) {
                         throw PixelMcpWriteTools.Rejected(

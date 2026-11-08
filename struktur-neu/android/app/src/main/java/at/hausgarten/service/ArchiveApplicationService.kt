@@ -17,7 +17,7 @@ class ArchiveApplicationService : OwnerCommand {
     @Throws(Exception::class)
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
-        var stamp: String = java.time.Instant.now().toString()
+        val stamp: String = java.time.Instant.now().toString()
         when ((name)) {
             "empty_trash" -> {
                 run {
@@ -65,11 +65,11 @@ class ArchiveApplicationService : OwnerCommand {
                             request,
                             stamp,
                         )
-                    var saved: JSONArray = JSONArray()
+                    val saved: JSONArray = JSONArray()
                     run {
                         var i: Int = 0
                         while ((i < events.length())) {
-                            var event: JSONObject = events.getJSONObject(i)
+                            val event: JSONObject = events.getJSONObject(i)
                             saved.put(
                                 repository.enqueue(
                                     "archive",
@@ -144,7 +144,7 @@ class ArchiveApplicationService : OwnerCommand {
             }
             "restore_entity" -> {
                 run {
-                    var entity: String = args.getString("entity")
+                    val entity: String = args.getString("entity")
                     var id: String = args.getString("entity_id")
                     var p: JSONObject =
                         JSONObject(args.toString()).put("id", id).put("updated_at", stamp)
@@ -306,7 +306,7 @@ class ArchiveApplicationService : OwnerCommand {
     ): Pair<JSONObject, JSONObject> {
         requireInactiveSession(args.getString("entity"), args.getString("entity_id"))
         if ((args.getString("entity").equals("appointment"))) {
-            var session: JSONObject = repository.state().getJSONObject("work_session")
+            val session: JSONObject = repository.state().getJSONObject("work_session")
             if (
                 ((args.getString("entity_id").equals(session.optString("appointment_id")) &&
                     !Arrays.asList("IDLE", "FINALIZED", "CANCELLED")

@@ -49,16 +49,16 @@ class LocalActionOrder {
         @Throws(Exception::class)
         @JvmStatic
         fun order(input: JSONArray): JSONArray {
-            var actions: LinkedHashMap<String, JSONObject> = LinkedHashMap()
-            var creators: MutableMap<String, String> = HashMap()
-            var versions: MutableMap<String, String> = HashMap()
+            val actions: LinkedHashMap<String, JSONObject> = LinkedHashMap()
+            val creators: MutableMap<String, String> = HashMap()
+            val versions: MutableMap<String, String> = HashMap()
             run {
                 var i: Int = 0
                 while ((i < input.length())) {
-                    var a: JSONObject = input.getJSONObject(i)
+                    val a: JSONObject = input.getJSONObject(i)
                     var p: JSONObject = a.getJSONObject("payload")
                     var id: String = a.getString("client_id")
-                    var entity: String = (("" + a.getString("kind") + ":") + p.optString("id"))
+                    val entity: String = (("" + a.getString("kind") + ":") + p.optString("id"))
                     actions.put(id, a)
                     if (((p.optBoolean("_mcp_create") && !p.optString("id").isEmpty()))) {
                         creators.putIfAbsent(entity, id)
@@ -72,7 +72,7 @@ class LocalActionOrder {
             run {
                 var i: Int = 0
                 while ((i < input.length())) {
-                    var a: JSONObject = input.getJSONObject(i)
+                    val a: JSONObject = input.getJSONObject(i)
                     var p: JSONObject = a.getJSONObject("payload")
                     if (("offer_convert".equals(a.optString("kind")))) {
                         var order: String = p.optString("existing_order_id")
@@ -91,19 +91,19 @@ class LocalActionOrder {
                     i++
                 }
             }
-            var dependencies: MutableMap<String, MutableSet<String>> = LinkedHashMap()
+            val dependencies: MutableMap<String, MutableSet<String>> = LinkedHashMap()
             for (entry in actions.entries) {
                 var id: String = entry.key
-                var a: JSONObject = entry.value
+                val a: JSONObject = entry.value
                 var p: JSONObject = a.getJSONObject("payload")
-                var deps: MutableSet<String> = LinkedHashSet()
+                val deps: MutableSet<String> = LinkedHashSet()
                 var ownKind: String =
                     (if (a.getString("kind").startsWith("offer_")) "offer" else a.getString("kind"))
-                var creator: String? = creators.get((("" + ownKind + ":") + p.optString("id")))
+                val creator: String? = creators.get((("" + ownKind + ":") + p.optString("id")))
                 if ((((creator != null) && !creator!!.equals(id)))) {
                     deps.add(creator)
                 }
-                var explicit: JSONArray? = p.optJSONArray("_sync_predecessors")
+                val explicit: JSONArray? = p.optJSONArray("_sync_predecessors")
                 run {
                     var j: Int = 0
                     while (((explicit != null) && (j < explicit!!.length()))) {
@@ -121,12 +121,12 @@ class LocalActionOrder {
                         arrayOf("worklog_id", "worklog"),
                         arrayOf("appointment_id", "appointment"),
                     )) {
-                    var parent: String? = creators.get((("" + ref[1] + ":") + p.optString(ref[0])))
+                    val parent: String? = creators.get((("" + ref[1] + ":") + p.optString(ref[0])))
                     if ((((parent != null) && !parent!!.equals(id)))) {
                         deps.add(parent)
                     }
                 }
-                var expectedOrder: JSONObject? = p.optJSONObject("_expected_order")
+                val expectedOrder: JSONObject? = p.optJSONObject("_expected_order")
                 if (((expectedOrder != null))) {
                     var parent: String? =
                         versions.get(
@@ -159,8 +159,8 @@ class LocalActionOrder {
                 }
                 dependencies.put(id, deps)
             }
-            var result: JSONArray = JSONArray()
-            var done: MutableSet<String> = HashSet()
+            val result: JSONArray = JSONArray()
+            val done: MutableSet<String> = HashSet()
             while (((done.size < actions.size))) {
                 var moved: Boolean = false
                 for (id in actions.keys) {

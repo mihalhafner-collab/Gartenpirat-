@@ -11,7 +11,7 @@ class ActiveWorkProtection {
         @Throws(Exception::class)
         @JvmStatic
         fun require(state: JSONObject, entity: String, id: String) {
-            var session: JSONObject? = state.optJSONObject("work_session")
+            val session: JSONObject? = state.optJSONObject("work_session")
             if (
                 (((session == null) ||
                     Arrays.asList("IDLE", "FINALIZED", "CANCELLED")

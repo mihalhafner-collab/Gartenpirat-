@@ -14,8 +14,8 @@ class EntityApplicationService {
             state: JSONObject,
             actionId: String,
         ): JSONObject {
-            var master: JSONObject = SnapshotProjection.effective(state)
-            var update: Boolean = name.startsWith("update_")
+            val master: JSONObject = SnapshotProjection.effective(state)
+            val update: Boolean = name.startsWith("update_")
             val entity =
                 when (name) {
                     "create_customer",
@@ -30,7 +30,7 @@ class EntityApplicationService {
                 else EntityContract.ORDER_FIELDS
             var payload: JSONObject
             if ((update)) {
-                var capabilities: JSONObject? = master.optJSONObject("capabilities")
+                val capabilities: JSONObject? = master.optJSONObject("capabilities")
                 if (
                     (((capabilities == null) ||
                         !true.equals(capabilities!!.opt("entity_compare_and_save"))))
@@ -40,9 +40,9 @@ class EntityApplicationService {
                         "Bitte Pixel-Datenstand und App-Version prüfen. Der Konfliktschutz ist noch nicht bestätigt.",
                     )
                 }
-                var idKey: String = ("" + entity + "_id")
+                val idKey: String = ("" + entity + "_id")
                 var id: String = args.getString(idKey)
-                var old: JSONObject = PixelMcpWriteTools.find(master.optJSONArray(collection), id)
+                val old: JSONObject = PixelMcpWriteTools.find(master.optJSONArray(collection), id)
                 if ((old.optString("updated_at").isEmpty())) {
                     throw PixelMcpWriteTools.Rejected(
                         "REMOTE_GUARD_REQUIRED",
@@ -89,11 +89,11 @@ class EntityApplicationService {
                         payload.put(key, old.get(key))
                     }
                 }
-                var patch: JSONObject = args.getJSONObject("updates")
+                val patch: JSONObject = args.getJSONObject("updates")
                 run {
-                    var it: MutableIterator<String> = patch.keys()
+                    val it: MutableIterator<String> = patch.keys()
                     while (it.hasNext()) {
-                        var key: String = it.next()
+                        val key: String = it.next()
                         payload.put(key, patch.get(key))
                     }
                 }
@@ -104,18 +104,18 @@ class EntityApplicationService {
                             "Der Pixel-Vergleichsschutz für Kunden-Zusatzfelder fehlt; keine Änderung gespeichert.",
                         )
                     }
-                    var merged: JSONObject = EntityContract.customFields(old)
-                    var changes: JSONObject = patch.getJSONObject("custom_fields")
+                    val merged: JSONObject = EntityContract.customFields(old)
+                    val changes: JSONObject = patch.getJSONObject("custom_fields")
                     run {
-                        var it: MutableIterator<String> = changes.keys()
+                        val it: MutableIterator<String> = changes.keys()
                         while (it.hasNext()) {
-                            var key: String = it.next()
+                            val key: String = it.next()
                             merged.put(key, changes.get(key))
                         }
                     }
                     payload.put("custom_fields", merged)
                 }
-                var base: JSONObject = JSONObject().put("id", id)
+                val base: JSONObject = JSONObject().put("id", id)
                 for (key in fields) {
                     if (old.has(key)) {
                         base.put(key, old.get(key))
@@ -151,7 +151,7 @@ class EntityApplicationService {
                     (if (entity == "customer") "cus_mobile_mcp_" else "ord_mobile_mcp_") +
                         PixelMcpWriteTools.hash(actionId).substring(0, 32),
                 )
-                var rows: JSONArray? = master.optJSONArray(collection)
+                val rows: JSONArray? = master.optJSONArray(collection)
                 run {
                     var i: Int = 0
                     while (((rows != null) && (i < rows!!.length()))) {
@@ -190,7 +190,7 @@ class EntityApplicationService {
                         )
                     }
                 }
-                var incoming: JSONObject = (if (update) args.getJSONObject("updates") else args)
+                val incoming: JSONObject = (if (update) args.getJSONObject("updates") else args)
                 if (
                     (((incoming.has("email") && !incoming.optString("email").isEmpty()) &&
                         !incoming
@@ -223,11 +223,11 @@ class EntityApplicationService {
                         )
                     }
                     if ((!update)) {
-                        var rows: JSONArray? = master.optJSONArray("orders")
+                        val rows: JSONArray? = master.optJSONArray("orders")
                         run {
                             var i: Int = 0
                             while (((rows != null) && (i < rows!!.length()))) {
-                                var row: JSONObject = rows!!.getJSONObject(i)
+                                val row: JSONObject = rows!!.getJSONObject(i)
                                 if (
                                     (((payload
                                         .optString("customer_id")

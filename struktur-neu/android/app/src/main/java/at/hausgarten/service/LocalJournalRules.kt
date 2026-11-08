@@ -71,13 +71,13 @@ internal class LocalJournalRules {
                     "service_catalog",
                     "appointments",
                 )) {
-                var rows = snapshot.optJSONArray(key)
+                val rows = snapshot.optJSONArray(key)
                 if ((rows == null)) {
                     throw IllegalArgumentException("Der lokale Gesamtstand ist unvollständig.")
                 }
-                var ids = HashSet<String>()
+                val ids = HashSet<String>()
                 for (i in 0 until rows.length()) {
-                    var row = rows.optJSONObject(i)
+                    val row = rows.optJSONObject(i)
                     if (
                         (((row == null) || row.optString("id").isEmpty()) ||
                             !(ids.add(row.getString("id"))))
@@ -94,7 +94,7 @@ internal class LocalJournalRules {
         @Throws(Exception::class)
         fun guard(row: JSONObject?, kind: String): JSONObject {
 
-            var base = JSONObject()
+            val base = JSONObject()
             if ((row == null)) {
                 return base
             }
@@ -180,9 +180,9 @@ internal class LocalJournalRules {
 
             var out = JSONObject(value.toString())
             run {
-                var keys = value.keys()
+                val keys = value.keys()
                 while (keys.hasNext()) {
-                    var key = keys.next()
+                    val key = keys.next()
                     if (
                         (((key.startsWith("_") || (key == "pending")) ||
                             (key == "allow_duplicate")) || (key == "require_order"))
@@ -250,9 +250,9 @@ internal class LocalJournalRules {
                 )
             }
             run {
-                var keys = expected.keys()
+                val keys = expected.keys()
                 while (keys.hasNext()) {
-                    var key = keys.next()
+                    val key = keys.next()
                     if (
                         !((PixelMcpWriteTools.canonical(comparable(key, expected.get(key))) ==
                             PixelMcpWriteTools.canonical(comparable(key, current.opt(key)))))
@@ -269,7 +269,7 @@ internal class LocalJournalRules {
         @JvmStatic
         fun ids(values: JSONArray?): MutableSet<String> {
 
-            var ids = HashSet<String>()
+            val ids = HashSet<String>()
             run {
                 var i: Int = 0
                 var firstIteration5 = true
@@ -406,29 +406,29 @@ internal class LocalJournalRules {
             snapshot: JSONObject
         ): Unit {
 
-            var names = HashMap<String, String>()
-            var titles = HashMap<String, String>()
-            var totals = HashMap<String, Double>()
-            var customers = snapshot.getJSONArray("customers")
-            var orders = snapshot.getJSONArray("orders")
-            var logs = snapshot.getJSONArray("worklogs")
+            val names = HashMap<String, String>()
+            val titles = HashMap<String, String>()
+            val totals = HashMap<String, Double>()
+            val customers = snapshot.getJSONArray("customers")
+            val orders = snapshot.getJSONArray("orders")
+            val logs = snapshot.getJSONArray("worklogs")
             for (i in 0 until customers.length()) {
-                var row = customers.getJSONObject(i)
+                val row = customers.getJSONObject(i)
                 names.put(row.getString("id"), row.optString("name"))
             }
             for (i in 0 until orders.length()) {
-                var row = orders.getJSONObject(i)
+                val row = orders.getJSONObject(i)
                 titles.put(row.getString("id"), row.optString("title"))
             }
             for (i in 0 until logs.length()) {
-                var row = logs.getJSONObject(i)
+                val row = logs.getJSONObject(i)
                 var order = row.optString("order_id")
                 totals.put(order, (totals.getOrDefault(order, 0.0) + row.optDouble("hours", 0.0)))
             }
             for (group in arrayOf("orders", "worklogs", "photos", "invoices")) {
-                var rows = snapshot.getJSONArray(group)
+                val rows = snapshot.getJSONArray(group)
                 for (i in 0 until rows.length()) {
-                    var row = rows.getJSONObject(i)
+                    val row = rows.getJSONObject(i)
                     if (row.has("customer_name")) {
                         row.put(
                             "customer_name",
@@ -516,11 +516,11 @@ internal class LocalJournalRules {
                     "Diese ID wurde endgültig gelöscht und darf nicht durch ein altes Formular, Journal oder Backup wieder angelegt werden.",
                 )
             }
-            var customers = snapshot.getJSONArray("customers")
-            var orders = snapshot.getJSONArray("orders")
-            var logs = snapshot.getJSONArray("worklogs")
-            var photos = snapshot.getJSONArray("photos")
-            var invoices = snapshot.getJSONArray("invoices")
+            val customers = snapshot.getJSONArray("customers")
+            val orders = snapshot.getJSONArray("orders")
+            val logs = snapshot.getJSONArray("worklogs")
+            val photos = snapshot.getJSONArray("photos")
+            val invoices = snapshot.getJSONArray("invoices")
             if ((kind == "customer")) {
                 TestDataRules.customerChange(row, old)
                 GardenRules.normalize(row)
@@ -556,7 +556,7 @@ internal class LocalJournalRules {
                 return
             }
             PixelMcpWriteTools.find(customers, row.optString("customer_id"))
-            var orderId = (if (row.isNull("order_id")) "" else row.optString("order_id"))
+            val orderId = (if (row.isNull("order_id")) "" else row.optString("order_id"))
             if (
                 (!(orderId.isEmpty()) &&
                     !((row.optString("customer_id") ==
@@ -601,7 +601,7 @@ internal class LocalJournalRules {
                     else old),
                     snapshot,
                 )
-                var hours: Double = row.optDouble("hours", 0.0)
+                val hours: Double = row.optDouble("hours", 0.0)
                 WorklogRules.validate(row, (old == null))
                 if ((Math.abs((hours - row.optDouble("hours"))) > 0.005)) {
                     throw IllegalArgumentException("Stunden und Uhrzeiten widersprechen sich.")

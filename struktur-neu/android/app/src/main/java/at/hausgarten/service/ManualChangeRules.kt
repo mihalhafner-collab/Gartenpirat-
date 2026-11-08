@@ -12,7 +12,7 @@ class ManualChangeRules {
             if ((!incoming.has("_edit_base"))) {
                 return incoming
             }
-            var base: JSONObject = incoming.getJSONObject("_edit_base")
+            val base: JSONObject = incoming.getJSONObject("_edit_base")
             if ((!incoming.optString("id").equals(base.optString("id")))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
@@ -28,7 +28,7 @@ class ManualChangeRules {
                             "Der ursprüngliche Eintrag ist nicht mehr vorhanden.",
                         )
                 )
-            var changes: JSONObject = incoming.getJSONObject("_edit_changes")
+            val changes: JSONObject = incoming.getJSONObject("_edit_changes")
             var allowed: MutableSet<String> =
                 HashSet(
                     Arrays.asList(
@@ -41,9 +41,9 @@ class ManualChangeRules {
             allowed.remove("id")
             allowed.remove("updated_at")
             run {
-                var keys: MutableIterator<String> = changes.keys()
+                val keys: MutableIterator<String> = changes.keys()
                 while (keys.hasNext()) {
-                    var key: String = keys.next()
+                    val key: String = keys.next()
                     if ((!allowed.contains(key))) {
                         throw IllegalArgumentException("Ungültiges Formularfeld.")
                     }

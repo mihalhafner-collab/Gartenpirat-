@@ -17,7 +17,7 @@ class GardenRules {
             if ((customer.has("garden_area"))) {
                 customer.put("garden_area", number(customer.opt("garden_area")))
             }
-            var raw: Any? = customer.opt("custom_fields")
+            val raw: Any? = customer.opt("custom_fields")
             var fields: JSONObject =
                 (if (raw is JSONObject) JSONObject(raw.toString())
                 else
@@ -60,7 +60,7 @@ class GardenRules {
                 return JSONObject.NULL
             }
             try {
-                var n: Double = java.lang.Double.parseDouble(value!!.toString().replace(',', '.'))
+                val n: Double = java.lang.Double.parseDouble(value!!.toString().replace(',', '.'))
                 if ((((!java.lang.Double.isFinite(n) || (n < 0)) || (n > 1_000_000_000)))) {
                     throw NumberFormatException()
                 }

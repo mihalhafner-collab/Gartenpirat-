@@ -65,7 +65,7 @@ internal class OfferRules {
         @JvmStatic
         @Throws(Exception::class)
         fun contractView(p: JSONObject): JSONObject {
-            var type = OfferContract.type(p!!.optString("document_type"))
+            val type = OfferContract.type(p!!.optString("document_type"))
             return (((((JSONObject())!!.put("supported", (type!!.length() > 0)))!!.put(
                             "binding_mode",
                             p!!.optString(
@@ -115,11 +115,11 @@ internal class OfferRules {
             ) {
                 throw IllegalArgumentException("Kunde und Auftrag widersprechen sich.")
             }
-            var type = p!!.optString("document_type")
+            val type = p!!.optString("document_type")
             if ((!type!!.isEmpty() && !(Arrays.asList(*(TYPES)))!!.contains(type))) {
                 throw IllegalArgumentException("Unbekannte Angebotsart.")
             }
-            var definition = OfferContract.type(type)
+            val definition = OfferContract.type(type)
             (p!!.put("pricing_mode", definition!!.optString("pricing_mode", "unselected")))!!.put(
                 "binding_mode",
                 definition!!.optString("binding_mode", "unselected"),
@@ -130,7 +130,7 @@ internal class OfferRules {
             ) {
                 p!!.remove("binding_notice")
             }
-            var config = snapshot!!.optJSONObject("business_settings")
+            val config = snapshot!!.optJSONObject("business_settings")
             var noticeKey =
                 (if (type!!.equals("estimate_binding")) "offer_binding_text"
                 else
@@ -251,7 +251,7 @@ internal class OfferRules {
             run {
                 var i: Int = 0
                 while ((i < lines!!.length())) {
-                    var line = lines!!.getJSONObject(i)
+                    val line = lines!!.getJSONObject(i)
                     if (!line!!.has("price_basis")) {
                         line!!.put(
                             "price_basis",
@@ -299,8 +299,8 @@ internal class OfferRules {
                             continue
                         }
                     }
-                    var q = decimal(line!!.get("quantity"))
-                    var price = decimal(line!!.get("price"))
+                    val q = decimal(line!!.get("quantity"))
+                    val price = decimal(line!!.get("price"))
                     var rate =
                         decimal(
                             (if ((!line!!.has("tax_rate") || line!!.isNull("tax_rate"))) "0"
@@ -334,8 +334,8 @@ internal class OfferRules {
                             continue
                         }
                     }
-                    var subtotal = money(q!!.multiply(price))
-                    var t = money((subtotal!!.multiply(rate))!!.divide(BigDecimal("100")))
+                    val subtotal = money(q!!.multiply(price))
+                    val t = money((subtotal!!.multiply(rate))!!.divide(BigDecimal("100")))
                     (line!!.put("net", subtotal!!.toDouble()))!!.put("tax", t!!.toDouble())
                     net = net!!.add(subtotal)
                     tax = tax!!.add(t)
@@ -402,7 +402,7 @@ internal class OfferRules {
                 if (((n === null) || (n === JSONObject.NULL))) {
                     throw Exception()
                 }
-                var d: BigDecimal = BigDecimal(n!!.toString())
+                val d: BigDecimal = BigDecimal(n!!.toString())
                 if (((d!!.precision() > 24) || (Math.abs(d!!.scale()) > 10))) {
                     throw Exception()
                 }
@@ -439,11 +439,11 @@ internal class OfferRules {
                     )
                 OwnerJournalRules.replace(snapshot, "customers", recipient, frozen)
             }
-            var checked: JSONObject = JSONObject(p!!.toString())
+            val checked: JSONObject = JSONObject(p!!.toString())
             normalize(checked, null, snapshot)
-            var errors: JSONArray = JSONArray()
-            var warnings: JSONArray = JSONArray()
-            var fieldErrors: JSONObject = JSONObject()
+            val errors: JSONArray = JSONArray()
+            val warnings: JSONArray = JSONArray()
+            val fieldErrors: JSONObject = JSONObject()
             var s = snapshot!!.optJSONObject("business_settings")
             if ((s === null)) {
                 s = JSONObject()
@@ -481,7 +481,7 @@ internal class OfferRules {
             if (recipient!!.isEmpty()) {
                 recipient = p!!.optString("customer_id")
             }
-            var c = OwnerJournalRules.findOrNull(snapshot!!.optJSONArray("customers"), recipient)
+            val c = OwnerJournalRules.findOrNull(snapshot!!.optJSONArray("customers"), recipient)
             if ((c === null)) {
                 errors!!.put("Eindeutiger Kunde fehlt")
             } else {
@@ -490,7 +490,7 @@ internal class OfferRules {
                         errors!!.put(("Empfänger: " + k))
                     }
                 }
-                var country = (c!!.optString("country"))!!.lowercase(Locale.GERMAN)
+                val country = (c!!.optString("country"))!!.lowercase(Locale.GERMAN)
                 if (!(Arrays.asList("at", "austria", "österreich"))!!.contains(country)) {
                     errors!!.put("Auslandsfall benötigt gesonderte Prüfung")
                 }
@@ -526,15 +526,15 @@ internal class OfferRules {
             ) {
                 errors!!.put("Steuerbefreiungshinweis fehlt")
             }
-            var lines = p!!.optJSONArray("positions")
+            val lines = p!!.optJSONArray("positions")
             if (((lines === null) || (lines!!.length() == 0))) {
                 errors!!.put("Mindestens eine Leistung erforderlich")
             }
             run {
                 var i: Int = 0
                 while (((lines !== null) && (i < lines!!.length()))) {
-                    var line = lines!!.getJSONObject(i)
-                    var at = ((("Position " + (i + 1))).toString() + ": ")
+                    val line = lines!!.getJSONObject(i)
+                    val at = ((("Position " + (i + 1))).toString() + ": ")
                     for (key in (arrayOf("title", "unit"))!!) {
                         if (((line!!.optString(key))!!.trim())!!.isEmpty()) {
                             fieldErrors!!.put(
@@ -625,7 +625,7 @@ internal class OfferRules {
                     }
                     if (basis!!.equals("calculated")) {
                         try {
-                            var calculation = line!!.getJSONObject("calculation")
+                            val calculation = line!!.getJSONObject("calculation")
                             var derived =
                                 money(
                                     ((decimal(calculation!!.get("base_price")))!!.multiply(

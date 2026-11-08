@@ -29,7 +29,7 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun text(row: JSONObject, key: String, max: Int, required: Boolean): String {
-            var raw: Any? = row.opt(key)
+            val raw: Any? = row.opt(key)
             if ((((raw == null) || (raw == JSONObject.NULL)))) {
                 if ((required)) {
                     throw error("INVALID_INPUT", ("" + ("Bitte " + key) + " angeben."))
@@ -69,7 +69,7 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun hash(row: JSONObject): String {
-            var clean: JSONObject = copy(row)
+            val clean: JSONObject = copy(row)
             clean.remove("record_hash")
             return PixelMcpWriteTools.hash(clean)
         }
@@ -100,13 +100,13 @@ class RevierRules {
             if ((!row.has(key))) {
                 return fallback
             }
-            var raw: Any = row.get(key)
+            val raw: Any = row.get(key)
             var value: String = raw.toString()
             if ((!value.matches(Regex("-?(0|[1-9][0-9]*)")))) {
                 throw error("INVALID_INPUT", ("" + key + " benötigt eine ganze Zahl."))
             }
             try {
-                var n: Int = Integer.parseInt(value)
+                val n: Int = Integer.parseInt(value)
                 if ((((n < min) || (n > max)))) {
                     throw NumberFormatException()
                 }
@@ -137,7 +137,7 @@ class RevierRules {
             ) {
                 return ""
             }
-            var raw: Any? = row.opt(key)
+            val raw: Any? = row.opt(key)
             if (
                 ((!(raw is String) ||
                     !((raw as String)).matches(Regex("-?(0|[1-9][0-9]*)(\\.[0-9]{1,6})?"))))
@@ -149,7 +149,7 @@ class RevierRules {
                         " als Dezimalzahl mit Punkt und höchstens sechs Nachkommastellen angeben."),
                 )
             }
-            var n: BigDecimal = BigDecimal((raw as String))
+            val n: BigDecimal = BigDecimal((raw as String))
             if ((((n.precision() > 24) || (positive && (n.signum() < 0))))) {
                 throw error("INVALID_INPUT", ("" + ("Ungültige Menge für " + key) + "."))
             }
@@ -167,7 +167,7 @@ class RevierRules {
                 )
             }
             try {
-                var result: Long = BigDecimal(value).longValueExact()
+                val result: Long = BigDecimal(value).longValueExact()
                 if (((result > 9007199254740991L))) {
                     throw ArithmeticException()
                 }
@@ -233,9 +233,9 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun fields(args: JSONObject, vararg allowed: String) {
-            var names: MutableSet<String> = HashSet(Arrays.asList(*allowed))
+            val names: MutableSet<String> = HashSet(Arrays.asList(*allowed))
             run {
-                var it: MutableIterator<String> = args.keys()
+                val it: MutableIterator<String> = args.keys()
                 while (it.hasNext()) {
                     if ((!names.contains(it.next()))) {
                         throw error(
@@ -261,8 +261,8 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun version(row: JSONObject) {
-            var version: Any? = row.opt("format_version")
-            var kind: String = row.optString("kind")
+            val version: Any? = row.opt("format_version")
+            val kind: String = row.optString("kind")
             var maintenanceKind: Boolean =
                 (kind.equals("equipment") || kind.equals("equipment_maintenance"))
             if (
@@ -310,8 +310,8 @@ class RevierRules {
         @JvmStatic
         fun season(rule: JSONObject, date: LocalDate): Boolean {
             var day: MonthDay = MonthDay.from(date)
-            var start: MonthDay = MonthDay.parse(("--" + rule.optString("season_start", "01-01")))
-            var end: MonthDay = MonthDay.parse(("--" + rule.optString("season_end", "12-31")))
+            val start: MonthDay = MonthDay.parse(("--" + rule.optString("season_start", "01-01")))
+            val end: MonthDay = MonthDay.parse(("--" + rule.optString("season_end", "12-31")))
             return (if ((start.compareTo(end) <= 0))
                 ((day.compareTo(start) >= 0) && (day.compareTo(end) <= 0))
             else ((day.compareTo(start) >= 0) || (day.compareTo(end) <= 0)))
@@ -320,7 +320,7 @@ class RevierRules {
         @Throws(Exception::class)
         @JvmStatic
         fun occurs(rule: JSONObject, date: LocalDate): Boolean {
-            var anchor: LocalDate = date(rule.getString("anchor_date"))
+            val anchor: LocalDate = date(rule.getString("anchor_date"))
             return ((!date.isBefore(anchor) &&
                 ((ChronoUnit.DAYS.between(anchor, date) % rule.getInt("interval_days")) == 0L)) &&
                 season(rule, date))

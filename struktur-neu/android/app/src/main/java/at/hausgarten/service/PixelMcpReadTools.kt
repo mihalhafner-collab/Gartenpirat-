@@ -49,7 +49,7 @@ class PixelMcpReadTools {
     @Throws(Exception::class)
     fun tools(): JSONArray {
 
-        var rows = JSONArray()
+        val rows = JSONArray()
         for (name in NAMES) {
             rows.put(
                 JSONObject()
@@ -68,29 +68,29 @@ class PixelMcpReadTools {
             )
         }
         if (writable()) {
-            var writes = PixelMcpWriteTools.tools()
+            val writes = PixelMcpWriteTools.tools()
             for (i in 0 until writes.length()) {
                 rows.put(writes.get(i))
             }
-            var entities = PixelMcpEntityWriteTools.tools()
+            val entities = PixelMcpEntityWriteTools.tools()
             for (i in 0 until entities.length()) {
-                var tool = entities.getJSONObject(i)
+                val tool = entities.getJSONObject(i)
                 rows.put(tool)
             }
-            var sessions = PixelMcpSessionTools.tools()
+            val sessions = PixelMcpSessionTools.tools()
             for (i in 0 until sessions.length()) {
                 rows.put(sessions.get(i))
             }
         }
-        var owner = PixelMcpOwnerTools.tools(writable())
+        val owner = PixelMcpOwnerTools.tools(writable())
         for (i in 0 until owner.length()) {
             rows.put(owner.get(i))
         }
-        var offers = OfferTools.tools(writable())
+        val offers = OfferTools.tools(writable())
         for (i in 0 until offers.length()) {
             rows.put(offers.get(i))
         }
-        var planning = AppointmentTools.tools(writable())
+        val planning = AppointmentTools.tools(writable())
         for (i in 0 until planning.length()) {
             rows.put(planning.get(i))
         }
@@ -128,7 +128,7 @@ class PixelMcpReadTools {
                 .put("untrusted_business_data", true)
         }
         if (OfferTools.read(name)) {
-            var state = source.state()
+            val state = source.state()
             var response =
                 OfferDecisionRules.decorateQuery(
                     name,
@@ -221,16 +221,16 @@ class PixelMcpReadTools {
                 .put("cloud_confirmed", false)
                 .put("untrusted_business_data", true)
         }
-        var spec = schema(name)
-        var props = spec.getJSONObject("properties")
-        var keys = a.keys()
+        val spec = schema(name)
+        val props = spec.getJSONObject("properties")
+        val keys = a.keys()
         while (keys.hasNext()) {
-            var key = keys.next()
+            val key = keys.next()
             if (!(props.has(key))) {
                 throw IllegalArgumentException(("Unbekannte Eingabe: " + key))
             }
             var value = a.get(key)
-            var type = props.getJSONObject(key).getString("type")
+            val type = props.getJSONObject(key).getString("type")
             if (
                 (((((type == "string") && !((value is String)))) ||
                     (((type == "boolean") && !((value is Boolean))))) ||
@@ -239,7 +239,7 @@ class PixelMcpReadTools {
                 throw IllegalArgumentException(("Ungültiger Eingabetyp: " + key))
             }
         }
-        var required = spec.getJSONArray("required")
+        val required = spec.getJSONArray("required")
         for (i in 0 until required.length()) {
             if (a.optString(required.getString(i)).trim().isEmpty()) {
                 throw IllegalArgumentException(("Pflichtangabe fehlt: " + required.getString(i)))
@@ -256,10 +256,10 @@ class PixelMcpReadTools {
         ) {
             throw IllegalArgumentException("Der Zeitraum ist widersprüchlich.")
         }
-        var state = source.stateFor(name, a)
-        var master = effective(state)
-        var customers = master.optJSONArray("customers")
-        var orders = master.optJSONArray("orders")
+        val state = source.stateFor(name, a)
+        val master = effective(state)
+        val customers = master.optJSONArray("customers")
+        val orders = master.optJSONArray("orders")
         if (a.has("customer_id")) {
             SnapshotReadSupport.find(customers, a.getString("customer_id"))
         }
@@ -271,7 +271,7 @@ class PixelMcpReadTools {
         }
         var data: Any
         if ((name == "integration_health")) {
-            var catalog = tools()
+            val catalog = tools()
             var health =
                 JSONObject()
                     .put("status", "ready")
@@ -336,7 +336,7 @@ class PixelMcpReadTools {
             )
         }
         if ((name == "get_order")) {
-            var row = (data as JSONObject)
+            val row = (data as JSONObject)
             var id =
                 BillingRules.defaultRecipient(
                     row.getString("customer_id"),
@@ -381,7 +381,7 @@ class PixelMcpReadTools {
     fun rpc(request: JSONObject): JSONObject? {
 
         var id = request.opt("id")
-        var method = request.optString("method")
+        val method = request.optString("method")
         var answer =
             JSONObject()
                 .put("jsonrpc", "2.0")
@@ -488,8 +488,8 @@ class PixelMcpReadTools {
 
         private @JvmStatic @Throws(Exception::class) fun schema(name: String): JSONObject {
 
-            var props = JSONObject()
-            var required = JSONArray()
+            val props = JSONObject()
+            val required = JSONArray()
             var fields: Array<String>
             when (name) {
                 "search_customers" -> {
@@ -596,7 +596,7 @@ class PixelMcpReadTools {
         fun effective(state: JSONObject): JSONObject {
 
             if (state.optBoolean("storage_point_read")) {
-                var row = JSONObject(state.getJSONObject("master").toString())
+                val row = JSONObject(state.getJSONObject("master").toString())
                 return row
             }
             return SnapshotProjection.effective(state)

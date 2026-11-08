@@ -39,7 +39,7 @@ internal class PixelMcpSessionTools {
                             .put("minLength", 8)
                             .put("maxLength", 128),
                     )
-            var required = JSONArray().put("request_id")
+            val required = JSONArray().put("request_id")
             if ((name == "start_work")) {
                 for (key in
                     arrayOf(
@@ -159,14 +159,14 @@ internal class PixelMcpSessionTools {
                 if (!(("IDLE" == current.optString("state")))) {
                     return out
                 }
-                var master = PixelMcpReadTools.effective(state)
+                val master = PixelMcpReadTools.effective(state)
                 PixelMcpWriteTools.find(
                     master.optJSONArray("customers"),
                     out.getString("customer_id"),
                 )
                 var order = out.optString("order_id")
                 if (!(order.isEmpty())) {
-                    var row = PixelMcpWriteTools.find(master.optJSONArray("orders"), order)
+                    val row = PixelMcpWriteTools.find(master.optJSONArray("orders"), order)
                     if (!((row.optString("customer_id") == out.getString("customer_id")))) {
                         throw PixelMcpWriteTools.Rejected(
                             "REFERENCE_MISMATCH",
@@ -244,7 +244,7 @@ internal class PixelMcpSessionTools {
                         "Sitzung wegen Neustart oder widersprüchlicher Geräteuhr zuerst prüfen. Kein Arbeitsende geschätzt.",
                     )
                 }
-                var customer = current.optString("customer_id")
+                val customer = current.optString("customer_id")
                 if (
                     (!((out.optString("customer_id", customer) == customer)) &&
                         !(customer.isEmpty()))

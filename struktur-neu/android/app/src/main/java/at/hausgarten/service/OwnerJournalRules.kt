@@ -100,7 +100,7 @@ class OwnerJournalRules {
             all: MutableMap<String, JSONObject>,
             resolved: JSONObject,
         ) {
-            var kind: String = action.getString("kind")
+            val kind: String = action.getString("kind")
             var p: JSONObject = action.getJSONObject("payload")
             if ((kind.equals(TrashPurgeBatch.KIND))) {
                 TrashPurgeBatch.apply(snapshot, action)
@@ -136,12 +136,12 @@ class OwnerJournalRules {
                         .put("expected_record_hash", p.getString("expected_record_hash"))
                         .put("updates", p.getJSONObject("updates")),
                 )
-                var updated: JSONObject = JSONObject(current!!.toString())
-                var changes: JSONObject = p.getJSONObject("updates")
+                val updated: JSONObject = JSONObject(current!!.toString())
+                val changes: JSONObject = p.getJSONObject("updates")
                 run {
-                    var keys: MutableIterator<String> = changes.keys()
+                    val keys: MutableIterator<String> = changes.keys()
                     while (keys.hasNext()) {
-                        var key: String = keys.next()
+                        val key: String = keys.next()
                         var value: Any = changes.get(key)
                         updated.put(
                             key,
@@ -163,18 +163,18 @@ class OwnerJournalRules {
                 snapshot.put("invoice_issuer", issuer)
                 return
             }
-            var entity: String = p.getString("entity")
+            val entity: String = p.getString("entity")
             var id: String = p.getString("id")
             var collection: String = group(entity)
             if ((collection.isEmpty())) {
                 throw IllegalArgumentException("Unbekannter Archivbereich.")
             }
-            var rows: JSONArray = snapshot.getJSONArray(collection)
+            val rows: JSONArray = snapshot.getJSONArray(collection)
             var current: JSONObject? = findOrNull(rows, id)
-            var archive: JSONObject = archives(snapshot)
-            var key: String = (("" + entity + ":") + id)
+            val archive: JSONObject = archives(snapshot)
+            val key: String = (("" + entity + ":") + id)
             if ((kind.equals("restore"))) {
-                var saved: JSONObject? = archive.optJSONObject(key)
+                val saved: JSONObject? = archive.optJSONObject(key)
                 if (((saved == null))) {
                     throw IllegalArgumentException("Archiveintrag fehlt.")
                 }
@@ -225,7 +225,7 @@ class OwnerJournalRules {
             if ((p.has("deletion_policy"))) {
                 saved!!.put("deletion_policy", p.getString("deletion_policy"))
             }
-            var related: JSONArray = TrashRules.related(snapshot, entity, id)
+            val related: JSONArray = TrashRules.related(snapshot, entity, id)
             if (
                 (("recoverable_v2".equals(p.optString("deletion_policy")) &&
                     !PixelMcpWriteTools.hash(related)
@@ -283,11 +283,11 @@ class OwnerJournalRules {
             }
             if ((entity.equals("customer"))) {
                 for (group in arrayOf("customers", "orders", "worklogs")) {
-                    var records: JSONArray? = snapshot.optJSONArray(group)
+                    val records: JSONArray? = snapshot.optJSONArray(group)
                     run {
                         var i: Int = 0
                         while (((records != null) && (i < records!!.length()))) {
-                            var r: JSONObject = records!!.getJSONObject(i)
+                            val r: JSONObject = records!!.getJSONObject(i)
                             var key: String =
                                 (if (group.equals("customers")) "default_billing_customer_id"
                                 else "billing_customer_id")
@@ -324,11 +324,11 @@ class OwnerJournalRules {
                 EntityProtectionRules.validateInvoiceDelete(row)
             }
             for (collection in arrayOf("orders", "worklogs", "photos", "invoices", "offers")) {
-                var rows: JSONArray = snapshot.getJSONArray(collection)
+                val rows: JSONArray = snapshot.getJSONArray(collection)
                 run {
                     var i: Int = 0
                     while ((i < rows.length())) {
-                        var other: JSONObject = rows.getJSONObject(i)
+                        val other: JSONObject = rows.getJSONObject(i)
                         if (
                             ((!collection.equals("photos") &&
                                 (((entity.equals("order") &&
@@ -341,8 +341,8 @@ class OwnerJournalRules {
                             )
                         }
                         if (((entity.equals("worklog") && collection.equals("invoices")))) {
-                            var refs: JSONArray? = other.optJSONArray("worklog_ids")
-                            var positions: JSONArray? = other.optJSONArray("positions")
+                            val refs: JSONArray? = other.optJSONArray("worklog_ids")
+                            val positions: JSONArray? = other.optJSONArray("positions")
                             run {
                                 var j: Int = 0
                                 while (((refs != null) && (j < refs!!.length()))) {
@@ -384,13 +384,13 @@ class OwnerJournalRules {
             id: String,
             replacement: JSONObject?,
         ) {
-            var rows: JSONArray = snapshot.getJSONArray(collection)
-            var next: JSONArray = JSONArray()
+            val rows: JSONArray = snapshot.getJSONArray(collection)
+            val next: JSONArray = JSONArray()
             var found: Boolean = false
             run {
                 var i: Int = 0
                 while ((i < rows.length())) {
-                    var old: JSONObject = rows.getJSONObject(i)
+                    val old: JSONObject = rows.getJSONObject(i)
                     if ((id.equals(old.optString("id")))) {
                         found = true
                         if (((replacement != null))) {

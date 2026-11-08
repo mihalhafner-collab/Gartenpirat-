@@ -16,23 +16,23 @@ class AppointmentAvailability {
                 return out
             }
             try {
-                var checked: Instant = AppointmentRules.instant(cache.getString("checked_at"))
-                var from: Instant = AppointmentRules.instant(cache.getString("from"))
-                var to: Instant = AppointmentRules.instant(cache.getString("to"))
+                val checked: Instant = AppointmentRules.instant(cache.getString("checked_at"))
+                val from: Instant = AppointmentRules.instant(cache.getString("from"))
+                val to: Instant = AppointmentRules.instant(cache.getString("to"))
                 if (
                     (((!checked.isAfter(now.minusSeconds(1800)) ||
                         checked.isAfter(now.plusSeconds(60))) || !to.isAfter(from)))
                 ) {
                     return out
                 }
-                var safe: JSONArray = JSONArray()
-                var periods: JSONArray = cache.getJSONArray("busy")
+                val safe: JSONArray = JSONArray()
+                val periods: JSONArray = cache.getJSONArray("busy")
                 run {
                     var i: Int = 0
                     while ((i < periods.length())) {
                         var p: JSONObject = periods.getJSONObject(i)
-                        var start: Instant = AppointmentRules.instant(p.getString("start"))
-                        var end: Instant = AppointmentRules.instant(p.getString("end"))
+                        val start: Instant = AppointmentRules.instant(p.getString("start"))
+                        val end: Instant = AppointmentRules.instant(p.getString("end"))
                         if ((!end.isAfter(start))) {
                             return out
                         }
@@ -60,22 +60,22 @@ class AppointmentAvailability {
         @Throws(Exception::class)
         @JvmStatic
         fun assess(row: JSONObject, appointments: JSONArray, availability: JSONObject): JSONObject {
-            var clashes: JSONArray = JSONArray()
+            val clashes: JSONArray = JSONArray()
             var out: JSONObject =
                 JSONObject().put("conflicts", clashes).put("external_checked", false)
             if (((!AppointmentRules.active(row) || row.optString("status").equals("draft")))) {
                 return out.put("inactive", true)
             }
-            var open: Boolean = AppointmentRules.openEnd(row)
-            var work: Instant = AppointmentRules.instant(row.getString("starts_at"))
-            var start: Instant = work.minusSeconds((row.optInt("travel_minutes") * 60L))
+            val open: Boolean = AppointmentRules.openEnd(row)
+            val work: Instant = AppointmentRules.instant(row.getString("starts_at"))
+            val start: Instant = work.minusSeconds((row.optInt("travel_minutes") * 60L))
             var end: Instant =
                 (if (open) work else AppointmentRules.instant(row.getString("ends_at")))
             var appChecked: Boolean = !open
             run {
                 var i: Int = 0
                 while ((i < appointments.length())) {
-                    var other: JSONObject = appointments.getJSONObject(i)
+                    val other: JSONObject = appointments.getJSONObject(i)
                     if (
                         (((row.optString("id").equals(other.optString("id")) ||
                             !AppointmentRules.active(other)) ||
@@ -84,7 +84,7 @@ class AppointmentAvailability {
                         i++
                         continue
                     }
-                    var kind: Int = AppointmentRules.overlapKind(row, other)
+                    val kind: Int = AppointmentRules.overlapKind(row, other)
                     if (((kind == 1))) {
                         appChecked = false
                     }
@@ -120,7 +120,7 @@ class AppointmentAvailability {
                 verified = false
             }
             if ((verified)) {
-                var periods: JSONArray = availability.getJSONArray("busy")
+                val periods: JSONArray = availability.getJSONArray("busy")
                 run {
                     var i: Int = 0
                     while ((i < periods.length())) {
@@ -129,7 +129,7 @@ class AppointmentAvailability {
                             JSONObject()
                                 .put("starts_at", p.getString("start"))
                                 .put("ends_at", p.getString("end"))
-                        var kind: Int = AppointmentRules.overlapKind(row, other)
+                        val kind: Int = AppointmentRules.overlapKind(row, other)
                         if (((kind > 0))) {
                             clashes.put(
                                 JSONObject()

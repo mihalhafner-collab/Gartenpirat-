@@ -27,15 +27,15 @@ class TrashPurgeBatch {
         @Throws(Exception::class)
         @JvmStatic
         fun preview(snapshot: JSONObject): JSONObject {
-            var archive: JSONObject = OwnerJournalRules.archives(snapshot)
-            var basis: JSONObject = JSONObject()
-            var candidates: TreeSet<String> = TreeSet()
-            var blocked: TreeMap<String, String> = TreeMap()
-            var archiveGuards: JSONArray = JSONArray()
-            var archiveKeys: TreeSet<String> = TreeSet()
+            val archive: JSONObject = OwnerJournalRules.archives(snapshot)
+            val basis: JSONObject = JSONObject()
+            val candidates: TreeSet<String> = TreeSet()
+            val blocked: TreeMap<String, String> = TreeMap()
+            val archiveGuards: JSONArray = JSONArray()
+            val archiveKeys: TreeSet<String> = TreeSet()
             archive.keys().forEachRemaining(archiveKeys::add)
             for (key in archiveKeys) {
-                var entry: JSONObject = archive.getJSONObject(key)
+                val entry: JSONObject = archive.getJSONObject(key)
                 if ((entry.optBoolean("purged"))) {
                     continue
                 }
@@ -49,7 +49,7 @@ class TrashPurgeBatch {
             }
             basis.put("archive", archiveGuards)
             for (group in GROUPS) {
-                var guards: TreeMap<String, String> = TreeMap()
+                val guards: TreeMap<String, String> = TreeMap()
                 var rows: JSONArray? = snapshot.optJSONArray(group)
                 if ((((rows == null) && group.equals("appointments")))) {
                     rows = JSONArray()
@@ -60,7 +60,7 @@ class TrashPurgeBatch {
                 run {
                     var i: Int = 0
                     while ((i < rows!!.length())) {
-                        var row: JSONObject = rows!!.getJSONObject(i)
+                        val row: JSONObject = rows!!.getJSONObject(i)
                         guards.put(row.getString("id"), OwnerJournalRules.version(row))
                         i++
                     }
@@ -70,7 +70,7 @@ class TrashPurgeBatch {
             var changed: Boolean
             do {
                 changed = false
-                var view: JSONObject = referenceView(snapshot, candidates)
+                val view: JSONObject = referenceView(snapshot, candidates)
                 for (key in ArrayList(candidates)) {
                     try {
                         validate(snapshot, view, key)
@@ -81,10 +81,10 @@ class TrashPurgeBatch {
                     }
                 }
             } while ((changed))
-            var entries: JSONArray = JSONArray()
-            var remaining: JSONArray = JSONArray()
+            val entries: JSONArray = JSONArray()
+            val remaining: JSONArray = JSONArray()
             for (key in candidates) {
-                var split: Int = key.indexOf(':')
+                val split: Int = key.indexOf(':')
                 entries.put(
                     JSONObject()
                         .put("entity", key.substring(0, split))
@@ -117,8 +117,8 @@ class TrashPurgeBatch {
 
         @Throws(Exception::class)
         private fun referenceView(source: JSONObject, selected: MutableSet<String>): JSONObject {
-            var view: JSONObject = JSONObject(source.toString())
-            var archive: JSONObject = OwnerJournalRules.archives(view)
+            val view: JSONObject = JSONObject(source.toString())
+            val archive: JSONObject = OwnerJournalRules.archives(view)
             for (key in selected) {
                 TrashRules.removeTestTargets(
                     view,
@@ -129,8 +129,8 @@ class TrashPurgeBatch {
                     ),
                 )
                 archive.remove(key)
-                var split: Int = key.indexOf(':')
-                var type: String = key.substring(0, split)
+                val split: Int = key.indexOf(':')
+                val type: String = key.substring(0, split)
                 if (((type.equals("customer") || type.equals("service_template")))) {
                     OwnerJournalRules.replace(
                         view,
@@ -145,13 +145,13 @@ class TrashPurgeBatch {
 
         @Throws(Exception::class)
         private fun validate(original: JSONObject, view: JSONObject, key: String) {
-            var split: Int = key.indexOf(':')
-            var type: String = key.substring(0, split)
+            val split: Int = key.indexOf(':')
+            val type: String = key.substring(0, split)
             var id: String = key.substring((split + 1))
             if ((!Arrays.asList(*DeletionRules.ENTITIES).contains(type))) {
                 throw IllegalArgumentException("Geschützter oder unbekannter Papierkorbbereich.")
             }
-            var saved: JSONObject = OwnerJournalRules.archives(original).getJSONObject(key)
+            val saved: JSONObject = OwnerJournalRules.archives(original).getJSONObject(key)
             var record: JSONObject = saved.getJSONObject("record")
             if ((!id.equals(record.getString("id")))) {
                 throw IllegalArgumentException(
@@ -194,7 +194,7 @@ class TrashPurgeBatch {
             if ((!confirmed)) {
                 throw IllegalArgumentException("Papierkorb leeren ausdrücklich bestätigen.")
             }
-            var preview: JSONObject = preview(snapshot)
+            val preview: JSONObject = preview(snapshot)
             if ((!preview.getString("preview_hash").equals(expected))) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
@@ -234,9 +234,9 @@ class TrashPurgeBatch {
         @Throws(Exception::class)
         @JvmStatic
         fun apply(snapshot: JSONObject, action: JSONObject) {
-            var supplied: JSONObject = action.getJSONObject("payload")
+            val supplied: JSONObject = action.getJSONObject("payload")
             val expected = supplied.getString("expected_preview_hash")
-            var checked: JSONObject = payload(snapshot, expected, supplied.optBoolean("confirmed"))
+            val checked: JSONObject = payload(snapshot, expected, supplied.optBoolean("confirmed"))
             if (
                 (!PixelMcpWriteTools.hash(checked.getJSONArray("entries"))
                     .equals(PixelMcpWriteTools.hash(supplied.getJSONArray("entries"))))
@@ -256,14 +256,14 @@ class TrashPurgeBatch {
                     "Die verknüpften Testdaten wurden geändert.",
                 )
             }
-            var entries: JSONArray = checked.getJSONArray("entries")
+            val entries: JSONArray = checked.getJSONArray("entries")
             val originals = JSONObject(OwnerJournalRules.archives(snapshot).toString())
             TrashRules.removeTestTargets(snapshot, testTargets(snapshot, entries))
             run {
                 var i: Int = 0
                 while ((i < entries.length())) {
-                    var e: JSONObject = entries.getJSONObject(i)
-                    var type: String = e.getString("entity")
+                    val e: JSONObject = entries.getJSONObject(i)
+                    val type: String = e.getString("entity")
                     var id: String = e.getString("entity_id")
                     TrashRules.commitPurge(
                         snapshot,

@@ -99,7 +99,7 @@ internal class PixelMcpOwnerTools {
         fun tools(writable: Boolean): JSONArray {
 
             var out = JSONArray()
-            var names = ArrayList<String>(READS.asList())
+            val names = ArrayList<String>(READS.asList())
             if (writable) {
                 names.addAll(WRITES.asList())
             }

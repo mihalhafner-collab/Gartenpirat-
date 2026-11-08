@@ -133,11 +133,11 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
 
     private @Throws(Exception::class) fun withStorageContract(result: JSONObject): JSONObject {
 
-        var contract = storageContract()
+        val contract = storageContract()
         run {
-            var keys = contract.keys()
+            val keys = contract.keys()
             while (keys.hasNext()) {
-                var key = keys.next()
+                val key = keys.next()
                 result.put(key, contract.get(key))
             }
         }
@@ -176,7 +176,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         JSONObject(
                             String(repository.asset("ui-mcp-actions.json"), StandardCharsets.UTF_8)
                         )
-                    var hash = PixelMcpWriteTools.hash(catalog)
+                    val hash = PixelMcpWriteTools.hash(catalog)
                     if (
                         args.has("expected_catalog_hash") &&
                             !((hash == args.getString("expected_catalog_hash")))
@@ -187,7 +187,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         )
                     }
                     var all = catalog.getJSONArray("actions")
-                    var page = JSONArray()
+                    val page = JSONArray()
                     run {
                         var i: Int = args.optInt("offset")
                         var firstIteration13 = true
@@ -249,7 +249,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                                 PixelTunnelConfig(context).writeEnabled(),
                             )
                     var current = repository.effective()
-                    var caps = current.optJSONObject("capabilities")
+                    val caps = current.optJSONObject("capabilities")
                     withStorageContract(data)
                     data
                         .put("inventory_processing_engine", current.optString("processing_engine"))
@@ -268,8 +268,8 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                             .put("encrypted_drive_backup", false)
                             .put("local_plaintext_backup", true),
                     )
-                    var backup = JSONObject()
-                    var target: Boolean = true
+                    val backup = JSONObject()
+                    val target: Boolean = true
                     data
                         .put("local_workflows_contract", 1)
                         .put(
@@ -360,8 +360,8 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
             }
             "get_business_settings" -> {
                 run {
-                    var effective = repository.effective()
-                    var s = effective.optJSONObject("business_settings")
+                    val effective = repository.effective()
+                    val s = effective.optJSONObject("business_settings")
                     if (s == null) {
                         throw IllegalArgumentException("Pixel-Einstellungsstand fehlt.")
                     }
@@ -386,7 +386,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
             }
             "get_settings" -> {
                 run {
-                    var s = repository.settings()
+                    val s = repository.settings()
                     return withStorageContract(
                         JSONObject()
                             .put("photo_storage", repository.photoStorageSummary())
@@ -409,16 +409,16 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
             }
             "list_archive" -> {
                 run {
-                    var archive = OwnerJournalRules.archives(repository.effective())
-                    var keys = ArrayList<String>()
+                    val archive = OwnerJournalRules.archives(repository.effective())
+                    val keys = ArrayList<String>()
                     run {
-                        var it = archive.keys()
+                        val it = archive.keys()
                         while (it.hasNext()) {
-                            var key = it.next()
+                            val key = it.next()
                             if (archive.getJSONObject(key).optBoolean("purged")) {
                                 continue
                             }
-                            var split: Int = key.indexOf(':')
+                            val split: Int = key.indexOf(':')
                             if (
                                 args.has("entity") &&
                                     !((key.substring(0, split) == args.getString("entity")))
@@ -449,8 +449,8 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         )
                     )
                     var out = JSONArray()
-                    var skip: Int = args.optInt("offset")
-                    var limit: Int = args.optInt("limit", 20)
+                    val skip: Int = args.optInt("offset")
+                    val limit: Int = args.optInt("limit", 20)
                     run {
                         var i: Int = skip
                         var firstIteration16 = true
@@ -461,8 +461,8 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                             }
                             if (!(i < keys.size && out.length() < limit)) break
 
-                            var key = keys.get(i)
-                            var saved = archive.getJSONObject(key)
+                            val key = keys.get(i)
+                            val saved = archive.getJSONObject(key)
                             out.put(
                                 JSONObject()
                                     .put("archive_key", key)
@@ -494,10 +494,10 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
 
     private @Throws(Exception::class) fun selfTest(): JSONObject {
 
-        var checks = JSONArray()
+        val checks = JSONArray()
         var all = repository.effective()
-        var settings = all.optJSONObject("business_settings")
-        var caps = all.optJSONObject("capabilities")
+        val settings = all.optJSONObject("business_settings")
+        val caps = all.optJSONObject("capabilities")
         var tools =
             PixelMcpReadTools(
                 store.readSource(),
@@ -525,8 +525,8 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                 },
                 this,
             )
-        var catalogue = tools.tools()
-        var names = HashSet<String>()
+        val catalogue = tools.tools()
+        val names = HashSet<String>()
         for (i in 0 until catalogue.length()) {
             names.add(catalogue.getJSONObject(i).getString("name"))
         }
@@ -575,11 +575,11 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
         )
         var inventory =
             JSONObject(String(repository.asset("ui-mcp-actions.json"), StandardCharsets.UTF_8))
-        var actions = inventory.getJSONArray("actions")
+        val actions = inventory.getJSONArray("actions")
         var parity: Boolean = true
         for (i in 0 until actions.length()) {
-            var action = actions.getJSONObject(i)
-            var path = action.getJSONArray("mcp")
+            val action = actions.getJSONObject(i)
+            val path = action.getJSONArray("mcp")
             if ((action.getString("kind") == "business")) {
                 parity = parity and (path.length() > 0)
                 for (j in 0 until path.length()) {
@@ -599,7 +599,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                 )
                 .put("actions", actions.length())
         )
-        var docs = File(context.getFilesDir(), "business-documents")
+        val docs = File(context.getFilesDir(), "business-documents")
         checks.put(
             JSONObject()
                 .put("name", "private_document_storage")

@@ -14,7 +14,7 @@ class SettingsApplicationService : OwnerCommand {
     @Throws(Exception::class)
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
-        var stamp: String = java.time.Instant.now().toString()
+        val stamp: String = java.time.Instant.now().toString()
         when ((name)) {
             "update_business_settings" -> {
                 run {
@@ -31,7 +31,7 @@ class SettingsApplicationService : OwnerCommand {
             }
             "update_settings" -> {
                 run {
-                    var s: JSONObject = repository.settings()
+                    val s: JSONObject = repository.settings()
                     if (
                         (!PixelMcpWriteTools.hash(s).equals(args.getString("expected_record_hash")))
                     ) {
@@ -40,11 +40,11 @@ class SettingsApplicationService : OwnerCommand {
                             "Einstellungen wurden geändert.",
                         )
                     }
-                    var u: JSONObject = args.getJSONObject("updates")
+                    val u: JSONObject = args.getJSONObject("updates")
                     run {
-                        var keys: MutableIterator<String> = u.keys()
+                        val keys: MutableIterator<String> = u.keys()
                         while (keys.hasNext()) {
-                            var key: String = keys.next()
+                            val key: String = keys.next()
                             s.put(key, u.get(key))
                         }
                     }

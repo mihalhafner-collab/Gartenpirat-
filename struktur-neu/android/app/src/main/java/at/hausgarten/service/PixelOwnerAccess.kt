@@ -35,8 +35,8 @@ internal class PixelOwnerAccess : PixelMcpOwnerTools.Access {
                 PixelMcpOwnerTools.validate(name, args)
             }
         }
-        var request = ("mcp_owner_" + PixelMcpWriteTools.hash(args.getString("request_id")))
-        var fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", name).put("args", args))
+        val request = ("mcp_owner_" + PixelMcpWriteTools.hash(args.getString("request_id")))
+        val fingerprint = PixelMcpWriteTools.hash(JSONObject().put("tool", name).put("args", args))
         var result =
             try {
                 (if (LocalWorkflowTools.backup(name))

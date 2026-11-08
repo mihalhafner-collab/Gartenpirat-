@@ -36,7 +36,7 @@ class DeletionRules {
                     "Der Eintrag fehlt oder liegt bereits im Papierkorb."
                 )
             }
-            var related: JSONArray = TrashRules.related(snapshot, entity, id)
+            val related: JSONArray = TrashRules.related(snapshot, entity, id)
             var out: JSONObject =
                 JSONObject()
                     .put("entity", entity)
@@ -54,7 +54,7 @@ class DeletionRules {
                             "deactivate"
                         else "trash"),
                     )
-            var archived: JSONObject? = snapshot.optJSONObject("owner_archive")
+            val archived: JSONObject? = snapshot.optJSONObject("owner_archive")
             if ((((archived != null) && archived!!.has((("" + entity + ":") + id))))) {
                 return out.put("allowed", false)
                     .put("message", "Der Eintrag liegt bereits im Papierkorb.")

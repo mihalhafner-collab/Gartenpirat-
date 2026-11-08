@@ -14,8 +14,8 @@ class EquipmentProfilePhotoRules {
         @Throws(Exception::class)
         @JvmStatic
         fun validate(photo: JSONObject, equipmentId: String) {
-            var hash: String = photo.optString("content_sha256")
-            var mime: String = photo.optString("mime_type")
+            val hash: String = photo.optString("content_sha256")
+            val mime: String = photo.optString("mime_type")
             var extension: String =
                 (if (mime.equals("image/jpeg")) ".jpg"
                 else
@@ -43,8 +43,8 @@ class EquipmentProfilePhotoRules {
                     "Das Gerätefoto besitzt keine eindeutige geprüfte Zuordnung.",
                 )
             }
-            var thumb: String = photo.optString("thumbnail_storage_name")
-            var thumbHash: String = photo.optString("thumbnail_sha256")
+            val thumb: String = photo.optString("thumbnail_storage_name")
+            val thumbHash: String = photo.optString("thumbnail_sha256")
             if (
                 ((!thumb.isEmpty() &&
                     ((!thumbHash.matches(Regex("[0-9a-f]{64}")) ||
@@ -107,7 +107,7 @@ class EquipmentProfilePhotoRules {
                 )
             }
             validate(photo, photo.getString("equipment_id"))
-            var file: File = File(photoDirectory, photo.getString("storage_name"))
+            val file: File = File(photoDirectory, photo.getString("storage_name"))
             if (
                 ((((((file.canonicalFile.parentFile != photoDirectory.canonicalFile ||
                     Files.isSymbolicLink(file.toPath())) || !file.isFile()) ||
