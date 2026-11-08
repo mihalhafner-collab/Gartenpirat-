@@ -35,7 +35,7 @@ class GardenRules {
             }
         }
         private fun number(value: Any?): Any {
-            if (((((value == null) || (value == JSONObject.NULL)) || value!!.toString().trim { it <= ' ' }.isEmpty()))) {
+            if (((((value == null) || (value == JSONObject.NULL)) || value!!.toString().trim().isEmpty()))) {
                 return JSONObject.NULL
             }
             try {

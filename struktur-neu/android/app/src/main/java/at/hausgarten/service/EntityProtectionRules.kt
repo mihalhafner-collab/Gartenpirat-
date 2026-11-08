@@ -8,10 +8,10 @@ import java.util.Locale
 class EntityProtectionRules {
     companion object {
         @JvmStatic fun text(row: JSONObject?, key: String): String {
-            return (if (((row == null) || row!!.isNull(key))) "" else row!!.optString(key).trim { it <= ' ' })
+            return (if (((row == null) || row!!.isNull(key))) "" else row!!.optString(key).trim())
         }
         private fun normalized(value: String): String {
-            return value.trim { it <= ' ' }.replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
+            return value.trim().replace(Regex("\\s+"), " ").lowercase(Locale.ROOT)
         }
         private fun digits(value: String): String {
             return value.replace(Regex("[^0-9]"), "")

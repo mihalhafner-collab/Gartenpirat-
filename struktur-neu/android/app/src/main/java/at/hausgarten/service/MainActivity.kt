@@ -98,6 +98,12 @@ class MainActivity : ComponentActivity() {
             if (waiter?.isActive == true) waiter.resume(selected)
         }
     }
+    private val noticePermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        lifecycleScope.launch { refreshWorkNotice() }
+    }
+    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        workLocation?.permissionResult()
+    }
     private val speechLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val callback = speechResult
         speechResult = null
@@ -113,7 +119,7 @@ class MainActivity : ComponentActivity() {
             pendingCaptureFile = File(File(cacheDir, "photo-capture"), cameraName)
             pendingCaptureUri = Uri.Builder().scheme("content").authority(packageName + ".photocapture").appendPath(cameraName).build()
         }
-        workLocation = WorkLocationController(this) { request, value ->
+        workLocation = WorkLocationController(this, { locationPermission.launch(it) }) { request, value ->
             val waiting = locationWaiter
             if (waiting?.first == request) {
                 locationWaiter = null
@@ -180,6 +186,7 @@ class MainActivity : ComponentActivity() {
         val shortcut = intent?.getStringExtra(SHORTCUT)
         if (intent != null && shortcut != null) {
             intent.removeExtra(SHORTCUT)
+            getSystemService(android.content.pm.ShortcutManager::class.java)?.reportShortcutUsed(shortcut)
             if (fresh) when (shortcut) {
                 "start" -> current.navigate("timer")
                 "photo" -> current.navigate("photos", mode = "import", args = JSONObject().put("_open_camera", true))
@@ -238,7 +245,7 @@ class MainActivity : ComponentActivity() {
             catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { return }
         if (session.optString("state") == "RUNNING" && !WorkNotice.allowed(this) && !preferences.getBoolean("work_notice_asked", false)) {
             preferences.edit().putBoolean("work_notice_asked", true).apply()
-            try { requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), WORK_NOTICE_REQUEST) } catch (_: RuntimeException) { }
+            try { noticePermission.launch("android.permission.POST_NOTIFICATIONS") } catch (_: RuntimeException) { }
         }
         WorkNotice.update(this, session)
     }
@@ -342,10 +349,6 @@ class MainActivity : ComponentActivity() {
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.GERMAN.toLanguageTag()).putExtra(RecognizerIntent.EXTRA_PROMPT, "Arbeitsaufzeichnung sprechen")) }
         catch (_: ActivityNotFoundException) { speechResult = null; toast("Keine Spracheingabe eingerichtet.") }
     }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == WORK_NOTICE_REQUEST) lifecycleScope.launch { refreshWorkNotice() } else workLocation?.permissionResult(requestCode)
-    }
     fun openBackup() {
         if (BuildConfig.UI_PREVIEW) { toast("Verbindungen und Sicherungen bleiben in der Vorschau ausgeschaltet."); return }
         lifecycleScope.launch {
@@ -382,7 +385,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         @Volatile private var foreground = WeakReference<MainActivity>(null)
-        private const val WORK_NOTICE_REQUEST = 0x574b
         internal const val SHORTCUT = "shortcut"
         @JvmStatic fun refreshPlanningView() { refreshBusinessView() }
         @JvmStatic fun refreshBusinessView() {

@@ -138,7 +138,7 @@ return WorklogArchiveBatch.preview(repository.effective(), args.getJSONArray("wo
 }
 "get_capabilities" -> {
 run {
-var data = JSONObject().put("build_fingerprint", BuildProvenance.describe()).put("mail_readback_configured", !(context.getSharedPreferences("haus_garten_mail", 0).getString("account", "")!!.isEmpty())).put("app_version_name", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName).put("package_name", context.getPackageName()).put("database_version", PixelLocalStore.SCHEMA_VERSION).put("app_version_code", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode).put("snapshot_available", !(store.snapshotText("").isEmpty())).put("installed_permission_gate", PixelTunnelConfig(context).writeEnabled())
+var data = JSONObject().put("build_fingerprint", BuildProvenance.describe()).put("mail_readback_configured", !(context.getSharedPreferences("haus_garten_mail", 0).getString("account", "")!!.isEmpty())).put("app_version_name", BuildConfig.VERSION_NAME).put("package_name", context.getPackageName()).put("database_version", PixelLocalStore.SCHEMA_VERSION).put("app_version_code", BuildConfig.VERSION_CODE).put("snapshot_available", !(store.snapshotText("").isEmpty())).put("installed_permission_gate", PixelTunnelConfig(context).writeEnabled())
 var current = repository.effective()
 var caps = current.optJSONObject("capabilities")
 withStorageContract(data)
@@ -218,7 +218,7 @@ keys.add(key)
 }
 }
 keys.sortWith(Comparator(LAM@ { x, y ->
-var date: Int = archive.optJSONObject(y).optString("archived_at").compareTo(archive.optJSONObject(x).optString("archived_at"))
+var date: Int = archive.getJSONObject(y).optString("archived_at").compareTo(archive.getJSONObject(x).optString("archived_at"))
 return@LAM (if (date == 0) x.compareTo(y) else date)
  }))
 var out = JSONArray()
@@ -263,9 +263,9 @@ override fun writable(): Boolean {
 
 return PixelTunnelConfig(context).writeEnabled()
 }
-override @Throws(Exception::class) fun execute(n: String, a: JSONObject): JSONObject {
+override @Throws(Exception::class) fun execute(tool: String, args: JSONObject): JSONObject {
 
-return store.execute(n, a)
+return store.execute(tool, args)
 }
 override @Throws(Exception::class) fun status(id: String, state: JSONObject): JSONObject {
 

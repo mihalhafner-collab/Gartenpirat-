@@ -82,6 +82,7 @@ class SyntheticBackupDocumentsProvider : DocumentsProvider() {
         try {
             val result = control(CONTROL + request.getString("method"), request.optString("id", ""), arguments)
             val values = JSONObject()
+            @Suppress("DEPRECATION") // Copies untyped provider extras.
             for (key in result.keySet()) values.put(key, result.get(key))
             val response = JSONObject().put("caller_uid", caller).put("result", values)
             return Bundle().apply {

@@ -121,8 +121,8 @@ class EntityApplicationService {
                 payload.put("_mcp_create", true).put("_new_record", true)
             }
             if ((entity.equals("customer"))) {
-                BillingRules.customerConfig(payload, master.optJSONArray("customers"))
-                if ((payload.optString("name").trim { it <= ' ' }.isEmpty())) {
+                BillingRules.customerConfig(payload, master.getJSONArray("customers"))
+                if ((payload.optString("name").trim().isEmpty())) {
                     throw PixelMcpWriteTools.Rejected("MISSING_FIELD", "Der Kundenname fehlt.")
                 }
                 if ((!update)) {
@@ -144,7 +144,7 @@ class EntityApplicationService {
                 if ((entity.equals("order"))) {
                     BillingRules.order(payload, master)
                     PixelMcpWriteTools.find(master.optJSONArray("customers"), payload.optString("customer_id"))
-                    if ((payload.optString("title").trim { it <= ' ' }.isEmpty())) {
+                    if ((payload.optString("title").trim().isEmpty())) {
                         throw PixelMcpWriteTools.Rejected("MISSING_FIELD", "Die Auftragsbezeichnung fehlt.")
                     }
                     if ((!update)) {
@@ -153,7 +153,7 @@ class EntityApplicationService {
                             var i: Int = 0
                             while (((rows != null) && (i < rows!!.length()))) {
                                 var row: JSONObject = rows!!.getJSONObject(i)
-                                if ((((payload.optString("customer_id").equals(row.optString("customer_id")) && payload.optString("title").trim { it <= ' ' }.equals(row.optString("title").trim { it <= ' ' }, ignoreCase = true)) && payload.optString("scheduled_date").equals(row.optString("scheduled_date"))))) {
+                                if ((((payload.optString("customer_id").equals(row.optString("customer_id")) && payload.optString("title").trim().equals(row.optString("title").trim(), ignoreCase = true)) && payload.optString("scheduled_date").equals(row.optString("scheduled_date"))))) {
                                     throw PixelMcpWriteTools.Rejected("POSSIBLE_DUPLICATE", "Ein ähnlicher Auftrag existiert bereits. Bitte vorhandenen Auftrag suchen.")
                                 }
                                 i++

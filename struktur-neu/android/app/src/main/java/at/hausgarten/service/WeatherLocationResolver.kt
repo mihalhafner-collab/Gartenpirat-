@@ -44,6 +44,7 @@ internal object WeatherLocationResolver {
             })
             future.get(8, TimeUnit.SECONDS)
         } else {
+            @Suppress("DEPRECATION") // Blocking geocoder is the API 26-32 path.
             val future = LEGACY.submit(Callable { geocoder.getFromLocationName(query, 5) })
             try { future.get(8, TimeUnit.SECONDS) } finally { future.cancel(true) }
         }

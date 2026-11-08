@@ -18,7 +18,7 @@ class EntityContract {
                 while (it.hasNext()) {
                     var key: String = it.next()
                     var value: Any = fields.get(key)
-                    if (((((key.trim { it <= ' ' }.isEmpty() || (key.length > 80)) || key.matches(Regex(".*[\\p{Cntrl}].*"))) || Arrays.asList("__proto__", "constructor", "prototype").contains(key)))) {
+                    if (((((key.trim().isEmpty() || (key.length > 80)) || key.matches(Regex(".*[\\p{Cntrl}].*"))) || Arrays.asList("__proto__", "constructor", "prototype").contains(key)))) {
                         throw PixelMcpWriteTools.Rejected("INVALID_INPUT", "Bitte eine eindeutige Zusatzfeld-Bezeichnung mit höchstens 80 Zeichen verwenden.")
                     }
                     if (((value == JSONObject.NULL))) {

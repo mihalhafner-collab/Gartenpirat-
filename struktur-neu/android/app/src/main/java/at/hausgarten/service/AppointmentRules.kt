@@ -87,7 +87,7 @@ class AppointmentRules {
                     throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
                 }
             }
-            if ((row.optString("title").trim { it <= ' ' }.isEmpty())) {
+            if ((row.optString("title").trim().isEmpty())) {
                 throw IllegalArgumentException("Bitte eine Tätigkeit eintragen.")
             }
             var zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))

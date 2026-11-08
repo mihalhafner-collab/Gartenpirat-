@@ -654,7 +654,7 @@ class RevierApplicationService {
                 }
             }
         }
-        entries.sortWith(Comparator.comparing(lambda3@ { entry: JSONObject -> entry.optJSONObject("record").optString("archived_at") }).reversed())
+        entries.sortWith(Comparator.comparing(lambda3@ { entry: JSONObject -> entry.getJSONObject("record").optString("archived_at") }).reversed())
         var offset: Int = RevierRules.integer(args, "offset", 0, 1000000, 0)
         var limit: Int = RevierRules.integer(args, "limit", 1, 100, 30)
         var page: JSONArray = JSONArray()

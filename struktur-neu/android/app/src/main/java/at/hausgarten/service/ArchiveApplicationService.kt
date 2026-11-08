@@ -10,13 +10,13 @@ class ArchiveApplicationService : OwnerCommand {
         this.repository = repository
     }
     @Throws(Exception::class)
-    override fun perform(name: String, a: JSONObject, request: String): JSONObject {
+    override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
         var stamp: String = java.time.Instant.now().toString()
         when ((name)) {
             "empty_trash" -> {
                 run {
-                    val payload = TrashPurgeBatch.payload(all, a.optString("expected_preview_hash", TrashPurgeBatch.preview(all).getString("preview_hash")), a.getBoolean("confirmed"))
+                    val payload = TrashPurgeBatch.payload(all, args.optString("expected_preview_hash", TrashPurgeBatch.preview(all).getString("preview_hash")), args.getBoolean("confirmed"))
                     val targets = payload.getJSONArray("entries")
                     for (i in 0 until targets.length()) {
                         val target = targets.getJSONObject(i)
@@ -35,7 +35,7 @@ class ArchiveApplicationService : OwnerCommand {
             }
             "archive_work_records" -> {
                 run {
-                    var events: JSONArray = WorklogArchiveBatch.actions(all, a.getJSONArray("work_record_ids"), a.getString("expected_preview_hash"), request, stamp)
+                    var events: JSONArray = WorklogArchiveBatch.actions(all, args.getJSONArray("work_record_ids"), args.getString("expected_preview_hash"), request, stamp)
                     var saved: JSONArray = JSONArray()
                     run {
                         var i: Int = 0
@@ -45,24 +45,24 @@ class ArchiveApplicationService : OwnerCommand {
                             i++
                         }
                     }
-                    verifyRemoval(WorklogArchiveBatch.preview(all, a.getJSONArray("work_record_ids")).getJSONArray("entries"), false)
+                    verifyRemoval(WorklogArchiveBatch.preview(all, args.getJSONArray("work_record_ids")).getJSONArray("entries"), false)
                     return JSONObject().put("count", saved.length()).put("actions", saved).put("recoverable", true).put("physical_delete", false).put("local_state", "local_saved").put("sync_state", "not_applicable")
                 }
             }
             "purge_entity" -> {
-                return purgeOne(all, a, request, stamp).first
+                return purgeOne(all, args, request, stamp).first
             }
             "delete_entity" -> {
-                return deleteOne(all, a, request, stamp).first
+                return deleteOne(all, args, request, stamp).first
             }
             "archive_entity" -> {
-                return archiveOne(all, a, request, stamp).first
+                return archiveOne(all, args, request, stamp).first
             }
             "delete_work_records" -> {
-                val ids = a.getJSONArray("work_record_ids")
+                val ids = args.getJSONArray("work_record_ids")
                 // Validate the whole selection before its first change; the owner request owns the transaction.
-                val selection = WorklogArchiveBatch.actions(all, ids, a.getString("expected_preview_hash"), request, stamp)
-                if (!a.getBoolean("confirmed")) throw IllegalArgumentException("Löschauswahl fehlt.")
+                val selection = WorklogArchiveBatch.actions(all, ids, args.getString("expected_preview_hash"), request, stamp)
+                if (!args.getBoolean("confirmed")) throw IllegalArgumentException("Löschauswahl fehlt.")
                 var current = all
                 for (i in 0 until selection.length()) {
                     val payload = selection.getJSONObject(i).getJSONObject("payload")
@@ -73,9 +73,9 @@ class ArchiveApplicationService : OwnerCommand {
             }
             "restore_entity" -> {
                 run {
-                    var entity: String = a.getString("entity")
-                    var id: String = a.getString("entity_id")
-                    var p: JSONObject = JSONObject(a.toString()).put("id", id).put("updated_at", stamp)
+                    var entity: String = args.getString("entity")
+                    var id: String = args.getString("entity_id")
+                    var p: JSONObject = JSONObject(args.toString()).put("id", id).put("updated_at", stamp)
                     p.remove("request_id")
                     p.remove("entity_id")
                     p.put("_archive_entry", OwnerJournalRules.archives(all).getJSONObject((("" + entity + ":") + id)))

@@ -396,9 +396,9 @@ override fun state(): JSONObject {
 
 return getState()
 }
-override @Throws(Exception::class) fun stateFor(tool: String, args: JSONObject): JSONObject {
+override @Throws(Exception::class) fun stateFor(name: String, arguments: JSONObject): JSONObject {
 
-return queryState(tool, args)
+return queryState(name, arguments)
 }
 override @Throws(Exception::class) fun metadata(): JSONObject {
 
@@ -912,17 +912,17 @@ result.put("sync", sync).put("sync_state", sync.optString("sync_state"))
 }
 return JSONObject().put("ok", true).put("data", result).put("message", (if ((tool == "stop_work")) "Zeiterfassung lokal gestoppt. Tätigkeit prüfen und mit complete_work_session als Arbeitsaufzeichnung abschließen." else "Aktion dauerhaft auf dem Pixel gespeichert. Timer und Arbeitsaufzeichnungen bleiben lokal; Sicherungen werden als unverschlüsselte ZIP auf dem Pixel gespeichert."))
 }
-override @Throws(Exception::class) fun status(clientId: String, state: JSONObject): JSONObject {
-val metadata = receipt(clientId)
-val ownerReceipt = ownerValue("receipt:" + clientId, "").orEmpty()
+override @Throws(Exception::class) fun status(id: String, state: JSONObject): JSONObject {
+val metadata = receipt(id)
+val ownerReceipt = ownerValue("receipt:" + id, "").orEmpty()
 val ownerResult = if (ownerReceipt.isEmpty()) null else JSONObject(ownerReceipt).optJSONObject("result")
 val saved = metadata != null || ownerReceipt.isNotEmpty()
 val errors = state.getJSONObject("master").optJSONArray("drive_journal_errors") ?: JSONArray()
-val failed = (0 until errors.length()).any { errors.getJSONObject(it).optString("client_id") == clientId }
-return JSONObject().put("client_id", clientId).put("status", if (failed) "failed" else if (saved) "local_saved" else "unknown")
+val failed = (0 until errors.length()).any { errors.getJSONObject(it).optString("client_id") == id }
+return JSONObject().put("client_id", id).put("status", if (failed) "failed" else if (saved) "local_saved" else "unknown")
     .put("sync_state", "not_applicable").put("local_state", if (saved) "local_saved" else "unknown")
     .put("saved_locally", saved).put("confirmation_scope", "local_only").put("cloud_confirmed", false)
-    .put("applied_on_pixel", LocalJournalRules.ids(state.getJSONObject("master").optJSONArray("drive_applied_ids")).contains(clientId))
+    .put("applied_on_pixel", LocalJournalRules.ids(state.getJSONObject("master").optJSONArray("drive_applied_ids")).contains(id))
     .put("entity_type", metadata?.optString("entity_type") ?: ownerResult?.optString("entity_type").orEmpty())
     .put("entity_id", metadata?.optString("entity_id", metadata.optString("work_record_id")) ?: ownerResult?.optString("entity_id").orEmpty())
     .put("work_record_id", metadata?.optString("work_record_id").orEmpty())
@@ -930,9 +930,6 @@ return JSONObject().put("client_id", clientId).put("status", if (failed) "failed
 }
 private @Throws(Exception::class) fun findById(rows: JSONArray, id: String): JSONObject? {
 
-if (rows == null) {
-return null
-}
 run {
 var i: Int = 0
 var firstIteration46 = true
@@ -1282,7 +1279,7 @@ var mime = PhotoAttachmentStore.canonicalMime(metadata.optString("mime_type"))
 var name = metadata.optString("storage_name")
 var role = metadata.optString("role", "documentation").trim().lowercase(Locale.ROOT)
 var extension = (if ((mime == "image/jpeg")) ".jpg" else (if ((mime == "image/png")) ".png" else (if ((mime == "image/webp")) ".webp" else (if ((mime == "image/gif")) ".gif" else (if ((mime == "image/heic")) ".heic" else "")))))
-if (photoId == null || photoId.trim().isEmpty() || photoId.length > 180 || !(PhotoAttachmentStore.canonicalName(name)) || !(hash.matches(Regex("[0-9a-f]{64}"))) || !((name == hash + extension)) || metadata.optLong("byte_size") < 1 || metadata.optLong("byte_size") > PhotoAttachmentStore.MAX_BYTES || !(HashSet(java.util.Arrays.asList("profile", "documentation", "before", "during", "after", "damage", "other")).contains(role))) {
+if (photoId.trim().isEmpty() || photoId.length > 180 || !(PhotoAttachmentStore.canonicalName(name)) || !(hash.matches(Regex("[0-9a-f]{64}"))) || !((name == hash + extension)) || metadata.optLong("byte_size") < 1 || metadata.optLong("byte_size") > PhotoAttachmentStore.MAX_BYTES || !(HashSet(java.util.Arrays.asList("profile", "documentation", "before", "during", "after", "damage", "other")).contains(role))) {
 throw IllegalArgumentException("Ungültige lokale Foto-Metadaten.")
 }
 var values = ContentValues()
@@ -1723,9 +1720,9 @@ return businessTables(database, false)
 @JvmStatic fun businessTables(database: SQLiteDatabase, committing: Boolean): BusinessTableStore {
 
 return BusinessTableStore(object : BusinessTableStore.Sql {
-override fun query(statement: String, vararg args: String): BusinessTableStore.Rows {
+override fun query(sql: String, vararg arguments: String): BusinessTableStore.Rows {
 
-var rows = database.rawQuery(statement, args)
+var rows = database.rawQuery(sql, arguments)
 return object : BusinessTableStore.Rows {
 override fun next(): Boolean {
 
@@ -1745,9 +1742,9 @@ rows.close()
 }
 }
 }
-override fun execute(statement: String, vararg args: Any?): Unit {
+override fun execute(sql: String, vararg arguments: Any?): Unit {
 
-database.execSQL(statement, args)
+database.execSQL(sql, arguments)
 }
 override @Throws(Exception::class) fun <T> transaction(action: BusinessTableStore.Action<T>): T {
 

@@ -132,7 +132,7 @@ class EquipmentMaintenanceRules {
         }
         @Throws(Exception::class)
         @JvmStatic fun shorten(plan: JSONObject, requested: JSONObject, reason: String) {
-            if ((reason.trim { it <= ' ' }.isEmpty())) {
+            if ((reason.trim().isEmpty())) {
                 throw RevierRules.error("INVALID_INPUT", "Grund für das kürzere Intervall angeben.")
             }
             interval(requested)

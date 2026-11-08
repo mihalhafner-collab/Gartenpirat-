@@ -7,12 +7,14 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -53,7 +55,9 @@ class FullBackupActivity : ComponentActivity() {
     private var restorePending by mutableStateOf(false)
     private var selectedName by mutableStateOf("")
     private var lastVerified by mutableStateOf("")
-    private var warningCount by mutableStateOf(0)
+    private var warningCount by mutableIntStateOf(0)
+    private val saveDocument = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { documentChosen(SAVE, it.resultCode, it.data) }
+    private val openDocument = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { documentChosen(OPEN, it.resultCode, it.data) }
     private var warnings by mutableStateOf(JSONArray())
     private var backupCounts by mutableStateOf<JSONObject?>(null)
     private var currentCounts by mutableStateOf<JSONObject?>(null)
@@ -67,16 +71,16 @@ class FullBackupActivity : ComponentActivity() {
     private val initialized = CompletableDeferred<Unit>()
     private var resolvingDocument = false
 
-    public override fun onCreate(state: Bundle?) {
-        super.onCreate(state)
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         title = "Sicherung"
-        if (state != null) {
-            request = state.getString("request", "")
-            target = state.getString("target", "")
-            restoreRequest = state.getString("restore_request", "")
-            restoreUri = state.getString("restore_uri", "")
-            restoreId = state.getString("restore_id", "")
-            selectedName = state.getString("selected_name", "")
+        if (savedInstanceState != null) {
+            request = savedInstanceState.getString("request", "")
+            target = savedInstanceState.getString("target", "")
+            restoreRequest = savedInstanceState.getString("restore_request", "")
+            restoreUri = savedInstanceState.getString("restore_uri", "")
+            restoreId = savedInstanceState.getString("restore_id", "")
+            selectedName = savedInstanceState.getString("selected_name", "")
         }
         showCheck = restoreUri.isNotEmpty()
         if (target.isNotEmpty()) {
@@ -224,14 +228,14 @@ class FullBackupActivity : ComponentActivity() {
         val filename = "Haus-Garten-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")) + ".zip"
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
             .setType("application/zip").putExtra(Intent.EXTRA_TITLE, filename).putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-        try { startActivityForResult(intent, SAVE) }
+        try { saveDocument.launch(intent) }
         catch (_: ActivityNotFoundException) { pickerUnavailable() }
     }
 
     private fun chooseRestore() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
             .setType("*/*").putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-        try { startActivityForResult(intent, OPEN) }
+        try { openDocument.launch(intent) }
         catch (_: ActivityNotFoundException) { pickerUnavailable() }
     }
 
@@ -337,9 +341,8 @@ class FullBackupActivity : ComponentActivity() {
         }
     }
 
-    override fun onActivityResult(code: Int, result: Int, data: Intent?) {
-        super.onActivityResult(code, result, data)
-        if (result != RESULT_OK || code != SAVE && code != OPEN) return
+    private fun documentChosen(code: Int, result: Int, data: Intent?) {
+        if (result != RESULT_OK) return
         val uri = data?.data ?: return
         if (code == SAVE) target = uri.toString()
         else { restoreUri = uri.toString(); clearPreview(); saveFinished = false; target = "" }
@@ -383,11 +386,11 @@ class FullBackupActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    override fun onSaveInstanceState(state: Bundle) {
-        super.onSaveInstanceState(state)
-        state.putString("request", request); state.putString("target", target)
-        state.putString("restore_request", restoreRequest); state.putString("restore_uri", restoreUri); state.putString("restore_id", restoreId)
-        state.putString("selected_name", selectedName)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("request", request); outState.putString("target", target)
+        outState.putString("restore_request", restoreRequest); outState.putString("restore_uri", restoreUri); outState.putString("restore_id", restoreId)
+        outState.putString("selected_name", selectedName)
         // A preview and its replacement confirmation must be checked again after recreation.
     }
 

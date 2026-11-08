@@ -1,5 +1,6 @@
 package at.hausgarten.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -44,6 +45,7 @@ internal object WorkNotice {
         val worked = session.optLong("worked_ms").coerceAtLeast(0) / 60000
         val started = session.optLong("started_at_ms").takeIf { it > 0 }
             ?.let { Instant.ofEpochMilli(it).atZone(ZoneId.of("Europe/Vienna")).toLocalTime().toString().take(5) }
+        @SuppressLint("InlinedApi") // Older Android versions ignore the newer stopwatch category.
         val builder = Notification.Builder(context, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_menu_recent_history)
             .setCategory(Notification.CATEGORY_STOPWATCH)

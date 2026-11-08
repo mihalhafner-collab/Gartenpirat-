@@ -6,10 +6,10 @@ import org.json.JSONObject
 /** Each write is serialized by the existing owner request transaction. Preparation
  * and completion are deliberately separate commits across the SQLite/file boundary. */
 internal class SettlementApplicationService(private val repository: OwnerRepository) : OwnerCommand {
-    override fun perform(name: String, a: JSONObject, request: String): JSONObject {
+    override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         val ledger = SettlementRules.ledger(repository)
         val operations = ledger.optJSONObject("operations") ?: JSONObject().also { ledger.put("operations", it) }
-        val fingerprint = SettlementRules.hash(JSONObject().put("tool", name).put("args", a))
+        val fingerprint = SettlementRules.hash(JSONObject().put("tool", name).put("args", args))
         operations.optJSONObject(request)?.let {
             require(it.getString("fingerprint") == fingerprint) { "Die Vorgangskennung gehört zu anderen Argumenten." }
             return JSONObject(it.getJSONObject("result").toString()).put("replayed", true)
@@ -17,13 +17,13 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
         val records = ledger.optJSONArray("records") ?: JSONArray().also { ledger.put("records", it) }
         val master = repository.effective()
         val personal = AccountingRules.ids(JSONArray(repository.ownerValue("personal_paid", "[]")))
-        val id = a.optString("settlement_id")
+        val id = args.optString("settlement_id")
         val result: JSONObject = when (name) {
             "save_settlement_draft" -> {
                 val actualId = id.ifBlank { "st_" + PixelMcpWriteTools.hash(request).take(32) }
                 val old = SettlementRules.records(ledger).firstOrNull { it.getString("id") == actualId }
-                if (old != null) { require(old.getString("status") == "draft") { "Abgeschlossene oder reservierte Vorgänge bleiben unverändert." }; expected(old, a) }
-                val draft = SettlementRules.normalized(a.getJSONObject("draft"), actualId)
+                if (old != null) { require(old.getString("status") == "draft") { "Abgeschlossene oder reservierte Vorgänge bleiben unverändert." }; expected(old, args) }
+                val draft = SettlementRules.normalized(args.getJSONObject("draft"), actualId)
                 if (old != null) replace(records, draft) else records.put(draft)
                 JSONObject().put("settlement_id", actualId).put("record_hash", SettlementRules.hash(draft)).put("status", "draft")
             }
@@ -32,8 +32,8 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                 val old = SettlementRules.find(ledger, id)
                 require(old.getString("status") == "draft") { "Vorgang ist bereits reserviert; bestehenden Vorgang fortsetzen." }
                 val view = SettlementRules.review(old, master)
-                require(SettlementRules.hash(view) == a.getString("expected_review_hash")) { "Vorschau oder Stammdaten geändert. Erneut prüfen." }
-                require(a.getBoolean("confirmed") && a.getBoolean("domestic_eur_confirmed") && a.getBoolean("issuer_details_confirmed")) { "Vorschau, tatsächliche Angaben und österreichischen Inlandsfall bewusst bestätigen." }
+                require(SettlementRules.hash(view) == args.getString("expected_review_hash")) { "Vorschau oder Stammdaten geändert. Erneut prüfen." }
+                require(args.getBoolean("confirmed") && args.getBoolean("domestic_eur_confirmed") && args.getBoolean("issuer_details_confirmed")) { "Vorschau, tatsächliche Angaben und österreichischen Inlandsfall bewusst bestätigen." }
                 val validation = SettlementRules.validation(view, master, ledger, personal)
                 require(validation.getBoolean("valid")) { validation.getJSONArray("errors").join("\n") }
                 val replacement = view.optString("replacement_for")
@@ -43,7 +43,7 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                     view.put("replacement_original_number", original.getString("invoice_number"))
                 }
                 view.put("status", "prepared").put("prepared_at", java.time.Instant.now().toString()).put("prepared_epoch", repository.settlementRestoreEpoch())
-                    .put("electronic_delivery_accepted", a.optBoolean("electronic_delivery_accepted"))
+                    .put("electronic_delivery_accepted", args.optBoolean("electronic_delivery_accepted"))
                     .put("issuer_details_confirmed", true).put("total_minor", SettlementRules.total(view))
                 if (view.getString("route") == "billed") reserve(ledger, view)
                 replace(records, view)
@@ -73,26 +73,26 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                 }
             }
             "abandon_prepared_settlement" -> {
-                val row = SettlementRules.find(ledger, id); expected(row, a)
+                val row = SettlementRules.find(ledger, id); expected(row, args)
                 require(row.getString("status") == "prepared") { "Nur eine noch nicht abgeschlossene Vorbereitung aufheben. Bestätigte Belege benötigen Storno oder interne Korrektur." }
                 require(!requiresRestoreReview(ledger, row, repository.settlementRestoreEpoch())) { "Restaurierten Vorgang zuerst mit dem aktuellen Belegstand abgleichen." }
-                require(a.getBoolean("confirmed") && a.getString("reason").isNotBlank()) { "Aufhebung der Vorbereitung bewusst begründen und bestätigen." }
-                val abandoned = JSONObject(row.toString()).put("status", "abandoned").put("abandoned_at", java.time.Instant.now().toString()).put("abandon_reason", a.getString("reason"))
+                require(args.getBoolean("confirmed") && args.getString("reason").isNotBlank()) { "Aufhebung der Vorbereitung bewusst begründen und bestätigen." }
+                val abandoned = JSONObject(row.toString()).put("status", "abandoned").put("abandoned_at", java.time.Instant.now().toString()).put("abandon_reason", args.getString("reason"))
                 replace(records, abandoned)
                 result(abandoned)
             }
             "correct_settlement" -> {
-                val old = SettlementRules.find(ledger, id); expected(old, a)
+                val old = SettlementRules.find(ledger, id); expected(old, args)
                 require(old.getString("status") == "confirmed" && old.getString("kind") in setOf("invoice", "internal")) { "Nur bestätigte Originalvorgänge vollständig korrigieren." }
-                require(a.getBoolean("confirmed") && a.getString("reason").isNotBlank()) { "Vollständige Korrektur mit Begründung bestätigen." }
+                require(args.getBoolean("confirmed") && args.getString("reason").isNotBlank()) { "Vollständige Korrektur mit Begründung bestätigen." }
                 require(SettlementRules.records(ledger).none { it.optString("corrects") == id && it.optString("status") != "abandoned" }) { "Vorhandene Korrektur fortsetzen." }
                 val correctionId = "st_" + PixelMcpWriteTools.hash(request).take(32)
                 val correction = JSONObject(old.toString())
                 for (key in listOf("pdf", "invoice_number", "series", "sequence", "confirmed_at", "prepared_at", "corrected_by", "replacement_for")) correction.remove(key)
                 correction.put("id", correctionId).put("status", if (old.getString("route") == "billed") "prepared" else "confirmed")
                     .put("kind", if (old.getString("route") == "billed") "cancellation" else "void")
-                    .put("corrects", id).put("original_number", old.optString("invoice_number")).put("reason", a.getString("reason"))
-                    .put("access_evidence", a.optString("access_evidence")).put("prepared_epoch", repository.settlementRestoreEpoch()).put("issue_date", SettlementRules.today())
+                    .put("corrects", id).put("original_number", old.optString("invoice_number")).put("reason", args.getString("reason"))
+                    .put("access_evidence", args.optString("access_evidence")).put("prepared_epoch", repository.settlementRestoreEpoch()).put("issue_date", SettlementRules.today())
                 val positions = JSONArray()
                 for (line in SettlementRules.rows(old.getJSONArray("positions"))) positions.put(JSONObject(line.toString())
                     .put("settlement_id", correctionId).put("id", correctionId + ":" + positions.length())
@@ -108,43 +108,43 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                 result(correction)
             }
             "add_settlement_payment" -> {
-                val row = SettlementRules.find(ledger, id); expected(row, a)
+                val row = SettlementRules.find(ledger, id); expected(row, args)
                 require(row.getString("status") in setOf("confirmed", "cancelled") && row.getString("kind") in setOf("invoice", "internal")) { "Zahlungen gehören zum bestätigten Originalvorgang." }
                 val payments = ledger.optJSONArray("payments") ?: JSONArray().also { ledger.put("payments", it) }
-                val amount = SettlementRules.minor(a.get("amount"))
+                val amount = SettlementRules.minor(args.get("amount"))
                 require(amount != 0L) { "Zahlungsbetrag muss ungleich null sein." }
-                java.time.LocalDate.parse(a.getString("date"))
-                val reversal = a.optString("reversal_of")
+                java.time.LocalDate.parse(args.getString("date"))
+                val reversal = args.optString("reversal_of")
                 if (amount < 0) {
                     val original = SettlementRules.rows(payments).firstOrNull { it.optString("id") == reversal && it.optString("settlement_id") == id && it.getLong("amount_minor") > 0 }
                         ?: throw IllegalArgumentException("Gegenbuchung benötigt einen vorhandenen positiven Zahlungseintrag desselben Vorgangs.")
                     val previous = SettlementRules.rows(payments).filter { it.optString("reversal_of") == reversal }.fold(0L) { s,p -> Math.addExact(s, Math.negateExact(p.getLong("amount_minor"))) }
                     require(Math.addExact(previous, Math.negateExact(amount)) <= original.getLong("amount_minor")) { "Gegenbuchungen überschreiten die ursprüngliche Zahlung." }
-                    require(a.optString("note").isNotBlank()) { "Gegenbuchung begründen; eine Stornierung allein belegt keine Rückzahlung." }
+                    require(args.optString("note").isNotBlank()) { "Gegenbuchung begründen; eine Stornierung allein belegt keine Rückzahlung." }
                 } else require(reversal.isEmpty()) { "Nur negative Gegenbuchungen verweisen auf eine Zahlung." }
-                payments.put(JSONObject().put("id", "pay_" + PixelMcpWriteTools.hash(request).take(32)).put("settlement_id", id).put("amount_minor", amount).put("date", a.getString("date")).put("note", a.optString("note")).put("reversal_of", reversal))
+                payments.put(JSONObject().put("id", "pay_" + PixelMcpWriteTools.hash(request).take(32)).put("settlement_id", id).put("amount_minor", amount).put("date", args.getString("date")).put("note", args.optString("note")).put("reversal_of", reversal))
                 JSONObject().put("settlement_id", id).put("paid_minor", SettlementRules.paid(ledger, id))
             }
             "record_settlement_delivery" -> {
-                val row = SettlementRules.find(ledger, id); expected(row, a)
+                val row = SettlementRules.find(ledger, id); expected(row, args)
                 require(row.getString("status") in setOf("confirmed", "cancelled") && row.getString("route") == "billed")
-                require(a.getString("evidence").isNotBlank()) { "Tatsächlichen Zugangsnachweis angeben; Teilen allein genügt nicht." }
+                require(args.getString("evidence").isNotBlank()) { "Tatsächlichen Zugangsnachweis angeben; Teilen allein genügt nicht." }
                 val evidence = ledger.optJSONArray("delivery_evidence") ?: JSONArray().also { ledger.put("delivery_evidence", it) }
-                evidence.put(JSONObject().put("settlement_id", id).put("date", java.time.LocalDate.parse(a.getString("date")).toString()).put("evidence", a.getString("evidence")))
+                evidence.put(JSONObject().put("settlement_id", id).put("date", java.time.LocalDate.parse(args.getString("date")).toString()).put("evidence", args.getString("evidence")))
                 result(row)
             }
             "review_restored_sources" -> {
-                require(a.getBoolean("confirmed") && a.getString("evidence").isNotBlank()) { "Aktuellen Belegstand bewusst prüfen und Ergebnis dokumentieren." }
-                if (a.optString("settlement_id").isNotEmpty()) {
-                    val row = SettlementRules.find(ledger, a.getString("settlement_id"))
+                require(args.getBoolean("confirmed") && args.getString("evidence").isNotBlank()) { "Aktuellen Belegstand bewusst prüfen und Ergebnis dokumentieren." }
+                if (args.optString("settlement_id").isNotEmpty()) {
+                    val row = SettlementRules.find(ledger, args.getString("settlement_id"))
                     require(row.getString("status") in setOf("draft", "prepared"))
                     val reviews = ledger.optJSONArray("reservation_reviews") ?: JSONArray().also { ledger.put("reservation_reviews", it) }
-                    reviews.put(JSONObject().put("settlement_id", row.getString("id")).put("restore_epoch", repository.settlementRestoreEpoch()).put("evidence", a.getString("evidence")).put("checked_at", java.time.Instant.now().toString()))
+                    reviews.put(JSONObject().put("settlement_id", row.getString("id")).put("restore_epoch", repository.settlementRestoreEpoch()).put("evidence", args.getString("evidence")).put("checked_at", java.time.Instant.now().toString()))
                 }
                 val reviews = ledger.optJSONArray("source_reviews") ?: JSONArray().also { ledger.put("source_reviews", it) }
-                for (ref in SettlementRules.rows(a.getJSONArray("sources"))) {
+                for (ref in SettlementRules.rows(args.getJSONArray("sources"))) {
                     SettlementRules.source(master, ref.getString("collection"), ref.getString("id"))
-                    reviews.put(JSONObject(ref.toString()).put("restore_epoch", ledger.optString("restore_epoch")).put("evidence", a.getString("evidence")).put("checked_at", java.time.Instant.now().toString()))
+                    reviews.put(JSONObject(ref.toString()).put("restore_epoch", ledger.optString("restore_epoch")).put("evidence", args.getString("evidence")).put("checked_at", java.time.Instant.now().toString()))
                 }
                 JSONObject().put("reviewed", true)
             }

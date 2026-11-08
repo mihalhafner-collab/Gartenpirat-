@@ -33,7 +33,7 @@ class RevierRules {
             if ((!(raw is String))) {
                 throw error("INVALID_INPUT", ("" + key + " benötigt Text."))
             }
-            var value: String = ((raw as String)).trim { it <= ' ' }
+            var value: String = ((raw as String)).trim()
             if ((((value.length > max) || (required && value.isEmpty())))) {
                 throw error("INVALID_INPUT", ("" + key + " ist leer oder zu lang."))
             }
@@ -100,7 +100,7 @@ class RevierRules {
         }
         @Throws(Exception::class)
         @JvmStatic fun decimal(row: JSONObject, key: String, positive: Boolean, optional: Boolean): String {
-            if (((optional && (((!row.has(key) || row.isNull(key)) || row.optString(key).trim { it <= ' ' }.isEmpty()))))) {
+            if (((optional && (((!row.has(key) || row.isNull(key)) || row.optString(key).trim().isEmpty()))))) {
                 return ""
             }
             var raw: Any? = row.opt(key)
@@ -192,7 +192,7 @@ class RevierRules {
             var kind: String = row.optString("kind")
             var maintenanceKind: Boolean = (kind.equals("equipment") || kind.equals("equipment_maintenance"))
             if (((version is Number && (((version.toString().equals("1") || (version.toString().equals("2") && maintenanceKind)) || ((version.toString().equals("3") && kind.equals("equipment")) && (row.optJSONObject("profile_photo") != null))))))) {
-                if (((version.toString().equals("1") && ((kind.equals("equipment_maintenance") || ((kind.equals("equipment") && (row.optJSONArray("maintenance_plans") != null)) && (row.optJSONArray("maintenance_plans").length() > 0))))))) {
+                if (((version.toString().equals("1") && ((kind.equals("equipment_maintenance") || ((kind.equals("equipment") && (row.optJSONArray("maintenance_plans")?.length() ?: 0) > 0))))))) {
                     throw error("REVIER_SCHEMA_UPGRADE_REQUIRED", "Wartungsdaten benötigen ihren geprüften Datensatzvertrag. Keine automatische Migration.")
                 }
                 if ((((kind.equals("equipment") && row.has("profile_photo")) && !version.toString().equals("3")))) {

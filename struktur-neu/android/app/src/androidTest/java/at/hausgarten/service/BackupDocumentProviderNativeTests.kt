@@ -69,6 +69,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     private fun control(method: String, id: String? = null, args: Bundle? = null): JSONObject {
         val request = JSONObject().put("method", method)
         if (id != null) request.put("id", id)
+        @Suppress("DEPRECATION") // Test echo of arbitrary provider extras; values are untyped.
         args?.keySet()?.forEach { request.put(it, args.get(it)) }
         val encoded = Base64.encodeToString(request.toString().toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP)
         // The actual shell owns DUMP and ACCESS_CONTENT_PROVIDERS_EXTERNALLY. AMS accepts an

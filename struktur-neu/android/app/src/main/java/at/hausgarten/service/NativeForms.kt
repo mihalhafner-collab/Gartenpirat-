@@ -58,6 +58,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@Suppress("ModifierParameter") // Call sites pass the flags positionally.
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun NativeField(label: String, value: String, onValueChange: (String) -> Unit, required: Boolean = false, multiline: Boolean = false, search: Boolean = false, modifier: Modifier = Modifier, onSearch: (() -> Unit)? = null, enabled: Boolean = true, showLabel: Boolean = true, keyboardType: KeyboardType = KeyboardType.Text) {

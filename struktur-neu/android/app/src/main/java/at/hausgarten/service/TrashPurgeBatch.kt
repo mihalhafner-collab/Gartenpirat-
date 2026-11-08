@@ -108,7 +108,7 @@ class TrashPurgeBatch {
             var active: JSONObject? = OwnerJournalRules.findOrNull(original.getJSONArray(OwnerJournalRules.group(type)), id)
             if (((type.equals("customer") || type.equals("service_template")))) {
                 OwnerJournalRules.checkHash((active)!!, saved.getString("archived_record_hash"))
-                if ((((active == null) || (active!!.optBoolean("active", true) && (active!!.optInt("active", 1) != 0))))) {
+                if (active.optBoolean("active", true) && active.optInt("active", 1) != 0) {
                     throw IllegalArgumentException("Eintrag ist wieder aktiv. Nichts gelöscht.")
                 }
             } else {

@@ -18,8 +18,8 @@ class WorklogRules {
                 }
             }
             for (field in listOf("break_minutes", "hours", "kilometers")) {
-                if (payload.has(field) && !payload.isNull(field) && payload.opt(field).toString().isNotBlank()) {
-                    val number = payload.opt(field).toString().trim().replace(',', '.').toDoubleOrNull()
+                if (payload.has(field) && !payload.isNull(field) && payload.get(field).toString().isNotBlank()) {
+                    val number = payload.get(field).toString().trim().replace(',', '.').toDoubleOrNull()
                     require(number?.isFinite() == true) { "Bitte gültige Stunden, Kilometer und eine Pause in ganzen Minuten eingeben." }
                     payload.put(field, number)
                 }

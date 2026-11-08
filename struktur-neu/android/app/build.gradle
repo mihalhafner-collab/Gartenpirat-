@@ -83,6 +83,17 @@ android {
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
+    lint {
+        warningsAsErrors true
+        // Domain classes also compile on the plain JVM (tools/run-followup-java.py)
+        // without AndroidX, so AndroidX KTX shortcuts cannot be used there.
+        disable 'UseKtx'
+        // commit() is intentional where a value must be on disk before continuing.
+        disable 'ApplySharedPref'
+        // Backups deliberately budget only immediately usable space.
+        disable 'UsableSpace'
+    }
+
     // Release stays unsigned here; original signing: docs/entwicklung/SIGNIERUNG.md.
     buildTypes {
         release {
@@ -95,6 +106,7 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
         jvmDefault = org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY
+        allWarningsAsErrors = true
     }
 }
 

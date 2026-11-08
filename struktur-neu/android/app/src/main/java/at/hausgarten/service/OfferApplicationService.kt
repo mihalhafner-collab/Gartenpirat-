@@ -13,7 +13,7 @@ internal class OfferApplicationService : OwnerCommand {
 
     override @Throws(Exception::class) fun perform(
         name: String,
-        a: JSONObject,
+        args: JSONObject,
         request: String,
     ): JSONObject {
         var all = repository!!.effective()
@@ -21,11 +21,11 @@ internal class OfferApplicationService : OwnerCommand {
         when (name) {
             "record_offer_acceptance",
             "decline_offer" -> {
-                return (OfferDecisionService(repository))!!.perform(name, a, request)
+                return (OfferDecisionService(repository))!!.perform(name, args, request)
             }
             "create_and_validate_offer" -> {
                 run {
-                    var created = perform("create_offer_draft", a, (request.toString() + "_draft"))
+                    var created = perform("create_offer_draft", args, (request.toString() + "_draft"))
                     var id = created!!.getString("offer_id")
                     var row =
                         PixelMcpWriteTools.find(
@@ -49,12 +49,12 @@ internal class OfferApplicationService : OwnerCommand {
                     var row =
                         PixelMcpWriteTools.find(
                             all!!.getJSONArray("offers"),
-                            a!!.getString("offer_id"),
+                            args!!.getString("offer_id"),
                         )
                     var payload: JSONObject =
                         ((JSONObject())!!.put("id", row!!.getString("id")))!!.put(
                             "expected_record_hash",
-                            a!!.getString("expected_record_hash"),
+                            args!!.getString("expected_record_hash"),
                         )
                     var event: JSONObject =
                         ((((JSONObject())!!.put("client_id", request))!!.put(
@@ -81,11 +81,11 @@ internal class OfferApplicationService : OwnerCommand {
                         old =
                             PixelMcpWriteTools.find(
                                 all!!.getJSONArray("offers"),
-                                a!!.getString("offer_id"),
+                                args!!.getString("offer_id"),
                             )
                         if (
                             !(PixelMcpWriteTools.hash(LocalJournalRules.clean(old)))!!.equals(
-                                a!!.getString("expected_record_hash")
+                                args!!.getString("expected_record_hash")
                             )
                         ) {
                             throw PixelMcpWriteTools.Rejected(
@@ -94,7 +94,7 @@ internal class OfferApplicationService : OwnerCommand {
                             )
                         }
                         p = LocalJournalRules.clean(old)
-                        var changes = a!!.getJSONObject("updates")
+                        var changes = args!!.getJSONObject("updates")
                         run {
                             var it = changes!!.keys()
                             while (it!!.hasNext()) {
@@ -108,9 +108,9 @@ internal class OfferApplicationService : OwnerCommand {
                             (if (name!!.equals("duplicate_offer"))
                                 PixelMcpWriteTools.find(
                                     all!!.getJSONArray("offers"),
-                                    a!!.getString("offer_id"),
+                                    args!!.getString("offer_id"),
                                 )
-                            else a)
+                            else args)
                         for (key in (OfferRules.FIELDS)!!) {
                             if (source!!.has(key)) {
                                 p!!.put(key, source!!.get(key))
@@ -128,7 +128,7 @@ internal class OfferApplicationService : OwnerCommand {
                     OfferRules.normalize(p, old, all)
                     if (
                         (name!!.equals("update_offer_draft") &&
-                            (a!!.getJSONObject("updates"))!!.optBoolean("binding_confirmed"))
+                            (args!!.getJSONObject("updates"))!!.optBoolean("binding_confirmed"))
                     ) {
                         (p!!.put("binding_confirmed", true))!!.put(
                             "binding_confirmation_hash",
@@ -158,7 +158,7 @@ internal class OfferApplicationService : OwnerCommand {
                             OfferDecisionRules.local(repository!!.state()))
                     ) {
                         (OfferDecisionService(repository))!!.linkRevision(
-                            a!!.getString("offer_id"),
+                            args!!.getString("offer_id"),
                             p!!.getString("id"),
                             request,
                         )
@@ -175,11 +175,11 @@ internal class OfferApplicationService : OwnerCommand {
                         old =
                             PixelMcpWriteTools.find(
                                 all!!.getJSONArray("service_catalog"),
-                                a!!.getString("entry_id"),
+                                args!!.getString("entry_id"),
                             )
                         if (
                             !(PixelMcpWriteTools.hash(old))!!.equals(
-                                a!!.getString("expected_record_hash")
+                                args!!.getString("expected_record_hash")
                             )
                         ) {
                             throw PixelMcpWriteTools.Rejected(
@@ -190,8 +190,8 @@ internal class OfferApplicationService : OwnerCommand {
                         p = JSONObject(old!!.toString())
                     }
                     var changes =
-                        (if (name!!.equals("update_catalog_entry")) a!!.getJSONObject("updates")
-                        else a)
+                        (if (name!!.equals("update_catalog_entry")) args!!.getJSONObject("updates")
+                        else args)
                     var fields = OfferTools.catalogFields()
                     run {
                         var it = fields!!.keys()
@@ -222,7 +222,7 @@ internal class OfferApplicationService : OwnerCommand {
                     var existingOffer =
                         PixelMcpWriteTools.find(
                             all!!.getJSONArray("offers"),
-                            a!!.getString("offer_id"),
+                            args!!.getString("offer_id"),
                         )
                     if (
                         ((name!!.equals("convert_offer_to_order") &&
@@ -231,7 +231,7 @@ internal class OfferApplicationService : OwnerCommand {
                     ) {
                         if (
                             !(AppointmentRules.hash(existingOffer))!!.equals(
-                                a!!.getString("expected_record_hash")
+                                args!!.getString("expected_record_hash")
                             )
                         ) {
                             throw PixelMcpWriteTools.Rejected(
@@ -256,18 +256,18 @@ internal class OfferApplicationService : OwnerCommand {
                         )
                     }
                     var p: JSONObject =
-                        (JSONObject(a!!.toString()))!!.put("id", a!!.getString("offer_id"))
+                        (JSONObject(args!!.toString()))!!.put("id", args!!.getString("offer_id"))
                     p!!.remove("request_id")
                     p!!.remove("offer_id")
                     var kind =
                         (if (name!!.equals("finalize_offer")) "offer_finalize" else "offer_convert")
-                    if (!(a!!.optString("existing_order_id"))!!.isEmpty()) {
+                    if (!(args!!.optString("existing_order_id"))!!.isEmpty()) {
                         p!!.put(
                             "_expected_order",
                             LocalJournalRules.guard(
                                 PixelMcpWriteTools.find(
                                     all!!.getJSONArray("orders"),
-                                    a!!.getString("existing_order_id"),
+                                    args!!.getString("existing_order_id"),
                                 ),
                                 "order",
                             ),
@@ -318,11 +318,11 @@ internal class OfferApplicationService : OwnerCommand {
                     var offer =
                         PixelMcpWriteTools.find(
                             all!!.getJSONArray("offers"),
-                            a!!.getString("offer_id"),
+                            args!!.getString("offer_id"),
                         )
                     if (
                         !(PixelMcpWriteTools.hash(LocalJournalRules.clean(offer)))!!.equals(
-                            a!!.getString("expected_record_hash")
+                            args!!.getString("expected_record_hash")
                         )
                     ) {
                         throw PixelMcpWriteTools.Rejected(
@@ -341,17 +341,17 @@ internal class OfferApplicationService : OwnerCommand {
                     var payload: JSONObject =
                         ((JSONObject())!!.put("id", offer!!.getString("id")))!!.put(
                             "expected_record_hash",
-                            a!!.getString("expected_record_hash"),
+                            args!!.getString("expected_record_hash"),
                         )
                     var kind: String = "offer_share"
                     var receipt: JSONObject? = null
                     if (name!!.equals("prepare_offer_delivery")) {
                         TestDataRules.noDelivery(offer, all)
                         var address =
-                            OfferDeliveryClient.oneAddress(a!!.getString("recipient_email"))
+                            OfferDeliveryClient.oneAddress(args!!.getString("recipient_email"))
                         if (
                             (address!!.isEmpty() ||
-                                !address!!.equals(a!!.getString("recipient_email")))
+                                !address!!.equals(args!!.getString("recipient_email")))
                         ) {
                             throw IllegalArgumentException(
                                 "Eine eindeutige ausdrücklich bestätigte Empfängeradresse erforderlich."
@@ -361,7 +361,7 @@ internal class OfferApplicationService : OwnerCommand {
                     }
                     if (name!!.equals("confirm_offer_delivery")) {
                         TestDataRules.noDelivery(offer, all)
-                        receipt = repository!!.verifyDelivery(a!!.getString("message_id"), offer)
+                        receipt = repository!!.verifyDelivery(args!!.getString("message_id"), offer)
                         (payload!!.put("receipt", receipt))!!.put("confirmed", true)
                         kind = "offer_delivery"
                     }

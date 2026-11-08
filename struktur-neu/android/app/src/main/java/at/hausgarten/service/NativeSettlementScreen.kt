@@ -230,7 +230,7 @@ internal fun NativeSettlementEditor(controller: NativeAppController, id: String)
                             val source = settlementObjects(context?.optJSONArray(collection)).firstOrNull { it.optString("id") == position.optString("source_id") }
                             if (editable && source != null) TextButton({
                                 change("title", source.optString(if (collection == "worklogs") "activity" else "title"))
-                                if (collection == "worklogs" && source.has("hours") && !source.isNull("hours")) { change("quantity", source.opt("hours").toString()); change("unit", "Stunden") }
+                                if (collection == "worklogs" && source.has("hours") && !source.isNull("hours")) { change("quantity", source.get("hours").toString()); change("unit", "Stunden") }
                             }) { Text(if (collection == "worklogs") "Tätigkeit und Ist-Stunden übernehmen" else "Auftragsbezeichnung übernehmen") }
                             SettlementText("Leistung", position.optString("title"), editable) { change("title", it) }
                             SettlementText("Beschreibung / Material / Fahrt / Entsorgung", position.optString("description"), editable, multiline = true) { change("description", it) }

@@ -1048,7 +1048,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         val events = CopyOnWriteArrayList<String>()
         val published = CountDownLatch(3)
         val observers = listOf(originalRoot to photo.name, thumbnailRoot to thumbnail.name, documentRoot to documentFile.name).map { (directory, expected) ->
-            object : android.os.FileObserver(directory.path, android.os.FileObserver.CREATE or android.os.FileObserver.MODIFY or android.os.FileObserver.MOVED_TO) {
+            object : android.os.FileObserver(directory, android.os.FileObserver.CREATE or android.os.FileObserver.MODIFY or android.os.FileObserver.MOVED_TO) {
                 override fun onEvent(event: Int, path: String?) {
                     if (path != null) {
                         events.add(path)

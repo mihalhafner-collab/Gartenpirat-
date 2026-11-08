@@ -10,7 +10,11 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 /** User-triggered foreground fix only. No tracking, background service or coordinate log. */
-internal class WorkLocationController(private val activity: Activity, private val result: Result) {
+internal class WorkLocationController(
+    private val activity: Activity,
+    private val requestPermissions: (Array<String>) -> Unit,
+    private val result: Result,
+) {
     fun interface Result { fun deliver(request: String, value: JSONObject) }
     private val handler = Handler(Looper.getMainLooper())
     private val signals = ArrayList<CancellationSignal>()
@@ -24,16 +28,13 @@ internal class WorkLocationController(private val activity: Activity, private va
     fun request(id: String?) {
         if (destroyed || id == null || !id.matches(Regex("[a-zA-Z0-9_-]{1,120}"))) return
         cancel(); request = id; generation++
-        if (!permitted()) activity.requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST)
+        if (!permitted()) requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
         else locate(generation)
     }
-    fun permissionResult(code: Int): Boolean {
-        if (code != PERMISSION_REQUEST) return false
-        if (request.isNotEmpty()) {
-            if (permitted()) locate(generation)
-            else finish(generation, message("PERMISSION_DENIED", "Standortzugriff nicht erlaubt. Bitte Kunden manuell auswählen."))
-        }
-        return true
+    fun permissionResult() {
+        if (request.isEmpty()) return
+        if (permitted()) locate(generation)
+        else finish(generation, message("PERMISSION_DENIED", "Standortzugriff nicht erlaubt. Bitte Kunden manuell auswählen."))
     }
     private fun permitted(): Boolean = activity.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     private fun locate(token: Long) {
@@ -86,6 +87,7 @@ internal class WorkLocationController(private val activity: Activity, private va
                     override fun onError(error: String?) { handler.post { finish(token, value) } }
                 })
             } else legacyGeocoder.execute {
+                @Suppress("DEPRECATION") // Blocking geocoder is the API 26-32 path.
                 val addresses = try { geocoder.getFromLocation(fix.latitude, fix.longitude, 1) } catch (ignored: Exception) { null }
                 handler.post { address(token, value, addresses) }
             }
@@ -116,5 +118,4 @@ internal class WorkLocationController(private val activity: Activity, private va
     }
     fun cancel() { generation++; request = ""; locating = false; stopProviders(); handler.removeCallbacksAndMessages(null) }
     fun destroy() { cancel(); destroyed = true; legacyGeocoder.shutdownNow() }
-    companion object { const val PERMISSION_REQUEST = 44 }
 }

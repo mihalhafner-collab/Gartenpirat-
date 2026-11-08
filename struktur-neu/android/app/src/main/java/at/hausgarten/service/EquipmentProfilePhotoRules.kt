@@ -48,7 +48,7 @@ class EquipmentProfilePhotoRules {
             }
             validate(photo, photo.getString("equipment_id"))
             var file: File = File(photoDirectory, photo.getString("storage_name"))
-            if (((((((!file.getCanonicalFile().getParentFile().equals(photoDirectory!!.getCanonicalFile()) || Files.isSymbolicLink(file.toPath())) || !file.isFile()) || (file.length() != photo.getLong("byte_size"))) || (file.length() > MAX_BYTES)) || !McpFileTransfer.sha(Files.readAllBytes(file.toPath())).equals(photo.getString("content_sha256"))))) {
+            if (((((((file.canonicalFile.parentFile != photoDirectory.canonicalFile || Files.isSymbolicLink(file.toPath())) || !file.isFile()) || (file.length() != photo.getLong("byte_size"))) || (file.length() > MAX_BYTES)) || !McpFileTransfer.sha(Files.readAllBytes(file.toPath())).equals(photo.getString("content_sha256"))))) {
                 throw RevierRules.error("EQUIPMENT_PHOTO_ORIGINAL_MISSING", "Das Gerätefoto fehlt oder wurde verändert. Diese Sicherung ist noch nicht vollständig geprüft.")
             }
         }

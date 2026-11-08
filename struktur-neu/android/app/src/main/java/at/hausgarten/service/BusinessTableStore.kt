@@ -335,7 +335,7 @@ sql.query("SELECT id,selection_hash,length(selection_json),substr(selection_json
 
 while (rows.next()) {
 var raw = (if (rows.number(2) <= 32768) rows.text(3) else textChunks(table(collection), "selection_json", "generation=? AND id=?", arrayOf(meta.getString("generation"), rows.text(0))))
-var selected = JSONObject(raw)
+var selected = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
 require((rows.text(0) == id(selected)) && (rows.text(1) == hash(selected)), "TABLE_SELECTION_HASH_MISMATCH")
 candidates.put(selected)
 }
@@ -374,7 +374,7 @@ sql.query("SELECT id,selection_hash,length(selection_json),substr(selection_json
 
 while (rows.next()) {
 var raw = (if (rows.number(2) <= 32768) rows.text(3) else textChunks(table(collection), "selection_json", "generation=? AND id=?", arrayOf(meta.getString("generation"), rows.text(0))))
-var value = JSONObject(raw)
+var value = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
 require((rows.text(0) == id(value)) && (rows.text(1) == hash(value)), "TABLE_SELECTION_HASH_MISMATCH")
 var reference = JSONObject().put("id", value.getString("id"))
 for (key in arrayOf("name", "company", "title")) {
@@ -394,7 +394,7 @@ private @Throws(Exception::class) fun source(meta: JSONObject, check: Evidence?)
 
 var raw = owner("snapshot")
 require(raw != null && (hash(raw) == meta.getString("source_text_hash")), "TABLE_SOURCE_CHANGED")
-var value = JSONObject(raw)
+var value = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
 require((hash(value) == meta.getString("source_hash")), "TABLE_SOURCE_CHANGED")
 require((evidence(check, value) == meta.getString("backup_hash")), "TABLE_BACKUP_CHANGED")
 return value
@@ -405,7 +405,7 @@ request(requestId)
 return sql.transaction(LAM@ {
 var raw = owner("snapshot")
 require(raw != null, "TABLE_PERSISTED_SNAPSHOT_REQUIRED")
-var source = JSONObject(raw)
+var source = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
 require((hash(source) == expectedSourceHash), "TABLE_SOURCE_CHANGED")
 validateRows(source)
 var backup = evidence(check, source)
@@ -523,7 +523,7 @@ expected = rows.text(0)
 }
 var raw = textChunks(name, "record_json", "generation=? AND id=?", arrayOf(generation, id))
 require(raw != null, "TABLE_ROW_MISSING")
-var result = JSONObject(raw)
+var result = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
 require((id == id(result)) && (expected == hash(result)), "TABLE_ROW_HASH_MISMATCH")
 return result
 }
@@ -637,7 +637,7 @@ sql.query("SELECT id,record_hash,length(record_json),substr(record_json,1,32768)
 while (rows.next()) {
 var id = rows.text(0)
 var raw = (if (rows.number(2) <= 32768) rows.text(3) else textChunks(name, "record_json", "generation=? AND id=?", arrayOf(generation, id)))
-var record = JSONObject(raw)
+var record = JSONObject(raw ?: error("TABLE_ROW_MISSING"))
 require((id == id(record)) && (rows.text(1) == hash(record)), "TABLE_ROW_HASH_MISMATCH")
 result.put(record)
 }
@@ -661,7 +661,7 @@ var current = materialize(meta)
 require((hash(current) == expectedCurrentHash), "TABLE_WRITE_CONFLICT")
 var backup = evidence(check, current)
 owner("snapshot", current.toString())
-require((hash(JSONObject(owner("snapshot"))) == expectedCurrentHash), "TABLE_ROLLBACK_READBACK_MISMATCH")
+require((hash(JSONObject(owner("snapshot") ?: error("TABLE_ROW_MISSING"))) == expectedCurrentHash), "TABLE_ROLLBACK_READBACK_MISMATCH")
 meta.put("phase", "ROLLED_BACK").put("rollback_request", requestId).put("rollback_hash", expectedCurrentHash).put("rollback_backup_hash", backup)
 owner(META, meta.toString())
 return@LAM meta
@@ -776,7 +776,7 @@ private @JvmStatic @Throws(Exception::class) fun evidence(check: Evidence?, sour
 require(check != null, "TABLE_BACKUP_EVIDENCE_REQUIRED")
 var before = hash(source)
 var result = check!!.verify(JSONObject(source.toString()))
-require(result != null && result.matches(Regex("[a-f0-9]{64}")) && (before == hash(source)), "TABLE_BACKUP_EVIDENCE_INVALID")
+require(result.matches(Regex("[a-f0-9]{64}")) && (before == hash(source)), "TABLE_BACKUP_EVIDENCE_INVALID")
 return result
 }
 }

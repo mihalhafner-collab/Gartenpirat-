@@ -444,9 +444,9 @@ class BackupRestoreService @Throws(Exception::class) constructor(private val con
                         override fun read(): JSONObject = current[0]
 
                         @Throws(Exception::class)
-                        override fun save(value: JSONObject) {
-                            write(service.activationFile(), value)
-                            current[0] = value
+                        override fun save(state: JSONObject) {
+                            write(service.activationFile(), state)
+                            current[0] = state
                         }
                     }
                     try {

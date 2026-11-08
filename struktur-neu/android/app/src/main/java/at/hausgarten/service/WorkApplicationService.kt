@@ -10,26 +10,26 @@ class WorkApplicationService : OwnerCommand {
         this.repository = repository
     }
     @Throws(Exception::class)
-    override fun perform(name: String, a: JSONObject, request: String): JSONObject {
+    override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
         var stamp: String = java.time.Instant.now().toString()
         when ((name)) {
-            "set_accounting_record" -> return setAccounting(all, a, request)
+            "set_accounting_record" -> return setAccounting(all, args, request)
             "set_work_record_billed", "reassign_work_record" -> {
                 run {
-                    var old: JSONObject = PixelMcpWriteTools.find(all.getJSONArray("worklogs"), a.getString("work_record_id"))
-                    if ((!PixelMcpWriteTools.hash(PixelMcpWriteTools.base(old)).equals(a.getString("expected_record_hash")))) {
+                    var old: JSONObject = PixelMcpWriteTools.find(all.getJSONArray("worklogs"), args.getString("work_record_id"))
+                    if ((!PixelMcpWriteTools.hash(PixelMcpWriteTools.base(old)).equals(args.getString("expected_record_hash")))) {
                         throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Arbeitsaufzeichnung wurde verändert.")
                     }
                     var p: JSONObject = LocalJournalRules.clean(old)
                     if ((name.equals("set_work_record_billed"))) {
-                        p.put("billed", (if (a.getBoolean("billed")) 1 else 0))
+                        p.put("billed", (if (args.getBoolean("billed")) 1 else 0))
                     } else {
-                        p.put("customer_id", a.getString("customer_id")).put("billing_customer_id", a.getString("billing_customer_id")).put("order_id", a.optString("order_id"))
+                        p.put("customer_id", args.getString("customer_id")).put("billing_customer_id", args.getString("billing_customer_id")).put("order_id", args.optString("order_id"))
                     }
                     SettlementSourceProtection.requireMutable(all, JSONObject(repository.ownerValue("settlement:v1", "{}")), "worklogs", old.getString("id"), old, p)
                     repository.replaceWorklog(p)
-                    p.put("_owner_reason", a.getString("reason"))
+                    p.put("_owner_reason", args.getString("reason"))
                     return repository.enqueue("worklog", p, request)
                 }
             }
@@ -38,7 +38,7 @@ class WorkApplicationService : OwnerCommand {
                     if ((!"1".equals(repository.ownerValue("personal_paid_migrated", "")))) {
                         throw PixelMcpWriteTools.Rejected("DEVICE_MIGRATION_REQUIRED", "App einmal öffnen, damit vorhandene persönliche Markierungen verlustfrei übernommen werden.")
                     }
-                    var id: String = a.getString("work_record_id")
+                    var id: String = args.getString("work_record_id")
                     PixelMcpWriteTools.find(all.getJSONArray("worklogs"), id)
                     var ids: MutableSet<String> = LinkedHashSet()
                     var old: JSONArray = JSONArray(repository.ownerValue("personal_paid", "[]"))
@@ -49,7 +49,7 @@ class WorkApplicationService : OwnerCommand {
                             i++
                         }
                     }
-                    if ((a.getBoolean("paid"))) {
+                    if ((args.getBoolean("paid"))) {
                         val (collection, record) = AccountingRules.canonical(all, "worklogs", id)
                         SettlementSourceProtection.requireRouteChange(all, JSONObject(repository.ownerValue("settlement:v1", "{}")), collection, record.getString("id"), AccountingRules.LABOR)
                         ids.add(id)
@@ -58,7 +58,7 @@ class WorkApplicationService : OwnerCommand {
                     }
                     AccountingRules.requireConsistentChange(all, all, AccountingRules.ids(old), ids)
                     repository.putOwnerValue("personal_paid", JSONArray(ids).toString())
-                    return JSONObject().put("work_record_id", id).put("paid", a.getBoolean("paid")).put("scope", "device_only")
+                    return JSONObject().put("work_record_id", id).put("paid", args.getBoolean("paid")).put("scope", "device_only")
                 }
             }
             else -> {

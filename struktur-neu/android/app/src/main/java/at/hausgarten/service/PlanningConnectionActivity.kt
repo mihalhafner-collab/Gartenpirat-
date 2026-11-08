@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +28,13 @@ import java.util.UUID
 
 /** Existing device consent, explicit account setup and immediately saved switches. */
 class PlanningConnectionActivity : ComponentActivity() {
+    private val accountChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activityResult(ACCOUNT_REQUEST, it.resultCode, it.data) }
+    private val googleConsent = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { activityResult(GOOGLE_AUTH_REQUEST, it.resultCode, it.data) }
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        lifecycleScope.launch { withContext(Dispatchers.IO) { PlanningJob.schedule(this@PlanningConnectionActivity, 1000) } }
+        status = if (WeatherNotifications.ready(this)) "Pixel-Meldungen sind freigegeben. Testmeldung möglich." else "Pixel-Meldungen noch nicht freigegeben. Warnungen bleiben in der App sichtbar."
+        refreshPresentation()
+    }
     private var status by mutableStateOf("")
     private var loaded by mutableStateOf(false)
     private var working by mutableStateOf(false)
@@ -330,7 +339,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         }
     }
     private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 2)
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) notificationPermission.launch("android.permission.POST_NOTIFICATIONS")
     }
     private fun notificationSettings() {
         WeatherNotifications.channel(this); val state = WeatherNotifications.state(this)
@@ -442,7 +451,7 @@ class PlanningConnectionActivity : ComponentActivity() {
             } catch (required: CalendarAuthorization.ConsentRequired) {
                 if (currentConnection(generation)) {
                     awaitingConsent = true; waitingForGoogle = true; pendingGoogleAccount = selected; pendingGoogleBusy = readBusy
-                    try { startIntentSenderForResult(required.resolution.intentSender, GOOGLE_AUTH_REQUEST, null, 0, 0, 0) }
+                    try { googleConsent.launch(IntentSenderRequest.Builder(required.resolution.intentSender).build()) }
                     catch (unavailable: Exception) { awaitingConsent = false; waitingForGoogle = false; pendingGoogleAccount = ""; connectionFailed(CalendarAuthorization.failure(unavailable)) }
                 }
             } catch (cancelled: CancellationException) { throw cancelled }
@@ -480,34 +489,25 @@ class PlanningConnectionActivity : ComponentActivity() {
         }
     }
     private fun chooseAccount() {
-        try { startActivityForResult(AccountManager.newChooseAccountIntent(null, null, arrayOf("com.google"), null, null, null, null), 1) }
+        try { accountChooser.launch(AccountManager.newChooseAccountIntent(null, null, arrayOf("com.google"), null, null, null, null)) }
         catch (unavailable: Exception) { status = "Google-Kontoauswahl auf diesem Gerät nicht verfügbar."; refreshPresentation() }
     }
     override fun onResume() { super.onResume(); refreshPresentation() }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 2) {
-            lifecycleScope.launch { withContext(Dispatchers.IO) { PlanningJob.schedule(this@PlanningConnectionActivity, 1000) } }
-            status = if (WeatherNotifications.ready(this)) "Pixel-Meldungen sind freigegeben. Testmeldung möglich." else "Pixel-Meldungen noch nicht freigegeben. Warnungen bleiben in der App sichtbar."
-            refreshPresentation()
-        }
-    }
-    override fun onSaveInstanceState(state: Bundle) {
-        super.onSaveInstanceState(state)
-        state.putString("selected_calendar_account", account); state.putBoolean("waiting_for_google", waitingForGoogle)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("selected_calendar_account", account); outState.putBoolean("waiting_for_google", waitingForGoogle)
         if (waitingForGoogle) {
-            state.putString("pending_calendar_account", pendingGoogleAccount); state.putBoolean("pending_calendar_busy", pendingGoogleBusy)
-            state.putString("calendar_binding_hash", openedCalendarBinding); state.putString("calendar_settings_hash", openedSettingsHash)
+            outState.putString("pending_calendar_account", pendingGoogleAccount); outState.putBoolean("pending_calendar_busy", pendingGoogleBusy)
+            outState.putString("calendar_binding_hash", openedCalendarBinding); outState.putString("calendar_settings_hash", openedSettingsHash)
         }
         if (loaded) {
-            state.putBoolean("edited_busy", busy); state.putString("edited_from", from); state.putString("edited_to", to); state.putString("edited_travel", travel); state.putBooleanArray("edited_days", days.toBooleanArray())
-            for ((key, value) in thresholds) state.putString("edited_$key", value)
-            state.putBoolean("account_disclosure", accountDisclosure); state.putBoolean("technical_disclosure", technicalDisclosure); state.putBoolean("notification_disclosure", notificationDisclosure); state.putBoolean("advanced_disclosure", advancedDisclosure)
+            outState.putBoolean("edited_busy", busy); outState.putString("edited_from", from); outState.putString("edited_to", to); outState.putString("edited_travel", travel); outState.putBooleanArray("edited_days", days.toBooleanArray())
+            for ((key, value) in thresholds) outState.putString("edited_$key", value)
+            outState.putBoolean("account_disclosure", accountDisclosure); outState.putBoolean("technical_disclosure", technicalDisclosure); outState.putBoolean("notification_disclosure", notificationDisclosure); outState.putBoolean("advanced_disclosure", advancedDisclosure)
         }
     }
     override fun onDestroy() { connectionGeneration++; super.onDestroy() }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private fun activityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (!loaded) { queuedActivityResult = Triple(requestCode, resultCode, data); return }
         handleActivityResult(requestCode, resultCode, data)
     }
@@ -523,14 +523,17 @@ class PlanningConnectionActivity : ComponentActivity() {
             catch (failure: Exception) { lifecycleScope.launch { connectionFailed(CalendarAuthorization.failure(failure)) } }
             return
         }
-        if (request == 1 && result == RESULT_OK && data != null && !working) {
+        if (request == ACCOUNT_REQUEST && result == RESULT_OK && data != null && !working) {
             account = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME) ?: ""
             refreshPresentation()
             if (connectAfterAccount) { connectAfterAccount = false; connect() }
-        } else if (request == 1 && connectAfterAccount) { connectAfterAccount = false; status = "Kontoauswahl abgebrochen. Bisherige Verbindung und Termine bleiben erhalten."; refreshPresentation() }
+        } else if (request == ACCOUNT_REQUEST && connectAfterAccount) { connectAfterAccount = false; status = "Kontoauswahl abgebrochen. Bisherige Verbindung und Termine bleiben erhalten."; refreshPresentation() }
     }
     private fun calendarTime(value: String): String = try { DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.GERMAN).withZone(ZoneId.of("Europe/Vienna")).format(Instant.parse(value)) } catch (invalid: Exception) { "Zeitpunkt nicht lesbar" }
-    companion object { private const val GOOGLE_AUTH_REQUEST = 84 }
+    companion object {
+        private const val ACCOUNT_REQUEST = 1
+        private const val GOOGLE_AUTH_REQUEST = 84
+    }
 }
 
 /** This overview reads only local evidence; foreign ChatGPT accounts are outside the app. */

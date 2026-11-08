@@ -42,7 +42,7 @@ private fun JSONObject.planningCopy(): JSONObject = JSONObject(toString())
 private fun JSONArray.planningRows(): List<JSONObject> = (0 until length()).mapNotNull { optJSONObject(it) }
 private fun planningStamp(value: String): String = runCatching { DateTimeFormatter.ofPattern("EEE dd.MM.yyyy HH:mm", Locale.GERMAN).withZone(planningZone).format(AppointmentRules.instant(value)) }.getOrDefault(value)
 private fun planningLocal(value: String): String = AppointmentRules.instant(value).atZone(planningZone).toLocalDateTime().withSecond(0).withNano(0).toString()
-private fun planningText(row: JSONObject, key: String): String = if (!row.has(key) || row.isNull(key)) "" else row.opt(key).toString()
+private fun planningText(row: JSONObject, key: String): String = if (!row.has(key) || row.isNull(key)) "" else row.get(key).toString()
 
 /** Projected calendar lists; details and writes use the same guarded planning commands as MCP. */
 @Composable

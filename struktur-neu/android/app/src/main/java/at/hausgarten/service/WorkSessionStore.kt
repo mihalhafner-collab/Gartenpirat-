@@ -99,10 +99,10 @@ class WorkSessionStore {
             var row: ContentValues = ContentValues()
             row.put("id", id)
             row.put("state", RUNNING)
-            row.put("customer_id", input.optString("customer_id").trim { it <= ' ' })
-            row.put("order_id", input.optString("order_id").trim { it <= ' ' })
+            row.put("customer_id", input.optString("customer_id").trim())
+            row.put("order_id", input.optString("order_id").trim())
             row.put("work_date", date)
-            row.put("activity", input.optString("activity").trim { it <= ' ' })
+            row.put("activity", input.optString("activity").trim())
             row.put("started_at_ms", wall)
             row.put("segment_started_wall_ms", wall)
             row.put("segment_started_elapsed_ms", elapsed)
@@ -213,7 +213,7 @@ class WorkSessionStore {
     }
     @Throws(Exception::class)
     fun finalizeSession(id: String, worklogId: String?, request: String): JSONObject {
-        if ((((worklogId == null) || worklogId!!.trim { it <= ' ' }.isEmpty()))) {
+        if ((((worklogId == null) || worklogId!!.trim().isEmpty()))) {
             throw IllegalArgumentException("Die Arbeitsaufzeichnung fehlt.")
         }
         var before: JSONObject = current(id)
@@ -510,21 +510,21 @@ class WorkSessionStore {
     @Throws(Exception::class)
     private fun event(session: String, type: String, request: String?, payload: JSONObject) {
         var payload = payload
-        if ((((request == null) || request!!.trim { it <= ' ' }.isEmpty()))) {
+        if ((((request == null) || request!!.trim().isEmpty()))) {
             throw IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.")
         }
         var e: ContentValues = ContentValues()
         e.put("id", ("evt_" + UUID.randomUUID().toString().replace("-", "")))
         e.put("session_id", session)
         e.put("event_type", type)
-        e.put("request_id", request!!.trim { it <= ' ' })
+        e.put("request_id", request!!.trim())
         e.put("occurred_at", nowIso())
         payload = JSONObject(payload.toString()).put("_clock", JSONObject().put("wall_ms", clock.wallMillis()).put("elapsed_ms", clock.elapsedMillis()).put("boot_marker", clock.bootMarker()).put("timezone", "Europe/Vienna"))
         e.put("payload", payload.toString())
         db.insertOrThrow("work_session_events", null, e)
     }
     private fun required(value: JSONObject, name: String): String {
-        var result: String = value.optString(name).trim { it <= ' ' }
+        var result: String = value.optString(name).trim()
         if ((result.isEmpty())) {
             throw IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.")
         }

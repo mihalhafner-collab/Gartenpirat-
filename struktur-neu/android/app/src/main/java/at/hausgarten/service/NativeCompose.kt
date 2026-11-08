@@ -222,6 +222,7 @@ internal fun NativeActionBar(
 }
 
 /** White outlined cards match the concept while retaining the existing row actions. */
+@Suppress("ModifierParameter") // Many call sites pass detail and onClick positionally.
 @Composable
 internal fun NativeInfoRow(
     title: String,

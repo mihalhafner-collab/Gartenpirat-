@@ -38,6 +38,7 @@ internal object CalendarAuthorization {
         if (data == null) throw failure(CalendarAccessRules.missingResultCode(result))
         return fromIntent(context, data, busy)
     }
+    @Suppress("DEPRECATION") // GET_SIGNATURES and signatures are the API 26-27 path.
     @JvmStatic fun signingSha1(context: Context): String = try {
         val flag = if (android.os.Build.VERSION.SDK_INT >= 28) android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES else android.content.pm.PackageManager.GET_SIGNATURES
         val info = context.packageManager.getPackageInfo(context.packageName, flag)

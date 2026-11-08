@@ -470,7 +470,7 @@ override @Throws(Exception::class) fun savePhoto(payload: JSONObject): String {
 
 return store!!.savePhoto(payload)
 }
-override @Throws(Exception::class) fun replaceWorklog(p: JSONObject): Unit {
+override @Throws(Exception::class) fun replaceWorklog(payload: JSONObject): Unit {
 
 var prior = HashSet<String>()
 var before = store!!.pendingActions()
@@ -485,7 +485,7 @@ prior.add(before.getJSONObject(i).getString("client_id"))
 
 }
 }
-store!!.saveWorklog(p)
+store!!.saveWorklog(payload)
 var after = store!!.pendingActions()
 run {
 var i: Int = 0
@@ -495,7 +495,7 @@ if (firstIteration29) firstIteration29 = false else { i++ }
 if (!(i < after.length())) break
 
 var added = after.getJSONObject(i)
-if (!(prior.contains(added.getString("client_id"))) && ("worklog" == added.getString("kind")) && (p.getString("id") == added.getJSONObject("payload").optString("id"))) {
+if (!(prior.contains(added.getString("client_id"))) && ("worklog" == added.getString("kind")) && (payload.getString("id") == added.getJSONObject("payload").optString("id"))) {
 store!!.getWritableDatabase().delete("pending", "id=?", arrayOf(added.getString("client_id")))
 }
 
@@ -510,9 +510,9 @@ override @Throws(Exception::class) fun readDocument(record: JSONObject): Unit {
 
 BusinessDocumentStore(context!!).read(record)
 }
-override @Throws(Exception::class) fun verifyDelivery(id: String, offer: JSONObject): JSONObject {
+override @Throws(Exception::class) fun verifyDelivery(messageId: String, offer: JSONObject): JSONObject {
 
-return MailAccount.client(context!!).verify(id, offer)
+return MailAccount.client(context!!).verify(messageId, offer)
 }
 override @Throws(Exception::class) fun planningSettings(): JSONObject {
 

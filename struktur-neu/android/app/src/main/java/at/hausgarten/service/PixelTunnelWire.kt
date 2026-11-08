@@ -273,7 +273,7 @@ class PixelTunnelWire {
             path: String,
             body: JSONObject?,
             shard: String?,
-            timeout: Int,
+            timeoutMs: Int,
         ): Reply {
 
             if ((!(path.startsWith("/v1/tunnels/")) || path.contains(".."))) {
@@ -284,8 +284,8 @@ class PixelTunnelWire {
             try {
 
                 connection.setInstanceFollowRedirects(false)
-                connection.setConnectTimeout(Math.min(timeout, 15000))
-                connection.setReadTimeout(timeout)
+                connection.setConnectTimeout(Math.min(timeoutMs, 15000))
+                connection.setReadTimeout(timeoutMs)
                 connection.setRequestMethod(method)
                 connection.setRequestProperty("Authorization", ("Bearer " + secret))
                 connection.setRequestProperty("Accept", "application/json")

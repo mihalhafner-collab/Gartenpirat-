@@ -33,7 +33,8 @@ gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 \
   :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease
 ```
 
-Die Release-APK bleibt hier unsigniert. Signieren und Verteilen: `SIGNIERUNG.md`.
+Kotlin- und Lint-Warnungen brechen den Bau ab. Die Release-APK bleibt hier
+unsigniert. Signieren und Verteilen: `SIGNIERUNG.md`.
 
 JVM-Fachtests (Domain, Abrechnung, MCP, Geräte, ZIP, SQLite):
 

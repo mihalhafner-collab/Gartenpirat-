@@ -25,8 +25,8 @@ class RestoreRecoveryActivity : ComponentActivity() {
     private var cancelled by mutableStateOf(false)
     private var confirmCancellation by mutableStateOf(false)
 
-    public override fun onCreate(saved: Bundle?) {
-        super.onCreate(saved)
+    public override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         title = "Wiederherstellung prüfen"
         nativeContent("Wiederherstellung prüfen", showBack = false) {
             Text(status)

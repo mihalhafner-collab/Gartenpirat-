@@ -13,6 +13,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -60,6 +61,11 @@ class PixelTunnelActivity : ComponentActivity() {
     private var configured by mutableStateOf(false)
     private var busy by mutableStateOf(true)
     private var requestedWrite: Boolean? = null
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (requestedWrite == null) return@registerForActivityResult
+        pendingNotificationResult = granted
+        consumeNotificationResult()
+    }
     private var pendingNotificationResult: Boolean? = null
     private var configurationReady = false
 
@@ -71,7 +77,6 @@ class PixelTunnelActivity : ComponentActivity() {
                 pendingNotificationResult = savedInstanceState.getBoolean("pending_notification_result")
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         lifecycleScope.launch {
             try {
             val initial =
@@ -236,10 +241,10 @@ class PixelTunnelActivity : ComponentActivity() {
         if (configurationReady) lifecycleScope.launch { refreshStatus() }
     }
 
-    override fun onSaveInstanceState(state: Bundle) {
-        super.onSaveInstanceState(state)
-        requestedWrite?.let { state.putBoolean("pending_notification_write", it) }
-        pendingNotificationResult?.let { state.putBoolean("pending_notification_result", it) }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        requestedWrite?.let { outState.putBoolean("pending_notification_write", it) }
+        pendingNotificationResult?.let { outState.putBoolean("pending_notification_result", it) }
     }
 
     private fun open(action: String, uri: Uri?) {
@@ -322,7 +327,7 @@ class PixelTunnelActivity : ComponentActivity() {
         pendingNotificationResult = null
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestedWrite = permitted
-            try { requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 281) }
+            try { notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }
             catch (failure: RuntimeException) { requestedWrite = null; throw failure }
         } else {
             requestedWrite = null
@@ -365,19 +370,6 @@ class PixelTunnelActivity : ComponentActivity() {
                 busy = false
             }
         }
-    }
-
-    @Deprecated("Platform permission callback retained for the existing request code")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode != 281 || requestedWrite == null) return
-        val index = permissions.indexOf(Manifest.permission.POST_NOTIFICATIONS)
-        pendingNotificationResult = index >= 0 && grantResults.getOrNull(index) == PackageManager.PERMISSION_GRANTED
-        consumeNotificationResult()
     }
 
     private fun consumeNotificationResult() {

@@ -10,13 +10,13 @@ class SettingsApplicationService : OwnerCommand {
         this.repository = repository
     }
     @Throws(Exception::class)
-    override fun perform(name: String, a: JSONObject, request: String): JSONObject {
+    override fun perform(name: String, args: JSONObject, request: String): JSONObject {
         var all: JSONObject = repository.effective()
         var stamp: String = java.time.Instant.now().toString()
         when ((name)) {
             "update_business_settings" -> {
                 run {
-                    var p: JSONObject = JSONObject(a.toString())
+                    var p: JSONObject = JSONObject(args.toString())
                     p.remove("request_id")
                     OwnerJournalRules.apply(JSONObject(all.toString()), JSONObject().put("kind", "business_settings").put("payload", p), HashMap(), JSONObject())
                     return repository.enqueue("business_settings", p, request)
@@ -25,10 +25,10 @@ class SettingsApplicationService : OwnerCommand {
             "update_settings" -> {
                 run {
                     var s: JSONObject = repository.settings()
-                    if ((!PixelMcpWriteTools.hash(s).equals(a.getString("expected_record_hash")))) {
+                    if ((!PixelMcpWriteTools.hash(s).equals(args.getString("expected_record_hash")))) {
                         throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Einstellungen wurden geändert.")
                     }
-                    var u: JSONObject = a.getJSONObject("updates")
+                    var u: JSONObject = args.getJSONObject("updates")
                     run {
                         var keys: MutableIterator<String> = u.keys()
                         while (keys.hasNext()) {
