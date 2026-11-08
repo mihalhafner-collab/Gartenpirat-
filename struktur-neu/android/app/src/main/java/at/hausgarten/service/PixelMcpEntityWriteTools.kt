@@ -7,12 +7,7 @@ internal class PixelMcpEntityWriteTools {
     companion object {
         @JvmField
         val NAMES: Array<String> =
-            arrayOf(
-                "create_customer",
-                "update_customer",
-                "create_order",
-                "update_order",
-            )
+            arrayOf("create_customer", "update_customer", "create_order", "update_order")
         @JvmField val CUSTOMER_FIELDS: Array<String> = EntityContract.CUSTOMER_FIELDS
         @JvmField val ORDER_FIELDS: Array<String> = EntityContract.ORDER_FIELDS
 
@@ -90,13 +85,9 @@ internal class PixelMcpEntityWriteTools {
             var props = JSONObject().put("request_id", string(128).put("minLength", 8))
             var required = JSONArray().put("request_id")
             var update: Boolean = name.startsWith("update_")
-            var entity =
-                (if (name.contains("customer")) "customer"
-                else "order")
+            var entity = (if (name.contains("customer")) "customer" else "order")
             var idKey = (entity + "_id")
-            var fields =
-                (if ((entity == "customer")) CUSTOMER_FIELDS
-                else ORDER_FIELDS)
+            var fields = (if ((entity == "customer")) CUSTOMER_FIELDS else ORDER_FIELDS)
             if (update) {
                 props.put(idKey, string(500)).put("expected_record_hash", string(128))
                 var patch = JSONObject()
@@ -122,7 +113,6 @@ internal class PixelMcpEntityWriteTools {
                 if ((entity == "order")) {
                     required.put("customer_id").put("title")
                 }
-
             }
             return JSONObject()
                 .put("type", "object")
@@ -139,9 +129,9 @@ internal class PixelMcpEntityWriteTools {
             for (name in NAMES) {
                 var description =
                     (if ((name == "create_customer"))
-                            "Legt einen neuen Kunden mit Stammdaten und Zusatzfeldern an. Vorher Kunden einschließlich inaktiver Kunden suchen; mögliche Dubletten werden abgewiesen. Kunden-ID wird sicher auf dem Pixel erzeugt."
-                        else
-                            "Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen.")
+                        "Legt einen neuen Kunden mit Stammdaten und Zusatzfeldern an. Vorher Kunden einschließlich inaktiver Kunden suchen; mögliche Dubletten werden abgewiesen. Kunden-ID wird sicher auf dem Pixel erzeugt."
+                    else
+                        "Erstellt oder ändert einen Auftrag mit einer tatsächlich vorhandenen Kunden-ID. Vor Änderungen Datensatz abrufen und record_hash übernehmen.")
                 if ((name == "update_customer")) {
                     description =
                         "Korrigiert ausdrücklich genannte Stammdaten eines vorhandenen Kunden anhand customer_id. Zuerst get_customer aufrufen und dessen record_hash als expected_record_hash übernehmen. Nicht genannte Felder, IDs, Zeitstempel und Verknüpfungen bleiben erhalten. Zusatzfelder werden ergänzt, nicht blind ersetzt."
@@ -324,16 +314,13 @@ internal class PixelMcpEntityWriteTools {
             return EntityApplicationService.prepare(name, args, state, actionId)
         }
 
-
-
         @JvmStatic
         @Throws(Exception::class)
         fun recordForHash(entity: String, row: JSONObject): JSONObject {
 
             return EntityContract.editable(
                 row,
-                (if ((entity == "customer")) CUSTOMER_FIELDS
-                else ORDER_FIELDS),
+                (if ((entity == "customer")) CUSTOMER_FIELDS else ORDER_FIELDS),
             )
         }
     }

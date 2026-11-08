@@ -1,39 +1,54 @@
 package at.hausgarten.service
 
-import org.json.*
 import java.util.*
+import org.json.*
 
 /** Stable dependency order, independent of device clocks. Original action bytes stay unchanged. */
 class LocalActionOrder {
     companion object {
         /** Explicit removal is based on the currently read version, not an unapplied older edit. */
-        @JvmStatic fun predecessors(kind: String, payload: JSONObject, prior: JSONArray, current: JSONObject?): JSONArray {
+        @JvmStatic
+        fun predecessors(
+            kind: String,
+            payload: JSONObject,
+            prior: JSONArray,
+            current: JSONObject?,
+        ): JSONArray {
             val selected = linkedSetOf<String>()
             val explicit = payload.optJSONArray("_sync_predecessors") ?: JSONArray()
             for (i in 0 until explicit.length()) selected.add(explicit.getString(i))
             val removal = kind in setOf("archive", "delete", "purge_v1")
-            val incorporated = if (removal) {
-                requireNotNull(current) { "Aktueller Löschstand fehlt." }
-                LocalJournalRules.ids(current.optJSONArray("drive_applied_ids")).apply {
-                    addAll(LocalJournalRules.ids(current.optJSONArray("accepted_ids")))
-                    current.optJSONObject("drive_resolved_actions")?.keys()?.forEach { add(it) }
-                }
-            } else null
+            val incorporated =
+                if (removal) {
+                    requireNotNull(current) { "Aktueller Löschstand fehlt." }
+                    LocalJournalRules.ids(current.optJSONArray("drive_applied_ids")).apply {
+                        addAll(LocalJournalRules.ids(current.optJSONArray("accepted_ids")))
+                        current.optJSONObject("drive_resolved_actions")?.keys()?.forEach { add(it) }
+                    }
+                } else null
             val links = payload.optJSONArray("photo_link_ids") ?: JSONArray()
             for (i in 0 until prior.length()) {
                 val event = prior.getJSONObject(i)
                 val client = event.getString("client_id")
                 if (incorporated != null && client !in incorporated) continue
                 val previous = event.getJSONObject("payload").optString("id")
-                val same = payload.optString("id").isNotEmpty() && payload.optString("id") == previous
-                val linked = (0 until links.length()).any { links.getJSONObject(it).getString("id") == previous }
-                if (same || linked || kind == "business_settings" && event.optString("kind") == kind) selected.add(client)
+                val same =
+                    payload.optString("id").isNotEmpty() && payload.optString("id") == previous
+                val linked =
+                    (0 until links.length()).any {
+                        links.getJSONObject(it).getString("id") == previous
+                    }
+                if (
+                    same || linked || kind == "business_settings" && event.optString("kind") == kind
+                )
+                    selected.add(client)
             }
             return JSONArray(selected.toList())
         }
 
         @Throws(Exception::class)
-        @JvmStatic fun order(input: JSONArray): JSONArray {
+        @JvmStatic
+        fun order(input: JSONArray): JSONArray {
             var actions: LinkedHashMap<String, JSONObject> = LinkedHashMap()
             var creators: MutableMap<String, String> = HashMap()
             var versions: MutableMap<String, String> = HashMap()
@@ -62,10 +77,16 @@ class LocalActionOrder {
                     if (("offer_convert".equals(a.optString("kind")))) {
                         var order: String = p.optString("existing_order_id")
                         if ((order.isEmpty())) {
-                            order = ("ord_offer_" + PixelMcpWriteTools.hash(a.getString("client_id")).substring(0, 32))
+                            order =
+                                ("ord_offer_" +
+                                    PixelMcpWriteTools.hash(a.getString("client_id"))
+                                        .substring(0, 32))
                             creators.putIfAbsent(("order:" + order), a.getString("client_id"))
                         }
-                        versions.put((("" + ("order:" + order) + ":") + a.optString("created_at")), a.getString("client_id"))
+                        versions.put(
+                            (("" + ("order:" + order) + ":") + a.optString("created_at")),
+                            a.getString("client_id"),
+                        )
                     }
                     i++
                 }
@@ -76,7 +97,8 @@ class LocalActionOrder {
                 var a: JSONObject = entry.value
                 var p: JSONObject = a.getJSONObject("payload")
                 var deps: MutableSet<String> = LinkedHashSet()
-                var ownKind: String = (if (a.getString("kind").startsWith("offer_")) "offer" else a.getString("kind"))
+                var ownKind: String =
+                    (if (a.getString("kind").startsWith("offer_")) "offer" else a.getString("kind"))
                 var creator: String? = creators.get((("" + ownKind + ":") + p.optString("id")))
                 if ((((creator != null) && !creator!!.equals(id)))) {
                     deps.add(creator)
@@ -91,7 +113,14 @@ class LocalActionOrder {
                         j++
                     }
                 }
-                for (ref in arrayOf(arrayOf("customer_id", "customer"), arrayOf("billing_customer_id", "customer"), arrayOf("order_id", "order"), arrayOf("worklog_id", "worklog"), arrayOf("appointment_id", "appointment"))) {
+                for (ref in
+                    arrayOf(
+                        arrayOf("customer_id", "customer"),
+                        arrayOf("billing_customer_id", "customer"),
+                        arrayOf("order_id", "order"),
+                        arrayOf("worklog_id", "worklog"),
+                        arrayOf("appointment_id", "appointment"),
+                    )) {
                     var parent: String? = creators.get((("" + ref[1] + ":") + p.optString(ref[0])))
                     if ((((parent != null) && !parent!!.equals(id)))) {
                         deps.add(parent)
@@ -99,7 +128,11 @@ class LocalActionOrder {
                 }
                 var expectedOrder: JSONObject? = p.optJSONObject("_expected_order")
                 if (((expectedOrder != null))) {
-                    var parent: String? = versions.get((("" + ("order:" + expectedOrder!!.optString("id")) + ":") + expectedOrder!!.optString("updated_at")))
+                    var parent: String? =
+                        versions.get(
+                            (("" + ("order:" + expectedOrder!!.optString("id")) + ":") +
+                                expectedOrder!!.optString("updated_at"))
+                        )
                     if ((((parent != null) && !parent!!.equals(id)))) {
                         deps.add(parent)
                     }
@@ -109,13 +142,20 @@ class LocalActionOrder {
                     base = p.optJSONObject("_mcp_base")
                 }
                 if (((base != null))) {
-                    var prior: String? = versions.get((("" + (("" + a.getString("kind") + ":") + p.optString("id")) + ":") + base!!.optString("updated_at")))
+                    var prior: String? =
+                        versions.get(
+                            (("" + (("" + a.getString("kind") + ":") + p.optString("id")) + ":") +
+                                base!!.optString("updated_at"))
+                        )
                     if ((((prior != null) && !prior!!.equals(id)))) {
                         deps.add(prior)
                     }
                 }
                 if ((deps.contains(id))) {
-                    throw PixelMcpWriteTools.Rejected("DEPENDENCY_CYCLE", "Änderungen enthalten eine zyklische Vorgängerkette. Originale bleiben erhalten.")
+                    throw PixelMcpWriteTools.Rejected(
+                        "DEPENDENCY_CYCLE",
+                        "Änderungen enthalten eine zyklische Vorgängerkette. Originale bleiben erhalten.",
+                    )
                 }
                 dependencies.put(id, deps)
             }
@@ -131,7 +171,10 @@ class LocalActionOrder {
                     }
                 }
                 if ((!moved)) {
-                    throw PixelMcpWriteTools.Rejected("DEPENDENCY_CYCLE", "Änderungen enthalten eine zyklische Vorgängerkette. Originale bleiben erhalten.")
+                    throw PixelMcpWriteTools.Rejected(
+                        "DEPENDENCY_CYCLE",
+                        "Änderungen enthalten eine zyklische Vorgängerkette. Originale bleiben erhalten.",
+                    )
                 }
             }
             return result

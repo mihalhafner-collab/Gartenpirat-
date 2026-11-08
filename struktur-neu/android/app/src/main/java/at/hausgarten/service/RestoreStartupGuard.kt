@@ -10,8 +10,10 @@ internal object RestoreStartupGuard {
     fun assertStoreMayOpen(context: Context) {
         if (exclusive.get() == true) return
         RevierApplication.awaitStartup(context)
-        if (BackupRestoreService.requiresExclusiveStartup(context) ||
-            RestoreStartupProtection.requiresColdRestart(context)) {
+        if (
+            BackupRestoreService.requiresExclusiveStartup(context) ||
+                RestoreStartupProtection.requiresColdRestart(context)
+        ) {
             throw IllegalStateException("RESTORE_RESTART_REQUIRED")
         }
     }

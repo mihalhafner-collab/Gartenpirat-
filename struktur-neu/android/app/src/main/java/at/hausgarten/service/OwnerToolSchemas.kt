@@ -49,17 +49,48 @@ internal class OwnerToolSchemas {
 
         private fun accounting(name: String, p: JSONObject, required: MutableList<String>) {
             if (name == "get_accounting_overview") {
-                p.put("query", McpFields.text(500)).put("date_from", McpFields.text(10)).put("date_to", McpFields.text(10))
-                    .put("review_offset", JSONObject().put("type", "integer").put("minimum", 0).put("maximum", 1000000))
-                    .put("property_id", McpFields.id()).put("route", McpFields.text(20).put("enum", JSONArray().put("").put("billed").put("labor")))
-                    .put("offset", JSONObject().put("type", "integer").put("minimum", 0).put("maximum", 1000000))
-                    .put("limit", JSONObject().put("type", "integer").put("minimum", 1).put("maximum", 100))
+                p.put("query", McpFields.text(500))
+                    .put("date_from", McpFields.text(10))
+                    .put("date_to", McpFields.text(10))
+                    .put(
+                        "review_offset",
+                        JSONObject()
+                            .put("type", "integer")
+                            .put("minimum", 0)
+                            .put("maximum", 1000000),
+                    )
+                    .put("property_id", McpFields.id())
+                    .put(
+                        "route",
+                        McpFields.text(20)
+                            .put("enum", JSONArray().put("").put("billed").put("labor")),
+                    )
+                    .put(
+                        "offset",
+                        JSONObject()
+                            .put("type", "integer")
+                            .put("minimum", 0)
+                            .put("maximum", 1000000),
+                    )
+                    .put(
+                        "limit",
+                        JSONObject().put("type", "integer").put("minimum", 1).put("maximum", 100),
+                    )
                 return
             }
-            p.put("collection", McpFields.text(20).put("enum", JSONArray().put("orders").put("worklogs"))).put("entity_id", McpFields.id())
+            p.put(
+                    "collection",
+                    McpFields.text(20).put("enum", JSONArray().put("orders").put("worklogs")),
+                )
+                .put("entity_id", McpFields.id())
             required.addAll(listOf("collection", "entity_id"))
             if (name == "set_accounting_record") {
-                p.put("expected_record_hash", McpFields.hash()).put("route", McpFields.text(20).put("enum", JSONArray().put("open").put("billed").put("labor")))
+                p.put("expected_record_hash", McpFields.hash())
+                    .put(
+                        "route",
+                        McpFields.text(20)
+                            .put("enum", JSONArray().put("open").put("billed").put("labor")),
+                    )
                 required.addAll(listOf("expected_record_hash", "route"))
             }
         }
@@ -85,13 +116,7 @@ internal class OwnerToolSchemas {
                 p.getJSONObject("expected_record_hash")
                     .put(
                         "description",
-                        (if (
-                            Arrays.asList(
-                                    "delete_entity",
-                                    "archive_entity",
-                                )
-                                .contains(name)
-                        )
+                        (if (Arrays.asList("delete_entity", "archive_entity").contains(name))
                             "entity_hash des zuvor gelesenen Datensatzes."
                         else
                             (if ((name == "restore_entity"))
@@ -137,10 +162,6 @@ internal class OwnerToolSchemas {
                 .put("offset", McpFields.number(0, 1000000))
                 .put("limit", McpFields.number(1, 100))
         }
-
-
-
-
 
         private @JvmStatic @Throws(Exception::class) fun previewArchiveWorkRecords(
             name: String,
@@ -224,10 +245,7 @@ internal class OwnerToolSchemas {
             required: MutableList<String>,
         ): Unit {
 
-            p.put(
-                    "resource_type",
-                    McpFields.enumeration("photo", "offer"),
-                )
+            p.put("resource_type", McpFields.enumeration("photo", "offer"))
                 .put("resource_id", McpFields.id())
                 .put("offset", McpFields.number(0, ((1024 * 1024) * 1024)))
                 .put("length", McpFields.number(1, McpFields.CHUNK))
@@ -367,7 +385,10 @@ internal class OwnerToolSchemas {
             run {
                 var fields = JSONObject()
                 for (key in McpFields.BUSINESS_KEYS) {
-                    fields.put(key, if (key.endsWith("_confirmed")) McpFields.bool() else McpFields.text(2000))
+                    fields.put(
+                        key,
+                        if (key.endsWith("_confirmed")) McpFields.bool() else McpFields.text(2000),
+                    )
                 }
                 fields.put("tax_mode", McpFields.enumeration("small_business", "standard"))
                 p.put("expected_record_hash", McpFields.hash())
@@ -408,10 +429,5 @@ internal class OwnerToolSchemas {
             p.put("work_record_id", McpFields.id()).put("paid", McpFields.bool())
             required.addAll(Arrays.asList("work_record_id", "paid"))
         }
-
-
-
-
-
     }
 }

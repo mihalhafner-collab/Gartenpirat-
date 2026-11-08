@@ -95,6 +95,5 @@ internal class OfferMoney {
                 .put("tax_minor", tax)
                 .put("gross_minor", Math.addExact(net, tax))
         }
-
     }
 }

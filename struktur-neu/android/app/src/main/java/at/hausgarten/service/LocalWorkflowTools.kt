@@ -60,17 +60,10 @@ internal class LocalWorkflowTools {
         val OFFER_DECISION_WRITES: Array<String> =
             arrayOf("record_offer_acceptance", "decline_offer")
         @JvmField
-        val READS: Array<String> =
-            concat(
-                concat(BACKUP_READS, REVIER_READS),
-                OFFER_DECISION_READS,
-            )
+        val READS: Array<String> = concat(concat(BACKUP_READS, REVIER_READS), OFFER_DECISION_READS)
         @JvmField
         val WRITES: Array<String> =
-            concat(
-                concat(BACKUP_WRITES, REVIER_WRITES),
-                OFFER_DECISION_WRITES,
-            )
+            concat(concat(BACKUP_WRITES, REVIER_WRITES), OFFER_DECISION_WRITES)
 
         @JvmStatic
         fun concat(first: Array<String>, second: Array<String>): Array<String> {
@@ -92,8 +85,7 @@ internal class LocalWorkflowTools {
             return (REVIER_READS.asList().contains(name) || REVIER_WRITES.asList().contains(name))
         }
 
-        @JvmStatic
-        fun critical(name: String): Boolean = name == "purge_revier_entity"
+        @JvmStatic fun critical(name: String): Boolean = name == "purge_revier_entity"
 
         @JvmStatic
         fun offerDecision(name: String): Boolean {
@@ -209,9 +201,8 @@ internal class LocalWorkflowTools {
         }
 
         /** Retained for material purchase/billing prices, not invoice payments. */
-        private @JvmStatic fun minor(): JSONObject = JSONObject()
-            .put("type", "integer").put("minimum", 0)
-            .put("maximum", 9000000000000000L)
+        private @JvmStatic fun minor(): JSONObject =
+            JSONObject().put("type", "integer").put("minimum", 0).put("maximum", 9000000000000000L)
 
         private @JvmStatic @Throws(Exception::class) fun array(
             item: JSONObject,
@@ -666,13 +657,30 @@ internal class LocalWorkflowTools {
                     )
                 }
                 "save_equipment" -> {
-                    p
-                        .put("accessories", array(McpFields.`object`(JSONObject()
-                            .put("id", McpFields.id()).put("type", McpFields.enumeration("chain", "other"))
-                            .put("name", McpFields.text(240)).put("manufacturer", McpFields.text(240)).put("model", McpFields.text(240))
-                            .put("pitch", McpFields.text(80)).put("gauge", McpFields.text(80)).put("drive_links", McpFields.text(80))
-                            .put("article_number", McpFields.text(240)).put("tooth_type", McpFields.text(240)).put("file_size", McpFields.text(80))
-                            .put("notes", McpFields.text(10000)).put("photo_upload_id", McpFields.id()), "id", "type"), 100))
+                    p.put(
+                            "accessories",
+                            array(
+                                McpFields.`object`(
+                                    JSONObject()
+                                        .put("id", McpFields.id())
+                                        .put("type", McpFields.enumeration("chain", "other"))
+                                        .put("name", McpFields.text(240))
+                                        .put("manufacturer", McpFields.text(240))
+                                        .put("model", McpFields.text(240))
+                                        .put("pitch", McpFields.text(80))
+                                        .put("gauge", McpFields.text(80))
+                                        .put("drive_links", McpFields.text(80))
+                                        .put("article_number", McpFields.text(240))
+                                        .put("tooth_type", McpFields.text(240))
+                                        .put("file_size", McpFields.text(80))
+                                        .put("notes", McpFields.text(10000))
+                                        .put("photo_upload_id", McpFields.id()),
+                                    "id",
+                                    "type",
+                                ),
+                                100,
+                            ),
+                        )
                         .put("current_chain_id", McpFields.text(200))
                         .put("profile_photo_upload_id", McpFields.id())
                         .put("equipment_id", McpFields.id())

@@ -1,6 +1,5 @@
 package at.hausgarten.service
 
-import java.math.BigDecimal
 import java.util.*
 import org.json.*
 
@@ -165,28 +164,40 @@ internal class BillingRules {
         @Throws(Exception::class)
         fun groups(logs: JSONArray?, master: JSONObject): JSONArray {
             val groups = java.util.TreeMap<String, JSONObject>()
-            val sorted = (0 until (logs?.length() ?: 0))
-                .map { logs!!.getJSONObject(it) }
-                .sortedWith(compareByDescending<JSONObject> { it.optString("work_date") }
-                    .thenBy { it.optString("id") })
+            val sorted =
+                (0 until (logs?.length() ?: 0))
+                    .map { logs!!.getJSONObject(it) }
+                    .sortedWith(
+                        compareByDescending<JSONObject> { it.optString("work_date") }
+                            .thenBy { it.optString("id") }
+                    )
             for (row in sorted) {
                 if (row.optInt("billed", 0) != 0) continue
                 val recipientId = recipient(row)
-                val group = groups.getOrPut(recipientId) {
-                    val detail = assignment(row, master, true)
-                    JSONObject().put("billing_customer_id", recipientId)
-                        .put("billing_customer_name", detail.optString("billing_customer_name", "Zuordnung prüfen"))
-                        .put("valid", detail.optBoolean("valid"))
-                        .put("hours", 0.0)
-                        .put("work_records", JSONArray())
+                val group =
+                    groups.getOrPut(recipientId) {
+                        val detail = assignment(row, master, true)
+                        JSONObject()
+                            .put("billing_customer_id", recipientId)
+                            .put(
+                                "billing_customer_name",
+                                detail.optString("billing_customer_name", "Zuordnung prüfen"),
+                            )
+                            .put("valid", detail.optBoolean("valid"))
+                            .put("hours", 0.0)
+                            .put("work_records", JSONArray())
+                            .put("billing_status", "marked_open")
+                    }
+                val copy =
+                    JSONObject(row.toString())
+                        .put("billing_customer_id", recipientId)
                         .put("billing_status", "marked_open")
-                }
-                val copy = JSONObject(row.toString())
-                    .put("billing_customer_id", recipientId)
-                    .put("billing_status", "marked_open")
                 try {
-                    copy.put("work_customer_name",
-                        customer(master.optJSONArray("customers"), text(row, "customer_id")).optString("name"))
+                    copy.put(
+                        "work_customer_name",
+                        customer(master.optJSONArray("customers"), text(row, "customer_id"))
+                            .optString("name"),
+                    )
                 } catch (_: Exception) {
                     copy.put("work_customer_name", "Einsatzkunde fehlt")
                     group.put("valid", false)

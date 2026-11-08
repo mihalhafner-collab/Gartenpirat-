@@ -8,10 +8,15 @@ class WorkSessionTimingRules private constructor() {
 
         @JvmStatic
         fun reviewReason(
-            wallStart: Long, elapsedStart: Long, bootStart: String?,
-            wallNow: Long, elapsedNow: Long, bootNow: String?
+            wallStart: Long,
+            elapsedStart: Long,
+            bootStart: String?,
+            wallNow: Long,
+            elapsedNow: Long,
+            bootNow: String?,
         ): String {
-            if (bootStart == "unverified_boot" || bootNow == "unverified_boot") return "CLOCK_EVIDENCE_UNAVAILABLE"
+            if (bootStart == "unverified_boot" || bootNow == "unverified_boot")
+                return "CLOCK_EVIDENCE_UNAVAILABLE"
             if (bootStart.isNullOrEmpty() || bootStart != bootNow) return "DEVICE_RESTART"
             val elapsed = elapsedNow - elapsedStart
             val wall = wallNow - wallStart
@@ -23,10 +28,18 @@ class WorkSessionTimingRules private constructor() {
 
         @JvmStatic
         fun verifiedDelta(
-            wallStart: Long, elapsedStart: Long, bootStart: String?,
-            wallNow: Long, elapsedNow: Long, bootNow: String?
-        ): Long = if (reviewReason(wallStart, elapsedStart, bootStart, wallNow, elapsedNow, bootNow).isEmpty()) {
-            elapsedNow - elapsedStart
-        } else 0
+            wallStart: Long,
+            elapsedStart: Long,
+            bootStart: String?,
+            wallNow: Long,
+            elapsedNow: Long,
+            bootNow: String?,
+        ): Long =
+            if (
+                reviewReason(wallStart, elapsedStart, bootStart, wallNow, elapsedNow, bootNow)
+                    .isEmpty()
+            ) {
+                elapsedNow - elapsedStart
+            } else 0
     }
 }

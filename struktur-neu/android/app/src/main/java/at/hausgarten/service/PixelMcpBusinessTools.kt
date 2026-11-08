@@ -8,8 +8,8 @@ internal class PixelMcpBusinessTools {
         @JvmStatic
         @Throws(Exception::class)
         fun sync(legacy: JSONObject, state: JSONObject): JSONObject {
-            val saved = legacy.optBoolean("saved_locally",
-                legacy.optString("status") == "local_saved")
+            val saved =
+                legacy.optBoolean("saved_locally", legacy.optString("status") == "local_saved")
             return JSONObject(legacy.toString())
                 .put("status", if (saved) "local_saved" else "unknown")
                 .put("sync_state", "not_applicable")

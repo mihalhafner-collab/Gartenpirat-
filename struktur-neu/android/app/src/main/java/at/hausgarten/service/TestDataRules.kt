@@ -1,30 +1,45 @@
 package at.hausgarten.service
 
-import org.json.*
 import java.util.*
+import org.json.*
 
 /** Test provenance is a domain boundary, never a licence to use real customer records. */
 class TestDataRules {
-    private constructor() {
-    }
+    private constructor() {}
+
     companion object {
-        @JvmStatic fun customer(c: JSONObject?): Boolean {
-            return ((c != null) && ((c!!.optString("name").startsWith("[TEST]") || c!!.optString("name").equals("MCP FUNKTIONSTEST – KEIN ECHTER KUNDE"))))
+        @JvmStatic
+        fun customer(c: JSONObject?): Boolean {
+            return ((c != null) &&
+                ((c!!.optString("name").startsWith("[TEST]") ||
+                    c!!.optString("name").equals("MCP FUNKTIONSTEST – KEIN ECHTER KUNDE"))))
         }
-        @JvmStatic fun marked(p: JSONObject): Boolean {
+
+        @JvmStatic
+        fun marked(p: JSONObject): Boolean {
             return (p.optBoolean("test_record") || p.optString("title").startsWith("[TEST]"))
         }
-        @JvmStatic fun customerChange(row: JSONObject, old: JSONObject?) {
+
+        @JvmStatic
+        fun customerChange(row: JSONObject, old: JSONObject?) {
             if ((((old != null) && (customer(old) != customer(row))))) {
-                throw IllegalArgumentException("Test-/Produktivzuordnung eines Kunden darf nicht gewechselt werden.")
+                throw IllegalArgumentException(
+                    "Test-/Produktivzuordnung eines Kunden darf nicht gewechselt werden."
+                )
             }
             if (((row.optBoolean("test_record") && !customer(row)))) {
                 throw IllegalArgumentException("Testkunde eindeutig mit [TEST] markieren.")
             }
         }
+
         @Throws(Exception::class)
-        @JvmStatic fun guard(p: JSONObject, s: JSONObject) {
-            var customer: JSONObject? = OwnerJournalRules.findOrNull(s.optJSONArray("customers"), p.optString("customer_id"))
+        @JvmStatic
+        fun guard(p: JSONObject, s: JSONObject) {
+            var customer: JSONObject? =
+                OwnerJournalRules.findOrNull(
+                    s.optJSONArray("customers"),
+                    p.optString("customer_id"),
+                )
             var test: Boolean = (marked(p) || customer(customer))
             if ((!test)) {
                 return
@@ -33,20 +48,43 @@ class TestDataRules {
             if ((recipient.isEmpty())) {
                 recipient = p.optString("customer_id")
             }
-            if (((!customer(customer) || !customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"), recipient))))) {
-                throw PixelMcpWriteTools.Rejected("TEST_DATA_ISOLATION", "Testdokumente benötigen ausschließlich eindeutig markierte Testkunden und Testempfänger.")
+            if (
+                ((!customer(customer) ||
+                    !customer(
+                        OwnerJournalRules.findOrNull(s.optJSONArray("customers"), recipient)
+                    )))
+            ) {
+                throw PixelMcpWriteTools.Rejected(
+                    "TEST_DATA_ISOLATION",
+                    "Testdokumente benötigen ausschließlich eindeutig markierte Testkunden und Testempfänger.",
+                )
             }
             p.put("test_record", true)
         }
+
         @Throws(Exception::class)
-        @JvmStatic fun noDelivery(p: JSONObject, s: JSONObject) {
+        @JvmStatic
+        fun noDelivery(p: JSONObject, s: JSONObject) {
             guard(JSONObject(p.toString()), s)
-            if (((marked(p) || customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"), p.optString("customer_id")))))) {
-                throw PixelMcpWriteTools.Rejected("TEST_DELIVERY_BLOCKED", "Testdokumente dürfen nicht an externe Empfänger übergeben oder versendet werden.")
+            if (
+                ((marked(p) ||
+                    customer(
+                        OwnerJournalRules.findOrNull(
+                            s.optJSONArray("customers"),
+                            p.optString("customer_id"),
+                        )
+                    )))
+            ) {
+                throw PixelMcpWriteTools.Rejected(
+                    "TEST_DELIVERY_BLOCKED",
+                    "Testdokumente dürfen nicht an externe Empfänger übergeben oder versendet werden.",
+                )
             }
         }
+
         @Throws(Exception::class)
-        @JvmStatic fun localOnly(a: JSONObject, s: JSONObject): Boolean {
+        @JvmStatic
+        fun localOnly(a: JSONObject, s: JSONObject): Boolean {
             var p: JSONObject = a.getJSONObject("payload")
             if ((p.optBoolean("_local_only"))) {
                 return true
@@ -55,26 +93,50 @@ class TestDataRules {
                 // Storage contract 3 keeps the whole deletion on this device.
                 return true
             }
-            if ((((p.optBoolean("_local_only") || marked(p)) || (a.optString("kind").equals("customer") && customer(p))))) {
+            if (
+                (((p.optBoolean("_local_only") || marked(p)) ||
+                    (a.optString("kind").equals("customer") && customer(p))))
+            ) {
                 return true
             }
-            if ((customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"), p.optString("customer_id"))))) {
+            if (
+                (customer(
+                    OwnerJournalRules.findOrNull(
+                        s.optJSONArray("customers"),
+                        p.optString("customer_id"),
+                    )
+                ))
+            ) {
                 return true
             }
             var kind: String = a.optString("kind")
             if ((java.util.Arrays.asList("archive", "restore", "purge_v1").contains(kind))) {
                 kind = p.optString("entity")
             }
-            var group: String = (if (kind.startsWith("offer_")) "offers" else (if (kind.startsWith("invoice_")) "invoices" else LocalJournalRules.collection(kind)))
-            var existing: JSONObject? = OwnerJournalRules.findOrNull(s.optJSONArray(group), p.optString("id"))
+            var group: String =
+                (if (kind.startsWith("offer_")) "offers"
+                else
+                    (if (kind.startsWith("invoice_")) "invoices"
+                    else LocalJournalRules.collection(kind)))
+            var existing: JSONObject? =
+                OwnerJournalRules.findOrNull(s.optJSONArray(group), p.optString("id"))
             if (((existing == null))) {
                 var archive: JSONObject? = s.optJSONObject("owner_archive")
-                var entry: JSONObject? = (if ((archive == null)) null else archive!!.optJSONObject((("" + kind + ":") + p.optString("id"))))
+                var entry: JSONObject? =
+                    (if ((archive == null)) null
+                    else archive!!.optJSONObject((("" + kind + ":") + p.optString("id"))))
                 if (((entry != null))) {
                     existing = entry!!.optJSONObject("record")
                 }
             }
-            return ((existing != null) && (((marked(existing) || (kind.equals("customer") && customer(existing))) || customer(OwnerJournalRules.findOrNull(s.optJSONArray("customers"), existing!!.optString("customer_id"))))))
+            return ((existing != null) &&
+                (((marked(existing) || (kind.equals("customer") && customer(existing))) ||
+                    customer(
+                        OwnerJournalRules.findOrNull(
+                            s.optJSONArray("customers"),
+                            existing!!.optString("customer_id"),
+                        )
+                    ))))
         }
     }
 }

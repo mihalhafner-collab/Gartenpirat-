@@ -13,13 +13,12 @@ import android.net.NetworkCapabilities
 import android.os.IBinder
 import android.os.PowerManager
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONObject
 
 /** User-visible and user-stoppable private MCP responder. */
 class PixelTunnelService : Service() {
-
 
     private val closing = AtomicBoolean()
     private var worker: Thread? = null
@@ -28,7 +27,10 @@ class PixelTunnelService : Service() {
     private var callback: ConnectivityManager.NetworkCallback? = null
     @Volatile private var store: PixelLocalStore? = null
     @Volatile private var activeBinding = ""
-    private val control = Executors.newSingleThreadExecutor { task -> Thread(task, "pixel-tunnel-control").apply { isDaemon = true } }
+    private val control =
+        Executors.newSingleThreadExecutor { task ->
+            Thread(task, "pixel-tunnel-control").apply { isDaemon = true }
+        }
 
     override fun onCreate() {
         super.onCreate()
@@ -68,8 +70,9 @@ class PixelTunnelService : Service() {
                 try {
                     RevierApplication.awaitStartup(this)
                     PixelTunnelConfig(this).enabled(false)
-                } catch (_: RuntimeException) { }
-                finally { stopSelf(startId) }
+                } catch (_: RuntimeException) {} finally {
+                    stopSelf(startId)
+                }
             }
             return START_NOT_STICKY
         }
@@ -101,9 +104,12 @@ class PixelTunnelService : Service() {
                 store = localStore
                 runTunnel(localStore)
             }
-        } catch (_: InterruptedException) { Thread.currentThread().interrupt() }
-        catch (_: Exception) { if (!closing.get()) status("local_review_required", "Gespeicherten lokalen Datenstand prüfen.") }
-        finally {
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+        } catch (_: Exception) {
+            if (!closing.get())
+                status("local_review_required", "Gespeicherten lokalen Datenstand prüfen.")
+        } finally {
             store = null
             if (!closing.get()) stopSelf()
         }
@@ -239,7 +245,12 @@ class PixelTunnelService : Service() {
             .build()
     }
 
-    private fun status(state: String, detail: String, contact: Boolean = false, response: Boolean = false) {
+    private fun status(
+        state: String,
+        detail: String,
+        contact: Boolean = false,
+        response: Boolean = false,
+    ) {
         val prefs = getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
         val now = System.currentTimeMillis()
         val edit = prefs.edit()
@@ -275,9 +286,16 @@ class PixelTunnelService : Service() {
             try {
                 RevierApplication.awaitStartup(this)
                 val prefs = getSharedPreferences("pixel_tunnel_status", MODE_PRIVATE)
-                if (prefs.getString("binding", "") == activeBinding && prefs.getString("state", "") != "auth_error") prefs.edit()
-                    .putString("state", "stopped").putString("detail", "Verbindung beendet.").apply()
-            } catch (_: RuntimeException) { }
+                if (
+                    prefs.getString("binding", "") == activeBinding &&
+                        prefs.getString("state", "") != "auth_error"
+                )
+                    prefs
+                        .edit()
+                        .putString("state", "stopped")
+                        .putString("detail", "Verbindung beendet.")
+                        .apply()
+            } catch (_: RuntimeException) {}
         }
         control.shutdown()
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -314,7 +332,8 @@ class PixelTunnelService : Service() {
             try {
                 val config = PixelTunnelConfig(context)
                 val bound = prefs.getString("binding", "") == connectionBinding(config)
-                var state = if (bound) prefs.getString("state", "stopped") ?: "stopped" else "stopped"
+                var state =
+                    if (bound) prefs.getString("state", "stopped") ?: "stopped" else "stopped"
                 val preserve = state == "auth_error" || state == "start_blocked"
                 if (!running && !preserve) state = "stopped"
                 val contact = if (bound) prefs.getLong("last_contact_at", 0) else 0
@@ -331,7 +350,8 @@ class PixelTunnelService : Service() {
                         "detail",
                         if (stale) "Verbindung länger nicht bestätigt. Wird erneut geprüft."
                         else if (!running && !preserve) "Pixel-Verbindung ist beendet."
-                        else if (bound) prefs.getString("detail", "Verbindung noch nicht gestartet.")
+                        else if (bound)
+                            prefs.getString("detail", "Verbindung noch nicht gestartet.")
                         else "Für diese Verbindung liegt noch keine lokale Statusmeldung vor.",
                     )
                     .put(
@@ -343,9 +363,14 @@ class PixelTunnelService : Service() {
                     .put("write_enabled", config.writeEnabled())
                     .put("last_contact_at", contact)
                     .put("last_response_at", response)
-                    .put("transport_confirmed", config.enabled() && running && state == "ready" && !stale)
+                    .put(
+                        "transport_confirmed",
+                        config.enabled() && running && state == "ready" && !stale,
+                    )
             } catch (_: Exception) {
-                result.put("state", "status_unavailable").put("detail", "Lokaler Verbindungsstatus derzeit nicht lesbar.")
+                result
+                    .put("state", "status_unavailable")
+                    .put("detail", "Lokaler Verbindungsstatus derzeit nicht lesbar.")
             }
             return result
         }

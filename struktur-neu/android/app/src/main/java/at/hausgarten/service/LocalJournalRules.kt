@@ -73,9 +73,7 @@ internal class LocalJournalRules {
                 )) {
                 var rows = snapshot.optJSONArray(key)
                 if ((rows == null)) {
-                    throw IllegalArgumentException(
-                        "Der lokale Gesamtstand ist unvollständig."
-                    )
+                    throw IllegalArgumentException("Der lokale Gesamtstand ist unvollständig.")
                 }
                 var ids = HashSet<String>()
                 run {
@@ -159,23 +157,23 @@ internal class LocalJournalRules {
                                 "offer_refs",
                             )
                         else
-                                arrayOf(
-                                    "id",
-                                    "customer_id",
-                                    "order_id",
-                                    "worklog_id",
-                                    "filename",
-                                    "caption",
-                                    "customer_visible",
-                                    "content_sha256",
-                                    "byte_size",
-                                    "mime_type",
-                                    "storage_name",
-                                    "role",
-                                    "session_id",
-                                    "capture_time",
-                                    "updated_at",
-                                ))))
+                            arrayOf(
+                                "id",
+                                "customer_id",
+                                "order_id",
+                                "worklog_id",
+                                "filename",
+                                "caption",
+                                "customer_visible",
+                                "content_sha256",
+                                "byte_size",
+                                "mime_type",
+                                "storage_name",
+                                "role",
+                                "session_id",
+                                "capture_time",
+                                "updated_at",
+                            ))))
             for (key in keys) {
                 base.put(
                     key,
@@ -306,9 +304,12 @@ internal class LocalJournalRules {
             return ids
         }
 
-        /** Persisted drive_* receipt keys are part of the existing local backup format.
-         * They identify committed local actions; no delivery, cloud merge or sync state is used. */
-        @JvmStatic @Throws(Exception::class)
+        /**
+         * Persisted drive_* receipt keys are part of the existing local backup format. They
+         * identify committed local actions; no delivery, cloud merge or sync state is used.
+         */
+        @JvmStatic
+        @Throws(Exception::class)
         fun apply(snapshot: JSONObject, input: JSONArray): JSONArray {
             LocalBusinessState.prepare(snapshot)
             val actions = LocalActionOrder.order(input)
@@ -330,16 +331,24 @@ internal class LocalJournalRules {
                 val kind = action.getString("kind")
                 val digest = PixelMcpWriteTools.hash(action)
                 if (hashes.has(client) && hashes.getString(client) != digest) {
-                    throw PixelMcpWriteTools.Rejected("ACTION_ID_CONFLICT", "Eine bestätigte lokale Aktionskennung wurde verändert.")
+                    throw PixelMcpWriteTools.Rejected(
+                        "ACTION_ID_CONFLICT",
+                        "Eine bestätigte lokale Aktionskennung wurde verändert.",
+                    )
                 }
-                if (seen.contains(client) || accepted.contains(client) || resolved.has(client)) continue
+                if (seen.contains(client) || accepted.contains(client) || resolved.has(client))
+                    continue
                 try {
                     val trial = JSONObject(snapshot.toString())
                     val trialResolved = JSONObject(resolved.toString())
                     val patch = action.getJSONObject("payload")
                     val dependencies = patch.optJSONArray("_sync_predecessors")
                     for (j in 0 until (dependencies?.length() ?: 0)) {
-                        if (failed.contains(dependencies!!.getString(j))) throw PixelMcpWriteTools.Rejected("DEPENDENCY_BLOCKED", "Lokale Vorgängeraktion benötigt Prüfung.")
+                        if (failed.contains(dependencies!!.getString(j)))
+                            throw PixelMcpWriteTools.Rejected(
+                                "DEPENDENCY_BLOCKED",
+                                "Lokale Vorgängeraktion benötigt Prüfung.",
+                            )
                     }
                     if (OwnerJournalRules.handles(kind)) {
                         OwnerJournalRules.apply(trial, action, all, trialResolved)
@@ -348,17 +357,33 @@ internal class LocalJournalRules {
                         val group = collection(kind)
                         val id = patch.getString("id")
                         val old = OwnerJournalRules.findOrNull(trial.getJSONArray(group), id)
-                        val expected = patch.optJSONObject("_mcp_base") ?: patch.optJSONObject("_sync_base")
-                        if (patch.optBoolean("_mcp_create") && old != null) throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Die neue ID existiert bereits.")
+                        val expected =
+                            patch.optJSONObject("_mcp_base") ?: patch.optJSONObject("_sync_base")
+                        if (patch.optBoolean("_mcp_create") && old != null)
+                            throw PixelMcpWriteTools.Rejected(
+                                "WRITE_CONFLICT",
+                                "Die neue ID existiert bereits.",
+                            )
                         if (expected != null) compare(expected, old)
                         val merged = if (old == null) JSONObject() else JSONObject(old.toString())
                         val sanitized = clean(patch)
-                        if (kind == "photo") { sanitized.remove("data"); sanitized.remove("full_data") }
-                        for (key in sanitized.keys()) merged.put(key, sanitized.get(key))
-                        if (old != null && expected == null && PixelMcpWriteTools.hash(merged) != PixelMcpWriteTools.hash(old)) {
-                            throw PixelMcpWriteTools.Rejected("WRITE_CONFLICT", "Lokale Änderung ohne Vergleichsstand; nichts überschrieben.")
+                        if (kind == "photo") {
+                            sanitized.remove("data")
+                            sanitized.remove("full_data")
                         }
-                        if (old == null && patch.optBoolean("allow_duplicate")) merged.put("allow_duplicate", true)
+                        for (key in sanitized.keys()) merged.put(key, sanitized.get(key))
+                        if (
+                            old != null &&
+                                expected == null &&
+                                PixelMcpWriteTools.hash(merged) != PixelMcpWriteTools.hash(old)
+                        ) {
+                            throw PixelMcpWriteTools.Rejected(
+                                "WRITE_CONFLICT",
+                                "Lokale Änderung ohne Vergleichsstand; nichts überschrieben.",
+                            )
+                        }
+                        if (old == null && patch.optBoolean("allow_duplicate"))
+                            merged.put("allow_duplicate", true)
                         validateChange(kind, merged, old, trial)
                         merged.remove("allow_duplicate")
                         OwnerJournalRules.replace(trial, group, id, merged)
@@ -367,15 +392,31 @@ internal class LocalJournalRules {
                     for (key in trialResolved.keys()) resolved.put(key, trialResolved.get(key))
                     seen.add(client)
                     hashes.put(client, digest)
-                    receipts.put(client, JSONObject().put("action_sha256", digest).put("kind", kind).put("state", "applied"))
+                    receipts.put(
+                        client,
+                        JSONObject()
+                            .put("action_sha256", digest)
+                            .put("kind", kind)
+                            .put("state", "applied"),
+                    )
                 } catch (error: Exception) {
                     failed.add(client)
-                    errors.put(JSONObject().put("client_id", client).put("kind", kind).put("code", errorCode(error)).put("error", error.message))
+                    errors.put(
+                        JSONObject()
+                            .put("client_id", client)
+                            .put("kind", kind)
+                            .put("code", errorCode(error))
+                            .put("error", error.message)
+                    )
                 }
             }
             refreshDisplayFields(snapshot)
-            snapshot.put("drive_applied_ids", JSONArray(seen)).put("drive_action_hashes", hashes)
-                .put("drive_resolved_actions", resolved).put("drive_action_receipts", receipts).put("drive_journal_errors", errors)
+            snapshot
+                .put("drive_applied_ids", JSONArray(seen))
+                .put("drive_action_hashes", hashes)
+                .put("drive_resolved_actions", resolved)
+                .put("drive_action_receipts", receipts)
+                .put("drive_journal_errors", errors)
             return errors
         }
 

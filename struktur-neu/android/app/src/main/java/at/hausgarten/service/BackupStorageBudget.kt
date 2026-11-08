@@ -12,33 +12,40 @@ object BackupStorageBudget {
 
     @JvmStatic
     @Throws(IOException::class)
-    fun require(volume: File, additionalBytes: Long) = requireAvailable(volume.usableSpace, additionalBytes)
+    fun require(volume: File, additionalBytes: Long) =
+        requireAvailable(volume.usableSpace, additionalBytes)
 
     @JvmStatic
     @Throws(IOException::class)
     fun requireAvailable(available: Long, additionalBytes: Long) {
-        if (additionalBytes < 0 || available < BUSINESS_RESERVE_BYTES || additionalBytes > available - BUSINESS_RESERVE_BYTES) {
+        if (
+            additionalBytes < 0 ||
+                available < BUSINESS_RESERVE_BYTES ||
+                additionalBytes > available - BUSINESS_RESERVE_BYTES
+        ) {
             throw IOException("BACKUP_STORAGE_RESERVE_REQUIRED")
         }
     }
 
     @JvmStatic
-    fun guard(output: OutputStream, volume: File): OutputStream = guard(output, LongSupplier { volume.usableSpace })
+    fun guard(output: OutputStream, volume: File): OutputStream =
+        guard(output, LongSupplier { volume.usableSpace })
 
     @JvmStatic
-    fun guard(output: OutputStream, available: LongSupplier): OutputStream = object : FilterOutputStream(output) {
-        @Throws(IOException::class)
-        override fun write(value: Int) {
-            BackupArchive.checkCancelled()
-            requireAvailable(available.asLong, 1)
-            `out`.write(value)
-        }
+    fun guard(output: OutputStream, available: LongSupplier): OutputStream =
+        object : FilterOutputStream(output) {
+            @Throws(IOException::class)
+            override fun write(value: Int) {
+                BackupArchive.checkCancelled()
+                requireAvailable(available.asLong, 1)
+                `out`.write(value)
+            }
 
-        @Throws(IOException::class)
-        override fun write(bytes: ByteArray, offset: Int, length: Int) {
-            BackupArchive.checkCancelled()
-            requireAvailable(available.asLong, length.toLong())
-            `out`.write(bytes, offset, length)
+            @Throws(IOException::class)
+            override fun write(bytes: ByteArray, offset: Int, length: Int) {
+                BackupArchive.checkCancelled()
+                requireAvailable(available.asLong, length.toLong())
+                `out`.write(bytes, offset, length)
+            }
         }
-    }
 }

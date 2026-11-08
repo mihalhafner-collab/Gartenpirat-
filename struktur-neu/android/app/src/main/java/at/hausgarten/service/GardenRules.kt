@@ -10,32 +10,53 @@ class GardenRules {
         @JvmField val WATER: String = "Bewässerung"
         @JvmField val CARE: String = "Pflegehinweise"
         @JvmField val ACCESS: String = "Zugangshinweise"
+
         @Throws(Exception::class)
-        @JvmStatic fun normalize(customer: JSONObject) {
+        @JvmStatic
+        fun normalize(customer: JSONObject) {
             if ((customer.has("garden_area"))) {
                 customer.put("garden_area", number(customer.opt("garden_area")))
             }
             var raw: Any? = customer.opt("custom_fields")
-            var fields: JSONObject = (if (raw is JSONObject) JSONObject(raw.toString()) else (if ((raw is String && !((raw as String)).isEmpty())) JSONObject((raw as String)) else JSONObject()))
+            var fields: JSONObject =
+                (if (raw is JSONObject) JSONObject(raw.toString())
+                else
+                    (if ((raw is String && !((raw as String)).isEmpty()))
+                        JSONObject((raw as String))
+                    else JSONObject()))
             for (key in arrayOf(LAWN, HEDGE)) {
                 if ((fields.has(key))) {
                     fields.put(key, number(fields.opt(key)))
                 }
             }
             for (key in arrayOf(WATER, CARE, ACCESS)) {
-                if ((((fields.has(key) && (fields.opt(key) != JSONObject.NULL)) && ((!(fields.opt(key) is String) || (fields.getString(key).length > 2000)))))) {
-                    throw IllegalArgumentException("Gartenhinweise dürfen höchstens 2000 Zeichen enthalten.")
+                if (
+                    (((fields.has(key) && (fields.opt(key) != JSONObject.NULL)) &&
+                        ((!(fields.opt(key) is String) || (fields.getString(key).length > 2000)))))
+                ) {
+                    throw IllegalArgumentException(
+                        "Gartenhinweise dürfen höchstens 2000 Zeichen enthalten."
+                    )
                 }
             }
-            if ((((customer.opt("garden_area") is Number && fields.opt(LAWN) is Number) && (fields.getDouble(LAWN) > customer.getDouble("garden_area"))))) {
-                throw IllegalArgumentException("Die Rasenfläche darf nicht größer als die gesamte Gartenfläche sein.")
+            if (
+                (((customer.opt("garden_area") is Number && fields.opt(LAWN) is Number) &&
+                    (fields.getDouble(LAWN) > customer.getDouble("garden_area"))))
+            ) {
+                throw IllegalArgumentException(
+                    "Die Rasenfläche darf nicht größer als die gesamte Gartenfläche sein."
+                )
             }
             if ((customer.has("custom_fields"))) {
                 customer.put("custom_fields", fields)
             }
         }
+
         private fun number(value: Any?): Any {
-            if (((((value == null) || (value == JSONObject.NULL)) || value!!.toString().trim().isEmpty()))) {
+            if (
+                ((((value == null) || (value == JSONObject.NULL)) ||
+                    value!!.toString().trim().isEmpty()))
+            ) {
                 return JSONObject.NULL
             }
             try {
@@ -45,7 +66,9 @@ class GardenRules {
                 }
                 return n
             } catch (e: Exception) {
-                throw IllegalArgumentException("Bitte eine gültige, nicht negative Gartenfläche oder Heckenlänge eingeben.")
+                throw IllegalArgumentException(
+                    "Bitte eine gültige, nicht negative Gartenfläche oder Heckenlänge eingeben."
+                )
             }
         }
     }

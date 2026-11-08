@@ -1,6 +1,5 @@
 package at.hausgarten.service
 
-import android.content.ContentValues
 import java.util.*
 import org.json.*
 
@@ -127,6 +126,5 @@ internal class LocalTestCleanup {
             }
             return false
         }
-
     }
 }

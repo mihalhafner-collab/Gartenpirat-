@@ -57,6 +57,5 @@ internal class LocalBusinessState {
                 .put("processing_engine", ENGINE)
                 .put("schema_version", Math.max(2, snapshot.optInt("schema_version", 1)))
         }
-
     }
 }

@@ -435,10 +435,18 @@ internal class OfferTools {
                     val catalog = s.optJSONArray("service_catalog") ?: JSONArray()
                     for (index in 0 until catalog.length()) {
                         val entry = catalog.getJSONObject(index)
-                        if ((0 until positions.length()).any { positions.getJSONObject(it).optString("catalog_entry_id") == entry.optString("id") }) selected.put(entry)
+                        if (
+                            (0 until positions.length()).any {
+                                positions.getJSONObject(it).optString("catalog_entry_id") ==
+                                    entry.optString("id")
+                            }
+                        )
+                            selected.put(entry)
                     }
                     review.put("service_catalog", selected)
-                    result.put("review_snapshot", review).put("validation", OfferRules.validate(p, s))
+                    result
+                        .put("review_snapshot", review)
+                        .put("validation", OfferRules.validate(p, s))
                 }
                 if (!(p!!.optString("order_id"))!!.isEmpty()) {
                     result!!.put(

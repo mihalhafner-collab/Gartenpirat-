@@ -25,7 +25,8 @@ internal class OfferApplicationService : OwnerCommand {
             }
             "create_and_validate_offer" -> {
                 run {
-                    var created = perform("create_offer_draft", args, (request.toString() + "_draft"))
+                    var created =
+                        perform("create_offer_draft", args, (request.toString() + "_draft"))
                     var id = created!!.getString("offer_id")
                     var row =
                         PixelMcpWriteTools.find(

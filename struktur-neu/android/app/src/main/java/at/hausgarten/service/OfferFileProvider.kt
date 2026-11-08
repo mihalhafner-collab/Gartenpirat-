@@ -18,13 +18,22 @@ open class OfferFileProvider : ContentProvider() {
     private fun file(uri: Uri): File {
         RestoreStartupGuard.assertStoreMayOpen(requireNotNull(context))
         val name = uri.lastPathSegment
-        if (name == null || !name.matches(Regex("(?:(?:Angebot|Rechnung)-[a-f0-9-]{36}\\.pdf|Abrechnung-[a-f0-9-]{36}\\.zip)"))) throw FileNotFoundException()
+        if (
+            name == null ||
+                !name.matches(
+                    Regex(
+                        "(?:(?:Angebot|Rechnung)-[a-f0-9-]{36}\\.pdf|Abrechnung-[a-f0-9-]{36}\\.zip)"
+                    )
+                )
+        )
+            throw FileNotFoundException()
         val value = File(File(context!!.cacheDir, "offer-share"), name)
         if (!value.isFile) throw FileNotFoundException()
         return value
     }
 
-    override fun getType(uri: Uri) = if (uri.lastPathSegment?.endsWith(".zip") == true) "application/zip" else "application/pdf"
+    override fun getType(uri: Uri) =
+        if (uri.lastPathSegment?.endsWith(".zip") == true) "application/zip" else "application/pdf"
 
     @Throws(FileNotFoundException::class)
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
@@ -32,21 +41,42 @@ open class OfferFileProvider : ContentProvider() {
         return ParcelFileDescriptor.open(file(uri), ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
-    override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor? {
+    override fun query(
+        uri: Uri,
+        projection: Array<out String>?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+        sortOrder: String?,
+    ): Cursor? {
         return try {
             val value = file(uri)
             val columns = projection ?: arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE)
             MatrixCursor(columns).apply {
-                addRow(Array<Any?>(columns.size) { i -> when (columns[i]) {
-                    OpenableColumns.SIZE -> value.length()
-                    OpenableColumns.DISPLAY_NAME -> value.name
-                    else -> null
-                } })
+                addRow(
+                    Array<Any?>(columns.size) { i ->
+                        when (columns[i]) {
+                            OpenableColumns.SIZE -> value.length()
+                            OpenableColumns.DISPLAY_NAME -> value.name
+                            else -> null
+                        }
+                    }
+                )
             }
-        } catch (_: FileNotFoundException) { null }
+        } catch (_: FileNotFoundException) {
+            null
+        }
     }
 
-    override fun insert(uri: Uri, values: ContentValues?): Uri = throw UnsupportedOperationException()
-    override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = throw UnsupportedOperationException()
-    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = throw UnsupportedOperationException()
+    override fun insert(uri: Uri, values: ContentValues?): Uri =
+        throw UnsupportedOperationException()
+
+    override fun update(
+        uri: Uri,
+        values: ContentValues?,
+        selection: String?,
+        selectionArgs: Array<out String>?,
+    ): Int = throw UnsupportedOperationException()
+
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int =
+        throw UnsupportedOperationException()
 }
