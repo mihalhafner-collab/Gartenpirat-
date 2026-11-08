@@ -3164,6 +3164,27 @@ class RevierApplicationService {
                 }
             }
         }
+        // Settlements (Abschlüsse) live in their own ledger; abandoned preparations are not results.
+        for (record in SettlementRules.records(JSONObject(repository.get(SettlementRules.KEY, "{}")))) {
+            if (record.optString("status") == "abandoned") continue
+            val recipient = record.optJSONObject("recipient") ?: JSONObject()
+            val label =
+                listOf(
+                        record.optString("invoice_number"),
+                        recipient.optString("company").ifBlank { recipient.optString("name") },
+                        record.optString("title"),
+                    )
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · ")
+            val row =
+                JSONObject(record.toString())
+                    .put("name", label.ifBlank { record.optString("id") })
+                    .put("date", record.optString("issue_date"))
+            // Own business details and frozen source copies would match every settlement.
+            row.remove("issuer")
+            row.remove("source_snapshots")
+            searchRow(row, "settlement", false, args, words, types, unique, found)
+        }
         if (args.optBoolean("include_archived", false)) {
             val archive: JSONObject? = state.optJSONObject("owner_archive")
             if (archive != null) {
@@ -3206,11 +3227,15 @@ class RevierApplicationService {
         )
         val skip: Int = RevierRules.integer(args, "offset", 0, 1000000, 0)
         val limit: Int = RevierRules.integer(args, "limit", 1, 100, 50)
+        val customers = HashMap<String, JSONObject>()
+        state.optJSONArray("customers")?.let { rows ->
+            for (i in 0 until rows.length()) rows.optJSONObject(i)?.let { customers[it.optString("id")] = it }
+        }
         val items: JSONArray = JSONArray()
         run {
             var i: Int = skip
             while ((i < found.size) && (items.length() < limit)) {
-                items.put(found.get(i).selected())
+                items.put(withContact(found.get(i), customers))
                 i++
             }
         }
@@ -3222,6 +3247,30 @@ class RevierApplicationService {
             .put("limit", limit)
             .put("index_scope", "all_local_records")
             .put("index_rebuild", "read_from_canonical_state")
+    }
+
+    /** Phone and route target let the search result call or navigate directly. */
+    private fun withContact(hit: SearchHit, customers: Map<String, JSONObject>): JSONObject {
+        val item = hit.selected()
+        val record = hit.record ?: return item
+        val customer = if (hit.type == "customer") record else customers[record.optString("customer_id")]
+        val address =
+            if (hit.type == "customer")
+                listOf(
+                        record.optString("street"),
+                        listOf(record.optString("postal_code"), record.optString("city"))
+                            .filter { it.isNotBlank() }
+                            .joinToString(" "),
+                    )
+                    .filter { it.isNotBlank() }
+                    .joinToString(", ")
+            else if (hit.type == "property") record.optString("address")
+            else ""
+        if (hit.type == "customer" || hit.type == "property") {
+            customer?.optString("phone")?.takeIf { it.isNotBlank() }?.let { item.put("phone", it) }
+            address.takeIf { it.isNotBlank() }?.let { item.put("address", it) }
+        }
+        return item
     }
 
     @Throws(Exception::class)
