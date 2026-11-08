@@ -129,104 +129,89 @@ class PixelTunnelWire {
         }
         var commands = poll.json.getJSONArray("commands")
         var delivered: Int = 0
-        run {
-            var i: Int = 0
-            var firstIteration112 = true
-            while (true) {
-                if (firstIteration112) firstIteration112 = false
-                else {
-                    i++
-                }
-                if (!((i < commands.length()))) break
-
-                if (Thread.currentThread().isInterrupted()) {
-                    throw InterruptedException()
-                }
-                var command = commands.getJSONObject(i)
-                var expiry: Long = deadline(command.opt("response_timeout"), poll.receivedNanos)
-                if (((expiry != Long.MAX_VALUE) && (System.nanoTime() >= expiry))) {
-                    continue
-                }
-                var requestId = command.getString("request_id")
-                var shard = command.getString("shard_token")
-                if (
-                    (((((requestId.isEmpty() || (requestId.length > 4096)) || shard.isEmpty()) ||
-                        (shard.length > 16384)) || (shard.indexOf('\r') >= 0)) ||
-                        (shard.indexOf('\n') >= 0))
-                ) {
-                    throw IOException("Ungültige Tunnel-Antwort.")
-                }
-                var type = command.optString("command_type")
-                var channel = command.optString("channel", "main")
-                if ((!(("jsonrpc" == type)) && !(("session_termination" == type)))) {
-                    continue
-                }
-                var fingerprint =
-                    ((((type + "\n") + channel) + "\n") +
-                        canonical(command.optJSONObject("jsonrpc")))
-                var cached = results.get(requestId)
-                if (((cached != null) && !((cached.fingerprint == fingerprint)))) {
-                    throw IOException(
-                        "Widersprüchliche Anfrage-ID. Verbindung wird erneut geprüft."
-                    )
-                }
-                var response = (if ((cached == null)) null else cached.response)
-                if ((response == null)) {
-                    response = JSONObject().put("request_id", requestId).put("channel", channel)
-                    if ((type == "session_termination")) {
-                        response
-                            .put("resp_code", 204)
-                            .put("resp_type", "session_termination_response")
-                    } else {
-                        var rpc = command.getJSONObject("jsonrpc")
-                        var result: JSONObject?
-                        if (!(("main" == channel))) {
-                            result =
-                                JSONObject()
-                                    .put("jsonrpc", "2.0")
-                                    .put(
-                                        "id",
-                                        (if ((rpc.opt("id") == null)) JSONObject.NULL
-                                        else rpc.opt("id")),
-                                    )
-                                    .put(
-                                        "error",
-                                        JSONObject()
-                                            .put("code", -(32601))
-                                            .put("message", "Channel nicht unterstützt."),
-                                    )
-                        } else {
-                            result = tools.rpc(rpc)
-                        }
-                        response
-                            .put("resp_code", (if ((result == null)) 202 else 200))
-                            .put(
-                                "resp_type",
-                                (if ((result == null)) "notify_ack" else "jsonrpc_response"),
-                            )
-                        if ((result != null)) {
-                            response
-                                .put("resp_json", result)
-                                .put(
-                                    "resp_headers",
-                                    JSONObject()
-                                        .put("Content-Type", JSONArray().put("application/json")),
-                                )
-                        }
-                    }
-                    results.put(requestId, Cached(fingerprint, response))
-                }
-                if (((expiry != Long.MAX_VALUE) && (System.nanoTime() >= expiry))) {
-                    continue
-                }
-                var timeout: Int =
-                    (if ((expiry == Long.MAX_VALUE)) 15000
-                    else
-                        (Math.max(1, Math.min(15000, (((expiry - System.nanoTime())) / 1000000))))
-                            .toInt())
-                check(transport.request("POST", path("/response"), response, shard, timeout))
-                delivered++
+        for (i in 0 until commands.length()) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw InterruptedException()
             }
+            var command = commands.getJSONObject(i)
+            var expiry: Long = deadline(command.opt("response_timeout"), poll.receivedNanos)
+            if (((expiry != Long.MAX_VALUE) && (System.nanoTime() >= expiry))) {
+                continue
+            }
+            var requestId = command.getString("request_id")
+            var shard = command.getString("shard_token")
+            if (
+                (((((requestId.isEmpty() || (requestId.length > 4096)) || shard.isEmpty()) ||
+                    (shard.length > 16384)) || (shard.indexOf('\r') >= 0)) ||
+                    (shard.indexOf('\n') >= 0))
+            ) {
+                throw IOException("Ungültige Tunnel-Antwort.")
+            }
+            var type = command.optString("command_type")
+            var channel = command.optString("channel", "main")
+            if ((!(("jsonrpc" == type)) && !(("session_termination" == type)))) {
+                continue
+            }
+            var fingerprint =
+                ((((type + "\n") + channel) + "\n") + canonical(command.optJSONObject("jsonrpc")))
+            var cached = results.get(requestId)
+            if (((cached != null) && !((cached.fingerprint == fingerprint)))) {
+                throw IOException("Widersprüchliche Anfrage-ID. Verbindung wird erneut geprüft.")
+            }
+            var response = (if ((cached == null)) null else cached.response)
+            if ((response == null)) {
+                response = JSONObject().put("request_id", requestId).put("channel", channel)
+                if ((type == "session_termination")) {
+                    response.put("resp_code", 204).put("resp_type", "session_termination_response")
+                } else {
+                    var rpc = command.getJSONObject("jsonrpc")
+                    var result: JSONObject?
+                    if (!(("main" == channel))) {
+                        result =
+                            JSONObject()
+                                .put("jsonrpc", "2.0")
+                                .put(
+                                    "id",
+                                    (if ((rpc.opt("id") == null)) JSONObject.NULL
+                                    else rpc.opt("id")),
+                                )
+                                .put(
+                                    "error",
+                                    JSONObject()
+                                        .put("code", -(32601))
+                                        .put("message", "Channel nicht unterstützt."),
+                                )
+                    } else {
+                        result = tools.rpc(rpc)
+                    }
+                    response
+                        .put("resp_code", (if ((result == null)) 202 else 200))
+                        .put(
+                            "resp_type",
+                            (if ((result == null)) "notify_ack" else "jsonrpc_response"),
+                        )
+                    if ((result != null)) {
+                        response
+                            .put("resp_json", result)
+                            .put(
+                                "resp_headers",
+                                JSONObject()
+                                    .put("Content-Type", JSONArray().put("application/json")),
+                            )
+                    }
+                }
+                results.put(requestId, Cached(fingerprint, response))
+            }
+            if (((expiry != Long.MAX_VALUE) && (System.nanoTime() >= expiry))) {
+                continue
+            }
+            var timeout: Int =
+                (if ((expiry == Long.MAX_VALUE)) 15000
+                else
+                    (Math.max(1, Math.min(15000, (((expiry - System.nanoTime())) / 1000000))))
+                        .toInt())
+            check(transport.request("POST", path("/response"), response, shard, timeout))
+            delivered++
         }
         return delivered
     }
@@ -508,18 +493,8 @@ class PixelTunnelWire {
             if (value is JSONArray) {
                 var array = (value as JSONArray)
                 var out = StringBuilder("[")
-                run {
-                    var i: Int = 0
-                    var firstIteration113 = true
-                    while (true) {
-                        if (firstIteration113) firstIteration113 = false
-                        else {
-                            i++
-                        }
-                        if (!((i < array.length()))) break
-
-                        out.append(canonical(array.get(i))).append(',')
-                    }
+                for (i in 0 until array.length()) {
+                    out.append(canonical(array.get(i))).append(',')
                 }
                 return out.append(']').toString()
             }

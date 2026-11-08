@@ -230,33 +230,23 @@ class BusinessDocumentStore {
                 w.line("Einsatzort: " + offer.getString("location"))
             }
             var lines = offer.getJSONArray("positions")
-            run {
-                var i: Int = 0
-                var firstIteration33 = true
-                while (true) {
-                    if (firstIteration33) firstIteration33 = false
-                    else {
-                        i++
-                    }
-                    if (!(i < lines.length())) break
-
-                    var p = lines.getJSONObject(i)
-                    w.line("")
-                    w.line(java.lang.String.valueOf((i + 1)) + ". " + p.optString("title"))
-                    w.line(p.optString("description"))
-                    w.line(
-                        java.lang.String.valueOf(p.opt("quantity")) +
-                            " " +
-                            p.optString("unit") +
-                            " × " +
-                            money(p.get("price")) +
-                            " netto = " +
-                            money(p.get("net")) +
-                            " netto | USt " +
-                            p.optDouble("tax_rate", 0.0) +
-                            " %"
-                    )
-                }
+            for (i in 0 until lines.length()) {
+                var p = lines.getJSONObject(i)
+                w.line("")
+                w.line(java.lang.String.valueOf((i + 1)) + ". " + p.optString("title"))
+                w.line(p.optString("description"))
+                w.line(
+                    java.lang.String.valueOf(p.opt("quantity")) +
+                        " " +
+                        p.optString("unit") +
+                        " × " +
+                        money(p.get("price")) +
+                        " netto = " +
+                        money(p.get("net")) +
+                        " netto | USt " +
+                        p.optDouble("tax_rate", 0.0) +
+                        " %"
+                )
             }
             w.line("")
             w.line("Netto: " + money(offer.get("net_total")))

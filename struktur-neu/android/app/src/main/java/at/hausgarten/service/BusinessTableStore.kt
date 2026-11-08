@@ -375,18 +375,8 @@ class BusinessTableStore {
                             }
                         }
                     var retained = HashSet<String>()
-                    run {
-                        var i: Int = 0
-                        var firstIteration1 = true
-                        while (true) {
-                            if (firstIteration1) firstIteration1 = false
-                            else {
-                                i++
-                            }
-                            if (!(i < rows.length())) break
-
-                            retained.add(id(rows.getJSONObject(i)))
-                        }
+                    for (i in 0 until rows.length()) {
+                        retained.add(id(rows.getJSONObject(i)))
                     }
                     for (old in hashes.keys) {
                         if (!(retained.contains(old))) {
@@ -397,60 +387,38 @@ class BusinessTableStore {
                             )
                         }
                     }
-                    run {
-                        var i: Int = 0
-                        var firstIteration2 = true
-                        while (true) {
-                            if (firstIteration2) firstIteration2 = false
-                            else {
-                                i++
-                            }
-                            if (!(i < rows.length())) break
-
-                            var id = id(rows.getJSONObject(i))
-                            var old = positions.get(id)
-                            if (old != null && old != i.toLong()) {
+                    for (i in 0 until rows.length()) {
+                        var id = id(rows.getJSONObject(i))
+                        var old = positions.get(id)
+                        if (old != null && old != i.toLong()) {
+                            sql.execute(
+                                "UPDATE " + name + " SET position=? WHERE generation=? AND id=?",
+                                -(1L) - i,
+                                generation,
+                                id,
+                            )
+                        }
+                    }
+                    for (i in 0 until rows.length()) {
+                        var row = rows.getJSONObject(i)
+                        var id = id(row)
+                        if (!((hash(row) == hashes.get(id)))) {
+                            sql.execute(
+                                "DELETE FROM " + name + " WHERE generation=? AND id=?",
+                                generation,
+                                id,
+                            )
+                            insert(generation, collection, i.toLong(), row)
+                        } else {
+                            if (positions.get(id) != i.toLong()) {
                                 sql.execute(
                                     "UPDATE " +
                                         name +
                                         " SET position=? WHERE generation=? AND id=?",
-                                    -(1L) - i,
+                                    i,
                                     generation,
                                     id,
                                 )
-                            }
-                        }
-                    }
-                    run {
-                        var i: Int = 0
-                        var firstIteration3 = true
-                        while (true) {
-                            if (firstIteration3) firstIteration3 = false
-                            else {
-                                i++
-                            }
-                            if (!(i < rows.length())) break
-
-                            var row = rows.getJSONObject(i)
-                            var id = id(row)
-                            if (!((hash(row) == hashes.get(id)))) {
-                                sql.execute(
-                                    "DELETE FROM " + name + " WHERE generation=? AND id=?",
-                                    generation,
-                                    id,
-                                )
-                                insert(generation, collection, i.toLong(), row)
-                            } else {
-                                if (positions.get(id) != i.toLong()) {
-                                    sql.execute(
-                                        "UPDATE " +
-                                            name +
-                                            " SET position=? WHERE generation=? AND id=?",
-                                        i,
-                                        generation,
-                                        id,
-                                    )
-                                }
                             }
                         }
                     }
@@ -540,25 +508,15 @@ class BusinessTableStore {
                     }
                 var page = SnapshotReadSupport.select(candidates, filters, kind, context)
                 var result = JSONArray()
-                run {
-                    var i: Int = 0
-                    var firstIteration4 = true
-                    while (true) {
-                        if (firstIteration4) firstIteration4 = false
-                        else {
-                            i++
-                        }
-                        if (!(i < page.length())) break
-
-                        var selected = page.getJSONObject(i)
-                        var full = row(meta, collection, id(selected))
-                        require(
-                            (hash(selected) ==
-                                hash(SnapshotReadSupport.withoutBinary(selection(full!!)))),
-                            "TABLE_SELECTION_STALE",
-                        )
-                        result.put(full)
-                    }
+                for (i in 0 until page.length()) {
+                    var selected = page.getJSONObject(i)
+                    var full = row(meta, collection, id(selected))
+                    require(
+                        (hash(selected) ==
+                            hash(SnapshotReadSupport.withoutBinary(selection(full!!)))),
+                        "TABLE_SELECTION_STALE",
+                    )
+                    result.put(full)
                 }
                 return@LAM result
             }
@@ -882,18 +840,8 @@ class BusinessTableStore {
                             ids.put(rows.text(0))
                         }
                     }
-                run {
-                    var i: Int = 0
-                    var firstIteration5 = true
-                    while (true) {
-                        if (firstIteration5) firstIteration5 = false
-                        else {
-                            i++
-                        }
-                        if (!(i < ids.length())) break
-
-                        out.put(row(meta, collection, ids.getString(i)))
-                    }
+                for (i in 0 until ids.length()) {
+                    out.put(row(meta, collection, ids.getString(i)))
                 }
                 return@LAM out
             }
@@ -1271,18 +1219,8 @@ class BusinessTableStore {
             for (collection in COLLECTIONS) {
                 var rows = source.getJSONArray(collection)
                 var seen = HashSet<String>()
-                run {
-                    var i: Int = 0
-                    var firstIteration7 = true
-                    while (true) {
-                        if (firstIteration7) firstIteration7 = false
-                        else {
-                            i++
-                        }
-                        if (!(i < rows.length())) break
-
-                        require(seen.add(id(rows.getJSONObject(i))), "TABLE_DUPLICATE_ID")
-                    }
+                for (i in 0 until rows.length()) {
+                    require(seen.add(id(rows.getJSONObject(i))), "TABLE_DUPLICATE_ID")
                 }
             }
         }

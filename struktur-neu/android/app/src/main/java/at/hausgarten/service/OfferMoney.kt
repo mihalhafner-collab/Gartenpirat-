@@ -35,49 +35,36 @@ internal class OfferMoney {
             var net: Long = 0
             var tax: Long = 0
             var positions = JSONArray(offer.getJSONArray("positions").toString())
-            run {
-                var i: Int = 0
-                var firstIteration49 = true
-                while (true) {
-                    if (firstIteration49) firstIteration49 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < positions.length()))) break
-
-                    var line = positions.getJSONObject(i)
-                    var quantity = BigDecimal(line.get("quantity").toString())
-                    var price = BigDecimal(line.get("price").toString())
-                    var discount = BigDecimal(line.optString("discount", "0"))
-                    var rate = BigDecimal(line.optString("tax_rate", "0"))
-                    if (
-                        (((((quantity.signum() < 0) || (price.signum() < 0)) ||
-                            (discount.signum() < 0)) ||
-                            (discount.compareTo(BigDecimal("100")) > 0)) || (rate.signum() < 0))
-                    ) {
-                        throw IllegalArgumentException("INVALID_DECIMAL_POSITION")
-                    }
-                    var calculated =
-                        quantity
-                            .multiply(price)
-                            .multiply(BigDecimal.ONE.subtract(discount.movePointLeft(2)))
-                            .setScale(2, RoundingMode.HALF_UP)
-                    var n: Long = minor(calculated)
-                    var t: Long =
-                        minor(
-                            calculated
-                                .multiply(rate)
-                                .movePointLeft(2)
-                                .setScale(2, RoundingMode.HALF_UP)
-                        )
-                    line
-                        .put("quantity_decimal", quantity.toPlainString())
-                        .put("unit_price_minor_decimal", price.movePointRight(2).toPlainString())
-                        .put("net_minor", n)
-                        .put("tax_minor", t)
-                    net = Math.addExact(net, n)
-                    tax = Math.addExact(tax, t)
+            for (i in 0 until positions.length()) {
+                var line = positions.getJSONObject(i)
+                var quantity = BigDecimal(line.get("quantity").toString())
+                var price = BigDecimal(line.get("price").toString())
+                var discount = BigDecimal(line.optString("discount", "0"))
+                var rate = BigDecimal(line.optString("tax_rate", "0"))
+                if (
+                    (((((quantity.signum() < 0) || (price.signum() < 0)) ||
+                        (discount.signum() < 0)) || (discount.compareTo(BigDecimal("100")) > 0)) ||
+                        (rate.signum() < 0))
+                ) {
+                    throw IllegalArgumentException("INVALID_DECIMAL_POSITION")
                 }
+                var calculated =
+                    quantity
+                        .multiply(price)
+                        .multiply(BigDecimal.ONE.subtract(discount.movePointLeft(2)))
+                        .setScale(2, RoundingMode.HALF_UP)
+                var n: Long = minor(calculated)
+                var t: Long =
+                    minor(
+                        calculated.multiply(rate).movePointLeft(2).setScale(2, RoundingMode.HALF_UP)
+                    )
+                line
+                    .put("quantity_decimal", quantity.toPlainString())
+                    .put("unit_price_minor_decimal", price.movePointRight(2).toPlainString())
+                    .put("net_minor", n)
+                    .put("tax_minor", t)
+                net = Math.addExact(net, n)
+                tax = Math.addExact(tax, t)
             }
             if (
                 (((offer.has("net_total") && (minor(offer.get("net_total")) != net)) ||

@@ -343,19 +343,9 @@ class LocalOwnerRepository : OwnerRepository {
                 run {
                     var listed: Boolean = false
                     var photos = effective().getJSONArray("photos")
-                    run {
-                        var i: Int = 0
-                        var firstIteration21 = true
-                        while (true) {
-                            if (firstIteration21) firstIteration21 = false
-                            else {
-                                i++
-                            }
-                            if (!(i < photos.length())) break
-
-                            if ((id == photos.getJSONObject(i).optString("id"))) {
-                                listed = true
-                            }
+                    for (i in 0 until photos.length()) {
+                        if ((id == photos.getJSONObject(i).optString("id"))) {
+                            listed = true
                         }
                     }
                     if (
@@ -518,27 +508,16 @@ class LocalOwnerRepository : OwnerRepository {
                     revier()
                         .protectParent(target.getString("entity"), target.getString("entity_id"))
                 }
-                run {
-                    var i: Int = 0
-                    var firstIteration23 = true
-                    while (true) {
-                        if (firstIteration23) firstIteration23 = false
-                        else {
-                            i++
-                        }
-                        if (!(i < entries.length())) break
-
-                        var entry = entries.getJSONObject(i)
-                        protectSettlement(entry.getString("entity"), entry.getString("entity_id"))
-                        revier()
-                            .protectParent(entry.getString("entity"), entry.getString("entity_id"))
-                        revier()
-                            .detachOptionalParent(
-                                entry.getString("entity"),
-                                entry.getString("entity_id"),
-                                request,
-                            )
-                    }
+                for (i in 0 until entries.length()) {
+                    var entry = entries.getJSONObject(i)
+                    protectSettlement(entry.getString("entity"), entry.getString("entity_id"))
+                    revier().protectParent(entry.getString("entity"), entry.getString("entity_id"))
+                    revier()
+                        .detachOptionalParent(
+                            entry.getString("entity"),
+                            entry.getString("entity_id"),
+                            request,
+                        )
                 }
             }
             var prior = store!!.pendingActions()
@@ -577,51 +556,37 @@ class LocalOwnerRepository : OwnerRepository {
                     LocalJournalRules.ids(parentProjection.optJSONArray("drive_applied_ids"))
                 var targetOrder =
                     payload.optString("order_id", payload.optString("existing_order_id"))
-                run {
-                    var i: Int = 0
-                    var firstIteration26 = true
-                    while (true) {
-                        if (firstIteration26) firstIteration26 = false
-                        else {
-                            i++
+                for (i in 0 until prior.length()) {
+                    var event = prior.getJSONObject(i)
+                    var p = event.getJSONObject("payload")
+                    var previous = event.getString("client_id")
+                    var type = event.getString("kind")
+                    if (!(incorporated.contains(previous))) {
+                        continue
+                    }
+                    var parent: Boolean =
+                        (type == "customer") &&
+                            p.optBoolean("_mcp_create") &&
+                            (payload.optString("customer_id") == p.optString("id"))
+                    if (
+                        !(targetOrder.isEmpty()) &&
+                            (type == "order") &&
+                            (targetOrder == p.optString("id"))
+                    ) {
+                        parent = true
+                    }
+                    if (!(targetOrder.isEmpty()) && (type == "offer_convert")) {
+                        var converted = p.optString("existing_order_id")
+                        if (converted.isEmpty()) {
+                            converted =
+                                "ord_offer_" + PixelMcpWriteTools.hash(previous).substring(0, 32)
                         }
-                        if (!(i < prior.length())) break
-
-                        var event = prior.getJSONObject(i)
-                        var p = event.getJSONObject("payload")
-                        var previous = event.getString("client_id")
-                        var type = event.getString("kind")
-                        if (!(incorporated.contains(previous))) {
-                            continue
-                        }
-                        var parent: Boolean =
-                            (type == "customer") &&
-                                p.optBoolean("_mcp_create") &&
-                                (payload.optString("customer_id") == p.optString("id"))
-                        if (
-                            !(targetOrder.isEmpty()) &&
-                                (type == "order") &&
-                                (targetOrder == p.optString("id"))
-                        ) {
+                        if ((targetOrder == converted)) {
                             parent = true
                         }
-                        if (!(targetOrder.isEmpty()) && (type == "offer_convert")) {
-                            var converted = p.optString("existing_order_id")
-                            if (converted.isEmpty()) {
-                                converted =
-                                    "ord_offer_" +
-                                        PixelMcpWriteTools.hash(previous).substring(0, 32)
-                            }
-                            if ((targetOrder == converted)) {
-                                parent = true
-                            }
-                        }
-                        if (
-                            parent &&
-                                !(predecessors.toString().contains(JSONObject.quote(previous)))
-                        ) {
-                            predecessors.put(previous)
-                        }
+                    }
+                    if (parent && !(predecessors.toString().contains(JSONObject.quote(previous)))) {
+                        predecessors.put(previous)
                     }
                 }
             }
@@ -695,41 +660,21 @@ class LocalOwnerRepository : OwnerRepository {
 
         var prior = HashSet<String>()
         var before = store!!.pendingActions()
-        run {
-            var i: Int = 0
-            var firstIteration28 = true
-            while (true) {
-                if (firstIteration28) firstIteration28 = false
-                else {
-                    i++
-                }
-                if (!(i < before.length())) break
-
-                prior.add(before.getJSONObject(i).getString("client_id"))
-            }
+        for (i in 0 until before.length()) {
+            prior.add(before.getJSONObject(i).getString("client_id"))
         }
         store!!.saveWorklog(payload)
         var after = store!!.pendingActions()
-        run {
-            var i: Int = 0
-            var firstIteration29 = true
-            while (true) {
-                if (firstIteration29) firstIteration29 = false
-                else {
-                    i++
-                }
-                if (!(i < after.length())) break
-
-                var added = after.getJSONObject(i)
-                if (
-                    !(prior.contains(added.getString("client_id"))) &&
-                        ("worklog" == added.getString("kind")) &&
-                        (payload.getString("id") == added.getJSONObject("payload").optString("id"))
-                ) {
-                    store!!
-                        .getWritableDatabase()
-                        .delete("pending", "id=?", arrayOf(added.getString("client_id")))
-                }
+        for (i in 0 until after.length()) {
+            var added = after.getJSONObject(i)
+            if (
+                !(prior.contains(added.getString("client_id"))) &&
+                    ("worklog" == added.getString("kind")) &&
+                    (payload.getString("id") == added.getJSONObject("payload").optString("id"))
+            ) {
+                store!!
+                    .getWritableDatabase()
+                    .delete("pending", "id=?", arrayOf(added.getString("client_id")))
             }
         }
     }
@@ -881,22 +826,12 @@ class LocalOwnerRepository : OwnerRepository {
                 var current = JSONArray(store!!.ownerValue("personal_paid", "[]"))
                 var union = java.util.LinkedHashSet<String>()
                 for (list in arrayOf(old, current)) {
-                    run {
-                        var i: Int = 0
-                        var firstIteration30 = true
-                        while (true) {
-                            if (firstIteration30) firstIteration30 = false
-                            else {
-                                i++
-                            }
-                            if (!(i < list.length())) break
-
-                            var id = list.getString(i)
-                            if (id.isEmpty() || id.length > 500) {
-                                throw IllegalArgumentException()
-                            }
-                            union.add(id)
+                    for (i in 0 until list.length()) {
+                        var id = list.getString(i)
+                        if (id.isEmpty() || id.length > 500) {
+                            throw IllegalArgumentException()
                         }
+                        union.add(id)
                     }
                 }
                 store!!.putOwnerValue("personal_paid", JSONArray(union).toString())
@@ -917,18 +852,8 @@ class LocalOwnerRepository : OwnerRepository {
 
             var ids = JSONArray(value)
             var all = SnapshotProjection.effective(store!!.getState())
-            run {
-                var i: Int = 0
-                var firstIteration31 = true
-                while (true) {
-                    if (firstIteration31) firstIteration31 = false
-                    else {
-                        i++
-                    }
-                    if (!(i < ids.length())) break
-
-                    PixelMcpWriteTools.find(all.getJSONArray("worklogs"), ids.getString(i))
-                }
+            for (i in 0 until ids.length()) {
+                PixelMcpWriteTools.find(all.getJSONArray("worklogs"), ids.getString(i))
             }
             AccountingRules.requireConsistentChange(
                 all,

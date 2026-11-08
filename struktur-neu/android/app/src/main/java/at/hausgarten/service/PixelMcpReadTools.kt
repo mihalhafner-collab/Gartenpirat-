@@ -69,90 +69,30 @@ class PixelMcpReadTools {
         }
         if (writable()) {
             var writes = PixelMcpWriteTools.tools()
-            run {
-                var i: Int = 0
-                var firstIteration94 = true
-                while (true) {
-                    if (firstIteration94) firstIteration94 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < writes.length()))) break
-
-                    rows.put(writes.get(i))
-                }
+            for (i in 0 until writes.length()) {
+                rows.put(writes.get(i))
             }
             var entities = PixelMcpEntityWriteTools.tools()
-            run {
-                var i: Int = 0
-                var firstIteration95 = true
-                while (true) {
-                    if (firstIteration95) firstIteration95 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < entities.length()))) break
-
-                    var tool = entities.getJSONObject(i)
-                    rows.put(tool)
-                }
+            for (i in 0 until entities.length()) {
+                var tool = entities.getJSONObject(i)
+                rows.put(tool)
             }
             var sessions = PixelMcpSessionTools.tools()
-            run {
-                var i: Int = 0
-                var firstIteration96 = true
-                while (true) {
-                    if (firstIteration96) firstIteration96 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < sessions.length()))) break
-
-                    rows.put(sessions.get(i))
-                }
+            for (i in 0 until sessions.length()) {
+                rows.put(sessions.get(i))
             }
         }
         var owner = PixelMcpOwnerTools.tools(writable())
-        run {
-            var i: Int = 0
-            var firstIteration97 = true
-            while (true) {
-                if (firstIteration97) firstIteration97 = false
-                else {
-                    i++
-                }
-                if (!((i < owner.length()))) break
-
-                rows.put(owner.get(i))
-            }
+        for (i in 0 until owner.length()) {
+            rows.put(owner.get(i))
         }
         var offers = OfferTools.tools(writable())
-        run {
-            var i: Int = 0
-            var firstIteration98 = true
-            while (true) {
-                if (firstIteration98) firstIteration98 = false
-                else {
-                    i++
-                }
-                if (!((i < offers.length()))) break
-
-                rows.put(offers.get(i))
-            }
+        for (i in 0 until offers.length()) {
+            rows.put(offers.get(i))
         }
         var planning = AppointmentTools.tools(writable())
-        run {
-            var i: Int = 0
-            var firstIteration99 = true
-            while (true) {
-                if (firstIteration99) firstIteration99 = false
-                else {
-                    i++
-                }
-                if (!((i < planning.length()))) break
-
-                rows.put(planning.get(i))
-            }
+        for (i in 0 until planning.length()) {
+            rows.put(planning.get(i))
         }
         return rows
     }
@@ -300,21 +240,9 @@ class PixelMcpReadTools {
             }
         }
         var required = spec.getJSONArray("required")
-        run {
-            var i: Int = 0
-            var firstIteration100 = true
-            while (true) {
-                if (firstIteration100) firstIteration100 = false
-                else {
-                    i++
-                }
-                if (!((i < required.length()))) break
-
-                if (a.optString(required.getString(i)).trim().isEmpty()) {
-                    throw IllegalArgumentException(
-                        ("Pflichtangabe fehlt: " + required.getString(i))
-                    )
-                }
+        for (i in 0 until required.length()) {
+            if (a.optString(required.getString(i)).trim().isEmpty()) {
+                throw IllegalArgumentException(("Pflichtangabe fehlt: " + required.getString(i)))
             }
         }
         for (field in arrayOf("date_from", "date_to")) {

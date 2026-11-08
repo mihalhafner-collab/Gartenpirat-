@@ -212,11 +212,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             }
             run {
                 var names = value.keys()
-                var firstIteration34 = true
-                while (true) {
-                    if (firstIteration34) firstIteration34 = false else {}
-                    if (!(names.hasNext())) break
-
+                while (names.hasNext()) {
                     if (!(keys.contains(names.next()))) {
                         throw IllegalArgumentException()
                     }
@@ -858,28 +854,18 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             var saved = saveWorklog(payload)
             var photos = PixelMcpReadTools.effective(getState())
             var sessionPhotos = photos.getJSONArray("photos")
-            run {
-                var i: Int = 0
-                var firstIteration39 = true
-                while (true) {
-                    if (firstIteration39) firstIteration39 = false
-                    else {
-                        i++
-                    }
-                    if (!(i < sessionPhotos.length())) break
-
-                    var old = sessionPhotos.getJSONObject(i)
-                    if (
-                        !((sessionId == old.optString("session_id"))) ||
-                            !(old.optString("worklog_id").isEmpty())
-                    ) {
-                        continue
-                    }
-                    var linked = LocalJournalRules.clean(old)
-                    linked.put("worklog_id", saved)
-                    prepareManualChange("photo", linked, old)
-                    saveAction("photo", "pho_mobile_", linked)
+            for (i in 0 until sessionPhotos.length()) {
+                var old = sessionPhotos.getJSONObject(i)
+                if (
+                    !((sessionId == old.optString("session_id"))) ||
+                        !(old.optString("worklog_id").isEmpty())
+                ) {
+                    continue
                 }
+                var linked = LocalJournalRules.clean(old)
+                linked.put("worklog_id", saved)
+                prepareManualChange("photo", linked, old)
+                saveAction("photo", "pho_mobile_", linked)
             }
             sessions.finalizeSession(sessionId, saved, requestId)
             database.setTransactionSuccessful()
@@ -1006,18 +992,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 }
                 var existingActions = HashSet<String>()
                 var priorActions = pendingActions()
-                run {
-                    var i: Int = 0
-                    var firstIteration40 = true
-                    while (true) {
-                        if (firstIteration40) firstIteration40 = false
-                        else {
-                            i++
-                        }
-                        if (!(i < priorActions.length())) break
-
-                        existingActions.add(priorActions.getJSONObject(i).getString("client_id"))
-                    }
+                for (i in 0 until priorActions.length()) {
+                    existingActions.add(priorActions.getJSONObject(i).getString("client_id"))
                 }
                 var entityId: String
                 when (entityType) {
@@ -1307,20 +1283,10 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
     private @Throws(Exception::class) fun findById(rows: JSONArray, id: String): JSONObject? {
 
-        run {
-            var i: Int = 0
-            var firstIteration46 = true
-            while (true) {
-                if (firstIteration46) firstIteration46 = false
-                else {
-                    i++
-                }
-                if (!(i < rows.length())) break
-
-                var row = rows.optJSONObject(i)
-                if (row != null && (id == row.optString("id"))) {
-                    return row
-                }
+        for (i in 0 until rows.length()) {
+            var row = rows.optJSONObject(i)
+            if (row != null && (id == row.optString("id"))) {
+                return row
             }
         }
         return null
@@ -1664,11 +1630,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             )
             run {
                 var keys = prepared.metadata.keys()
-                var firstIteration49 = true
-                while (true) {
-                    if (firstIteration49) firstIteration49 = false else {}
-                    if (!(keys.hasNext())) break
-
+                while (keys.hasNext()) {
                     var key = keys.next()
                     payload.put(key, prepared.metadata.get(key))
                 }
@@ -1907,42 +1869,32 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
 
         var result = JSONArray()
         var confirmed = persistedConfirmedActionIds()
-        run {
-            var i: Int = 0
-            var firstIteration50 = true
-            while (true) {
-                if (firstIteration50) firstIteration50 = false
-                else {
-                    i++
-                }
-                if (!(i < actions.length())) break
-
-                var action = actions.getJSONObject(i)
-                var payload = action.optJSONObject("payload")
-                if (
-                    !(("photo" == action.optString("kind"))) ||
-                        payload == null ||
-                        !(payload.optString("data").isEmpty())
-                ) {
-                    continue
-                }
-                var metadata = photoAttachment(payload.optString("id"))
-                if (metadata == null) {
-                    if (confirmed.contains(action.optString("client_id"))) {
-                        continue
-                    }
-                    result.put(
-                        JSONObject().put("photo_id", payload.optString("id")).put("missing", true)
-                    )
-                    continue
-                }
-                for (key in arrayOf("thumbnail_storage_name", "thumbnail_sha256")) {
-                    if (payload.has(key)) {
-                        metadata.put(key, payload.get(key))
-                    }
-                }
-                result.put(metadata)
+        for (i in 0 until actions.length()) {
+            var action = actions.getJSONObject(i)
+            var payload = action.optJSONObject("payload")
+            if (
+                !(("photo" == action.optString("kind"))) ||
+                    payload == null ||
+                    !(payload.optString("data").isEmpty())
+            ) {
+                continue
             }
+            var metadata = photoAttachment(payload.optString("id"))
+            if (metadata == null) {
+                if (confirmed.contains(action.optString("client_id"))) {
+                    continue
+                }
+                result.put(
+                    JSONObject().put("photo_id", payload.optString("id")).put("missing", true)
+                )
+                continue
+            }
+            for (key in arrayOf("thumbnail_storage_name", "thumbnail_sha256")) {
+                if (payload.has(key)) {
+                    metadata.put(key, payload.get(key))
+                }
+            }
+            result.put(metadata)
         }
         return result
     }
@@ -1965,112 +1917,100 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         beginBusinessTransaction(database)
         try {
 
-            run {
-                var i: Int = 0
-                var firstIteration51 = true
-                while (true) {
-                    if (firstIteration51) firstIteration51 = false
-                    else {
-                        i++
-                    }
-                    if (!(i < photos.length())) break
-
-                    var photo = photos.optJSONObject(i)
-                    if (photo == null || photo.optString("id").isEmpty()) {
-                        continue
-                    }
-                    var local = photoAttachment(photo.optString("id"))
-                    var inline = photo.optString("data")
-                    if (inline.isEmpty()) {
-                        inline = photo.optString("full_data")
-                    }
-                    if (!(inline.isEmpty())) {
-                        var prepared =
-                            photoAttachments.prepareLegacy(
-                                JSONObject(photo.toString()).put("data", inline)
-                            )
-                        if (
-                            local != null &&
-                                !((local.getString("content_sha256") ==
-                                    prepared.metadata.getString("content_sha256")))
-                        ) {
-                            if (prepared.created) {
-                                photoAttachments.discardCreated(prepared.metadata)
-                            }
-                            throw IllegalArgumentException(
-                                "Die Foto-ID verweist auf verschiedene Originale. Abgleich angehalten."
-                            )
-                        }
-                        if (local == null) {
-                            saveAttachmentMetadata(
-                                database,
-                                photo.getString("id"),
-                                prepared.metadata,
-                                "legacy_inline_snapshot",
-                            )
-                            local =
-                                JSONObject(prepared.metadata.toString())
-                                    .put("photo_id", photo.getString("id"))
-                        }
-                    }
-                    photo.remove("data")
-                    photo.remove("full_data")
+            for (i in 0 until photos.length()) {
+                var photo = photos.optJSONObject(i)
+                if (photo == null || photo.optString("id").isEmpty()) {
+                    continue
+                }
+                var local = photoAttachment(photo.optString("id"))
+                var inline = photo.optString("data")
+                if (inline.isEmpty()) {
+                    inline = photo.optString("full_data")
+                }
+                if (!(inline.isEmpty())) {
+                    var prepared =
+                        photoAttachments.prepareLegacy(
+                            JSONObject(photo.toString()).put("data", inline)
+                        )
                     if (
                         local != null &&
-                            (!(photo.optString("content_sha256").matches(Regex("[0-9a-f]{64}"))) ||
-                                !(PhotoAttachmentStore.canonicalName(
-                                    photo.optString("storage_name")
-                                )))
+                            !((local.getString("content_sha256") ==
+                                prepared.metadata.getString("content_sha256")))
                     ) {
-                        for (key in
-                            arrayOf(
-                                "content_sha256",
-                                "mime_type",
-                                "byte_size",
-                                "storage_name",
-                                "role",
-                            )) {
-                            photo.put(key, local.get(key))
+                        if (prepared.created) {
+                            photoAttachments.discardCreated(prepared.metadata)
                         }
-                    }
-                    if (
-                        !(photo.optString("content_sha256").matches(Regex("[0-9a-f]{64}"))) ||
-                            !(PhotoAttachmentStore.canonicalName(photo.optString("storage_name")))
-                    ) {
-                        continue
-                    }
-                    var keepExisting: Boolean = false
-                    database
-                        .rawQuery(
-                            "SELECT content_sha256,transfer_state FROM photo_attachments WHERE photo_id=?",
-                            arrayOf(photo.getString("id")),
+                        throw IllegalArgumentException(
+                            "Die Foto-ID verweist auf verschiedene Originale. Abgleich angehalten."
                         )
-                        .use { existing ->
-                            if (existing.moveToFirst()) {
-                                var sameHash: Boolean =
-                                    (existing.getString(0) == photo.getString("content_sha256"))
-                                var authoritativeLocal: Boolean =
-                                    !(("remote_available" == existing.getString(1)))
-                                keepExisting = sameHash || authoritativeLocal
-                            }
-                        }
-                    if (keepExisting) {
-                        continue
                     }
-                    var metadata =
-                        JSONObject()
-                            .put("content_sha256", photo.getString("content_sha256"))
-                            .put("mime_type", photo.getString("mime_type"))
-                            .put("byte_size", photo.getLong("byte_size"))
-                            .put("storage_name", photo.getString("storage_name"))
-                            .put("role", photo.optString("role", "documentation"))
-                    saveAttachmentMetadata(
-                        database,
-                        photo.getString("id"),
-                        metadata,
-                        "remote_available",
-                    )
+                    if (local == null) {
+                        saveAttachmentMetadata(
+                            database,
+                            photo.getString("id"),
+                            prepared.metadata,
+                            "legacy_inline_snapshot",
+                        )
+                        local =
+                            JSONObject(prepared.metadata.toString())
+                                .put("photo_id", photo.getString("id"))
+                    }
                 }
+                photo.remove("data")
+                photo.remove("full_data")
+                if (
+                    local != null &&
+                        (!(photo.optString("content_sha256").matches(Regex("[0-9a-f]{64}"))) ||
+                            !(PhotoAttachmentStore.canonicalName(photo.optString("storage_name"))))
+                ) {
+                    for (key in
+                        arrayOf(
+                            "content_sha256",
+                            "mime_type",
+                            "byte_size",
+                            "storage_name",
+                            "role",
+                        )) {
+                        photo.put(key, local.get(key))
+                    }
+                }
+                if (
+                    !(photo.optString("content_sha256").matches(Regex("[0-9a-f]{64}"))) ||
+                        !(PhotoAttachmentStore.canonicalName(photo.optString("storage_name")))
+                ) {
+                    continue
+                }
+                var keepExisting: Boolean = false
+                database
+                    .rawQuery(
+                        "SELECT content_sha256,transfer_state FROM photo_attachments WHERE photo_id=?",
+                        arrayOf(photo.getString("id")),
+                    )
+                    .use { existing ->
+                        if (existing.moveToFirst()) {
+                            var sameHash: Boolean =
+                                (existing.getString(0) == photo.getString("content_sha256"))
+                            var authoritativeLocal: Boolean =
+                                !(("remote_available" == existing.getString(1)))
+                            keepExisting = sameHash || authoritativeLocal
+                        }
+                    }
+                if (keepExisting) {
+                    continue
+                }
+                var metadata =
+                    JSONObject()
+                        .put("content_sha256", photo.getString("content_sha256"))
+                        .put("mime_type", photo.getString("mime_type"))
+                        .put("byte_size", photo.getLong("byte_size"))
+                        .put("storage_name", photo.getString("storage_name"))
+                        .put("role", photo.optString("role", "documentation"))
+                saveAttachmentMetadata(
+                    database,
+                    photo.getString("id"),
+                    metadata,
+                    "remote_available",
+                )
             }
             database.setTransactionSuccessful()
         } finally {
@@ -2105,37 +2045,27 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 }
             }
         }
-        run {
-            var i: Int = 0
-            var firstIteration53 = true
-            while (true) {
-                if (firstIteration53) firstIteration53 = false
-                else {
-                    i++
-                }
-                if (!(i < submitted.length())) break
-
-                var action = submitted.optJSONObject(i)
-                var payload = (if (action == null) null else action.optJSONObject("payload"))
-                if (payload == null) {
-                    continue
-                }
-                var client = action.optString("client_id")
-                var kind = action.optString("kind")
-                var id = payload.optString("id")
-                if (("photo" == kind) && !(confirmed.contains(client)) && !(id.isEmpty())) {
-                    protectedPending.add(id)
-                }
-                if (
-                    ("delete" == kind) &&
-                        ("photo" == payload.optString("entity")) &&
-                        confirmed.contains(client) &&
-                        !(id.isEmpty()) &&
-                        (snapshot.optJSONObject("drive_resolved_actions") == null ||
-                            !(snapshot.getJSONObject("drive_resolved_actions").has(client)))
-                ) {
-                    candidates.add(id)
-                }
+        for (i in 0 until submitted.length()) {
+            var action = submitted.optJSONObject(i)
+            var payload = (if (action == null) null else action.optJSONObject("payload"))
+            if (payload == null) {
+                continue
+            }
+            var client = action.optString("client_id")
+            var kind = action.optString("kind")
+            var id = payload.optString("id")
+            if (("photo" == kind) && !(confirmed.contains(client)) && !(id.isEmpty())) {
+                protectedPending.add(id)
+            }
+            if (
+                ("delete" == kind) &&
+                    ("photo" == payload.optString("entity")) &&
+                    confirmed.contains(client) &&
+                    !(id.isEmpty()) &&
+                    (snapshot.optJSONObject("drive_resolved_actions") == null ||
+                        !(snapshot.getJSONObject("drive_resolved_actions").has(client)))
+            ) {
+                candidates.add(id)
             }
         }
         candidates.removeAll(active)
@@ -2199,37 +2129,27 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         var queued = pendingActions()
         var dependencies = JSONArray()
         var last = ""
-        run {
-            var i: Int = 0
-            var firstIteration54 = true
-            while (true) {
-                if (firstIteration54) firstIteration54 = false
-                else {
-                    i++
-                }
-                if (!(i < queued.length())) break
-
-                var a = queued.getJSONObject(i)
-                var p = a.getJSONObject("payload")
-                var type = a.optString("kind")
-                if ((kind == type) && (payload.optString("id") == p.optString("id"))) {
-                    last = a.getString("client_id")
-                }
-                if (p.optBoolean("_mcp_create")) {
-                    for (ref in
-                        arrayOf(
-                            arrayOf("customer_id", "customer"),
-                            arrayOf("billing_customer_id", "customer"),
-                            arrayOf("order_id", "order"),
-                            arrayOf("worklog_id", "worklog"),
-                        )) {
-                        if (
-                            (ref[1] == type) &&
-                                !(payload.optString(ref[0]).isEmpty()) &&
-                                (payload.optString(ref[0]) == p.optString("id"))
-                        ) {
-                            dependencies.put(a.getString("client_id"))
-                        }
+        for (i in 0 until queued.length()) {
+            var a = queued.getJSONObject(i)
+            var p = a.getJSONObject("payload")
+            var type = a.optString("kind")
+            if ((kind == type) && (payload.optString("id") == p.optString("id"))) {
+                last = a.getString("client_id")
+            }
+            if (p.optBoolean("_mcp_create")) {
+                for (ref in
+                    arrayOf(
+                        arrayOf("customer_id", "customer"),
+                        arrayOf("billing_customer_id", "customer"),
+                        arrayOf("order_id", "order"),
+                        arrayOf("worklog_id", "worklog"),
+                    )) {
+                    if (
+                        (ref[1] == type) &&
+                            !(payload.optString(ref[0]).isEmpty()) &&
+                            (payload.optString(ref[0]) == p.optString("id"))
+                    ) {
+                        dependencies.put(a.getString("client_id"))
                     }
                 }
             }
@@ -2350,30 +2270,20 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 (if (kind.startsWith("offer_")) "offer"
                 else (if (kind.startsWith("invoice_")) "invoice" else kind)))
         var pending = pendingActions()
-        run {
-            var i: Int = 0
-            var firstIteration57 = true
-            while (true) {
-                if (firstIteration57) firstIteration57 = false
-                else {
-                    i++
-                }
-                if (!(i < pending.length())) break
-
-                var a = pending.getJSONObject(i)
-                var p = a.getJSONObject("payload")
-                if (!(p.optBoolean("_local_only")) && !(p.optBoolean("test_record"))) {
-                    continue
-                }
-                if (
-                    (a.optString("kind") == "customer") &&
-                        (p.optString("id") == payload.optString("customer_id")) ||
-                        (a.optString("kind") == entity) &&
-                            !(p.optString("id").isEmpty()) &&
-                            (p.optString("id") == payload.optString("id"))
-                ) {
-                    return true
-                }
+        for (i in 0 until pending.length()) {
+            var a = pending.getJSONObject(i)
+            var p = a.getJSONObject("payload")
+            if (!(p.optBoolean("_local_only")) && !(p.optBoolean("test_record"))) {
+                continue
+            }
+            if (
+                (a.optString("kind") == "customer") &&
+                    (p.optString("id") == payload.optString("customer_id")) ||
+                    (a.optString("kind") == entity) &&
+                        !(p.optString("id").isEmpty()) &&
+                        (p.optString("id") == payload.optString("id"))
+            ) {
+                return true
             }
         }
         return false

@@ -94,95 +94,66 @@ internal class PixelMcpBusinessTools {
                     "Bitte einen engeren Zeitraum für die Qualitätsprüfung wählen."
                 )
             }
-            run {
-                var i: Int = 0
-                var firstIteration85 = true
-                while (true) {
-                    if (firstIteration85) firstIteration85 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < logs.length()))) break
+            for (i in 0 until logs.length()) {
+                var row = logs.getJSONObject(i)
+                hours += row.optDouble("hours", 0.0)
+                if (row.optInt("billed", 0) == 0) marked++
+                if (!(customerIds.contains(row.optString("customer_id")))) {
+                    issues.put(
+                        issue("MISSING_CUSTOMER", row, "Kundenverknüpfung fehlt oder ist ungültig.")
+                    )
+                }
+                try {
 
-                    var row = logs.getJSONObject(i)
-                    hours += row.optDouble("hours", 0.0)
-                    if (row.optInt("billed", 0) == 0) marked++
-                    if (!(customerIds.contains(row.optString("customer_id")))) {
+                    var normalized = JSONObject(row.toString())
+                    WorklogRules.validate(normalized, false)
+                    if (
+                        (Math.abs((normalized.optDouble("hours") - row.optDouble("hours"))) > 0.005)
+                    ) {
                         issues.put(
                             issue(
-                                "MISSING_CUSTOMER",
+                                "TIME_MISMATCH",
                                 row,
-                                "Kundenverknüpfung fehlt oder ist ungültig.",
+                                "Gespeicherte Stunden passen nicht zu den Uhrzeiten.",
                             )
                         )
                     }
-                    try {
-
-                        var normalized = JSONObject(row.toString())
-                        WorklogRules.validate(normalized, false)
-                        if (
-                            (Math.abs((normalized.optDouble("hours") - row.optDouble("hours"))) >
-                                0.005)
-                        ) {
-                            issues.put(
-                                issue(
-                                    "TIME_MISMATCH",
-                                    row,
-                                    "Gespeicherte Stunden passen nicht zu den Uhrzeiten.",
-                                )
-                            )
-                        }
-                    } catch (e: Exception) {
+                } catch (e: Exception) {
+                    issues.put(
+                        issue(
+                            "INVALID_WORK_RECORD",
+                            row,
+                            "Datum, Zeiten, Tätigkeit und Zahlen bitte prüfen.",
+                        )
+                    )
+                }
+                for (j in 0 until i) {
+                    var other = logs.getJSONObject(j)
+                    if (overlap(row, other)) {
                         issues.put(
                             issue(
-                                "INVALID_WORK_RECORD",
+                                "TIME_OVERLAP",
                                 row,
-                                "Datum, Zeiten, Tätigkeit und Zahlen bitte prüfen.",
+                                ("Überschneidung mit " + other.optString("id")),
                             )
                         )
                     }
-                    run {
-                        var j: Int = 0
-                        var firstIteration84 = true
-                        while (true) {
-                            if (firstIteration84) firstIteration84 = false
-                            else {
-                                j++
-                            }
-                            if (!((j < i))) break
-
-                            var other = logs.getJSONObject(j)
-                            if (overlap(row, other)) {
-                                issues.put(
-                                    issue(
-                                        "TIME_OVERLAP",
-                                        row,
-                                        ("Überschneidung mit " + other.optString("id")),
-                                    )
-                                )
-                            }
-                            if (
-                                ((((row.optString("customer_id") ==
-                                    other.optString("customer_id")) &&
-                                    (row.optString("work_date") == other.optString("work_date"))) &&
-                                    (Math.abs((row.optDouble("hours") - other.optDouble("hours"))) <
-                                        0.005)) &&
-                                    row.optString("activity")
-                                        .trim()
-                                        .equals(
-                                            other.optString("activity").trim(),
-                                            ignoreCase = true,
-                                        ))
-                            ) {
-                                issues.put(
-                                    issue(
-                                        "POSSIBLE_DUPLICATE",
-                                        row,
-                                        ("Ähnlicher Eintrag: " + other.optString("id")),
-                                    )
-                                )
-                            }
-                        }
+                    if (
+                        ((((row.optString("customer_id") == other.optString("customer_id")) &&
+                            (row.optString("work_date") == other.optString("work_date"))) &&
+                            (Math.abs((row.optDouble("hours") - other.optDouble("hours"))) <
+                                0.005)) &&
+                            row.optString("activity")
+                                .trim()
+                                .equals(other.optString("activity").trim(), ignoreCase = true))
+                    ) {
+                        issues.put(
+                            issue(
+                                "POSSIBLE_DUPLICATE",
+                                row,
+                                ("Ähnlicher Eintrag: " + other.optString("id")),
+                            )
+                        )
                     }
                 }
             }

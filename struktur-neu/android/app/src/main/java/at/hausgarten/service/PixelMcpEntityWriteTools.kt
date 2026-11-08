@@ -172,11 +172,7 @@ internal class PixelMcpEntityWriteTools {
             var props = schema.getJSONObject("properties")
             run {
                 var it = args.keys()
-                var firstIteration87 = true
-                while (true) {
-                    if (firstIteration87) firstIteration87 = false else {}
-                    if (!(it.hasNext())) break
-
+                while (it.hasNext()) {
                     var key = it.next()
                     if (!(props.has(key))) {
                         throw PixelMcpWriteTools.Rejected(
@@ -193,19 +189,9 @@ internal class PixelMcpEntityWriteTools {
                     if (((value == JSONObject.NULL) && declared is JSONArray)) {
                         var nullable: Boolean = false
                         var types = (declared as JSONArray)
-                        run {
-                            var i: Int = 0
-                            var firstIteration86 = true
-                            while (true) {
-                                if (firstIteration86) firstIteration86 = false
-                                else {
-                                    i++
-                                }
-                                if (!((i < types.length()))) break
-
-                                if (("null" == types.optString(i))) {
-                                    nullable = true
-                                }
+                        for (i in 0 until types.length()) {
+                            if (("null" == types.optString(i))) {
+                                nullable = true
                             }
                         }
                         if (nullable) {

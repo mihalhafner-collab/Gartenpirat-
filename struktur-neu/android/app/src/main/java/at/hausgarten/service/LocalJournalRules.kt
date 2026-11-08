@@ -76,25 +76,15 @@ internal class LocalJournalRules {
                     throw IllegalArgumentException("Der lokale Gesamtstand ist unvollständig.")
                 }
                 var ids = HashSet<String>()
-                run {
-                    var i: Int = 0
-                    var firstIteration1 = true
-                    while (true) {
-                        if (firstIteration1) firstIteration1 = false
-                        else {
-                            i++
-                        }
-                        if (!((i < rows.length()))) break
-
-                        var row = rows.optJSONObject(i)
-                        if (
-                            (((row == null) || row.optString("id").isEmpty()) ||
-                                !(ids.add(row.getString("id"))))
-                        ) {
-                            throw IllegalArgumentException(
-                                "Ungültige oder doppelte IDs im lokalen Gesamtstand."
-                            )
-                        }
+                for (i in 0 until rows.length()) {
+                    var row = rows.optJSONObject(i)
+                    if (
+                        (((row == null) || row.optString("id").isEmpty()) ||
+                            !(ids.add(row.getString("id"))))
+                    ) {
+                        throw IllegalArgumentException(
+                            "Ungültige oder doppelte IDs im lokalen Gesamtstand."
+                        )
                     }
                 }
             }
@@ -191,11 +181,7 @@ internal class LocalJournalRules {
             var out = JSONObject(value.toString())
             run {
                 var keys = value.keys()
-                var firstIteration3 = true
-                while (true) {
-                    if (firstIteration3) firstIteration3 = false else {}
-                    if (!(keys.hasNext())) break
-
+                while (keys.hasNext()) {
                     var key = keys.next()
                     if (
                         (((key.startsWith("_") || (key == "pending")) ||
@@ -265,11 +251,7 @@ internal class LocalJournalRules {
             }
             run {
                 var keys = expected.keys()
-                var firstIteration4 = true
-                while (true) {
-                    if (firstIteration4) firstIteration4 = false else {}
-                    if (!(keys.hasNext())) break
-
+                while (keys.hasNext()) {
                     var key = keys.next()
                     if (
                         !((PixelMcpWriteTools.canonical(comparable(key, expected.get(key))) ==
@@ -430,87 +412,41 @@ internal class LocalJournalRules {
             var customers = snapshot.getJSONArray("customers")
             var orders = snapshot.getJSONArray("orders")
             var logs = snapshot.getJSONArray("worklogs")
-            run {
-                var i: Int = 0
-                var firstIteration24 = true
-                while (true) {
-                    if (firstIteration24) firstIteration24 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < customers.length()))) break
-
-                    var row = customers.getJSONObject(i)
-                    names.put(row.getString("id"), row.optString("name"))
-                }
+            for (i in 0 until customers.length()) {
+                var row = customers.getJSONObject(i)
+                names.put(row.getString("id"), row.optString("name"))
             }
-            run {
-                var i: Int = 0
-                var firstIteration25 = true
-                while (true) {
-                    if (firstIteration25) firstIteration25 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < orders.length()))) break
-
-                    var row = orders.getJSONObject(i)
-                    titles.put(row.getString("id"), row.optString("title"))
-                }
+            for (i in 0 until orders.length()) {
+                var row = orders.getJSONObject(i)
+                titles.put(row.getString("id"), row.optString("title"))
             }
-            run {
-                var i: Int = 0
-                var firstIteration26 = true
-                while (true) {
-                    if (firstIteration26) firstIteration26 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < logs.length()))) break
-
-                    var row = logs.getJSONObject(i)
-                    var order = row.optString("order_id")
-                    totals.put(
-                        order,
-                        (totals.getOrDefault(order, 0.0) + row.optDouble("hours", 0.0)),
-                    )
-                }
+            for (i in 0 until logs.length()) {
+                var row = logs.getJSONObject(i)
+                var order = row.optString("order_id")
+                totals.put(order, (totals.getOrDefault(order, 0.0) + row.optDouble("hours", 0.0)))
             }
             for (group in arrayOf("orders", "worklogs", "photos", "invoices")) {
                 var rows = snapshot.getJSONArray(group)
-                run {
-                    var i: Int = 0
-                    var firstIteration27 = true
-                    while (true) {
-                        if (firstIteration27) firstIteration27 = false
-                        else {
-                            i++
-                        }
-                        if (!((i < rows.length()))) break
-
-                        var row = rows.getJSONObject(i)
-                        if (row.has("customer_name")) {
-                            row.put(
-                                "customer_name",
-                                names.getOrDefault(
-                                    row.optString("customer_id"),
-                                    row.optString("customer_name"),
-                                ),
-                            )
-                        }
-                        if (row.has("order_title")) {
-                            row.put(
-                                "order_title",
-                                titles.getOrDefault(row.optString("order_id"), ""),
-                            )
-                        }
-                        if (((group == "orders") && row.has("total_hours"))) {
-                            row.put(
-                                "total_hours",
-                                (Math.round((totals.getOrDefault(row.optString("id"), 0.0) * 100)) /
-                                    100.0),
-                            )
-                        }
+                for (i in 0 until rows.length()) {
+                    var row = rows.getJSONObject(i)
+                    if (row.has("customer_name")) {
+                        row.put(
+                            "customer_name",
+                            names.getOrDefault(
+                                row.optString("customer_id"),
+                                row.optString("customer_name"),
+                            ),
+                        )
+                    }
+                    if (row.has("order_title")) {
+                        row.put("order_title", titles.getOrDefault(row.optString("order_id"), ""))
+                    }
+                    if (((group == "orders") && row.has("total_hours"))) {
+                        row.put(
+                            "total_hours",
+                            (Math.round((totals.getOrDefault(row.optString("id"), 0.0) * 100)) /
+                                100.0),
+                        )
                     }
                 }
             }

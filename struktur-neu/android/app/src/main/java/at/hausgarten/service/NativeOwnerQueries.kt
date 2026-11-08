@@ -136,11 +136,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
         var contract = storageContract()
         run {
             var keys = contract.keys()
-            var firstIteration12 = true
-            while (true) {
-                if (firstIteration12) firstIteration12 = false else {}
-                if (!(keys.hasNext())) break
-
+            while (keys.hasNext()) {
                 var key = keys.next()
                 result.put(key, contract.get(key))
             }
@@ -417,11 +413,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                     var keys = ArrayList<String>()
                     run {
                         var it = archive.keys()
-                        var firstIteration15 = true
-                        while (true) {
-                            if (firstIteration15) firstIteration15 = false else {}
-                            if (!(it.hasNext())) break
-
+                        while (it.hasNext()) {
                             var key = it.next()
                             if (archive.getJSONObject(key).optBoolean("purged")) {
                                 continue
@@ -535,18 +527,8 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
             )
         var catalogue = tools.tools()
         var names = HashSet<String>()
-        run {
-            var i: Int = 0
-            var firstIteration17 = true
-            while (true) {
-                if (firstIteration17) firstIteration17 = false
-                else {
-                    i++
-                }
-                if (!(i < catalogue.length())) break
-
-                names.add(catalogue.getJSONObject(i).getString("name"))
-            }
+        for (i in 0 until catalogue.length()) {
+            names.add(catalogue.getJSONObject(i).getString("name"))
         }
         checks.put(JSONObject().put("name", "build_and_protocol").put("status", "PASS"))
         checks.put(
@@ -595,36 +577,16 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
             JSONObject(String(repository.asset("ui-mcp-actions.json"), StandardCharsets.UTF_8))
         var actions = inventory.getJSONArray("actions")
         var parity: Boolean = true
-        run {
-            var i: Int = 0
-            var firstIteration19 = true
-            while (true) {
-                if (firstIteration19) firstIteration19 = false
-                else {
-                    i++
+        for (i in 0 until actions.length()) {
+            var action = actions.getJSONObject(i)
+            var path = action.getJSONArray("mcp")
+            if ((action.getString("kind") == "business")) {
+                parity = parity and (path.length() > 0)
+                for (j in 0 until path.length()) {
+                    parity = parity and (names.contains(path.getString(j)))
                 }
-                if (!(i < actions.length())) break
-
-                var action = actions.getJSONObject(i)
-                var path = action.getJSONArray("mcp")
-                if ((action.getString("kind") == "business")) {
-                    parity = parity and (path.length() > 0)
-                    run {
-                        var j: Int = 0
-                        var firstIteration18 = true
-                        while (true) {
-                            if (firstIteration18) firstIteration18 = false
-                            else {
-                                j++
-                            }
-                            if (!(j < path.length())) break
-
-                            parity = parity and (names.contains(path.getString(j)))
-                        }
-                    }
-                } else {
-                    parity = parity and (!(action.optString("barrier").isEmpty()))
-                }
+            } else {
+                parity = parity and (!(action.optString("barrier").isEmpty()))
             }
         }
         checks.put(

@@ -794,11 +794,7 @@ internal class LocalWorkflowTools {
 
             run {
                 var keys = fields.keys()
-                var firstIteration73 = true
-                while (true) {
-                    if (firstIteration73) firstIteration73 = false else {}
-                    if (!(keys.hasNext())) break
-
+                while (keys.hasNext()) {
                     var key = keys.next()
                     target.put(key, fields.get(key))
                 }

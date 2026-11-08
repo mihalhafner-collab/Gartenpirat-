@@ -192,11 +192,7 @@ class PixelMcpWriteTools {
             var props = schema.getJSONObject("properties")
             run {
                 var it = args.keys()
-                var firstIteration101 = true
-                while (true) {
-                    if (firstIteration101) firstIteration101 = false else {}
-                    if (!(it.hasNext())) break
-
+                while (it.hasNext()) {
                     var key = it.next()
                     if (!(props.has(key))) {
                         throw Rejected("INVALID_INPUT", ("Diese Angabe ist nicht erlaubt: " + key))
@@ -289,18 +285,8 @@ class PixelMcpWriteTools {
             if (value is JSONArray) {
                 var out = StringJoiner(",", "[", "]")
                 var a = (value as JSONArray)
-                run {
-                    var i: Int = 0
-                    var firstIteration103 = true
-                    while (true) {
-                        if (firstIteration103) firstIteration103 = false
-                        else {
-                            i++
-                        }
-                        if (!((i < a.length()))) break
-
-                        out.add(canonical(a.get(i)))
-                    }
+                for (i in 0 until a.length()) {
+                    out.add(canonical(a.get(i)))
                 }
                 return out.toString()
             }
@@ -461,11 +447,7 @@ class PixelMcpWriteTools {
                 if (invoiced) {
                     run {
                         var it = patch.keys()
-                        var firstIteration108 = true
-                        while (true) {
-                            if (firstIteration108) firstIteration108 = false else {}
-                            if (!(it.hasNext())) break
-
+                        while (it.hasNext()) {
                             if (!((it.next() == "notes"))) {
                                 throw Rejected(
                                     "BILLED_RECORD_LOCKED",
@@ -478,11 +460,7 @@ class PixelMcpWriteTools {
                 payload = JSONObject(old.toString())
                 run {
                     var it = patch.keys()
-                    var firstIteration109 = true
-                    while (true) {
-                        if (firstIteration109) firstIteration109 = false else {}
-                        if (!(it.hasNext())) break
-
+                    while (it.hasNext()) {
                         var key = it.next()
                         payload.put(key, patch.get(key))
                     }

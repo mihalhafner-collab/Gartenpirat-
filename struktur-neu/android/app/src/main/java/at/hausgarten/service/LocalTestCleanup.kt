@@ -27,11 +27,7 @@ internal class LocalTestCleanup {
             var tombstones = JSONObject(values.get(KEY, "{}"))
             run {
                 var it = tombstones.keys()
-                var firstIteration60 = true
-                while (true) {
-                    if (firstIteration60) firstIteration60 = false else {}
-                    if (!(it.hasNext())) break
-
+                while (it.hasNext()) {
                     var key = it.next()
                     LocalTestTombstone.project(master, key, tombstones.getJSONObject(key))
                 }
@@ -104,24 +100,14 @@ internal class LocalTestCleanup {
             if (TestDataRules.customer(c)) {
                 return true
             }
-            run {
-                var i: Int = 0
-                var firstIteration62 = true
-                while (true) {
-                    if (firstIteration62) firstIteration62 = false
-                    else {
-                        i++
-                    }
-                    if (!((i < pending.length()))) break
-
-                    var a = pending.getJSONObject(i)
-                    if (
-                        (((a.optString("kind") == "customer") &&
-                            (a.getJSONObject("payload").optString("id") == customer)) &&
-                            TestDataRules.customer(a.getJSONObject("payload")))
-                    ) {
-                        return true
-                    }
+            for (i in 0 until pending.length()) {
+                var a = pending.getJSONObject(i)
+                if (
+                    (((a.optString("kind") == "customer") &&
+                        (a.getJSONObject("payload").optString("id") == customer)) &&
+                        TestDataRules.customer(a.getJSONObject("payload")))
+                ) {
+                    return true
                 }
             }
             return false
