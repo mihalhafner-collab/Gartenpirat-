@@ -52,19 +52,18 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Restliche Bereinigung (1.63.2/136)",
-    "status": "JVM-Fachtests laufen als Gradle-Unit-Tests (src/test, testReleaseUnitTest) statt über run-followup-java.py. Haupt-, Neben- und Filteraktionen tragen Test-Tags; Fallzahlen prüfen nur noch die Tests selbst. Java-Getter als Kotlin-Eigenschaften, 18 weitere Umwandlungsschleifen als while, rund 1.300 überflüssige !! entfernt (571 auf echten nullbaren Typen bleiben). Funktion unverändert; geänderter App-Code daher 1.63.2/136.",
-    "owner_instruction": "Ausdrücklicher Auftrag 08.11.2026: restliche offene Punkte umsetzen; Löschen gemergter Branches erlaubt.",
-    "next": [
-      "Oberfläche weiter nach APP.md: 2 Suche gruppiert; 3 Detailseiten mit „Gehört zu“-Chips und Löschen unten; 4 Wischen mit 5 s „Rückgängig“; 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste.",
-      "Große Dateien nur bei fachlicher Arbeit nach Bereich teilen (AGENTS.md: wenige Dateien)."
-    ],
+    "name": "Version 1.64.0/137: Oberfläche Schritt 2 – Suche",
+    "status": "Suche nach Art gruppiert (Objekte, Kunden, Abschlüsse, Arbeiten zuerst), Anrufen und Route im Treffer, ohne Eingabe zuletzt Geöffnetes, Spracheingabe; Suchfeld oben auf Heute und Mikrofon in der Kundenliste. search_local findet Abschlüsse und liefert Telefon und Adresse. JVM-Test und Emulator-Ablauf grouped_search neu. Keine Installation, keine Verteilung.",
+    "owner_instruction": "Eigentümer 08.11.2026: Oberfläche Schritt 2 umsetzen.",
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline.",
-      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest (12 Suiten).",
-      "merged": "PR #19 mit vollem CI-Lauf 42465544614 grün gemergt (3128ffd).",
-      "ci_gate": "Dieser Stand: voller CI-Lauf über PR ausstehend."
-    }
+      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest (12 Suiten, 358 Domänenprüfungen).",
+      "ci_gate": "Voller CI-Lauf über PR ausstehend."
+    },
+    "next": [
+      "Oberfläche Schritt 3: Detailseiten mit „Gehört zu“-Chips, Status-Chip, Angaben in Gruppen, nächste Aktion unten, Löschen ganz unten.",
+      "Danach 4 Wischen mit 5 s „Rückgängig“; 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste."
+    ]
   },
   "open_checks": [
     "Installierte Version über get_capabilities bestätigen (gemeldet 1.61.1/132, verteilt 1.62.0/133); last_observed_installed_build erst danach setzen.",
