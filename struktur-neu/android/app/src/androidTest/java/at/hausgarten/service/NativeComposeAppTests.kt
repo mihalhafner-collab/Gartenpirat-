@@ -4154,6 +4154,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     ): Rect {
         var result: Rect? = null
         var geometry = "No candidate"
+        var stableGeometry = ""
+        var stableSince = 0L
         var lastScroll = 0L
         try {
             waitUntil("SEARCH_RESULT_BOUNDS_$label") {
@@ -4195,12 +4197,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     !hit.isEmpty && within && hit.width() >= minimum && hit.height() >= minimum
                 geometry =
                     "candidate=$bounds touch=$hit title=$title screen=$screen keyboard=${ime != null} density=${context.resources.displayMetrics.density}"
-                if (valid) result = hit
-                else if (scrollIntoView && SystemClock.uptimeMillis() - lastScroll > 300) {
+                if (valid) {
+                    // IME and status-bar animations can still move a valid 48dp row.
+                    // Only inject a real touch after its complete screen geometry settles.
+                    if (geometry != stableGeometry) {
+                        stableGeometry = geometry
+                        stableSince = SystemClock.uptimeMillis()
+                    }
+                    if (!tap || SystemClock.uptimeMillis() - stableSince >= 500) result = hit
+                } else if (scrollIntoView && SystemClock.uptimeMillis() - lastScroll > 300) {
                     scroll()
                     lastScroll = SystemClock.uptimeMillis()
                 }
-                valid
+                if (!valid) {
+                    stableGeometry = ""
+                    stableSince = 0L
+                }
+                result != null
             }
         } catch (failure: Throwable) {
             throw AssertionError("SEARCH_GEOMETRY_$label: $geometry", failure)
@@ -4208,6 +4221,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val bounds = requireNotNull(result)
         checks++
         if (tap) {
+            test.sendStatus(0, Bundle().apply { putString("search_touch", "$label: $geometry") })
             val now = SystemClock.uptimeMillis()
             for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
                 val event =
@@ -4232,6 +4246,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun searchKeyboardJourney() {
+        val customerId = customers(fixturePrefix + "000").single().getString("id")
+        val choiceTag = UiTags.recordChoice("customers", customerId)
         val oldFont = shell("settings get system font_scale")
         val sizeText = shell("wm size")
         val override = Regex("Override size: (\\d+x\\d+)").find(sizeText)?.groupValues?.get(1)
@@ -4312,11 +4328,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     }
                     shown("1 Treffer")
                     showKeyboard("Suchen")
-                    visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
+                    visibleResult(choiceTag, tap = true, requireKeyboard = true)
                     waitUntil("SEARCH_PICKER_CLOSED_$key") {
                         node("Abbrechen") == null && !keyboardVisible()
                     }
                     reveal("Kunde: " + fixturePrefix + "000")
+                    waitUntil("SEARCH_SELECTED_CUSTOMER_$key") {
+                        workDraft().optJSONObject("values")?.optString("customer_id") == customerId
+                    }
                     discardWork()
                     searchMatrix.put(
                         JSONObject()

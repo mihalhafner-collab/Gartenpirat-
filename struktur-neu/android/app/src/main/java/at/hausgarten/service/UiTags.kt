@@ -18,5 +18,7 @@ internal object UiTags {
 
     fun searchGroup(type: String) = "search-group:$type"
 
+    fun recordChoice(collection: String, id: String) = "record-choice:$collection:$id"
+
     fun area(section: String) = "area:$section"
 }

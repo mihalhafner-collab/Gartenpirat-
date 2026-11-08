@@ -568,7 +568,7 @@ internal fun NativeSearchList(
 }
 
 /** One bounded, keyboard-aware selection surface for customer, planning and media paths. */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 internal fun NativeSearchDialog(
     title: String,
@@ -620,7 +620,7 @@ internal fun NativeSearchDialog(
         val count =
             if (loading) "Wird geladen …"
             else "$total Treffer" + if (pageCount && !imeVisible) " auf dieser Seite" else ""
-        Surface(Modifier.fillMaxSize()) {
+        Surface(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
             // Keep the same text-field node when IME/rotation changes placement;
             // replacing a Column with a Row would dispose its focused editor.
             NativeSearchLayout(
@@ -755,6 +755,7 @@ internal fun NativeRecordDialog(
             Column(
                 Modifier.fillMaxWidth()
                     .heightIn(min = 48.dp)
+                    .semantics { testTag = UiTags.recordChoice(collection, row.id) }
                     .clickable {
                         onChoose(row)
                         close()
