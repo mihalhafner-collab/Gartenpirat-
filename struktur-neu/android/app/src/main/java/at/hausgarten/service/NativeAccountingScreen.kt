@@ -25,7 +25,7 @@ internal fun NativeAccounting(controller: NativeAppController) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = tab) {
-            listOf("Offen", "Rechnungen & Labor", "Summen").forEachIndexed { index, label ->
+            listOf("Offen", "Abschlüsse", "Summen").forEachIndexed { index, label ->
                 Tab(selected = tab == index, onClick = { tab = index }, text = { Text(label, maxLines = 2) })
             }
         }

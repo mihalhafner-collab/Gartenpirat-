@@ -42,6 +42,8 @@ internal class NativeAppController(private val activity: MainActivity, val store
     val messages = MutableStateFlow("")
     var route by mutableStateOf(NativeRoute())
         private set
+    /** The single "Neu anlegen" sheet, opened from the "+" button of each main area. */
+    var createOpen by mutableStateOf(false)
     private val history = ArrayDeque<NativeRoute>()
     private val draftMutex get() = NativeDraftPersistence.mutex
     private val draftScope get() = NativeDraftPersistence.scope

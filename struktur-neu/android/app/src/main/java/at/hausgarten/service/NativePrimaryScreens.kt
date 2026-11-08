@@ -54,7 +54,7 @@ private val nativeSections = linkedMapOf(
     "equipment" to "Geräte", "revier_search" to "Suche", "revier_archive" to "Archiv", "orders" to "Aufträge", "offers" to "Angebote",
     "billing" to "Offene Stunden", "catalog" to "Leistungskatalog", "photos" to "Fotos", "appointments" to "Termine", "weather" to "Wetter",
     "planning" to "Planung", "trash" to "Papierkorb", "settings" to "Einstellungen", "connections" to "Verbindungen", "backup" to "Sicherung", "storage" to "Speicher", "accounting" to "Abrechnung", "accounting_edit" to "Abrechnung bearbeiten",
-    "settlements" to "Rechnungen & Labor", "settlement_edit" to "Neue Abrechnung", "settlement_review" to "Abschluss prüfen"
+    "settlements" to "Abschlüsse", "settlement_edit" to "Neue Abrechnung", "settlement_review" to "Abschluss prüfen"
 )
 private fun nativeDay(): String = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
 private fun primaryKind(collection: String) = when (collection) { "customers" -> "customer"; "orders" -> "order"; else -> "worklog" }
@@ -71,7 +71,6 @@ internal fun NativeApplication(controller: NativeAppController) {
     val notice by controller.messages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val routeStates = rememberSaveableStateHolder()
-    var createOpen by rememberSaveable { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(notice) {
         if (notice.isBlank()) return@LaunchedEffect
@@ -79,7 +78,7 @@ internal fun NativeApplication(controller: NativeAppController) {
         if (controller.messages.value == notice) controller.message("")
     }
     BackHandler { controller.back() }
-    if (createOpen) ModalBottomSheet(onDismissRequest = { createOpen = false }) {
+    if (controller.createOpen) ModalBottomSheet(onDismissRequest = { controller.createOpen = false }) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Neu anlegen", style = MaterialTheme.typography.titleLarge)
             for ((label, open) in listOf<Pair<String, () -> Unit>>(
@@ -88,8 +87,9 @@ internal fun NativeApplication(controller: NativeAppController) {
                 "Kunde" to { controller.navigate("customers", mode = "new") },
                 "Einsatz" to { controller.navigate("visits", mode = "new") },
                 "Foto" to { controller.navigate("photos", mode = "import", args = JSONObject().put("_open_camera", true)) },
-                "Materialverbrauch" to { controller.navigate("materials", mode = "movement") }
-            )) NativeInfoRow(label, onClick = { createOpen = false; open() })
+                "Material" to { controller.navigate("materials", mode = "movement") }
+            )) NativeInfoRow(label, onClick = { controller.createOpen = false; open() })
+            NativeRecentContext(controller)
         }
     }
     Row(Modifier.fillMaxSize()) {
@@ -105,10 +105,11 @@ internal fun NativeApplication(controller: NativeAppController) {
                 if (route.section != "today" || quick) Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (route.section == "today") Spacer(Modifier.weight(1f))
                     if (route.section != "today" && controller.hasParentScreen()) NativeBackButton { controller.requestBack() }
-                    if (route.section != "today") Text((if (route.section in listOf("office", "more")) "Büro" else nativeSections[route.section]) ?: "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
+                    if (route.section != "today") Text((if (route.section in listOf("office", "more")) "Mehr" else nativeSections[route.section]) ?: "Haus & Garten", Modifier.weight(1f).padding(12.dp), style = MaterialTheme.typography.headlineSmall)
                     if (quick) {
                         NativeSearchButton { controller.navigate("revier_search") }
-                        IconButton({ createOpen = true }, Modifier.semantics { contentDescription = "Neu anlegen" }) { Text("+", style = MaterialTheme.typography.headlineMedium) }
+                        // Design: rare areas (former office) sit behind ⋮ in the header, not in a fifth tab.
+                        if (route.section !in listOf("office", "more")) IconButton({ controller.navigate("office") }, Modifier.semantics { contentDescription = "Mehr" }) { Text("⋮", style = MaterialTheme.typography.headlineSmall) }
                     }
                 }
             }
@@ -155,6 +156,10 @@ internal fun NativeApplication(controller: NativeAppController) {
                 }
                 else -> NativeRevierScreen(route.section.removePrefix("revier-"), route.id, controller)
             } }
+            // Design: one fixed "+" at the bottom right of the main areas. Today and
+            // Planning place their own, because they show details in the same route.
+            if (!imeVisible && route.mode == "list" && route.id.isEmpty() && route.section in listOf("customers", "accounting"))
+                NativeCreateButton(controller, Modifier.align(Alignment.BottomEnd).padding(16.dp))
         }
     }
 }
@@ -164,11 +169,12 @@ internal fun NativeApplication(controller: NativeAppController) {
 @Composable
 private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean = false) {
     // Work records have no tab of their own; they open from Today, customers, billing and the office.
-    val entries = listOf("today" to "Heute", "planning" to "Planung", "customers" to "Kunden", "accounting" to "Abrechnung", "office" to "Büro")
+    // Design: exactly four areas; everything else is reached through ⋮ "Mehr".
+    val entries = listOf("today" to "Heute", "planning" to "Planung", "customers" to "Kunden", "accounting" to "Abrechnung")
     val large = LocalDensity.current.fontScale > 1.3f
     if (rail) {
         Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
-            // Scrolls when five areas do not fit, e.g. landscape with large text.
+            // Scrolls when the areas do not fit, e.g. landscape with large text.
             Column(Modifier.width(112.dp).fillMaxHeight().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 8.dp)) {
                 entries.forEach { (section, label) ->
                     val active = controller.route.area == section
@@ -184,7 +190,7 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 4.dp, vertical = 2.dp)) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            entries.chunked(if (large) 3 else 5).forEach { group ->
+            entries.chunked(if (large) 2 else 4).forEach { group ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     group.forEach { (section, label) ->
                         val active = controller.route.area == section
@@ -206,6 +212,38 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
             }
         }
     }
+}
+
+/** The one "+" of the design; opens "Neu anlegen". */
+@Composable
+internal fun NativeCreateButton(controller: NativeAppController, modifier: Modifier = Modifier) {
+    FloatingActionButton({ controller.createOpen = true }, modifier.semantics { contentDescription = "Neu anlegen" }) {
+        Text("+", style = MaterialTheme.typography.headlineMedium)
+    }
+}
+
+/** "Zuletzt: Kunde · Objekt" from the latest work record; opens a new work with that context. */
+@Composable
+private fun NativeRecentContext(controller: NativeAppController) {
+    var recent by remember { mutableStateOf<Pair<String, JSONObject>?>(null) }
+    LaunchedEffect(controller) {
+        recent = try {
+            val data = controller.store.nativeData()
+            val last = data.list("worklogs", limit = 1).rows.firstOrNull { it.customerId.isNotEmpty() }
+            val work = last?.let { data.detail("worklogs", it.id) }
+            if (work == null) null else {
+                val context = JSONObject().put("customer_id", work.optString("customer_id"))
+                val names = mutableListOf(data.detail("customers", work.optString("customer_id"))?.optString("name").orEmpty())
+                work.optString("property_id").takeIf { it.isNotEmpty() }?.let { id ->
+                    context.put("property_id", id)
+                    names += data.detail("properties", id)?.optString("name").orEmpty()
+                }
+                names.filter { it.isNotBlank() }.joinToString(" · ").takeIf { it.isNotEmpty() }?.let { it to context }
+            }
+        } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
+    }
+    val (label, context) = recent ?: return
+    NativeInfoRow("Zuletzt: $label", "Neue Arbeit mit diesem Kunden", { controller.createOpen = false; controller.navigate("worklogs", mode = "new", args = context) })
 }
 
 /** Shows the existing persisted timer outside its detail, without introducing another writer. */
@@ -427,25 +465,15 @@ private fun NativeBillingOverview(controller: NativeAppController) {
 private fun NativeToday(controller: NativeAppController) {
     var overview by remember { mutableStateOf<JSONObject?>(null) }
     var session by remember { mutableStateOf<JSONObject?>(null) }
-    var summary by remember { mutableStateOf<JSONObject?>(null) }
     var backup by remember { mutableStateOf<JSONObject?>(null) }
     var openHours by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var hints by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val day = nativeDay()
-    val workFlow = remember(day) {
-        controller.store.nativeData().watchList("worklogs", dateFrom = day, dateTo = day, limit = 3)
-            .retryWhen { failure, _ ->
-                if (failure !is SQLiteDatabaseLockedException) false else { delay(75); true }
-            }.nativeErrors(controller)
-    }
-    val works by workFlow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, 0, 3))
     suspend fun refresh() {
         try {
             overview = controller.query("get_revier_overview", JSONObject().put("date", day))
-            summary = controller.query("get_work_record_summary", JSONObject().put("date_from", day).put("date_to", day))
             backup = controller.query("get_full_backup_status")
             openHours = controller.query("get_work_record_summary", JSONObject().put("group_by_billing_customer", true)); error = ""
         } catch (cancelled: CancellationException) { throw cancelled }
@@ -512,23 +540,20 @@ private fun NativeToday(controller: NativeAppController) {
         for (key in listOf("customer_id", "order_id", "property_id")) visit.optString(key).takeIf { it.isNotEmpty() }?.let { put(key, it) }
         put("visit_id", visit.optString("id"))
     }
+    // Planned minutes from each visit's own window; visits without both times add nothing.
+    val plannedMinutes = visits.sumOf { visit ->
+        runCatching { java.time.Duration.between(java.time.LocalTime.parse(visit.optString("window_start")), java.time.LocalTime.parse(visit.optString("window_end"))).toMinutes().coerceAtLeast(0) }.getOrDefault(0L)
+    }
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Design: the date is the title; the day's figures sit in one quiet line below it.
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Design: the date is the title; the day's plan sits in one quiet line below it.
             item {
-                Text(LocalDate.parse(day).format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d. MMMM", java.util.Locale.GERMAN)),
+                Text(LocalDate.parse(day).format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d. MMM", java.util.Locale.GERMAN)),
                     style = MaterialTheme.typography.headlineSmall)
-                // Figures wait for the work state, so a running timer never flashes them.
-                if (session != null && !active) FlowRow(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(if (overview == null) "…" else visits.size.toString(), style = MaterialTheme.typography.titleMedium)
-                        Text("Einsätze geplant", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(summary?.let { nativeNumber(it.opt("hours")) + " Std." } ?: "…", style = MaterialTheme.typography.titleMedium)
-                        Text("Heute gespeichert", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+                if (overview != null && visits.isNotEmpty()) Text(listOfNotNull(if (visits.size == 1) "1 Einsatz" else "${visits.size} Einsätze",
+                    if (plannedMinutes > 0) "ca. " + nativeDuration(plannedMinutes / 60.0) else null).joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (error.isNotBlank()) item { NativeStatus(error, NativeStatusTone.Attention); TextButton({ controller.navigate("timer") }) { Text("Ursprüngliches Ergebnis prüfen") } }
             if (active) item {
@@ -546,9 +571,13 @@ private fun NativeToday(controller: NativeAppController) {
             }
             // The day as a list: every remaining visit with its time and a direct start.
             if (!stopped) item {
-                Text("Einsätze heute" + if (visits.isNotEmpty()) " · ${visits.size}" else "", style = MaterialTheme.typography.titleMedium)
+                Text("Einsätze heute", style = MaterialTheme.typography.titleMedium)
                 if (overview == null) Text("Planung wird gelesen …", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                else if (visits.isEmpty()) Text("Heute kein Einsatz geplant.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                else if (visits.isEmpty()) {
+                    Text("Heute kein Einsatz geplant.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // Empty list names its first action (design rule).
+                    if (!active) Button({ startWork(JSONObject()) }, Modifier.padding(top = 8.dp).heightIn(min = 48.dp), enabled = session != null && !busy) { Text("Arbeit starten") }
+                }
             }
             if (!stopped) items(visits, key = { "visit:" + it.optString("id") }) { visit ->
                 val current = active && session?.optString("visit_id") == visit.optString("id")
@@ -569,10 +598,15 @@ private fun NativeToday(controller: NativeAppController) {
                     }
                 }
             }
+            if (!active && visits.isNotEmpty()) item {
+                TextButton({ startWork(JSONObject()) }, enabled = session != null && !busy) { Text("Arbeit starten") }
+            }
             item {
                 val openGroups = openHours?.optJSONArray("billing_groups")
                 val openTotal = (0 until (openGroups?.length() ?: 0)).sumOf { openGroups!!.getJSONObject(it).optDouble("hours") }
-                val anyDue = openTotal > 0 || (overview?.optJSONArray("maintenance_due")?.length() ?: 0) > 0 || (overview?.optInt("open_inquiries") ?: 0) > 0
+                val backupState = backup?.optString("state").orEmpty()
+                val backupDue = backupState == "FAILED" || backup?.optBoolean("clock_review_required") == true
+                val anyDue = openTotal > 0 || (overview?.optJSONArray("maintenance_due")?.length() ?: 0) > 0 || (overview?.optInt("open_inquiries") ?: 0) > 0 || backupDue
                 if (anyDue) Text("Zu erledigen", style = MaterialTheme.typography.titleMedium)
                 if (openTotal > 0) NativeInfoRow("Offene Stunden", nativeDuration(openTotal) + " bei " + (if (openGroups!!.length() == 1) "1 Empfänger" else "${openGroups.length()} Empfängern") + " · jetzt abrechnen",
                     { controller.navigate("billing") }, leading = {
@@ -584,38 +618,18 @@ private fun NativeToday(controller: NativeAppController) {
                 val inquiries = overview?.optInt("open_inquiries") ?: 0
                 if (due > 0) NativeInfoRow("Wartung fällig", if (due == 1) "1 Gerät" else "$due Geräte", { controller.navigate("equipment") })
                 if (inquiries > 0) NativeInfoRow("Neue Anfragen", if (inquiries == 1) "1 offene Anfrage" else "$inquiries offene Anfragen", { controller.navigate("inquiries") })
-            }
-            item {
-                if (!active && works.rows.isNotEmpty()) NativeStatus("Arbeit gespeichert", NativeStatusTone.Confirmed)
-                Text("Gespeicherte Arbeiten", style = MaterialTheme.typography.titleMedium)
-                Text(summary?.let { nativeDuration(it.optDouble("hours")) + " · " + it.optInt("work_records") + " Arbeiten" } ?: "Gespeicherte Arbeiten werden gelesen …", style = MaterialTheme.typography.bodySmall)
-                works.rows.forEach { row -> NativeInfoRow(row.title, nativeDisplayText(row.subtitle), { controller.navigate("worklogs", row.id) }) }
-                if (works.hasMore) TextButton({ controller.navigate("worklogs", args = JSONObject().put("date_from", day).put("date_to", day)) }) { Text("Alle heutigen Arbeiten") }
-            }
-            item { NativeInfoRow("Weitere Tageshinweise", if (hints) "Schließen" else "Planung, Wartung und Sicherung", { hints = !hints }) }
-            if (hints) {
-                item { NativeInfoRow("Planung", "Termine, Einsätze und Tagestour", { controller.navigate("planning") }) }
-                item { NativeInfoRow("Gerätewartung", "${overview?.optJSONArray("maintenance_due")?.length() ?: 0} Wartungen fällig", { controller.navigate("equipment") }) }
-                item { NativeInfoRow("Anfragen", "${overview?.optInt("open_inquiries") ?: 0} offene Anfragen", { controller.navigate("inquiries") }) }
-                item { NativeInfoRow("Wetter", "Optionale Vorhersage öffnen", { controller.navigate("weather") }) }
-                item { NativeInfoRow("Sicherung", when {
-                    backup == null -> "Status noch nicht gelesen"
-                    backup!!.optString("state") == "FAILED" -> "Letzte Sicherung fehlgeschlagen · Ergebnis ansehen"
-                    backup!!.optString("state") == "RUNNING" -> "Sicherung läuft"
-                    backup!!.optBoolean("clock_review_required") -> "Uhrzeit prüfen"
-                    backup!!.optString("last_local_verified_at").isNotBlank() -> "Letztes protokolliertes Rücklesen: " + nativeDisplayDate(backup!!.getString("last_local_verified_at"))
-                    else -> "Noch kein bestätigtes Rücklesen"
-                }, { controller.navigate("backup") }) }
-                item { TextButton({ scope.launch { refresh() } }) { Text("Tageshinweise aktualisieren") } }
+                if (backupDue) NativeInfoRow("Sicherung prüfen", if (backupState == "FAILED") "Letzte Sicherung fehlgeschlagen" else "Uhrzeit prüfen", { controller.navigate("backup") })
             }
         }
         when (state) {
             "RUNNING" -> NativeActionBar("Zeit stoppen", { timer("stop_work") }, "Pause", { timer("start_break") }, enabled = !busy, secondaryEnabled = !busy)
             "PAUSED" -> NativeActionBar("Fortsetzen", { timer("end_break") }, "Zeit stoppen", { timer("stop_work") }, enabled = !busy, secondaryEnabled = !busy)
             "STOPPED_PENDING_REVIEW" -> NativeActionBar("Abschluss prüfen", { controller.navigate("timer") }, "Arbeit nachtragen", { controller.navigate("worklogs", mode = "new") })
-            // Visits have their own "Start"; the general button opens the timer to choose.
-            else -> NativeActionBar("Arbeit starten", { startWork(JSONObject()) }, "Arbeit nachtragen", { controller.navigate("worklogs", mode = "new") }, enabled = session != null && !busy, secondaryEnabled = !busy)
+            // Design: no bottom bar on an idle day; visits have their own "Start" and "+" creates.
+            else -> Unit
         }
+    }
+    if (!active && !WindowInsets.isImeVisible) NativeCreateButton(controller, Modifier.align(Alignment.BottomEnd).padding(16.dp))
     }
 }
 
@@ -786,7 +800,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty()) item {
             val unfiltered = search.isEmpty() && status.isEmpty() && customer.isEmpty() && billing.isEmpty() && from.isEmpty() && to.isEmpty() && !inactive
             Text(if (!unfiltered) "Keine Treffer. Suchtext oder Filter ändern." else when (collection) {
-                "customers" -> "Noch keine Kunden. Unten „Kunde anlegen“ antippen."
+                "customers" -> "Noch keine Kunden. Mit „+“ den ersten Kunden anlegen."
                 "orders" -> "Noch keine Aufträge. Unten „Auftrag anlegen“ antippen."
                 else -> "Noch keine Arbeiten. Unten „Arbeit nachtragen“ antippen."
             })
@@ -823,7 +837,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     }
                 }
             }
-        } else if (!imeVisible) NativeActionBar(when (collection) { "customers" -> "Kunde anlegen"; "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
+        } else if (!imeVisible && collection != "customers") NativeActionBar(when (collection) { "orders" -> "Auftrag anlegen"; else -> "Arbeit nachtragen" }, {
             controller.navigate(collection, mode = "new", args = JSONObject().apply { if (collection != "customers" && customer.isNotBlank()) put("customer_id", customer) })
         })
     }

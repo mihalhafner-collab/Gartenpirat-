@@ -79,7 +79,7 @@ android {
         minSdk 26
         targetSdk 37
         versionCode 135
-        versionName '1.62.1'
+        versionName '1.63.1'
         testInstrumentationRunner 'at.hausgarten.service.PixelMcpInstrumentation'
     }
 
