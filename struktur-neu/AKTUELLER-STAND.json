@@ -58,7 +58,7 @@
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline für 1.67.3/145.",
       "android": "PASS lokal für 1.67.3/145: assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Befunde), testReleaseUnitTest (22 Tests: zwölf Vertragssuiten und zehn Listenaktionsfälle, keine Fehler oder übersprungenen Tests). Neuer Regressionstest prüft echten get_order-Leseweg, normalen Fachschreiber samt Journalprojektion, erhaltene Notizen und Konfliktschutz. Emulator ausschließlich in CI.",
-      "ci_gate": "PR #21 mit vollem Lauf 42499798100 grün gemergt. PR #22: voller Lauf 42509735580 für 144: build grün; einziger Fehler list_actions beim Vormerken der positiven Auftragsaktion (falscher Hashzugriff). Alle übrigen Emulatorabläufe bestanden. In 145 korrigiert; neuer voller PR-Lauf erforderlich. Kein Test deaktiviert oder übersprungen."
+      "ci_gate": "PR #21 mit vollem Lauf 42499798100 grün gemergt. PR #22: voller Lauf 42514724134 (145): build grün, alle übrigen Emulatorabläufe grün. Einziger Fehler list_actions: nach erfolgreich geprüftem Rückgängig war die Zeile außerhalb des erhaltenen Scrollausschnitts; gezeigt wurde sie sofort mit shown statt erreichbar gemacht mit reveal. Test nimmt jetzt denselben testTag nach Scrollen. Fachprüfungen unverändert, kein App-Code geändert, Version bleibt 1.67.3/145. Neuer voller PR-Lauf nach Push erforderlich."
     },
     "next": [
       "Schritt 6: Planung Tag · Woche · Karte, langes Drücken und Ziehen, Wetterwarnungen im Raster und Tour mit Reihenfolge und Navigation starten.",

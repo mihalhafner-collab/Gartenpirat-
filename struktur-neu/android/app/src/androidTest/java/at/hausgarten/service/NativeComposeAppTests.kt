@@ -4728,7 +4728,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 rows("customer", customerId).lastOrNull()?.optString("state") == "undone" &&
                     record("customers", customerId) != null
             }
-            shown(UiTags.swipe("customer", customerId))
+            reveal(UiTags.swipe("customer", customerId))
             store.writableDatabase.execSQL(
                 """
                 CREATE TRIGGER $claimTrigger BEFORE INSERT ON owner_state
