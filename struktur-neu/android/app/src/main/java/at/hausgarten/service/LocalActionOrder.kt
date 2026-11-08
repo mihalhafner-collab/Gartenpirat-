@@ -106,9 +106,9 @@ class LocalActionOrder {
                 val explicit: JSONArray? = p.optJSONArray("_sync_predecessors")
                 run {
                     var j: Int = 0
-                    while ((explicit != null) && (j < explicit!!.length())) {
-                        if (actions.containsKey(explicit!!.getString(j))) {
-                            deps.add(explicit!!.getString(j))
+                    while ((explicit != null) && (j < explicit.length())) {
+                        if (actions.containsKey(explicit.getString(j))) {
+                            deps.add(explicit.getString(j))
                         }
                         j++
                     }
@@ -130,8 +130,8 @@ class LocalActionOrder {
                 if (expectedOrder != null) {
                     var parent: String? =
                         versions.get(
-                            (("" + ("order:" + expectedOrder!!.optString("id")) + ":") +
-                                expectedOrder!!.optString("updated_at"))
+                            (("" + ("order:" + expectedOrder.optString("id")) + ":") +
+                                expectedOrder.optString("updated_at"))
                         )
                     if ((parent != null) && !parent!!.equals(id)) {
                         deps.add(parent)
@@ -145,7 +145,7 @@ class LocalActionOrder {
                     var prior: String? =
                         versions.get(
                             (("" + (("" + a.getString("kind") + ":") + p.optString("id")) + ":") +
-                                base!!.optString("updated_at"))
+                                base.optString("updated_at"))
                         )
                     if ((prior != null) && !prior!!.equals(id)) {
                         deps.add(prior)

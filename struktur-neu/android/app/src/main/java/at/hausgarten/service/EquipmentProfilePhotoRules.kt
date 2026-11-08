@@ -86,8 +86,8 @@ class EquipmentProfilePhotoRules {
             for (field in
                 arrayOf("content_sha256", "mime_type", "byte_size", "storage_name", "role")) {
                 if (
-                    ((!photo.has(field) || !attachment!!.has(field)) ||
-                        !photo.get(field).toString().equals(attachment!!.get(field).toString()))
+                    ((!photo.has(field) || !attachment.has(field)) ||
+                        !photo.get(field).toString().equals(attachment.get(field).toString()))
                 ) {
                     throw RevierRules.error(
                         "EQUIPMENT_PHOTO_INVALID",

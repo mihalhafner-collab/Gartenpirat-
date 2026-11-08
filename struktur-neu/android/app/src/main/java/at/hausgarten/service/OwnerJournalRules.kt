@@ -37,9 +37,9 @@ class OwnerJournalRules {
         fun findOrNull(rows: JSONArray?, id: String): JSONObject? {
             run {
                 var i: Int = 0
-                while ((rows != null) && (i < rows!!.length())) {
-                    if (id.equals(rows!!.getJSONObject(i).optString("id"))) {
-                        return rows!!.getJSONObject(i)
+                while ((rows != null) && (i < rows.length())) {
+                    if (id.equals(rows.getJSONObject(i).optString("id"))) {
+                        return rows.getJSONObject(i)
                     }
                     i++
                 }
@@ -53,26 +53,26 @@ class OwnerJournalRules {
             if (row == null) {
                 return PixelMcpWriteTools.hash(JSONObject.NULL)
             }
-            if (row!!.has("starts_at")) {
+            if (row.has("starts_at")) {
                 return AppointmentRules.hash(row)
             }
-            if (row!!.has("id")) {
+            if (row.has("id")) {
                 if (
-                    ((row!!.has("offer_number") || row!!.has("pricing_mode")) ||
-                        (row!!.has("unit") && row!!.has("default_price")))
+                    ((row.has("offer_number") || row.has("pricing_mode")) ||
+                        (row.has("unit") && row.has("default_price")))
                 ) {
                     return PixelMcpWriteTools.hash(LocalJournalRules.clean(row))
                 }
                 var kind: String =
-                    (if (row!!.has("name")) "customer"
+                    (if (row.has("name")) "customer"
                     else
-                        (if (row!!.has("activity")) "worklog"
+                        (if (row.has("activity")) "worklog"
                         else
-                            (if (row!!.has("title")) "order"
+                            (if (row.has("title")) "order"
                             else
                                 (if (
-                                    ((row!!.has("invoice_number") || row!!.has("positions")) ||
-                                        row!!.has("issued_at"))
+                                    ((row.has("invoice_number") || row.has("positions")) ||
+                                        row.has("issued_at"))
                                 )
                                     "invoice"
                                 else "photo"))))
@@ -156,7 +156,7 @@ class OwnerJournalRules {
                 }
                 for (key in PixelMcpOwnerTools.BUSINESS_KEYS) {
                     if (!key.startsWith("invoice_")) {
-                        issuer!!.put(key, updated.optString(key))
+                        issuer.put(key, updated.optString(key))
                     }
                 }
                 snapshot.put("invoice_issuer", issuer)
@@ -178,23 +178,23 @@ class OwnerJournalRules {
                     throw IllegalArgumentException("Archiveintrag fehlt.")
                 }
                 checkHash(saved, p.getString("expected_record_hash"))
-                if (saved!!.optBoolean("purged")) {
+                if (saved.optBoolean("purged")) {
                     throw IllegalArgumentException(
                         "Endgültig gelöschte Einträge sind nicht wiederherstellbar."
                     )
                 }
-                var original: JSONObject = saved!!.getJSONObject("record")
+                var original: JSONObject = saved.getJSONObject("record")
                 if (entity.equals("customer") || entity.equals("service_template")) {
                     if (
                         ((current == null) ||
-                            (current!!.optBoolean("active", true) &&
-                                (current!!.optInt("active", 1) != 0)))
+                            (current.optBoolean("active", true) &&
+                                (current.optInt("active", 1) != 0)))
                     ) {
                         throw IllegalArgumentException(
                             "Der archivierte Kunde wurde inzwischen geändert."
                         )
                     }
-                    checkHash(current, saved!!.getString("archived_record_hash"))
+                    checkHash(current, saved.getString("archived_record_hash"))
                 } else {
                     if (current != null) {
                         throw IllegalArgumentException("Die Original-ID ist bereits belegt.")
@@ -285,8 +285,8 @@ class OwnerJournalRules {
                     val records: JSONArray? = snapshot.optJSONArray(group)
                     run {
                         var i: Int = 0
-                        while ((records != null) && (i < records!!.length())) {
-                            val r: JSONObject = records!!.getJSONObject(i)
+                        while ((records != null) && (i < records.length())) {
+                            val r: JSONObject = records.getJSONObject(i)
                             var key: String =
                                 (if (group.equals("customers")) "default_billing_customer_id"
                                 else "billing_customer_id")
@@ -344,8 +344,8 @@ class OwnerJournalRules {
                             val positions: JSONArray? = other.optJSONArray("positions")
                             run {
                                 var j: Int = 0
-                                while ((refs != null) && (j < refs!!.length())) {
-                                    if (id.equals(refs!!.optString(j))) {
+                                while ((refs != null) && (j < refs.length())) {
+                                    if (id.equals(refs.optString(j))) {
                                         throw IllegalArgumentException(
                                             "Die Arbeit ist mit einer Rechnung verknüpft."
                                         )
@@ -355,10 +355,10 @@ class OwnerJournalRules {
                             }
                             run {
                                 var j: Int = 0
-                                while ((positions != null) && (j < positions!!.length())) {
+                                while ((positions != null) && (j < positions.length())) {
                                     if (
                                         (id.equals(
-                                            positions!!.getJSONObject(j).optString("worklog_id")
+                                            positions.getJSONObject(j).optString("worklog_id")
                                         ))
                                     ) {
                                         throw IllegalArgumentException(

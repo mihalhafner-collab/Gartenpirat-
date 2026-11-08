@@ -36,12 +36,12 @@ internal class OfferTools {
 
         @JvmStatic
         fun read(n: String): Boolean {
-            return (Arrays.asList(*(READS)))!!.contains(n)
+            return (Arrays.asList(*(READS))).contains(n)
         }
 
         @JvmStatic
         fun write(n: String): Boolean {
-            return (Arrays.asList(*(WRITES)))!!.contains(n)
+            return (Arrays.asList(*(WRITES))).contains(n)
         }
 
         @JvmStatic
@@ -49,7 +49,7 @@ internal class OfferTools {
         fun fields(): JSONObject {
             var p: JSONObject = JSONObject()
             for (k in (OfferRules.FIELDS)!!) {
-                p!!.put(k, McpFields.text(10000))
+                p.put(k, McpFields.text(10000))
             }
             for (k in
                 (arrayOf(
@@ -58,9 +58,9 @@ internal class OfferTools {
                     "binding_confirmed",
                     "test_record",
                 ))!!) {
-                p!!.put(k, McpFields.bool())
+                p.put(k, McpFields.bool())
             }
-            (((p!!.put("document_type", McpFields.enumeration(*(OfferRules.TYPES))))!!.put(
+            (((p.put("document_type", McpFields.enumeration(*(OfferRules.TYPES)))).put(
                         "customer_type",
                         McpFields.enumeration(*(OfferContract.values("customer_types"))),
                     ))!!
@@ -72,47 +72,51 @@ internal class OfferTools {
             val line: JSONObject = JSONObject()
             for (k in
                 (arrayOf("title", "description", "unit", "catalog_entry_id", "catalog_hash"))!!) {
-                line!!.put(k, McpFields.text(10000))
+                line.put(k, McpFields.text(10000))
             }
-            line!!.put("title", McpFields.text(500))
-            line!!.put(
+            line.put("title", McpFields.text(500))
+            line.put(
                 "price_source",
-                (McpFields.enumeration(*(OfferContract.values("price_sources"))))!!.put(
+                (McpFields.enumeration(*(OfferContract.values("price_sources")))).put(
                     "description",
                     "Bei einem ausdrücklich vom Nutzer bestätigten manuellen Preis exakt user_confirmed verwenden; bei freigegebenem Katalogpreis weglassen und catalog_entry_id/catalog_hash verwenden.",
                 ),
             )
-            (line!!.put(
+            (line.put(
                     "price_basis",
                     McpFields.enumeration(*(OfferContract.values("price_bases"))),
                 ))!!
                 .put("price_note", McpFields.text(2000))
             val calculation: JSONObject = JSONObject()
             for (k in (arrayOf("base_price", "factor", "surcharge"))!!) {
-                calculation!!.put(
+                calculation.put(
                     k,
-                    (((JSONObject())!!.put("type", ((JSONArray())!!.put("number"))!!.put("null")))!!
-                            .put("minimum", 0))!!
+                    (((JSONObject()).put("type", ((JSONArray()).put("number")).put("null")))!!.put(
+                            "minimum",
+                            0,
+                        ))!!
                         .put("maximum", 1000000000),
                 )
             }
-            line!!.put("calculation", McpFields.`object`(calculation))
+            line.put("calculation", McpFields.`object`(calculation))
             for (k in (arrayOf("quantity", "price", "tax_rate"))!!) {
-                line!!.put(
+                line.put(
                     k,
-                    (((JSONObject())!!.put("type", ((JSONArray())!!.put("number"))!!.put("null")))!!
-                            .put("minimum", 0))!!
+                    (((JSONObject()).put("type", ((JSONArray()).put("number")).put("null")))!!.put(
+                            "minimum",
+                            0,
+                        ))!!
                         .put("maximum", 1000000000),
                 )
             }
-            (line!!.getJSONObject("tax_rate"))!!.put("maximum", 100)
-            ((line!!.getJSONObject("quantity"))!!.put("exclusiveMinimum", 0))!!.put(
+            (line.getJSONObject("tax_rate")).put("maximum", 100)
+            ((line.getJSONObject("quantity")).put("exclusiveMinimum", 0)).put(
                 "description",
                 "Bei bekannten Mengen größer als0, andernfalls null für einen unvollständigen Entwurf.",
             )
-            p!!.put(
+            p.put(
                 "positions",
-                (((JSONObject())!!.put("type", "array"))!!.put("maxItems", 200))!!.put(
+                (((JSONObject()).put("type", "array")).put("maxItems", 200)).put(
                     "items",
                     McpFields.`object`(line, "title", "unit"),
                 ),
@@ -135,18 +139,20 @@ internal class OfferTools {
                     "assumptions",
                     "exclusions",
                 ))!!) {
-                p!!.put(k, McpFields.text(10000))
+                p.put(k, McpFields.text(10000))
             }
             for (k in (arrayOf("default_price", "default_quantity"))!!) {
-                p!!.put(
+                p.put(
                     k,
-                    (((JSONObject())!!.put("type", ((JSONArray())!!.put("number"))!!.put("null")))!!
-                            .put("minimum", 0))!!
+                    (((JSONObject()).put("type", ((JSONArray()).put("number")).put("null")))!!.put(
+                            "minimum",
+                            0,
+                        ))!!
                         .put("maximum", 1000000000),
                 )
             }
-            p!!.put("pricing_type", McpFields.enumeration(*(OfferContract.values("pricing_types"))))
-            (p!!.put("active", McpFields.bool()))!!.put("price_confirmed", McpFields.bool())
+            p.put("pricing_type", McpFields.enumeration(*(OfferContract.values("pricing_types"))))
+            (p.put("active", McpFields.bool())).put("price_confirmed", McpFields.bool())
             return p
         }
 
@@ -156,8 +162,8 @@ internal class OfferTools {
             var p: JSONObject = JSONObject()
             val required: MutableList<String> = ArrayList()
             if (write(n)) {
-                p!!.put("request_id", (McpFields.text(128))!!.put("minLength", 8))
-                required!!.add("request_id")
+                p.put("request_id", (McpFields.text(128)).put("minLength", 8))
+                required.add("request_id")
             }
             if (
                 (Arrays.asList(
@@ -174,8 +180,8 @@ internal class OfferTools {
                     ))!!
                     .contains(n)
             ) {
-                p!!.put("offer_id", McpFields.id())
-                required!!.add("offer_id")
+                p.put("offer_id", McpFields.id())
+                required.add("offer_id")
             }
             if (
                 (Arrays.asList(
@@ -189,8 +195,8 @@ internal class OfferTools {
                     ))!!
                     .contains(n)
             ) {
-                p!!.put("expected_record_hash", McpFields.hash())
-                required!!.add("expected_record_hash")
+                p.put("expected_record_hash", McpFields.hash())
+                required.add("expected_record_hash")
             }
             when (n) {
                 "get_offer" -> p.put("include_review", McpFields.bool())
@@ -199,21 +205,21 @@ internal class OfferTools {
                     run {
                         val f = fields()
                         run {
-                            val it = f!!.keys()
-                            while (it!!.hasNext()) {
-                                val k = it!!.next()
-                                p!!.put(k, f!!.get(k))
+                            val it = f.keys()
+                            while (it.hasNext()) {
+                                val k = it.next()
+                                p.put(k, f.get(k))
                             }
                         }
-                        required!!.addAll(Arrays.asList("customer_id", "title", "positions"))
+                        required.addAll(Arrays.asList("customer_id", "title", "positions"))
                     }
                 }
                 "update_offer_draft" -> {
-                    p!!.put("updates", (McpFields.`object`(fields()))!!.put("minProperties", 1))
-                    required!!.add("updates")
+                    p.put("updates", (McpFields.`object`(fields())).put("minProperties", 1))
+                    required.add("updates")
                 }
                 "list_offers" -> {
-                    ((((p!!.put("customer_id", McpFields.id()))!!.put(
+                    ((((p.put("customer_id", McpFields.id())).put(
                                     "document_type",
                                     McpFields.enumeration(*(OfferRules.TYPES)),
                                 ))!!
@@ -227,76 +233,73 @@ internal class OfferTools {
                         .put("limit", McpFields.number(1, 100))
                 }
                 "search_offer_templates" -> {
-                    ((p!!.put("query", McpFields.text(200)))!!.put(
+                    ((p.put("query", McpFields.text(200))).put(
                             "offset",
                             McpFields.number(0, 1000000),
                         ))!!
                         .put("limit", McpFields.number(1, 100))
                 }
                 "get_offer_template" -> {
-                    p!!.put("entry_id", McpFields.id())
-                    required!!.add("entry_id")
+                    p.put("entry_id", McpFields.id())
+                    required.add("entry_id")
                 }
                 "get_offer_context" -> {
-                    p!!.put("customer_id", McpFields.id())
-                    required!!.add("customer_id")
+                    p.put("customer_id", McpFields.id())
+                    required.add("customer_id")
                 }
                 "prepare_offer_delivery" -> {
-                    (p!!.put("recipient_email", (McpFields.text(320))!!.put("minLength", 3)))!!.put(
+                    (p.put("recipient_email", (McpFields.text(320)).put("minLength", 3))).put(
                         "confirmed",
-                        (McpFields.bool())!!.put("enum", (JSONArray())!!.put(true)),
+                        (McpFields.bool()).put("enum", (JSONArray()).put(true)),
                     )
-                    required!!.addAll(Arrays.asList("recipient_email", "confirmed"))
+                    required.addAll(Arrays.asList("recipient_email", "confirmed"))
                 }
                 "confirm_offer_delivery" -> {
-                    (p!!.put("provider", McpFields.enumeration("gmail")))!!.put(
+                    (p.put("provider", McpFields.enumeration("gmail"))).put(
                         "message_id",
                         McpFields.id(),
                     )
-                    required!!.addAll(Arrays.asList("provider", "message_id"))
+                    required.addAll(Arrays.asList("provider", "message_id"))
                 }
                 "finalize_offer" -> {
-                    (p!!.put("expected_context_hash", McpFields.hash()))!!.put(
+                    (p.put("expected_context_hash", McpFields.hash())).put(
                         "confirmed",
-                        (McpFields.bool())!!.put("enum", (JSONArray())!!.put(true)),
+                        (McpFields.bool()).put("enum", (JSONArray()).put(true)),
                     )
-                    required!!.addAll(Arrays.asList("expected_context_hash", "confirmed"))
+                    required.addAll(Arrays.asList("expected_context_hash", "confirmed"))
                 }
                 "convert_offer_to_order" -> {
-                    ((p!!.put(
-                                "confirmed",
-                                (McpFields.bool())!!.put("enum", (JSONArray())!!.put(true)),
-                            ))!!
+                    ((p.put("confirmed", (McpFields.bool()).put("enum", (JSONArray()).put(true))))!!
                             .put("existing_order_id", McpFields.id()))!!
                         .put("expected_order_hash", McpFields.hash())
-                    required!!.add("confirmed")
+                    required.add("confirmed")
                 }
                 "create_catalog_entry" -> {
                     run {
                         val f = catalogFields()
                         run {
-                            val it = f!!.keys()
-                            while (it!!.hasNext()) {
-                                val k = it!!.next()
-                                p!!.put(k, f!!.get(k))
+                            val it = f.keys()
+                            while (it.hasNext()) {
+                                val k = it.next()
+                                p.put(k, f.get(k))
                             }
                         }
-                        required!!.addAll(Arrays.asList("title", "unit", "category"))
+                        required.addAll(Arrays.asList("title", "unit", "category"))
                     }
                 }
                 "update_catalog_entry" -> {
-                    ((p!!.put("entry_id", McpFields.id()))!!.put(
+                    ((p.put("entry_id", McpFields.id())).put(
                             "expected_record_hash",
                             McpFields.hash(),
                         ))!!
                         .put(
                             "updates",
-                            (McpFields.`object`(catalogFields()))!!.put("minProperties", 1),
+                            (McpFields.`object`(catalogFields())).put("minProperties", 1),
                         )
-                    required!!.addAll(Arrays.asList("entry_id", "expected_record_hash", "updates"))
+                    required.addAll(Arrays.asList("entry_id", "expected_record_hash", "updates"))
                 }
             }
-            return McpFields.`object`(p, *(required!!.toTypedArray()))
+            return McpFields.`object`(p, *(required.toTypedArray()))
         }
 
         @JvmStatic
@@ -305,7 +308,7 @@ internal class OfferTools {
             var out: JSONArray = JSONArray()
             val names: MutableList<String> = ArrayList(Arrays.asList(*(READS)))
             if (writable) {
-                names!!.addAll(Arrays.asList(*(WRITES)))
+                names.addAll(Arrays.asList(*(WRITES)))
             }
             for (n in names!!) {
                 var d =
@@ -327,10 +330,7 @@ internal class OfferTools {
                                         (if (n!!.equals("prepare_offer_share"))
                                             "Bereitet das finalisierte Original-PDF mit SHA256 zum Teilen vor und protokolliert share_prepared. Niemals sent. Markierte Testdokumente liefern ausschließlich eine lokale Vorschau, keinen externen Versand."
                                         else
-                                            (if (
-                                                (n!!.contains("catalog") ||
-                                                    n!!.contains("template"))
-                                            )
+                                            (if ((n.contains("catalog") || n.contains("template")))
                                                 "Gemeinsame editierbare Leistungsbausteine. Fehlende Preise sind null und müssen erfragt werden; keine erfundenen Preise."
                                             else
                                                 (if (n!!.equals("finalize_offer"))
@@ -340,14 +340,14 @@ internal class OfferTools {
                                                         "Übernimmt ein ausdrücklich angenommenes Angebot mit Kunde, Einsatzort und offer_id in einen Auftrag. Keine Rechnung."
                                                     else
                                                         "Verwaltet Angebote in der bestehenden App und im lokalen Geschäftsjournal. Entwürfe dürfen unvollständig sein; Dokumentart bewusst wählen. record_hash vor Updates lesen; request_id bei Wiederholung unverändert lassen. Niemals Kunden, Stunden oder Preise erfinden.")))))))))
-                out!!.put(
-                    ((((JSONObject())!!.put("name", n))!!.put("description", d))!!.put(
+                out.put(
+                    ((((JSONObject()).put("name", n)).put("description", d)).put(
                             "inputSchema",
                             schema(n),
                         ))!!
                         .put(
                             "annotations",
-                            ((((JSONObject())!!.put("readOnlyHint", read(n)))!!.put(
+                            ((((JSONObject()).put("readOnlyHint", read(n))).put(
                                         "destructiveHint",
                                         false,
                                     ))!!
@@ -362,24 +362,23 @@ internal class OfferTools {
         @JvmStatic
         @Throws(Exception::class)
         fun context(p: JSONObject, s: JSONObject): JSONObject {
-            var recipient = p!!.optString("billing_customer_id")
-            if (recipient!!.isEmpty()) {
-                recipient = p!!.optString("customer_id")
+            var recipient = p.optString("billing_customer_id")
+            if (recipient.isEmpty()) {
+                recipient = p.optString("customer_id")
             }
-            var c =
-                PixelMcpWriteTools.find(s!!.getJSONArray("customers"), p!!.getString("customer_id"))
-            val r = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), recipient)
-            val settings = s!!.optJSONObject("business_settings")
-            return (((((JSONObject())!!.put("customer", LocalJournalRules.guard(c, "customer")))!!
+            var c = PixelMcpWriteTools.find(s.getJSONArray("customers"), p.getString("customer_id"))
+            val r = PixelMcpWriteTools.find(s.getJSONArray("customers"), recipient)
+            val settings = s.optJSONObject("business_settings")
+            return (((((JSONObject()).put("customer", LocalJournalRules.guard(c, "customer")))!!
                             .put("recipient", LocalJournalRules.guard(r, "customer")))!!
                         .put(
                             "order",
-                            (if ((p!!.optString("order_id"))!!.isEmpty()) JSONObject.NULL
+                            (if ((p.optString("order_id")).isEmpty()) JSONObject.NULL
                             else
                                 LocalJournalRules.guard(
                                     PixelMcpWriteTools.find(
-                                        s!!.getJSONArray("orders"),
-                                        p!!.getString("order_id"),
+                                        s.getJSONArray("orders"),
+                                        p.getString("order_id"),
                                     ),
                                     "order",
                                 )),
@@ -390,8 +389,8 @@ internal class OfferTools {
                     ))!!
                 .put(
                     "service_catalog",
-                    (if (s!!.optJSONArray("service_catalog") === null) JSONArray()
-                    else s!!.getJSONArray("service_catalog")),
+                    (if (s.optJSONArray("service_catalog") === null) JSONArray()
+                    else s.getJSONArray("service_catalog")),
                 )
         }
 
@@ -403,25 +402,25 @@ internal class OfferTools {
                 return OfferContract.data()
             }
             val s = PixelMcpReadTools.effective(state)
-            val offers = s!!.getJSONArray("offers")
+            val offers = s.getJSONArray("offers")
             if (n!!.equals("get_offer") || n!!.equals("validate_offer")) {
-                var p = PixelMcpWriteTools.find(offers, a!!.getString("offer_id"))
+                var p = PixelMcpWriteTools.find(offers, a.getString("offer_id"))
                 var result: JSONObject =
-                    (((((JSONObject())!!.put("offer", p))!!.put(
+                    (((((JSONObject()).put("offer", p)).put(
                                     "document_contract",
                                     OfferRules.contractView(p),
                                 ))!!
                                 .put(
                                     "workflow_status",
-                                    (if ((p!!.optString("delivery_status"))!!.equals("sent")) "sent"
+                                    (if ((p.optString("delivery_status"))!!.equals("sent")) "sent"
                                     else
                                         (if (
-                                            (p!!.optString("delivery_status"))!!.equals(
+                                            (p.optString("delivery_status"))!!.equals(
                                                 "share_prepared"
                                             )
                                         )
                                             "share_prepared"
-                                        else p!!.optString("status", "draft"))),
+                                        else p.optString("status", "draft"))),
                                 ))!!
                             .put(
                                 "record_hash",
@@ -448,76 +447,76 @@ internal class OfferTools {
                         .put("review_snapshot", review)
                         .put("validation", OfferRules.validate(p, s))
                 }
-                if (!(p!!.optString("order_id"))!!.isEmpty()) {
-                    result!!.put(
+                if (!(p.optString("order_id")).isEmpty()) {
+                    result.put(
                         "order_hash",
                         OwnerJournalRules.version(
                             PixelMcpWriteTools.find(
-                                s!!.getJSONArray("orders"),
-                                p!!.getString("order_id"),
+                                s.getJSONArray("orders"),
+                                p.getString("order_id"),
                             )
                         ),
                     )
                 }
                 if (n!!.equals("validate_offer")) {
-                    result!!.put("validation", OfferRules.validate(p, s))
+                    result.put("validation", OfferRules.validate(p, s))
                 }
                 return result
             }
             if (n!!.equals("get_offer_template")) {
                 var p =
                     PixelMcpWriteTools.find(
-                        s!!.getJSONArray("service_catalog"),
-                        a!!.getString("entry_id"),
+                        s.getJSONArray("service_catalog"),
+                        a.getString("entry_id"),
                     )
-                return ((JSONObject())!!.put("entry", p))!!.put(
+                return ((JSONObject()).put("entry", p)).put(
                     "record_hash",
                     PixelMcpWriteTools.hash(p),
                 )
             }
             if (n!!.equals("get_offer_context")) {
-                var id = a!!.getString("customer_id")
-                val c = PixelMcpWriteTools.find(s!!.getJSONArray("customers"), id)
+                var id = a.getString("customer_id")
+                val c = PixelMcpWriteTools.find(s.getJSONArray("customers"), id)
                 val logs: JSONArray = JSONArray()
                 val orders: JSONArray = JSONArray()
                 val prices: JSONArray = JSONArray()
-                var all = s!!.getJSONArray("worklogs")
+                var all = s.getJSONArray("worklogs")
                 run {
-                    var i: Int = (all!!.length() - 1)
-                    while ((i >= 0) && (logs!!.length() < 10)) {
-                        if (id!!.equals((all!!.getJSONObject(i))!!.optString("customer_id"))) {
-                            logs!!.put(all!!.getJSONObject(i))
+                    var i: Int = (all.length() - 1)
+                    while ((i >= 0) && (logs.length() < 10)) {
+                        if (id!!.equals((all.getJSONObject(i)).optString("customer_id"))) {
+                            logs.put(all.getJSONObject(i))
                         }
 
                         i--
                     }
                 }
-                all = s!!.getJSONArray("orders")
+                all = s.getJSONArray("orders")
                 run {
                     var i: Int = 0
-                    while ((i < all!!.length()) && (orders!!.length() < 10)) {
+                    while ((i < all.length()) && (orders.length() < 10)) {
                         if (
-                            (id!!.equals((all!!.getJSONObject(i))!!.optString("customer_id")) &&
+                            (id!!.equals((all.getJSONObject(i)).optString("customer_id")) &&
                                 !(Arrays.asList("Erledigt", "Abgeschlossen", "Storniert"))!!
-                                    .contains((all!!.getJSONObject(i))!!.optString("status")))
+                                    .contains((all.getJSONObject(i)).optString("status")))
                         ) {
-                            orders!!.put(all!!.getJSONObject(i))
+                            orders.put(all.getJSONObject(i))
                         }
 
                         i++
                     }
                 }
-                all = s!!.getJSONArray("service_catalog")
+                all = s.getJSONArray("service_catalog")
                 run {
                     var i: Int = 0
-                    while (i < all!!.length()) {
-                        val e = all!!.getJSONObject(i)
+                    while (i < all.length()) {
+                        val e = all.getJSONObject(i)
                         if (
-                            ((e!!.optBoolean("active", true) &&
-                                e!!.optBoolean("price_confirmed")) && !e!!.isNull("default_price"))
+                            ((e.optBoolean("active", true) && e.optBoolean("price_confirmed")) &&
+                                !e.isNull("default_price"))
                         ) {
-                            prices!!.put(
-                                ((JSONObject())!!.put("entry", e))!!.put(
+                            prices.put(
+                                ((JSONObject()).put("entry", e)).put(
                                     "record_hash",
                                     PixelMcpWriteTools.hash(e),
                                 )
@@ -527,49 +526,49 @@ internal class OfferTools {
                         i++
                     }
                 }
-                return ((((((JSONObject())!!.put("customer", c))!!.put(
+                return ((((((JSONObject()).put("customer", c)).put(
                                     "billing_configuration",
                                     BillingRules.assignment(c, s, false),
                                 ))!!
                                 .put("recent_work", logs))!!
                             .put("open_orders", orders))!!
                         .put("approved_prices", prices))!!
-                    .put("business_settings", s!!.optJSONObject("business_settings"))
+                    .put("business_settings", s.optJSONObject("business_settings"))
             }
             var rows =
-                (if (n!!.equals("list_offers")) offers else s!!.getJSONArray("service_catalog"))
+                (if (n!!.equals("list_offers")) offers else s.getJSONArray("service_catalog"))
             var out: JSONArray = JSONArray()
             var total: Int = 0
             if (n!!.equals("search_offer_templates")) {
                 val collator = java.text.Collator.getInstance(Locale.GERMAN)
-                collator!!.setStrength(java.text.Collator.PRIMARY)
+                collator.setStrength(java.text.Collator.PRIMARY)
                 val ordered: MutableList<JSONObject> = ArrayList()
                 run {
                     var i: Int = 0
-                    while (i < rows!!.length()) {
-                        ordered!!.add(rows!!.getJSONObject(i))
+                    while (i < rows.length()) {
+                        ordered.add(rows.getJSONObject(i))
 
                         i++
                     }
                 }
-                ordered!!.sortWith(
+                ordered.sortWith(
                     lambda@{ x, y ->
                         var order: Int =
                             SnapshotReadSupport.natural(
-                                x!!.optString("category"),
-                                y!!.optString("category"),
+                                x.optString("category"),
+                                y.optString("category"),
                                 collator,
                             )
                         if (order == 0) {
                             order =
                                 SnapshotReadSupport.natural(
-                                    x!!.optString("title"),
-                                    y!!.optString("title"),
+                                    x.optString("title"),
+                                    y.optString("title"),
                                     collator,
                                 )
                         }
                         return@lambda (if (order == 0)
-                            (x!!.optString("id"))!!.compareTo(y!!.optString("id"))
+                            (x.optString("id")).compareTo(y.optString("id"))
                         else order)
                     }
                 )
@@ -577,11 +576,11 @@ internal class OfferTools {
             }
             run {
                 var i: Int = 0
-                while (i < rows!!.length()) {
-                    var p = rows!!.getJSONObject(i)
+                while (i < rows.length()) {
+                    var p = rows.getJSONObject(i)
                     if (
-                        (!(a!!.optString("customer_id"))!!.isEmpty() &&
-                            !(a!!.getString("customer_id"))!!.equals(p!!.optString("customer_id")))
+                        (!(a.optString("customer_id")).isEmpty() &&
+                            !(a.getString("customer_id"))!!.equals(p.optString("customer_id")))
                     ) {
                         run {
                             i++
@@ -589,10 +588,8 @@ internal class OfferTools {
                         }
                     }
                     if (
-                        (!(a!!.optString("document_type"))!!.isEmpty() &&
-                            !(a!!.getString("document_type"))!!.equals(
-                                p!!.optString("document_type")
-                            ))
+                        (!(a.optString("document_type")).isEmpty() &&
+                            !(a.getString("document_type"))!!.equals(p.optString("document_type")))
                     ) {
                         run {
                             i++
@@ -600,9 +597,9 @@ internal class OfferTools {
                         }
                     }
                     if (
-                        ((!(a!!.optString("status"))!!.isEmpty() &&
-                            !(a!!.getString("status"))!!.equals(p!!.optString("status"))) &&
-                            !(a!!.getString("status"))!!.equals(p!!.optString("delivery_status")))
+                        ((!(a.optString("status")).isEmpty() &&
+                            !(a.getString("status"))!!.equals(p.optString("status"))) &&
+                            !(a.getString("status"))!!.equals(p.optString("delivery_status")))
                     ) {
                         run {
                             i++
@@ -611,7 +608,7 @@ internal class OfferTools {
                     }
                     if (
                         !SnapshotReadSupport.matches(
-                            a!!.optString("query"),
+                            a.optString("query"),
                             SnapshotReadSupport.text(
                                 p,
                                 "title",
@@ -630,11 +627,11 @@ internal class OfferTools {
                         }
                     }
                     if (
-                        ((total++ >= a!!.optInt("offset", 0)) &&
-                            (out!!.length() < a!!.optInt("limit", 30)))
+                        ((total++ >= a.optInt("offset", 0)) &&
+                            (out.length() < a.optInt("limit", 30)))
                     ) {
-                        out!!.put(
-                            ((JSONObject())!!.put(
+                        out.put(
+                            ((JSONObject()).put(
                                     (if (n!!.equals("list_offers")) "offer" else "entry"),
                                     p,
                                 ))!!
@@ -648,17 +645,17 @@ internal class OfferTools {
                     i++
                 }
             }
-            return (((((JSONObject())!!.put(
+            return (((((JSONObject()).put(
                                 (if (n!!.equals("list_offers")) "offers" else "entries"),
                                 out,
                             ))!!
                             .put("total", total))!!
-                        .put("offset", a!!.optInt("offset")))!!
-                    .put("limit", a!!.optInt("limit", 30)))!!
+                        .put("offset", a.optInt("offset")))!!
+                    .put("limit", a.optInt("limit", 30)))!!
                 .put(
                     "next_cursor",
-                    (if ((a!!.optInt("offset") + out!!.length()) < total)
-                        (a!!.optInt("offset") + out!!.length())
+                    (if ((a.optInt("offset") + out.length()) < total)
+                        (a.optInt("offset") + out.length())
                     else JSONObject.NULL),
                 )
         }

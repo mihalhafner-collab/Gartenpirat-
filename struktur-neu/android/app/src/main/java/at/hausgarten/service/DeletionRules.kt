@@ -45,7 +45,7 @@ class DeletionRules {
                     .put("recoverable", true)
                     .put("physical_delete", false)
                     .put("cascade", false)
-                    .put("updated_at", current!!.optString("updated_at"))
+                    .put("updated_at", current.optString("updated_at"))
                     .put("related_photos", related.length())
                     .put("expected_photo_links_hash", PixelMcpWriteTools.hash(related))
                     .put(
@@ -55,7 +55,7 @@ class DeletionRules {
                         else "trash"),
                     )
             val archived: JSONObject? = snapshot.optJSONObject("owner_archive")
-            if ((archived != null) && archived!!.has(("" + entity + ":") + id)) {
+            if ((archived != null) && archived.has(("" + entity + ":") + id)) {
                 return out.put("allowed", false)
                     .put("message", "Der Eintrag liegt bereits im Papierkorb.")
             }

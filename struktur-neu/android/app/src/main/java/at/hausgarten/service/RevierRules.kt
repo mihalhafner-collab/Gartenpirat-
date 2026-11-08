@@ -84,7 +84,7 @@ class RevierRules {
         @JvmStatic
         fun cas(old: JSONObject, expected: String?) {
             if (
-                (((expected == null) || !expected!!.matches(Regex("[0-9a-f]{64}"))) ||
+                (((expected == null) || !expected.matches(Regex("[0-9a-f]{64}"))) ||
                     !hash(old).equals(expected))
             ) {
                 throw error(

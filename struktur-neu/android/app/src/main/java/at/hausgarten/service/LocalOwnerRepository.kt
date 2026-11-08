@@ -17,23 +17,23 @@ class LocalOwnerRepository : OwnerRepository {
         this.requests =
             object : OwnerRequestTransactions.Store {
                 override fun begin(): Unit {
-                    store!!.beginBusinessTransaction(store!!.writableDatabase)
+                    store.beginBusinessTransaction(store.writableDatabase)
                 }
 
                 override fun read(key: String): String {
-                    return store!!.ownerValue(key, "")!!
+                    return store.ownerValue(key, "")!!
                 }
 
                 override fun write(key: String, value: String): Unit {
-                    store!!.putOwnerValue(key, value)
+                    store.putOwnerValue(key, value)
                 }
 
                 override fun successful(): Unit {
-                    store!!.writableDatabase.setTransactionSuccessful()
+                    store.writableDatabase.setTransactionSuccessful()
                 }
 
                 override fun end(): Unit {
-                    store!!.writableDatabase.endTransaction()
+                    store.writableDatabase.endTransaction()
                 }
             }
     }

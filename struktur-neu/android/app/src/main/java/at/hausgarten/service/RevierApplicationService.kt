@@ -91,8 +91,8 @@ class RevierApplicationService {
         if (values != null) {
             run {
                 var i: Int = 0
-                while (i < values!!.length()) {
-                    val row: JSONObject = values!!.getJSONObject(i)
+                while (i < values.length()) {
+                    val row: JSONObject = values.getJSONObject(i)
                     if (id.equals(row.optString("id"))) {
                         return row
                     }
@@ -568,7 +568,7 @@ class RevierApplicationService {
         }
         val customer: String = RevierRules.id(row, "customer_id", true)
         customer(state, customer, creating)
-        if ((old != null) && !old!!.getString("customer_id").equals(customer)) {
+        if ((old != null) && !old.getString("customer_id").equals(customer)) {
             throw RevierRules.error(
                 "PROPERTY_CUSTOMER_CHANGE_REVIEW_REQUIRED",
                 "Objektkunden nicht still wechseln. Ursprüngliche Zuordnung bleibt erhalten.",
@@ -654,7 +654,7 @@ class RevierApplicationService {
         }
         val customer: String = RevierRules.id(row, "customer_id", true)
         customer(state, customer, creating)
-        if ((old != null) && !old!!.getString("customer_id").equals(customer)) {
+        if ((old != null) && !old.getString("customer_id").equals(customer)) {
             throw RevierRules.error(
                 "INQUIRY_CUSTOMER_IMMUTABLE",
                 "Ursprünglichen Kundenbezug erhalten.",
@@ -723,8 +723,8 @@ class RevierApplicationService {
             }
             val offerId: String = row.optString("offer_id")
             if (
-                (((old != null) && old!!.optString("acceptance_source").equals("direct")) &&
-                    !old!!.optString("order_id").equals(order))
+                (((old != null) && old.optString("acceptance_source").equals("direct")) &&
+                    !old.optString("order_id").equals(order))
             ) {
                 throw RevierRules.error(
                     "ACCEPTANCE_VERSION_MISMATCH",
@@ -739,7 +739,7 @@ class RevierApplicationService {
                 if (
                     (((!order.equals(offer.optString("converted_order_id")) ||
                         (decision == null)) ||
-                        !decision!!.optString("decision").equals("accepted")) ||
+                        !decision.optString("decision").equals("accepted")) ||
                         !decision!!
                             .optString("content_version")
                             .equals(OfferDecisionRules.contentVersion(offer)))
@@ -782,14 +782,14 @@ class RevierApplicationService {
             row.put("inspection_notes", RevierRules.text(row, "inspection_notes", 10000, false))
             val measurements: JSONArray? = row.optJSONArray("measurements")
             if (measurements != null) {
-                if (measurements!!.length() > 200) {
+                if (measurements.length() > 200) {
                     throw RevierRules.error("INVALID_INPUT", "Zu viele Messwerte.")
                 }
                 val normalized: JSONArray = JSONArray()
                 run {
                     var i: Int = 0
-                    while (i < measurements!!.length()) {
-                        val item: JSONObject = measurements!!.getJSONObject(i)
+                    while (i < measurements.length()) {
+                        val item: JSONObject = measurements.getJSONObject(i)
                         normalized.put(
                             JSONObject()
                                 .put("name", RevierRules.text(item, "name", 200, true))
@@ -806,14 +806,14 @@ class RevierApplicationService {
             }
             val photos: JSONArray? = row.optJSONArray("photo_ids")
             if (photos != null) {
-                if (photos!!.length() > 200) {
+                if (photos.length() > 200) {
                     throw RevierRules.error("INVALID_INPUT", "Zu viele Fotoreferenzen.")
                 }
                 val seen: MutableSet<String> = HashSet()
                 run {
                     var i: Int = 0
-                    while (i < photos!!.length()) {
-                        val photo: String = photos!!.getString(i)
+                    while (i < photos.length()) {
+                        val photo: String = photos.getString(i)
                         val source: JSONObject = canonical(state, "photos", photo)
                         if (
                             ((!seen.add(photo) ||
@@ -1347,8 +1347,8 @@ class RevierApplicationService {
                 throw RevierRules.error("WRITE_CONFLICT", "Bisherige Besichtigung wurde geändert.")
             }
             if (
-                ((mode.equals("reschedule") && prior!!.optString("status").equals("cancelled")) ||
-                    (mode.equals("reopen") && !prior!!.optString("status").equals("cancelled")))
+                ((mode.equals("reschedule") && prior.optString("status").equals("cancelled")) ||
+                    (mode.equals("reopen") && !prior.optString("status").equals("cancelled")))
             ) {
                 throw RevierRules.error(
                     "INSPECTION_ACTION_REQUIRED",
@@ -1410,7 +1410,7 @@ class RevierApplicationService {
             visits = JSONArray()
         }
         if (!previous.isEmpty() && !mode.equals("reschedule")) {
-            visits!!.put(
+            visits.put(
                 JSONObject()
                     .put("appointment_id", previous)
                     .put("notes", row.optString("inspection_notes"))
@@ -1450,7 +1450,7 @@ class RevierApplicationService {
             }
             return JSONArray()
         }
-        if (values!!.length() > 200) {
+        if (values.length() > 200) {
             throw RevierRules.error(
                 "INVALID_INPUT",
                 "Zu viele Materialpositionen in einem Einsatz.",
@@ -1460,8 +1460,8 @@ class RevierApplicationService {
         val seen: MutableSet<String> = HashSet()
         run {
             var i: Int = 0
-            while (i < values!!.length()) {
-                val item: JSONObject = values!!.getJSONObject(i)
+            while (i < values.length()) {
+                val item: JSONObject = values.getJSONObject(i)
                 val material: String = RevierRules.id(item, "material_id", true)
                 if (!seen.add(material)) {
                     throw RevierRules.error(
@@ -1505,15 +1505,15 @@ class RevierApplicationService {
             }
             return JSONArray()
         }
-        if (values!!.length() > 200) {
+        if (values.length() > 200) {
             throw RevierRules.error("INVALID_INPUT", "Zu viele Geräte in einem Einsatz.")
         }
         var out: JSONArray = JSONArray()
         val seen: MutableSet<String> = HashSet()
         run {
             var i: Int = 0
-            while (i < values!!.length()) {
-                var value: String = values!!.getString(i)
+            while (i < values.length()) {
+                var value: String = values.getString(i)
                 load("equipment", value)
                 if (!seen.add(value)) {
                     throw RevierRules.error(
@@ -1612,7 +1612,7 @@ class RevierApplicationService {
                 val from: String = item.getString("effective_from")
                 if (
                     ((from.compareTo(day.toString()) <= 0) &&
-                        ((chosen == null) || (item.getInt("version") > chosen!!.getInt("version"))))
+                        ((chosen == null) || (item.getInt("version") > chosen.getInt("version"))))
                 ) {
                     chosen = item
                 }
@@ -1666,7 +1666,7 @@ class RevierApplicationService {
         if (!`object`.optBoolean("active", true)) {
             throw RevierRules.error("PROPERTY_INACTIVE", "Inaktives Objekt nicht neu einplanen.")
         }
-        if ((old != null) && !old!!.getString("property_id").equals(property)) {
+        if ((old != null) && !old.getString("property_id").equals(property)) {
             throw RevierRules.error(
                 "RELATION_IMMUTABLE",
                 "Pflegeplan behält seinen ursprünglichen Objektbezug.",
@@ -1685,7 +1685,7 @@ class RevierApplicationService {
         var effective: LocalDate =
             (if (creating) RevierRules.date(row.getString("anchor_date"))
             else RevierRules.date(RevierRules.text(args, "effective_from", 10, true)))
-        val next: Int = (if (old == null) 1 else (old!!.getInt("rule_version") + 1))
+        val next: Int = (if (old == null) 1 else (old.getInt("rule_version") + 1))
         if (!creating) {
             if (!args.optString("scope").equals("this_and_future")) {
                 throw RevierRules.error(
@@ -1776,7 +1776,7 @@ class RevierApplicationService {
         var visit: JSONObject =
             base(
                 "visit",
-                (if (old == null) RevierRules.newId("visit", request) else old!!.getString("id")),
+                (if (old == null) RevierRules.newId("visit", request) else old.getString("id")),
                 old,
             )
         visit
@@ -1843,8 +1843,8 @@ class RevierApplicationService {
                     while (!day.isAfter(until)) {
                         val version: JSONObject? = ruleFor(plan.getString("id"), day)
                         if (
-                            (((version == null) || !version!!.getBoolean("active")) ||
-                                !RevierRules.occurs(version!!.getJSONObject("rule"), day))
+                            (((version == null) || !version.getBoolean("active")) ||
+                                !RevierRules.occurs(version.getJSONObject("rule"), day))
                         ) {
                             day = day.plusDays((1).toLong())
                             continue
@@ -1856,12 +1856,12 @@ class RevierApplicationService {
                         val existing: String = repository.get(occurrence, "")
                         var old: JSONObject? =
                             (if (existing.isEmpty()) null else load("visit", existing))
-                        if ((old != null) && !old!!.optString("status").equals("superseded")) {
+                        if ((old != null) && !old.optString("status").equals("superseded")) {
                             preserved++
                             day = day.plusDays((1).toLong())
                             continue
                         }
-                        if ((old != null) && old!!.optBoolean("manual_override")) {
+                        if ((old != null) && old.optBoolean("manual_override")) {
                             preserved++
                             day = day.plusDays((1).toLong())
                             continue
@@ -2037,8 +2037,8 @@ class RevierApplicationService {
         }
         if (
             ((old != null) &&
-                (!old!!.getString("property_id").equals(row.optString("property_id")) ||
-                    !old!!.optString("order_id").equals(row.optString("order_id"))))
+                (!old.getString("property_id").equals(row.optString("property_id")) ||
+                    !old.optString("order_id").equals(row.optString("order_id"))))
         ) {
             throw RevierRules.error(
                 "RELATION_IMMUTABLE",
@@ -2046,9 +2046,9 @@ class RevierApplicationService {
             )
         }
         var dateChanged: Boolean =
-            ((old != null) && !old!!.getString("date").equals(row.optString("date")))
+            ((old != null) && !old.getString("date").equals(row.optString("date")))
         var statusChanged: Boolean =
-            ((old != null) && !old!!.getString("status").equals(row.optString("status")))
+            ((old != null) && !old.getString("status").equals(row.optString("status")))
         val reason: String = RevierRules.text(args, "reason", 2000, false)
         if ((dateChanged || statusChanged) && reason.isEmpty()) {
             throw RevierRules.error(
@@ -2057,7 +2057,7 @@ class RevierApplicationService {
             )
         }
         if (
-            (((old != null) && old!!.optString("status").equals("completed")) &&
+            (((old != null) && old.optString("status").equals("completed")) &&
                 ((((dateChanged || statusChanged) || changes.has("planned_minutes")) ||
                     changes.has("window_start")) || changes.has("window_end")))
         ) {
@@ -2068,7 +2068,7 @@ class RevierApplicationService {
         }
         if (
             (((old != null) &&
-                Arrays.asList("cancelled", "superseded").contains(old!!.optString("status"))) &&
+                Arrays.asList("cancelled", "superseded").contains(old.optString("status"))) &&
                 statusChanged)
         ) {
             throw RevierRules.error(
@@ -2150,7 +2150,7 @@ class RevierApplicationService {
             row = emptyTour(day)
         }
         val stops: JSONArray = JSONArray()
-        val ids: JSONArray = row!!.getJSONArray("visit_ids")
+        val ids: JSONArray = row.getJSONArray("visit_ids")
         run {
             var i: Int = 0
             while (i < ids.length()) {
@@ -2352,8 +2352,8 @@ class RevierApplicationService {
             .put("unit", RevierRules.text(row, "unit", 60, true))
             .put("notes", RevierRules.text(row, "notes", 10000, false))
             .put("active", RevierRules.bool(row, "active", true))
-        if ((old != null) && !old!!.getString("unit").equals(row.getString("unit"))) {
-            var history: Boolean = (BigDecimal(old!!.optString("stock_decimal", "0")).signum() != 0)
+        if ((old != null) && !old.getString("unit").equals(row.getString("unit"))) {
+            var history: Boolean = (BigDecimal(old.optString("stock_decimal", "0")).signum() != 0)
             val movements: JSONArray = records("material_movement")
             run {
                 var i: Int = 0
@@ -2400,7 +2400,7 @@ class RevierApplicationService {
                 )
             }
             for (field in arrayOf("customer_id", "property_id", "visit_id", "order_id")) {
-                var original: String = origin!!.optString(field)
+                var original: String = origin.optString(field)
                 if (original.isEmpty()) {
                     continue
                 }
@@ -2610,8 +2610,7 @@ class RevierApplicationService {
         val upload: String = RevierRules.id(args, "profile_photo_upload_id", false)
         if (upload.isNotEmpty()) {
             if (
-                ((old != null) &&
-                    (old!!.optBoolean("archived") || !old!!.optBoolean("active", true)))
+                ((old != null) && (old.optBoolean("archived") || !old.optBoolean("active", true)))
             ) {
                 throw RevierRules.error(
                     "EQUIPMENT_INACTIVE",
@@ -3100,8 +3099,8 @@ class RevierApplicationService {
         if (selected != null) {
             run {
                 var i: Int = 0
-                while (i < selected!!.length()) {
-                    types.add(selected!!.getString(i))
+                while (i < selected.length()) {
+                    types.add(selected.getString(i))
                     i++
                 }
             }
@@ -3123,9 +3122,9 @@ class RevierApplicationService {
             }
             run {
                 var i: Int = 0
-                while (i < rows!!.length()) {
+                while (i < rows.length()) {
                     searchRow(
-                        rows!!.getJSONObject(i),
+                        rows.getJSONObject(i),
                         group[1],
                         false,
                         args,
@@ -3169,10 +3168,10 @@ class RevierApplicationService {
             val archive: JSONObject? = state.optJSONObject("owner_archive")
             if (archive != null) {
                 run {
-                    val it: MutableIterator<String> = archive!!.keys()
+                    val it: MutableIterator<String> = archive.keys()
                     while (it.hasNext()) {
                         val key: String = it.next()
-                        val entry: JSONObject = archive!!.getJSONObject(key)
+                        val entry: JSONObject = archive.getJSONObject(key)
                         if (
                             (entry.optBoolean("purged") || (entry.optJSONObject("record") == null))
                         ) {
@@ -3512,8 +3511,8 @@ class RevierApplicationService {
                     val photos: JSONArray? = rows.getJSONObject(i).optJSONArray("photo_ids")
                     run {
                         var j: Int = 0
-                        while ((photos != null) && (j < photos!!.length())) {
-                            if (id.equals(photos!!.getString(j))) {
+                        while ((photos != null) && (j < photos.length())) {
+                            if (id.equals(photos.getString(j))) {
                                 throw RevierRules.error(
                                     "REVIER_REFERENCE_PROTECTED",
                                     "Foto gehört zu einer Besichtigungsdokumentation. Diese Zuordnung zuerst ausdrücklich prüfen; Original bleibt erhalten.",
@@ -3542,8 +3541,8 @@ class RevierApplicationService {
                 val photos: JSONArray? = inquiry.optJSONArray("photo_ids")
                 run {
                     var j: Int = 0
-                    while ((photos != null) && (j < photos!!.length())) {
-                        if (photoId.equals(photos!!.getString(j))) {
+                    while ((photos != null) && (j < photos.length())) {
+                        if (photoId.equals(photos.getString(j))) {
                             throw RevierRules.error(
                                 "REVIER_REFERENCE_PROTECTED",
                                 "Foto ist mit einer Besichtigung eines anderen Kunden verknüpft. Zuordnung zuerst ausdrücklich klären.",
@@ -3565,7 +3564,7 @@ class RevierApplicationService {
             while (i < rows.length()) {
                 val row: JSONObject = rows.getJSONObject(i)
                 val photo: JSONObject? = row.optJSONObject("profile_photo")
-                if ((photo != null) && photoId.equals(photo!!.optString("id"))) {
+                if ((photo != null) && photoId.equals(photo.optString("id"))) {
                     EquipmentProfilePhotoRules.validate(photo, row.getString("id"))
                     return RevierRules.copy(photo)
                 }
@@ -3609,12 +3608,12 @@ class RevierApplicationService {
             )) {
             val values: JSONArray? = records(type)
             groups.put(type, (values)!!)
-            counts.put(type, values!!.length())
+            counts.put(type, values.length())
             val ids: TreeSet<String> = TreeSet()
             run {
                 var i: Int = 0
-                while (i < values!!.length()) {
-                    val row: JSONObject = values!!.getJSONObject(i)
+                while (i < values.length()) {
+                    val row: JSONObject = values.getJSONObject(i)
                     if (
                         (!type.equals(row.optString("kind")) ||
                             !ids.add(RevierRules.id(row, "id", true)))
@@ -3675,10 +3674,10 @@ class RevierApplicationService {
                 val photos: JSONArray? = inquiry.optJSONArray("photo_ids")
                 run {
                     var j: Int = 0
-                    while ((photos != null) && (j < photos!!.length())) {
+                    while ((photos != null) && (j < photos.length())) {
                         if (
                             (!customer.equals(
-                                canonical(state, "photos", photos!!.getString(j))
+                                canonical(state, "photos", photos.getString(j))
                                     .optString("customer_id")
                             ))
                         ) {
@@ -3950,8 +3949,8 @@ class RevierApplicationService {
             val values: JSONArray? = state.optJSONArray(collection)
             run {
                 var i: Int = 0
-                while ((values != null) && (i < values!!.length())) {
-                    var value: JSONObject = values!!.getJSONObject(i)
+                while ((values != null) && (i < values.length())) {
+                    var value: JSONObject = values.getJSONObject(i)
                     validateStoredContext(value, state)
                     if (
                         (collection.equals("photos") &&
@@ -4027,7 +4026,7 @@ class RevierApplicationService {
                 val equipmentId: String = RevierRules.id((event)!!, "equipment_id", true)
                 val planId: String = RevierRules.id((event)!!, "plan_id", true)
                 if (
-                    (!event!!.optString("kind").equals("equipment_maintenance") ||
+                    (!event.optString("kind").equals("equipment_maintenance") ||
                         (events.put(eventId, event) != null))
                 ) {
                     throw RevierRules.error("REVIER_RELATION_INVALID", "Ungültiger Wartungsbeleg.")
@@ -4035,7 +4034,7 @@ class RevierApplicationService {
                 val device: JSONObject = load("equipment", equipmentId)
                 EquipmentMaintenanceRules.find(EquipmentMaintenanceRules.plans(device), planId)
                 val performed: String = RevierRules.date(event, "performed_on", true)
-                if (!performed.equals(event!!.optString("date"))) {
+                if (!performed.equals(event.optString("date"))) {
                     throw RevierRules.error(
                         "REVIER_RELATION_INVALID",
                         "Wartungsdatum und Historie widersprechen sich.",
@@ -4043,13 +4042,13 @@ class RevierApplicationService {
                 }
                 RevierRules.text(event, "title", 240, true)
                 val relation: String = (("" + equipmentId + ":") + planId)
-                if (!(event!!.opt("schedule_applied") is Boolean)) {
+                if (!(event.opt("schedule_applied") is Boolean)) {
                     throw RevierRules.error(
                         "REVIER_RELATION_INVALID",
                         "Planwirkung des Wartungsbelegs fehlt.",
                     )
                 }
-                val applied: Boolean = event!!.getBoolean("schedule_applied")
+                val applied: Boolean = event.getBoolean("schedule_applied")
                 if (
                     (applied &&
                         (!latest.containsKey(relation) ||
@@ -4058,7 +4057,7 @@ class RevierApplicationService {
                     latest.put(relation, performed)
                 }
                 for (snapshot in arrayOf("plan_before", "plan_after")) {
-                    val historical: JSONObject = event!!.getJSONObject(snapshot)
+                    val historical: JSONObject = event.getJSONObject(snapshot)
                     if (!planId.equals(historical.optString("id"))) {
                         throw RevierRules.error(
                             "REVIER_RELATION_INVALID",
@@ -4069,8 +4068,8 @@ class RevierApplicationService {
                         JSONObject().put("maintenance_plans", JSONArray().put(historical))
                     )
                 }
-                val before: JSONObject = event!!.getJSONObject("plan_before")
-                val after: JSONObject = event!!.getJSONObject("plan_after")
+                val before: JSONObject = event.getJSONObject("plan_before")
+                val after: JSONObject = event.getJSONObject("plan_after")
                 if (
                     (((applied != (performed.compareTo(before.getString("anchor_on")) >= 0)) ||
                         (applied &&
@@ -4172,9 +4171,9 @@ class RevierApplicationService {
                                 ((((event == null) ||
                                     !device
                                         .getString("id")
-                                        .equals(event!!.optString("equipment_id"))) ||
-                                    !plan.getString("id").equals(event!!.optString("plan_id"))) ||
-                                    !done.equals(event!!.optString("performed_on")))
+                                        .equals(event.optString("equipment_id"))) ||
+                                    !plan.getString("id").equals(event.optString("plan_id"))) ||
+                                    !done.equals(event.optString("performed_on")))
                             ) {
                                 throw RevierRules.error(
                                     "REVIER_RELATION_INVALID",
@@ -4210,16 +4209,16 @@ class RevierApplicationService {
         val materials: JSONArray? = row.optJSONArray("material_needs")
         run {
             var i: Int = 0
-            while ((materials != null) && (i < materials!!.length())) {
-                load("material", materials!!.getJSONObject(i).getString("material_id"))
+            while ((materials != null) && (i < materials.length())) {
+                load("material", materials.getJSONObject(i).getString("material_id"))
                 i++
             }
         }
         val equipment: JSONArray? = row.optJSONArray("equipment_ids")
         run {
             var i: Int = 0
-            while ((equipment != null) && (i < equipment!!.length())) {
-                load("equipment", equipment!!.getString(i))
+            while ((equipment != null) && (i < equipment.length())) {
+                load("equipment", equipment.getString(i))
                 i++
             }
         }
@@ -4259,7 +4258,7 @@ class RevierApplicationService {
             if (
                 ((source == null) ||
                     (!row.optString("customer_id").isEmpty() &&
-                        !row.getString("customer_id").equals(source!!.optString("customer_id"))))
+                        !row.getString("customer_id").equals(source.optString("customer_id"))))
             ) {
                 throw RevierRules.error(
                     "REVIER_RELATION_INVALID",
@@ -4268,8 +4267,8 @@ class RevierApplicationService {
             }
             for (field in arrayOf("property_id", "visit_id")) {
                 if (
-                    ((!row.optString(field).isEmpty() && !source!!.optString(field).isEmpty()) &&
-                        !row.getString(field).equals(source!!.getString(field)))
+                    ((!row.optString(field).isEmpty() && !source.optString(field).isEmpty()) &&
+                        !row.getString(field).equals(source.getString(field)))
                 ) {
                     throw RevierRules.error(
                         "REVIER_RELATION_INVALID",

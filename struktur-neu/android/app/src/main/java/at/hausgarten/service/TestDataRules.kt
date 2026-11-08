@@ -11,8 +11,8 @@ class TestDataRules {
         @JvmStatic
         fun customer(c: JSONObject?): Boolean {
             return ((c != null) &&
-                (c!!.optString("name").startsWith("[TEST]") ||
-                    c!!.optString("name").equals("MCP FUNKTIONSTEST – KEIN ECHTER KUNDE")))
+                (c.optString("name").startsWith("[TEST]") ||
+                    c.optString("name").equals("MCP FUNKTIONSTEST – KEIN ECHTER KUNDE")))
         }
 
         @JvmStatic
@@ -122,9 +122,9 @@ class TestDataRules {
                 val archive: JSONObject? = s.optJSONObject("owner_archive")
                 var entry: JSONObject? =
                     (if (archive == null) null
-                    else archive!!.optJSONObject(("" + kind + ":") + p.optString("id")))
+                    else archive.optJSONObject(("" + kind + ":") + p.optString("id")))
                 if (entry != null) {
-                    existing = entry!!.optJSONObject("record")
+                    existing = entry.optJSONObject("record")
                 }
             }
             return ((existing != null) &&
@@ -132,7 +132,7 @@ class TestDataRules {
                     customer(
                         OwnerJournalRules.findOrNull(
                             s.optJSONArray("customers"),
-                            existing!!.optString("customer_id"),
+                            existing.optString("customer_id"),
                         )
                     )))
         }

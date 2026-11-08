@@ -7,7 +7,7 @@ import org.json.JSONObject
 class WorklogRelationRules {
     companion object {
         private fun text(row: JSONObject?, key: String): String {
-            return (if ((row == null) || row!!.isNull(key)) "" else row!!.optString(key))
+            return (if ((row == null) || row.isNull(key)) "" else row.optString(key))
         }
 
         @Throws(Exception::class)
@@ -21,13 +21,13 @@ class WorklogRelationRules {
             if (old == null) {
                 return
             }
-            var id: String = old!!.getString("id")
+            var id: String = old.getString("id")
             val customer: String = text(payload, "customer_id")
             var order: String = text(payload, "order_id")
             run {
                 var i: Int = 0
-                while ((photos != null) && (i < photos!!.length())) {
-                    val photo: JSONObject? = photos!!.optJSONObject(i)
+                while ((photos != null) && (i < photos.length())) {
+                    val photo: JSONObject? = photos.optJSONObject(i)
                     if ((photo == null) || !id.equals(text(photo, "worklog_id"))) {
                         i++
                         continue
@@ -46,31 +46,30 @@ class WorklogRelationRules {
             }
             run {
                 var i: Int = 0
-                while ((invoices != null) && (i < invoices!!.length())) {
-                    val invoice: JSONObject? = invoices!!.optJSONObject(i)
+                while ((invoices != null) && (i < invoices.length())) {
+                    val invoice: JSONObject? = invoices.optJSONObject(i)
                     if (invoice == null) {
                         i++
                         continue
                     }
-                    val ids: JSONArray? = invoice!!.optJSONArray("worklog_ids")
+                    val ids: JSONArray? = invoice.optJSONArray("worklog_ids")
                     var linked: Boolean = false
                     run {
                         var j: Int = 0
-                        while ((ids != null) && (j < ids!!.length())) {
-                            if (id.equals(ids!!.optString(j))) {
+                        while ((ids != null) && (j < ids.length())) {
+                            if (id.equals(ids.optString(j))) {
                                 linked = true
                             }
                             j++
                         }
                     }
-                    val positions: JSONArray? = invoice!!.optJSONArray("positions")
+                    val positions: JSONArray? = invoice.optJSONArray("positions")
                     run {
                         var j: Int = 0
-                        while ((positions != null) && (j < positions!!.length())) {
-                            val position: JSONObject? = positions!!.optJSONObject(j)
+                        while ((positions != null) && (j < positions.length())) {
+                            val position: JSONObject? = positions.optJSONObject(j)
                             if (
-                                ((position != null) &&
-                                    id.equals(position!!.optString("worklog_id")))
+                                ((position != null) && id.equals(position.optString("worklog_id")))
                             ) {
                                 linked = true
                             }
@@ -115,7 +114,7 @@ class WorklogRelationRules {
                             (if (numeric)
                                 (java.lang.Double.compare(
                                     payload.optDouble(field, (0).toDouble()),
-                                    old!!.optDouble(field, (0).toDouble()),
+                                    old.optDouble(field, (0).toDouble()),
                                 ) != 0)
                             else !text(payload, field).equals(text(old, field)))
                         if (changed) {

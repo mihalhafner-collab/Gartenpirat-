@@ -18,11 +18,8 @@ internal class OfferDecisionService {
 
     private @Throws(Exception::class) fun current(id: String): JSONObject? {
         var raw =
-            repository!!.ownerValue(
-                (((OfferDecisionRules.PREFIX).toString() + "current:") + id),
-                "",
-            )
-        if (raw!!.isEmpty()) {
+            repository.ownerValue((((OfferDecisionRules.PREFIX).toString() + "current:") + id), "")
+        if (raw.isEmpty()) {
             return null
         }
         var value: JSONObject = JSONObject(raw)
@@ -35,11 +32,11 @@ internal class OfferDecisionService {
         if (!name!!.equals("get_offer_decision_history")) {
             throw IllegalArgumentException("Unbekannte Angebotsentscheidung.")
         }
-        var id = args!!.getString("offer_id")
-        val offer = PixelMcpWriteTools.find((repository!!.effective())!!.getJSONArray("offers"), id)
+        var id = args.getString("offer_id")
+        val offer = PixelMcpWriteTools.find((repository.effective()).getJSONArray("offers"), id)
         var rows: JSONArray =
             JSONArray(
-                repository!!.ownerValue(
+                repository.ownerValue(
                     (((OfferDecisionRules.PREFIX).toString() + "history:") + id),
                     "[]",
                 )
@@ -48,80 +45,71 @@ internal class OfferDecisionService {
         var offset: Int = RevierRules.integer(args, "offset", 0, 1000000, 0)
         val limit: Int = RevierRules.integer(args, "limit", 1, 100, 50)
         run {
-            var i: Int = ((rows!!.length() - 1) - offset)
-            while ((i >= 0) && (items!!.length() < limit)) {
-                items!!.put(OfferDecisionRules.publicDecision(rows!!.getJSONObject(i)))
+            var i: Int = ((rows.length() - 1) - offset)
+            while ((i >= 0) && (items.length() < limit)) {
+                items.put(OfferDecisionRules.publicDecision(rows.getJSONObject(i)))
 
                 i--
             }
         }
         val decision = current(id)
         var result: JSONObject =
-            (((((((JSONObject())!!.put("formatVersion", 1))!!.put("offer_id", id))!!.put(
+            (((((((JSONObject()).put("formatVersion", 1)).put("offer_id", id)).put(
                                 "history",
                                 items,
                             ))!!
                             .put("items", items))!!
-                        .put("total", rows!!.length()))!!
+                        .put("total", rows.length()))!!
                     .put("record_hash", PixelMcpWriteTools.hash(LocalJournalRules.clean(offer))))!!
-                .put("document_status", offer!!.optString("status"))
+                .put("document_status", offer.optString("status"))
         if (decision !== null) {
-            val map: JSONObject = (JSONObject())!!.put(id, decision)
+            val map: JSONObject = (JSONObject()).put(id, decision)
             val shown = OfferDecisionRules.matching(offer, map)
-            (result!!.put("decision", shown))!!.put(
-                "decision_status",
-                shown!!.getString("decision"),
-            )
+            (result.put("decision", shown)).put("decision_status", shown!!.getString("decision"))
         } else {
-            result!!.put("decision_status", "not_recorded")
+            result.put("decision_status", "not_recorded")
         }
         var revision =
-            repository!!.ownerValue(
-                (((OfferDecisionRules.PREFIX).toString() + "revision:") + id),
-                "",
-            )
-        if (!revision!!.isEmpty()) {
-            result!!.put("revision", JSONObject(revision))
+            repository.ownerValue((((OfferDecisionRules.PREFIX).toString() + "revision:") + id), "")
+        if (!revision.isEmpty()) {
+            result.put("revision", JSONObject(revision))
         }
         return result
     }
 
     @Throws(Exception::class)
     fun perform(name: String, args: JSONObject, request: String): JSONObject {
-        if (!(Arrays.asList("record_offer_acceptance", "decline_offer"))!!.contains(name)) {
+        if (!(Arrays.asList("record_offer_acceptance", "decline_offer")).contains(name)) {
             throw IllegalArgumentException("Unbekannte Angebotsentscheidung.")
         }
         val requestId = RevierRules.text(args, "request_id", 128, true)
-        if (requestId!!.length < 8) {
+        if (requestId.length < 8) {
             throw PixelMcpWriteTools.Rejected(
                 "INVALID_INPUT",
                 "Stabile Anfragekennung erforderlich.",
             )
         }
         var fingerprint =
-            PixelMcpWriteTools.hash(((JSONObject())!!.put("operation", name))!!.put("args", args))
+            PixelMcpWriteTools.hash(((JSONObject()).put("operation", name)).put("args", args))
         var receipt =
             (((OfferDecisionRules.PREFIX).toString() + "request:") +
                 PixelMcpWriteTools.hash(requestId))
-        val previous = repository!!.ownerValue(receipt, "")
-        if (!previous!!.isEmpty()) {
+        val previous = repository.ownerValue(receipt, "")
+        if (!previous.isEmpty()) {
             val saved: JSONObject = JSONObject(previous)
-            if (!fingerprint!!.equals(saved!!.getString("fingerprint"))) {
+            if (!fingerprint!!.equals(saved.getString("fingerprint"))) {
                 throw PixelMcpWriteTools.Rejected(
                     "REPLAY_MISMATCH",
                     "Diese Anfragekennung gehört zu anderen Entscheidungsangaben.",
                 )
             }
-            return (JSONObject((saved!!.getJSONObject("result"))!!.toString()))!!.put(
-                "replayed",
-                true,
-            )
+            return (JSONObject((saved.getJSONObject("result"))!!.toString())).put("replayed", true)
         }
         var id = RevierRules.id(args, "offer_id", true)
-        val offer = PixelMcpWriteTools.find((repository!!.effective())!!.getJSONArray("offers"), id)
+        val offer = PixelMcpWriteTools.find((repository.effective()).getJSONArray("offers"), id)
         if (
             !(PixelMcpWriteTools.hash(LocalJournalRules.clean(offer)))!!.equals(
-                args!!.getString("expected_record_hash")
+                args.getString("expected_record_hash")
             )
         ) {
             throw PixelMcpWriteTools.Rejected(
@@ -130,27 +118,27 @@ internal class OfferDecisionService {
             )
         }
         OfferDecisionRules.requireFinal(offer)
-        repository!!.readDocument(offer)
+        repository.readDocument(offer)
         val existing = current(id)
         val version = OfferDecisionRules.contentVersion(offer)
         if (existing !== null) {
             throw PixelMcpWriteTools.Rejected(
-                (if ((existing!!.getString("content_version"))!!.equals(version))
+                (if ((existing.getString("content_version"))!!.equals(version))
                     "OFFER_DECISION_ALREADY_RECORDED"
                 else "OFFER_FINAL_VERSION_CHANGED"),
                 "Diese Angebotsversion hat bereits eine Entscheidung oder einen widersprüchlichen Dokumentstand. Für Änderungen eine neue Version anlegen; alte Entscheidung bleibt erhalten.",
             )
         }
         val acceptance: Boolean = name!!.equals("record_offer_acceptance")
-        if (!acceptance && (offer!!.optString("status"))!!.equals("accepted")) {
+        if (!acceptance && (offer.optString("status"))!!.equals("accepted")) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_ALREADY_CONVERTED",
                 "Angenommenen Auftrag nicht durch eine Ablehnungsmarkierung aufheben. Bestehenden Vorgang gesondert klären.",
             )
         }
-        val stamp = (clock!!.instant())!!.toString()
+        val stamp = (clock.instant())!!.toString()
         var decision: JSONObject =
-            ((((((((JSONObject())!!.put("formatVersion", 1))!!.put(
+            ((((((((JSONObject()).put("formatVersion", 1)).put(
                                         "decision_id",
                                         RevierRules.newId("offer_decision", requestId),
                                     ))!!
@@ -158,40 +146,40 @@ internal class OfferDecisionService {
                                 .put("content_version", version))!!
                             .put("decision", (if (acceptance) "accepted" else "declined")))!!
                         .put("recorded_at", stamp))!!
-                    .put("pdf_sha256", offer!!.getString("pdf_sha256")))!!
+                    .put("pdf_sha256", offer.getString("pdf_sha256")))!!
                 .put("request_id", requestId)
         if (acceptance) {
             val at = RevierRules.instant(RevierRules.text(args, "accepted_at", 80, true))
             val evidence = RevierRules.text(args, "evidence", 10000, true)
-            if ((Instant.parse(at))!!.isAfter((clock!!.instant())!!.plusSeconds(120))) {
+            if ((Instant.parse(at)).isAfter((clock.instant()).plusSeconds(120))) {
                 throw PixelMcpWriteTools.Rejected(
                     "ACCEPTANCE_TIME_REVIEW_REQUIRED",
                     "Annahmezeit liegt in der Zukunft. Zeitpunkt und Geräteuhr prüfen.",
                 )
             }
-            (decision!!.put("accepted_at", at))!!.put("evidence", evidence)
+            (decision.put("accepted_at", at)).put("evidence", evidence)
         } else {
-            decision!!.put("reason", RevierRules.text(args, "reason", 10000, false))
+            decision.put("reason", RevierRules.text(args, "reason", 10000, false))
         }
         RevierRules.bounded(decision)
         var history: JSONArray =
             JSONArray(
-                repository!!.ownerValue(
+                repository.ownerValue(
                     (((OfferDecisionRules.PREFIX).toString() + "history:") + id),
                     "[]",
                 )
             )
-        history!!.put(decision)
-        repository!!.putOwnerValue(
+        history.put(decision)
+        repository.putOwnerValue(
             (((OfferDecisionRules.PREFIX).toString() + "history:") + id),
             history!!.toString(),
         )
-        repository!!.putOwnerValue(
+        repository.putOwnerValue(
             (((OfferDecisionRules.PREFIX).toString() + "current:") + id),
             decision!!.toString(),
         )
         var result: JSONObject =
-            ((((((JSONObject())!!.put("offer_id", id))!!.put(
+            ((((((JSONObject()).put("offer_id", id)).put(
                                 "decision",
                                 OfferDecisionRules.publicDecision(decision),
                             ))!!
@@ -199,20 +187,19 @@ internal class OfferDecisionService {
                         .put("cloud_confirmed", false))!!
                     .put("invoice_created", false))!!
                 .put("replayed", false)
-        repository!!.putOwnerValue(
+        repository.putOwnerValue(
             receipt,
-            (((JSONObject())!!.put("fingerprint", fingerprint))!!.put("result", result))!!
-                .toString(),
+            (((JSONObject()).put("fingerprint", fingerprint)).put("result", result))!!.toString(),
         )
         return result
     }
 
     @Throws(Exception::class)
     fun requireConversionDecision(offer: JSONObject): Unit {
-        val decision = current(offer!!.getString("id"))
+        val decision = current(offer.getString("id"))
         if (decision !== null) {
             if (
-                !(decision!!.getString("content_version"))!!.equals(
+                !(decision.getString("content_version"))!!.equals(
                     OfferDecisionRules.contentVersion(offer)
                 )
             ) {
@@ -221,14 +208,14 @@ internal class OfferDecisionService {
                     "Annahmenachweis gehört zu einer anderen Dokumentversion. Auftrag nicht angelegt.",
                 )
             }
-            if (!(decision!!.getString("decision"))!!.equals("accepted")) {
+            if (!(decision.getString("decision"))!!.equals("accepted")) {
                 throw PixelMcpWriteTools.Rejected(
                     "OFFER_DECLINED",
                     "Abgelehntes Angebot erzeugt keinen Auftrag. Neue Angebotsversion bei Überarbeitung anlegen.",
                 )
             }
         }
-        if (OfferDecisionRules.local(repository!!.state()) && (decision === null)) {
+        if (OfferDecisionRules.local(repository.state()) && (decision === null)) {
             throw PixelMcpWriteTools.Rejected(
                 "OFFER_ACCEPTANCE_EVIDENCE_REQUIRED",
                 "Annahmezeit und nachvollziehbaren Nachweis für genau diese Version erfassen, bevor ein Auftrag angelegt wird.",
@@ -239,16 +226,16 @@ internal class OfferDecisionService {
     @Throws(Exception::class)
     fun linkRevision(sourceId: String, targetId: String, request: String): Unit {
         var source =
-            PixelMcpWriteTools.find((repository!!.effective())!!.getJSONArray("offers"), sourceId)
+            PixelMcpWriteTools.find((repository.effective()).getJSONArray("offers"), sourceId)
         var revision: JSONObject =
-            ((((((JSONObject())!!.put("formatVersion", 1))!!.put("offer_id", targetId))!!.put(
+            ((((((JSONObject()).put("formatVersion", 1)).put("offer_id", targetId)).put(
                             "parent_offer_id",
                             sourceId,
                         ))!!
                         .put("parent_content_version", OfferDecisionRules.contentVersion(source)))!!
-                    .put("created_at", (clock!!.instant())!!.toString()))!!
+                    .put("created_at", (clock.instant())!!.toString()))!!
                 .put("request_id", request)
-        repository!!.putOwnerValue(
+        repository.putOwnerValue(
             (((OfferDecisionRules.PREFIX).toString() + "revision:") + targetId),
             revision!!.toString(),
         )

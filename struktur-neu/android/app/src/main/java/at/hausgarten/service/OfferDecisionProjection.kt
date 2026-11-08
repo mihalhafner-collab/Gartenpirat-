@@ -8,7 +8,7 @@ internal object OfferDecisionProjection {
     @JvmStatic
     @Throws(Exception::class)
     fun apply(store: PixelLocalStore, master: JSONObject): Unit {
-        apply(store!!.readableDatabase, master)
+        apply(store.readableDatabase, master)
     }
 
     @JvmStatic
@@ -24,33 +24,33 @@ internal object OfferDecisionProjection {
                     arrayOf(prefix, (prefix + '￿')),
                 )
                 .use { rows ->
-                    while (rows!!.moveToNext()) {
-                        val key = rows!!.getString(0)
+                    while (rows.moveToNext()) {
+                        val key = rows.getString(0)
                         if (
-                            (!key!!.startsWith(prefix.toString() + "current:") &&
-                                !key!!.startsWith(prefix.toString() + "revision:"))
+                            (!key.startsWith(prefix.toString() + "current:") &&
+                                !key.startsWith(prefix.toString() + "revision:"))
                         ) {
                             continue
                         }
-                        var value: JSONObject = JSONObject(rows!!.getString(1))
+                        var value: JSONObject = JSONObject(rows.getString(1))
                         OfferDecisionRules.version(value)
-                        if (key!!.startsWith(prefix.toString() + "current:")) {
-                            decisions!!.put(value!!.getString("offer_id"), value)
+                        if (key.startsWith(prefix.toString() + "current:")) {
+                            decisions.put(value.getString("offer_id"), value)
                         } else {
-                            revisions!!.put(value!!.getString("offer_id"), value)
+                            revisions.put(value.getString("offer_id"), value)
                         }
                     }
                 }
         }
-        if (decisions!!.length() > 0) {
-            master!!.put("offer_decisions", decisions)
+        if (decisions.length() > 0) {
+            master.put("offer_decisions", decisions)
         } else {
-            master!!.remove("offer_decisions")
+            master.remove("offer_decisions")
         }
-        if (revisions!!.length() > 0) {
-            master!!.put("offer_revisions", revisions)
+        if (revisions.length() > 0) {
+            master.put("offer_revisions", revisions)
         } else {
-            master!!.remove("offer_revisions")
+            master.remove("offer_revisions")
         }
     }
 }

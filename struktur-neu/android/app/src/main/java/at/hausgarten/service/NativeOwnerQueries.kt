@@ -53,8 +53,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                 offset += 100
                 reviewOffset += 100
             } while (
-                offset < overview!!.getInt("total") ||
-                    reviewOffset < overview!!.getInt("review_total")
+                offset < overview.getInt("total") || reviewOffset < overview.getInt("review_total")
             )
             val filtered = args.keys().asSequence().any { args.optString(it).isNotEmpty() }
             val all = SettlementRules.records(ledger)

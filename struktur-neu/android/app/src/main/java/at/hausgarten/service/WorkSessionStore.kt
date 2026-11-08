@@ -42,7 +42,7 @@ class WorkSessionStore {
             if (context != null) {
                 var count: Int =
                     android.provider.Settings.Global.getInt(
-                        context!!.contentResolver,
+                        context.contentResolver,
                         android.provider.Settings.Global.BOOT_COUNT,
                         -1,
                     )
@@ -271,7 +271,7 @@ class WorkSessionStore {
 
     @Throws(Exception::class)
     fun finalizeSession(id: String, worklogId: String?, request: String): JSONObject {
-        if ((worklogId == null) || worklogId!!.trim().isEmpty()) {
+        if ((worklogId == null) || worklogId.trim().isEmpty()) {
             throw IllegalArgumentException("Die Arbeitsaufzeichnung fehlt.")
         }
         val before: JSONObject = current(id)
@@ -475,9 +475,9 @@ class WorkSessionStore {
                                     (if (mark == null) "LEGACY_PAUSE_REVIEW_REQUIRED"
                                     else
                                         reviewReason(
-                                            mark!!.getLong("wall_ms"),
-                                            mark!!.getLong("elapsed_ms"),
-                                            mark!!.getString("boot_marker"),
+                                            mark.getLong("wall_ms"),
+                                            mark.getLong("elapsed_ms"),
+                                            mark.getString("boot_marker"),
                                         ))
                             }
                         }
@@ -769,14 +769,14 @@ class WorkSessionStore {
     @Throws(Exception::class)
     private fun event(session: String, type: String, request: String?, payload: JSONObject) {
         var payload = payload
-        if ((request == null) || request!!.trim().isEmpty()) {
+        if ((request == null) || request.trim().isEmpty()) {
             throw IllegalArgumentException("Eine eindeutige Anfragekennung fehlt.")
         }
         val e: ContentValues = ContentValues()
         e.put("id", ("evt_" + UUID.randomUUID().toString().replace("-", "")))
         e.put("session_id", session)
         e.put("event_type", type)
-        e.put("request_id", request!!.trim())
+        e.put("request_id", request.trim())
         e.put("occurred_at", nowIso())
         payload =
             JSONObject(payload.toString())
