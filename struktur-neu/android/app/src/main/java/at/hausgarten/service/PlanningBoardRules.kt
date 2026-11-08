@@ -22,7 +22,11 @@ internal object PlanningBoardRules {
                     .put("query", McpFields.text(200))
                     .put("customer_id", McpFields.id())
                     .put("order_id", McpFields.id())
-                    .put("status", McpFields.enumeration("", "open", "completed", "cancelled"))
+                    .put(
+                        "status",
+                        McpFields.enumeration("", "open", "completed", "cancelled")
+                            .put("minLength", 0),
+                    )
                     .put("offset", McpFields.number(0, 1000000))
                     .put("limit", McpFields.number(1, 50)),
             )

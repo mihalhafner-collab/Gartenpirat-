@@ -1,13 +1,85 @@
 package at.hausgarten.service
 
 import java.sql.DriverManager
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
 class PlanningBoardTest {
+    @Test
+    fun unfilteredScreenRequestAcceptsEmptyStatusAndQuery() {
+        val args =
+            JSONObject()
+                .put("date_from", "2026-11-09")
+                .put("date_to", "2026-11-09")
+                .put("status", "")
+                .put("query", "")
+                .put("offset", 0)
+                .put("limit", 50)
+        val query = PlanningBoardRules.query(args)
+        DriverManager.getConnection("jdbc:sqlite::memory:").use { db ->
+            db.createStatement().use {
+                it.execute(
+                    "CREATE TABLE native_read_rows(collection TEXT,id TEXT,title TEXT,subtitle TEXT,work_date TEXT,sort_key TEXT,active INTEGER,status TEXT,customer_id TEXT,order_id TEXT,search_text TEXT)"
+                )
+                it.execute(
+                    "INSERT INTO native_read_rows VALUES('appointments','qa_empty_appointment','[TEST] Termin','','2026-11-09','a',1,'confirmed','','','')"
+                )
+                it.execute(
+                    "INSERT INTO native_read_rows VALUES('visits','qa_empty_visit','[TEST] Einsatz','','2026-11-09','b',1,'planned','','','')"
+                )
+                it.execute(
+                    "INSERT INTO native_read_rows VALUES('visits','qa_empty_archived','[TEST] Archiv','','2026-11-09','c',0,'planned','','','')"
+                )
+            }
+            db.prepareStatement(query.pageSql).use { statement ->
+                query.pageValues.forEachIndexed { index, value ->
+                    statement.setString(index + 1, value)
+                }
+                statement.executeQuery().use { rows ->
+                    val ids = buildList { while (rows.next()) add(rows.getString(2)) }
+                    assertEquals(listOf("qa_empty_appointment", "qa_empty_visit"), ids)
+                }
+            }
+        }
+        rejects { PlanningBoardRules.query(JSONObject(args.toString()).put("status", "invalid")) }
+    }
+
+    @Test
+    fun visitForecastUsesSharedRiskRulesForStormAndOrdinaryRain() {
+        val visit = visit()
+        val property = JSONObject().put("latitude", 48.2).put("longitude", 16.3)
+        val input = requireNotNull(PlanningBoardRules.weatherAppointment("visit", visit, property))
+        val now = Instant.parse("2026-11-08T18:00:00Z")
+        val base =
+            LocalDate.parse("2026-11-09").atStartOfDay(ZoneId.of("Europe/Vienna")).toEpochSecond()
+        val hourly =
+            JSONObject()
+                .put("time", JSONArray((0..25).map { base + it * 3600L }))
+                .put("temperature_2m", JSONArray((0..25).map { 15 }))
+                .put("precipitation", JSONArray((0..25).map { 8 }))
+                .put("wind_gusts_10m", JSONArray((0..25).map { 90 }))
+                .put("precipitation_probability", JSONArray((0..25).map { 90 }))
+        val cache =
+            JSONObject()
+                .put("fetched_at", now.toString())
+                .put("forecast", JSONObject().put("hourly", hourly))
+        assertEquals(
+            "difficult",
+            WeatherRiskRules.evaluate(input, cache, now, JSONObject()).getString("severity"),
+        )
+        hourly.put("weather_code", JSONArray((0..25).map { 95 }))
+        val original = input.toString()
+        val result = WeatherRiskRules.evaluate(input, cache, now, JSONObject())
+        assertEquals("critical", result.getString("severity"))
+        assertTrue(result.getJSONArray("reasons").length() > 0)
+        assertEquals(original, input.toString())
+    }
+
     @Test
     fun combinedPlanningQueryPaginatesBothKindsAndKeepsFilters() {
         DriverManager.getConnection("jdbc:sqlite::memory:").use { db ->

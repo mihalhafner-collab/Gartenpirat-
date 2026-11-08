@@ -4937,6 +4937,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                                     .put("temperature_2m", temperature)
                                     .put("precipitation", rain)
                                     .put("wind_gusts_10m", gust)
+                                    .put("weather_code", JSONArray((0..25).map { 95 }))
                                     .put("precipitation_probability", probability),
                             ),
                     )
@@ -5995,8 +5996,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         checks++
         shown(UiTags.PRIMARY)
+        click(UiTags.FILTER)
+        val check = visibleResult(UiTags.PLANNING_SYNC, scrollIntoView = true)
         val plan = visibleResult(UiTags.PRIMARY)
-        val check = visibleResult("Kalender prüfen", scrollIntoView = true)
         yes(!Rect.intersects(plan, check), "LARGE_TEXT_ACTIONS_DO_NOT_OVERLAP")
         val frame = Rect()
         val safe = Rect()
