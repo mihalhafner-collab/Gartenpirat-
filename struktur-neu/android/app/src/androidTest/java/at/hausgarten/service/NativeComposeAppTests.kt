@@ -1682,6 +1682,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("WORK_PAUSE_RECALCULATES_DURATION") {
             first().getInt("break_minutes") == 15 && first().getDouble("hours") == 3.75
         }
+        // Design step 3: the next step of open work is to bill it; it opens the settlement editor.
+        click(UiTags.PRIMARY)
+        shown("Abrechnungsart: Rechnung")
+        back()
+        waitUntil("WORK_DETAIL_AFTER_BILLING_EDITOR") { node(UiTags.DETAIL_MENU) != null }
+        // Rare actions sit in the record's ⋮ menu.
+        click(UiTags.DETAIL_MENU)
         click("Abgerechnet / offen markieren")
         shown("Begründung *")
         yes(

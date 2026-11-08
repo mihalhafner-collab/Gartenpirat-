@@ -2374,6 +2374,7 @@ internal fun NativeDeleteButton(
     controller: NativeAppController,
     entity: String,
     id: String,
+    modifier: Modifier = Modifier,
     label: String = "Löschen",
     permanent: Boolean = false,
     emptyTrash: Boolean = false,
@@ -2383,7 +2384,8 @@ internal fun NativeDeleteButton(
 ) {
     var busy by remember(entity, id) { mutableStateOf(false) }
     OutlinedButton(
-        {
+        modifier = modifier.heightIn(min = 48.dp),
+        onClick = {
             if (!busy) {
                 busy = true
                 scope.launch {
@@ -2423,6 +2425,8 @@ internal fun NativeDeleteButton(
                 else MaterialTheme.colorScheme.outlineVariant,
             ),
     ) {
+        NativeTrashIcon(LocalContentColor.current)
+        Spacer(Modifier.width(8.dp))
         Text(if (busy) "Löschen …" else label)
     }
 }
