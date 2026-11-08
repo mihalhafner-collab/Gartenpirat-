@@ -4633,6 +4633,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val customerId = "qa_swipe_customer"
         val orderId = "qa_swipe_order"
         val invoiceId = "qa_swipe_invoice"
+        val claimTrigger = "qa_list_claim_abort"
         val customer = customers(fixturePrefix + "000").single().getString("id")
         val source = JSONObject(beforeMaster.toString())
         source
@@ -4734,10 +4735,27 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     record("customers", customerId) != null
             }
             shown(UiTags.swipe("customer", customerId))
+            store.writableDatabase.execSQL(
+                """
+                CREATE TRIGGER $claimTrigger BEFORE INSERT ON owner_state
+                WHEN NEW.key='${ListActionTools.KEY}' AND instr(NEW.value,'"state":"applying"')>0
+                BEGIN SELECT RAISE(ABORT,'QA list claim failure'); END
+                """
+                    .trimIndent()
+            )
             swipe(UiTags.swipe("customer", customerId), right = false)
             waitUntil("SWIPE_CUSTOMER_QUEUED") {
                 rows("customer", customerId).lastOrNull()?.optString("state") == "queued"
             }
+            val due = rows("customer", customerId).last().getLong("undo_until")
+            waitUntil("SWIPE_CLAIM_FAILURE_WINDOW") { System.currentTimeMillis() >= due + 1500 }
+            yes(
+                rows("customer", customerId).last().optString("state") == "queued" &&
+                    record("customers", customerId) != null &&
+                    node(UiTags.area("customers")) != null,
+                "SWIPE_FAILED_CLAIM_PRESERVES_DATA_AND_APP",
+            )
+            store.writableDatabase.execSQL("DROP TRIGGER $claimTrigger")
             recreate()
             waitUntil("SWIPE_CUSTOMER_PERMANENT_AFTER_RECREATION") {
                 rows("customer", customerId).lastOrNull()?.optString("state") == "done" &&
@@ -4792,6 +4810,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             yes(node(UiTags.UNDO) == null, "SWIPE_INVOICE_HAS_NO_UNDO_ACTION")
             captureSyntheticScreen("list-swipe-protection")
         } finally {
+            store.writableDatabase.execSQL("DROP TRIGGER IF EXISTS $claimTrigger")
             waitUntil("SWIPE_TEST_ACTIONS_FINISHED") {
                 listOf("customer" to customerId, "order" to orderId, "settlement" to invoiceId)
                     .none { (entity, id) ->
