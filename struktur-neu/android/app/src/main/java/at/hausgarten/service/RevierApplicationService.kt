@@ -284,6 +284,14 @@ class RevierApplicationService {
             "get_day_tour" -> {
                 return tour(RevierRules.date(args, "date", true))
             }
+            "get_tour_navigation" -> {
+                val current = tour(RevierRules.date(args, "date", true))
+                RevierRules.cas(
+                    current.getJSONObject("tour"),
+                    args.getString("expected_record_hash"),
+                )
+                return PlanningBoardRules.navigation(current) { load("property", it) }
+            }
             "list_materials" -> {
                 return listing("material", "materials", args)
             }
@@ -3164,8 +3172,10 @@ class RevierApplicationService {
                 }
             }
         }
-        // Settlements (Abschlüsse) live in their own ledger; abandoned preparations are not results.
-        for (record in SettlementRules.records(JSONObject(repository.get(SettlementRules.KEY, "{}")))) {
+        // Settlements (Abschlüsse) live in their own ledger; abandoned preparations are not
+        // results.
+        for (record in
+            SettlementRules.records(JSONObject(repository.get(SettlementRules.KEY, "{}")))) {
             if (record.optString("status") == "abandoned") continue
             val recipient = record.optJSONObject("recipient") ?: JSONObject()
             val label =
@@ -3229,7 +3239,9 @@ class RevierApplicationService {
         val limit: Int = RevierRules.integer(args, "limit", 1, 100, 50)
         val customers = HashMap<String, JSONObject>()
         state.optJSONArray("customers")?.let { rows ->
-            for (i in 0 until rows.length()) rows.optJSONObject(i)?.let { customers[it.optString("id")] = it }
+            for (i in 0 until rows.length()) rows.optJSONObject(i)?.let {
+                customers[it.optString("id")] = it
+            }
         }
         val items: JSONArray = JSONArray()
         run {
@@ -3253,7 +3265,8 @@ class RevierApplicationService {
     private fun withContact(hit: SearchHit, customers: Map<String, JSONObject>): JSONObject {
         val item = hit.selected()
         val record = hit.record ?: return item
-        val customer = if (hit.type == "customer") record else customers[record.optString("customer_id")]
+        val customer =
+            if (hit.type == "customer") record else customers[record.optString("customer_id")]
         val address =
             if (hit.type == "customer")
                 listOf(
@@ -3264,8 +3277,7 @@ class RevierApplicationService {
                     )
                     .filter { it.isNotBlank() }
                     .joinToString(", ")
-            else if (hit.type == "property") record.optString("address")
-            else ""
+            else if (hit.type == "property") record.optString("address") else ""
         if (hit.type == "customer" || hit.type == "property") {
             customer?.optString("phone")?.takeIf { it.isNotBlank() }?.let { item.put("phone", it) }
             address.takeIf { it.isNotBlank() }?.let { item.put("address", it) }

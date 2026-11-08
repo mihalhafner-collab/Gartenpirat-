@@ -209,7 +209,7 @@ jobs:
             suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen native_compose native_settlement native_settlement_reopen native_settlement_ui native_accounting native_accounting_reopen native_graphics)
           fi
           # Every UI journey gets a new process and a completely empty app sandbox.
-          compose_journeys=(today_hub customer native_pickers pending_result_read_only usability work_photo_retention accessories timer today_older_work_commit notification customer_context office_opening search_keyboard back_gesture domain_search grouped_search list_actions list_viewports filter_keyboard surfaces large_text storage_settings camera_capture)
+          compose_journeys=(today_hub customer native_pickers pending_result_read_only usability work_photo_retention accessories timer today_older_work_commit notification customer_context office_opening search_keyboard back_gesture domain_search grouped_search list_actions planning_board list_viewports filter_keyboard surfaces large_text storage_settings camera_capture)
           graphics_journeys=(graphics_today graphics_work graphics_navigation graphics_accessories graphics_timer graphics_large_text)
           expanded_suites=()
           for suite in "${suites[@]}"; do

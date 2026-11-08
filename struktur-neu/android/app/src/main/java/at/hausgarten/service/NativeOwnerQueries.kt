@@ -17,6 +17,33 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
         this.repository = repository
     }
 
+    private fun planningBoard(args: JSONObject): JSONObject {
+        val board = store.nativeData().planningBoard(args)
+        val now = java.time.Instant.now()
+        for (item in SettlementRules.rows(board.getJSONArray("items"))) {
+            val appointment =
+                PlanningBoardRules.weatherAppointment(
+                    item.getString("kind"),
+                    item.getJSONObject("record"),
+                    item.getJSONObject("property"),
+                )
+            val weather =
+                try {
+                    if (!AppointmentRuntime.flag(context, store, "weather_enabled"))
+                        JSONObject()
+                            .put("severity", "inactive")
+                            .put("label", "Wetter nicht aktiviert")
+                    else if (appointment == null)
+                        JSONObject().put("severity", "unknown").put("label", "Uhrzeit offen")
+                    else AppointmentRuntime.risk(store, appointment, now)
+                } catch (_: Exception) {
+                    JSONObject().put("severity", "unknown").put("label", "Wetter unbekannt")
+                }
+            item.put("weather", weather)
+        }
+        return board
+    }
+
     private fun exportSettlements(args: JSONObject): JSONObject {
         McpSchema.validate(args, SettlementTools.schema("export_settlements"))
         val db = store.writableDatabase
@@ -144,6 +171,7 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
 
     override @Throws(Exception::class) fun query(name: String, args: JSONObject): JSONObject? {
         if (name == "get_list_actions") return ListActionService(repository).query()
+        if (name == "get_planning_board") return planningBoard(args)
         if (name == "export_settlements") return exportSettlements(args)
         if (name in SettlementTools.READS && name != "export_settlements")
             return SettlementTools.query(name, args, repository)

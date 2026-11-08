@@ -1001,6 +1001,29 @@ internal object NativeActionCatalog {
                 "Abrechnungsentwurf löschen",
                 listOf("delete_settlement_draft"),
             ),
+            NativeAction(
+                "planung.ansichten",
+                "planung",
+                "Planung Tag, Woche und Karte",
+                listOf("get_planning_board"),
+            ),
+            NativeAction(
+                "planung.verschieben",
+                "planung",
+                "Einsatz mit langem Drücken verschieben",
+                listOf(
+                    "get_planning_board",
+                    "update_visit",
+                    "update_appointment",
+                    "inspect_edit_action",
+                ),
+            ),
+            NativeAction(
+                "planung.navigation",
+                "planung",
+                "Tour-Reihenfolge und Navigation starten",
+                listOf("get_day_tour", "set_day_tour", "move_tour_stop", "get_tour_navigation"),
+            ),
         )
 
     /** Retired actions stay inspectable in the catalog without exposing an executable button. */

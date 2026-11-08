@@ -25,6 +25,8 @@ internal class LocalWorkflowTools {
                 "list_visits",
                 "get_visit",
                 "get_day_tour",
+                "get_planning_board",
+                "get_tour_navigation",
                 "list_materials",
                 "list_equipment",
                 "search_local",
@@ -114,6 +116,10 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun description(name: String): String {
+            if (name == "get_planning_board")
+                return "Liest Einsätze und Termine gemeinsam für Tag, Woche oder Standortübersicht: begrenzte Seite mit aktuellem record_hash, echten Zeitfenstern, ausdrücklichen Objektbezügen und Wetterhinweisen aus dem vorhandenen Cache. Keine Netzabfrage, keine Umplanung und keine erfundenen Zeiten oder Koordinaten. Verschieben über update_visit bzw. update_appointment mit dem gelieferten Hash."
+            if (name == "get_tour_navigation")
+                return "Liefert die Übergabe an die Karten-App zum ersten gespeicherten Stopp der Tagestour. Benötigt aktuellen Tourhash; ungespeicherte oder prüfpflichtige Reihenfolge zuerst bestätigen. Keine Routenoptimierung, kein Kartendienst und keine Datenänderung. visit_ids bleiben in gespeicherter Reihenfolge."
             if (ListActionTools.handles(name)) return ListActionTools.description(name)
             if (name == "save_equipment") {
                 return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
@@ -376,6 +382,7 @@ internal class LocalWorkflowTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
+            if (name == "get_planning_board") return PlanningBoardRules.boardSchema()
             if (ListActionTools.handles(name)) return ListActionTools.schema(name)
             if (!(handles(name))) {
                 throw IllegalArgumentException("Lokaler Werkzeugvertrag fehlt.")
@@ -468,9 +475,14 @@ internal class LocalWorkflowTools {
                     p.put("visit_id", McpFields.id())
                     required.add("visit_id")
                 }
-                "get_day_tour" -> {
+                "get_day_tour",
+                "get_tour_navigation" -> {
                     p.put("date", date())
                     required.add("date")
+                    if (name == "get_tour_navigation") {
+                        p.put("expected_record_hash", McpFields.hash())
+                        required.add("expected_record_hash")
+                    }
                 }
                 "create_property" -> {
                     p = merge(p, propertyFields(true))
