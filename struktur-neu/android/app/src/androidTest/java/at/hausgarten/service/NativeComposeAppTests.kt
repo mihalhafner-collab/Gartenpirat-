@@ -83,6 +83,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         throw AssertionError("QA_NATIVE_COMPOSE_TIMEOUT_$code; visible=" + visibleTexts().joinToString(" | ").take(3000))
     }
 
+    /** Like [waitUntil], but the condition must hold without interruption for [stableMs]. */
+    private fun waitStable(code: String, stableMs: Long = 1000, condition: () -> Boolean) {
+        var since = 0L
+        waitUntil(code) {
+            val now = SystemClock.uptimeMillis()
+            if (!condition()) { since = 0L; false }
+            else { if (since == 0L) since = now; now - since >= stableMs }
+        }
+        checks++
+    }
+
     private fun all(node: AccessibilityNodeInfo?, result: MutableList<AccessibilityNodeInfo> = ArrayList()): List<AccessibilityNodeInfo> {
         if (node != null) {
             result.add(node)
@@ -528,10 +539,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Rechnung"); reveal("900,00 €"); shown("900,00 €")
             showKeyboard("Auftragsbezeichnung"); enter("Auftragsbezeichnung", "qa_settlement_invoice"); back()
             recreate()
-            // Activity recreation first displays the asynchronous startup review.
-            // Wait for the restored feature field before inspecting its value.
-            waitUntil("SETTLEMENT_UI_RECREATED_ACCOUNTING_FIELD") { field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") == true }
-            yes(field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") == true, "SETTLEMENT_UI_FILTER_RECREATION")
+            // Activity recreation briefly shows the asynchronous startup review over the
+            // restored screen; the restored filter must stay visible once that is done.
+            waitStable("SETTLEMENT_UI_FILTER_RECREATION") { field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") == true }
             val filteredAfterRecreation = read("get_accounting_overview", JSONObject().put("query", "qa_settlement_invoice").put("route", "billed"))
             yes(filteredAfterRecreation.getLong("billed_minor") == 90000L && filteredAfterRecreation.getLong("total_minor") == 90000L && filteredAfterRecreation.getInt("total") == 1, "SETTLEMENT_UI_RECREATED_FILTER_EXACT_AMOUNT")
             // Search and keyboard handling may leave the preserved viewport below
