@@ -637,7 +637,7 @@ private fun NativeOffice(controller: NativeAppController) {
                 NativeInfoRow(
                     title,
                     subtitle,
-                    { controller.navigate(section) },
+                    { controller.openOverview(section) },
                     modifier = Modifier.semantics { testTag = UiTags.area(section) },
                 )
             }

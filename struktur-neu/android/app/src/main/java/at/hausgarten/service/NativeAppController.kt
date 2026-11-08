@@ -141,6 +141,12 @@ internal class NativeAppController(private val activity: MainActivity, val store
         navigate("office")
     }
 
+    /** An entry in More opens its overview while retaining that list's filters and position. */
+    fun openOverview(section: String) {
+        navigate(section)
+        if (section in mainAreas) openSection(section)
+    }
+
     fun openSection(section: String) {
         require(section in mainAreas)
         messages.value = ""

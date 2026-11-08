@@ -527,19 +527,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    /** Work records have no tab; the office lists them first. */
+    /** More opens the real list directly, including after returning from a record or action. */
     private fun openWorklogs() {
         openOffice()
-        click("Arbeiten")
-        repeat(12) {
-            fun ready() = field("Suchen")?.isEditable == true
-            waitUntil("WORK_LIST_OR_RETAINED_DETAIL") {
-                ready() || node(UiTags.BACK)?.let(::clickable) != null
-            }
-            if (ready()) return
-            click(UiTags.BACK, scrollTo = false)
-        }
-        throw AssertionError("QA_NATIVE_COMPOSE_WORK_LIST_BACK_PATH")
+        click(UiTags.area("worklogs"))
+        waitUntil("WORK_LIST_READY") { field("Suchen")?.isEditable == true }
     }
 
     /** Design: rare areas sit behind ⋮ "Mehr" in Today's header; there is no office tab. */
