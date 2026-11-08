@@ -36,22 +36,21 @@ gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 \
 Kotlin- und Lint-Warnungen brechen den Bau ab. Die Release-APK bleibt hier
 unsigniert. Signieren und Verteilen: `SIGNIERUNG.md`.
 
-JVM-Fachtests (Domain, Abrechnung, MCP, Geräte, ZIP, SQLite):
+JVM-Fachtests (Domain, Abrechnung, MCP, Geräte, ZIP, SQLite) unter
+`android/app/src/test`, mit echtem `org.json` und SQLite-JDBC:
 
 ```sh
-HG_JSON_JAR=… HG_SQLITE_JDBC_JAR=… HG_SLF4J_API_JAR=… \
-  python3 -B tools/run-followup-java.py --tables
+cd android && gradle --no-daemon --no-configuration-cache :app:testReleaseUnitTest
 ```
 
-Benötigt `org.json:json:20240303`, SQLite-JDBC 3.46.1.0 und SLF4J-API 1.7.36;
-der Runner prüft deren SHA256 und lädt nichts nach. Den Kotlin-Compiler nimmt er
-aus dem Gradle-Cache; vorher einmal den Gradle-Bau ausführen.
+Die Tests kompilieren gegen die Android-Fassung von `org.json` (geprüfte
+`JSONException`), also gegen dieselbe Schnittstelle wie die App.
 
 ## CI
 
 `.github/workflows/qa-apk.yml` läuft bei jedem PR nach `main` und manuell.
 Job `build`: Quellprüfung, Release- und Test-APK, Lint,
-JVM-Tests. Job `emulator`: alle nativen Suiten auf einem Wegwerf-Emulator
+JVM-Tests (`testReleaseUnitTest`). Job `emulator`: alle nativen Suiten auf einem Wegwerf-Emulator
 (API 35); die Liste der Suiten und Abläufe steht nur im Workflow. Ein neuerer
 Push auf denselben PR bricht den laufenden Lauf ab. Voller Lauf = PR-Lauf oder
 manuell mit `emulator=true` ohne `*_only`; die `*_only`-Schalter dienen nur der

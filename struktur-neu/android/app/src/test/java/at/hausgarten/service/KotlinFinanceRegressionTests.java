@@ -11,8 +11,8 @@ public final class KotlinFinanceRegressionTests {
     private static int checks;
     private interface Work { void run() throws Exception; }
 
-    private static JSONObject json(String value) { return new JSONObject(value); }
-    private static JSONObject copy(JSONObject value) { return new JSONObject(value.toString()); }
+    private static JSONObject json(String value) throws Exception { return new JSONObject(value); }
+    private static JSONObject copy(JSONObject value) throws Exception { return new JSONObject(value.toString()); }
     private static void yes(boolean condition, String reason) {
         checks++;
         if (!condition) throw new AssertionError(reason);
@@ -28,7 +28,7 @@ public final class KotlinFinanceRegressionTests {
         try { work.run(); throw new AssertionError("Expected invalid input: " + message); }
         catch (IllegalArgumentException failure) { yes(message.equals(failure.getMessage()), "Business reason: " + message); }
     }
-    private static JSONObject master() {
+    private static JSONObject master() throws Exception {
         return json("{customers:[{id:'c1',name:'Synthetic Alpha',street:'Testweg 1',postal_code:'1000',city:'Teststadt',country:'AT',billing_mode:'direct'},"
                 + "{id:'c2',name:'Synthetic Beta',street:'Testweg 2',postal_code:'2000',city:'Teststadt',country:'AT',billing_mode:'via_customer',default_billing_customer_id:'c1'}],"
                 + "orders:[{id:'o1',customer_id:'c2',billing_customer_id:'c1',title:'Synthetic order',status:'Geplant'}],"

@@ -35,7 +35,7 @@ public final class EquipmentProfilePhotoTests {
   }
   public void verifyEquipmentProfilePhoto(JSONObject photo)throws Exception {EquipmentProfilePhotoRules.attachment(photo,attachments.get(photo.getString("id")));EquipmentProfilePhotoRules.original(directory,photo);}
  }
- static JSONObject args(String request){return obj().put("request_id",request);}
+ static JSONObject args(String request) throws Exception {return obj().put("request_id",request);}
  static JSONObject current(RevierApplicationService app)throws Exception{return app.query("list_equipment",obj()).getJSONArray("items").getJSONObject(0);}
  static JSONObject update(RevierApplicationService app,String request)throws Exception {JSONObject d=current(app);return args(request).put("equipment_id",d.getString("id")).put("expected_record_hash",d.getString("record_hash"));}
  public static void main(String[] argv)throws Exception {

@@ -22,7 +22,7 @@ public final class SyntheticBusinessData {
  public static void verify() throws Exception {JSONObject root=profile("minimal");if(!root.getJSONArray("customers").getJSONObject(0).getBoolean("test_record")||!root.getJSONArray("customers").getJSONObject(0).getString("email").endsWith("@example.invalid"))throw new AssertionError("Synthetic fixture contract");}
 }
 '''
-paths=[ROOT/'tests/java/at/hausgarten/service/SyntheticBusinessData.java',ROOT/'android/app/src/androidTest/java/at/hausgarten/service/SyntheticBusinessData.java']
+paths=[ROOT/'android/app/src/test/java/at/hausgarten/service/SyntheticBusinessData.java',ROOT/'android/app/src/androidTest/java/at/hausgarten/service/SyntheticBusinessData.java']
 parser=argparse.ArgumentParser();parser.add_argument('--write',action='store_true');args=parser.parse_args()
 for p in paths:
  if args.write:p.write_text(java)

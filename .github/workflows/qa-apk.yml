@@ -83,15 +83,10 @@ jobs:
           tasks=(:app:assembleRelease :app:assembleReleaseAndroidTest)
           if [ "$FOCUSED_UI" != true ]; then tasks+=(:app:lintRelease); fi
           gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 "${tasks[@]}"
-      - name: Run JVM archive, warning, rollback and related regressions
+      - name: Run JVM contract suites
         if: github.event_name != 'workflow_dispatch' || (!inputs.accounting_only && !inputs.settlement_ui_only)
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/gp-deps"
-          curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o "$RUNNER_TEMP/gp-deps/json.jar"
-          curl -fsSL https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.46.1.0/sqlite-jdbc-3.46.1.0.jar -o "$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar"
-          curl -fsSL https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar -o "$RUNNER_TEMP/gp-deps/slf4j-api.jar"
-          HG_JSON_JAR="$RUNNER_TEMP/gp-deps/json.jar" HG_SQLITE_JDBC_JAR="$RUNNER_TEMP/gp-deps/sqlite-jdbc.jar" HG_SLF4J_API_JAR="$RUNNER_TEMP/gp-deps/slf4j-api.jar" python3 -B tools/run-followup-java.py --tables
+        working-directory: struktur-neu/android
+        run: gradle --no-daemon --no-configuration-cache --build-cache --max-workers=2 :app:testReleaseUnitTest
       - name: Keep unsigned packages for the emulator job
         run: |
           set -euo pipefail
@@ -105,12 +100,14 @@ jobs:
           name: Gartenpirat-unsigned-packages
           path: struktur-neu/outputs/unsigned/
           retention-days: 1
-      - name: Preserve lint report
+      - name: Preserve lint and JVM test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Gartenpirat-lint
-          path: struktur-neu/android/app/build/reports/lint-results-release.html
+          name: Gartenpirat-reports
+          path: |
+            struktur-neu/android/app/build/reports/lint-results-release.html
+            struktur-neu/android/app/build/reports/tests/
           if-no-files-found: ignore
           retention-days: 7
 

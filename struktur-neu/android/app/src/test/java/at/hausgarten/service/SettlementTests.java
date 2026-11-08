@@ -11,27 +11,27 @@ public final class SettlementTests {
     private static int checks;
     private static final SettlementRules RULES = SettlementRules.INSTANCE;
     private interface Action { void run() throws Exception; }
-    private static JSONObject copy(JSONObject value) { return new JSONObject(value.toString()); }
+    private static JSONObject copy(JSONObject value) throws Exception { return new JSONObject(value.toString()); }
     private static void yes(boolean value, String reason) { checks++; if (!value) throw new AssertionError(reason); }
     private static void invalid(Action action, String reason) throws Exception {
         try { action.run(); throw new AssertionError("Accepted invalid input: " + reason); }
         catch (IllegalArgumentException | ArithmeticException expected) { checks++; }
     }
-    private static JSONObject source(String collection, String id) { return new JSONObject().put("collection", collection).put("id", id); }
-    private static JSONObject line(String collection, String source, String quantity, String price) {
+    private static JSONObject source(String collection, String id) throws Exception { return new JSONObject().put("collection", collection).put("id", id); }
+    private static JSONObject line(String collection, String source, String quantity, String price) throws Exception {
         return new JSONObject().put("title", "Synthetische Gartenleistung").put("description", "Frei erfunden: Sträucher und Grünfläche")
             .put("unit", "h").put("quantity", quantity).put("price", price).put("source_collection", collection).put("source_id", source);
     }
-    private static JSONObject customer(String id) {
+    private static JSONObject customer(String id) throws Exception {
         return new JSONObject().put("id", id).put("name", "Synthetischer Empfänger " + id).put("street", "Erfundener Weg 10")
             .put("postal_code", "1000").put("city", "Teststadt").put("country", "AT");
     }
-    private static JSONObject work(String id, String order, String recipient) {
+    private static JSONObject work(String id, String order, String recipient) throws Exception {
         return new JSONObject().put("id", id).put("customer_id", "site").put("billing_customer_id", recipient)
             .put("order_id", order).put("activity", "Synthetische Arbeit " + id).put("work_date", "2026-11-01")
             .put("hours", "2").put("billed", 0);
     }
-    private static JSONObject master() {
+    private static JSONObject master() throws Exception {
         return new JSONObject().put("customers", new JSONArray().put(customer("recipient")).put(customer("other")).put(customer("site")))
             .put("orders", new JSONArray().put(new JSONObject().put("id", "order").put("title", "Erfundener Gartenauftrag")
                 .put("customer_id", "site").put("billing_customer_id", "recipient").put("status", "Erledigt").put("scheduled_date", "2026-10-31")))
@@ -42,21 +42,21 @@ public final class SettlementTests {
                 .put("business_street", "Erfundene Straße 20").put("business_postal_code", "2000").put("business_city", "Testort")
                 .put("business_country", "AT").put("tax_mode", "small_business"));
     }
-    private static JSONObject draft(String route, JSONArray positions) {
+    private static JSONObject draft(String route, JSONArray positions) throws Exception {
         return new JSONObject().put("route", route).put("title", "Synthetische Abrechnung").put("customer_id", "site")
             .put("billing_customer_id", "recipient").put("service_from", "2026-11-01").put("service_to", "2026-11-01")
             .put("payment_terms", "Binnen 14 Tagen").put("payment_details", "Synthetisch vereinbarte Überweisung")
             .put("positions", positions);
     }
-    private static JSONObject ledger() { return new JSONObject().put("records", new JSONArray()).put("payments", new JSONArray()); }
-    private static JSONObject review(JSONObject draft, JSONObject data, String id) { return RULES.review(RULES.normalized(draft, id), data); }
-    private static JSONObject validation(JSONObject view, JSONObject data, JSONObject ledger) { return RULES.validation(view, data, ledger, Collections.emptySet()); }
-    private static boolean error(JSONObject result, String text) {
+    private static JSONObject ledger() throws Exception { return new JSONObject().put("records", new JSONArray()).put("payments", new JSONArray()); }
+    private static JSONObject review(JSONObject draft, JSONObject data, String id) throws Exception { return RULES.review(RULES.normalized(draft, id), data); }
+    private static JSONObject validation(JSONObject view, JSONObject data, JSONObject ledger) throws Exception { return RULES.validation(view, data, ledger, Collections.emptySet()); }
+    private static boolean error(JSONObject result, String text) throws Exception {
         JSONArray errors = result.getJSONArray("errors");
         for (int i = 0; i < errors.length(); i++) if (errors.getString(i).contains(text)) return true;
         return false;
     }
-    private static JSONObject bound(String id, String status, String route, JSONObject... sources) {
+    private static JSONObject bound(String id, String status, String route, JSONObject... sources) throws Exception {
         return new JSONObject().put("id", id).put("status", status).put("route", route)
             .put("kind", route.equals("billed") ? "invoice" : "internal").put("sources", new JSONArray(Arrays.asList(sources)));
     }
@@ -142,14 +142,14 @@ public final class SettlementTests {
         boolean committed, failPdf;
         String epoch = "synthetic-epoch-0", series = "GP-SYNTHETIC-000000000001";
         int documentWrites, documentReads;
-        Memory() { this(SettlementTests.master(), Collections.emptyMap()); }
-        Memory(JSONObject master, Map<String,String> previous) {
+        Memory() throws Exception { this(SettlementTests.master(), Collections.emptyMap()); }
+        Memory(JSONObject master, Map<String,String> previous) throws Exception {
             this.master = copy(master); owner.putAll(previous);
             owner.putIfAbsent("personal_paid", "[]"); owner.putIfAbsent("personal_paid_migrated", "1");
             repository = (OwnerRepository) Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, this);
         }
-        JSONObject ledger() { return new JSONObject(owner.getOrDefault(SettlementRules.KEY, "{}")); }
-        JSONObject record(String id) { return RULES.find(ledger(), id); }
+        JSONObject ledger() throws Exception { return new JSONObject(owner.getOrDefault(SettlementRules.KEY, "{}")); }
+        JSONObject record(String id) throws Exception { return RULES.find(ledger(), id); }
         synchronized JSONObject run(String name, JSONObject args, String request) throws Exception {
             String fingerprint = RULES.hash(new JSONObject().put("tool", name).put("args", args));
             return OwnerRequestTransactions.runRequest(this, request, fingerprint,
@@ -158,14 +158,14 @@ public final class SettlementTests {
         String save(JSONObject draft, String request) throws Exception {
             return run("save_settlement_draft", new JSONObject().put("draft", draft), request).getString("settlement_id");
         }
-        JSONObject prepareArgs(String id) {
+        JSONObject prepareArgs(String id) throws Exception {
             return new JSONObject().put("settlement_id", id).put("expected_review_hash", RULES.hash(RULES.review(record(id), master)))
                 .put("confirmed", true).put("domestic_eur_confirmed", true).put("issuer_details_confirmed", true)
                 .put("electronic_delivery_accepted", true);
         }
         JSONObject prepare(String id, String request) throws Exception { return run("prepare_settlement", prepareArgs(id), request); }
         JSONObject complete(String id, String request) throws Exception { return run("complete_settlement", new JSONObject().put("settlement_id", id), request); }
-        JSONObject proof(String id) { return new JSONObject().put("settlement_id", id).put("expected_record_hash", RULES.hash(record(id))); }
+        JSONObject proof(String id) throws Exception { return new JSONObject().put("settlement_id", id).put("expected_record_hash", RULES.hash(record(id))); }
         JSONObject pay(String id, String amount, String request) throws Exception {
             return run("add_settlement_payment", proof(id).put("amount", amount).put("date", "2026-11-06"), request);
         }
@@ -292,7 +292,7 @@ public final class SettlementTests {
             } else yes(!restored.record(id).has("invoice_number") && restored.documentWrites == 0, "Restored internal reservation remains internal after its current reconciliation");
         }
     }
-    private static long accountingTotal(List<JSONObject> rows, String route) {
+    private static long accountingTotal(List<JSONObject> rows, String route) throws Exception {
         long total = 0L;
         for (JSONObject row : rows) if (!row.isNull("amount_minor") && row.getString("route").equals(route)
             && Arrays.asList("", "partial_amount").contains(row.getString("issue_code"))) total = Math.addExact(total, row.getLong("amount_minor"));
@@ -311,9 +311,9 @@ public final class SettlementTests {
         memory.prepare(internal, "overview-labor-prepare"); memory.complete(internal, "overview-labor-close");
         Memory reopened = new Memory(memory.master, memory.owner);
         List<JSONObject> rows = AccountingRules.INSTANCE.project(reopened.master, Collections.emptySet(), new JSONArray(), reopened.ledger());
-        JSONObject first = rows.stream().filter(row -> row.getString("key").equals("orders:order")).findFirst().orElseThrow();
-        JSONObject second = rows.stream().filter(row -> row.getString("key").equals("orders:order-two")).findFirst().orElseThrow();
-        yes(rows.stream().filter(row -> row.getString("collection").equals("orders")).count() == 2L && first.getLong("amount_minor") == 30000L && second.getLong("amount_minor") == 60000L,
+        JSONObject first = rows.stream().filter(row -> row.optString("key").equals("orders:order")).findFirst().orElseThrow();
+        JSONObject second = rows.stream().filter(row -> row.optString("key").equals("orders:order-two")).findFirst().orElseThrow();
+        yes(rows.stream().filter(row -> row.optString("collection").equals("orders")).count() == 2L && first.optLong("amount_minor") == 30000L && second.optLong("amount_minor") == 60000L,
             "Collection invoice allocates each actual line once to its order, not its whole total to every order");
         yes(first.getString("issue_code").equals("partial_amount") && first.getString("work_date").equals("2026-11-01"), "Marked order retains known partial money, explicit pending scope and original work-date basis");
         yes(accountingTotal(rows, "billed") == 90000L && accountingTotal(rows, "labor") == 20000L
@@ -338,7 +338,7 @@ public final class SettlementTests {
         JSONObject rejected = validation(candidate, data, reconciliation);
         yes(!rejected.getBoolean("valid") && error(rejected, "frühere Belegverknüpfung"),
             "An ordinary unmarked worklog linked by an issued/sevDesk legacy invoice cannot be reissued by default");
-        yes(RULES.externalSources(data).stream().anyMatch(ref -> ref.getString("collection").equals("worklogs") && ref.getString("id").equals("work-a")),
+        yes(RULES.externalSources(data).stream().anyMatch(ref -> ref.optString("collection").equals("worklogs") && ref.optString("id").equals("work-a")),
             "Legacy worklog_ids are detected even without a worklog source flag");
         reconciliation.put("source_reviews", new JSONArray().put(source("worklogs", "work-a").put("restore_epoch", "synthetic-old-epoch")
             .put("evidence", "Veraltete synthetische Sichtung")));
@@ -440,7 +440,7 @@ public final class SettlementTests {
             yes(counters.getLong("GP-SYNTHETIC-000000000001") == 1L, "Rejected competing closure consumes no second number");
         } finally { threads.shutdownNow(); }
     }
-    private static void openWorkPrefill() {
+    private static void openWorkPrefill() throws Exception {
         JSONArray works = master().getJSONArray("worklogs");
         JSONObject bound = new JSONObject().put("status", "confirmed").put("kind", "invoice").put("billing_customer_id", "recipient")
             .put("positions", new JSONArray().put(new JSONObject().put("unit", "Stunden").put("price", "45")))

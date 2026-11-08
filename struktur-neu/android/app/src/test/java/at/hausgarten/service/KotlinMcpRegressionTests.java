@@ -333,14 +333,18 @@ public final class KotlinMcpRegressionTests {
             java.util.Map<String,String> receipts = new java.util.HashMap<>();
             OwnerRequestTransactions.Store transaction = new OwnerRequestTransactions.Store() {
                 JSONObject before; boolean committed;
-                public void begin() { before = new JSONObject(state.toString()); committed = false; }
+                public void begin() { try { before = new JSONObject(state.toString()); } catch (org.json.JSONException e) { throw new IllegalStateException(e); } committed = false; }
                 public String read(String key) { return receipts.getOrDefault(key, ""); }
                 public void write(String key, String value) { receipts.put(key, value); }
                 public void successful() { committed = true; }
                 public void end() {
                     if (!committed) {
-                        for (String key : new java.util.ArrayList<>(state.keySet())) state.remove(key);
-                        for (String key : before.keySet()) state.put(key, before.get(key));
+                        java.util.List<String> keys = new java.util.ArrayList<>();
+                        for (java.util.Iterator<String> it = state.keys(); it.hasNext();) keys.add(it.next());
+                        for (String key : keys) state.remove(key);
+                        try {
+                            for (java.util.Iterator<String> it = before.keys(); it.hasNext();) { String key = it.next(); state.put(key, before.get(key)); }
+                        } catch (org.json.JSONException e) { throw new IllegalStateException(e); }
                     }
                 }
             };
