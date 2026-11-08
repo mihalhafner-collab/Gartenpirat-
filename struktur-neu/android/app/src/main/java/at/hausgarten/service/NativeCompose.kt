@@ -174,7 +174,7 @@ internal fun NativeVoiceButton(onClick: () -> Unit) {
             testTag = UiTags.VOICE
         },
     ) {
-        Text("🎤", style = MaterialTheme.typography.titleMedium)
+        NativeMicIcon()
     }
 }
 

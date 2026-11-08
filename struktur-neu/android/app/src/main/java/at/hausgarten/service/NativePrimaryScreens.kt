@@ -214,7 +214,9 @@ internal fun NativeApplication(controller: NativeAppController) {
                                         style = MaterialTheme.typography.headlineSmall,
                                     )
                                 if (quick) {
-                                    NativeSearchButton { controller.navigate("revier_search") }
+                                    // Today and customers have their own search field on top.
+                                    if (route.section !in listOf("today", "customers"))
+                                        NativeSearchButton { controller.navigate("revier_search") }
                                     // Design: rare areas (former office) sit behind ⋮ in the
                                     // header, not in a fifth tab.
                                     if (route.section !in listOf("office", "more"))
