@@ -52,13 +52,13 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Version 1.66.0/139: Oberfläche Schritte 2–4 (Suche, Detailseiten, Abrechnung)",
-    "status": "Schritte 2–4 in PR #21. Schritt 3: „Gehört zu“-Chips mit Kunde, Objekt, Auftrag und Einsatz; bei Arbeiten leere Angaben gesammelt als „+ ergänzen“, unten „Abrechnen · Bearbeiten“, seltene Aktionen im ⋮-Menü; „Löschen“ ganz unten, ziegelrot mit Symbol, bei Kunden, Aufträgen und Arbeiten. Lupe entfällt auf Heute und Kunden, Mikrofon gezeichnet. Keine Installation, keine Verteilung. Schritt 4: ein Knopf „Ausstellen“ nach der Vorschau (Vorbereiten und Original-PDF bleiben dauerhafte Einzelschritte, Fortsetzen möglich); Ausstellerangaben einmal in den Einstellungen bestätigt; E-Rechnung einmal pro Empfänger; Einstellung Stundensatz für vorbefüllte Entwürfe; Fortschritt fertig → abgerechnet → bezahlt; „Abrechnen“ aus der Arbeit übernimmt alle offenen Arbeiten des Empfängers.",
+    "name": "Version 1.66.1/140: Oberfläche Schritte 2–4; CI-Korrekturen in PR #21",
+    "status": "Schritte 2–4 in PR #21. Schritt 3: „Gehört zu“-Chips mit Kunde, Objekt, Auftrag und Einsatz; bei Arbeiten leere Angaben gesammelt als „+ ergänzen“, unten „Abrechnen · Bearbeiten“, seltene Aktionen im ⋮-Menü; „Löschen“ ganz unten, ziegelrot mit Symbol, bei Kunden, Aufträgen und Arbeiten. Lupe entfällt auf Heute und Kunden, Mikrofon gezeichnet. Keine Installation, keine Verteilung. Schritt 4: ein Knopf „Ausstellen“ nach der Vorschau (Vorbereiten und Original-PDF bleiben dauerhafte Einzelschritte, Fortsetzen möglich); Ausstellerangaben einmal in den Einstellungen bestätigt; E-Rechnung einmal pro Empfänger; Einstellung Stundensatz für vorbefüllte Entwürfe; Fortschritt fertig → abgerechnet → bezahlt; „Abrechnen“ aus der Arbeit übernimmt alle offenen Arbeiten des Empfängers. CI-Lauf 42486303284: build grün, zwei Emulatorfehler. Korrektur: Gruppenüberschrift bei Tastatur im Querformat neben dem Treffer, statt dessen 48-dp-Bedienfläche zu verdecken; Grafikablauf prüft den neuen Bearbeiten-Knopf mit unverändertem Datenstand beim Zurückgehen. Kein Test deaktiviert oder übersprungen.",
     "owner_instruction": "Eigentümer 08.11.2026: Konzept „Gartenpirat Optik-Entwürfe“ abarbeiten, Abrechnung zuerst, dann der Rest.",
     "validation": {
-      "source": "PASS; check_current.py und Release-Baseline.",
-      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest.",
-      "ci_gate": "Voller CI-Lauf über PR ausstehend."
+      "source": "PASS; check_current.py und Release-Baseline für 1.66.1/140.",
+      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Befunde), testReleaseUnitTest (12 Suiten, keine Fehler oder übersprungenen Tests).",
+      "ci_gate": "Voller neuer PR-Lauf nach Push erforderlich; vorheriger Lauf 42486303284 rot (list_viewports/local-landscape, graphics_work)."
     },
     "next": [
       "Schritt 5: Wischen in Listen (rechts positive Aktion, links löschen) mit 5 s „Rückgängig“.",

@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
@@ -3842,6 +3844,10 @@ private fun RevierArchive(controller: NativeAppController) {
 private fun RevierSearch(controller: NativeAppController) {
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
+    val compactGroups =
+        imeVisible &&
+            LocalConfiguration.current.orientation ==
+                android.content.res.Configuration.ORIENTATION_LANDSCAPE
     var query by rememberSaveable { mutableStateOf(controller.route.args.optString("query")) }
     var type by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("") }
@@ -3918,7 +3924,8 @@ private fun RevierSearch(controller: NativeAppController) {
             }
         LazyColumn(
             Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding =
+                PaddingValues(horizontal = 16.dp, vertical = if (compactGroups) 0.dp else 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (filtersOpen)
@@ -4013,15 +4020,29 @@ private fun RevierSearch(controller: NativeAppController) {
                             if (it < 0) revierSearchOrder.size else it
                         }
                     }) {
-                item(key = "group:$type") {
+                val heading: @Composable () -> Unit = {
                     Text(
                         "${revierSearchKinds[type] ?: "Weitere"} · ${group.size}",
                         Modifier.semantics { testTag = UiTags.searchGroup(type) },
                         style = MaterialTheme.typography.titleSmall,
                     )
                 }
-                items(group, key = { it.optString("type") + ":" + it.optString("id") }) { row ->
-                    RevierSearchHit(controller, row)
+                if (!compactGroups) item(key = "group:$type") { heading() }
+                itemsIndexed(
+                    group,
+                    key = { _, row -> row.optString("type") + ":" + row.optString("id") },
+                ) { index, row ->
+                    if (compactGroups) {
+                        // A tall landscape keyboard leaves too little height for a separate
+                        // group header and a 48dp hit target. Keep the group beside its rows.
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Box(Modifier.width(72.dp)) { if (index == 0) heading() }
+                            RevierSearchHit(controller, row, Modifier.weight(1f))
+                        }
+                    } else RevierSearchHit(controller, row)
                 }
             }
         }

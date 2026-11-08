@@ -1601,9 +1601,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         captureSyntheticScreen("work-list")
         click(prefix + "1")
         shown("Gespeicherte Arbeit")
+        val beforeFullEditor = PixelMcpWriteTools.hash(JSONArray(works()))
+        click(UiTags.SECONDARY)
+        shown("Was wurde erledigt? *")
+        back()
+        waitUntil("WORK_DETAIL_AFTER_FULL_EDITOR") { node(UiTags.DETAIL_MENU) != null }
         yes(
-            node("Arbeit bearbeiten") == null && node("Bearbeiten") == null,
-            "WORK_DETAIL_DIRECT_FIELD_EDITING",
+            PixelMcpWriteTools.hash(JSONArray(works())) == beforeFullEditor,
+            "WORK_FULL_EDITOR_BACK_PRESERVES_DATA",
         )
         click("Tätigkeit")
         shown("Was wurde erledigt? *")
