@@ -104,6 +104,26 @@ public final class RevierDomainTests {
         yes(app.query("search_local",object().put("query","frisch geanderter").put("include_archived",true)).getInt("total")==1);
         String id=app.query("list_properties",object().put("limit",1)).getJSONArray("items").getJSONObject(0).getString("id");JSONObject raw=new JSONObject(store.values.get(RevierRules.ROOT+"entity:property:"+id));raw.put("format_version",2);store.values.put(RevierRules.ROOT+"entity:property:"+id,raw.toString());rejected("REVIER_SCHEMA_UPGRADE_REQUIRED",()->app.query("list_properties",object()));
     }
+    static void searchSettlementsAndContact()throws Exception {
+        Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);
+        JSONObject customer=store.snapshot.getJSONArray("customers").getJSONObject(0);customer.put("phone","+43 000 0000001");
+        String propertyId=createProperty(app,"contact").getString("id");
+        JSONArray records=new JSONArray()
+            .put(object().put("id","qa_settlement_confirmed").put("kind","invoice").put("status","confirmed").put("invoice_number","GP-QA-000001").put("title","QA Heckenschnitt").put("issue_date","2027-05-17").put("recipient",object().put("name","QA Empfänger")).put("issuer",object().put("name","QA Eigener Betrieb")))
+            .put(object().put("id","qa_settlement_abandoned").put("kind","invoice").put("status","abandoned").put("title","QA Verworfene Vorbereitung").put("recipient",object().put("name","QA Empfänger")));
+        store.values.put(SettlementRules.KEY,object().put("records",records).toString());
+        JSONObject found=app.query("search_local",object().put("query","heckenschnitt"));
+        yes(found.getInt("total")==1&&found.getJSONArray("items").getJSONObject(0).getString("type").equals("settlement")&&found.getJSONArray("items").getJSONObject(0).getString("id").equals("qa_settlement_confirmed"));
+        yes(found.getJSONArray("items").getJSONObject(0).getString("title").contains("GP-QA-000001"));
+        yes(app.query("search_local",object().put("query","verworfene vorbereitung")).getInt("total")==0);
+        yes(app.query("search_local",object().put("query","eigener betrieb").put("types",new JSONArray().put("settlement"))).getInt("total")==0);
+        JSONArray contacts=app.query("search_local",object().put("query","QA").put("types",new JSONArray().put("customer").put("property")).put("limit",100)).getJSONArray("items");
+        boolean customerHit=false,propertyHit=false;
+        for(int i=0;i<contacts.length();i++){JSONObject hit=contacts.getJSONObject(i);
+            if(hit.getString("type").equals("customer")&&hit.getString("id").equals("qa_customer_1")){customerHit=hit.getString("phone").equals("+43 000 0000001")&&hit.getString("address").equals("QA Musterweg 1, 0000 QA Beispielort");}
+            if(hit.getString("type").equals("property")&&hit.getString("id").equals(propertyId)){propertyHit=hit.getString("phone").equals("+43 000 0000001")&&hit.getString("address").equals("QA Musterweg 9, QA Beispielort");}}
+        yes(customerHit&&propertyHit);
+    }
     static void searchResponseContract()throws Exception {
         Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);String shared="qa_search_shared",first="qa_search_a",second="qa_search_b",longNote="QA "+"ä".repeat(170)+" Ende";
         JSONObject customer=new JSONObject(store.snapshot.getJSONArray("customers").getJSONObject(0).toString()).put("id",shared).put("name","QA GLEICH").put("notes","QA Kundennotiz").put("active",1).put("updated_at","2027-05-18T07:00:00Z");store.snapshot.put("customers",new JSONArray().put(customer));for(String key:new String[]{"orders","worklogs","photos","offers","invoices","appointments"})store.snapshot.put(key,new JSONArray());store.snapshot.getJSONArray("orders").put(object().put("id",shared).put("customer_id",shared).put("title","qa gleich").put("notes","QA Auftragsnotiz").put("status","planned").put("updated_at","2027-05-18T07:00:00Z"));

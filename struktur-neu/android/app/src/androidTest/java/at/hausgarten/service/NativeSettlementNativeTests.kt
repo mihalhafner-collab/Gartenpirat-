@@ -66,7 +66,8 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                         "business_legal_info",
                         "Synthetischer nicht eingetragener Einzelunternehmer",
                     )
-                    .put("tax_mode", "small_business"),
+                    .put("tax_mode", "small_business")
+                    .put("invoice_issuer_confirmed", "true"),
             )
             return state
         }

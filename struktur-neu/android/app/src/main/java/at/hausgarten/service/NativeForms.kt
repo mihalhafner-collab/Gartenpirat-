@@ -488,6 +488,7 @@ internal fun NativeSearchList(
     onSearch: (() -> Unit)? = null,
     bottomSearch: Boolean = false,
     controlsVisible: Boolean = true,
+    onVoice: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val ime = WindowInsets.isImeVisible
@@ -520,6 +521,7 @@ internal fun NativeSearchList(
                                 Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() },
                             showLabel = !large,
                         )
+                        if (onVoice != null && !ime) NativeVoiceButton(onVoice)
                         if (ime || large && !landscape)
                             Column(
                                 Modifier.widthIn(max = 128.dp),
@@ -566,7 +568,7 @@ internal fun NativeSearchList(
 }
 
 /** One bounded, keyboard-aware selection surface for customer, planning and media paths. */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 internal fun NativeSearchDialog(
     title: String,
@@ -618,7 +620,7 @@ internal fun NativeSearchDialog(
         val count =
             if (loading) "Wird geladen …"
             else "$total Treffer" + if (pageCount && !imeVisible) " auf dieser Seite" else ""
-        Surface(Modifier.fillMaxSize()) {
+        Surface(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
             // Keep the same text-field node when IME/rotation changes placement;
             // replacing a Column with a Row would dispose its focused editor.
             NativeSearchLayout(
@@ -753,6 +755,7 @@ internal fun NativeRecordDialog(
             Column(
                 Modifier.fillMaxWidth()
                     .heightIn(min = 48.dp)
+                    .semantics { testTag = UiTags.recordChoice(collection, row.id) }
                     .clickable {
                         onChoose(row)
                         close()
@@ -918,7 +921,8 @@ private val nativeLabels =
         "unit_price" to "Einzelpreis",
         "tax_rate" to "Steuersatz",
         "tax_mode" to "Steuerregelung",
-        "invoice_issuer_confirmed" to "Ausstellerangaben für Angebote bestätigt",
+        "invoice_issuer_confirmed" to "Ausstellerangaben für Angebote und Rechnungen bestätigt",
+        "hourly_rate" to "Stundensatz (€)",
         "invoice_date" to "Rechnungsdatum",
         "service_start" to "Leistungsbeginn",
         "service_end" to "Leistungsende",
@@ -2372,6 +2376,7 @@ internal fun NativeDeleteButton(
     controller: NativeAppController,
     entity: String,
     id: String,
+    modifier: Modifier = Modifier,
     label: String = "Löschen",
     permanent: Boolean = false,
     emptyTrash: Boolean = false,
@@ -2381,7 +2386,8 @@ internal fun NativeDeleteButton(
 ) {
     var busy by remember(entity, id) { mutableStateOf(false) }
     OutlinedButton(
-        {
+        modifier = modifier.heightIn(min = 48.dp),
+        onClick = {
             if (!busy) {
                 busy = true
                 scope.launch {
@@ -2421,6 +2427,8 @@ internal fun NativeDeleteButton(
                 else MaterialTheme.colorScheme.outlineVariant,
             ),
     ) {
+        NativeTrashIcon(LocalContentColor.current)
+        Spacer(Modifier.width(8.dp))
         Text(if (busy) "Löschen …" else label)
     }
 }

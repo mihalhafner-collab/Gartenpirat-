@@ -122,6 +122,7 @@ public final class KotlinDomainRegressionTests {
         RevierDomainTests.timedMovementContext();
         RevierDomainTests.searchScale();
         RevierDomainTests.searchResponseContract();
+        RevierDomainTests.searchSettlementsAndContact();
         RevierDomainTests.acceptanceAndInspectionCorrections();
         RevierDomainTests.archiveDeletion();
         RevierDomainTests.restoredActionInspection();

@@ -52,19 +52,20 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "Restliche Bereinigung (1.63.2/136)",
-    "status": "JVM-Fachtests laufen als Gradle-Unit-Tests (src/test, testReleaseUnitTest) statt über run-followup-java.py. Haupt-, Neben- und Filteraktionen tragen Test-Tags; Fallzahlen prüfen nur noch die Tests selbst. Java-Getter als Kotlin-Eigenschaften, 18 weitere Umwandlungsschleifen als while, rund 1.300 überflüssige !! entfernt (571 auf echten nullbaren Typen bleiben). Funktion unverändert; geänderter App-Code daher 1.63.2/136.",
-    "owner_instruction": "Ausdrücklicher Auftrag 08.11.2026: restliche offene Punkte umsetzen; Löschen gemergter Branches erlaubt.",
-    "next": [
-      "Oberfläche weiter nach APP.md: 2 Suche gruppiert; 3 Detailseiten mit „Gehört zu“-Chips und Löschen unten; 4 Wischen mit 5 s „Rückgängig“; 5 Planung Tag · Woche · Karte; 6 Objekt-Zeitleiste.",
-      "Große Dateien nur bei fachlicher Arbeit nach Bereich teilen (AGENTS.md: wenige Dateien)."
-    ],
+    "name": "Version 1.66.2/141: Oberfläche Schritte 2–4; CI-Korrekturen in PR #21",
+    "status": "Schritte 2–4 in PR #21: gruppierte Suche mit Anrufen, Route und zuletzt Geöffnetem; Detailseiten mit Gehört-zu-Chips, Ergänzen, nächsten Aktionen und seltenen Aktionen im Menü; Abrechnung mit einem Ausstellen-Knopf, Stundensatz und Fortschritt fertig → abgerechnet → bezahlt. Querformat-Listen und Vollformularprüfung im Lauf 42494724116 grün. Die Suchauswahl wartet nun vor echter Berührung auf stabile Bildschirmgeometrie nach Tastatur-/Systemleistenanimation und adressiert den Treffer per Test-Tag; die gewählte Kunden-ID wird im Entwurf nachgelesen. Keine Tests deaktiviert oder übersprungen. Keine Installation oder Verteilung.",
+    "owner_instruction": "Eigentümer 08.11.2026: Konzept „Gartenpirat Optik-Entwürfe“ abarbeiten, Abrechnung zuerst, dann der Rest.",
     "validation": {
-      "source": "PASS; check_current.py und Release-Baseline.",
-      "android": "PASS lokal; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Warnungen), testReleaseUnitTest (12 Suiten).",
-      "merged": "PR #19 mit vollem CI-Lauf 42465544614 grün gemergt (3128ffd).",
-      "ci_gate": "Dieser Stand: voller CI-Lauf über PR ausstehend."
-    }
+      "source": "PASS; check_current.py und Release-Baseline für 1.66.2/141.",
+      "android": "PASS lokal für den vollständigen Stand 1.66.2/141; assembleRelease, assembleReleaseAndroidTest, lintRelease (0 Befunde), testReleaseUnitTest (alle 12 Vertragssuiten ohne Fehler oder übersprungene Tests).",
+      "ci_gate": "Voller PR-Lauf 42494724116: build grün, emulator rot, nur search_keyboard (erneutes Öffnen der Tastatur verschiebt den Treffer während der Koordinatenprüfung). Neuer voller PR-Lauf nach Korrektur erforderlich."
+    },
+    "next": [
+      "Schritt 5: Wischen in Listen (rechts positive Aktion, links löschen) mit 5 s „Rückgängig“.",
+      "Schritt 6: Planung Tag · Woche · Karte.",
+      "Schritt 7: Objekt-Zeitleiste; Objekt-, Einsatz-, Termin-, Foto- und Abschlussdetail im Aufbau von Schritt 3.",
+      "Schritt 8: Prüfungen im Hintergrund, Leerzustände mit erster Aktion, Snackbar mit „Ansehen“; optional dunkle Ansicht."
+    ]
   },
   "open_checks": [
     "Installierte Version über get_capabilities bestätigen (gemeldet 1.61.1/132, verteilt 1.62.0/133); last_observed_installed_build erst danach setzen.",

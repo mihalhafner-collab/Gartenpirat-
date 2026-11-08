@@ -462,6 +462,12 @@ public final class SettlementTests {
         JSONObject unknown = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of());
         yes(unknown.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "Without any rate the price stays open");
         yes(RULES.prefill(new JSONObject(), works, List.of(bound)).getJSONArray("positions").length() == 0, "Without a selection the draft stays empty");
+        JSONObject configured = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later), "48,50");
+        yes(configured.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The configured hourly rate comes before the last rate of another recipient");
+        JSONObject own = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", ids), works, List.of(bound, later), "48,50");
+        yes(own.getJSONArray("positions").getJSONObject(0).getString("price").equals("45"), "A rate agreed with the recipient still wins over the configured rate");
+        JSONObject invalid = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of(), "viel");
+        yes(invalid.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "An invalid configured rate is not used");
     }
     public static void main(String[] ignored) throws Exception {
         openWorkPrefill();

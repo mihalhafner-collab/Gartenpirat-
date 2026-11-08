@@ -164,6 +164,72 @@ internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null)
     }
 }
 
+/** Speech input for search fields; the recognized text replaces the query. */
+@Composable
+internal fun NativeVoiceButton(onClick: () -> Unit) {
+    IconButton(
+        onClick,
+        Modifier.semantics {
+            contentDescription = "Spracheingabe"
+            testTag = UiTags.VOICE
+        },
+    ) {
+        NativeMicIcon()
+    }
+}
+
+/**
+ * Design: every billing entry shows its way fertig → abgerechnet → bezahlt; an open payment is
+ * amber.
+ */
+@Composable
+internal fun NativeProgressSteps(stage: Int, paymentOpen: Boolean = false) {
+    val labels = listOf("fertig", "abgerechnet", "bezahlt")
+    Row(
+        Modifier.fillMaxWidth().semantics {
+            contentDescription =
+                "Stand: " +
+                    labels[(stage - 1).coerceIn(0, 2)] +
+                    if (paymentOpen) ", Zahlung offen" else ""
+            testTag = UiTags.PROGRESS
+        },
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        for (index in 0 until 3) {
+            val color =
+                when {
+                    index < stage -> MaterialTheme.colorScheme.primary
+                    index == 2 && paymentOpen -> NativeMoney
+                    else -> MaterialTheme.colorScheme.outlineVariant
+                }
+            Surface(
+                Modifier.weight(1f).height(6.dp),
+                shape = MaterialTheme.shapes.extraSmall,
+                color = color,
+            ) {}
+        }
+    }
+}
+
+/** Delete symbol for the brick-red delete action. */
+@Composable
+internal fun NativeTrashIcon(color: Color) {
+    Canvas(Modifier.size(18.dp)) {
+        val unit = size.minDimension / 24f
+        drawLine(color, Offset(4 * unit, 6 * unit), Offset(20 * unit, 6 * unit), 2 * unit)
+        drawLine(color, Offset(9 * unit, 6 * unit), Offset(10 * unit, 3 * unit), 2 * unit)
+        drawLine(color, Offset(10 * unit, 3 * unit), Offset(14 * unit, 3 * unit), 2 * unit)
+        drawLine(color, Offset(14 * unit, 3 * unit), Offset(15 * unit, 6 * unit), 2 * unit)
+        drawRoundRect(
+            color,
+            Offset(6 * unit, 8 * unit),
+            Size(12 * unit, 13 * unit),
+            androidx.compose.ui.geometry.CornerRadius(2 * unit, 2 * unit),
+            style = Stroke(2 * unit),
+        )
+    }
+}
+
 /** Fixed touch target leaves the full page title room at large font sizes. */
 @Composable
 internal fun NativeBackButton(onBack: () -> Unit) {

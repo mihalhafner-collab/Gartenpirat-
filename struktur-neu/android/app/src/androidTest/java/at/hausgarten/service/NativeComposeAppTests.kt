@@ -814,31 +814,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("[TEST] Rechnung 900")
             click("[TEST] Rechnung 900")
             shown("Entwurf")
-            for (label in
-                listOf(
-                    "Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft",
-                    "Gewöhnliche österreichische Inlandsabrechnung in Euro",
-                    "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft",
-                )) click(label)
-            click("Rechnung verbindlich vorbereiten")
-            waitUntil("SETTLEMENT_UI_REAL_PREPARATION") {
-                read("get_settlement", JSONObject().put("settlement_id", invoice))
-                    .getJSONObject("record")
-                    .getString("status") == "prepared"
-            }
-            checks++
-            reveal("Abschluss vorbereitet – fortsetzen")
-            shown("Abschluss vorbereitet – fortsetzen")
-            recreate()
-            yes(
-                read("get_settlement", JSONObject().put("settlement_id", invoice))
-                    .getJSONObject("record")
-                    .getString("status") == "prepared",
-                "SETTLEMENT_UI_RECREATED_PREPARATION_PERSISTED",
-            )
-            reveal("Abschluss vorbereitet – fortsetzen")
-            shown("Abschluss vorbereitet – fortsetzen")
-            click("Original-PDF prüfen und ausstellen")
+            // Design: one "Ausstellen" after the preview; issuer details are confirmed once in
+            // settings.
+            click(UiTags.PRIMARY)
             waitUntil("SETTLEMENT_UI_REAL_INVOICE_CONFIRMATION") {
                 read("get_settlement", JSONObject().put("settlement_id", invoice))
                     .getJSONObject("record")
@@ -860,24 +838,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             captureSyntheticScreen("settlement-invoice-confirmed")
             openSettlements()
             click("[TEST] Labor 200")
-            for (label in
-                listOf(
-                    "Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft",
-                    "Gewöhnliche österreichische Inlandsabrechnung in Euro",
-                    "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft",
-                )) click(label)
-            click("Labor-Abrechnung bestätigen")
-            waitUntil("SETTLEMENT_UI_REAL_LABOR_PREPARATION") {
-                read("get_settlement", JSONObject().put("settlement_id", labor))
-                    .getJSONObject("record")
-                    .getString("status") == "prepared"
-            }
-            checks++
-            // The preserved viewport can remain at the position or action. The
-            // harness brings the already committed status into view explicitly.
-            reveal("Abschluss vorbereitet – fortsetzen")
-            shown("Abschluss vorbereitet – fortsetzen")
-            click("Internen Abschluss fertigstellen")
+            click(UiTags.PRIMARY)
             waitUntil("SETTLEMENT_UI_REAL_LABOR_CONFIRMATION") {
                 read("get_settlement", JSONObject().put("settlement_id", labor))
                     .getJSONObject("record")
@@ -1640,9 +1601,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         captureSyntheticScreen("work-list")
         click(prefix + "1")
         shown("Gespeicherte Arbeit")
+        val beforeFullEditor = PixelMcpWriteTools.hash(JSONArray(works()))
+        click(UiTags.SECONDARY)
+        reveal("native-field:Was wurde erledigt? *")
+        yes(field("Was wurde erledigt? *")?.isEditable == true, "WORK_FULL_EDITOR_EDITABLE")
+        back()
+        waitUntil("WORK_DETAIL_AFTER_FULL_EDITOR") { node(UiTags.DETAIL_MENU) != null }
         yes(
-            node("Arbeit bearbeiten") == null && node("Bearbeiten") == null,
-            "WORK_DETAIL_DIRECT_FIELD_EDITING",
+            PixelMcpWriteTools.hash(JSONArray(works())) == beforeFullEditor,
+            "WORK_FULL_EDITOR_BACK_PRESERVES_DATA",
         )
         click("Tätigkeit")
         shown("Was wurde erledigt? *")
@@ -1682,6 +1649,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("WORK_PAUSE_RECALCULATES_DURATION") {
             first().getInt("break_minutes") == 15 && first().getDouble("hours") == 3.75
         }
+        // Design step 3: the next step of open work is to bill it; it opens the settlement editor.
+        click(UiTags.PRIMARY)
+        shown("Abrechnungsart: Rechnung")
+        back()
+        waitUntil("WORK_DETAIL_AFTER_BILLING_EDITOR") { node(UiTags.DETAIL_MENU) != null }
+        // Rare actions sit in the record's ⋮ menu.
+        click(UiTags.DETAIL_MENU)
         click("Abgerechnet / offen markieren")
         shown("Begründung *")
         yes(
@@ -2035,6 +2009,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("search_keyboard", ::searchKeyboardJourney)
             journey("back_gesture", ::backGestureJourney)
             journey("domain_search", ::domainSearchJourney)
+            journey("grouped_search", ::groupedSearchJourney)
             journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
@@ -4179,6 +4154,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     ): Rect {
         var result: Rect? = null
         var geometry = "No candidate"
+        var stableGeometry = ""
+        var stableSince = 0L
         var lastScroll = 0L
         try {
             waitUntil("SEARCH_RESULT_BOUNDS_$label") {
@@ -4220,12 +4197,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     !hit.isEmpty && within && hit.width() >= minimum && hit.height() >= minimum
                 geometry =
                     "candidate=$bounds touch=$hit title=$title screen=$screen keyboard=${ime != null} density=${context.resources.displayMetrics.density}"
-                if (valid) result = hit
-                else if (scrollIntoView && SystemClock.uptimeMillis() - lastScroll > 300) {
+                if (valid) {
+                    // IME and status-bar animations can still move a valid 48dp row.
+                    // Only inject a real touch after its complete screen geometry settles.
+                    if (geometry != stableGeometry) {
+                        stableGeometry = geometry
+                        stableSince = SystemClock.uptimeMillis()
+                    }
+                    if (!tap || SystemClock.uptimeMillis() - stableSince >= 500) result = hit
+                } else if (scrollIntoView && SystemClock.uptimeMillis() - lastScroll > 300) {
                     scroll()
                     lastScroll = SystemClock.uptimeMillis()
                 }
-                valid
+                if (!valid) {
+                    stableGeometry = ""
+                    stableSince = 0L
+                }
+                result != null
             }
         } catch (failure: Throwable) {
             throw AssertionError("SEARCH_GEOMETRY_$label: $geometry", failure)
@@ -4233,6 +4221,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val bounds = requireNotNull(result)
         checks++
         if (tap) {
+            test.sendStatus(0, Bundle().apply { putString("search_touch", "$label: $geometry") })
             val now = SystemClock.uptimeMillis()
             for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
                 val event =
@@ -4257,6 +4246,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun searchKeyboardJourney() {
+        val customerId = customers(fixturePrefix + "000").single().getString("id")
+        val choiceTag = UiTags.recordChoice("customers", customerId)
         val oldFont = shell("settings get system font_scale")
         val sizeText = shell("wm size")
         val override = Regex("Override size: (\\d+x\\d+)").find(sizeText)?.groupValues?.get(1)
@@ -4337,11 +4328,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     }
                     shown("1 Treffer")
                     showKeyboard("Suchen")
-                    visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
+                    visibleResult(choiceTag, tap = true, requireKeyboard = true)
                     waitUntil("SEARCH_PICKER_CLOSED_$key") {
                         node("Abbrechen") == null && !keyboardVisible()
                     }
                     reveal("Kunde: " + fixturePrefix + "000")
+                    waitUntil("SEARCH_SELECTED_CUSTOMER_$key") {
+                        workDraft().optJSONObject("values")?.optString("customer_id") == customerId
+                    }
                     discardWork()
                     searchMatrix.put(
                         JSONObject()
@@ -4621,6 +4615,84 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("real_touch", true)
                 .put("ime_preserves_query", true)
                 .put("screenshot", "qa-native-domain-$key.png")
+        )
+    }
+
+    /**
+     * Search from Today: results grouped by kind, call and route on the hit, last opened without a
+     * query.
+     */
+    private fun groupedSearchJourney() {
+        val name = "[TEST] QA Gruppensuche Kunde"
+        val source = JSONObject(store.getState().getJSONObject("master").toString())
+        source
+            .getJSONArray("customers")
+            .put(
+                JSONObject()
+                    .put("id", "qa_group_customer")
+                    .put("name", name)
+                    .put("phone", "+43 000 0000002")
+                    .put("street", "QA Gruppenweg 1")
+                    .put("postal_code", "0000")
+                    .put("city", "QA Ort")
+                    .put("active", 1)
+                    .put("billing_mode", "direct")
+                    .put("test_record", true)
+            )
+        store.putOwnerValue("snapshot", source.toString())
+        store.putOwnerValue(
+            SettlementRules.KEY,
+            JSONObject()
+                .put(
+                    "records",
+                    JSONArray()
+                        .put(
+                            JSONObject()
+                                .put("id", "qa_group_settlement")
+                                .put("kind", "labor")
+                                .put("status", "confirmed")
+                                .put("title", "[TEST] QA Gruppensuche Abschluss")
+                                .put("issue_date", java.time.LocalDate.now().toString())
+                                .put("recipient", JSONObject().put("name", name))
+                        ),
+                )
+                .toString(),
+        )
+        store.notifyCommittedChange()
+        activity?.let { current -> test.runOnMainSync { current.finish() } }
+        launch()
+        click(UiTags.area("today"))
+        click(UiTags.TODAY_SEARCH)
+        val label = "Name, Objekt, Tätigkeit, Notiz oder Beleg"
+        enter(label, "Gruppensuche")
+        yes(
+            requireNotNull(field(label))
+                .performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id),
+            "GROUPED_SEARCH_SUBMIT",
+        )
+        if (keyboardVisible()) back()
+        waitUntil("GROUPED_SEARCH_CUSTOMER_GROUP") { node(UiTags.searchGroup("customer")) != null }
+        fun top(tag: String) = node(tag)?.let { Rect().also(it::getBoundsInScreen).top }
+        // Kinds are ordered objects, customers, settlements, work: settlements never precede
+        // customers.
+        val customerTop = requireNotNull(top(UiTags.searchGroup("customer")))
+        yes(
+            top(UiTags.searchGroup("settlement"))?.let { it > customerTop } ?: true,
+            "GROUPED_SEARCH_CUSTOMERS_BEFORE_SETTLEMENTS",
+        )
+        shown(UiTags.SEARCH_CALL)
+        shown(UiTags.SEARCH_ROUTE)
+        reveal(UiTags.searchGroup("settlement"))
+        click(name)
+        shown(UiTags.BACK)
+        click(UiTags.BACK)
+        enter(label, "")
+        waitUntil("GROUPED_SEARCH_RECENT") { node(UiTags.SEARCH_RECENT) != null }
+        val recent =
+            JSONArray(context.getSharedPreferences("native_search", 0).getString("recent", "[]"))
+        yes(
+            recent.length() >= 1 && recent.getJSONObject(0).getString("id") == "qa_group_customer",
+            "GROUPED_SEARCH_REMEMBERS_OPENED_HIT",
         )
     }
 

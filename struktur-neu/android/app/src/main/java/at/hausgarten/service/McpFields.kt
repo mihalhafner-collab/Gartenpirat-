@@ -29,6 +29,7 @@ internal class McpFields private constructor() {
                 "tax_exemption_text",
                 "business_vat_id",
                 "default_payment_terms",
+                "hourly_rate",
             )
 
         @JvmStatic
