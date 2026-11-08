@@ -2384,7 +2384,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 row.getString("activity") == ownText + "\nRasen gemäht",
             "DISPOSAL_AND_OWN_TEXT_AND_PHRASE_SAVED",
         )
-        click(row.getString("activity"))
+        // Today no longer lists saved work (design); open it from Mehr → Arbeiten.
+        openWorklogs()
+        enter("Suchen", ownText)
+        click(ownText)
         reveal("[TEST] QA sofort sichtbare Notiz")
         click("Tätigkeit")
         enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
