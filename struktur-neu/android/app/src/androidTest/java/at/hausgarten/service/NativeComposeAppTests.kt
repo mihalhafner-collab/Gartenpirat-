@@ -4723,7 +4723,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.area("customers"))
             click(UiTags.area("customers"))
             swipe(UiTags.swipe("customer", customerId), right = false)
-            click(UiTags.UNDO)
+            // The snackbar is fixed; scrolling while it appears spends its five-second window.
+            click(UiTags.UNDO, scrollTo = false)
             waitUntil("SWIPE_CUSTOMER_UNDONE") {
                 rows("customer", customerId).lastOrNull()?.optString("state") == "undone" &&
                     record("customers", customerId) != null
@@ -4769,7 +4770,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
                 )
             swipe(UiTags.swipe("order", orderId), right = true)
-            click(UiTags.UNDO)
+            click(UiTags.UNDO, scrollTo = false)
             waitUntil("SWIPE_ORDER_UNDONE") {
                 rows("order", orderId).lastOrNull()?.optString("state") == "undone" &&
                     record("orders", orderId)?.optString("status") == "Geplant"
