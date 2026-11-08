@@ -78,6 +78,12 @@ internal class NativeAppController(private val activity: MainActivity, val store
             route = next
         }
     }
+    /** ⋮ "Mehr" always opens its overview, never a sub screen remembered from an earlier visit. */
+    fun openMore() {
+        areaNavigation.remove("office")
+        navigate("office")
+    }
+
     fun openSection(section: String) {
         require(section in mainAreas)
         messages.value = ""

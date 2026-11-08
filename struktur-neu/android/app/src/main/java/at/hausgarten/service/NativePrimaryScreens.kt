@@ -78,8 +78,9 @@ internal fun NativeApplication(controller: NativeAppController) {
         if (controller.messages.value == notice) controller.message("")
     }
     BackHandler { controller.back() }
-    if (controller.createOpen) ModalBottomSheet(onDismissRequest = { controller.createOpen = false }) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    // Fully expanded and scrollable, so all six targets stay reachable on small screens and with large text.
+    if (controller.createOpen) ModalBottomSheet(onDismissRequest = { controller.createOpen = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Neu anlegen", style = MaterialTheme.typography.titleLarge)
             for ((label, open) in listOf<Pair<String, () -> Unit>>(
                 "Arbeit nachtragen" to { controller.navigate("worklogs", mode = "new") },
@@ -109,7 +110,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                     if (quick) {
                         NativeSearchButton { controller.navigate("revier_search") }
                         // Design: rare areas (former office) sit behind ⋮ in the header, not in a fifth tab.
-                        if (route.section !in listOf("office", "more")) IconButton({ controller.navigate("office") }, Modifier.semantics { contentDescription = "Mehr" }) { Text("⋮", style = MaterialTheme.typography.headlineSmall) }
+                        if (route.section !in listOf("office", "more")) IconButton({ controller.openMore() }, Modifier.semantics { contentDescription = "Mehr" }) { Text("⋮", style = MaterialTheme.typography.headlineSmall) }
                     }
                 }
             }

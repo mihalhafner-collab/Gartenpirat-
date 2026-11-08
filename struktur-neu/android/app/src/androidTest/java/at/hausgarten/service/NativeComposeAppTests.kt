@@ -1547,7 +1547,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         captureSyntheticScreen("today-idle")
         val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
         click("Neu anlegen")
-        for (label in listOf("Arbeit nachtragen", "Anfrage", "Kunde", "Einsatz", "Foto", "Material")) shown(label)
+        for (label in listOf("Arbeit nachtragen", "Anfrage", "Kunde", "Einsatz", "Foto", "Material")) reveal(label)
         captureSyntheticScreen("today-create")
         back(); waitUntil("CREATE_SHEET_CLOSED") { node("Einsatz") == null && node("Neu anlegen")?.let(::clickable) != null }
         click("Arbeit starten")
@@ -1794,7 +1794,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(completed.getString("state") == "FINALIZED", "TIMER_EXPLICIT_SAVE_FINALIZES_EXACT_SESSION")
         val saved = read("get_work_record", JSONObject().put("work_record_id", completed.getString("finalized_worklog_id")))
         yes(saved.optString("activity") == "[TEST] QA native Timer\nRasen gemäht" && saved.optString("customer_id") == session.getString("customer_id"), "TIMER_SAVED_TEXT_AND_CUSTOMER")
-        click("Heute"); reveal("Arbeit gespeichert")
+        // Today no longer lists saved work (design); the saved record is read back below.
+        click("Heute"); shown("Arbeit starten")
         val summary = read("get_work_record_summary", todayArgs)
         yes(summary.optInt("work_records") == todayBefore.optInt("work_records") + 1 &&
             kotlin.math.abs(summary.optDouble("hours") - todayBefore.optDouble("hours") - saved.optDouble("hours")) <= 0.01,
