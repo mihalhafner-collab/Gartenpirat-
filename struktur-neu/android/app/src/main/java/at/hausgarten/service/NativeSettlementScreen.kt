@@ -188,6 +188,12 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
                     { controller.navigate("settlement_review", record.getString("id")) },
                 )
                 val open = settlementOpen(record)
+                when (record.optString("status")) {
+                    "draft" -> NativeProgressSteps(1)
+                    "prepared" -> NativeProgressSteps(2)
+                    "confirmed" ->
+                        NativeProgressSteps(if (open > 0) 2 else 3, paymentOpen = open > 0)
+                }
                 if (open > 0)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -285,6 +291,10 @@ internal fun NativeSettlementEditor(controller: NativeAppController, id: String)
                             controller.route.args,
                             context!!.optJSONArray("worklogs"),
                             priorRecords,
+                            context!!
+                                .optJSONObject("business_settings")
+                                ?.optString("hourly_rate")
+                                .orEmpty(),
                         )
                         .toString()
             ready = true
@@ -647,11 +657,10 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
     var error by remember { mutableStateOf("") }
     var attempt by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf(false) }
-    var reviewed by rememberSaveable(id) { mutableStateOf(false) }
     var reviewedHash by rememberSaveable(id) { mutableStateOf("") }
-    var domestic by rememberSaveable(id) { mutableStateOf(false) }
-    var issuerConfirmed by rememberSaveable(id) { mutableStateOf(false) }
     var electronic by rememberSaveable(id) { mutableStateOf(false) }
+    // Design: consent to electronic invoices is asked once per recipient, then only shown.
+    var consentStored by remember { mutableStateOf(false) }
     var correction by rememberSaveable(id) { mutableStateOf(false) }
     var reason by rememberSaveable(id) { mutableStateOf("") }
     var abandonmentReason by rememberSaveable(id) { mutableStateOf("") }
@@ -672,14 +681,20 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
         try {
             val loaded = controller.query("get_settlement", JSONObject().put("settlement_id", id))
             if (reviewedHash != loaded.optString("review_hash")) {
-                reviewed = false
-                domestic = false
-                issuerConfirmed = false
                 electronic = false
                 reviewedHash = loaded.optString("review_hash")
             }
             data = loaded
             context = controller.query("get_settlement_context")
+            val recipient =
+                loaded.optJSONObject("record")?.optString("billing_customer_id").orEmpty()
+            consentStored =
+                recipient.isNotEmpty() &&
+                    settlementObjects(controller.query("list_settlements").optJSONArray("records"))
+                        .any {
+                            it.optString("billing_customer_id") == recipient &&
+                                it.optBoolean("electronic_delivery_accepted")
+                        }
             val operation = controller.draft("settlement-review:$id")
             original = operation?.optJSONObject("pending")?.toString()
             error = ""
@@ -934,35 +949,35 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     ) {
                         Text("Entwurf bearbeiten")
                     }
-                    SettlementCheck(
-                        "Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft",
-                        reviewed,
-                        !busy && original == null,
-                    ) {
-                        reviewed = it
-                    }
-                    SettlementCheck(
-                        "Gewöhnliche österreichische Inlandsabrechnung in Euro",
-                        domestic,
-                        !busy && original == null,
-                    ) {
-                        domestic = it
-                    }
-                    SettlementCheck(
-                        "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft",
-                        issuerConfirmed,
-                        !busy && original == null,
-                    ) {
-                        issuerConfirmed = it
-                    }
-                    if (invoice)
-                        SettlementCheck(
-                            "Elektronische Übermittlung ist mit dem Empfänger vereinbart",
-                            electronic,
-                            !busy && original == null,
-                        ) {
-                            electronic = it
+                    Text(
+                        "Österreichische Inlandsrechnung in Euro mit Kleinunternehmerbefreiung.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    if (!issuerConfirmed(context))
+                        Column {
+                            NativeStatus(
+                                "Ausstellerangaben einmal in den Einstellungen bestätigen",
+                                NativeStatusTone.Attention,
+                            )
+                            TextButton({ controller.navigate("settings") }) {
+                                Text("Einstellungen öffnen")
+                            }
                         }
+                    if (invoice) {
+                        if (consentStored)
+                            Text(
+                                "Elektronische Rechnung mit diesem Empfänger vereinbart",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        else
+                            SettlementCheck(
+                                "Elektronische Übermittlung ist mit dem Empfänger vereinbart",
+                                electronic,
+                                !busy && original == null,
+                            ) {
+                                electronic = it
+                            }
+                    }
                     Text(
                         "Beim bewussten Abschluss werden Inhalt und Quellen eingefroren. Die Rechnung erhält eine lokale, von sevDesk getrennte Nummer. Interne Labor-Abrechnungen erhalten keine Rechnungsnummer und kein Rechnungs-PDF.",
                         style = MaterialTheme.typography.bodySmall,
@@ -1296,10 +1311,11 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                 enabled = !busy,
             )
         } else if (current != null && record?.optString("status") == "draft") {
+            // Design: one "Ausstellen" after the preview. Preparing (number, frozen content)
+            // and completing (original PDF) still run as the two durable steps.
             NativeActionBar(
-                if (record.optString("route") == AccountingRules.BILLED)
-                    "Rechnung verbindlich vorbereiten"
-                else "Labor-Abrechnung bestätigen",
+                if (record.optString("route") == AccountingRules.BILLED) "Ausstellen"
+                else "Bestätigen",
                 {
                     act(
                         "prepare_settlement",
@@ -1307,29 +1323,32 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                             .put("settlement_id", id)
                             .put("expected_review_hash", current.getString("review_hash"))
                             .put("confirmed", true)
-                            .put("domestic_eur_confirmed", domestic)
-                            .put("issuer_details_confirmed", issuerConfirmed)
-                            .put("electronic_delivery_accepted", electronic),
-                    )
+                            .put("domestic_eur_confirmed", true)
+                            .put("issuer_details_confirmed", true)
+                            .put("electronic_delivery_accepted", consentStored || electronic),
+                    ) {
+                        act("complete_settlement", JSONObject().put("settlement_id", id))
+                    }
                 },
                 enabled =
                     !busy &&
-                        reviewed &&
-                        domestic &&
-                        issuerConfirmed &&
+                        issuerConfirmed(context) &&
                         current.optJSONObject("validation")?.optBoolean("valid") == true,
             )
         } else if (record?.optString("status") == "prepared") {
             NativeActionBar(
-                if (record.optString("route") == AccountingRules.BILLED)
-                    "Original-PDF prüfen und ausstellen"
-                else "Internen Abschluss fertigstellen",
+                if (record.optString("route") == AccountingRules.BILLED) "Ausstellen fortsetzen"
+                else "Bestätigen fortsetzen",
                 { act("complete_settlement", JSONObject().put("settlement_id", id)) },
                 enabled = !busy && current?.optBoolean("requires_restore_review") != true,
             )
         }
     }
 }
+
+private fun issuerConfirmed(context: JSONObject?) =
+    context?.optJSONObject("business_settings")?.optString("invoice_issuer_confirmed") in
+        setOf("1", "true")
 
 @Composable
 private fun SettlementCheck(

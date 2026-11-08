@@ -814,31 +814,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("[TEST] Rechnung 900")
             click("[TEST] Rechnung 900")
             shown("Entwurf")
-            for (label in
-                listOf(
-                    "Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft",
-                    "Gewöhnliche österreichische Inlandsabrechnung in Euro",
-                    "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft",
-                )) click(label)
-            click("Rechnung verbindlich vorbereiten")
-            waitUntil("SETTLEMENT_UI_REAL_PREPARATION") {
-                read("get_settlement", JSONObject().put("settlement_id", invoice))
-                    .getJSONObject("record")
-                    .getString("status") == "prepared"
-            }
-            checks++
-            reveal("Abschluss vorbereitet – fortsetzen")
-            shown("Abschluss vorbereitet – fortsetzen")
-            recreate()
-            yes(
-                read("get_settlement", JSONObject().put("settlement_id", invoice))
-                    .getJSONObject("record")
-                    .getString("status") == "prepared",
-                "SETTLEMENT_UI_RECREATED_PREPARATION_PERSISTED",
-            )
-            reveal("Abschluss vorbereitet – fortsetzen")
-            shown("Abschluss vorbereitet – fortsetzen")
-            click("Original-PDF prüfen und ausstellen")
+            // Design: one "Ausstellen" after the preview; issuer details are confirmed once in
+            // settings.
+            click(UiTags.PRIMARY)
             waitUntil("SETTLEMENT_UI_REAL_INVOICE_CONFIRMATION") {
                 read("get_settlement", JSONObject().put("settlement_id", invoice))
                     .getJSONObject("record")
@@ -860,24 +838,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             captureSyntheticScreen("settlement-invoice-confirmed")
             openSettlements()
             click("[TEST] Labor 200")
-            for (label in
-                listOf(
-                    "Leistungen, Mengen, Preise und Empfänger in dieser Vorschau geprüft",
-                    "Gewöhnliche österreichische Inlandsabrechnung in Euro",
-                    "Ausstellerangaben einschließlich Rechtsform und Kleinunternehmerbefreiung geprüft",
-                )) click(label)
-            click("Labor-Abrechnung bestätigen")
-            waitUntil("SETTLEMENT_UI_REAL_LABOR_PREPARATION") {
-                read("get_settlement", JSONObject().put("settlement_id", labor))
-                    .getJSONObject("record")
-                    .getString("status") == "prepared"
-            }
-            checks++
-            // The preserved viewport can remain at the position or action. The
-            // harness brings the already committed status into view explicitly.
-            reveal("Abschluss vorbereitet – fortsetzen")
-            shown("Abschluss vorbereitet – fortsetzen")
-            click("Internen Abschluss fertigstellen")
+            click(UiTags.PRIMARY)
             waitUntil("SETTLEMENT_UI_REAL_LABOR_CONFIRMATION") {
                 read("get_settlement", JSONObject().put("settlement_id", labor))
                     .getJSONObject("record")

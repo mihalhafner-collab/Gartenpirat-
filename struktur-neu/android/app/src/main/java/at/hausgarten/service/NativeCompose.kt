@@ -178,6 +178,39 @@ internal fun NativeVoiceButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * Design: every billing entry shows its way fertig → abgerechnet → bezahlt; an open payment is
+ * amber.
+ */
+@Composable
+internal fun NativeProgressSteps(stage: Int, paymentOpen: Boolean = false) {
+    val labels = listOf("fertig", "abgerechnet", "bezahlt")
+    Row(
+        Modifier.fillMaxWidth().semantics {
+            contentDescription =
+                "Stand: " +
+                    labels[(stage - 1).coerceIn(0, 2)] +
+                    if (paymentOpen) ", Zahlung offen" else ""
+            testTag = UiTags.PROGRESS
+        },
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        for (index in 0 until 3) {
+            val color =
+                when {
+                    index < stage -> MaterialTheme.colorScheme.primary
+                    index == 2 && paymentOpen -> NativeMoney
+                    else -> MaterialTheme.colorScheme.outlineVariant
+                }
+            Surface(
+                Modifier.weight(1f).height(6.dp),
+                shape = MaterialTheme.shapes.extraSmall,
+                color = color,
+            ) {}
+        }
+    }
+}
+
 /** Delete symbol for the brick-red delete action. */
 @Composable
 internal fun NativeTrashIcon(color: Color) {

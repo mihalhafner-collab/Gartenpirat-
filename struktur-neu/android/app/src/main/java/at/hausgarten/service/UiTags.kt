@@ -10,6 +10,7 @@ internal object UiTags {
     const val FILTER = "action:filter"
     const val VOICE = "action:voice"
     const val DETAIL_MENU = "action:detail-menu"
+    const val PROGRESS = "billing:progress"
     const val TODAY_SEARCH = "action:today-search"
     const val SEARCH_RECENT = "search:recent"
     const val SEARCH_CALL = "search:call"

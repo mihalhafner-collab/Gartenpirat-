@@ -409,7 +409,17 @@ internal object SettlementRules {
      * New draft from a recipient's open work. Price: the recipient's last hourly rate, else the
      * last one used at all; always editable.
      */
-    fun prefill(args: JSONObject, worklogs: JSONArray?, records: List<JSONObject>): JSONObject {
+    /**
+     * A draft from the recipient's open work, priced with the recipient's or the configured hourly
+     * rate.
+     */
+    @JvmOverloads
+    fun prefill(
+        args: JSONObject,
+        worklogs: JSONArray?,
+        records: List<JSONObject>,
+        configuredRate: String = "",
+    ): JSONObject {
         val draft = JSONObject().put("route", "billed").put("positions", JSONArray())
         val recipient = args.optString("billing_customer_id")
         val ids = args.optJSONArray("work_record_ids")
@@ -429,12 +439,17 @@ internal object SettlementRules {
                         it.optString("price").isNotBlank()
                 }
                 ?.optString("price")
+        val configured = configuredRate.trim().replace(',', '.')
+        // A rate agreed with this recipient wins, then the configured rate, then the last one used.
         val rate =
             records
                 .lastOrNull {
                     it.optString("billing_customer_id") == recipient && hourly(it) != null
                 }
-                ?.let(::hourly) ?: records.lastOrNull { hourly(it) != null }?.let(::hourly) ?: ""
+                ?.let(::hourly)
+                ?: configured.takeIf { it.matches(Regex("[0-9]+([.][0-9]{1,2})?")) }
+                ?: records.lastOrNull { hourly(it) != null }?.let(::hourly)
+                ?: ""
         val works =
             rows(worklogs)
                 .filter { it.optString("id") in wanted && it.optString("id") !in bound }

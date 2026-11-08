@@ -911,6 +911,7 @@ internal fun NativeOpenHours(
                         " · ${rows.length()} Arbeiten · Rechnungsempfänger",
                     { expanded = if (expanded == recipient) "" else recipient },
                 )
+                NativeProgressSteps(1)
                 if (!group.optBoolean("valid"))
                     NativeStatus("Zuordnung vor der Übertragung prüfen", NativeStatusTone.Attention)
                 else if (recipient.isNotEmpty() && rows.length() > 0)
@@ -2796,17 +2797,49 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
             NativeActionBar(
                 "Abrechnen",
                 {
-                    controller.navigate(
-                        "settlement_edit",
-                        args =
-                            JSONObject().apply {
-                                envelope
-                                    ?.optJSONObject("billing_assignment")
-                                    ?.optString("billing_customer_id")
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?.let { put("billing_customer_id", it) }
-                            },
-                    )
+                    // The draft starts with all open work of this work's billing recipient.
+                    val recipient =
+                        envelope
+                            ?.optJSONObject("billing_assignment")
+                            ?.optString("billing_customer_id")
+                            .orEmpty()
+                    scope.launch {
+                        val ids =
+                            try {
+                                val groups =
+                                    controller
+                                        .query(
+                                            "get_work_record_summary",
+                                            JSONObject().put("group_by_billing_customer", true),
+                                        )
+                                        .optJSONArray("billing_groups") ?: JSONArray()
+                                (0 until groups.length())
+                                    .map { groups.getJSONObject(it) }
+                                    .firstOrNull {
+                                        it.optString("billing_customer_id") == recipient
+                                    }
+                                    ?.optJSONArray("work_records")
+                                    ?.let { rows ->
+                                        (0 until rows.length()).map {
+                                            rows.getJSONObject(it).optString("id")
+                                        }
+                                    }
+                                    .orEmpty()
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                emptyList()
+                            }
+                        controller.navigate(
+                            "settlement_edit",
+                            args =
+                                JSONObject().apply {
+                                    if (recipient.isNotBlank())
+                                        put("billing_customer_id", recipient)
+                                    put("work_record_ids", JSONArray((ids + id).distinct()))
+                                },
+                        )
+                    }
                 },
                 "Bearbeiten",
                 { controller.navigate(collection, id, "edit", controller.route.args) },
