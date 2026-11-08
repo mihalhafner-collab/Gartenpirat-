@@ -1603,7 +1603,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Gespeicherte Arbeit")
         val beforeFullEditor = PixelMcpWriteTools.hash(JSONArray(works()))
         click(UiTags.SECONDARY)
-        shown("Was wurde erledigt? *")
+        reveal("native-field:Was wurde erledigt? *")
+        yes(field("Was wurde erledigt? *")?.isEditable == true, "WORK_FULL_EDITOR_EDITABLE")
         back()
         waitUntil("WORK_DETAIL_AFTER_FULL_EDITOR") { node(UiTags.DETAIL_MENU) != null }
         yes(
