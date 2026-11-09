@@ -53,17 +53,15 @@
   },
   "current_task": {
     "name": "APP.md an das Designkonzept vom 08.11.2026 angleichen (nur Dokumentation)",
-    "status": "Abschnitt Oberfläche, Abrechnungsübersicht und Rechnung/Labor folgen dem Designkonzept mit Farbkonzept vom 08.11.2026: sechs Farbrollen, kompakte Bausteine, ⋮-Menü statt „Mehr“, Abrechnung als eine Seite nur offiziell, Entwurf zugleich Vorschau, Rechnungsdaten, Labor clandestino als Markierung am Auftrag, „Nicht abrechnen“, keine Karte, kein Papierkorb und kein Archivieren. App-Code unverändert 1.70.3/157; main 4f913be nach grünem Lauf 42634300455.",
-    "owner_instruction": "Eigentümer 09.11.2026: Schritt 1 des Abgleichs (APP.md anpassen) übernehmen. Code folgt danach je eigenem PR nach main mit vollem grünem CI-Lauf.",
+    "status": "Abschnitt Oberfläche und Rechnung folgen dem Designkonzept vom 08.11.2026: sechs Farbrollen, kompakte Bausteine, ⋮-Menü statt „Mehr“, Abrechnung als eine Seite, Entwurf zugleich Vorschau, Rechnungsdaten, „Nicht abrechnen“, keine Karte, kein Papierkorb und kein Archivieren. Labor clandestino bleibt unverändert. Entschieden: Objekt an der Arbeit (vorhanden), kein Materialbestand, keine Gerätenutzung. App-Code unverändert 1.70.3/157.",
+    "owner_instruction": "Eigentümer 09.11.2026: Funktionen logisch und sinnvoll umsetzen, sonst löschen; KISS. Labor bleibt erhalten. Code je eigenem PR nach main mit vollem grünem CI-Lauf.",
     "validation": {
       "source": "check_release_baseline.py und check_current.py; reine Dokumentationsänderung."
     },
     "next": [
       "Farbkonzept und kompakte Bausteine in NativeCompose.kt.",
       "Abrechnung als eine Seite, Entwurf als Vorschau, Rechnungsdaten, E-Rechnung je Kunde, „Nicht abrechnen“.",
-      "Labor clandestino als Markierung am Auftrag.",
-      "Funktionen bereinigen (Papierkorb, Archivieren, „Mehr“, Karte) mit MCP-Werkzeugen und Tests im selben Schritt.",
-      "Offen für Eigentümer: Objekt an jeder Arbeit (Schema), Materialbestand und Gerätenutzung, bestehende Labor-Abschlüsse."
+      "Funktionen löschen: Papierkorb, Archivieren, „Mehr“, Karte, Materialbestand, Gerätenutzung; mit MCP-Werkzeugen und Tests im selben Schritt."
     ]
   },
   "open_checks": [

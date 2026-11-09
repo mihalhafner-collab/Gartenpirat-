@@ -15,8 +15,8 @@ Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.m
 
 ## Abrechnungsübersicht
 
-- Die Übersicht zeigt nur Offizielles: ausgestellte Rechnungen, davon bezahlt
-  und offen, je Monat oder Jahr. Labor clandestino zählt in keiner Summe.
+- Rechnung und Labor clandestino haben getrennte Summen und eine gemeinsame
+  Gesamtsumme (900 € + 200 € = 1.100 €). Die Gesamtsumme ist keine Zahlungssumme.
 - Ein Auftrag erscheint höchstens einmal; Arbeiten ohne Auftrag sind eigene
   Einheiten. Jeder Positionsbetrag zählt genau einmal bei seiner Quelle; Auftrag
   und seine Arbeiten nie doppelt addieren. Sammelrechnungen nur anteilig zurechnen.
@@ -28,22 +28,16 @@ Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.m
 
 ## Rechnung und Labor clandestino
 
-- Abgerechnet wird nur als **Rechnung**. Der Abschluss ist die einzige Quelle
-  für den Abrechnungsstand.
-- **Labor clandestino** (nur diese Schreibweise) ist eine Markierung am Auftrag;
-  sie gilt für alle seine Arbeiten, auch später erfasste. Arbeiten ohne Auftrag
-  haben denselben Schalter einzeln. Markierte Arbeiten erscheinen nicht unter
-  „Offen“, nicht im Entwurf und in keiner Summe; sie bleiben vollständig
-  dokumentiert (Zeit, Fotos, Material, Notizen, Sicherung, Export). „Markierung
-  aufheben“ holt sie zurück. Steckt eine Arbeit in einer ausgestellten Rechnung,
-  lässt sich der Auftrag nicht markieren. Keine neuen Labor-Abschlüsse;
-  bestehende bleiben lesbar.
+- Zwei Arten auf denselben tatsächlichen Leistungen, Mengen und Preisen:
+  **Rechnung** und **Labor clandestino** (nur diese Schreibweise). Die Funktion
+  Labor bleibt unverändert erhalten. Der Abschluss ist die einzige Quelle für
+  den Abrechnungsstand.
 - „Nicht abrechnen“ an einer Arbeit (Probe, Kulanz) nimmt sie aus „Offen“, ohne
   sie zu löschen; jederzeit zurücknehmbar.
 - „Abrechnen“ öffnet den Entwurf mit allen offenen Arbeiten des Empfängers
-  (abwählen statt hinzufügen). Der Entwurf ist zugleich die Vorschau; „Ausstellen“
+  (abwählen statt hinzufügen; Umschalter Rechnung | Labor clandestino). Der Entwurf ist zugleich die Vorschau; „Ausstellen“
   sitzt direkt darunter, das PDF lässt sich vorher ansehen. Danach öffnet sich
-  das Teilen-Menü. Abgewählte Arbeiten bleiben offen.
+  das Teilen-Menü; Labor ohne Nummer und ohne PDF. Abgewählte Arbeiten bleiben offen.
 - Preise aus dem Stundensatz in den Einstellungen bzw. dem Leistungskatalog;
   antippbar änderbar. Ohne Preis bleibt das Feld leer und rot, „Ausstellen“ ist
   gesperrt. Abrechnungstakt minutengenau, wählbar 0,1 Std. oder 15 Min.
@@ -69,14 +63,14 @@ Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.m
   und Entsorgung werden bewusst übernommen. Ein Angebot ist keine Leistung.
 - Zwei Schritte mit gleicher `settlement_id`: `prepare_settlement` friert Inhalt
   und Stammdaten ein, bindet die Quellen und reserviert bei Rechnung die Nummer;
-  `complete_settlement` erzeugt und prüft das Original-PDF. Ein PDF-Fehler lässt die Reservierung zum Fortsetzen bestehen.
+  `complete_settlement` erzeugt und prüft das Original-PDF. Labor ohne Nummer
+  und ohne PDF. Ein PDF-Fehler lässt die Reservierung zum Fortsetzen bestehen.
 - Nummernkreis GP, getrennt von sevDesk; Kalendertage in `Europe/Vienna`.
   Reservierte Nummern werden nie neu vergeben, auch nicht nach Aufhebung.
 - Aktive Bindungen verhindern doppelte Abrechnung derselben Leistung. Eine
   nicht abgeschlossene Vorbereitung darf begründet aufgehoben werden (`abandoned`).
 - Storno: eigene Nummer mit Originalverweis; erst der abgeschlossene Beleg gibt
-  die Quellen frei. Bestehende Labor-Abschlüsse werden mit begründetem internem
-  Gegenvorgang aufgehoben.
+  die Quellen frei. Labor wird mit begründetem internem Gegenvorgang aufgehoben.
 - Zahlungen sind einzelne datierte Beträge; Teil- und Überzahlungen bleiben
   nachvollziehbar. Storno löscht keine Zahlung.
 - Ledger in `owner_state` unter `settlement:v1`. Nach Restore beginnt eine neue
@@ -85,8 +79,8 @@ Ergänzt AGENTS.md um die fachlichen Einzelheiten. Bei Widerspruch gilt AGENTS.m
 - Originale, Abschlüsse, Zahlungen und Historie sind vor Löschen und
   Speicherbereinigung geschützt. Aufbewahrung mindestens sieben Jahre ab
   Jahresende; keine Alterslöschung.
-- Export enthält Rechnungen, Labor-Dokumentation, Summen, Positionen,
-  Zahlungen, Korrekturen und die verwendeten Filter.
+- Export enthält beide Arten, Summen, Positionen, Zahlungen, Korrekturen und die
+  verwendeten Filter.
 - Nicht unterstützt: Ausland, Reverse Charge, anderer Steuerstatus, strukturierte
   Rechnungen an Bundesdienststellen, automatische Mahnungen, Anzahlungsrechnungen.
   Historische sevDesk-Daten nicht neu ausstellen. Teilen eines PDFs beweist keinen Zugang.
@@ -153,7 +147,7 @@ Freigabe des Eigentümers. Ziel: jede häufige Aufgabe in höchstens zwei Tipps.
   unteren Drittel. Rückgängig statt Rückfrage; vorbefüllt statt eingetippt.
 - **Navigation:** genau vier Reiter Heute · Planung · Kunden · Abrechnung. Alles
   andere liegt im ⋮-Menü oben rechts, auf allen vier Reitern gleich: Vorgänge
-  (Anfragen, Angebote, Aufträge, Arbeiten, Labor clandestino), Betrieb (Geräte,
+  (Anfragen, Angebote, Aufträge, Arbeiten), Betrieb (Geräte,
   Material), App (Sicherung, Einstellungen). Kein „Mehr“, kein Reiter „Büro“.
   Zurück geht immer eine Ebene; jeder Reiter merkt sich seine Stelle.
 - **Heute:** Titel ist das Datum, darunter Anzahl Einsätze und Stunden, rechts
@@ -188,12 +182,11 @@ Freigabe des Eigentümers. Ziel: jede häufige Aufgabe in höchstens zwei Tipps.
   folgt „Kunde informieren“ in Magenta. Wetterwarnung im Raster. Tag als Tour:
   nummerierte Stopps, „Reihenfolge“, „Navigation starten“ (Adressen an die
   Karten-App). Keine eigene Karte, keine Koordinaten.
-- **Abrechnung:** eine Seite, nur Offizielles. Oben drei Zahlen in einer Zeile
-  (ausgestellt · bezahlt · offen) mit Umschalter Monat | Jahr, darunter ein
-  dünner Balken. Dann „Offen abzurechnen“ je Rechnungsempfänger mit Kürzel,
-  Arbeiten, Stunden und „Abrechnen“; „Zahlung offen“ mit „fällig seit …“;
-  „Alle Abschlüsse ›“. Labor clandestino steht nur im ⋮-Menü: Liste nach Monat,
-  je Auftrag Kunde · Objekt, Stunden, Fotos; ohne Beträge.
+- **Abrechnung:** eine Seite. Oben drei Zahlen in einer Zeile (ausgestellt ·
+  bezahlt · offen) mit Umschalter Monat | Jahr, darunter ein dünner Balken;
+  Labor clandestino als eigene Summe darunter. Dann „Offen abzurechnen“ je
+  Rechnungsempfänger mit Kürzel, Arbeiten, Stunden und „Abrechnen“; „Zahlung
+  offen“ mit „fällig seit …“; „Alle Abschlüsse ›“.
 - **Listen:** eine Fläche je Gruppe, Zeilen 42 dp mit Trennlinie: links Zeit,
   Kürzel-Avatar (feste Farbe aus dem Namen) oder Punkt, Mitte zwei Zeilen Text,
   rechts genau ein Zustand. Wischen nach rechts = häufigste positive Aktion
@@ -241,9 +234,11 @@ Freigabe des Eigentümers. Ziel: jede häufige Aufgabe in höchstens zwei Tipps.
   eine Suche, ein Fotobereich, „Annehmen“ legt den Auftrag an). Ziel rund 90
   statt 174 Aktionen. Zusammengelegte Aktionen bekommen ein gemeinsames
   MCP-Werkzeug; alte Werkzeugnamen bleiben eine Version lang als Verweis lesbar.
-- **Noch zu entscheiden:** Objekt an jeder Arbeit (Schemaänderung, nur mit
-  ausdrücklichem Auftrag), Materialbestand und Gerätenutzung je Einsatz, Umgang
-  mit bestehenden Labor-Abschlüssen.
+- **Entschieden (KISS):** Arbeiten tragen ihr Objekt (`property_id`, vorhanden);
+  hat der Kunde nur ein Objekt, ist es vorausgewählt. Material nur als Verbrauch
+  an der Arbeit, kein Bestand; Geräte nur mit Wartung, keine Nutzung je Einsatz.
+  Was im Konzept nicht logisch und sinnvoll umsetzbar ist, wird gelöscht statt
+  aufgeschoben.
 
 ## Verbindungen
 
