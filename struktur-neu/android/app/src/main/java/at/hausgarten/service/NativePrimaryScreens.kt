@@ -24,7 +24,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -520,7 +522,8 @@ internal fun NativeApplication(controller: NativeAppController) {
     }
 }
 
-/** All four areas retain their own history; navigation items keep their full touch semantics. */
+/** Reopening an active area returns to its overview, so selected items remain actionable. */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean = false) {
     val entries =
@@ -552,7 +555,13 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                         )
                     },
                     alwaysShowLabel = !large,
-                    modifier = Modifier.fillMaxWidth().semantics { testTag = UiTags.area(section) },
+                    modifier =
+                        Modifier.fillMaxWidth().semantics {
+                            role = Role.Button
+                            contentDescription = label
+                            testTag = UiTags.area(section)
+                            testTagsAsResourceId = true
+                        },
                     colors =
                         NavigationRailItemDefaults.colors(
                             selectedIconColor = colors.primary,
@@ -578,7 +587,13 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                     )
                 },
                 alwaysShowLabel = !large,
-                modifier = Modifier.semantics { testTag = UiTags.area(section) },
+                modifier =
+                    Modifier.semantics {
+                        role = Role.Button
+                        contentDescription = label
+                        testTag = UiTags.area(section)
+                        testTagsAsResourceId = true
+                    },
                 colors =
                     NavigationBarItemDefaults.colors(
                         selectedIconColor = colors.primary,

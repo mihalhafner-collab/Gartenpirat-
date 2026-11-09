@@ -498,11 +498,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         checks++
     }
 
+    @Suppress("DEPRECATION") // API 35 exposes the selected navigation button through isChecked.
+    private fun navigationSelected(node: AccessibilityNodeInfo) = node.isChecked
+
     private fun selectedArea(label: String) =
         nodes().any {
             it.isVisibleToUser &&
                 matches(it, label) &&
-                (it.isSelected || clickable(it)?.isSelected == true)
+                (navigationSelected(it) || clickable(it)?.let(::navigationSelected) == true)
         }
 
     /** The customer card opens the same explicit search as Today. */
@@ -2132,7 +2135,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(
             customerNavigation != null &&
                 customerNavigation.isClickable &&
-                customerNavigation.isSelected,
+                navigationSelected(customerNavigation),
             "CUSTOMER_DETAIL_SELECTED_AREA_EXPOSES_ACCESSIBLE_LIST_NAVIGATION",
         )
         openCustomerList()
@@ -4705,7 +4708,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             click(UiTags.area("accounting"))
             click(UiTags.area("accounting"))
-            click(UiTags.billingTab(1))
+            reveal("Alle Abschlüsse")
+            click("Alle Abschlüsse")
             val invoiceBefore = store.ownerValue(SettlementRules.KEY, "{}")
             swipe(UiTags.swipe("settlement", invoiceId), right = false)
             swipe(UiTags.swipe("settlement", invoiceId), right = true)
@@ -5785,9 +5789,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "EMPTY_FIRST_ACTION_OPENS_FORM_WITHOUT_SAVING",
             )
             click(UiTags.area("accounting"))
-            selectTab(UiTags.billingTab(0))
-            shown(UiTags.EMPTY_ACTION)
-            click(UiTags.EMPTY_ACTION)
+            shown(UiTags.EMPTY_STATE)
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("work"))
             shown(UiTags.PRIMARY)
             yes(
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
