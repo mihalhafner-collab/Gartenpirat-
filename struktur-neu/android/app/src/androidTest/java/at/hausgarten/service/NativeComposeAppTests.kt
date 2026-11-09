@@ -318,7 +318,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    private fun enter(label: String, value: String, displayed: String = value) {
+    private fun enter(
+        label: String,
+        value: String,
+        displayed: String = value,
+        exact: Boolean = false,
+    ) {
         if (field(label) == null) scrollTop()
         var lastScroll = 0L
         waitUntil("FIELD_$label") {
@@ -346,8 +351,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         checks++
         waitUntil("VALUE_$label") {
-            field(label)?.text?.toString()?.contains(displayed) == true ||
-                value.isEmpty() && field(label) != null
+            field(label)?.text?.toString()?.let {
+                if (exact) it == displayed else it.contains(displayed)
+            } == true || value.isEmpty() && field(label) != null
         }
         settleUi()
     }
@@ -3390,7 +3396,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         click("Abschluss prüfen")
         shown("Arbeit abschließen")
-        enter(UiTags.actionField("activity"), "[TEST] QA native Timer\nRasen gemäht")
+        enter(UiTags.actionField("activity"), "[TEST] QA native Timer\nRasen gemäht", exact = true)
         awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
         captureSyntheticScreen("timer-completion")
         click(UiTags.PRIMARY)
@@ -3508,7 +3514,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun awaitTimerCompletionReady(sessionId: String, expectedActivity: String) {
-        reveal(UiTags.actionField("activity"))
         val key =
             "native_form_draft:" +
                 PixelMcpWriteTools.hash("action:complete_work_session:$sessionId")
@@ -3518,12 +3523,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("TIMER_COMPLETION_HAS_EXACT_DURABLE_INPUTS_AND_ENABLED_SAVE") {
                 val draft = runCatching { JSONObject(store.ownerValue(key, "")) }.getOrNull()
                 val values = draft?.optJSONObject("values")
-                val entered = field(UiTags.actionField("activity"))?.text?.toString()
                 val enabled = runCatching { actionEnabled(UiTags.PRIMARY) }.getOrDefault(false)
                 observed =
                     JSONObject()
                         .put("draft", draft ?: JSONObject.NULL)
-                        .put("visible_activity", entered ?: JSONObject.NULL)
                         .put("save_enabled", enabled)
                         .put("expected_session_id", sessionId)
                 // Opening a retained timer draft adds request_id to form memory;
@@ -3531,14 +3534,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 // retained draft legitimately contains only context and activity.
                 val ready =
                     values != null &&
-                        entered == expectedActivity &&
                         values.optString("activity") == expectedActivity &&
                         values.optString("session_id") == sessionId &&
                         enabled
                 val now = SystemClock.uptimeMillis()
                 if (!ready) readySince = 0L else if (readySince == 0L) readySince = now
-                // NativeTimer refreshes its parent state every second. Readiness
-                // must survive that refresh rather than expose a transient button.
+                // enter(..., exact = true) checked the visible field before settling.
+                // The exact durable input and enabled submit must survive a timer tick;
+                // scrolling the field out of view does not make the draft unsaveable.
                 ready && now - readySince >= 1100
             }
             checks++
@@ -5495,6 +5498,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.context("properties", property))
             shell("settings put system font_scale 1.7")
             recreate()
+            waitUntil("TIMELINE_LARGE_FONT_APPLIED") {
+                requireNotNull(activity).resources.configuration.fontScale >= 1.69f
+            }
+            openProperty()
             waitStable("TIMELINE_LARGE_FONT_FAB_CLEAR_OF_FOOTER", stableMs = 500) {
                 val plus = runCatching { actionBounds(UiTags.CREATE) }.getOrNull()
                 val primary = runCatching { actionBounds(UiTags.PRIMARY) }.getOrNull()
