@@ -70,6 +70,7 @@ internal fun NativeField(
     enabled: Boolean = true,
     showLabel: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
+    fieldTag: String = "",
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
@@ -95,7 +96,7 @@ internal fun NativeField(
         onValueChange,
         modifier.fillMaxWidth().semantics {
             testTagsAsResourceId = true
-            testTag = "native-field:$displayedLabel"
+            testTag = fieldTag.ifBlank { "native-field:$displayedLabel" }
             if (!showLabel) contentDescription = displayedLabel
         },
         label = if (showLabel) ({ Text(displayedLabel) }) else null,
@@ -1300,7 +1301,10 @@ private fun NativeSchemaField(
                         change(parsed ?: it)
                     } else change(it)
                 },
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().semantics {
+                    testTagsAsResourceId = true
+                    testTag = UiTags.actionField(name)
+                },
                 label = { Text(label + if (required) " *" else "") },
                 minLines =
                     if (

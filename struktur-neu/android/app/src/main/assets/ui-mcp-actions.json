@@ -2738,6 +2738,42 @@
       "platform_only": false,
       "retired": false,
       "native_dispatch": "ComposeRevierScreens.kt"
+    },
+    {
+      "id": "objekte.zeitleiste",
+      "area": "kunden",
+      "action": "Objektverlauf, Pflege, Fotos und Geld",
+      "source": "NativePropertyTimeline.kt",
+      "mcp": [
+        "get_property_timeline"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "PropertyTimelineTest and native property_timeline journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativePropertyTimeline.kt"
+    },
+    {
+      "id": "details.zusammenhang",
+      "area": "kunden",
+      "action": "Zusammenhang und nächste Aktion auf Detailseiten",
+      "source": "NativeDetailLayout.kt",
+      "mcp": [
+        "get_linked_context",
+        "get_property",
+        "get_visit",
+        "get_appointment",
+        "get_photo",
+        "get_settlement",
+        "update_photo"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "PropertyTimelineTest and native property_timeline journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeDetailLayout.kt"
     }
   ]
 }

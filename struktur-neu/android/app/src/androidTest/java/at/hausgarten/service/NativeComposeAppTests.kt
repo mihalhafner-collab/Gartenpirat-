@@ -170,6 +170,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         checks++
     }
 
+    private fun selectTab(tag: String) {
+        reveal(tag)
+        if (node(tag)?.isSelected != true) click(tag)
+        waitUntil("TAB_SELECTED_$tag") { node(tag)?.isSelected == true }
+        checks++
+    }
+
     private fun reveal(label: String) {
         if (node(label) == null) scrollTop()
         var lastScroll = 0L
@@ -292,7 +299,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .firstOrNull {
                 it.isVisibleToUser &&
                     it.isEditable &&
-                    it.viewIdResourceName == "native-field:$label"
+                    (it.viewIdResourceName == label ||
+                        it.viewIdResourceName == "native-field:$label")
             }
             ?.let {
                 return it
@@ -310,7 +318,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
-    private fun enter(label: String, value: String, displayed: String = value) {
+    private fun enter(
+        label: String,
+        value: String,
+        displayed: String = value,
+        exact: Boolean = false,
+    ) {
         if (field(label) == null) scrollTop()
         var lastScroll = 0L
         waitUntil("FIELD_$label") {
@@ -338,8 +351,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         checks++
         waitUntil("VALUE_$label") {
-            field(label)?.text?.toString()?.contains(displayed) == true ||
-                value.isEmpty() && field(label) != null
+            field(label)?.text?.toString()?.let {
+                if (exact) it == displayed else it.contains(displayed)
+            } == true || value.isEmpty() && field(label) != null
         }
         settleUi()
     }
@@ -817,7 +831,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             checks++
             reveal("Bestätigt")
             shown("Bestätigt")
-            reveal("Original-PDF öffnen")
+            click(UiTags.DETAIL_MENU)
+            shown(UiTags.detailAction("settlement-pdf"))
+            back()
             val original =
                 read("get_settlement", JSONObject().put("settlement_id", invoice))
                     .getJSONObject("record")
@@ -2004,6 +2020,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("grouped_search", ::groupedSearchJourney)
             journey("list_actions", ::listActionsJourney)
             journey("planning_board", ::planningBoardJourney)
+            journey("property_timeline", ::propertyTimelineJourney)
             journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
@@ -3379,7 +3396,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         click("Abschluss prüfen")
         shown("Arbeit abschließen")
-        enter("Tätigkeit *", "[TEST] QA native Timer\nRasen gemäht")
+        enter(UiTags.actionField("activity"), "[TEST] QA native Timer\nRasen gemäht", exact = true)
         awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
         captureSyntheticScreen("timer-completion")
         click(UiTags.PRIMARY)
@@ -3506,12 +3523,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("TIMER_COMPLETION_HAS_EXACT_DURABLE_INPUTS_AND_ENABLED_SAVE") {
                 val draft = runCatching { JSONObject(store.ownerValue(key, "")) }.getOrNull()
                 val values = draft?.optJSONObject("values")
-                val entered = field("Tätigkeit *")?.text?.toString()
                 val enabled = runCatching { actionEnabled(UiTags.PRIMARY) }.getOrDefault(false)
                 observed =
                     JSONObject()
                         .put("draft", draft ?: JSONObject.NULL)
-                        .put("visible_activity", entered ?: JSONObject.NULL)
                         .put("save_enabled", enabled)
                         .put("expected_session_id", sessionId)
                 // Opening a retained timer draft adds request_id to form memory;
@@ -3519,14 +3534,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 // retained draft legitimately contains only context and activity.
                 val ready =
                     values != null &&
-                        entered == expectedActivity &&
                         values.optString("activity") == expectedActivity &&
                         values.optString("session_id") == sessionId &&
                         enabled
                 val now = SystemClock.uptimeMillis()
                 if (!ready) readySince = 0L else if (readySince == 0L) readySince = now
-                // NativeTimer refreshes its parent state every second. Readiness
-                // must survive that refresh rather than expose a transient button.
+                // enter(..., exact = true) checked the visible field before settling.
+                // The exact durable input and enabled submit must survive a timer tick;
+                // scrolling the field out of view does not make the draft unsaveable.
                 ready && now - readySince >= 1100
             }
             checks++
@@ -3997,7 +4012,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     } else {
                         click("Alle Objekte")
                         click("QA Kontextobjekt 0")
-                        click("Angebot vorbereiten")
+                        click(UiTags.DETAIL_MENU)
+                        click(UiTags.detailAction("property-offer"))
                     }
                     val title = if (fromInquiry) "QA Kontextanfrage 0" else "QA Kontextobjekt 0"
                     shown("Kunde: $name")
@@ -4230,6 +4246,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 event.source = InputDevice.SOURCE_TOUCHSCREEN
                 try {
                     yes(automation.injectInputEvent(event, true), "SEARCH_REAL_TOUCH_$label")
+                    if (action == MotionEvent.ACTION_DOWN) SystemClock.sleep(75)
                 } finally {
                     event.recycle()
                 }
@@ -5158,6 +5175,406 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             } finally {
                 db.endTransaction()
             }
+            store.notifyCommittedChange()
+            launch()
+        }
+    }
+
+    private fun propertyTimelineJourney() {
+        val oldFont = shell("settings get system font_scale")
+        val beforeMaster = JSONObject(store.getState().getJSONObject("master").toString())
+        val beforeOwners = mutableListOf<Pair<String, String>>()
+        val beforePending = mutableListOf<Array<String>>()
+        store.readableDatabase.rawQuery("SELECT key,value FROM owner_state", null).use { cursor ->
+            while (cursor.moveToNext()) beforeOwners += cursor.getString(0) to cursor.getString(1)
+        }
+        store.readableDatabase
+            .rawQuery("SELECT id,kind,payload,created_at FROM pending", null)
+            .use { cursor ->
+                while (cursor.moveToNext()) beforePending += Array(4) { cursor.getString(it) }
+            }
+        val day = LocalDate.now(ZoneId.of("Europe/Vienna"))
+        val photoFile = File(context.cacheDir, "qa-property-timeline.png")
+        var photoId = ""
+        var photoOriginal: File? = null
+        val navigation = java.util.concurrent.atomic.AtomicReference<Intent>()
+        val monitor =
+            object : Instrumentation.ActivityMonitor() {
+                override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? {
+                    if (intent.action !in setOf(Intent.ACTION_VIEW, Intent.ACTION_DIAL)) return null
+                    navigation.set(intent)
+                    return Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null)
+                }
+            }
+        test.addMonitor(monitor)
+        try {
+            val customer =
+                store.saveEditorRecord(
+                    "customer",
+                    JSONObject()
+                        .put("_request_id", "qa_timeline_customer")
+                        .put("name", "[TEST] QA Zeitleistenkunde")
+                        .put("street", "[TEST] QA Empfängerweg 7")
+                        .put("postal_code", "1010")
+                        .put("city", "[TEST] QA Wien")
+                        .put("country", "AT")
+                        .put("phone", "+430000000007")
+                        .put("active", true)
+                        .put("test_record", true),
+                )
+            val property =
+                read(
+                        "create_property",
+                        JSONObject()
+                            .put("request_id", "qa_timeline_property")
+                            .put("customer_id", customer)
+                            .put("name", "[TEST] QA Zeitleistenobjekt")
+                            .put("address", "[TEST] QA Zeitleistenweg 7")
+                            .put("latitude", 48.2)
+                            .put("longitude", 16.3),
+                    )
+                    .getString("property_id")
+            val order =
+                store.saveEditorRecord(
+                    "order",
+                    JSONObject()
+                        .put("_request_id", "qa_timeline_order")
+                        .put("customer_id", customer)
+                        .put("title", "[TEST] QA Zeitleistenauftrag")
+                        .put("status", "Geplant")
+                        .put("test_record", true),
+                )
+            val visit =
+                read(
+                        "plan_visit",
+                        JSONObject()
+                            .put("request_id", "qa_timeline_visit")
+                            .put("property_id", property)
+                            .put("title", "[TEST] QA Zeitleisteneinsatz")
+                            .put("date", day.toString())
+                            .put("planned_minutes", 60),
+                    )
+                    .getString("visit_id")
+            val inquiry =
+                read(
+                        "create_inquiry",
+                        JSONObject()
+                            .put("request_id", "qa_timeline_inquiry")
+                            .put("customer_id", customer)
+                            .put("property_id", property)
+                            .put("title", "[TEST] QA Zeitleistenanfrage"),
+                    )
+                    .getString("inquiry_id")
+            val inquiryHash =
+                read("get_inquiry", JSONObject().put("inquiry_id", inquiry))
+                    .getString("record_hash")
+            read(
+                "update_inquiry",
+                JSONObject()
+                    .put("request_id", "qa_timeline_inquiry_order")
+                    .put("inquiry_id", inquiry)
+                    .put("expected_record_hash", inquiryHash)
+                    .put("updates", JSONObject().put("order_id", order)),
+            )
+            val care =
+                read(
+                        "create_care_plan",
+                        JSONObject()
+                            .put("request_id", "qa_timeline_care")
+                            .put("property_id", property)
+                            .put("title", "[TEST] QA Zeitleistenpflege")
+                            .put("anchor_date", day.toString())
+                            .put("interval_days", 7)
+                            .put("planned_minutes", 60),
+                    )
+                    .getString("care_plan_id")
+            val work = "qa_timeline_work"
+            val appointment =
+                read(
+                        "create_appointment",
+                        JSONObject()
+                            .put("request_id", "qa_timeline_appointment")
+                            .put("customer_id", customer)
+                            .put("order_id", order)
+                            .put("title", "[TEST] QA Zeitleistentermin")
+                            .put("purpose", "work")
+                            .put(
+                                "starts_at",
+                                day.atTime(14, 0)
+                                    .atZone(ZoneId.of("Europe/Vienna"))
+                                    .toInstant()
+                                    .toString(),
+                            )
+                            .put(
+                                "ends_at",
+                                day.atTime(15, 0)
+                                    .atZone(ZoneId.of("Europe/Vienna"))
+                                    .toInstant()
+                                    .toString(),
+                            )
+                            .put("timezone", "Europe/Vienna")
+                            .put("status", "confirmed")
+                            .put("location", "[TEST] QA Zeitleistenweg 7")
+                            .put("weather_profile", "general")
+                            .put("travel_minutes", 0)
+                            .put("break_minutes", 0),
+                    )
+                    .getString("appointment_id")
+            val source = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
+            source.put(
+                "business_settings",
+                NativeSettlementNativeTests.fixture().getJSONObject("business_settings"),
+            )
+            source
+                .getJSONArray("worklogs")
+                .put(
+                    NativeSettlementNativeTests.work(work, 0)
+                        .put("customer_id", customer)
+                        .put("billing_customer_id", customer)
+                        .put("property_id", property)
+                        .put("visit_id", visit)
+                )
+            store.putOwnerValue("snapshot", source.toString())
+            val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+            bitmap.eraseColor(0xff8a3421.toInt())
+            photoFile.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+            val identity = BackupDeviceGuard(context).current()
+            val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
+            photoId =
+                runBlocking {
+                        controller.importPhoto(
+                            Uri.fromFile(photoFile),
+                            JSONObject()
+                                .put("_photo_request_id", "qa_timeline_photo")
+                                .put("customer_id", customer)
+                                .put("property_id", property)
+                                .put("visit_id", visit)
+                                .put("role", "documentation")
+                                .put("caption", "[TEST] QA Objektfoto")
+                                .put(
+                                    "_capture_context",
+                                    JSONObject()
+                                        .put("formatVersion", 1)
+                                        .put(
+                                            "installation_id",
+                                            identity.getString("installationId"),
+                                        )
+                                        .put("restore_epoch", identity.getString("restoreEpoch")),
+                                ),
+                        )
+                    }
+                    .getString("photo_id")
+            photoOriginal =
+                store.photoAttachment(photoId)?.let {
+                    store.photoAttachmentStore().verifiedFile(it)
+                }
+            yes(
+                LocalOwnerRepository(context, store).migratePersonalPaid("[]") == "OK",
+                "TIMELINE_PERSONAL_ASSIGNMENTS_INITIALIZED_THROUGH_EXISTING_WRITER",
+            )
+            val draft =
+                NativeSettlementNativeTests.draft("labor", "20", work)
+                    .put("billing_customer_id", customer)
+            val settlement =
+                read(
+                        "save_settlement_draft",
+                        JSONObject().put("request_id", "qa_timeline_settlement").put("draft", draft),
+                    )
+                    .getString("settlement_id")
+            fun timeline(view: String = "history") =
+                read(
+                    "get_property_timeline",
+                    JSONObject().put("property_id", property).put("view", view),
+                )
+            val history = SettlementRules.rows(timeline().getJSONArray("items"))
+            yes(
+                history.any { it.getString("key") == "inquiry:$inquiry" } &&
+                    history.any { it.getString("key") == "order:$order" } &&
+                    history.any { it.getString("key") == "visit:$visit" } &&
+                    history.any { it.getString("key") == "appointment:$appointment" },
+                "TIMELINE_EXPLICIT_CONTEXT_PROJECTED",
+            )
+            yes(
+                history.none { it.getString("kind") == "payment" },
+                "TIMELINE_NO_PAYMENT_BEFORE_REAL_PAYMENT",
+            )
+            store.notifyCommittedChange()
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            launch()
+            fun openProperty() {
+                openOffice()
+                click(UiTags.area("properties"))
+                scrollTop()
+                var lastScroll = 0L
+                waitUntil("TIMELINE_PROPERTY_LIST_OR_DETAIL") {
+                    val available =
+                        node(UiTags.recordChoice("properties", property)) != null ||
+                            node(UiTags.OBJECT_ROUTE) != null
+                    if (!available && SystemClock.uptimeMillis() - lastScroll > 250) {
+                        if (!scroll()) scrollTop()
+                        lastScroll = SystemClock.uptimeMillis()
+                    }
+                    available
+                }
+                if (node(UiTags.recordChoice("properties", property)) != null)
+                    click(UiTags.recordChoice("properties", property))
+                selectTab(UiTags.objectTab("history"))
+            }
+            openProperty()
+            val beforeNavigation =
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            click(UiTags.OBJECT_ROUTE)
+            waitUntil("TIMELINE_EXTERNAL_ROUTE") {
+                navigation.get()?.dataString?.startsWith("geo:") == true
+            }
+            yes(
+                navigation.get().dataString!!.contains("48.2"),
+                "TIMELINE_ROUTE_USES_SAVED_OBJECT_LOCATION",
+            )
+            click(UiTags.OBJECT_CALL)
+            waitUntil("TIMELINE_PHONE_DIALER") { navigation.get()?.action == Intent.ACTION_DIAL }
+            yes(
+                navigation.get().data?.schemeSpecificPart == "+430000000007",
+                "TIMELINE_CALL_USES_CUSTOMER_NUMBER",
+            )
+            yes(
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                    beforeNavigation,
+                "TIMELINE_EXTERNAL_ACTIONS_READ_ONLY",
+            )
+            selectTab(UiTags.objectTab("care"))
+            reveal(UiTags.objectEntry("care_plan:$care"))
+            selectTab(UiTags.objectTab("photos"))
+            click(UiTags.objectEntry("photo:$photoId"))
+            shown(UiTags.context("properties", property))
+            click(UiTags.PRIMARY)
+            enter(UiTags.PHOTO_CAPTION, "[TEST] QA Objektfoto ergänzt")
+            if (keyboardVisible()) back()
+            click(UiTags.PRIMARY)
+            waitUntil("TIMELINE_PHOTO_REAL_SAVE") {
+                read("get_photo", JSONObject().put("photo_id", photoId))
+                    .getJSONObject("photo")
+                    .optString("caption") == "[TEST] QA Objektfoto ergänzt"
+            }
+            recreate()
+            click(UiTags.context("properties", property))
+            selectTab(UiTags.objectTab("money"))
+            click(UiTags.objectEntry("settlement:$settlement"))
+            click(UiTags.PRIMARY)
+            waitUntil("TIMELINE_INTERNAL_CLOSURE_CONFIRMED") {
+                read("get_settlement", JSONObject().put("settlement_id", settlement))
+                    .getJSONObject("record")
+                    .optString("status") == "confirmed"
+            }
+            // The new footer records payment through the existing durable fiscal operation.
+            waitUntil("TIMELINE_PAYMENT_FOOTER_READY") {
+                node(UiTags.settlementState("confirmed")) != null &&
+                    node(UiTags.PRIMARY) != null &&
+                    actionEnabled(UiTags.PRIMARY)
+            }
+            click(UiTags.PRIMARY)
+            waitUntil("TIMELINE_PAYMENT_RECORDED") {
+                read("get_settlement", JSONObject().put("settlement_id", settlement))
+                    .optLong("balance_minor", -1) == 0L
+            }
+            recreate()
+            val paid = read("get_settlement", JSONObject().put("settlement_id", settlement))
+            yes(
+                SettlementRules.rows(paid.getJSONArray("payments")).size == 1,
+                "TIMELINE_RECREATE_DOES_NOT_REPEAT_PAYMENT",
+            )
+            reveal(UiTags.DETAIL_DELETE)
+            yes(
+                !actionEnabled(UiTags.DETAIL_DELETE),
+                "TIMELINE_CONFIRMED_DOCUMENT_DELETE_PROTECTED",
+            )
+            click(UiTags.context("properties", property))
+            selectTab(UiTags.objectTab("history"))
+            click(UiTags.objectEntry("visit:$visit"))
+            shown(UiTags.context("properties", property))
+            click(UiTags.DETAIL_MENU)
+            shown(UiTags.detailAction("visit-tour"))
+            back()
+            click(UiTags.context("properties", property))
+            selectTab(UiTags.objectTab("history"))
+            click(UiTags.objectEntry("appointment:$appointment"))
+            shown(UiTags.context("properties", property))
+            shown(UiTags.context("orders", order))
+            click(UiTags.DETAIL_MENU)
+            shown(UiTags.detailAction("appointment-cancel"))
+            back()
+            click(UiTags.context("properties", property))
+            shell("settings put system font_scale 1.7")
+            recreate()
+            waitUntil("TIMELINE_LARGE_FONT_APPLIED") {
+                requireNotNull(activity).resources.configuration.fontScale >= 1.69f
+            }
+            openProperty()
+            waitStable("TIMELINE_LARGE_FONT_FAB_CLEAR_OF_FOOTER", stableMs = 500) {
+                val plus = runCatching { actionBounds(UiTags.CREATE) }.getOrNull()
+                val primary = runCatching { actionBounds(UiTags.PRIMARY) }.getOrNull()
+                val secondary = runCatching { actionBounds(UiTags.SECONDARY) }.getOrNull()
+                plus != null &&
+                    primary != null &&
+                    secondary != null &&
+                    !Rect.intersects(plus, primary) &&
+                    !Rect.intersects(plus, secondary) &&
+                    plus.bottom <= minOf(primary.top, secondary.top)
+            }
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("visit"))
+            enter(UiTags.detailField("title"), "[TEST] QA vom Objekt vorgeplant")
+            if (keyboardVisible()) back()
+            click(UiTags.PRIMARY)
+            waitUntil("TIMELINE_NEW_VISIT_WITH_CONTEXT") {
+                SettlementRules.rows(
+                        read("list_visits", JSONObject().put("property_id", property))
+                            .getJSONArray("items")
+                    )
+                    .any {
+                        it.optString("title") == "[TEST] QA vom Objekt vorgeplant" &&
+                            it.optString("property_id") == property &&
+                            it.optString("customer_id") == customer
+                    }
+            }
+            val paymentEvents =
+                SettlementRules.rows(timeline("money").getJSONArray("items")).filter {
+                    it.optString("kind") == "payment"
+                }
+            yes(
+                paymentEvents.size == 1 && paymentEvents.single().getLong("amount_minor") == 2000L,
+                "TIMELINE_SHOWS_REAL_PAYMENT_ONCE",
+            )
+        } finally {
+            shell(
+                if (oldFont == "null") "settings delete system font_scale"
+                else "settings put system font_scale $oldFont"
+            )
+            test.removeMonitor(monitor)
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            val db = store.writableDatabase
+            db.beginTransaction()
+            try {
+                if (photoId.isNotBlank())
+                    db.delete("photo_attachments", "photo_id=?", arrayOf(photoId))
+                db.delete("pending", null, null)
+                for (row in beforePending) db.execSQL(
+                    "INSERT INTO pending(id,kind,payload,created_at) VALUES(?,?,?,?)",
+                    row,
+                )
+                db.delete("owner_state", null, null)
+                for ((key, value) in beforeOwners) db.execSQL(
+                    "INSERT INTO owner_state(key,value) VALUES(?,?)",
+                    arrayOf(key, value),
+                )
+                store.putOwnerValue("snapshot", beforeMaster.toString())
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            photoFile.delete()
+            photoOriginal?.delete()
             store.notifyCommittedChange()
             launch()
         }

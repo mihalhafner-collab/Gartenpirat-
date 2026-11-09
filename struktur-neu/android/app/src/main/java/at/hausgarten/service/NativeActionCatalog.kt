@@ -1024,6 +1024,26 @@ internal object NativeActionCatalog {
                 "Tour-Reihenfolge und Navigation starten",
                 listOf("get_day_tour", "set_day_tour", "move_tour_stop", "get_tour_navigation"),
             ),
+            NativeAction(
+                "objekte.zeitleiste",
+                "kunden",
+                "Objektverlauf, Pflege, Fotos und Geld",
+                listOf("get_property_timeline"),
+            ),
+            NativeAction(
+                "details.zusammenhang",
+                "kunden",
+                "Zusammenhang und nächste Aktion auf Detailseiten",
+                listOf(
+                    "get_linked_context",
+                    "get_property",
+                    "get_visit",
+                    "get_appointment",
+                    "get_photo",
+                    "get_settlement",
+                    "update_photo",
+                ),
+            ),
         )
 
     /** Retired actions stay inspectable in the catalog without exposing an executable button. */

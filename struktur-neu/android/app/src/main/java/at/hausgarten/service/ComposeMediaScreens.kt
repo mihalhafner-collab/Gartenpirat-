@@ -25,6 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -597,6 +599,7 @@ private fun NativePhotoDetail(
     var revision by remember { mutableIntStateOf(0) }
     var record by remember(id) { mutableStateOf<JSONObject?>(null) }
     var error by remember(id) { mutableStateOf("") }
+    var editing by rememberSaveable(id) { mutableStateOf(false) }
     var caption by rememberSaveable(id) { mutableStateOf("") }
     var capture by rememberSaveable(id) { mutableStateOf("") }
     var role by rememberSaveable(id) { mutableStateOf("documentation") }
@@ -637,6 +640,7 @@ private fun NativePhotoDetail(
                 pending = draft?.optString("pending").orEmpty()
             }
             draftTouched = draft != null
+            if (draft != null) editing = true
             draftReady = true
             error =
                 if (read == null)
@@ -679,7 +683,28 @@ private fun NativePhotoDetail(
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = { leave() }) { Text("Zurück") }
-            Text("Foto", style = MaterialTheme.typography.titleLarge)
+            NativeDetailHeading(
+                photo?.optString("caption")?.ifBlank { photo.optString("original_name", "Foto") }
+                    ?: "Foto",
+                listOf(
+                    NativeDetailAction(
+                        "photo-fullscreen",
+                        "Vollbild und Vergrößern",
+                        run = { fullscreen = true },
+                    ),
+                    NativeDetailAction(
+                        "photo-file",
+                        "Dateiangaben ansehen",
+                        run = { detailsOpen = !detailsOpen },
+                    ),
+                    NativeDetailAction(
+                        "photo-discard",
+                        "Änderungen verwerfen",
+                        draftTouched && !busy && pending.isBlank(),
+                        { discardChanges = true },
+                    ),
+                ),
+            )
         }
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
@@ -691,7 +716,7 @@ private fun NativePhotoDetail(
                 if (pending.isNotBlank()) NativeStatusTone.Attention
                 else if (draftTouched) NativeStatusTone.Neutral else NativeStatusTone.Confirmed,
             )
-            if (photo != null) NativeContext(controller, photo)
+            if (photo != null) NativeContext(controller, photo, heading = true)
             if (error.isNotBlank())
                 Text(
                     error + " Bereits gespeicherte Arbeit bleibt erhalten.",
@@ -704,190 +729,220 @@ private fun NativePhotoDetail(
                 ContentScale.Fit,
                 original = true,
             )
-            TextButton(onClick = { fullscreen = true }) { Text("Vollbild und Vergrößern") }
-            OutlinedTextField(
-                caption,
-                {
-                    caption = it
-                    draftTouched = true
-                },
-                Modifier.fillMaxWidth(),
-                label = { Text("Bildunterschrift") },
-                enabled = !busy && pending.isBlank(),
-            )
-            NativeDateTimeField(
-                "Aufnahmedatum",
-                capture,
-                { selectedTime ->
-                    capture =
-                        runCatching {
-                                java.time.LocalDateTime.parse(selectedTime)
-                                    .atZone(java.time.ZoneId.of("Europe/Vienna"))
-                                    .toInstant()
-                                    .toString()
-                            }
-                            .getOrDefault(selectedTime)
-                    draftTouched = true
-                },
-                enabled = !busy && pending.isBlank(),
-            )
-            MediaDropdown("Rolle", role, photoRoles, enabled = !busy && pending.isBlank()) {
-                role = it
-                draftTouched = true
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    visible,
+            if (!editing && pending.isBlank()) {
+                NativeGroup("Fotoangaben") {
+                    if (caption.isNotBlank())
+                        NativeKeyValue("Bildunterschrift", caption) { editing = true }
+                    if (capture.isNotBlank())
+                        NativeKeyValue("Aufnahmedatum", nativeDisplayDate(capture)) {
+                            editing = true
+                        }
+                    NativeKeyValue("Rolle", photoRoles[role] ?: "Dokumentation") { editing = true }
+                    NativeKeyValue("Für Kunden sichtbar", if (visible) "Ja" else "Nein") {
+                        editing = true
+                    }
+                }
+                NativeAddDetails(
+                    listOf(
+                            "caption" to caption,
+                            "capture_time" to capture,
+                            "order_id" to order,
+                            "worklog_id" to worklog,
+                        )
+                        .filter { it.second.isBlank() }
+                        .map { it.first },
+                    onEdit = { editing = true },
+                )
+            } else {
+                OutlinedTextField(
+                    caption,
                     {
-                        visible = it
+                        caption = it
+                        draftTouched = true
+                    },
+                    Modifier.fillMaxWidth().semantics { testTag = UiTags.PHOTO_CAPTION },
+                    label = { Text("Bildunterschrift") },
+                    enabled = !busy && pending.isBlank(),
+                )
+                NativeDateTimeField(
+                    "Aufnahmedatum",
+                    capture,
+                    { selectedTime ->
+                        capture =
+                            runCatching {
+                                    java.time.LocalDateTime.parse(selectedTime)
+                                        .atZone(java.time.ZoneId.of("Europe/Vienna"))
+                                        .toInstant()
+                                        .toString()
+                                }
+                                .getOrDefault(selectedTime)
                         draftTouched = true
                     },
                     enabled = !busy && pending.isBlank(),
                 )
-                Text("Für Kunden sichtbar")
-            }
-            MediaChoice(
-                "Auftrag",
-                orderTitle.ifBlank {
-                    if (order.isBlank()) "Nicht zugeordnet"
-                    else photo?.optString("order_title").orEmpty().ifBlank { "Auftrag zugeordnet" }
-                },
-                { picker = "orders" },
-                {
-                    order = ""
-                    orderTitle = ""
+                MediaDropdown("Rolle", role, photoRoles, enabled = !busy && pending.isBlank()) {
+                    role = it
                     draftTouched = true
-                },
-                pending.isBlank(),
-            )
-            MediaChoice(
-                "Arbeit",
-                workTitle.ifBlank {
-                    if (worklog.isBlank()) "Nicht zugeordnet" else "Arbeit zugeordnet"
-                },
-                { picker = "worklogs" },
-                {
-                    worklog = ""
-                    workTitle = ""
-                    draftTouched = true
-                },
-                pending.isBlank(),
-            )
-            if (session.isNotBlank()) Text("Mit einer Arbeitssitzung verknüpft.")
-            TextButton(
-                enabled = !busy && pending.isBlank(),
-                onClick = {
-                    scope.launch {
-                        try {
-                            val active = controller.query("get_active_work_session", JSONObject())
-                            val customer = photo?.optString("customer_id")
-                            if (active.optString("customer_id") != customer)
-                                throw IllegalArgumentException(
-                                    "Die laufende Arbeit gehört zu einem anderen Kunden."
-                                )
-                            session = active.optString("id", active.optString("session_id"))
-                            order = active.optString("order_id")
-                            worklog = active.optString("finalized_worklog_id")
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        visible,
+                        {
+                            visible = it
                             draftTouched = true
-                        } catch (failure: Exception) {
-                            controller.message(mediaError(failure))
-                        }
-                    }
-                },
-            ) {
-                Text("Laufender Arbeit zuordnen")
-            }
-            if (session.isNotBlank())
+                        },
+                        enabled = !busy && pending.isBlank(),
+                    )
+                    Text("Für Kunden sichtbar")
+                }
+                MediaChoice(
+                    "Auftrag",
+                    orderTitle.ifBlank {
+                        if (order.isBlank()) "Nicht zugeordnet"
+                        else
+                            photo?.optString("order_title").orEmpty().ifBlank {
+                                "Auftrag zugeordnet"
+                            }
+                    },
+                    { picker = "orders" },
+                    {
+                        order = ""
+                        orderTitle = ""
+                        draftTouched = true
+                    },
+                    pending.isBlank(),
+                )
+                MediaChoice(
+                    "Arbeit",
+                    workTitle.ifBlank {
+                        if (worklog.isBlank()) "Nicht zugeordnet" else "Arbeit zugeordnet"
+                    },
+                    { picker = "worklogs" },
+                    {
+                        worklog = ""
+                        workTitle = ""
+                        draftTouched = true
+                    },
+                    pending.isBlank(),
+                )
+                if (session.isNotBlank()) Text("Mit einer Arbeitssitzung verknüpft.")
                 TextButton(
                     enabled = !busy && pending.isBlank(),
                     onClick = {
-                        session = ""
-                        draftTouched = true
+                        scope.launch {
+                            try {
+                                val active =
+                                    controller.query("get_active_work_session", JSONObject())
+                                val customer = photo?.optString("customer_id")
+                                if (active.optString("customer_id") != customer)
+                                    throw IllegalArgumentException(
+                                        "Die laufende Arbeit gehört zu einem anderen Kunden."
+                                    )
+                                session = active.optString("id", active.optString("session_id"))
+                                order = active.optString("order_id")
+                                worklog = active.optString("finalized_worklog_id")
+                                draftTouched = true
+                            } catch (failure: Exception) {
+                                controller.message(mediaError(failure))
+                            }
+                        }
                     },
                 ) {
-                    Text("Sitzungsverknüpfung lösen")
+                    Text("Laufender Arbeit zuordnen")
                 }
-            if (photo != null) {
-                TextButton({ detailsOpen = !detailsOpen }) {
-                    Text(if (detailsOpen) "Dateiangaben schließen" else "Dateiangaben ansehen")
-                }
-                if (detailsOpen)
-                    NativeInfoRow(
-                        "Bilddatei",
-                        "${photo.optInt("width")} × ${photo.optInt("height")} Pixel · ${photo.optLong("byte_size") / 1024} KB",
-                    )
+                if (session.isNotBlank())
+                    TextButton(
+                        enabled = !busy && pending.isBlank(),
+                        onClick = {
+                            session = ""
+                            draftTouched = true
+                        },
+                    ) {
+                        Text("Sitzungsverknüpfung lösen")
+                    }
             }
-            if (draftTouched)
-                TextButton(
-                    enabled = !busy && pending.isBlank(),
-                    onClick = { discardChanges = true },
-                ) {
-                    Text("Änderungen verwerfen")
-                }
-            NativeDeleteButton(controller, "photo", id, enabled = !busy && pending.isBlank()) {
+            if (photo != null && detailsOpen)
+                NativeInfoRow(
+                    "Bilddatei",
+                    "${photo.optInt("width")} × ${photo.optInt("height")} Pixel · ${photo.optLong("byte_size") / 1024} KB",
+                )
+            NativeDeleteButton(
+                controller,
+                "photo",
+                id,
+                modifier = Modifier.fillMaxWidth().semantics { testTag = UiTags.DETAIL_DELETE },
+                enabled = !busy && pending.isBlank(),
+            ) {
                 close()
             }
         }
         NativeActionBar(
             primaryLabel =
                 if (busy) "Speichert …"
-                else if (pending.isNotBlank()) "Ergebnis prüfen" else "Fotoangaben speichern",
+                else if (pending.isNotBlank()) "Ergebnis prüfen"
+                else if (!editing) "Bearbeiten" else "Fotoangaben speichern",
             onPrimary = {
-                scope.launch {
-                    busy = true
-                    try {
-                        if (pending.isNotBlank()) {
-                            val proof =
-                                controller.query(
-                                    "inspect_edit_action",
-                                    JSONObject()
-                                        .put("original_tool", "update_photo")
-                                        .put("original_args", JSONObject(pending)),
-                                )
-                            if (proof.optString("state") != "confirmed") {
-                                error = mediaInspectionMessage(proof)
-                                return@launch
-                            }
-                        } else {
-                            draftTouched = true
-                            pending =
-                                JSONObject()
-                                    .put("request_id", mediaRequest())
-                                    .put("photo_id", id)
-                                    .put("expected_record_hash", record!!.getString("record_hash"))
-                                    .put(
-                                        "updates",
+                if (!editing && pending.isBlank()) editing = true
+                else
+                    scope.launch {
+                        busy = true
+                        try {
+                            if (pending.isNotBlank()) {
+                                val proof =
+                                    controller.query(
+                                        "inspect_edit_action",
                                         JSONObject()
-                                            .put("caption", caption)
-                                            .put("capture_time", capture)
-                                            .put("role", role)
-                                            .put("customer_visible", visible)
-                                            .put("order_id", order)
-                                            .put("worklog_id", worklog)
-                                            .put("session_id", session),
+                                            .put("original_tool", "update_photo")
+                                            .put("original_args", JSONObject(pending)),
                                     )
-                                    .toString()
-                            controller.saveDraft(draftKey, draftValue())
-                            controller.flushDrafts()
-                            mediaWrite(controller, "update_photo", JSONObject(pending))
+                                if (proof.optString("state") != "confirmed") {
+                                    error = mediaInspectionMessage(proof)
+                                    return@launch
+                                }
+                            } else {
+                                draftTouched = true
+                                pending =
+                                    JSONObject()
+                                        .put("request_id", mediaRequest())
+                                        .put("photo_id", id)
+                                        .put(
+                                            "expected_record_hash",
+                                            record!!.getString("record_hash"),
+                                        )
+                                        .put(
+                                            "updates",
+                                            JSONObject()
+                                                .put("caption", caption)
+                                                .put("capture_time", capture)
+                                                .put("role", role)
+                                                .put("customer_visible", visible)
+                                                .put("order_id", order)
+                                                .put("worklog_id", worklog)
+                                                .put("session_id", session),
+                                        )
+                                        .toString()
+                                controller.saveDraft(draftKey, draftValue())
+                                controller.flushDrafts()
+                                mediaWrite(controller, "update_photo", JSONObject(pending))
+                            }
+                            pending = ""
+                            draftTouched = false
+                            editing = false
+                            revision++
+                            val cleanup = runCatching { controller.removeDraft(draftKey) }
+                            error =
+                                if (cleanup.isFailure)
+                                    "Fotoangaben bestätigt gespeichert. Entwurfsbereinigung steht noch aus."
+                                else ""
+                            controller.message("Fotoangaben gespeichert.")
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (failure: Exception) {
+                            error = mediaError(failure)
+                        } finally {
+                            busy = false
                         }
-                        pending = ""
-                        draftTouched = false
-                        revision++
-                        val cleanup = runCatching { controller.removeDraft(draftKey) }
-                        error =
-                            if (cleanup.isFailure)
-                                "Fotoangaben bestätigt gespeichert. Entwurfsbereinigung steht noch aus."
-                            else ""
-                        controller.message("Fotoangaben gespeichert.")
-                    } catch (cancelled: CancellationException) {
-                        throw cancelled
-                    } catch (failure: Exception) {
-                        error = mediaError(failure)
-                    } finally {
-                        busy = false
                     }
-                }
             },
             secondaryLabel = "Zurück",
             onSecondary = { leave() },
@@ -954,6 +1009,8 @@ private fun NativePhotoImport(
 ) {
     val scope = rememberCoroutineScope()
     var selected by rememberSaveable { mutableStateOf("") }
+    var property by rememberSaveable { mutableStateOf(initialArgs.optString("property_id")) }
+    var visit by rememberSaveable { mutableStateOf(initialArgs.optString("visit_id")) }
     var customer by rememberSaveable { mutableStateOf(initialArgs.optString("customer_id")) }
     var customerLabel by rememberSaveable { mutableStateOf("") }
     var caption by rememberSaveable { mutableStateOf("") }
@@ -979,6 +1036,8 @@ private fun NativePhotoImport(
             controller.draft(draftKey)?.let { d ->
                 selected = d.optString("selected_uri")
                 customer = d.optString("customer_id")
+                property = d.optString("property_id")
+                visit = d.optString("visit_id")
                 customerLabel = d.optString("customer_label")
                 caption = d.optString("caption")
                 role = d.optString("role", "documentation")
@@ -1020,6 +1079,8 @@ private fun NativePhotoImport(
         JSONObject()
             .put("selected_uri", selected)
             .put("customer_id", customer)
+            .put("property_id", property)
+            .put("visit_id", visit)
             .put("customer_label", customerLabel)
             .put("caption", caption)
             .put("role", role)
@@ -1118,7 +1179,11 @@ private fun NativePhotoImport(
             if (failure.isNotBlank()) Text(failure, color = MaterialTheme.colorScheme.error)
             NativeContext(
                 controller,
-                JSONObject().put("customer_id", customer).put("order_id", order),
+                JSONObject()
+                    .put("customer_id", customer)
+                    .put("property_id", property)
+                    .put("visit_id", visit)
+                    .put("order_id", order),
             )
             if (session.isNotBlank())
                 NativeInfoRow(
@@ -1167,6 +1232,8 @@ private fun NativePhotoImport(
                     { picker = "customers" },
                     {
                         customer = ""
+                        property = ""
+                        visit = ""
                         customerLabel = ""
                         order = ""
                         worklog = ""
@@ -1234,6 +1301,8 @@ private fun NativePhotoImport(
                                         "Keine laufende Arbeit vorhanden."
                                     )
                                 customer = chosen
+                                property = active.optString("property_id")
+                                visit = active.optString("visit_id")
                                 customerLabel =
                                     active.optString("customer_name", "Kunde der laufenden Arbeit")
                                 order = active.optString("order_id")
@@ -1297,6 +1366,8 @@ private fun NativePhotoImport(
                                         JSONObject()
                                             .put("_photo_request_id", mediaRequest())
                                             .put("customer_id", customer)
+                                            .put("property_id", property)
+                                            .put("visit_id", visit)
                                             .put("caption", caption)
                                             .put("role", role)
                                             .put("customer_visible", visible)
@@ -1356,6 +1427,10 @@ private fun NativePhotoImport(
             draftTouched = true
             when (picker) {
                 "customers" -> {
+                    if (customer != row.id) {
+                        property = ""
+                        visit = ""
+                    }
                     customer = row.id
                     customerLabel =
                         listOf(row.title, row.address)

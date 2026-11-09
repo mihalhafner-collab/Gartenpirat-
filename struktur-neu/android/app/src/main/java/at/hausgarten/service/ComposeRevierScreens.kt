@@ -571,7 +571,12 @@ private fun RevierList(
                             if (row.thumbnailReference.isNotBlank())
                                 ({ RevierEquipmentThumbnail(row.thumbnailReference, controller) })
                             else null,
-                        modifier = Modifier.fillMaxWidth().clickable { onSelect(row.id) },
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .semantics {
+                                    testTag = UiTags.recordChoice(config.collection, row.id)
+                                }
+                                .clickable { onSelect(row.id) },
                     )
                     HorizontalDivider()
                 }
@@ -593,7 +598,7 @@ private fun RevierList(
     }
 }
 
-private class RevierEdit(
+internal class RevierEdit(
     val key: String,
     val kind: String,
     val original: JSONObject,
@@ -778,15 +783,120 @@ private fun RevierDetail(
         }
         return
     }
+    if (config.kind == "property") {
+        NativePropertyTimeline(controller, data!!, onBack, onEdit)
+        return
+    }
+    val canStartVisit =
+        row.optString("status") !in listOf("cancelled", "completed", "superseded") &&
+            !row.optBoolean("archived")
+    fun startVisit() {
+        if (busy) return
+        busy = true
+        scope.launch {
+            try {
+                val key = "revier:start:$id"
+                val saved = controller.draft(key)
+                val args =
+                    saved?.optJSONObject("args")
+                        ?: JSONObject()
+                            .put("request_id", revierRequest())
+                            .put("customer_id", row.getString("customer_id"))
+                            .put("property_id", row.getString("property_id"))
+                            .put("visit_id", id)
+                            .put("work_date", revierDay())
+                            .put("activity", row.optString("title"))
+                            .apply {
+                                if (row.optString("order_id").isNotEmpty())
+                                    put("order_id", row.getString("order_id"))
+                            }
+                val proof =
+                    if (saved != null)
+                        controller.query(
+                            "inspect_edit_action",
+                            JSONObject()
+                                .put("original_tool", "start_work")
+                                .put("original_args", args),
+                        )
+                    else null
+                if (proof?.optString("state") == "content_removed")
+                    error("Dieser Arbeitsstart wurde endgültig entfernt. Keine erneute Anlage.")
+                if (saved != null && proof?.optString("state") != "confirmed")
+                    error(
+                        "Der ursprüngliche Arbeitsstart ist noch nicht bestätigt. Vorgang bleibt erhalten; keine neue Zeiterfassung gestartet."
+                    )
+                if (saved == null) {
+                    val active = controller.query("get_active_work_session")
+                    require(active.optString("state") == "IDLE") {
+                        "Eine Zeiterfassung ist bereits offen. Diese zuerst auf der Heute-Seite prüfen."
+                    }
+                    controller.saveDraft(key, JSONObject().put("args", args))
+                    controller.flushDrafts()
+                    controller.query("start_work", args)
+                }
+                runCatching { controller.removeDraft(key) }
+                controller.navigate("today")
+                controller.message("Arbeitsstart lokal bestätigt. Aktuelle Sitzung prüfen.")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                failure = error.message.orEmpty()
+            } finally {
+                busy = false
+            }
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             TextButton(onBack) { Text("Zur Liste") }
-            Text(
+            NativeDetailHeading(
                 row.optString("name", row.optString("title", config.singular)),
-                style = MaterialTheme.typography.headlineSmall,
+                if (config.kind == "visit")
+                    listOfNotNull(
+                        NativeDetailAction(
+                            "visit-tour",
+                            "In Tagestour aufnehmen",
+                            run = {
+                                controller.navigate(
+                                    "tour",
+                                    args = JSONObject().put("date", row.optString("date")),
+                                )
+                            },
+                        ),
+                        if (row.optString("status") == "partial")
+                            NativeDetailAction(
+                                "visit-rest",
+                                "Offenen Rest planen",
+                                run = {
+                                    onEdit(
+                                        "visit",
+                                        null,
+                                        JSONObject()
+                                            .put("property_id", row.getString("property_id"))
+                                            .put("parent_visit_id", id)
+                                            .put("title", row.optString("title"))
+                                            .put(
+                                                "planned_minutes",
+                                                row.optInt("remaining_minutes", 60),
+                                            ),
+                                    )
+                                },
+                            )
+                        else null,
+                        NativeDetailAction(
+                            "visit-archive",
+                            if (row.optBoolean("archived")) "Archivierung aufheben"
+                            else "Archivieren",
+                            run = {
+                                archiveMode =
+                                    if (row.optBoolean("archived")) "restore" else "archive"
+                            },
+                        ),
+                    )
+                else emptyList(),
             )
             if (row.optBoolean("archived")) NativeStatus("Archiviert")
             val state = row.optString(if (config.kind == "equipment") "condition" else "status")
@@ -796,7 +906,7 @@ private fun RevierDetail(
                     if (state == "defective") NativeStatusTone.Attention
                     else NativeStatusTone.Neutral,
                 )
-            NativeContext(controller, row)
+            NativeContext(controller, row, heading = true)
             val detailKeys =
                 when (config.kind) {
                     "property" ->
@@ -839,73 +949,20 @@ private fun RevierDetail(
                     "material" -> listOf("notes")
                     else -> emptyList()
                 }
-            for (key in detailKeys) if (row.revierString(key).isNotEmpty())
-                NativeInfoRow(
-                    revierDetailLabels[key] ?: nativeLabel(key),
-                    nativeDisplayText(row.revierString(key)),
-                )
-            if (row.optString("customer_id").isNotEmpty())
-                NativeInfoRow(
-                    "Kundenakte und Fotos",
-                    onClick = {
-                        controller.navigate("customers", row.getString("customer_id"), "detail")
-                    },
-                )
-            when (config.kind) {
-                "property" -> {
-                    NativeInfoRow(
-                        "Pflegeplan anlegen",
-                        "Regelmäßige Pflege für dieses Objekt",
-                        { onEdit("care_plan", null, JSONObject().put("property_id", id)) },
-                    )
-                    NativeInfoRow(
-                        "Einsatz planen",
-                        "Einzelnen Besuch vormerken",
-                        { onEdit("visit", null, JSONObject().put("property_id", id)) },
-                    )
-                    NativeInfoRow(
-                        "Angebot vorbereiten",
-                        "Kunde und Objekt übernehmen",
-                        {
-                            controller.navigate(
-                                "offers",
-                                "",
-                                "new",
-                                JSONObject()
-                                    .put("customer_id", row.getString("customer_id"))
-                                    .put("property_id", id)
-                                    .put("title", row.optString("name")),
-                            )
-                        },
-                    )
-                    if (row.optString("address").isNotEmpty())
-                        OutlinedButton({
-                            controller.context.startActivity(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("geo:0,0?q=" + Uri.encode(row.optString("address"))),
-                                )
-                            )
-                        }) {
-                            Text("Navigation öffnen")
-                        }
-                    for ((collection, kind, title) in
-                        listOf(
-                            Triple("visits", "visits", "Besuche"),
-                            Triple("care_plans", "care_plans", "Pflegepläne"),
-                            Triple("inquiries", "inquiries", "Anfragen"),
-                        )) {
-                        val related = data?.optJSONArray(collection)?.revierObjects().orEmpty()
-                        if (related.isNotEmpty())
-                            Text(title, style = MaterialTheme.typography.titleMedium)
-                        for (relatedRow in related) NativeInfoRow(
-                            relatedRow.optString("title", relatedRow.optString("name", title)),
-                            onClick = {
-                                controller.navigate(kind, relatedRow.getString("id"), "detail")
-                            },
-                        )
+            NativeGroup("Angaben") {
+                for (key in detailKeys) if (row.revierString(key).isNotEmpty())
+                    NativeKeyValue(
+                        revierDetailLabels[key] ?: nativeLabel(key),
+                        nativeDisplayText(row.revierString(key)),
+                    ) {
+                        onEdit(config.kind, row, JSONObject())
                     }
-                }
+            }
+            NativeAddDetails(
+                detailKeys.filter { row.revierString(it).isBlank() },
+                onEdit = { onEdit(config.kind, row, JSONObject()) },
+            )
+            when (config.kind) {
                 "inquiry" -> {
                     if (row.optString("order_id").isEmpty())
                         NativeInfoRow(
@@ -966,91 +1023,6 @@ private fun RevierDetail(
                         { onEdit("generate", row, JSONObject()) },
                     )
                 "visit" -> {
-                    OutlinedButton(
-                        {
-                            scope.launch {
-                                try {
-                                    val key = "revier:start:$id"
-                                    val saved = controller.draft(key)
-                                    val args =
-                                        saved?.optJSONObject("args")
-                                            ?: JSONObject()
-                                                .put("request_id", revierRequest())
-                                                .put("customer_id", row.getString("customer_id"))
-                                                .put("property_id", row.getString("property_id"))
-                                                .put("visit_id", id)
-                                                .put("work_date", revierDay())
-                                                .put("activity", row.optString("title"))
-                                                .apply {
-                                                    if (row.optString("order_id").isNotEmpty())
-                                                        put("order_id", row.getString("order_id"))
-                                                }
-                                    val proof =
-                                        if (saved != null)
-                                            controller.query(
-                                                "inspect_edit_action",
-                                                JSONObject()
-                                                    .put("original_tool", "start_work")
-                                                    .put("original_args", args),
-                                            )
-                                        else null
-                                    if (proof?.optString("state") == "content_removed")
-                                        error(
-                                            "Dieser Arbeitsstart wurde endgültig entfernt. Keine erneute Anlage."
-                                        )
-                                    if (saved != null && proof?.optString("state") != "confirmed")
-                                        error(
-                                            "Der ursprüngliche Arbeitsstart ist noch nicht bestätigt. Vorgang bleibt erhalten; keine neue Zeiterfassung gestartet."
-                                        )
-                                    if (saved == null) {
-                                        val active = controller.query("get_active_work_session")
-                                        require(active.optString("state") == "IDLE") {
-                                            "Eine Zeiterfassung ist bereits offen. Diese zuerst auf der Heute-Seite prüfen."
-                                        }
-                                        controller.saveDraft(key, JSONObject().put("args", args))
-                                        controller.flushDrafts()
-                                        controller.query("start_work", args)
-                                    }
-                                    runCatching { controller.removeDraft(key) }
-                                    controller.navigate("today")
-                                    controller.message(
-                                        "Arbeitsstart lokal bestätigt. Aktuelle Sitzung prüfen."
-                                    )
-                                } catch (cancelled: CancellationException) {
-                                    throw cancelled
-                                } catch (error: Exception) {
-                                    failure = error.message.orEmpty()
-                                }
-                            }
-                        },
-                        enabled =
-                            row.optString("status") !in
-                                listOf("cancelled", "completed", "superseded"),
-                    ) {
-                        Text("Arbeit starten")
-                    }
-                    OutlinedButton({
-                        controller.navigate(
-                            "tour",
-                            args = JSONObject().put("date", row.optString("date")),
-                        )
-                    }) {
-                        Text("In Tagestour aufnehmen")
-                    }
-                    if (row.optString("status") == "partial")
-                        OutlinedButton({
-                            onEdit(
-                                "visit",
-                                null,
-                                JSONObject()
-                                    .put("property_id", row.getString("property_id"))
-                                    .put("parent_visit_id", id)
-                                    .put("title", row.optString("title"))
-                                    .put("planned_minutes", row.optInt("remaining_minutes", 60)),
-                            )
-                        }) {
-                            Text("Offenen Rest planen")
-                        }
                     val warnings =
                         data?.optJSONArray("equipment_warnings")?.revierObjects().orEmpty()
                     if (warnings.isNotEmpty())
@@ -1283,12 +1255,13 @@ private fun RevierDetail(
                 TextButton(onRefresh) { Text("Erneut lesen") }
             }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
-            if (!row.optBoolean("archived"))
-                TextButton({ archiveMode = "purge" }) { Text("Löschen") }
+            NativeDetailDelete(enabled = !busy) { archiveMode = "purge" }
         }
         NativeActionBar(
             primaryLabel =
                 when {
+                    config.kind == "visit" && canStartVisit -> "Arbeit starten"
+                    config.kind == "visit" -> "Bearbeiten"
                     row.optBoolean("archived") -> "Löschen"
                     config.kind == "equipment" ->
                         if (equipmentTab == 0) "Wartung erfassen"
@@ -1302,6 +1275,8 @@ private fun RevierDetail(
                 },
             onPrimary = {
                 when {
+                    config.kind == "visit" && canStartVisit -> startVisit()
+                    config.kind == "visit" -> onEdit("visit", row, JSONObject())
                     row.optBoolean("archived") -> {
                         archiveMode = "purge"
                     }
@@ -1313,10 +1288,17 @@ private fun RevierDetail(
                 }
             },
             secondaryLabel =
-                if (config.kind == "equipment" && !row.optBoolean("archived")) "Bearbeiten"
+                if (
+                    config.kind == "visit" && canStartVisit ||
+                        config.kind == "equipment" && !row.optBoolean("archived")
+                )
+                    "Bearbeiten"
                 else "Zurück",
             onSecondary = {
-                if (config.kind == "equipment" && !row.optBoolean("archived"))
+                if (
+                    config.kind == "visit" && canStartVisit ||
+                        config.kind == "equipment" && !row.optBoolean("archived")
+                )
                     onEdit(config.kind, row, JSONObject())
                 else onBack()
             },
@@ -2402,7 +2384,15 @@ private fun RevierFields(
                 NativeDateTimeField(fieldLabel, text(key), { update(key, it) }, required, enabled)
             key in setOf("window_start", "window_end") ->
                 NativeTimeField(fieldLabel, text(key), { update(key, it) }, enabled)
-            enabled -> NativeField(label, text(key), { update(key, it) }, required, multiline)
+            enabled ->
+                NativeField(
+                    label,
+                    text(key),
+                    { update(key, it) },
+                    required,
+                    multiline,
+                    fieldTag = UiTags.detailField(key),
+                )
         }
         if (
             !enabled &&
@@ -3086,7 +3076,7 @@ private fun revierLocalInstant(value: String): Instant {
     return local.toInstant(offsets.single())
 }
 
-private fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
+internal fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
     val editing = edit.original.optString("id").isNotEmpty()
     val args = JSONObject().put("request_id", edit.request)
     val id = edit.original.optString("id")
@@ -3223,6 +3213,7 @@ private fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
                         .put("scope", "only_this")
                     "update_visit"
                 } else {
+                    data.remove("status")
                     merge(data)
                     "plan_visit"
                 }
