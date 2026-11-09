@@ -57,7 +57,8 @@
     "owner_instruction": "09.11.2026: ein Branch, ein PR, KISS/YAGNI; Subagenten ausdrücklich erlaubt. ADB-Testbarkeit über vorhandene Instrumentierung. Keine Geräteaktionen, Signierung oder Verteilung.",
     "validation": {
       "source": "check_current.py und ktfmt --kotlinlang-style grün; assembleRelease, assembleReleaseAndroidTest, lintRelease und testReleaseUnitTest grün (71 JVM-Tests). Kein lokaler Emulator. Voller qa-apk.yml-Lauf am PR verbindlich.",
-      "ci": "Voller qa-apk.yml-Lauf für PR27 maßgeblich; aktuelles Ergebnis am PR."
+      "ci": "Voller qa-apk.yml-Lauf für PR27 maßgeblich; aktuelles Ergebnis am PR.",
+      "adb": "Vorhandene Instrumentierung hardwareunabhängig; Paket-, Fixture- und Frischeprüfungen erhalten. Pixel-Ausführung nicht vorgenommen."
     },
     "next": [
       "PR27 mit grünem build und emulator zur Eigentümerprüfung; nicht mergen."

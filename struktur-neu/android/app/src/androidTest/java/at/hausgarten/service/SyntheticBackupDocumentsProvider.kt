@@ -5,7 +5,6 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Binder
-import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
@@ -38,7 +37,6 @@ class SyntheticBackupDocumentsProvider : DocumentsProvider() {
         get() = File(root, "index.json")
 
     override fun onCreate(): Boolean {
-        require(Build.HARDWARE in listOf("ranchu", "goldfish")) { "DISPOSABLE_EMULATOR_REQUIRED" }
         require(requireNotNull(context).packageName == "at.hausgarten.service.test") {
             "TEST_APK_REQUIRED"
         }

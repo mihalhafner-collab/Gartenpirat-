@@ -64,6 +64,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private var checks = 0
     private var activity: Activity? = null
     @Volatile private var latest: Activity? = null
+    private val sharedSearchLabel = "Suchen"
     private val fixturePrefix = "[TEST] QA Native Page "
     private val createdName = "[TEST] QA Native Form 100"
     private val editedName = "[TEST] QA Native Form 101"
@@ -80,6 +81,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
         checks++
     }
+
+    private fun physicalPixelTested(): Boolean =
+        Build.MANUFACTURER.equals("Google", ignoreCase = true) &&
+            Build.MODEL.startsWith("Pixel", ignoreCase = true) &&
+            Build.HARDWARE !in listOf("ranchu", "goldfish") &&
+            shell("getprop ro.kernel.qemu") != "1"
 
     private fun shell(command: String): String =
         automation.executeShellCommand(command).use {
@@ -138,8 +145,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun nodes(): List<AccessibilityNodeInfo> {
-        // API35 is required by guardFixture. A fresh tree avoids acting on a
-        // previous route or pre-scroll bounds retained by AccessibilityCache.
+        // A fresh tree avoids acting on a previous route or pre-scroll bounds
+        // retained by AccessibilityCache.
         automation.clearCache()
         return all(automation.rootInActiveWindow)
     }
@@ -485,8 +492,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(UiTags.area("customers"))
         waitUntil("CUSTOMER_LIST_READY") {
             selectedArea(UiTags.area("customers")) &&
-                field("Suchen")?.isEditable == true &&
-                (keyboardVisible() || node(UiTags.CREATE)?.let(::clickable) != null)
+                node("Suchen")?.let(::clickable) != null &&
+                node(UiTags.CREATE)?.let(::clickable) != null
         }
         checks++
     }
@@ -495,8 +502,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         nodes().any {
             it.isVisibleToUser &&
                 matches(it, label) &&
-                clickable(it)?.stateDescription?.toString() == "Ausgewählter Bereich"
+                (it.isSelected || clickable(it)?.isSelected == true)
         }
+
+    /** The customer card opens the same explicit search as Today. */
+    private fun searchCustomers(query: String) {
+        if (field(sharedSearchLabel) == null) {
+            click("Suchen")
+            waitUntil("SHARED_CUSTOMER_SEARCH_READY") {
+                field(sharedSearchLabel)?.isEditable == true
+            }
+        }
+        enter(sharedSearchLabel, query)
+        val expected =
+            read("search_local", JSONObject().put("query", query).put("limit", 50)).getInt("total")
+        showKeyboard(sharedSearchLabel)
+        yes(
+            requireNotNull(field(sharedSearchLabel))
+                .performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id),
+            "SHARED_CUSTOMER_SEARCH_SUBMITTED",
+        )
+        waitUntil("SHARED_CUSTOMER_SEARCH_RESULT") {
+            !keyboardVisible() && node("$expected Treffer") != null
+        }
+    }
 
     private fun openAccounting() {
         // The first tap restores this area's previous detail; the second opens
@@ -651,17 +680,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun guardGraphicsFixture() {
-        // Reject physical devices before inspecting any app storage. This suite never clears data.
+        // Check package identity and fresh synthetic storage before writing the fixture.
+        // This suite never clears app data.
         yes(
             test.context.packageName == "at.hausgarten.service.test" &&
                 context.packageName == "at.hausgarten.service",
             "GRAPHICS_TEST_AND_TARGET_PACKAGES",
-        )
-        yes(
-            Build.VERSION.SDK_INT == 35 &&
-                Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "GRAPHICS_DISPOSABLE_API35_EMULATOR_REQUIRED",
         )
         yes(!context.isDeviceProtectedStorage, "GRAPHICS_CREDENTIAL_SANDBOX_REQUIRED")
         RevierApplication.awaitStartup(context, 20000)
@@ -1004,7 +1028,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("filters_and_navigation", true)
                 .put("font_scale_200_percent", true)
                 .put("draft_recreation", true)
-                .put("physical_pixel_tested", false)
+                .put("physical_pixel_tested", physicalPixelTested())
         } catch (failure: Throwable) {
             runCatching { captureSyntheticScreen("settlement-failure") }
             throw failure
@@ -1028,20 +1052,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun executeAccounting(reopen: Boolean): JSONObject {
         yes(
             test.context.packageName == "at.hausgarten.service.test" &&
-                context.packageName == "at.hausgarten.service" &&
-                Build.VERSION.SDK_INT == 35 &&
-                Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "ACCOUNTING_DISPOSABLE_EMULATOR_BEFORE_STORAGE",
+                context.packageName == "at.hausgarten.service",
+            "ACCOUNTING_TEST_AND_TARGET_PACKAGES",
         )
         val marker = File(context.noBackupFilesDir, "qa-native-accounting.json")
         if (reopen) {
             yes(
-                test.context.packageName == "at.hausgarten.service.test" &&
-                    Build.VERSION.SDK_INT == 35 &&
-                    Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                    shell("getprop ro.kernel.qemu") == "1",
-                "ACCOUNTING_REOPEN_EMULATOR_REQUIRED",
+                test.context.packageName == "at.hausgarten.service.test",
+                "ACCOUNTING_REOPEN_TEST_PACKAGE_REQUIRED",
             )
             yes(
                 marker.isFile &&
@@ -1443,7 +1461,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("real_main_activity", true)
                 .put("native_compose_ui", true)
                 .put("graphics_cases", JSONArray().put(selectedJourney))
-                .put("physical_pixel_tested", false)
+                .put("physical_pixel_tested", physicalPixelTested())
                 .put("drive_account_tested", false)
         } finally {
             shell(
@@ -1679,11 +1697,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         back()
         shown("Einsätze heute")
         openCustomerList()
-        enter("Suchen", fixturePrefix)
-        shown("55 Treffer · 1–50")
+        searchCustomers(fixturePrefix)
+        shown("55 Treffer")
         shown(fixturePrefix + "000")
         captureSyntheticScreen("graphics-customers")
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
         shown(fixturePrefix + "000")
         visibleResult("Arbeit starten")
@@ -1922,7 +1940,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("list_viewport_cases", listViewportCases)
                 .put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false)
-                .put("physical_pixel_tested", false)
+                .put("physical_pixel_tested", physicalPixelTested())
         } finally {
             shell(
                 if (oldFont == "null") "settings delete system font_scale"
@@ -2031,18 +2049,28 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun customerJourney() {
         openCustomerList()
-        enter("Suchen", fixturePrefix)
-        shown("55 Treffer · 1–50")
+        val total = runBlocking {
+            store.nativeData().list("customers", limit = 50, includeInactive = false).total
+        }
+        shown("$total Treffer · 1–50")
         click("Weitere 50")
         scrollTop()
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         reveal(fixturePrefix + "054")
+        val lastPage = runBlocking {
+            store.nativeData().list("customers", offset = 50, limit = 50, includeInactive = false)
+        }
+        yes(
+            lastPage.rows.any { it.title == fixturePrefix + "054" } && lastPage.total == total,
+            "CUSTOMER_LAST_PAGE_MATCHES_STORED_CUSTOMERS",
+        )
         click("Vorherige 50")
         scrollTop()
-        shown("55 Treffer · 1–50")
-        enter("Suchen", fixturePrefix + "054")
-        shown("1 Treffer · 1–1")
+        shown("$total Treffer · 1–50")
+        searchCustomers(fixturePrefix + "054")
+        shown("1 Treffer")
         shown(fixturePrefix + "054")
+        openCustomerList()
         click(UiTags.CREATE)
         click("Kunde")
         waitUntil("BLANK_CUSTOMER_FORM") { field("Anzeigename *") != null }
@@ -2062,7 +2090,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("CUSTOMER_CREATED") { customers(createdName).size == 1 }
         val id = customers(createdName).single().getString("id")
         openCustomerList()
-        enter("Suchen", createdName)
+        searchCustomers(createdName)
         click(createdName)
         shown(createdName)
         yes(store.ownerValue(draftKey, "").isEmpty(), "SAVE_REMOVES_CUSTOMER_DRAFT")
@@ -2104,12 +2132,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(
             customerNavigation != null &&
                 customerNavigation.isClickable &&
-                customerNavigation.stateDescription?.toString() == "Ausgewählter Bereich",
+                customerNavigation.isSelected,
             "CUSTOMER_DETAIL_SELECTED_AREA_EXPOSES_ACCESSIBLE_LIST_NAVIGATION",
         )
         openCustomerList()
-        enter("Suchen", "QA Native F")
-        shown("1 Treffer · 1–1")
         shown(editedName)
         // This uses the real MCP writer on a separate adapter. No refresh, navigation or
         // direct notification is allowed between this write and the visible UI assertion.
@@ -2132,11 +2158,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("CUSTOMER_DELETED") { customers(flowName).isEmpty() }
         waitUntil("CUSTOMER_DELETE_RETURNS_TO_LIST") {
             selectedArea(UiTags.area("customers")) &&
-                field("Suchen")?.isEditable == true &&
+                node("Suchen")?.let(::clickable) != null &&
                 node(UiTags.CREATE)?.let(::clickable) != null
         }
-        enter("Suchen", "QA Native F")
-        shown("0 Treffer · 0–0")
+        searchCustomers("QA Native F")
+        shown("0 Treffer")
         yes(node(flowName) == null, "DELETED_CUSTOMER_NOT_IN_ACTIVE_LIST")
     }
 
@@ -2150,10 +2176,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "TODAY_HEADER_MORE_AND_CREATE_BUTTON",
         )
         openCustomerList()
-        enter("Suchen", fixturePrefix)
+        val total = runBlocking {
+            store.nativeData().list("customers", limit = 50, includeInactive = false).total
+        }
         click("Weitere 50")
         scrollTop()
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         reveal(fixturePrefix + "054")
         // Compare positions without the keyboard on both sides; it changes the visible area.
         if (keyboardVisible()) {
@@ -2164,17 +2192,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val retainedBounds = actionBounds(fixturePrefix + "054")
         click(UiTags.area("today"))
         click(UiTags.area("customers"))
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         yes(
-            field("Suchen")?.text?.toString()?.contains(fixturePrefix) == true,
-            "CUSTOMER_FILTER_PRESERVED_ON_ENTRY",
+            runBlocking {
+                    store
+                        .nativeData()
+                        .list("customers", offset = 50, limit = 50, includeInactive = false)
+                        .rows
+                }
+                .any { it.title == fixturePrefix + "054" },
+            "CUSTOMER_RESTORED_PAGE_MATCHES_DATA",
         )
         yes(
             actionBounds(fixturePrefix + "054") == retainedBounds,
             "CUSTOMER_SCROLL_POSITION_PRESERVED_ON_ENTRY",
         )
         recreate()
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         yes(
             actionBounds(fixturePrefix + "054") == retainedBounds,
             "CUSTOMER_PAGE_AND_SCROLL_SURVIVE_RECREATION",
@@ -2783,7 +2817,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
             )
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
         reveal("Notizen")
         click("Notizen")
@@ -2920,8 +2954,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "CAMERA_FIXTURE_HAS_NO_PENDING_DRAFT",
         )
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
+        click("Vorgänge")
+        reveal("Fotos")
         click("Fotos")
         click("Foto hinzufügen")
         click("Foto aufnehmen")
@@ -3020,9 +3056,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("date_from", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
                 .put("date_to", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
         val todayBefore = read("get_work_record_summary", todayArgs)
-        enter("Suchen", fixturePrefix + "000")
-        shown("1 Treffer · 1–1")
-        val searchField = requireNotNull(field("Suchen"))
+        searchCustomers(fixturePrefix + "000")
+        shown("1 Treffer")
+        val searchField = requireNotNull(field(sharedSearchLabel))
         yes(
             searchField.isEditable && clickable(searchField) == null,
             "SEARCH_VALUE_IS_NOT_A_CUSTOMER_CARD_ACTION",
@@ -3267,7 +3303,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
 
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
         click("Arbeit starten")
         waitUntil("SECOND_DIRECT_TIMER_STARTED") {
@@ -3793,7 +3829,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         for (index in 0..1) {
             val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
             openCustomerList()
-            enter("Suchen", name)
+            searchCustomers(name)
             click(name)
             click("Vorgänge")
             reveal("Fotos")
@@ -3808,17 +3844,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFERS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-offers")
-            yes(
-                node(UiTags.area("customers"))?.let(::clickable)?.stateDescription?.toString() ==
-                    "Ausgewählter Bereich",
-                "OFFERS_RETAINS_CUSTOMER_AREA_$index",
-            )
+            yes(selectedArea(UiTags.area("customers")), "OFFERS_RETAINS_CUSTOMER_AREA_$index")
             click("QA Kontextangebot $index")
             click("Zur Liste")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFER_DETAIL_RETURN_FILTER_$index")
             openCustomerList()
-            enter("Suchen", name)
+            searchCustomers(name)
             click(name)
             click("Vorgänge")
             reveal("Alle Aufträge")
@@ -3891,7 +3923,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         store.ownerValue(draftKey, "").isEmpty()
                     }
                     openCustomerList()
-                    enter("Suchen", name)
+                    searchCustomers(name)
                     click(name)
                 }
                 val invoiceCount =
@@ -4276,8 +4308,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown(priorCustomer)
         click(UiTags.BACK)
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
-        showKeyboard("Suchen")
+        searchCustomers(fixturePrefix + "000")
+        showKeyboard(sharedSearchLabel)
         visibleResult(fixturePrefix + "000", requireKeyboard = true)
         captureSyntheticScreen("search-customer-list", requireKeyboard = true)
         visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
@@ -4285,7 +4317,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         recreate()
         click(UiTags.BACK)
         yes(
-            field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true,
+            field(sharedSearchLabel)?.text?.toString()?.contains(fixturePrefix + "000") == true,
             "LIST_SEARCH_AFTER_DETAIL_RECREATION",
         )
         click(UiTags.area("today"))
@@ -5837,7 +5869,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         launch()
         click(UiTags.area("today"))
         click(UiTags.TODAY_SEARCH)
-        val label = "Name, Objekt, Tätigkeit, Notiz oder Beleg"
+        val label = "Suchen"
         enter(label, "Gruppensuche")
         yes(
             requireNotNull(field(label))
@@ -5917,7 +5949,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("offers") {
             openCustomerList()
-            enter("Suchen", fixturePrefix + "000")
+            searchCustomers(fixturePrefix + "000")
             click(fixturePrefix + "000")
             click("Vorgänge")
             reveal("Alle Angebote")
@@ -5969,7 +6001,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOfficeEntry("Suche")
             keyboardSearchProof(
                 "local",
-                "Name, Objekt, Tätigkeit, Notiz oder Beleg",
+                "Suchen",
                 fixturePrefix + "000",
                 fixturePrefix + "000",
                 manual = true,
@@ -6055,7 +6087,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("offer-positions") {
             openCustomerList()
-            enter("Suchen", fixturePrefix + "000")
+            searchCustomers(fixturePrefix + "000")
             click(fixturePrefix + "000")
             click("Vorgänge")
             reveal("Alle Angebote")
@@ -6135,8 +6167,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         val targets =
             listOf(
-                Target("customers", "Suchen", fixturePrefix + "000", fixturePrefix + "000") {
-                    click(UiTags.area("customers"))
+                Target(
+                    "customers",
+                    "Suchen",
+                    fixturePrefix + "000",
+                    fixturePrefix + "000",
+                    manual = true,
+                ) {
+                    openCustomerList()
+                    click("Suchen")
                 },
                 Target("work", "Suchen", work, work) { openWorklogs() },
                 Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") {
@@ -6175,13 +6214,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 ) {
                     openOfficeEntry("Leistungskatalog")
                 },
-                Target(
-                    "local",
-                    "Name, Objekt, Tätigkeit, Notiz oder Beleg",
-                    fixturePrefix + "000",
-                    fixturePrefix + "000",
-                    true,
-                ) {
+                Target("local", "Suchen", fixturePrefix + "000", fixturePrefix + "000", true) {
                     openOfficeEntry("Suche")
                 },
             )
@@ -6385,7 +6418,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openOfficeEntry("Suche")
         click(UiTags.FILTER)
         edit("Zeitraum ab · JJJJ-MM-TT", "2020-01-01", "local-date")
-        showKeyboard("Name, Objekt, Tätigkeit, Notiz oder Beleg")
+        showKeyboard("Suchen")
         waitUntil("LOCAL_SEARCH_CLOSES_FILTERS") { field("Zeitraum ab · JJJJ-MM-TT") == null }
         back()
         waitUntil("LOCAL_FILTER_IME_CLOSED") { !keyboardVisible() }

@@ -3762,7 +3762,7 @@ private fun RevierSearch(controller: NativeAppController) {
     val recent = remember(query.isBlank()) { controller.recentSearchHits() }
     val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
     NativeSearchList(
-        "Name, Objekt, Tätigkeit, Notiz oder Beleg",
+        "Suchen",
         query,
         { query = it },
         result?.let { "${it.optInt("total")} Treffer" } ?: "Suchtext eingeben",

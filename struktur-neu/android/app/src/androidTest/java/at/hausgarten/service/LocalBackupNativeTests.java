@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-/** Full roundtrip in unused device-protected storage of a freshly installed disposable emulator. */
+/** Full roundtrip in unused device-protected storage of a fresh synthetic fixture. */
 final class LocalBackupNativeTests {
     private int checks;
     private void yes(boolean value) { if (!value) throw new AssertionError("NATIVE_BACKUP_CHECK_" + checks); checks++; }
@@ -20,7 +20,6 @@ final class LocalBackupNativeTests {
     private int execute(Instrumentation test, boolean reopen) throws Exception {
         Context testContext = test.getContext();
         if (!"at.hausgarten.service.test".equals(testContext.getPackageName())) throw new IOException("ISOLATED_TEST_APK_REQUIRED");
-        if (!Arrays.asList("ranchu", "goldfish").contains(android.os.Build.HARDWARE)) throw new IOException("DISPOSABLE_EMULATOR_REQUIRED");
         Context context = new ContextWrapper(test.getTargetContext().createDeviceProtectedStorageContext()) {
             @Override public Context getApplicationContext() { return this; }
         };

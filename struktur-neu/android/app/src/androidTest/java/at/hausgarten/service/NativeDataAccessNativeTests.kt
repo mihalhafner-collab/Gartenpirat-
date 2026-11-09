@@ -6,9 +6,7 @@ import android.content.ContextWrapper
 import android.content.SharedPreferences
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
-import android.os.Build
 import android.os.Looper
-import android.os.ParcelFileDescriptor
 import android.os.StrictMode
 import java.io.File
 import java.io.IOException
@@ -58,15 +56,6 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         // All guards precede any target storage lookup, preference access or database open.
         yes(test.context.packageName == "at.hausgarten.service.test", "TEST_APK_REQUIRED")
         yes(test.targetContext.packageName == "at.hausgarten.service", "TARGET_PACKAGE_REQUIRED")
-        yes(Build.HARDWARE in listOf("ranchu", "goldfish"), "DISPOSABLE_EMULATOR_REQUIRED")
-        yes(Build.VERSION.SDK_INT == 35, "API35_REQUIRED")
-        val qemu =
-            test.uiAutomation.executeShellCommand("getprop ro.kernel.qemu").use { descriptor ->
-                ParcelFileDescriptor.AutoCloseInputStream(descriptor).use {
-                    it.readBytes().toString(Charsets.UTF_8).trim()
-                }
-            }
-        yes(qemu == "1", "QEMU_REQUIRED")
         yes(Looper.myLooper() != Looper.getMainLooper(), "INSTRUMENTATION_WORKER_REQUIRED")
         val owner = test.targetContext.createDeviceProtectedStorageContext()
         yes(owner.isDeviceProtectedStorage, "DEVICE_PROTECTED_OWNER")
@@ -836,7 +825,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         store: PixelLocalStore,
         data: NativeDataRepository,
     ): JSONObject {
-        val scope = "EMULATOR_WORK_RECORD_READS;NO_UI_OR_PIXEL_LATENCY"
+        val scope = "ISOLATED_NATIVE_WORK_RECORD_READS;NO_UI_LATENCY"
         repeat(2) { data.list("worklogs", limit = 50) }
         val values = ArrayList<Double>()
         repeat(40) {

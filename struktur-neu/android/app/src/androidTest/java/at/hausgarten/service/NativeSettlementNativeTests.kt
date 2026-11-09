@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.pdf.PdfRenderer
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import java.io.File
 import java.io.FileInputStream
@@ -197,20 +196,9 @@ internal class NativeSettlementNativeTests private constructor(private val test:
         call(repository, "complete_settlement", JSONObject().put("settlement_id", id), request)
 
     private fun execute(reopen: Boolean): JSONObject {
-        // Guards precede storage access. This suite cannot operate on a physical Pixel.
+        // Package and isolated-fixture checks precede synthetic storage access.
         yes(test.context.packageName == "at.hausgarten.service.test", "TEST_PACKAGE")
         yes(test.targetContext.packageName == "at.hausgarten.service", "TARGET_PACKAGE")
-        yes(
-            Build.HARDWARE in listOf("ranchu", "goldfish") && Build.VERSION.SDK_INT == 35,
-            "DISPOSABLE_API35_EMULATOR",
-        )
-        val qemu =
-            test.uiAutomation.executeShellCommand("getprop ro.kernel.qemu").use {
-                ParcelFileDescriptor.AutoCloseInputStream(it).use { input ->
-                    input.readBytes().toString(Charsets.UTF_8).trim()
-                }
-            }
-        yes(qemu == "1", "QEMU")
         val owner = test.targetContext.createDeviceProtectedStorageContext()
         val pointer = File(owner.noBackupFilesDir, "qa-native-settlement-pointer.json")
         val token: String

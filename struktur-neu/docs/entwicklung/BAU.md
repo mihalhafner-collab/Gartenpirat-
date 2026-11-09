@@ -61,10 +61,20 @@ Instrumentierungsprozess (`-e journey <name>`) und legt seine synthetischen
 Daten selbst an. Der Emulator nutzt einen temporären Testschlüssel; es wird
 keine APK veröffentlicht. Ein Emulatorlauf ist keine Pixel-Abnahme.
 
-Einzelne Suite am Gerät oder Emulator:
+Einzelne Suite am Gerät oder Emulator: App- und Test-APK müssen aus demselben
+Quellstand stammen und dasselbe Zertifikat tragen, am Pixel die Originalsignatur.
+`native_data` und `native_settlement` verwenden eigene synthetische Fixture-Verzeichnisse.
+Compose, Grafik und Sicherungsoberfläche benötigen einen frischen synthetischen
+App-Zustand. Jeder `journey` läuft in einem eigenen Instrumentierungsprozess;
+`*_reopen` folgt seiner Hauptsuite ohne Datenreset. Suiten und Abläufe bleiben im
+Workflow aufgeführt.
 
 ```sh
 adb -s <serial> shell am instrument -w -e suite native_data \
+  at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
+adb -s <serial> shell am instrument -w -e suite native_settlement \
+  at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
+adb -s <serial> shell am instrument -w -e suite native_compose -e journey timer \
   at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation
 ```
 

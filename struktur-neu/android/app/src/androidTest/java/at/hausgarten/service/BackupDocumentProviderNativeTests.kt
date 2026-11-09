@@ -6,7 +6,6 @@ import android.app.Instrumentation
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.os.Process
@@ -147,15 +146,9 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     private fun uri(id: String): Uri = SyntheticBackupDocumentsProvider.document(id)
 
     private fun execute(reopen: Boolean): JSONObject {
-        // Guard before inspecting any application fixture contents. Never run on a physical Pixel.
+        // Verify the test APK and target package before inspecting any fixture contents.
         yes(test.context.packageName == "at.hausgarten.service.test", "TEST_APK_REQUIRED")
         yes(context.packageName == "at.hausgarten.service", "ORIGINAL_TARGET_PACKAGE_REQUIRED")
-        yes(
-            Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "DISPOSABLE_EMULATOR_REQUIRED",
-        )
-        yes(Build.VERSION.SDK_INT == 35, "API_35_REQUIRED")
         yes(!context.isDeviceProtectedStorage, "SEPARATE_CREDENTIAL_FIXTURE")
         if (reopen) return reopen()
         val files = context.filesDir
