@@ -11,6 +11,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.*
@@ -248,6 +250,7 @@ private fun PlanningDetail(
     var failure by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf<Triple<String, JSONObject, String>?>(null) }
+    var details by rememberSaveable(id) { mutableStateOf(false) }
     var suggestions by rememberSaveable(id) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(id, controller.route.args) {
@@ -368,89 +371,151 @@ private fun PlanningDetail(
                 onAlternative(proposal)
             },
         )
+    fun refreshWeather() {
+        scope.launch {
+            busy = true
+            try {
+                val checked =
+                    controller.query(
+                        "request_weather_refresh",
+                        JSONObject().put("request_id", planningRequest()),
+                    )
+                controller.message(
+                    if (checked.optString("state") == "configuration_required")
+                        "Wetter zuerst unter Kalender und Wetter einrichten."
+                    else
+                        "Wetterprüfung angefordert. Aktuelle Angaben sind erst nach bestätigtem Prüfstand verfügbar."
+                )
+                refresh++
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                failure = error.message.orEmpty()
+            } finally {
+                busy = false
+            }
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(row.optString("title", "Termin"), style = MaterialTheme.typography.headlineSmall)
-            Text(
-                planningStamp(row.optString("starts_at")) +
-                    " – " +
-                    if (AppointmentRules.openEnd(row)) "Ende offen"
-                    else planningStamp(row.optString("ends_at"))
+            NativeDetailHeading(
+                row.optString("title", "Termin"),
+                buildList {
+                    add(
+                        NativeDetailAction(
+                            "appointment-details",
+                            "Wetter & Kalender",
+                            run = { details = !details },
+                        )
+                    )
+                    add(
+                        NativeDetailAction(
+                            "appointment-alternative",
+                            "Alternative suchen",
+                            !busy,
+                            { suggestions = true },
+                        )
+                    )
+                    add(
+                        NativeDetailAction(
+                            "appointment-weather",
+                            "Wetter prüfen",
+                            !busy,
+                            ::refreshWeather,
+                        )
+                    )
+                    if (risk.optString("alert_hash").isNotBlank())
+                        add(
+                            NativeDetailAction(
+                                "appointment-acknowledge",
+                                "Wetterhinweis geprüft",
+                                !busy,
+                                {
+                                    confirm =
+                                        Triple(
+                                            "acknowledge_weather_alert",
+                                            JSONObject()
+                                                .put("appointment_id", id)
+                                                .put(
+                                                    "expected_alert_hash",
+                                                    risk.getString("alert_hash"),
+                                                ),
+                                            "Diesen Wetterhinweis als geprüft markieren? Der Termin bleibt unverändert.",
+                                        )
+                                },
+                            )
+                        )
+                    add(
+                        NativeDetailAction(
+                            "appointment-settings",
+                            "Kalender & Wetter einrichten",
+                            run = { controller.open(PlanningConnectionActivity::class.java) },
+                        )
+                    )
+                    add(
+                        NativeDetailAction(
+                            "appointment-cancel",
+                            "Termin absagen",
+                            !busy && row.optString("status") != "cancelled",
+                            {
+                                confirm =
+                                    Triple(
+                                        "cancel_appointment",
+                                        JSONObject()
+                                            .put("appointment_id", id)
+                                            .put(
+                                                "expected_record_hash",
+                                                result.getString("record_hash"),
+                                            ),
+                                        "Diesen Termin absagen? Auftrag und erfasste Arbeiten bleiben erhalten.",
+                                    )
+                            },
+                        )
+                    )
+                },
             )
-            NativeStatus(planningStatuses[row.optString("status")] ?: row.optString("status"))
-            Text(row.optString("location").ifEmpty { "Einsatzort offen" })
-            NativeInfoRow(
-                "Geplante Zeit",
-                if (result.isNull("planned_hours")) "Ende offen"
-                else nativeNumber(result.opt("planned_hours")) + " Std.",
-            )
-            NativeInfoRow(
-                "Tatsächlich erfasste Arbeit",
-                nativeNumber(result.optDouble("actual_hours", 0.0)) + " Std.",
-            )
-            if (row.optInt("break_minutes") > 0)
-                Text("Geplante Pause: ${row.optInt("break_minutes")} min")
-            if (row.optInt("travel_minutes") > 0)
-                Text("Anfahrtpuffer: ${row.optInt("travel_minutes")} min")
-            if (row.optString("notes").isNotEmpty()) Text(row.optString("notes"))
-            Text(
-                "Geplante Zeit ist kein Arbeitsnachweis. Ein Vormerken ist keine Kundenzusage.",
-                style = MaterialTheme.typography.bodySmall,
+            NativeContext(controller, row, heading = true)
+            NativeGroup("Zeit und Ort") {
+                Text(
+                    planningStamp(row.optString("starts_at")) +
+                        " – " +
+                        if (AppointmentRules.openEnd(row)) "Ende offen"
+                        else planningStamp(row.optString("ends_at"))
+                )
+                NativeStatus(planningStatuses[row.optString("status")] ?: row.optString("status"))
+                Text(row.optString("location").ifEmpty { "Einsatzort offen" })
+                NativeInfoRow(
+                    "Geplante Zeit",
+                    if (result.isNull("planned_hours")) "Ende offen"
+                    else nativeNumber(result.opt("planned_hours")) + " Std.",
+                )
+                NativeInfoRow(
+                    "Tatsächlich erfasste Arbeit",
+                    nativeNumber(result.optDouble("actual_hours", 0.0)) + " Std.",
+                )
+                if (row.optInt("break_minutes") > 0)
+                    Text("Geplante Pause: ${row.optInt("break_minutes")} min")
+                if (row.optInt("travel_minutes") > 0)
+                    Text("Anfahrtpuffer: ${row.optInt("travel_minutes")} min")
+                if (row.optString("notes").isNotEmpty()) Text(row.optString("notes"))
+                Text(
+                    "Geplante Zeit ist kein Arbeitsnachweis. Ein Vormerken ist keine Kundenzusage.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            NativeAddDetails(
+                listOf("location", "notes", "order_id").filter { row.optString(it).isBlank() },
+                onEdit = onEdit,
             )
             val collisions = result.optJSONObject("collisions")
-            PlanningCollisions(collisions)
+            if (details || collisions?.optJSONArray("conflicts")?.length() ?: 0 > 0)
+                PlanningCollisions(collisions)
             HorizontalDivider()
-            PlanningWeather(risk)
-            OutlinedButton(
-                {
-                    scope.launch {
-                        busy = true
-                        try {
-                            val checked =
-                                controller.query(
-                                    "request_weather_refresh",
-                                    JSONObject().put("request_id", planningRequest()),
-                                )
-                            controller.message(
-                                if (checked.optString("state") == "configuration_required")
-                                    "Wetter zuerst unter Kalender und Wetter einrichten."
-                                else
-                                    "Wetterprüfung angefordert. Aktuelle Angaben sind erst nach bestätigtem Prüfstand verfügbar."
-                            )
-                            refresh++
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (error: Exception) {
-                            failure = error.message.orEmpty()
-                        } finally {
-                            busy = false
-                        }
-                    }
-                },
-                enabled = !busy,
-            ) {
-                Text("Wetter prüfen")
-            }
-            OutlinedButton({ suggestions = true }, enabled = !busy) { Text("Alternative suchen") }
-            if (risk.optString("alert_hash").isNotEmpty())
-                OutlinedButton(
-                    {
-                        confirm =
-                            Triple(
-                                "acknowledge_weather_alert",
-                                JSONObject()
-                                    .put("appointment_id", id)
-                                    .put("expected_alert_hash", risk.getString("alert_hash")),
-                                "Diesen Wetterhinweis als geprüft markieren? Der Termin bleibt unverändert.",
-                            )
-                    },
-                    enabled = !busy,
-                ) {
-                    Text("Wetterhinweis geprüft")
-                }
+            if (details || risk.optString("severity") in setOf("critical", "difficult"))
+                PlanningWeather(risk)
             HorizontalDivider()
             Text(
                 "Google Kalender: " +
@@ -507,27 +572,17 @@ private fun PlanningDetail(
                     Text(label)
                 }
             }
-            TextButton({ controller.open(PlanningConnectionActivity::class.java) }) {
-                Text("Kalender & Wetter einrichten")
-            }
-            OutlinedButton(
-                {
-                    confirm =
-                        Triple(
-                            "cancel_appointment",
-                            JSONObject()
-                                .put("appointment_id", id)
-                                .put("expected_record_hash", result.getString("record_hash")),
-                            "Diesen Termin absagen? Auftrag und erfasste Arbeiten bleiben erhalten.",
-                        )
-                },
-                enabled = !busy && row.optString("status") != "cancelled",
-            ) {
-                Text("Termin absagen")
-            }
-            NativeDeleteButton(controller, "appointment", id, enabled = !busy) { onBack() }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
             TextButton(onBack) { Text("Zur Planung") }
+            NativeDeleteButton(
+                controller,
+                "appointment",
+                id,
+                modifier = Modifier.fillMaxWidth().semantics { testTag = UiTags.DETAIL_DELETE },
+                enabled = !busy,
+            ) {
+                onBack()
+            }
         }
         val canStart = row.optString("status") !in listOf("draft", "completed", "cancelled")
         NativeActionBar(

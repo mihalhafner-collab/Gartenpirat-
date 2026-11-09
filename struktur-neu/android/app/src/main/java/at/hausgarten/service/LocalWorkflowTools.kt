@@ -19,6 +19,7 @@ internal class LocalWorkflowTools {
                 "list_revier_archive",
                 "list_properties",
                 "get_property",
+                "get_property_timeline",
                 "list_inquiries",
                 "get_inquiry",
                 "list_care_plans",
@@ -116,6 +117,8 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun description(name: String): String {
+            if (name == "get_property_timeline")
+                return "Liest den Objektverlauf von Anfrage bis Zahlung sowie Pflege, Fotos und Geld. Nur ausdrückliche Objektverknüpfungen und bekannte Elternbezüge, keine Zuordnung allein über denselben Kunden. Belegbeträge gelten für den ganzen Beleg, keine erfundene Objektsumme. Reine lokale Leseabfrage mit begrenzter Seite; Fotos ohne Binärdaten."
             if (name == "get_planning_board")
                 return "Liest Einsätze und Termine gemeinsam für Tag, Woche oder Standortübersicht: begrenzte Seite mit aktuellem record_hash, echten Zeitfenstern, ausdrücklichen Objektbezügen und Wetterhinweisen aus dem vorhandenen Cache. Keine Netzabfrage, keine Umplanung und keine erfundenen Zeiten oder Koordinaten. Verschieben über update_visit bzw. update_appointment mit dem gelieferten Hash."
             if (name == "get_tour_navigation")
@@ -382,6 +385,7 @@ internal class LocalWorkflowTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
+            if (name == "get_property_timeline") return PropertyTimelineRules.schema()
             if (name == "get_planning_board") return PlanningBoardRules.boardSchema()
             if (ListActionTools.handles(name)) return ListActionTools.schema(name)
             if (!(handles(name))) {

@@ -40,6 +40,30 @@ internal object UiTags {
 
     fun tourMove(id: String, direction: String) = "tour:move:$direction:$id"
 
+    const val DETAIL_ADD = "detail:add"
+    const val DETAIL_DELETE = "detail:delete"
+    const val PHOTO_CAPTION = "photo:caption"
+    const val OBJECT_ROUTE = "object:route"
+    const val OBJECT_CALL = "object:call"
+    const val OBJECT_PLAN = "object:plan"
+    const val OBJECT_RETRY = "object:retry"
+    const val OBJECT_PREVIOUS = "object:previous"
+    const val OBJECT_NEXT = "object:next"
+
+    fun detailAction(id: String) = "detail:action:$id"
+
+    fun context(collection: String, id: String) = "context:$collection:$id"
+
+    fun objectTab(view: String) = "object:tab:$view"
+
+    fun objectEntry(key: String) = "object:entry:$key"
+
+    fun createChoice(kind: String) = "create:$kind"
+
+    fun detailField(key: String) = "detail:field:$key"
+
+    fun settlementState(state: String) = "settlement:state:$state"
+
     const val UNDO = "action:undo"
     const val DELETE_SELECTION = "action:delete-selection"
 

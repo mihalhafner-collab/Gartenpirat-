@@ -231,7 +231,13 @@ class RevierApplicationService {
         }
         var state: JSONObject? =
             (if (
-                Arrays.asList("get_property", "get_inquiry", "search_local", "get_revier_overview")
+                Arrays.asList(
+                        "get_property",
+                        "get_property_timeline",
+                        "get_inquiry",
+                        "search_local",
+                        "get_revier_overview",
+                    )
                     .contains(name)
             )
                 repository.effective()
@@ -248,6 +254,26 @@ class RevierApplicationService {
             }
             "get_property" -> {
                 return propertyDetail(RevierRules.id(args, "property_id", true), (state)!!)
+            }
+            "get_property_timeline" -> {
+                val propertyId = RevierRules.id(args, "property_id", true)
+                val result = propertyDetail(propertyId, state!!)
+                val projection =
+                    PropertyTimelineRules.build(
+                        propertyId,
+                        state,
+                        JSONObject()
+                            .put("inquiries", records("inquiry"))
+                            .put("visits", records("visit"))
+                            .put("care_plans", records("care_plan")),
+                        JSONObject(repository.get(SettlementRules.KEY, "{}")),
+                        args.optString("view", "history"),
+                        args.optInt("offset", 0),
+                        args.optInt("limit", 50),
+                    )
+                for (key in projection.keys()) result.put(key, projection.get(key))
+                result.remove("history")
+                return result
             }
             "list_inquiries" -> {
                 return listing("inquiry", "inquiries", args)
