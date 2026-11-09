@@ -299,7 +299,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .firstOrNull {
                 it.isVisibleToUser &&
                     it.isEditable &&
-                    it.viewIdResourceName == "native-field:$label"
+                    (it.viewIdResourceName == label ||
+                        it.viewIdResourceName == "native-field:$label")
             }
             ?.let {
                 return it
@@ -3389,7 +3390,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         click("Abschluss prüfen")
         shown("Arbeit abschließen")
-        enter("Tätigkeit *", "[TEST] QA native Timer\nRasen gemäht")
+        enter(UiTags.actionField("activity"), "[TEST] QA native Timer\nRasen gemäht")
         awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
         captureSyntheticScreen("timer-completion")
         click(UiTags.PRIMARY)
@@ -3507,7 +3508,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun awaitTimerCompletionReady(sessionId: String, expectedActivity: String) {
-        reveal("native-field:Tätigkeit *")
+        reveal(UiTags.actionField("activity"))
         val key =
             "native_form_draft:" +
                 PixelMcpWriteTools.hash("action:complete_work_session:$sessionId")
@@ -3517,7 +3518,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("TIMER_COMPLETION_HAS_EXACT_DURABLE_INPUTS_AND_ENABLED_SAVE") {
                 val draft = runCatching { JSONObject(store.ownerValue(key, "")) }.getOrNull()
                 val values = draft?.optJSONObject("values")
-                val entered = field("Tätigkeit *")?.text?.toString()
+                val entered = field(UiTags.actionField("activity"))?.text?.toString()
                 val enabled = runCatching { actionEnabled(UiTags.PRIMARY) }.getOrDefault(false)
                 observed =
                     JSONObject()
@@ -5364,6 +5365,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 store.photoAttachment(photoId)?.let {
                     store.photoAttachmentStore().verifiedFile(it)
                 }
+            yes(
+                LocalOwnerRepository(context, store).migratePersonalPaid("[]") == "OK",
+                "TIMELINE_PERSONAL_ASSIGNMENTS_INITIALIZED_THROUGH_EXISTING_WRITER",
+            )
             val draft =
                 NativeSettlementNativeTests.draft("labor", "20", work)
                     .put("billing_customer_id", customer)

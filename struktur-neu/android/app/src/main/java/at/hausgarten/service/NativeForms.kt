@@ -1301,7 +1301,10 @@ private fun NativeSchemaField(
                         change(parsed ?: it)
                     } else change(it)
                 },
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().semantics {
+                    testTagsAsResourceId = true
+                    testTag = UiTags.actionField(name)
+                },
                 label = { Text(label + if (required) " *" else "") },
                 minLines =
                     if (

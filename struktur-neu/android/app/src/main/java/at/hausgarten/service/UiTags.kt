@@ -62,6 +62,8 @@ internal object UiTags {
 
     fun detailField(key: String) = "detail:field:$key"
 
+    fun actionField(key: String) = "action:field:$key"
+
     fun settlementState(state: String) = "settlement:state:$state"
 
     const val UNDO = "action:undo"
