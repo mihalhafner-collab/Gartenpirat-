@@ -234,6 +234,7 @@ class RevierApplicationService {
                 Arrays.asList(
                         "get_property",
                         "get_property_timeline",
+                        "get_linked_context",
                         "get_inquiry",
                         "search_local",
                         "get_revier_overview",
@@ -243,6 +244,16 @@ class RevierApplicationService {
                 repository.effective()
             else null)
         when (name) {
+            "get_linked_context" -> {
+                return PropertyTimelineRules.linkedContext(
+                    args,
+                    state!!,
+                    JSONObject()
+                        .put("properties", records("property"))
+                        .put("inquiries", records("inquiry"))
+                        .put("visits", records("visit")),
+                )
+            }
             "inspect_edit_action" -> {
                 return inspectEditAction(args)
             }

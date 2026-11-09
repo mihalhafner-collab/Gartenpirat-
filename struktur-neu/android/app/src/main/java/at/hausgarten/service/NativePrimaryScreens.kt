@@ -783,18 +783,32 @@ internal fun NativeContext(
     val encoded = args.toString()
     var links by remember(encoded) { mutableStateOf(emptyList<Triple<String, String, String>>()) }
     var period by remember(encoded) { mutableStateOf("") }
+    var contextConflict by remember(encoded) { mutableStateOf(false) }
     LaunchedEffect(encoded) {
+        val original = PropertyTimelineRules.contextReferences(args)
+        val resolved =
+            if (original.length() == 0) original
+            else
+                try {
+                    controller.query("get_linked_context", original)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    original
+                }
+        contextConflict = resolved.optBoolean("context_conflict")
         val found = ArrayList<Triple<String, String, String>>()
         for ((key, collection, title) in
             listOf(
                 Triple("customer_id", "customers", customerLabel),
                 Triple("property_id", "properties", "Objekt"),
                 Triple("inquiry_id", "inquiries", "Anfrage"),
+                Triple("offer_id", "offers", "Angebot"),
                 Triple("order_id", "orders", "Auftrag"),
                 Triple("visit_id", "visits", "Einsatz"),
                 Triple("worklog_id", "worklogs", "Arbeit"),
             )) {
-            val id = args.optString(key)
+            val id = resolved.optString(key)
             if (id.isNotEmpty()) {
                 val row =
                     try {
@@ -827,7 +841,8 @@ internal fun NativeContext(
                     .joinToString(" – ")
             else ""
     }
-    if (links.isEmpty() && period.isEmpty()) return
+    if (links.isEmpty() && period.isEmpty() && !contextConflict) return
+    if (contextConflict) NativeStatus("Zuordnung prüfen", NativeStatusTone.Attention)
     if (heading)
         Text(
             "Gehört zu",

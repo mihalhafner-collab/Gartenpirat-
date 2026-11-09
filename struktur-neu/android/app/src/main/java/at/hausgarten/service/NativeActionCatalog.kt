@@ -1035,6 +1035,7 @@ internal object NativeActionCatalog {
                 "kunden",
                 "Zusammenhang und nächste Aktion auf Detailseiten",
                 listOf(
+                    "get_linked_context",
                     "get_property",
                     "get_visit",
                     "get_appointment",

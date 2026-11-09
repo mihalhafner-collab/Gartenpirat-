@@ -21,7 +21,10 @@ class PropertyTimelineTest {
             }
         val revier =
             JSONObject().apply {
-                for (key in listOf("inquiries", "visits", "care_plans")) put(key, JSONArray())
+                for (key in listOf("properties", "inquiries", "visits", "care_plans")) put(
+                    key,
+                    JSONArray(),
+                )
             }
         val ledger = JSONObject().put("records", JSONArray()).put("payments", JSONArray())
 
@@ -224,7 +227,7 @@ class PropertyTimelineTest {
     }
 
     @Test
-    fun scopeReferencesAndInspectionLinksAreExplicit() {
+    fun legacyObjectScopesAndInspectionLinksRemainReadable() {
         val f = Fixture()
         f.row(f.revier, "inquiries", "qa_inquiry").put("inspection_appointment_id", "qa_inspection")
         f.row(f.master, "appointments", "qa_inspection", "")
@@ -243,6 +246,134 @@ class PropertyTimelineTest {
                 .map { it.getString("id") }
                 .toSet(),
         )
+    }
+
+    @Test
+    fun actualInquiryAndOfferBackReferencesConnectOrdersAppointmentsAndWork() {
+        val f = Fixture()
+        f.row(f.revier, "inquiries", "qa_inquiry").put("offer_id", "qa_offer")
+        f.row(f.master, "offers", "qa_offer", "")
+            .put("status", "accepted")
+            .put("converted_order_id", "qa_order")
+            .put("positions", JSONArray().put(JSONObject().put("title", "QA Leistung")))
+        f.row(f.master, "orders", "qa_order", "")
+        f.row(f.master, "appointments", "qa_appointment", "")
+            .put("order_id", "qa_order")
+            .put("scope_refs", JSONArray().put("qa_offer#0"))
+            .put("starts_at", "2026-11-09T08:00:00Z")
+        f.row(f.master, "worklogs", "qa_work", "").put("order_id", "qa_order")
+        f.row(f.master, "worklogs", "qa_same_customer_only", "")
+        assertEquals(
+            setOf("qa_inquiry", "qa_offer", "qa_order", "qa_appointment", "qa_work"),
+            f.items().map { it.getString("id") }.toSet(),
+        )
+    }
+
+    @Test
+    fun linkedContextReadsKnownOrderAndOfferParentsWithoutChangingInputs() {
+        val f = Fixture()
+        f.row(f.revier, "properties", "qa_property", "")
+        f.row(f.revier, "inquiries", "qa_inquiry").put("offer_id", "qa_offer")
+        f.row(f.master, "offers", "qa_offer", "").put("converted_order_id", "qa_order")
+        f.row(f.master, "orders", "qa_order", "")
+        for (args in
+            listOf(
+                JSONObject().put("order_id", "qa_order"),
+                JSONObject().put("offer_id", "qa_offer"),
+            )) {
+            val original = args.toString()
+            val before = f.master.toString() + f.revier.toString()
+            val result = PropertyTimelineRules.linkedContext(args, f.master, f.revier)
+            assertEquals("qa_property", result.getString("property_id"))
+            assertEquals("qa_order", result.getString("order_id"))
+            assertEquals("qa_same_customer", result.getString("customer_id"))
+            assertFalse(result.optBoolean("context_conflict"))
+            assertEquals(original, args.toString())
+            assertEquals(before, f.master.toString() + f.revier.toString())
+        }
+    }
+
+    @Test
+    fun linkedContextNeverAssignsAnObjectFromCustomerAndKeepsExplicitLinks() {
+        val f = Fixture()
+        f.row(f.revier, "properties", "qa_property", "")
+        f.row(f.revier, "properties", "qa_other", "")
+        f.row(f.master, "orders", "qa_order")
+        val customerOnly =
+            PropertyTimelineRules.linkedContext(
+                JSONObject()
+                    .put("customer_id", "qa_same_customer")
+                    .put("property_id", JSONObject.NULL),
+                f.master,
+                f.revier,
+            )
+        assertFalse(customerOnly.has("property_id"))
+        val explicit =
+            PropertyTimelineRules.linkedContext(
+                JSONObject().put("order_id", "qa_order").put("property_id", "qa_other"),
+                f.master,
+                f.revier,
+            )
+        assertEquals("qa_other", explicit.getString("property_id"))
+        assertTrue(explicit.optBoolean("context_conflict"))
+    }
+
+    @Test
+    fun linkedContextShowsAmbiguityAndRejectsParentsOfAnotherCustomer() {
+        val f = Fixture()
+        f.row(f.revier, "properties", "qa_property", "")
+        f.row(f.revier, "properties", "qa_other", "")
+        f.row(f.master, "orders", "qa_order", "")
+        f.row(f.revier, "inquiries", "qa_one").put("order_id", "qa_order")
+        f.row(f.revier, "inquiries", "qa_two", "qa_other").put("order_id", "qa_order")
+        val ambiguous =
+            PropertyTimelineRules.linkedContext(
+                JSONObject().put("order_id", "qa_order"),
+                f.master,
+                f.revier,
+            )
+        assertTrue(ambiguous.optBoolean("context_conflict"))
+        assertFalse(ambiguous.has("property_id"))
+        val foreign =
+            PropertyTimelineRules.linkedContext(
+                JSONObject()
+                    .put("order_id", "qa_order")
+                    .put("customer_id", "qa_different_customer"),
+                f.master,
+                f.revier,
+            )
+        assertTrue(foreign.optBoolean("context_conflict"))
+        assertFalse(foreign.has("property_id"))
+        f.row(f.master, "worklogs", "qa_unknown_work", "").put("order_id", "qa_order")
+        f.row(f.master, "appointments", "qa_unknown_appointment", "").put("order_id", "qa_order")
+        assertFalse(
+            f.items().any {
+                it.optString("id") in setOf("qa_unknown_work", "qa_unknown_appointment")
+            }
+        )
+        f.revier.getJSONArray("inquiries").getJSONObject(0).put("offer_id", "qa_scoped_offer")
+        f.row(f.master, "offers", "qa_scoped_offer", "")
+            .put("status", "accepted")
+            .put("converted_order_id", "qa_order")
+            .put("positions", JSONArray().put(JSONObject().put("title", "QA Leistung")))
+        f.row(f.master, "appointments", "qa_scoped_appointment", "")
+            .put("order_id", "qa_order")
+            .put("scope_refs", JSONArray().put("qa_scoped_offer#0"))
+        assertEquals(
+            setOf("qa_scoped_appointment"),
+            f.items()
+                .filter { it.optString("kind") == "appointment" }
+                .map { it.getString("id") }
+                .toSet(),
+        )
+        val scoped =
+            PropertyTimelineRules.linkedContext(
+                JSONObject().put("appointment_id", "qa_scoped_appointment"),
+                f.master,
+                f.revier,
+            )
+        assertEquals("qa_property", scoped.getString("property_id"))
+        assertFalse(scoped.optBoolean("context_conflict"))
     }
 
     @Test

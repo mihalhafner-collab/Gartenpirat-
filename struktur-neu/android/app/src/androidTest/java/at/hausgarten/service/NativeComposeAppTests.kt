@@ -170,6 +170,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         checks++
     }
 
+    private fun selectTab(tag: String) {
+        reveal(tag)
+        if (node(tag)?.isSelected != true) click(tag)
+        waitUntil("TAB_SELECTED_$tag") { node(tag)?.isSelected == true }
+        checks++
+    }
+
     private fun reveal(label: String) {
         if (node(label) == null) scrollTop()
         var lastScroll = 0L
@@ -5221,6 +5228,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                             .put("longitude", 16.3),
                     )
                     .getString("property_id")
+            val order =
+                store.saveEditorRecord(
+                    "order",
+                    JSONObject()
+                        .put("_request_id", "qa_timeline_order")
+                        .put("customer_id", customer)
+                        .put("title", "[TEST] QA Zeitleistenauftrag")
+                        .put("status", "Geplant")
+                        .put("test_record", true),
+                )
             val visit =
                 read(
                         "plan_visit",
@@ -5239,6 +5256,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                             .put("request_id", "qa_timeline_inquiry")
                             .put("customer_id", customer)
                             .put("property_id", property)
+                            .put("order_id", order)
                             .put("title", "[TEST] QA Zeitleistenanfrage"),
                     )
                     .getString("inquiry_id")
@@ -5255,7 +5273,37 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     )
                     .getString("care_plan_id")
             val work = "qa_timeline_work"
-            val appointment = "qa_timeline_appointment"
+            val appointment =
+                read(
+                        "create_appointment",
+                        JSONObject()
+                            .put("request_id", "qa_timeline_appointment")
+                            .put("customer_id", customer)
+                            .put("order_id", order)
+                            .put("title", "[TEST] QA Zeitleistentermin")
+                            .put("purpose", "work")
+                            .put(
+                                "starts_at",
+                                day.atTime(14, 0)
+                                    .atZone(ZoneId.of("Europe/Vienna"))
+                                    .toInstant()
+                                    .toString(),
+                            )
+                            .put(
+                                "ends_at",
+                                day.atTime(15, 0)
+                                    .atZone(ZoneId.of("Europe/Vienna"))
+                                    .toInstant()
+                                    .toString(),
+                            )
+                            .put("timezone", "Europe/Vienna")
+                            .put("status", "confirmed")
+                            .put("location", "[TEST] QA Zeitleistenweg 7")
+                            .put("weather_profile", "general")
+                            .put("travel_minutes", 0)
+                            .put("break_minutes", 0),
+                    )
+                    .getString("appointment_id")
             val source = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
             source.put(
                 "business_settings",
@@ -5269,37 +5317,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         .put("billing_customer_id", customer)
                         .put("property_id", property)
                         .put("visit_id", visit)
-                )
-            source
-                .getJSONArray("appointments")
-                .put(
-                    JSONObject()
-                        .put("id", appointment)
-                        .put("customer_id", customer)
-                        .put("property_id", property)
-                        .put("title", "[TEST] QA Zeitleistentermin")
-                        .put("purpose", "work")
-                        .put(
-                            "starts_at",
-                            day.atTime(14, 0)
-                                .atZone(ZoneId.of("Europe/Vienna"))
-                                .toInstant()
-                                .toString(),
-                        )
-                        .put(
-                            "ends_at",
-                            day.atTime(15, 0)
-                                .atZone(ZoneId.of("Europe/Vienna"))
-                                .toInstant()
-                                .toString(),
-                        )
-                        .put("timezone", "Europe/Vienna")
-                        .put("status", "confirmed")
-                        .put("location", "[TEST] QA Zeitleistenweg 7")
-                        .put("weather_profile", "general")
-                        .put("travel_minutes", 0)
-                        .put("break_minutes", 0)
-                        .put("scope_refs", JSONArray().put("property:$property"))
                 )
             store.putOwnerValue("snapshot", source.toString())
             val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
@@ -5353,6 +5370,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             val history = SettlementRules.rows(timeline().getJSONArray("items"))
             yes(
                 history.any { it.getString("key") == "inquiry:$inquiry" } &&
+                    history.any { it.getString("key") == "order:$order" } &&
                     history.any { it.getString("key") == "visit:$visit" } &&
                     history.any { it.getString("key") == "appointment:$appointment" },
                 "TIMELINE_EXPLICIT_CONTEXT_PROJECTED",
@@ -5373,8 +5391,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
                 if (node(UiTags.recordChoice("properties", property)) != null)
                     click(UiTags.recordChoice("properties", property))
-                reveal(UiTags.objectTab("history"))
-                click(UiTags.objectTab("history"))
+                selectTab(UiTags.objectTab("history"))
             }
             openProperty()
             val beforeNavigation =
@@ -5398,9 +5415,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     beforeNavigation,
                 "TIMELINE_EXTERNAL_ACTIONS_READ_ONLY",
             )
-            click(UiTags.objectTab("care"))
+            selectTab(UiTags.objectTab("care"))
             reveal(UiTags.objectEntry("care_plan:$care"))
-            click(UiTags.objectTab("photos"))
+            selectTab(UiTags.objectTab("photos"))
             click(UiTags.objectEntry("photo:$photoId"))
             shown(UiTags.context("properties", property))
             click(UiTags.PRIMARY)
@@ -5414,8 +5431,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
             recreate()
             click(UiTags.context("properties", property))
-            reveal(UiTags.objectTab("money"))
-            click(UiTags.objectTab("money"))
+            selectTab(UiTags.objectTab("money"))
             click(UiTags.objectEntry("settlement:$settlement"))
             click(UiTags.PRIMARY)
             waitUntil("TIMELINE_INTERNAL_CLOSURE_CONFIRMED") {
@@ -5446,18 +5462,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "TIMELINE_CONFIRMED_DOCUMENT_DELETE_PROTECTED",
             )
             click(UiTags.context("properties", property))
-            reveal(UiTags.objectTab("history"))
-            click(UiTags.objectTab("history"))
+            selectTab(UiTags.objectTab("history"))
             click(UiTags.objectEntry("visit:$visit"))
             shown(UiTags.context("properties", property))
             click(UiTags.DETAIL_MENU)
             shown(UiTags.detailAction("visit-tour"))
             back()
             click(UiTags.context("properties", property))
-            reveal(UiTags.objectTab("history"))
-            click(UiTags.objectTab("history"))
+            selectTab(UiTags.objectTab("history"))
             click(UiTags.objectEntry("appointment:$appointment"))
             shown(UiTags.context("properties", property))
+            shown(UiTags.context("orders", order))
             click(UiTags.DETAIL_MENU)
             shown(UiTags.detailAction("appointment-cancel"))
             back()

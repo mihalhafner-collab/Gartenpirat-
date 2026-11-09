@@ -477,7 +477,11 @@ private fun PlanningDetail(
                     )
                 },
             )
-            NativeContext(controller, row, heading = true)
+            NativeContext(
+                controller,
+                JSONObject(row.toString()).put("appointment_id", id),
+                heading = true,
+            )
             NativeGroup("Zeit und Ort") {
                 Text(
                     planningStamp(row.optString("starts_at")) +

@@ -7,6 +7,230 @@ import org.json.JSONObject
 
 /** Only explicit object links or known parent references establish membership. */
 internal object PropertyTimelineRules {
+    private val contextFields =
+        listOf(
+            "customer_id",
+            "property_id",
+            "inquiry_id",
+            "offer_id",
+            "order_id",
+            "visit_id",
+            "worklog_id",
+            "appointment_id",
+        )
+
+    fun contextSchema(): JSONObject =
+        JSONObject()
+            .put("type", "object")
+            .put("additionalProperties", false)
+            .put(
+                "properties",
+                JSONObject().apply { for (field in contextFields) put(field, McpFields.id()) },
+            )
+            .put("required", JSONArray())
+
+    fun contextReferences(args: JSONObject): JSONObject =
+        JSONObject().apply {
+            for (field in contextFields) if (
+                !args.isNull(field) && args.optString(field).isNotBlank()
+            )
+                put(field, args.getString(field))
+        }
+
+    private data class ParentProperties(
+        val offers: Map<String, Set<String>>,
+        val orders: Map<String, Set<String>>,
+        val offerRecords: Map<String, JSONObject>,
+    )
+
+    private fun directProperty(row: JSONObject): Set<String> =
+        if (row.isNull("property_id") || row.optString("property_id").isBlank()) emptySet()
+        else setOf(row.getString("property_id"))
+
+    private fun sameCustomer(first: JSONObject, second: JSONObject): Boolean =
+        first.isNull("customer_id") ||
+            second.isNull("customer_id") ||
+            first.optString("customer_id").isBlank() ||
+            second.optString("customer_id").isBlank() ||
+            first.optString("customer_id") == second.optString("customer_id")
+
+    /** Actual stored inverse references; child records never assign their siblings to an object. */
+    private fun parentProperties(master: JSONObject, revier: JSONObject): ParentProperties {
+        val inquiries = rows(revier, "inquiries")
+        val inquiryById = inquiries.associateBy { it.optString("id") }
+        val inquiryByOffer =
+            inquiries
+                .filter { it.optString("offer_id").isNotBlank() }
+                .groupBy { it.getString("offer_id") }
+        val inquiryByOrder =
+            inquiries
+                .filter { it.optString("order_id").isNotBlank() }
+                .groupBy { it.getString("order_id") }
+        val offers = rows(master, "offers")
+        val offerById = offers.associateBy { it.optString("id") }
+        val offerByOrder = mutableMapOf<String, MutableList<JSONObject>>()
+        for (offer in offers) for (order in
+            listOf(offer.optString("order_id"), offer.optString("converted_order_id"))
+                .filter(String::isNotBlank)
+                .distinct()) offerByOrder.getOrPut(order) { mutableListOf() }.add(offer)
+        val offerProperties =
+            offers.associate { offer ->
+                val direct = directProperty(offer)
+                val related =
+                    inquiryByOffer[offer.optString("id")].orEmpty() +
+                        listOf("inquiry_id", "source_inquiry_id").mapNotNull {
+                            inquiryById[offer.optString(it)]
+                        }
+                offer.optString("id") to
+                    if (direct.isNotEmpty()) direct
+                    else
+                        related
+                            .filter { sameCustomer(offer, it) }
+                            .flatMap { directProperty(it) }
+                            .toSet()
+            }
+        val orderProperties =
+            rows(master, "orders").associate { order ->
+                val direct = directProperty(order)
+                val relatedInquiries =
+                    inquiryByOrder[order.optString("id")].orEmpty() +
+                        listOf("inquiry_id", "source_inquiry_id").mapNotNull {
+                            inquiryById[order.optString(it)]
+                        }
+                val relatedOffers =
+                    offerByOrder[order.optString("id")].orEmpty() +
+                        listOf("offer_id", "source_offer_id").mapNotNull {
+                            offerById[order.optString(it)]
+                        }
+                order.optString("id") to
+                    if (direct.isNotEmpty()) direct
+                    else
+                        (relatedInquiries
+                                .filter { sameCustomer(order, it) }
+                                .flatMap { directProperty(it) } +
+                                relatedOffers
+                                    .filter { sameCustomer(order, it) }
+                                    .flatMap { offerProperties[it.optString("id")].orEmpty() })
+                            .toSet()
+            }
+        return ParentProperties(offerProperties, orderProperties, offerById)
+    }
+
+    private fun appointmentProperties(row: JSONObject, parents: ParentProperties): Set<String> {
+        val direct = directProperty(row)
+        if (direct.isNotEmpty()) return direct
+        val refs = row.optJSONArray("scope_refs") ?: JSONArray()
+        val legacy =
+            (0 until refs.length())
+                .mapNotNull { index ->
+                    refs
+                        .optString(index)
+                        .takeIf { it.startsWith("property:") || it.startsWith("properties:") }
+                        ?.substringAfter(':')
+                        ?.takeIf(String::isNotBlank)
+                }
+                .toSet()
+        if (legacy.isNotEmpty()) return legacy
+        val scoped = mutableSetOf<String>()
+        for (index in 0 until refs.length()) {
+            val ref = refs.optString(index)
+            val split = ref.lastIndexOf('#')
+            if (split < 1) continue
+            val position = ref.substring(split + 1).toIntOrNull() ?: continue
+            val offer = parents.offerRecords[ref.substring(0, split)] ?: continue
+            if (
+                offer.optString("status") != "accepted" ||
+                    !sameCustomer(row, offer) ||
+                    row.optString("order_id").isBlank() ||
+                    row.getString("order_id") !=
+                        offer.optString("converted_order_id", offer.optString("order_id")) ||
+                    position !in 0 until (offer.optJSONArray("positions")?.length() ?: 0)
+            )
+                continue
+            scoped.addAll(parents.offers[offer.optString("id")].orEmpty())
+        }
+        if (scoped.isNotEmpty()) return scoped
+        return parents.orders[row.optString("order_id")].orEmpty().takeIf { it.size == 1 }
+            ?: emptySet()
+    }
+
+    /** Resolve known parents only. A customer never assigns an object or sibling records. */
+    fun linkedContext(args: JSONObject, master: JSONObject, revier: JSONObject): JSONObject {
+        val context = contextReferences(args)
+        val properties = rows(revier, "properties").associateBy { it.optString("id") }
+        val inquiries = rows(revier, "inquiries")
+        val offers = rows(master, "offers")
+        val parents = parentProperties(master, revier)
+        val parentRows =
+            listOf(
+                    "appointment_id" to rows(master, "appointments"),
+                    "worklog_id" to rows(master, "worklogs"),
+                    "visit_id" to rows(revier, "visits"),
+                    "inquiry_id" to inquiries,
+                    "offer_id" to offers,
+                    "order_id" to rows(master, "orders"),
+                    "property_id" to properties.values.toList(),
+                )
+                .map { (key, records) -> key to records.associateBy { it.optString("id") } }
+        fun compatible(parent: JSONObject) =
+            context.optString("customer_id").isBlank() ||
+                parent.isNull("customer_id") ||
+                parent.optString("customer_id").isBlank() ||
+                parent.optString("customer_id") == context.optString("customer_id")
+        fun adopt(parentField: String, parent: JSONObject?) {
+            if (parent == null) return
+            if (!compatible(parent)) {
+                context.put("context_conflict", true)
+                return
+            }
+            for (field in contextFields) if (
+                !parent.isNull(field) && parent.optString(field).isNotBlank()
+            ) {
+                if (context.optString(field).isBlank()) context.put(field, parent.getString(field))
+                else if (context.optString(field) != parent.optString(field))
+                    context.put("context_conflict", true)
+            }
+            if (parentField == "appointment_id" && context.optString("property_id").isBlank()) {
+                val selected = appointmentProperties(parent, parents)
+                if (selected.size == 1) context.put("property_id", selected.single())
+                else if (selected.size > 1) context.put("context_conflict", true)
+            }
+            if (
+                parentField == "offer_id" &&
+                    context.optString("order_id").isBlank() &&
+                    !parent.isNull("converted_order_id") &&
+                    parent.optString("converted_order_id").isNotBlank()
+            )
+                context.put("order_id", parent.getString("converted_order_id"))
+            if (parentField in setOf("offer_id", "order_id"))
+                for ((source, target) in
+                    listOf("source_offer_id" to "offer_id", "source_inquiry_id" to "inquiry_id")) {
+                    if (
+                        context.optString(target).isBlank() &&
+                            !parent.isNull(source) &&
+                            parent.optString(source).isNotBlank()
+                    )
+                        context.put(target, parent.getString(source))
+                }
+        }
+        repeat(4) {
+            for ((field, records) in parentRows) adopt(field, records[context.optString(field)])
+            if (context.optString("property_id").isBlank()) {
+                val candidates =
+                    parents.offers[context.optString("offer_id")].orEmpty().takeIf {
+                        it.isNotEmpty()
+                    } ?: parents.orders[context.optString("order_id")].orEmpty()
+                if (candidates.size == 1 && !context.optBoolean("context_conflict")) {
+                    val property = properties[candidates.single()]
+                    if (property == null || compatible(property))
+                        context.put("property_id", candidates.single())
+                    else context.put("context_conflict", true)
+                } else if (candidates.size > 1) context.put("context_conflict", true)
+            }
+        }
+        return context
+    }
+
     fun schema(): JSONObject =
         JSONObject()
             .put("type", "object")
@@ -93,32 +317,44 @@ internal object PropertyTimelineRules {
                 offset in 0..1000000 &&
                 limit in 1..50
         )
+        val parents = parentProperties(master, revier)
         val inquiryOwned = rows(revier, "inquiries").filter { belongs(it, propertyId) }
         val inquiryOwnedIds = ids(inquiryOwned)
+        val linkedOfferIds =
+            inquiryOwned.map { it.optString("offer_id") }.filter(String::isNotBlank).toSet()
         val offers =
             rows(master, "offers").filter {
                 belongs(it, propertyId) {
-                    references(it, listOf("inquiry_id", "source_inquiry_id"), inquiryOwnedIds)
+                    references(it, listOf("inquiry_id", "source_inquiry_id"), inquiryOwnedIds) ||
+                        it.optString("id") in linkedOfferIds
                 }
             }
         val offerIds = ids(offers)
+        val linkedOrderIds =
+            (inquiryOwned + offers)
+                .flatMap { listOf(it.optString("order_id"), it.optString("converted_order_id")) }
+                .filter(String::isNotBlank)
+                .toSet()
         val ordersOwned =
             rows(master, "orders").filter {
                 belongs(it, propertyId) {
                     references(it, listOf("inquiry_id", "source_inquiry_id"), inquiryOwnedIds) ||
-                        references(it, listOf("offer_id", "source_offer_id"), offerIds)
+                        references(it, listOf("offer_id", "source_offer_id"), offerIds) ||
+                        it.optString("id") in linkedOrderIds
                 }
             }
         val orderOwnedIds = ids(ordersOwned)
+        val exclusiveOrderIds =
+            orderOwnedIds.filter { parents.orders[it].orEmpty() == setOf(propertyId) }.toSet()
         val visits =
             rows(revier, "visits").filter {
-                belongs(it, propertyId) { references(it, listOf("order_id"), orderOwnedIds) }
+                belongs(it, propertyId) { references(it, listOf("order_id"), exclusiveOrderIds) }
             }
         val visitIds = ids(visits)
         val works =
             rows(master, "worklogs").filter {
                 belongs(it, propertyId) {
-                    references(it, listOf("order_id"), orderOwnedIds) ||
+                    references(it, listOf("order_id"), exclusiveOrderIds) ||
                         references(it, listOf("visit_id"), visitIds)
                 }
             }
@@ -164,7 +400,7 @@ internal object PropertyTimelineRules {
         val appointments =
             rows(master, "appointments").filter {
                 belongs(it, propertyId) {
-                    references(it, listOf("order_id"), orderOwnedIds) ||
+                    propertyId in appointmentProperties(it, parents) ||
                         it.optString("id") in inspectionIds
                 }
             }
@@ -173,7 +409,7 @@ internal object PropertyTimelineRules {
                 belongs(it, propertyId) {
                     references(it, listOf("worklog_id", "work_record_id"), workIds) ||
                         references(it, listOf("visit_id"), visitIds) ||
-                        references(it, listOf("order_id"), orderOwnedIds)
+                        references(it, listOf("order_id"), exclusiveOrderIds)
                 }
             }
         val care = rows(revier, "care_plans").filter { belongs(it, propertyId) }

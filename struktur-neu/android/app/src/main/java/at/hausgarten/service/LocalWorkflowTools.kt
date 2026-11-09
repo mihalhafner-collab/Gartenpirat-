@@ -20,6 +20,7 @@ internal class LocalWorkflowTools {
                 "list_properties",
                 "get_property",
                 "get_property_timeline",
+                "get_linked_context",
                 "list_inquiries",
                 "get_inquiry",
                 "list_care_plans",
@@ -117,6 +118,8 @@ internal class LocalWorkflowTools {
 
         @JvmStatic
         fun description(name: String): String {
+            if (name == "get_linked_context")
+                return "Liest bekannte Elternbezüge für Kunden, Objekte, Anfragen, Angebote, Aufträge, Einsätze, Arbeiten und Termine. Berücksichtigt tatsächliche Rückverweise und bei Terminen gültige Angebotspositionen. Keine Zuordnung nur über denselben Kunden; widersprüchliche oder mehrdeutige Bezüge liefern context_conflict. Rein lesend, keine Änderung der ursprünglichen Zuordnungen."
             if (name == "get_property_timeline")
                 return "Liest den Objektverlauf von Anfrage bis Zahlung sowie Pflege, Fotos und Geld. Nur ausdrückliche Objektverknüpfungen und bekannte Elternbezüge, keine Zuordnung allein über denselben Kunden. Belegbeträge gelten für den ganzen Beleg, keine erfundene Objektsumme. Reine lokale Leseabfrage mit begrenzter Seite; Fotos ohne Binärdaten."
             if (name == "get_planning_board")
@@ -385,6 +388,7 @@ internal class LocalWorkflowTools {
         @JvmStatic
         @Throws(Exception::class)
         fun schema(name: String): JSONObject {
+            if (name == "get_linked_context") return PropertyTimelineRules.contextSchema()
             if (name == "get_property_timeline") return PropertyTimelineRules.schema()
             if (name == "get_planning_board") return PlanningBoardRules.boardSchema()
             if (ListActionTools.handles(name)) return ListActionTools.schema(name)
