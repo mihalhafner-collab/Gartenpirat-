@@ -5458,6 +5458,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.context("properties", property))
             selectTab(UiTags.objectTab("money"))
             click(UiTags.objectEntry("settlement:$settlement"))
+            waitUntil("TIMELINE_CLOSURE_DRAFT_READY") {
+                node(UiTags.settlementState("draft")) != null &&
+                    node(UiTags.PRIMARY) != null &&
+                    actionEnabled(UiTags.PRIMARY)
+            }
             click(UiTags.PRIMARY)
             waitUntil("TIMELINE_INTERNAL_CLOSURE_CONFIRMED") {
                 read("get_settlement", JSONObject().put("settlement_id", settlement))
