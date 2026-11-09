@@ -5458,6 +5458,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.context("properties", property))
             selectTab(UiTags.objectTab("money"))
             click(UiTags.objectEntry("settlement:$settlement"))
+            reveal(UiTags.settlementState("draft"))
             waitUntil("TIMELINE_CLOSURE_DRAFT_READY") {
                 node(UiTags.settlementState("draft")) != null &&
                     node(UiTags.PRIMARY) != null &&

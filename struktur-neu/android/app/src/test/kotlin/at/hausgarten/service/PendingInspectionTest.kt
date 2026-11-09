@@ -1,5 +1,6 @@
 package at.hausgarten.service
 
+import android.database.sqlite.SQLiteDatabaseLockedException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +16,52 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PendingInspectionTest {
+    @Test
+    fun lockedCommitObservationResumesAfterTheWriterReleasesItsLock() = runBlocking {
+        var reads = 0
+        val pauses = mutableListOf<Long>()
+        val values =
+            flow {
+                    reads++
+                    if (reads < 3) throw SQLiteDatabaseLockedException("QA writer holds lock")
+                    emit(11L)
+                }
+                .retryNativeStoreLock { pauses += it }
+                .toList()
+        assertEquals(3, reads)
+        assertEquals(listOf(50L, 100L), pauses)
+        assertEquals(listOf(11L), values)
+    }
+
+    @Test
+    fun lockedCommitObservationKeepsCancellationAndUnrelatedFailures() = runBlocking {
+        val cancelled = CancellationException("QA screen closed while waiting")
+        var reads = 0
+        var caught: Exception? = null
+        try {
+            flow<Long> {
+                    reads++
+                    throw SQLiteDatabaseLockedException("QA writer holds lock")
+                }
+                .retryNativeStoreLock { throw cancelled }
+                .toList()
+        } catch (failure: Exception) {
+            caught = failure
+        }
+        assertSame(cancelled, caught)
+        assertEquals(1, reads)
+        val expected = IllegalStateException("QA_READ_FAILED")
+        caught = null
+        try {
+            flow<Long> { throw expected }
+                .retryNativeStoreLock { fail("Unrelated failures must propagate") }
+                .toList()
+        } catch (failure: Exception) {
+            caught = failure
+        }
+        assertSame(expected, caught)
+    }
+
     @Test
     fun commitObservationCompletesOnlyForTheClosedStoreBoundary() = runBlocking {
         val values =

@@ -2,12 +2,14 @@ package at.hausgarten.service
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteDatabaseLockedException
 import java.text.Collator
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -51,6 +54,16 @@ internal fun <T> Flow<T>.finishOnNativeStoreClose(): Flow<T> = catch { failure -
             failure.message != "LOCAL_STORE_CLOSED"
     )
         throw failure
+}
+
+/** A busy commit barrier only delays observation; no business write is retried. */
+internal fun <T> Flow<T>.retryNativeStoreLock(
+    pause: suspend (Long) -> Unit = { delay(it) }
+): Flow<T> = retryWhen { failure, attempt ->
+    if (failure is SQLiteDatabaseLockedException) {
+        pause(50L * (attempt.coerceAtMost(19L) + 1L))
+        true
+    } else false
 }
 
 /**
@@ -250,6 +263,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                     emit(version)
                 }
             }
+            .retryNativeStoreLock()
             .finishOnNativeStoreClose()
             .flowOn(Dispatchers.IO)
 
