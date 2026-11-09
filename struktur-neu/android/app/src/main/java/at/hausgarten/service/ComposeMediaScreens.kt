@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -595,7 +596,7 @@ internal fun NativePhotoImage(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun NativePhotoDetail(
     id: String,
@@ -887,6 +888,7 @@ private fun NativePhotoDetail(
     }
     if (field.isNotBlank())
         ModalBottomSheet(
+            modifier = Modifier.semantics { testTagsAsResourceId = true },
             onDismissRequest = { save() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
