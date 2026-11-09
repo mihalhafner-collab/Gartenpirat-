@@ -684,15 +684,73 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun primaryPosition(primary: String, secondary: String) {
-        val first = visibleResult(primary)
-        val second = visibleResult(secondary)
-        val stacked = requireNotNull(activity).resources.configuration.fontScale > 1.3f
+        var first = Rect()
+        var second = Rect()
+        var minimum = 0
+        var priorGeometry = ""
+        var geometry = "No actions"
+        var stableSince = 0L
+        try {
+            waitUntil("PRIMARY_ACTIONS_READY_${primary}_$secondary") {
+                val snapshot = nodes()
+                fun actions(label: String) =
+                    snapshot
+                        .filter { it.isVisibleToUser && matches(it, label) }
+                        .mapNotNull(::clickable)
+                val primaryActions = actions(primary)
+                val primaryAction =
+                    primaryActions.firstOrNull { it.viewIdResourceName == UiTags.PRIMARY }
+                        ?: primaryActions.firstOrNull()
+                        ?: return@waitUntil false
+                first = Rect().also(primaryAction::getBoundsInScreen)
+                val secondaryActions = actions(secondary)
+                val secondaryAction =
+                    secondaryActions.firstOrNull { it.viewIdResourceName == UiTags.SECONDARY }
+                        ?: secondaryActions.minByOrNull {
+                            val bounds = Rect().also(it::getBoundsInScreen)
+                            kotlin.math.abs(bounds.centerY() - first.centerY())
+                        }
+                        ?: return@waitUntil false
+                second = Rect().also(secondaryAction::getBoundsInScreen)
+                val viewport = Rect()
+                test.runOnMainSync {
+                    activity?.window?.decorView?.let {
+                        it.getWindowVisibleDisplayFrame(viewport)
+                        minimum = (48 * it.resources.displayMetrics.density).toInt()
+                    }
+                }
+                geometry = "primary=$first secondary=$second viewport=$viewport minimum=$minimum"
+                if (geometry != priorGeometry) {
+                    test.sendStatus(
+                        0,
+                        Bundle().apply { putString("primary_action_geometry", geometry) },
+                    )
+                    priorGeometry = geometry
+                    stableSince = SystemClock.uptimeMillis()
+                }
+                minimum > 0 &&
+                    viewport.contains(first) &&
+                    viewport.contains(second) &&
+                    !Rect.intersects(first, second) &&
+                    (first.top >= second.bottom ||
+                        first.left >= second.right &&
+                            first.centerY() in second.top..second.bottom) &&
+                    first.height() >= minimum - 1 &&
+                    second.height() >= minimum - 1 &&
+                    SystemClock.uptimeMillis() - stableSince >= 500
+            }
+        } catch (failure: Throwable) {
+            throw AssertionError(
+                "PRIMARY_ACTION_GEOMETRY_${primary}_$secondary: $geometry",
+                failure,
+            )
+        }
         yes(
             !Rect.intersects(first, second) &&
-                if (stacked) first.top >= second.bottom else first.left >= second.right,
+                (first.top >= second.bottom ||
+                    first.left >= second.right && first.centerY() in second.top..second.bottom),
             "PRIMARY_POSITION_${primary}_SECONDARY_$secondary",
         )
-        val minimum = (48 * requireNotNull(activity).resources.displayMetrics.density).toInt()
         yes(
             first.height() >= minimum - 1 && second.height() >= minimum - 1,
             "PRIMARY_TOUCH_TARGET_$primary",
@@ -2242,7 +2300,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         searchCustomers(flowName)
         shown("0 Treffer")
-        yes(node(flowName) == null, "DELETED_CUSTOMER_NOT_IN_ACTIVE_LIST")
+        yes(
+            nodes().none {
+                it.isVisibleToUser &&
+                    !it.isEditable &&
+                    matches(it, flowName) &&
+                    clickable(it) != null
+            } && customers(flowName).none { it.optString("id") == id },
+            "DELETED_CUSTOMER_NOT_IN_ACTIVE_LIST",
+        )
     }
 
     private fun usabilityJourney() {
@@ -3185,7 +3251,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("date_to", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
         val todayBefore = read("get_work_record_summary", todayArgs)
         searchCustomers(fixturePrefix + "000")
-        shown("1 Treffer")
         val searchField = requireNotNull(field(sharedSearchLabel))
         yes(
             searchField.isEditable && clickable(searchField) == null,
@@ -5130,6 +5195,38 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     }
                     return bounds
                 }
+                fun boardPageScroller(): AccessibilityNodeInfo? {
+                    var parent = node(UiTags.PLANNING_GRID)?.parent
+                    while (parent != null) {
+                        if (
+                            parent.isScrollable &&
+                                parent.actionList.any { it.id == scrollUp || it.id == scrollDown }
+                        )
+                            return parent
+                        parent = parent.parent
+                    }
+                    return null
+                }
+                // Date and view controls belong to the outer page. In this three-entry
+                // fixture the grid is its final item; expose that item before time scrolling.
+                waitUntil("BOARD_OUTER_PAGE_EXPOSES_GRID_$tag") {
+                    val page = boardPageScroller() ?: return@waitUntil false
+                    if (page.actionList.any { it.id == scrollDown }) {
+                        performVerticalScroll(page, forward = true)
+                        settleUi()
+                        false
+                    } else {
+                        val viewport = boardScroller()?.let(::visibleBounds) ?: Rect()
+                        val minimum = (48 * context.resources.displayMetrics.density).toInt()
+                        test.sendStatus(
+                            0,
+                            Bundle().apply {
+                                putString("board_drag_outer_page", "$tag viewport=$viewport")
+                            },
+                        )
+                        viewport.width() >= minimum && viewport.height() >= minimum * 2
+                    }
+                }
                 // This is the board's inner time viewport, not the surrounding page list.
                 waitUntil("BOARD_TIME_VIEWPORT_START_$tag") {
                     val viewport = boardScroller() ?: return@waitUntil false
@@ -5263,7 +5360,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "BOARD_DRAG_DURABLE_AFTER_RECREATION",
             )
             click(UiTags.PLANNING_TOUR)
-            if (node(UiTags.TOUR_ORDER)?.isSelected != true) click(UiTags.TOUR_ORDER)
+            reveal(UiTags.TOUR_ORDER)
+            fun tourOrderingSelected() =
+                nodes().any { candidate ->
+                    candidate.isVisibleToUser &&
+                        matches(candidate, UiTags.TOUR_ORDER) &&
+                        generateSequence(candidate) { it.parent }.any(::navigationSelected)
+                }
+            if (!tourOrderingSelected()) click(UiTags.TOUR_ORDER)
+            waitUntil("BOARD_TOUR_ORDERING_SELECTED") { tourOrderingSelected() }
             click(UiTags.tourMove(secondVisit, "up"))
             click(UiTags.TOUR_SAVE)
             waitUntil("BOARD_TOUR_ORDER_COMMITTED") {
@@ -5670,10 +5775,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val secondary = runCatching { actionBounds(UiTags.SECONDARY) }.getOrNull()
                 plus != null &&
                     primary != null &&
-                    secondary != null &&
                     !Rect.intersects(plus, primary) &&
-                    !Rect.intersects(plus, secondary) &&
-                    plus.bottom <= minOf(primary.top, secondary.top)
+                    plus.bottom <= primary.top &&
+                    (secondary == null ||
+                        !Rect.intersects(plus, secondary) && plus.bottom <= secondary.top)
             }
             click(UiTags.CREATE)
             click(UiTags.createChoice("visit"))

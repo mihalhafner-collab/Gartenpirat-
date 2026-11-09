@@ -399,7 +399,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                                                         },
                                                     onClick = {
                                                         controller.moreMenuOpen = false
-                                                        controller.navigate(entry)
+                                                        controller.openOverview(entry)
                                                     },
                                                 )
                                             }
@@ -501,13 +501,12 @@ internal fun NativeApplication(controller: NativeAppController) {
                     }
                 }
                 // Design: one fixed "+" at the bottom right of the main areas. Today and
-                // Planning place their own, because they show details in the same route.
+                // Planning and property details place their own beside their measured footer.
                 if (
                     !imeVisible &&
                         route.mode == "list" &&
                         (route.id.isEmpty() && route.section in listOf("customers", "accounting") ||
-                            route.id.isNotBlank() &&
-                                route.section in listOf("customers", "properties"))
+                            route.id.isNotBlank() && route.section == "customers")
                 )
                     NativeCreateButton(
                         controller,

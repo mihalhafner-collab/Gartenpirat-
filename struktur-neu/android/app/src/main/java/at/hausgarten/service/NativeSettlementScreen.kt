@@ -293,7 +293,9 @@ internal fun NativeSettlementEditor(
             raw = local?.optJSONObject("values")?.toString()
             savedHash = local?.optString("record_hash").orEmpty()
             pending = local?.optJSONObject("pending_save")?.toString()
-            operationId = local?.optString("operation_id", operationId) ?: operationId
+            operationId =
+                local?.optString("operation_id")?.takeIf { it.isNotBlank() }
+                    ?: UUID.randomUUID().toString()
             if (raw == null && id.isNotEmpty()) {
                 val data = controller.query("get_settlement", JSONObject().put("settlement_id", id))
                 val row = data.getJSONObject("record")
