@@ -6068,8 +6068,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "PLANNING_RESUME_RETAINS_ORIGINAL_INPUT",
         )
         click("Ungespeicherten Entwurf verwerfen")
+        waitStable("PLANNING_DISCARD_REMOVES_DRAFT", stableMs = 500) {
+            store.ownerValue(planningDraft, "").isEmpty()
+        }
+        reveal(UiTags.PLANNING_TOUR)
         shown(UiTags.PRIMARY)
-        yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
         yes(
             PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() ==
                 before,
