@@ -305,18 +305,34 @@ internal fun NativeSettlementEditor(
             }
             if (raw == null) {
                 val business = context!!.optJSONObject("business_settings") ?: JSONObject()
+                val prefillArgs =
+                    JSONObject(controller.route.args.toString()).apply {
+                        put(
+                            "billing_interval",
+                            optString("billing_interval").ifBlank {
+                                business.optString("billing_interval").ifBlank { "minute" }
+                            },
+                        )
+                        put(
+                            "work_record_ids",
+                            JSONArray(
+                                settlementObjects(context!!.optJSONArray("worklogs"))
+                                    .filter {
+                                        BillingRules.recipient(it) == recipient &&
+                                            it.optInt("billed", 0) == 0
+                                    }
+                                    .map { it.getString("id") }
+                            ),
+                        )
+                    }
                 raw =
                     SettlementRules.prefill(
-                            controller.route.args,
+                            prefillArgs,
                             context!!.optJSONArray("worklogs"),
                             priorRecords,
                             business.optString("hourly_rate"),
                         )
                         .apply {
-                            put(
-                                "billing_interval",
-                                business.optString("billing_interval", "minute"),
-                            )
                             if (optString("payment_terms").isBlank())
                                 put("payment_terms", business.optString("default_payment_terms"))
                             if (optString("payment_details").isBlank())
