@@ -54,6 +54,16 @@ internal object PropertyTimelineRules {
             second.optString("customer_id").isBlank() ||
             first.optString("customer_id") == second.optString("customer_id")
 
+    fun contextIdentity(args: JSONObject): String =
+        contextReferences(args)
+            .apply {
+                for (field in listOf("date_from", "date_to")) if (
+                    !args.isNull(field) && args.optString(field).isNotBlank()
+                )
+                    put(field, args.getString(field))
+            }
+            .toString()
+
     /** Actual stored inverse references; child records never assign their siblings to an object. */
     private fun parentProperties(master: JSONObject, revier: JSONObject): ParentProperties {
         val inquiries = rows(revier, "inquiries")

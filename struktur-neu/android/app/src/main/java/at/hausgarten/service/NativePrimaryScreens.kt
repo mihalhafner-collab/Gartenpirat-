@@ -780,12 +780,19 @@ internal fun NativeContext(
     customerLabel: String = "Kunde",
     heading: Boolean = false,
 ) {
-    val encoded = args.toString()
-    var links by remember(encoded) { mutableStateOf(emptyList<Triple<String, String, String>>()) }
+    val encoded = PropertyTimelineRules.contextIdentity(args)
+    var links by
+        remember(encoded, customerLabel) {
+            mutableStateOf(emptyList<Triple<String, String, String>>())
+        }
     var period by remember(encoded) { mutableStateOf("") }
     var contextConflict by remember(encoded) { mutableStateOf(false) }
-    LaunchedEffect(encoded) {
-        val original = PropertyTimelineRules.contextReferences(args)
+    val changes by
+        remember(controller) { controller.store.nativeData().watchCommittedChanges() }
+            .collectAsStateWithLifecycle(-1L)
+    LaunchedEffect(encoded, customerLabel, changes) {
+        val scope = JSONObject(encoded)
+        val original = PropertyTimelineRules.contextReferences(scope)
         val resolved =
             if (original.length() == 0) original
             else
@@ -834,8 +841,10 @@ internal fun NativeContext(
         }
         links = found
         period =
-            if (args.optString("date_from").isNotEmpty() || args.optString("date_to").isNotEmpty())
-                listOf(args.optString("date_from"), args.optString("date_to"))
+            if (
+                scope.optString("date_from").isNotEmpty() || scope.optString("date_to").isNotEmpty()
+            )
+                listOf(scope.optString("date_from"), scope.optString("date_to"))
                     .filter { it.isNotEmpty() }
                     .map(::nativeDisplayDate)
                     .joinToString(" – ")

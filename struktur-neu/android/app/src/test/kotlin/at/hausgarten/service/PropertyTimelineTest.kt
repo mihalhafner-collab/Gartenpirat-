@@ -6,6 +6,67 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PropertyTimelineTest {
+    @Test
+    fun contextIdentityIgnoresTimerTicksAndTracksOnlyLinksAndPeriod() {
+        val args =
+            JSONObject()
+                .put("customer_id", "qa_customer")
+                .put("order_id", "qa_order")
+                .put("worked_ms", 1000)
+                .put("activity", "QA Text")
+        val before = args.toString()
+        val key = PropertyTimelineRules.contextIdentity(args)
+        assertEquals(
+            key,
+            PropertyTimelineRules.contextIdentity(
+                JSONObject(before)
+                    .put("worked_ms", 2000)
+                    .put("activity", "QA Text ergänzt")
+                    .put("revision_hash", "qa_tick")
+            ),
+        )
+        assertNotEquals(
+            key,
+            PropertyTimelineRules.contextIdentity(
+                JSONObject(before).put("order_id", "qa_other_order")
+            ),
+        )
+        assertNotEquals(
+            key,
+            PropertyTimelineRules.contextIdentity(JSONObject(before).put("date_from", "2026-11-09")),
+        )
+        assertEquals(before, args.toString())
+    }
+
+    @Test
+    fun inquiryOrderLinkUsesThePublishedUpdateContract() {
+        val create =
+            JSONObject()
+                .put("request_id", "qa_inquiry_create")
+                .put("customer_id", "qa_customer")
+                .put("property_id", "qa_property")
+                .put("title", "QA Anfrage")
+        McpSchema.validate(create, LocalWorkflowTools.schema("create_inquiry"))
+        var rejected = false
+        try {
+            McpSchema.validate(
+                JSONObject(create.toString()).put("order_id", "qa_order"),
+                LocalWorkflowTools.schema("create_inquiry"),
+            )
+        } catch (_: PixelMcpWriteTools.Rejected) {
+            rejected = true
+        }
+        assertTrue(rejected)
+        McpSchema.validate(
+            JSONObject()
+                .put("request_id", "qa_inquiry_link")
+                .put("inquiry_id", "qa_inquiry")
+                .put("expected_record_hash", "a".repeat(64))
+                .put("updates", JSONObject().put("order_id", "qa_order")),
+            LocalWorkflowTools.schema("update_inquiry"),
+        )
+    }
+
     private class Fixture {
         val master =
             JSONObject().apply {

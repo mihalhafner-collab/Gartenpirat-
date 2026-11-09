@@ -3507,6 +3507,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun awaitTimerCompletionReady(sessionId: String, expectedActivity: String) {
+        reveal("native-field:Tätigkeit *")
         val key =
             "native_form_draft:" +
                 PixelMcpWriteTools.hash("action:complete_work_session:$sessionId")
@@ -5256,10 +5257,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                             .put("request_id", "qa_timeline_inquiry")
                             .put("customer_id", customer)
                             .put("property_id", property)
-                            .put("order_id", order)
                             .put("title", "[TEST] QA Zeitleistenanfrage"),
                     )
                     .getString("inquiry_id")
+            val inquiryHash =
+                read("get_inquiry", JSONObject().put("inquiry_id", inquiry))
+                    .getString("record_hash")
+            read(
+                "update_inquiry",
+                JSONObject()
+                    .put("request_id", "qa_timeline_inquiry_order")
+                    .put("inquiry_id", inquiry)
+                    .put("expected_record_hash", inquiryHash)
+                    .put("updates", JSONObject().put("order_id", order)),
+            )
             val care =
                 read(
                         "create_care_plan",

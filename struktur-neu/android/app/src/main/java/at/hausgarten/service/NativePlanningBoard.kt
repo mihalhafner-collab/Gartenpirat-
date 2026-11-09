@@ -565,7 +565,7 @@ private fun PlanningBoardList(
             if (entry.warning || weatherDetails)
                 Text(
                     entry.weather.optString("label"),
-                    Modifier.padding(horizontal = 12.dp).semantics {
+                    Modifier.padding(horizontal = 12.dp).semantics(mergeDescendants = true) {
                         testTag = UiTags.planningWeather(entry.kind, entry.id)
                     },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -762,7 +762,7 @@ private fun PlanningBoardGrid(
                                 if (entry.warning || weatherDetails)
                                     Text(
                                         entry.weather.optString("label"),
-                                        Modifier.semantics {
+                                        Modifier.semantics(mergeDescendants = true) {
                                             testTag = UiTags.planningWeather(entry.kind, entry.id)
                                         },
                                         style = MaterialTheme.typography.bodySmall,
