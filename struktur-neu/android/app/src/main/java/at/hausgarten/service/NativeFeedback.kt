@@ -10,10 +10,29 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+
+/** Clearing pending restarts inspection; confirmed local cleanup belongs to the screen. */
+internal fun launchNativeAcknowledgement(
+    scope: CoroutineScope,
+    onFailure: () -> Unit,
+    acknowledge: suspend () -> Unit,
+): Job =
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        try {
+            acknowledge()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            onFailure()
+        }
+    }
 
 @Composable
 internal fun rememberNativePendingInspection(
@@ -28,6 +47,7 @@ internal fun rememberNativePendingInspection(
     var result by
         remember(tool, encoded) { mutableStateOf(PendingInspectionRules.Result("checking")) }
     val confirmed by rememberUpdatedState(onConfirmed)
+    val acknowledgementScope = rememberCoroutineScope()
     LaunchedEffect(tool, encoded, enabled, attempt) {
         if (!enabled || encoded == null) return@LaunchedEffect
         result = PendingInspectionRules.Result("checking")
@@ -40,7 +60,15 @@ internal fun rememberNativePendingInspection(
                     observed = { if (it.state != "waiting") result = it },
                 )
             result = checked
-            if (checked.state == "confirmed") confirmed(checked.proof)
+            if (checked.state == "confirmed") {
+                val complete = confirmed
+                launchNativeAcknowledgement(
+                    acknowledgementScope,
+                    onFailure = { result = PendingInspectionRules.Result("waiting") },
+                ) {
+                    complete(checked.proof)
+                }
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {

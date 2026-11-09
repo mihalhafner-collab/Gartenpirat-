@@ -1,12 +1,72 @@
 package at.hausgarten.service
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
 class PendingInspectionTest {
+    @Test
+    fun confirmedCleanupSurvivesRestartingItsInspectionEffect() = runBlocking {
+        val owner = Job()
+        val ownerScope = CoroutineScope(coroutineContext + owner)
+        val release = CompletableDeferred<Unit>()
+        var started = false
+        var finished = false
+        var failureReported = false
+        lateinit var acknowledgement: Job
+        try {
+            val inspection = launch {
+                acknowledgement =
+                    launchNativeAcknowledgement(ownerScope, { failureReported = true }) {
+                        started = true
+                        release.await()
+                        finished = true
+                    }
+                cancel()
+            }
+            inspection.join()
+            assertTrue(inspection.isCancelled)
+            assertTrue(started)
+            assertTrue(acknowledgement.isActive)
+            assertFalse(finished)
+            release.complete(Unit)
+            acknowledgement.join()
+            assertTrue(finished)
+            assertFalse(failureReported)
+        } finally {
+            owner.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun confirmedCleanupStopsWhenItsOwningScreenCloses() = runBlocking {
+        val owner = Job()
+        val ownerScope = CoroutineScope(coroutineContext + owner)
+        val release = CompletableDeferred<Unit>()
+        var started = false
+        var finished = false
+        var failureReported = false
+        val acknowledgement =
+            launchNativeAcknowledgement(ownerScope, { failureReported = true }) {
+                started = true
+                release.await()
+                finished = true
+            }
+        assertTrue(started)
+        owner.cancelAndJoin()
+        assertTrue(acknowledgement.isCancelled)
+        assertFalse(finished)
+        assertFalse(failureReported)
+    }
+
     private fun original() =
         JSONObject()
             .put("request_id", "qa_background_original")
