@@ -1760,7 +1760,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(node("Büro") == null, "FOUR_MAIN_AREAS_WITHOUT_OFFICE_TAB")
         for ((label, rootText) in
             listOf(
-                "planning" to "Termin planen",
+                "planning" to UiTags.PRIMARY,
                 "customers" to "Suchen",
                 "accounting" to "Summen",
                 "today" to "Einsätze heute",
@@ -1812,7 +1812,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         openOffice()
         click(UiTags.area("planning"))
-        shown("Termin planen")
+        shown(UiTags.PRIMARY)
         reveal("[TEST] QA Grafik Gartenpflege")
         scrollTop()
         captureSyntheticScreen("graphics-planning")
@@ -2003,6 +2003,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("domain_search", ::domainSearchJourney)
             journey("grouped_search", ::groupedSearchJourney)
             journey("list_actions", ::listActionsJourney)
+            journey("planning_board", ::planningBoardJourney)
             journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
@@ -4821,6 +4822,347 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
     }
 
+    /** Real long-press drags, shared planning reads, weather and a blocked external map handoff. */
+    private fun planningBoardJourney() {
+        val beforeMaster = JSONObject(store.getState().getJSONObject("master").toString())
+        val beforeOwners = mutableListOf<Pair<String, String>>()
+        val beforePending = mutableListOf<Array<String>>()
+        store.readableDatabase.rawQuery("SELECT key,value FROM owner_state", null).use { cursor ->
+            while (cursor.moveToNext()) beforeOwners += cursor.getString(0) to cursor.getString(1)
+        }
+        store.readableDatabase
+            .rawQuery("SELECT id,kind,payload,created_at FROM pending", null)
+            .use { cursor ->
+                while (cursor.moveToNext()) beforePending += Array(4) { cursor.getString(it) }
+            }
+        val day = LocalDate.now(ZoneId.of("Europe/Vienna"))
+        val zone = ZoneId.of("Europe/Vienna")
+        val customer = customers(fixturePrefix + "000").single().getString("id")
+        val appointmentId = "qa_board_ui_appointment"
+        val monitorResult = java.util.concurrent.atomic.AtomicReference<String>()
+        val monitor =
+            object : Instrumentation.ActivityMonitor() {
+                override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? {
+                    if (intent.action != Intent.ACTION_VIEW) return null
+                    monitorResult.set(intent.dataString)
+                    return Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null)
+                }
+            }
+        var monitorInstalled = false
+        try {
+            fun property(suffix: String, latitude: Double, longitude: Double) =
+                read(
+                        "create_property",
+                        JSONObject()
+                            .put("request_id", "qa_board_property_$suffix")
+                            .put("customer_id", customer)
+                            .put("name", "[TEST] QA Planungsobjekt $suffix")
+                            .put("address", "[TEST] QA Gartenweg $suffix")
+                            .put("latitude", latitude)
+                            .put("longitude", longitude),
+                    )
+                    .getString("property_id")
+            val firstProperty = property("a", 48.2, 16.3)
+            val secondProperty = property("b", 48.21, 16.32)
+            fun visit(suffix: String, propertyId: String, begin: String, end: String) =
+                read(
+                        "plan_visit",
+                        JSONObject()
+                            .put("request_id", "qa_board_visit_$suffix")
+                            .put("property_id", propertyId)
+                            .put("date", day.toString())
+                            .put("title", "[TEST] QA Planungseinsatz $suffix")
+                            .put("planned_minutes", 60)
+                            .put("window_start", begin)
+                            .put("window_end", end),
+                    )
+                    .getString("visit_id")
+            val firstVisit = visit("a", firstProperty, "09:00", "10:00")
+            val secondVisit = visit("b", secondProperty, "15:00", "16:00")
+            val appointment =
+                JSONObject()
+                    .put("id", appointmentId)
+                    .put("customer_id", customer)
+                    .put("title", "[TEST] QA Planungstermin")
+                    .put("purpose", "work")
+                    .put("starts_at", day.atTime(12, 0).atZone(zone).toInstant().toString())
+                    .put("ends_at", day.atTime(13, 0).atZone(zone).toInstant().toString())
+                    .put("timezone", zone.id)
+                    .put("location", "[TEST] QA Terminort")
+                    .put("latitude", 48.25)
+                    .put("longitude", 16.35)
+                    .put("weather_profile", "general")
+                    .put("status", "confirmed")
+                    .put("travel_minutes", 0)
+                    .put("break_minutes", 0)
+                    .put("notes", "")
+                    .put("scope_refs", JSONArray())
+            val master = JSONObject(beforeMaster.toString())
+            master.getJSONArray("appointments").put(appointment)
+            store.putOwnerValue("snapshot", master.toString())
+            val tour = read("get_day_tour", JSONObject().put("date", day.toString()))
+            read(
+                "set_day_tour",
+                JSONObject()
+                    .put("request_id", "qa_board_initial_tour")
+                    .put("date", day.toString())
+                    .put("expected_record_hash", tour.getString("record_hash"))
+                    .put("visit_ids", JSONArray().put(firstVisit).put(secondVisit)),
+            )
+
+            // Synthetic hourly data; no weather request or network dependency.
+            val times = JSONArray()
+            val temperature = JSONArray()
+            val rain = JSONArray()
+            val gust = JSONArray()
+            val probability = JSONArray()
+            val base = day.atStartOfDay(zone).toEpochSecond()
+            for (hour in 0..25) {
+                times.put(base + hour * 3600L)
+                temperature.put(15)
+                rain.put(8)
+                gust.put(90)
+                probability.put(90)
+            }
+            val cache =
+                JSONObject()
+                    .put("fetched_at", java.time.Instant.now().toString())
+                    .put(
+                        "forecast",
+                        JSONObject()
+                            .put(
+                                "hourly",
+                                JSONObject()
+                                    .put("time", times)
+                                    .put("temperature_2m", temperature)
+                                    .put("precipitation", rain)
+                                    .put("wind_gusts_10m", gust)
+                                    .put("weather_code", JSONArray((0..25).map { 95 }))
+                                    .put("precipitation_probability", probability),
+                            ),
+                    )
+            store.putOwnerValue(
+                "weather:" +
+                    WeatherRiskRules.locationKey(
+                        JSONObject().put("latitude", 48.2).put("longitude", 16.3)
+                    ),
+                cache.toString(),
+            )
+            val priorSettings = store.ownerValue("planning:settings", "{}")
+            store.putOwnerValue(
+                "planning:settings",
+                JSONObject(priorSettings).put("weather_enabled", true).toString(),
+            )
+            store.notifyCommittedChange()
+            val boardArgs =
+                JSONObject()
+                    .put("date_from", day.toString())
+                    .put("date_to", day.toString())
+                    .put("limit", 50)
+            val board = read("get_planning_board", boardArgs)
+            val items = SettlementRules.rows(board.getJSONArray("items"))
+            yes(
+                items.map { it.getJSONObject("record").getString("id") }.toSet() ==
+                    setOf(firstVisit, secondVisit, appointmentId),
+                "BOARD_READ_HAS_BOTH_PLANNING_KINDS",
+            )
+            yes(
+                items
+                    .single { it.getJSONObject("record").optString("id") == firstVisit }
+                    .getJSONObject("weather")
+                    .optString("severity") == "critical",
+                "BOARD_VISIT_WEATHER_FROM_KNOWN_OBJECT",
+            )
+            fun stateHash() =
+                PixelMcpWriteTools.hash(
+                    JSONObject()
+                        .put("master", PixelMcpReadTools.effective(store.getState()))
+                        .put(
+                            "visit_a",
+                            read("get_visit", JSONObject().put("visit_id", firstVisit))
+                                .getString("record_hash"),
+                        )
+                        .put(
+                            "visit_b",
+                            read("get_visit", JSONObject().put("visit_id", secondVisit))
+                                .getString("record_hash"),
+                        )
+                        .put(
+                            "property_a",
+                            read("get_property", JSONObject().put("property_id", firstProperty))
+                                .getString("record_hash"),
+                        )
+                        .put(
+                            "property_b",
+                            read("get_property", JSONObject().put("property_id", secondProperty))
+                                .getString("record_hash"),
+                        )
+                        .put(
+                            "tour",
+                            read("get_day_tour", JSONObject().put("date", day.toString()))
+                                .getString("record_hash"),
+                        )
+                )
+            val beforeViews = stateHash()
+            click(UiTags.area("planning"))
+            click(UiTags.area("planning"))
+            reveal(UiTags.planningWeather("visit", firstVisit))
+            click(UiTags.planningView("week"))
+            shown(UiTags.PLANNING_GRID)
+            click(UiTags.planningView("map"))
+            shown(UiTags.PLANNING_MAP)
+            click(UiTags.planningView("day"))
+            shown(UiTags.PLANNING_GRID)
+            yes(stateHash() == beforeViews, "BOARD_VIEWS_AND_WEATHER_ARE_READ_ONLY")
+            store.putOwnerValue("planning:settings", priorSettings)
+            store.notifyCommittedChange()
+
+            fun dragHalfHour(kind: String, id: String) {
+                val tag = UiTags.planningEntry(kind, id)
+                reveal(tag)
+                var hit = Rect()
+                waitUntil("BOARD_REAL_DRAG_TARGET_$tag") {
+                    val target = node(tag) ?: return@waitUntil false
+                    hit = Rect().also(target::getBoundsInScreen)
+                    var parent = target.parent
+                    while (parent != null) {
+                        val bounds = Rect().also(parent::getBoundsInScreen)
+                        if (!bounds.isEmpty && !hit.intersect(bounds)) return@waitUntil false
+                        parent = parent.parent
+                    }
+                    val minimum = (48 * context.resources.displayMetrics.density).toInt()
+                    hit.width() >= minimum && hit.height() >= minimum
+                }
+                val down = SystemClock.uptimeMillis()
+                val delta = 30 * context.resources.displayMetrics.density
+                fun event(action: Int, y: Float) {
+                    val motion =
+                        MotionEvent.obtain(
+                            down,
+                            SystemClock.uptimeMillis(),
+                            action,
+                            hit.exactCenterX(),
+                            y,
+                            0,
+                        )
+                    motion.source = InputDevice.SOURCE_TOUCHSCREEN
+                    try {
+                        yes(automation.injectInputEvent(motion, true), "BOARD_DRAG_TOUCH_$tag")
+                    } finally {
+                        motion.recycle()
+                    }
+                }
+                event(MotionEvent.ACTION_DOWN, hit.exactCenterY())
+                SystemClock.sleep(
+                    android.view.ViewConfiguration.getLongPressTimeout().toLong() + 150
+                )
+                for (step in 1..12) {
+                    SystemClock.sleep(16)
+                    event(MotionEvent.ACTION_MOVE, hit.exactCenterY() + delta * step / 12)
+                }
+                event(MotionEvent.ACTION_UP, hit.exactCenterY() + delta)
+            }
+            dragHalfHour("visit", firstVisit)
+            waitUntil("BOARD_VISIT_DRAG_COMMITTED") {
+                read("get_visit", JSONObject().put("visit_id", firstVisit))
+                    .getJSONObject("record")
+                    .optString("window_start") == "09:30"
+            }
+            val movedVisit =
+                read("get_visit", JSONObject().put("visit_id", firstVisit)).getJSONObject("record")
+            yes(
+                movedVisit.optString("window_end") == "10:30" &&
+                    movedVisit.optInt("planned_minutes") == 60 &&
+                    movedVisit.optString("property_id") == firstProperty,
+                "BOARD_VISIT_DURATION_AND_RELATIONS_RETAINED",
+            )
+            dragHalfHour("appointment", appointmentId)
+            waitUntil("BOARD_APPOINTMENT_DRAG_COMMITTED") {
+                read("get_appointment", JSONObject().put("appointment_id", appointmentId))
+                    .getJSONObject("appointment")
+                    .optString("starts_at") ==
+                    day.atTime(12, 30).atZone(zone).toInstant().toString()
+            }
+            val movedAppointment =
+                read("get_appointment", JSONObject().put("appointment_id", appointmentId))
+                    .getJSONObject("appointment")
+            yes(
+                movedAppointment.getString("ends_at") ==
+                    day.atTime(13, 30).atZone(zone).toInstant().toString(),
+                "BOARD_APPOINTMENT_DURATION_RETAINED",
+            )
+            recreate()
+            yes(
+                read("get_visit", JSONObject().put("visit_id", firstVisit))
+                    .getJSONObject("record")
+                    .optString("window_start") == "09:30",
+                "BOARD_DRAG_DURABLE_AFTER_RECREATION",
+            )
+            click(UiTags.PLANNING_TOUR)
+            if (node(UiTags.TOUR_ORDER)?.isSelected != true) click(UiTags.TOUR_ORDER)
+            click(UiTags.tourMove(secondVisit, "up"))
+            click(UiTags.TOUR_SAVE)
+            waitUntil("BOARD_TOUR_ORDER_COMMITTED") {
+                val current =
+                    read("get_day_tour", JSONObject().put("date", day.toString()))
+                        .getJSONObject("tour")
+                        .getJSONArray("visit_ids")
+                current.length() == 2 &&
+                    current.optString(0) == secondVisit &&
+                    current.optString(1) == firstVisit
+            }
+            val saved = read("get_day_tour", JSONObject().put("date", day.toString()))
+            val navigation =
+                read(
+                    "get_tour_navigation",
+                    JSONObject()
+                        .put("date", day.toString())
+                        .put("expected_record_hash", saved.getString("record_hash")),
+                )
+            yes(
+                navigation.getString("target_visit_id") == secondVisit,
+                "BOARD_NAVIGATION_USES_FIRST_SAVED_STOP",
+            )
+            val beforeNavigation = stateHash()
+            test.addMonitor(monitor)
+            monitorInstalled = true
+            click(UiTags.TOUR_NAVIGATE)
+            waitUntil("BOARD_EXTERNAL_NAVIGATION_INTENT") {
+                monitorResult.get()?.startsWith("google.navigation:") == true
+            }
+            yes(
+                monitorResult.get().contains(Uri.encode("48.21,16.32")),
+                "BOARD_MAP_HANDOFF_HAS_CORRECT_DESTINATION",
+            )
+            yes(stateHash() == beforeNavigation, "BOARD_NAVIGATION_DOES_NOT_WRITE_BUSINESS_DATA")
+            captureSyntheticScreen("planning-board-tour")
+        } finally {
+            if (monitorInstalled) test.removeMonitor(monitor)
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            test.waitForIdleSync()
+            val db = store.writableDatabase
+            store.beginBusinessTransaction(db)
+            try {
+                db.delete("pending", null, null)
+                for (row in beforePending) db.execSQL(
+                    "INSERT INTO pending(id,kind,payload,created_at) VALUES(?,?,?,?)",
+                    row,
+                )
+                db.delete("owner_state", null, null)
+                for ((key, value) in beforeOwners) db.execSQL(
+                    "INSERT INTO owner_state(key,value) VALUES(?,?)",
+                    arrayOf(key, value),
+                )
+                store.putOwnerValue("snapshot", beforeMaster.toString())
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            store.notifyCommittedChange()
+            launch()
+        }
+    }
+
     private fun groupedSearchJourney() {
         val name = "[TEST] QA Gruppensuche Kunde"
         val source = JSONObject(store.getState().getJSONObject("master").toString())
@@ -5035,7 +5377,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("equipment-picker") {
             openOffice()
             click(UiTags.area("planning"))
-            click("Alle Geplante Einsätze")
+            click(UiTags.FILTER)
+            click(UiTags.PLANNING_ALL_VISITS)
             enter("Suchen", "QA Kontexteinsatz 0")
             click("QA Kontexteinsatz 0")
             click("Bearbeiten")
@@ -5053,7 +5396,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("planning-picker") {
             openOffice()
             click(UiTags.area("planning"))
-            click("Termin planen")
+            click(UiTags.PRIMARY)
             click("Kunde: Bitte wählen")
             keyboardSearchProof(
                 "planning-picker",
@@ -5477,18 +5820,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("inquiries", "Anfrage anlegen") { openOfficeEntry("Anfragen") }
         case("orders", "Auftrag anlegen") { openOfficeEntry("Aufträge") }
         case("care-plans", "Pflegeplan anlegen") { openOfficeEntry("Pflegepläne") }
-        case("planning", "Termin planen", true) { planning() }
+        case("planning", UiTags.PRIMARY, true) { planning() }
         case("visits", "Einsatz anlegen") {
             planning()
-            click("Alle Geplante Einsätze")
+            click(UiTags.FILTER)
+            click(UiTags.PLANNING_ALL_VISITS)
         }
         case("tour", "Datum öffnen") {
             planning()
-            click("Tagestour")
+            click(UiTags.PLANNING_TOUR)
         }
-        case("weather", "Termine ansehen") {
+        case("weather", UiTags.PLANNING_WEATHER_DETAILS) {
             planning()
-            click("Wetter")
+            click(UiTags.FILTER)
+            click(UiTags.PLANNING_WEATHER_DETAILS)
         }
         case("billing", "Arbeiten prüfen", true) { billing() }
         case("offers", "Angebot anlegen") {
@@ -5650,9 +5995,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             font >= 1.99f
         }
         checks++
-        shown("Termin planen")
-        val plan = visibleResult("Termin planen")
-        val check = visibleResult("Kalender prüfen", scrollIntoView = true)
+        shown(UiTags.PRIMARY)
+        click(UiTags.FILTER)
+        val check = visibleResult(UiTags.PLANNING_SYNC, scrollIntoView = true)
+        val plan = visibleResult(UiTags.PRIMARY)
         yes(!Rect.intersects(plan, check), "LARGE_TEXT_ACTIONS_DO_NOT_OVERLAP")
         val frame = Rect()
         val safe = Rect()
@@ -5684,7 +6030,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         captureSyntheticScreen("planning-large-font")
         val before =
             PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length()
-        click("Termin planen")
+        click(UiTags.PRIMARY)
         shown("Termin speichern")
         chooseDateTime("Geplanter Beginn *", "2027-05-19T09:00")
         val planningDraft =
@@ -5713,11 +6059,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "DRAFT_IS_NOT_APPOINTMENT",
         )
         back()
-        shown("Entwurf fortsetzen")
-        click("Entwurf fortsetzen")
+        click(UiTags.PRIMARY)
+        revealContaining("19. Mai 2027 · 09:00")
+        yes(
+            JSONObject(store.ownerValue(planningDraft, "{}"))
+                .getJSONObject("values")
+                .getString("local_start") == "2027-05-19T09:00",
+            "PLANNING_RESUME_RETAINS_ORIGINAL_INPUT",
+        )
         click("Ungespeicherten Entwurf verwerfen")
-        shown("Termin planen")
-        yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")
+        waitStable("PLANNING_DISCARD_REMOVES_DRAFT", stableMs = 500) {
+            store.ownerValue(planningDraft, "").isEmpty()
+        }
+        reveal(UiTags.PLANNING_TOUR)
+        shown(UiTags.PRIMARY)
         yes(
             PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() ==
                 before,

@@ -3407,6 +3407,7 @@ private fun RevierTour(controller: NativeAppController) {
     var revision by remember { mutableIntStateOf(0) }
     var comparison by remember { mutableStateOf<JSONObject?>(null) }
     var reviewed by remember { mutableStateOf(false) }
+    var ordering by remember(date) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val key = "revier:tour:$date"
     fun retain() {
@@ -3442,6 +3443,7 @@ private fun RevierTour(controller: NativeAppController) {
                     ?: result.getString("record_hash")
             pending = saved?.optJSONObject("pending")
             restored = saved?.optBoolean("_restore_action_review_required") == true
+            ordering = saved != null || result.getJSONObject("tour").optBoolean("needs_review")
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
@@ -3524,7 +3526,16 @@ private fun RevierTour(controller: NativeAppController) {
                     ) {
                         Text("Datum öffnen")
                     }
-                    Text("Reihenfolge für den gesamten Tag festlegen.")
+                    FilterChip(
+                        ordering,
+                        { ordering = !ordering },
+                        label = { Text("Reihenfolge") },
+                        modifier = Modifier.semantics { testTag = UiTags.TOUR_ORDER },
+                    )
+                    Text(
+                        "Navigation führt zum ersten gespeicherten Stopp.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     NativeContext(controller, controller.route.args)
                     if (tour?.optJSONObject("tour")?.optBoolean("needs_review") == true)
                         Text(
@@ -3565,13 +3576,15 @@ private fun RevierTour(controller: NativeAppController) {
                 }
             }
             items(
-                available.sortedWith(
-                    compareBy<JSONObject> {
-                            selected.indexOf(it.getString("id")).takeIf { index -> index >= 0 }
-                                ?: Int.MAX_VALUE
-                        }
-                        .thenBy { it.optString("title") }
-                ),
+                available
+                    .filter { ordering || it.getString("id") in selected }
+                    .sortedWith(
+                        compareBy<JSONObject> {
+                                selected.indexOf(it.getString("id")).takeIf { index -> index >= 0 }
+                                    ?: Int.MAX_VALUE
+                            }
+                            .thenBy { it.optString("title") }
+                    ),
                 key = { it.getString("id") },
             ) { visit ->
                 val visitId = visit.getString("id")
@@ -3582,15 +3595,18 @@ private fun RevierTour(controller: NativeAppController) {
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Row {
-                            Checkbox(
-                                index >= 0,
-                                { checked ->
-                                    selected =
-                                        if (checked) selected + visitId else selected - visitId
-                                    retain()
-                                },
-                                enabled = !busy && pending == null && !restored,
-                            )
+                            if (ordering)
+                                Checkbox(
+                                    index >= 0,
+                                    { checked ->
+                                        selected =
+                                            if (checked) selected + visitId else selected - visitId
+                                        retain()
+                                    },
+                                    enabled = !busy && pending == null && !restored,
+                                    modifier =
+                                        Modifier.semantics { testTag = UiTags.tourSelect(visitId) },
+                                )
                             Column(Modifier.padding(top = 8.dp)) {
                                 Text(
                                     (if (index >= 0) "${index + 1}. " else "") +
@@ -3612,34 +3628,44 @@ private fun RevierTour(controller: NativeAppController) {
                             TextButton({ controller.navigate("visits", visitId, "detail") }) {
                                 Text("Details")
                             }
-                            TextButton(
-                                {
-                                    selected =
-                                        selected.toMutableList().apply {
-                                            java.util.Collections.swap(this, index, index - 1)
-                                        }
-                                    retain()
-                                },
-                                enabled = index > 0 && pending == null && !restored && !busy,
-                            ) {
-                                Text("Nach oben")
-                            }
-                            TextButton(
-                                {
-                                    selected =
-                                        selected.toMutableList().apply {
-                                            java.util.Collections.swap(this, index, index + 1)
-                                        }
-                                    retain()
-                                },
-                                enabled =
-                                    index >= 0 &&
-                                        index < selected.lastIndex &&
-                                        pending == null &&
-                                        !restored &&
-                                        !busy,
-                            ) {
-                                Text("Nach unten")
+                            if (ordering) {
+                                TextButton(
+                                    {
+                                        selected =
+                                            selected.toMutableList().apply {
+                                                java.util.Collections.swap(this, index, index - 1)
+                                            }
+                                        retain()
+                                    },
+                                    modifier =
+                                        Modifier.semantics {
+                                            testTag = UiTags.tourMove(visitId, "up")
+                                        },
+                                    enabled = index > 0 && pending == null && !restored && !busy,
+                                ) {
+                                    Text("Nach oben")
+                                }
+                                TextButton(
+                                    {
+                                        selected =
+                                            selected.toMutableList().apply {
+                                                java.util.Collections.swap(this, index, index + 1)
+                                            }
+                                        retain()
+                                    },
+                                    modifier =
+                                        Modifier.semantics {
+                                            testTag = UiTags.tourMove(visitId, "down")
+                                        },
+                                    enabled =
+                                        index >= 0 &&
+                                            index < selected.lastIndex &&
+                                            pending == null &&
+                                            !restored &&
+                                            !busy,
+                                ) {
+                                    Text("Nach unten")
+                                }
                             }
                         }
                     }
@@ -3656,44 +3682,103 @@ private fun RevierTour(controller: NativeAppController) {
             }) {
                 Text("Besuche")
             }
-            Button(
-                {
-                    if (pending != null) save(requireNotNull(pending))
-                    else {
-                        val previous =
-                            tour
-                                ?.optJSONObject("tour")
-                                ?.optJSONArray("visit_ids")
-                                ?.let { ids -> (0 until ids.length()).map { ids.getString(it) } }
-                                .orEmpty()
-                        val changed =
-                            if (previous.size == selected.size)
-                                previous.indices.filter { previous[it] != selected[it] }
-                            else emptyList()
-                        val adjacent =
-                            changed.size == 2 &&
-                                changed[1] == changed[0] + 1 &&
-                                previous[changed[0]] == selected[changed[1]] &&
-                                previous[changed[1]] == selected[changed[0]]
-                        val args =
-                            JSONObject()
-                                .put("request_id", revierRequest())
-                                .put("date", date)
-                                .put("expected_record_hash", originalHash)
-                        if (adjacent)
-                            args.put("visit_id", previous[changed[0]]).put("direction", "down")
-                        else args.put("visit_ids", JSONArray(selected))
-                        save(
-                            JSONObject()
-                                .put("tool", if (adjacent) "move_tour_stop" else "set_day_tour")
-                                .put("args", args)
-                        )
-                    }
-                },
-                enabled = !busy && originalHash.isNotEmpty(),
-            ) {
-                Text(if (pending != null) "Ergebnis prüfen" else "Tour speichern")
-            }
+            if (ordering || pending != null)
+                Button(
+                    {
+                        if (pending != null) save(requireNotNull(pending))
+                        else {
+                            val previous =
+                                tour
+                                    ?.optJSONObject("tour")
+                                    ?.optJSONArray("visit_ids")
+                                    ?.let { ids ->
+                                        (0 until ids.length()).map { ids.getString(it) }
+                                    }
+                                    .orEmpty()
+                            val changed =
+                                if (previous.size == selected.size)
+                                    previous.indices.filter { previous[it] != selected[it] }
+                                else emptyList()
+                            val adjacent =
+                                changed.size == 2 &&
+                                    changed[1] == changed[0] + 1 &&
+                                    previous[changed[0]] == selected[changed[1]] &&
+                                    previous[changed[1]] == selected[changed[0]]
+                            val args =
+                                JSONObject()
+                                    .put("request_id", revierRequest())
+                                    .put("date", date)
+                                    .put("expected_record_hash", originalHash)
+                            if (adjacent)
+                                args.put("visit_id", previous[changed[0]]).put("direction", "down")
+                            else args.put("visit_ids", JSONArray(selected))
+                            save(
+                                JSONObject()
+                                    .put("tool", if (adjacent) "move_tour_stop" else "set_day_tour")
+                                    .put("args", args)
+                            )
+                        }
+                    },
+                    modifier = Modifier.semantics { testTag = UiTags.TOUR_SAVE },
+                    enabled = !busy && originalHash.isNotEmpty(),
+                ) {
+                    Text(if (pending != null) "Ergebnis prüfen" else "Tour speichern")
+                }
+            if (!ordering)
+                Button(
+                    {
+                        scope.launch {
+                            busy = true
+                            try {
+                                val nav =
+                                    controller.query(
+                                        "get_tour_navigation",
+                                        JSONObject()
+                                            .put("date", date)
+                                            .put("expected_record_hash", originalHash),
+                                    )
+                                try {
+                                    controller.context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(nav.getString("navigation_uri")),
+                                        )
+                                    )
+                                } catch (_: android.content.ActivityNotFoundException) {
+                                    controller.context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(nav.getString("fallback_uri")),
+                                        )
+                                    )
+                                }
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (error: Exception) {
+                                failure =
+                                    nativeActionError(
+                                        error,
+                                        "Die Navigation konnte nicht geöffnet werden.",
+                                    )
+                            } finally {
+                                busy = false
+                            }
+                        }
+                    },
+                    Modifier.semantics { testTag = UiTags.TOUR_NAVIGATE },
+                    enabled =
+                        !busy &&
+                            !restored &&
+                            pending == null &&
+                            selected.isNotEmpty() &&
+                            tour?.optJSONObject("tour")?.optBoolean("needs_review") == false &&
+                            selected ==
+                                tour?.optJSONObject("tour")?.optJSONArray("visit_ids")?.let { ids ->
+                                    (0 until ids.length()).map { ids.getString(it) }
+                                },
+                ) {
+                    Text("Navigation starten")
+                }
         }
     }
     comparison?.let { current ->

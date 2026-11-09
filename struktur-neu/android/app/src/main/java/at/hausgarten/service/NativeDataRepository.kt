@@ -240,6 +240,85 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             }
             .flowOn(Dispatchers.IO)
 
+    /** One paged projection for both planning sources; original records are read by selected ID. */
+    internal fun planningBoard(args: JSONObject): JSONObject = readCurrent { db ->
+        val query = PlanningBoardRules.query(args)
+        val total =
+            db.rawQuery(query.countSql, query.values.toTypedArray()).use {
+                it.moveToFirst()
+                it.getInt(0)
+            }
+        val items = JSONArray()
+        val properties = mutableMapOf<String, JSONObject>()
+        db.rawQuery(query.pageSql, query.pageValues.toTypedArray()).use { cursor ->
+            while (cursor.moveToNext()) {
+                val collection = cursor.getString(0)
+                val kind = if (collection == "appointments") "appointment" else "visit"
+                val id = cursor.getString(1)
+                val source =
+                    record(db, collection, id)
+                        ?: error("Ein Planungseintrag ist nicht mehr lesbar.")
+                val compact = JSONObject()
+                for (key in
+                    listOf(
+                        "id",
+                        "title",
+                        "status",
+                        "customer_id",
+                        "order_id",
+                        "property_id",
+                        "care_plan_id",
+                        "date",
+                        "window_start",
+                        "window_end",
+                        "planned_minutes",
+                        "starts_at",
+                        "ends_at",
+                        "timezone",
+                        "weather_profile",
+                        "latitude",
+                        "longitude",
+                        "location",
+                    )) {
+                    if (source.has(key)) compact.put(key, source.get(key))
+                }
+                val propertyId = source.optString("property_id")
+                val property =
+                    if (propertyId.isBlank()) JSONObject()
+                    else
+                        properties.getOrPut(propertyId) {
+                            val current = record(db, "properties", propertyId) ?: JSONObject()
+                            JSONObject().apply {
+                                for (key in
+                                    listOf("id", "name", "address", "latitude", "longitude")) if (
+                                    current.has(key)
+                                )
+                                    put(key, current.get(key))
+                            }
+                        }
+                items.put(
+                    JSONObject()
+                        .put("kind", kind)
+                        .put("record", compact)
+                        .put("property", property)
+                        .put("title", cursor.getString(2))
+                        .put("subtitle", cursor.getString(3))
+                        .put(
+                            "record_hash",
+                            if (kind == "visit") RevierRules.hash(source)
+                            else AppointmentRules.hash(source),
+                        )
+                )
+            }
+        }
+        JSONObject()
+            .put("items", items)
+            .put("total", total)
+            .put("offset", query.offset)
+            .put("limit", query.limit)
+            .put("has_more", query.offset + items.length() < total)
+    }
+
     internal fun accountingRecord(args: JSONObject): JSONObject = readCurrent { db ->
         val requested = args.getString("collection")
         require(requested in setOf("orders", "worklogs"))

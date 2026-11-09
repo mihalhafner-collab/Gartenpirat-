@@ -2687,6 +2687,57 @@
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeListActions.kt"
+    },
+    {
+      "id": "planung.ansichten",
+      "area": "planung",
+      "action": "Planung Tag, Woche und Karte",
+      "source": "NativePlanningBoard.kt",
+      "mcp": [
+        "get_planning_board"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "PlanningBoardTest and native planning_board journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativePlanningBoard.kt"
+    },
+    {
+      "id": "planung.verschieben",
+      "area": "planung",
+      "action": "Einsatz mit langem Drücken verschieben",
+      "source": "NativePlanningBoard.kt",
+      "mcp": [
+        "get_planning_board",
+        "update_visit",
+        "update_appointment",
+        "inspect_edit_action"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "PlanningBoardTest and native planning_board journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativePlanningBoard.kt"
+    },
+    {
+      "id": "planung.navigation",
+      "area": "planung",
+      "action": "Tour-Reihenfolge und Navigation starten",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "get_day_tour",
+        "set_day_tour",
+        "move_tour_stop",
+        "get_tour_navigation"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "PlanningBoardTest and native planning_board journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "ComposeRevierScreens.kt"
     }
   ]
 }
