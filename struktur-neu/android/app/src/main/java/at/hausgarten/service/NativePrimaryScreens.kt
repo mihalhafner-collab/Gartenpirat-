@@ -471,9 +471,6 @@ internal fun NativeApplication(controller: NativeAppController) {
                                         "Lokale ZIP-Sicherung",
                                         style = MaterialTheme.typography.headlineSmall,
                                     )
-                                    Text(
-                                        "Eine unverschlüsselte ZIP-Datei mit dem vorhandenen Bestand. Das Ziel wählst du im Android-Dateidialog."
-                                    )
                                 }
                                 NativeActionBar(
                                     "Sicherung öffnen",
@@ -3342,9 +3339,6 @@ private fun NativeEntityEditor(
             if (savedWorkId.isNotEmpty()) {
                 item {
                     NativeStatus("Arbeit gespeichert · Foto noch offen", NativeStatusTone.Attention)
-                    Text(
-                        "Die gespeicherte Arbeit bleibt erhalten. Foto speichern oder nur den verbliebenen Fotoentwurf verwerfen."
-                    )
                 }
             } else if (restored || conflict || pending != null) {
                 item {
@@ -4251,8 +4245,7 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
                             }
                         NativeInfoRow(
                             "Foto hinzufügen",
-                            "Zur gestoppten Arbeit · Abschluss bleibt erhalten",
-                            {
+                            onClick = {
                                 controller.navigate(
                                     "photos",
                                     mode = "import",
@@ -4264,8 +4257,7 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
                         )
                         NativeInfoRow(
                             "Material",
-                            "Verbrauch zur gestoppten Arbeit buchen",
-                            {
+                            onClick = {
                                 controller.navigate(
                                     "materials",
                                     mode = "consumption",
@@ -4974,7 +4966,6 @@ private fun NativeStorageSettings(controller: NativeAppController) {
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
-            Text("Entfernt ungenutzte Arbeitsdateien und alte interne Sicherungskopien.")
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (result.isNotEmpty()) NativeStatus(result, NativeStatusTone.Confirmed)
             if (error.isNotEmpty()) NativeStatus(error, NativeStatusTone.Attention)

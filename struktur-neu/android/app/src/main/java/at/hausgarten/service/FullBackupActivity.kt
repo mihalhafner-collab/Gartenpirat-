@@ -128,8 +128,7 @@ class FullBackupActivity : ComponentActivity() {
             },
         ) {
             BackHandler(enabled = busy || showWarnings || showCheck) {
-                if (busy) status = "Der Vorgang läuft noch. Bitte auf das Ergebnis warten."
-                else leaveScreen()
+                if (busy) status = "Vorgang läuft" else leaveScreen()
             }
             NativeStatus(statusLabel, if (busy) NativeStatusTone.Running else statusTone)
             Text(status)
@@ -366,7 +365,7 @@ class FullBackupActivity : ComponentActivity() {
         if (busy || !ready) return
         busy = true
         statusLabel = "Vorgang läuft"
-        status = "Bitte auf das Ergebnis warten."
+        status = "Vorgang läuft"
         WORK.launch {
             try {
                 task()
@@ -424,10 +423,8 @@ class FullBackupActivity : ComponentActivity() {
                         if (warningCount > 0) NativeStatusTone.Attention
                         else NativeStatusTone.Confirmed
                     status =
-                        if (warningCount > 0)
-                            "ZIP vollständig zurückgelesen; der Ausgangsbestand enthält Einschränkungen. Hinweise vor einer Wiederherstellung ansehen."
-                        else
-                            "ZIP vollständig zurückgelesen · keine Hinweise. Die Datei liegt am gewählten Speicherort."
+                        if (warningCount > 0) "ZIP geprüft · Ausgangsbestand mit Einschränkungen."
+                        else "ZIP geprüft."
                     request = ""
                     target = ""
                     showNewTarget = false
@@ -486,7 +483,7 @@ class FullBackupActivity : ComponentActivity() {
                 else "Datei geprüft"
             statusTone =
                 if (warningCount > 0) NativeStatusTone.Attention else NativeStatusTone.Neutral
-            status = "Vorschau bereit. Der aktuelle Bestand ist unverändert."
+            status = "Vorschau bereit."
             showCheck = true
             showActivate = true
             saveFinished = false
@@ -561,8 +558,7 @@ class FullBackupActivity : ComponentActivity() {
                         showCheck = true
                         statusLabel = "Datei gewählt"
                         statusTone = NativeStatusTone.Neutral
-                        status =
-                            "Zuerst die Datei prüfen und den Bestand vergleichen. Der aktuelle Bestand bleibt bis zur ausdrücklichen Bestätigung unverändert."
+                        status = "Datei noch nicht geprüft."
                     }
                 }
             } catch (_: Exception) {

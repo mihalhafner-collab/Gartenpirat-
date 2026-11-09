@@ -1552,10 +1552,6 @@ internal fun NativeConnections(controller: NativeAppController) {
                     { controller.open(PixelTunnelActivity::class.java) },
                 )
             }
-            Text(
-                "Dieser Statusabruf liest gespeicherte lokale Meldungen. Er löst keinen Kalenderabgleich und keine Wetterprüfung aus und bestätigt keine Schreibberechtigung bei fremden Diensten.",
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
         NativeActionBar(
             "Status prüfen",

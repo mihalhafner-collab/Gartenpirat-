@@ -1043,7 +1043,7 @@ private fun PlanningEditor(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Text(
-                        "${proposals.size} Vorschläge · noch nicht gespeichert. Jeder Einsatz wird beim Anlegen auf Überschneidungen geprüft; bestehende Einsätze werden nicht verschoben."
+                        "${proposals.size} Vorschläge · noch nicht gespeichert. Bestehende Einsätze werden nicht verschoben."
                     )
                     proposals.forEachIndexed { index, row ->
                         NativeInfoRow(
@@ -1246,11 +1246,7 @@ private fun PlanningEditor(
                 },
                 enabled,
             )
-            NativeInfoRow(
-                "Kalender und Wetter",
-                "Zusatzangaben bei Bedarf",
-                onClick = { more = !more },
-            )
+            NativeInfoRow("Kalender und Wetter", onClick = { more = !more })
             if (more) {
                 PlanningChoice(
                     "Wetterprofil",
@@ -1285,11 +1281,7 @@ private fun PlanningEditor(
                 )
             }
             if (!existing) {
-                NativeInfoRow(
-                    "Wiederholungen",
-                    "Vorschläge vor dem Anlegen prüfen",
-                    onClick = { repeatOpen = !repeatOpen },
-                )
+                NativeInfoRow("Wiederholungen", onClick = { repeatOpen = !repeatOpen })
                 if (repeatOpen) {
                     PlanningField(
                         "Anzahl Einsätze (1–26)",
@@ -1421,11 +1413,7 @@ private fun PlanningSuggestions(
     if (proposal != null)
         AlertDialog(
             onDismissRequest = { selected = null },
-            text = {
-                Text(
-                    "Dieses Zeitfenster in den Entwurf übernehmen? Gespeichert wird erst mit Einsatz speichern. Kundenverfügbarkeit ist separat zu bestätigen."
-                )
-            },
+            text = { Text("Dieses Zeitfenster in den Entwurf übernehmen?") },
             dismissButton = { NativeTextButton({ selected = null }) { Text("Abbrechen") } },
             confirmButton = {
                 NativeTextButton({

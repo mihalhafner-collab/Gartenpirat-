@@ -615,9 +615,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 refresh++
                 val saved = financeData(result)
                 if (tool == "finalize_offer") {
-                    controller.message(
-                        "Angebots-PDF lokal gespeichert. Teilen ist ein eigener Schritt."
-                    )
+                    controller.message("Angebots-PDF gespeichert.")
                     val finalizedId = action.second.optString("offer_id")
                     if (finalizedId != id) controller.navigate("offers", finalizedId)
                 }
@@ -2542,9 +2540,6 @@ private fun FinanceEditor(
                                 ) {
                                     Text("PDF erstellen")
                                 }
-                                Text(
-                                    "PDF erst nach vollständiger Prüfung. Der unvollständige Entwurf bleibt speicherbar."
-                                )
                             }
                         }
                     }

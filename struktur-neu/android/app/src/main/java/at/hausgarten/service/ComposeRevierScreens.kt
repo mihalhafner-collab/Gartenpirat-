@@ -1005,8 +1005,7 @@ private fun RevierDetail(
                     if (row.optString("order_id").isEmpty())
                         NativeInfoRow(
                             "Auftrag direkt annehmen",
-                            "Annahme und Nachweis prüfen",
-                            { onEdit("direct_acceptance", row, JSONObject()) },
+                            onClick = { onEdit("direct_acceptance", row, JSONObject()) },
                         )
                     NativeInfoRow(
                         if (row.optString("inspection_appointment_id").isEmpty())
@@ -1057,8 +1056,7 @@ private fun RevierDetail(
                 "care_plan" ->
                     NativeInfoRow(
                         "Besuche planen",
-                        "Zeitraum prüfen und fehlende Besuche erzeugen",
-                        { onEdit("generate", row, JSONObject()) },
+                        onClick = { onEdit("generate", row, JSONObject()) },
                     )
                 "visit" -> {
                     val warnings =
@@ -1120,9 +1118,6 @@ private fun RevierDetail(
                                     Text(
                                         "Noch kein Zubehör zugeordnet.",
                                         style = MaterialTheme.typography.titleMedium,
-                                    )
-                                    Text(
-                                        "Lege zum Beispiel eine Kette oder einen Akku an. Ein Foto kannst du direkt dazu aufnehmen oder auswählen."
                                     )
                                 }
                             }
@@ -1320,8 +1315,7 @@ private fun RevierDetail(
                     )
                     NativeInfoRow(
                         "Wartung einrichten",
-                        "Aufgabe und eigenes Intervall festlegen",
-                        {
+                        onClick = {
                             maintenancePicker = false
                             onEdit("maintenance_plan", row, JSONObject().put("equipment_id", id))
                         },
@@ -1603,8 +1597,7 @@ private fun RevierMaintenance(
     if (active)
         NativeInfoRow(
             "Wartung einrichten",
-            "Weitere Aufgabe und eigenes Intervall",
-            {
+            onClick = {
                 onEdit(
                     "maintenance_plan",
                     row,
@@ -4214,10 +4207,6 @@ private fun RevierAccessoryFields(
     Text(
         "Maschine: " + edit.original.optString("name"),
         style = MaterialTheme.typography.titleMedium,
-    )
-    Text(
-        "Fotos helfen beim Wiederfinden. Technische Angaben sind freiwillig.",
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     val entries = value.optJSONArray("accessories") ?: JSONArray()
     fun replace(index: Int, field: String, newValue: Any) {

@@ -2538,7 +2538,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Übersicht")
         click("Zubehör")
         click("Zubehör hinzufügen")
-        shown("Fotos helfen beim Wiederfinden. Technische Angaben sind freiwillig.")
+        shown("Maschine: " + name)
         click("Zubehör hinzufügen")
         click("Anderes Zubehör")
         click("Kette", scrollTo = false)

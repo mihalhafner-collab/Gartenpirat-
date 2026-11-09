@@ -1681,12 +1681,6 @@ private fun MediaZoomDialog(photoId: String, controller: NativeAppController, cl
                     contentScale = ContentScale.Fit,
                 )
             }
-            Text(
-                "Mit zwei Fingern vergrößern und verschieben.",
-                Modifier.padding(horizontal = 12.dp),
-                color = MaterialTheme.colorScheme.inverseOnSurface,
-                style = MaterialTheme.typography.bodySmall,
-            )
             Row(
                 Modifier.fillMaxWidth().padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
