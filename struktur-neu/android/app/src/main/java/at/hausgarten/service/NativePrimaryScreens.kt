@@ -248,6 +248,7 @@ internal fun NativeApplication(controller: NativeAppController) {
         }
     if (controller.workSaveOpen) {
         ModalBottomSheet(
+            modifier = Modifier.semantics { testTagsAsResourceId = true },
             onDismissRequest = { controller.workSaveOpen = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {

@@ -651,9 +651,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 )
             yes(save.performAction(AccessibilityNodeInfo.ACTION_CLICK), "SYSTEM_CREATE_CONFIRM")
             waitUntil("PRODUCTION_SAVE_VERIFIED", 45000) {
-                find(automation.rootInActiveWindow) {
-                    it.text?.toString()?.startsWith("ZIP vollständig zurückgelesen") == true
-                } != null
+                node("Gespeichert und geprüft") != null && node("ZIP geprüft.") != null
             }
             val id = stats().getString("last_created")
             yes(

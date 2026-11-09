@@ -40,7 +40,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         /** One journey per process, after pm clear on the disposable API 35 emulator. */
         @JvmStatic
         fun run(test: Instrumentation, journey: String): JSONObject =
-            NativeComposeAppTests(test).execute(journey)
+            NativeComposeAppTests(test).withActivities { execute(journey) }
 
         /**
          * Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider
@@ -48,21 +48,21 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
          */
         @JvmStatic
         fun runGraphics(test: Instrumentation, journey: String): JSONObject =
-            NativeComposeAppTests(test).executeGraphics(journey)
+            NativeComposeAppTests(test).withActivities { executeGraphics(journey) }
 
         @JvmStatic
         fun runSettlement(test: Instrumentation): JSONObject =
-            NativeComposeAppTests(test).executeSettlement()
+            NativeComposeAppTests(test).withActivities { executeSettlement() }
 
         @JvmStatic
         fun runAccounting(test: Instrumentation, reopen: Boolean): JSONObject =
-            NativeComposeAppTests(test).executeAccounting(reopen)
+            NativeComposeAppTests(test).withActivities { executeAccounting(reopen) }
     }
 
     private val context = test.targetContext
     private val automation = test.uiAutomation
     private var checks = 0
-    private var activity: Activity? = null
+    @Volatile private var activity: Activity? = null
     @Volatile private var latest: Activity? = null
     private val sharedSearchLabel = "Suchen"
     private val fixturePrefix = "[TEST] QA Native Page "
@@ -76,6 +76,45 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private val domainSearchCases = JSONArray()
     private val surfaceCases = JSONArray()
     private val listViewportCases = JSONArray()
+
+    private fun withActivities(block: NativeComposeAppTests.() -> JSONObject): JSONObject {
+        val application = context.applicationContext as Application
+        val callbacks =
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(value: Activity, state: Bundle?) {
+                    if (value is MainActivity) {
+                        latest = value
+                        activity = value
+                    }
+                }
+
+                override fun onActivityResumed(value: Activity) {
+                    if (value is MainActivity) {
+                        latest = value
+                        activity = value
+                    }
+                }
+
+                override fun onActivityDestroyed(value: Activity) {
+                    if (activity === value) activity = null
+                    if (latest === value) latest = null
+                }
+
+                override fun onActivityStarted(value: Activity) = Unit
+
+                override fun onActivityPaused(value: Activity) = Unit
+
+                override fun onActivityStopped(value: Activity) = Unit
+
+                override fun onActivitySaveInstanceState(value: Activity, state: Bundle) = Unit
+            }
+        application.registerActivityLifecycleCallbacks(callbacks)
+        return try {
+            block()
+        } finally {
+            application.unregisterActivityLifecycleCallbacks(callbacks)
+        }
+    }
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
@@ -178,9 +217,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun selectTab(tag: String) {
+        fun selected() =
+            nodes().any { candidate ->
+                candidate.isVisibleToUser &&
+                    matches(candidate, tag) &&
+                    generateSequence(candidate) { it.parent }.any { it.isSelected }
+            }
         reveal(tag)
-        if (node(tag)?.isSelected != true) click(tag)
-        waitUntil("TAB_SELECTED_$tag") { node(tag)?.isSelected == true }
+        if (!selected()) click(tag)
+        waitUntil("TAB_SELECTED_$tag") { selected() }
         checks++
     }
 
@@ -586,6 +631,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             var opened = false
             test.runOnMainSync {
                 val current = activity as? MainActivity ?: return@runOnMainSync
+                if (current.isDestroyed || current.isFinishing) return@runOnMainSync
                 val delegate =
                     MainActivity::class
                         .java
@@ -960,6 +1006,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             recreate()
             shown("[TEST] Erste Abrechnung")
             click("Entwurf sichern")
+            waitUntil("SETTLEMENT_UI_FIRST_NEW_DRAFT_SAVED") {
+                SettlementRules.rows(read("list_settlements").getJSONArray("records")).any {
+                    it.optString("title") == "[TEST] Erste Abrechnung"
+                }
+            }
+            shown("Abschlüsse")
             val firstNew =
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).single {
                     it.optString("title") == "[TEST] Erste Abrechnung"
@@ -973,9 +1025,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("Bezeichnung")
             yes(node("[TEST] Erste Abrechnung") == null, "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_FRESH")
             editValue("Bezeichnung", "Bezeichnung", "[TEST] Zweite Abrechnung")
+            reveal("Art: Rechnung")
+            click("Art: Rechnung")
             click("Labor clandestino")
             editValue("Menge · Stunden", "Menge", "2")
             click("Entwurf sichern")
+            waitUntil("SETTLEMENT_UI_SECOND_NEW_DRAFT_SAVED") {
+                SettlementRules.rows(read("list_settlements").getJSONArray("records")).any {
+                    it.optString("title") == "[TEST] Zweite Abrechnung"
+                }
+            }
+            shown("Abschlüsse")
             val secondNew =
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).single {
                     it.optString("title") == "[TEST] Zweite Abrechnung"
@@ -1002,6 +1062,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .singleOrNull { it.getString("id") == firstNew.getString("id") }
                     ?.optString("title") == "[TEST] Erste Abrechnung geprüft"
             }
+            shown("Abschlüsse")
             yes(
                 PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
                     originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks,
@@ -1595,7 +1656,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         // Design step 3: the next step of open work is to bill it; it opens the settlement editor.
         click(UiTags.PRIMARY)
-        shown("Rechnung")
+        shown("Art: Rechnung")
         back()
         waitUntil("WORK_DETAIL_AFTER_BILLING_EDITOR") { node(UiTags.DETAIL_MENU) != null }
         openWorklogs()
@@ -1848,40 +1909,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             view is ViewGroup && (0 until view.childCount).any { hasCompose(view.getChildAt(it)) }
 
     private fun recreate() {
-        val old = requireNotNull(activity)
-        latest = null
-        val callbacks =
-            object : Application.ActivityLifecycleCallbacks {
-                override fun onActivityCreated(value: Activity, state: Bundle?) {
-                    if (value is MainActivity && value !== old) latest = value
-                }
-
-                override fun onActivityStarted(value: Activity) = Unit
-
-                override fun onActivityResumed(value: Activity) = Unit
-
-                override fun onActivityPaused(value: Activity) = Unit
-
-                override fun onActivityStopped(value: Activity) = Unit
-
-                override fun onActivitySaveInstanceState(value: Activity, state: Bundle) = Unit
-
-                override fun onActivityDestroyed(value: Activity) = Unit
+        var old: Activity? = null
+        waitUntil("REAL_ACTIVITY_RECREATION_REQUESTED") {
+            var requested = false
+            test.runOnMainSync {
+                val current = activity ?: return@runOnMainSync
+                if (current.isDestroyed || current.isFinishing) return@runOnMainSync
+                old = current
+                latest = null
+                current.recreate()
+                requested = true
             }
-        old.application.registerActivityLifecycleCallbacks(callbacks)
-        try {
-            test.runOnMainSync { old.recreate() }
-            waitUntil("REAL_ACTIVITY_RECREATION") { latest != null && latest !== old }
-            activity = latest
-            waitUntil("RECREATED_COMPOSE") {
-                var found = false
-                test.runOnMainSync { found = hasCompose(requireNotNull(activity).window.decorView) }
-                found
-            }
-            checks++
-        } finally {
-            old.application.unregisterActivityLifecycleCallbacks(callbacks)
+            requested
         }
+        waitUntil("REAL_ACTIVITY_RECREATION") { latest != null && latest !== old }
+        waitUntil("RECREATED_COMPOSE") {
+            var found = false
+            test.runOnMainSync {
+                activity
+                    ?.takeUnless { it.isDestroyed || it.isFinishing }
+                    ?.let { found = hasCompose(it.window.decorView) }
+            }
+            found
+        }
+        checks++
     }
 
     private fun execute(selectedJourney: String): JSONObject {
@@ -2092,8 +2143,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         scrollTop()
         shown("$total Treffer · 1–50")
         searchCustomers(fixturePrefix + "054")
-        shown("1 Treffer")
         shown(fixturePrefix + "054")
+        yes(
+            customers(fixturePrefix + "054").single().getString("id") ==
+                lastPage.rows.single { it.title == fixturePrefix + "054" }.id,
+            "CUSTOMER_SEARCH_MATCHES_STORED_LAST_PAGE_RECORD",
+        )
         openCustomerList()
         click(UiTags.CREATE)
         click("Kunde")
@@ -2213,7 +2268,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("USABILITY_IME_HIDDEN") { !keyboardVisible() }
         }
         reveal(fixturePrefix + "054")
-        val retainedBounds = actionBounds(fixturePrefix + "054")
+        var retainedBounds = Rect()
+        var previousBounds = Rect()
+        waitStable("CUSTOMER_SCROLL_POSITION_BEFORE_LEAVING", stableMs = 500) {
+            val measured = runCatching { actionBounds(fixturePrefix + "054") }.getOrDefault(Rect())
+            val stable = !measured.isEmpty && measured == previousBounds
+            previousBounds = Rect(measured)
+            retainedBounds = measured
+            stable
+        }
+        val retainedViewport = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+        test.sendStatus(
+            0,
+            Bundle().apply {
+                putString(
+                    "customer_retained_bounds",
+                    "$retainedBounds viewport=$retainedViewport ime=${keyboardVisible()}",
+                )
+            },
+        )
         click(UiTags.area("today"))
         click(UiTags.area("customers"))
         shown("$total Treffer · 51–$total")
@@ -2227,12 +2300,43 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .any { it.title == fixturePrefix + "054" },
             "CUSTOMER_RESTORED_PAGE_MATCHES_DATA",
         )
+        var restoredBounds = Rect()
+        var priorRestoredBounds: Rect? = null
+        waitStable("CUSTOMER_SCROLL_POSITION_RESTORED retained=$retainedBounds", stableMs = 500) {
+            restoredBounds =
+                runCatching { actionBounds(fixturePrefix + "054") }.getOrDefault(Rect())
+            if (restoredBounds != priorRestoredBounds) {
+                test.sendStatus(
+                    0,
+                    Bundle().apply {
+                        putString("customer_restored_bounds", restoredBounds.toString())
+                    },
+                )
+                priorRestoredBounds = Rect(restoredBounds)
+            }
+            restoredBounds == retainedBounds
+        }
+        val restoredViewport = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
         yes(
-            actionBounds(fixturePrefix + "054") == retainedBounds,
-            "CUSTOMER_SCROLL_POSITION_PRESERVED_ON_ENTRY",
+            restoredBounds == retainedBounds,
+            "CUSTOMER_SCROLL_POSITION_PRESERVED_ON_ENTRY retained=$retainedBounds restored=$restoredBounds viewport=$restoredViewport ime=${keyboardVisible()}",
         )
         recreate()
         shown("$total Treffer · 51–$total")
+        waitStable(
+            "CUSTOMER_SCROLL_POSITION_AFTER_RECREATION retained=$retainedBounds",
+            stableMs = 500,
+        ) {
+            val measured = runCatching { actionBounds(fixturePrefix + "054") }.getOrDefault(Rect())
+            if (measured != priorRestoredBounds) {
+                test.sendStatus(
+                    0,
+                    Bundle().apply { putString("customer_recreated_bounds", measured.toString()) },
+                )
+                priorRestoredBounds = Rect(measured)
+            }
+            measured == retainedBounds
+        }
         yes(
             actionBounds(fixturePrefix + "054") == retainedBounds,
             "CUSTOMER_PAGE_AND_SCROLL_SURVIVE_RECREATION",
@@ -4642,18 +4746,37 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         fun swipe(tag: String, right: Boolean) {
             reveal(tag)
             var bounds = Rect()
+            var previousGeometry = ""
             waitUntil("SWIPE_REAL_TARGET_$tag") {
                 val target = node(tag) ?: return@waitUntil false
-                bounds = Rect().also(target::getBoundsInScreen)
-                val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
-                val density = context.resources.displayMetrics.density
+                val taggedBounds = Rect().also(target::getBoundsInScreen)
+                // SwipeToDismissBox also exposes its background semantics. Use the
+                // actual clickable content row inside this exact entity's gesture box.
+                val content =
+                    all(target).drop(1).firstOrNull { it.isVisibleToUser && it.isClickable }
+                        ?: target
+                bounds = Rect().also(content::getBoundsInScreen)
+                val screen = Rect()
+                var density = 0f
+                test.runOnMainSync {
+                    activity?.window?.decorView?.let {
+                        it.getWindowVisibleDisplayFrame(screen)
+                        density = it.resources.displayMetrics.density
+                    }
+                }
                 // Swipe the real 42 dp list row; the 48 dp minimum applies to buttons.
                 val visible =
-                    screen.contains(bounds) &&
+                    density > 0f &&
+                        screen.contains(bounds) &&
                         bounds.width() >= (48 * density).toInt() &&
                         bounds.height() >= (42 * density).toInt()
+                val geometry = "tag=$taggedBounds content=$bounds viewport=$screen density=$density"
+                if (geometry != previousGeometry) {
+                    test.sendStatus(0, Bundle().apply { putString("swipe_geometry", geometry) })
+                    previousGeometry = geometry
+                }
                 if (!visible) {
-                    target.performAction(
+                    content.performAction(
                         AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
                     )
                     settleUi()
@@ -4986,28 +5109,93 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
             fun dragHalfHour(kind: String, id: String) {
                 val tag = UiTags.planningEntry(kind, id)
-                reveal(tag)
-                var hit = Rect()
-                waitUntil("BOARD_REAL_DRAG_TARGET_$tag") {
-                    val target = node(tag) ?: return@waitUntil false
-                    hit = Rect().also(target::getBoundsInScreen)
+                reveal(UiTags.PLANNING_GRID)
+                val scrollUp = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.id
+                val scrollDown = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.id
+                fun boardScroller(): AccessibilityNodeInfo? {
+                    val grid = node(UiTags.PLANNING_GRID) ?: return null
+                    return all(grid).firstOrNull { candidate ->
+                        candidate.isScrollable &&
+                            candidate.actionList.any { it.id == scrollUp || it.id == scrollDown }
+                    }
+                }
+                fun visibleBounds(target: AccessibilityNodeInfo): Rect {
+                    val bounds = Rect().also(target::getBoundsInScreen)
                     var parent = target.parent
                     while (parent != null) {
-                        val bounds = Rect().also(parent::getBoundsInScreen)
-                        if (!bounds.isEmpty && !hit.intersect(bounds)) hit.setEmpty()
+                        val parentBounds = Rect().also(parent::getBoundsInScreen)
+                        if (!parentBounds.isEmpty && !bounds.intersect(parentBounds))
+                            bounds.setEmpty()
                         parent = parent.parent
                     }
-                    val minimum = (48 * context.resources.displayMetrics.density).toInt()
-                    val visible = hit.width() >= minimum && hit.height() >= minimum
-                    if (!visible) {
-                        // A lazy card can expose semantics while clipped. Bring it into view
-                        // before injecting the same real long press and half-hour drag.
-                        target.performAction(
-                            AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
-                        )
+                    return bounds
+                }
+                // This is the board's inner time viewport, not the surrounding page list.
+                waitUntil("BOARD_TIME_VIEWPORT_START_$tag") {
+                    val viewport = boardScroller() ?: return@waitUntil false
+                    if (viewport.actionList.none { it.id == scrollUp }) true
+                    else {
+                        performVerticalScroll(viewport, forward = false)
                         settleUi()
+                        false
                     }
-                    visible
+                }
+                var hit = Rect()
+                waitUntil("BOARD_REAL_DRAG_TARGET_$tag") {
+                    val viewportNode = boardScroller() ?: return@waitUntil false
+                    val viewport = visibleBounds(viewportNode)
+                    val target = node(tag)
+                    val raw = target?.let { Rect().also(it::getBoundsInScreen) }
+                    hit = target?.let(::visibleBounds) ?: Rect()
+                    val density = context.resources.displayMetrics.density
+                    val minimum = (48 * density).toInt()
+                    val delta = 30 * density
+                    val visible =
+                        raw != null &&
+                            hit == raw &&
+                            hit.width() >= minimum &&
+                            hit.height() >= minimum &&
+                            hit.exactCenterY() + delta < viewport.bottom
+                    if (visible) return@waitUntil true
+                    test.sendStatus(
+                        0,
+                        Bundle().apply {
+                            putString(
+                                "board_drag_viewport",
+                                "$tag viewport=$viewport raw=$raw hit=$hit",
+                            )
+                        },
+                    )
+                    if (viewport.width() < minimum || viewport.height() < minimum * 2)
+                        return@waitUntil false
+                    // Short real swipes in the hour gutter expose the card without starting
+                    // its long-press drag. Page-sized accessibility scrolls can skip a card.
+                    val x = viewport.left + (24 * density).coerceAtMost(viewport.width() / 4f)
+                    val startY = viewport.bottom - 20 * density
+                    val endY = startY - (96 * density).coerceAtMost(viewport.height() / 3f)
+                    val down = SystemClock.uptimeMillis()
+                    fun scrollEvent(action: Int, y: Float) {
+                        val motion =
+                            MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0)
+                        motion.source = InputDevice.SOURCE_TOUCHSCREEN
+                        try {
+                            yes(
+                                automation.injectInputEvent(motion, true),
+                                "BOARD_VIEWPORT_TOUCH_$tag",
+                            )
+                        } finally {
+                            motion.recycle()
+                        }
+                    }
+                    scrollEvent(MotionEvent.ACTION_DOWN, startY)
+                    for (step in 1..12) {
+                        SystemClock.sleep(40)
+                        scrollEvent(MotionEvent.ACTION_MOVE, startY + (endY - startY) * step / 12)
+                    }
+                    SystemClock.sleep(100)
+                    scrollEvent(MotionEvent.ACTION_UP, endY)
+                    settleUi()
+                    false
                 }
                 val down = SystemClock.uptimeMillis()
                 val delta = 30 * context.resources.displayMetrics.density
