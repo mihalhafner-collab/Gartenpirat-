@@ -290,7 +290,12 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                             contentAlignment = Alignment.Center,
                         ) {
                             if (listLoading) CircularProgressIndicator()
-                            else if (readFailure.isEmpty()) Text("Keine Fotos für diese Auswahl.")
+                            else if (readFailure.isEmpty())
+                                Text(
+                                    if (search.isBlank() && active.isEmpty())
+                                        "Fotos dokumentieren deine Arbeiten und den Zustand eines Objekts."
+                                    else "Keine Fotos für diese Auswahl."
+                                )
                         }
                     else if (imeVisible || search.isNotBlank())
                         LazyColumn(
@@ -679,6 +684,22 @@ private fun NativePhotoDetail(
     LaunchedEffect(draftSnapshot, draftReady, draftTouched) {
         if (draftReady && draftTouched) controller.saveDraft(draftKey, JSONObject(draftSnapshot))
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            "update_photo",
+            pending.takeIf(String::isNotBlank)?.let(::JSONObject),
+            draftReady && !busy,
+            inspectionAttempt,
+        ) { _ ->
+            controller.removeDraft(draftKey)
+            pending = ""
+            draftTouched = false
+            editing = false
+            revision++
+            controller.message("Fotoangaben gespeichert.", NativeRoute("photos", id, "detail"))
+        }
     val photo = record?.optJSONObject("photo")
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -710,6 +731,7 @@ private fun NativePhotoDetail(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (pending.isNotBlank()) NativeInspectionBanner(inspection) { inspectionAttempt++ }
             NativeStatus(
                 if (pending.isNotBlank()) "Speichern nicht bestätigt"
                 else if (draftTouched) "Ungespeicherte Änderungen" else "Foto gespeichert",
@@ -876,79 +898,84 @@ private fun NativePhotoDetail(
                 close()
             }
         }
-        NativeActionBar(
-            primaryLabel =
-                if (busy) "Speichert …"
-                else if (pending.isNotBlank()) "Ergebnis prüfen"
-                else if (!editing) "Bearbeiten" else "Fotoangaben speichern",
-            onPrimary = {
-                if (!editing && pending.isBlank()) editing = true
-                else
-                    scope.launch {
-                        busy = true
-                        try {
-                            if (pending.isNotBlank()) {
-                                val proof =
-                                    controller.query(
-                                        "inspect_edit_action",
-                                        JSONObject()
-                                            .put("original_tool", "update_photo")
-                                            .put("original_args", JSONObject(pending)),
-                                    )
-                                if (proof.optString("state") != "confirmed") {
-                                    error = mediaInspectionMessage(proof)
-                                    return@launch
-                                }
-                            } else {
-                                draftTouched = true
-                                pending =
-                                    JSONObject()
-                                        .put("request_id", mediaRequest())
-                                        .put("photo_id", id)
-                                        .put(
-                                            "expected_record_hash",
-                                            record!!.getString("record_hash"),
-                                        )
-                                        .put(
-                                            "updates",
+        if (pending.isNotBlank()) NativeActionBar("Schließen", { leave() }, enabled = !busy)
+        else
+            NativeActionBar(
+                primaryLabel =
+                    if (busy) "Speichert …"
+                    else if (pending.isNotBlank()) "Ergebnis prüfen"
+                    else if (!editing) "Bearbeiten" else "Fotoangaben speichern",
+                onPrimary = {
+                    if (!editing && pending.isBlank()) editing = true
+                    else
+                        scope.launch {
+                            busy = true
+                            try {
+                                if (pending.isNotBlank()) {
+                                    val proof =
+                                        controller.query(
+                                            "inspect_edit_action",
                                             JSONObject()
-                                                .put("caption", caption)
-                                                .put("capture_time", capture)
-                                                .put("role", role)
-                                                .put("customer_visible", visible)
-                                                .put("order_id", order)
-                                                .put("worklog_id", worklog)
-                                                .put("session_id", session),
+                                                .put("original_tool", "update_photo")
+                                                .put("original_args", JSONObject(pending)),
                                         )
-                                        .toString()
-                                controller.saveDraft(draftKey, draftValue())
-                                controller.flushDrafts()
-                                mediaWrite(controller, "update_photo", JSONObject(pending))
+                                    if (proof.optString("state") != "confirmed") {
+                                        error = mediaInspectionMessage(proof)
+                                        return@launch
+                                    }
+                                } else {
+                                    draftTouched = true
+                                    pending =
+                                        JSONObject()
+                                            .put("request_id", mediaRequest())
+                                            .put("photo_id", id)
+                                            .put(
+                                                "expected_record_hash",
+                                                record!!.getString("record_hash"),
+                                            )
+                                            .put(
+                                                "updates",
+                                                JSONObject()
+                                                    .put("caption", caption)
+                                                    .put("capture_time", capture)
+                                                    .put("role", role)
+                                                    .put("customer_visible", visible)
+                                                    .put("order_id", order)
+                                                    .put("worklog_id", worklog)
+                                                    .put("session_id", session),
+                                            )
+                                            .toString()
+                                    controller.saveDraft(draftKey, draftValue())
+                                    controller.flushDrafts()
+                                    mediaWrite(controller, "update_photo", JSONObject(pending))
+                                }
+                                pending = ""
+                                draftTouched = false
+                                editing = false
+                                revision++
+                                val cleanup = runCatching { controller.removeDraft(draftKey) }
+                                error =
+                                    if (cleanup.isFailure)
+                                        "Fotoangaben bestätigt gespeichert. Entwurfsbereinigung steht noch aus."
+                                    else ""
+                                controller.message(
+                                    "Fotoangaben gespeichert.",
+                                    NativeRoute("photos", id, "detail"),
+                                )
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (failure: Exception) {
+                                error = mediaError(failure)
+                            } finally {
+                                busy = false
                             }
-                            pending = ""
-                            draftTouched = false
-                            editing = false
-                            revision++
-                            val cleanup = runCatching { controller.removeDraft(draftKey) }
-                            error =
-                                if (cleanup.isFailure)
-                                    "Fotoangaben bestätigt gespeichert. Entwurfsbereinigung steht noch aus."
-                                else ""
-                            controller.message("Fotoangaben gespeichert.")
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (failure: Exception) {
-                            error = mediaError(failure)
-                        } finally {
-                            busy = false
                         }
-                    }
-            },
-            secondaryLabel = "Zurück",
-            onSecondary = { leave() },
-            enabled = (photo != null || pending.isNotBlank()) && !busy && draftReady,
-            secondaryEnabled = !busy,
-        )
+                },
+                secondaryLabel = "Zurück",
+                onSecondary = { leave() },
+                enabled = (photo != null || pending.isNotBlank()) && !busy && draftReady,
+                secondaryEnabled = !busy,
+            )
     }
     if (discardChanges)
         LaunchedEffect(Unit) {
@@ -1096,6 +1123,29 @@ private fun NativePhotoImport(
     LaunchedEffect(draftSnapshot, draftReady, draftTouched) {
         if (draftReady && draftTouched) controller.saveDraft(draftKey, JSONObject(draftSnapshot))
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            "savePhoto",
+            pending.takeIf(String::isNotBlank)?.let(::JSONObject),
+            draftReady && !busy,
+            inspectionAttempt,
+        ) { proof ->
+            val confirmedId = proof.getString("entity_id")
+            retainImportedPhotoResult(controller, draftKey, confirmedId)
+            controller.removeDraft(draftKey)
+            if (selected.isNotBlank())
+                withContext(Dispatchers.IO) {
+                    PhotoCaptureProvider.release(controller.context, Uri.parse(selected))
+                }
+            savedId = confirmedId
+            pending = ""
+            selected = ""
+            caption = ""
+            draftTouched = false
+            controller.message("Foto gespeichert.", NativeRoute("photos", confirmedId, "detail"))
+        }
     val changeable = pending.isBlank() && !busy
     fun choose(camera: Boolean) {
         scope.launch {
@@ -1323,13 +1373,11 @@ private fun NativePhotoImport(
                         "Weitere Fotos bleiben dieser Arbeitssitzung zugeordnet.",
                         style = MaterialTheme.typography.bodySmall,
                     )
-                if (pending.isNotBlank())
-                    Text(
-                        "Die Speicherantwort ist noch unklar. Den ursprünglichen Vorgang prüfen. Gespeicherte Arbeit bleibt erhalten."
-                    )
+                if (pending.isNotBlank()) NativeInspectionBanner(inspection) { inspectionAttempt++ }
             }
         }
-        if (savedId.isNotBlank())
+        if (pending.isNotBlank()) NativeActionBar("Schließen", close, enabled = !busy)
+        else if (savedId.isNotBlank())
             NativeActionBar(
                 if (session.isNotBlank() || worklog.isNotBlank()) "Zur Arbeit" else "Fertig",
                 { finish() },
@@ -1400,7 +1448,10 @@ private fun NativePhotoImport(
                                 if (cleanup.isFailure)
                                     "Foto gespeichert. Entwurfsbereinigung steht noch aus; die gespeicherte Arbeit bleibt erhalten."
                                 else ""
-                            controller.message("Foto gespeichert.")
+                            controller.message(
+                                "Foto gespeichert.",
+                                NativeRoute("photos", savedId, "detail"),
+                            )
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (error: Exception) {
@@ -1569,6 +1620,8 @@ private fun NativePhotoSettings(controller: NativeAppController, close: () -> Un
     var data by remember { mutableStateOf<JSONObject?>(null) }
     var quality by rememberSaveable { mutableStateOf("optimized") }
     var pending by rememberSaveable { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         try {
@@ -1578,6 +1631,18 @@ private fun NativePhotoSettings(controller: NativeAppController, close: () -> Un
             controller.message(mediaError(failure))
         }
     }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            "update_settings",
+            pending.takeIf(String::isNotBlank)?.let(::JSONObject),
+            !busy,
+            inspectionAttempt,
+        ) { _ ->
+            pending = ""
+            controller.message("Fotoqualität gespeichert.")
+            close()
+        }
     Column(
         Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -1597,53 +1662,50 @@ private fun NativePhotoSettings(controller: NativeAppController, close: () -> Un
                 "high" to "Hohe Qualität",
                 "original" to "Original behalten",
             ),
-            enabled = pending.isBlank(),
+            enabled = !busy && pending.isBlank(),
         ) {
             quality = it
         }
+        if (pending.isNotBlank()) NativeInspectionBanner(inspection) { inspectionAttempt++ }
         Spacer(Modifier.weight(1f))
-        Row(Modifier.imePadding(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = close) { Text("Zurück") }
-            Button(
-                enabled = data != null,
-                onClick = {
+        if (pending.isNotBlank()) NativeActionBar("Schließen", close, enabled = !busy)
+        else
+            NativeActionBar(
+                "Speichern",
+                {
                     scope.launch {
+                        if (busy) return@launch
+                        busy = true
                         try {
-                            if (pending.isNotBlank()) {
-                                val proof =
-                                    controller.query(
-                                        "inspect_edit_action",
-                                        JSONObject()
-                                            .put("original_tool", "update_settings")
-                                            .put("original_args", JSONObject(pending)),
-                                    )
-                                if (proof.optString("state") != "confirmed") {
-                                    controller.message(mediaInspectionMessage(proof))
-                                    return@launch
-                                }
-                            } else {
-                                pending =
-                                    JSONObject()
-                                        .put("request_id", mediaRequest())
-                                        .put(
-                                            "expected_record_hash",
-                                            data!!.getString("record_hash"),
-                                        )
-                                        .put("updates", JSONObject().put("photo_quality", quality))
-                                        .toString()
-                                mediaWrite(controller, "update_settings", JSONObject(pending))
-                            }
+                            pending =
+                                JSONObject()
+                                    .put("request_id", mediaRequest())
+                                    .put("expected_record_hash", data!!.getString("record_hash"))
+                                    .put("updates", JSONObject().put("photo_quality", quality))
+                                    .toString()
+                            mediaWrite(controller, "update_settings", JSONObject(pending))
+                            pending = ""
                             controller.message("Fotoqualität gespeichert.")
                             close()
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
                         } catch (failure: Exception) {
+                            if (
+                                failure is NativeCallFailure &&
+                                    failure.detail.optString("commit_state") == "not_committed"
+                            )
+                                pending = ""
                             controller.message(mediaError(failure))
+                        } finally {
+                            busy = false
                         }
                     }
                 },
-            ) {
-                Text(if (pending.isNotBlank()) "Ergebnis prüfen" else "Speichern")
-            }
-        }
+                "Zurück",
+                close,
+                enabled = data != null && !busy,
+                secondaryEnabled = !busy,
+            )
     }
 }
 

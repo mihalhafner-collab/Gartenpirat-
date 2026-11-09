@@ -66,6 +66,19 @@ internal object UiTags {
 
     fun settlementState(state: String) = "settlement:state:$state"
 
+    const val INSPECTION_RETRY = "inspection:retry"
+    const val RESTORE_BANNER = "restore:banner"
+    const val RESTORE_DRAFT_BANNER = "restore:draft-banner"
+    const val RESTORE_VIEW = "restore:view"
+    const val RESTORE_DISMISS = "restore:dismiss"
+    const val SNACKBAR_VIEW = "snackbar:view"
+    const val EMPTY_STATE = "empty:purpose"
+    const val EMPTY_ACTION = "empty:create"
+
+    fun inspection(state: String) = "inspection:$state"
+
+    fun entityDetail(collection: String, id: String) = "detail:$collection:$id"
+
     const val UNDO = "action:undo"
     const val DELETE_SELECTION = "action:delete-selection"
 

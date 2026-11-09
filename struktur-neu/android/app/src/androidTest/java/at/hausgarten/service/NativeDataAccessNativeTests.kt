@@ -24,6 +24,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -311,6 +312,10 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 cacheInitializationCloseProof(context)
                 phase = "cache_schema_repair"
                 cacheSchemaRepairProof(context)
+                phase = "closed_commit_observer"
+                closedCommitObserverProof(context)
+                phase = "contended_commit_observer"
+                contendedCommitObserverProof(context)
                 phase = "business_transaction_lifetime"
                 businessTransactionLifetimeProof(context)
                 phase = "snapshot_close_lifetime"
@@ -1548,6 +1553,88 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         }
     }
 
+    private fun closedCommitObserverProof(owner: Context) {
+        val context =
+            FixtureContext(
+                owner,
+                File(owner.cacheDir, "closed-commit-observer"),
+                "qa_closed_commit_observer",
+            )
+        val store = PixelLocalStore(context)
+        try {
+            store.putOwnerValue("snapshot", SyntheticBusinessData.profile("minimal").toString())
+            store.putOwnerValue("qa_closed_observer_marker", "kept")
+            val data = store.nativeData()
+            store.close()
+            val observed = runBlocking {
+                withTimeout(5000) { data.watchCommittedChanges().toList() }
+            }
+            yes(observed.isEmpty(), "CLOSED_COMMIT_OBSERVER_COMPLETES_WITHOUT_REOPENING")
+            PixelLocalStore.assertNoOpenStores(context)
+            PixelLocalStore(context).use { reopened ->
+                yes(
+                    reopened.ownerValue("qa_closed_observer_marker", "") == "kept",
+                    "CLOSED_COMMIT_OBSERVER_PRESERVES_STORED_DATA",
+                )
+            }
+        } finally {
+            store.close()
+        }
+    }
+
+    private fun contendedCommitObserverProof(owner: Context) {
+        val context =
+            FixtureContext(
+                owner,
+                File(owner.cacheDir, "contended-commit-observer"),
+                "qa_contended_commit_observer",
+            )
+        PixelLocalStore(context).use { store ->
+            store.putOwnerValue("snapshot", SyntheticBusinessData.profile("minimal").toString())
+            store.putOwnerValue("qa_contended_observer_marker", "kept")
+            val data = store.nativeData()
+            val before = PixelMcpWriteTools.hash(store.getState())
+            val db = store.writableDatabase
+            // Pin the primary connection: the commit barrier must encounter SQLITE_BUSY
+            // while a separate helper holds the write lock on this isolated database.
+            db.beginTransactionNonExclusive()
+            try {
+                db.rawQuery("PRAGMA busy_timeout=50", null).use { it.moveToFirst() }
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            PixelLocalStore(context).use { writer ->
+                val writerDb = writer.writableDatabase
+                writerDb.beginTransactionNonExclusive()
+                runBlocking {
+                    val started = CompletableDeferred<Unit>()
+                    val observed =
+                        async(Dispatchers.IO) {
+                            started.complete(Unit)
+                            data.watchCommittedChanges().first()
+                        }
+                    try {
+                        started.await()
+                        delay(350)
+                        yes(observed.isActive, "LOCKED_COMMIT_OBSERVER_WAITS_FOR_WRITER")
+                        writerDb.setTransactionSuccessful()
+                    } finally {
+                        writerDb.endTransaction()
+                    }
+                    withTimeout(5000) { observed.await() }
+                    yes(observed.isCompleted, "LOCKED_COMMIT_OBSERVER_RESUMES_AFTER_UNLOCK")
+                }
+            }
+            yes(
+                PixelMcpWriteTools.hash(store.getState()) == before &&
+                    store.ownerValue("qa_contended_observer_marker", "") == "kept",
+                "LOCKED_COMMIT_OBSERVER_PRESERVES_STORED_DATA",
+            )
+        }
+        PixelLocalStore.assertNoOpenStores(context)
+    }
+
     private fun businessTransactionLifetimeProof(owner: Context) {
         val context =
             FixtureContext(
@@ -1911,7 +1998,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                                 repository.putFile(second, repository.fileMeta(second), rollback)
                                 repository
                                     .pruneUnreferencedPhotoUploads() // Nested cleanup must not wait
-                                                                     // on capture.
+                                // on capture.
                                 published.countDown()
                                 check(rollbackAllowed.await(15, TimeUnit.SECONDS)) {
                                     "QA_CHUNK_ROLLBACK_RELEASE_TIMEOUT"
