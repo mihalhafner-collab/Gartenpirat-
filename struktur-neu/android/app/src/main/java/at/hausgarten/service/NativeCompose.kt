@@ -456,7 +456,7 @@ internal fun NativeStatus(label: String, tone: NativeStatusTone = NativeStatusTo
     }
 }
 
-/** Compact visual buttons keep a separate, unobstructed 48 dp touch target. */
+/** The Material button owns its tag and click action; layout reserves the full touch target. */
 @Composable
 internal fun NativeButton(
     onClick: () -> Unit,
@@ -470,27 +470,25 @@ internal fun NativeButton(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
-    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
-            Button(
-                onClick,
-                Modifier.heightIn(
-                    min = 30.dp,
-                    max =
-                        if (LocalDensity.current.fontScale > 1.3f)
-                            androidx.compose.ui.unit.Dp.Infinity
-                        else 30.dp,
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+        Button(
+            onClick,
+            modifier
+                .minimumInteractiveComponentSize()
+                .wrapContentWidth(Alignment.End)
+                .then(
+                    if (LocalDensity.current.fontScale > 1.3f) Modifier.heightIn(min = 30.dp)
+                    else Modifier.requiredHeight(30.dp)
                 ),
-                enabled,
-                shape,
-                colors,
-                elevation,
-                border,
-                contentPadding,
-                interactionSource,
-                content,
-            )
-        }
+            enabled,
+            shape,
+            colors,
+            elevation,
+            border,
+            contentPadding,
+            interactionSource,
+            content,
+        )
     }
 }
 
@@ -507,27 +505,25 @@ internal fun NativeOutlinedButton(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
-    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
-            OutlinedButton(
-                onClick,
-                Modifier.heightIn(
-                    min = 30.dp,
-                    max =
-                        if (LocalDensity.current.fontScale > 1.3f)
-                            androidx.compose.ui.unit.Dp.Infinity
-                        else 30.dp,
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+        OutlinedButton(
+            onClick,
+            modifier
+                .minimumInteractiveComponentSize()
+                .wrapContentWidth(Alignment.End)
+                .then(
+                    if (LocalDensity.current.fontScale > 1.3f) Modifier.heightIn(min = 30.dp)
+                    else Modifier.requiredHeight(30.dp)
                 ),
-                enabled,
-                shape,
-                colors,
-                elevation,
-                border,
-                contentPadding,
-                interactionSource,
-                content,
-            )
-        }
+            enabled,
+            shape,
+            colors,
+            elevation,
+            border,
+            contentPadding,
+            interactionSource,
+            content,
+        )
     }
 }
 
@@ -544,27 +540,25 @@ internal fun NativeTextButton(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
-    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
-            TextButton(
-                onClick,
-                Modifier.heightIn(
-                    min = 26.dp,
-                    max =
-                        if (LocalDensity.current.fontScale > 1.3f)
-                            androidx.compose.ui.unit.Dp.Infinity
-                        else 26.dp,
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+        TextButton(
+            onClick,
+            modifier
+                .minimumInteractiveComponentSize()
+                .wrapContentWidth(Alignment.End)
+                .then(
+                    if (LocalDensity.current.fontScale > 1.3f) Modifier.heightIn(min = 26.dp)
+                    else Modifier.requiredHeight(26.dp)
                 ),
-                enabled,
-                shape,
-                colors,
-                elevation,
-                border,
-                contentPadding,
-                interactionSource,
-                content,
-            )
-        }
+            enabled,
+            shape,
+            colors,
+            elevation,
+            border,
+            contentPadding,
+            interactionSource,
+            content,
+        )
     }
 }
 
@@ -717,7 +711,7 @@ internal fun NativeGroup(title: String, content: @Composable ColumnScope.() -> U
     ) {
         Column {
             Text(
-                title.uppercase(),
+                title,
                 Modifier.fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     .padding(horizontal = 16.dp, vertical = 8.dp),

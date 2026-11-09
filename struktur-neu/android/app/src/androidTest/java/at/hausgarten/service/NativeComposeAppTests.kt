@@ -1122,6 +1122,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         store.putOwnerValue(
             "revier:v1:entity:property:qa_accounting_property",
             JSONObject()
+                .put("format_version", 1)
+                .put("kind", "property")
                 .put("id", "qa_accounting_property")
                 .put("name", "QA Haus und Garten")
                 .put("customer_id", customer)
@@ -2193,7 +2195,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Freie Minuten", "23")
         val ownText = "[TEST] QA usability work"
         enter("Was wurde erledigt? *", ownText)
-        click("Textbausteine ▾")
+        click("Textbausteine")
         click("Rasen gemäht")
         reveal("Was wurde erledigt? *")
         waitUntil("OWN_TEXT_RETAINED_AFTER_SNIPPET") {
@@ -3178,7 +3180,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "TIMER_HIDES_RAW_CLOCK_FIELDS",
         )
         enter("Tätigkeit · optional bis zum Abschluss", "[TEST] QA native Timer")
-        click("Textbausteine ▾")
+        click("Textbausteine")
         click("Rasen gemäht")
         reveal("Tätigkeit · optional bis zum Abschluss")
         yes(
@@ -5975,7 +5977,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("phrases") {
             newWork()
-            click("Textbausteine ▾")
+            click("Textbausteine")
             keyboardSearchProof("phrases", "Vorschläge durchsuchen", "Rasen gemäht", "Rasen gemäht")
             reveal("Was wurde erledigt? *")
             waitUntil("PHRASE_TRANSFERRED") {

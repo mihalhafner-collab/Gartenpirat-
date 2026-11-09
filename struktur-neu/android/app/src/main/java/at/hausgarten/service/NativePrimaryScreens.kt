@@ -344,6 +344,9 @@ internal fun NativeApplication(controller: NativeAppController) {
                                         else nativeSections[route.section] ?: "Haus & Garten",
                                         Modifier.weight(1f).padding(12.dp),
                                         style = MaterialTheme.typography.headlineSmall,
+                                        maxLines = 1,
+                                        overflow =
+                                            androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                     )
                                 if (quick) {
                                     // Today and customers have their own search field on top.
@@ -517,12 +520,9 @@ internal fun NativeApplication(controller: NativeAppController) {
     }
 }
 
-/** Buttons retain an explicit overview action even while their area is selected. */
+/** All four areas retain their own history; navigation items keep their full touch semantics. */
 @Composable
 private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean = false) {
-    // Work records have no tab of their own; they open from Today, customers, billing and the
-    // office.
-    // Exactly four areas; other sections share the menu.
     val entries =
         listOf(
             "today" to "Heute",
@@ -531,92 +531,64 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
             "accounting" to "Abrechnung",
         )
     val large = LocalDensity.current.fontScale > 1.3f
+    val colors = MaterialTheme.colorScheme
     if (rail) {
-        Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
-            // Scrolls when the areas do not fit, e.g. landscape with large text.
+        Surface(color = colors.surface) {
             Column(
                 Modifier.width(112.dp)
                     .fillMaxHeight()
                     .safeDrawingPadding()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 4.dp, vertical = 8.dp)
             ) {
-                entries.forEach { (section, label) ->
-                    val active = controller.route.area == section
-                    NativeTextButton(
-                        { controller.openSection(section) },
-                        Modifier.heightIn(min = 48.dp).semantics {
-                            testTag = UiTags.area(section)
-                            selected = active
-                            stateDescription =
-                                if (active) "Ausgewählter Bereich" else "Bereich öffnen"
-                        },
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-                        colors =
-                            ButtonDefaults.textButtonColors(
-                                containerColor =
-                                    if (active) MaterialTheme.colorScheme.secondaryContainer
-                                    else NativeTransparent
-                            ),
-                    ) {
-                        Text(label)
-                    }
-                }
+                for ((section, label) in entries) NavigationRailItem(
+                    selected = controller.route.area == section,
+                    onClick = { controller.openSection(section) },
+                    icon = { NativeAreaIcon(section) },
+                    label = {
+                        Text(
+                            label,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
+                    },
+                    alwaysShowLabel = !large,
+                    modifier = Modifier.fillMaxWidth().semantics { testTag = UiTags.area(section) },
+                    colors =
+                        NavigationRailItemDefaults.colors(
+                            selectedIconColor = colors.primary,
+                            selectedTextColor = colors.primary,
+                            indicatorColor = colors.primaryContainer,
+                            unselectedIconColor = colors.onSurfaceVariant,
+                            unselectedTextColor = colors.onSurfaceVariant,
+                        ),
+                )
             }
         }
-        return
-    }
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
-        Column(Modifier.navigationBarsPadding().padding(horizontal = 4.dp, vertical = 2.dp)) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            entries.chunked(4).forEach { group ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    group.forEach { (section, label) ->
-                        val active = controller.route.area == section
-                        NativeTextButton(
-                            onClick = { controller.openSection(section) },
-                            modifier =
-                                Modifier.heightIn(min = 48.dp).semantics {
-                                    testTag = UiTags.area(section)
-                                    selected = active
-                                    stateDescription =
-                                        if (active) "Ausgewählter Bereich" else "Bereich öffnen"
-                                },
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                            colors =
-                                ButtonDefaults.textButtonColors(
-                                    containerColor =
-                                        if (large && active)
-                                            MaterialTheme.colorScheme.secondaryContainer
-                                        else NativeTransparent,
-                                    contentColor =
-                                        if (active) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                                ),
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Surface(
-                                    color =
-                                        if (active) MaterialTheme.colorScheme.secondaryContainer
-                                        else NativeTransparent,
-                                    shape = CircleShape,
-                                ) {
-                                    Box(
-                                        Modifier.width(56.dp).height(30.dp),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        NativeAreaIcon(section)
-                                    }
-                                }
-                                if (!large || active)
-                                    Text(label, style = MaterialTheme.typography.labelLarge)
-                            }
-                        }
-                    }
-                }
-            }
+    } else
+        NavigationBar(containerColor = colors.surface, tonalElevation = 0.dp) {
+            for ((section, label) in entries) NavigationBarItem(
+                selected = controller.route.area == section,
+                onClick = { controller.openSection(section) },
+                icon = { NativeAreaIcon(section) },
+                label = {
+                    Text(
+                        label,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                },
+                alwaysShowLabel = !large,
+                modifier = Modifier.semantics { testTag = UiTags.area(section) },
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = colors.primary,
+                        selectedTextColor = colors.primary,
+                        indicatorColor = colors.primaryContainer,
+                        unselectedIconColor = colors.onSurfaceVariant,
+                        unselectedTextColor = colors.onSurfaceVariant,
+                    ),
+            )
         }
-    }
 }
 
 /** The one "+" of the design; opens "Neu anlegen". */

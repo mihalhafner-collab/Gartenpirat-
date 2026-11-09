@@ -53,13 +53,14 @@
   },
   "current_task": {
     "name": "Designkonzept 08.11.2026 vollständig umsetzen",
-    "status": "Umgesetzt als 1.71.0/158 auf codex/design-08-11; Abnahme über den vollständigen PR-CI-Lauf.",
+    "status": "PR27 offen für 1.71.0/158; Abnahme über den vollständigen PR-CI-Lauf.",
     "owner_instruction": "09.11.2026: ein Branch, ein PR, KISS/YAGNI; Subagenten ausdrücklich erlaubt. ADB-Testbarkeit über vorhandene Instrumentierung. Keine Geräteaktionen, Signierung oder Verteilung.",
     "validation": {
-      "source": "check_current.py und ktfmt --kotlinlang-style grün; assembleRelease, assembleReleaseAndroidTest, lintRelease und testReleaseUnitTest grün (71 JVM-Tests). Kein lokaler Emulator. Voller qa-apk.yml-Lauf am PR verbindlich."
+      "source": "check_current.py und ktfmt --kotlinlang-style grün; assembleRelease, assembleReleaseAndroidTest, lintRelease und testReleaseUnitTest grün (71 JVM-Tests). Kein lokaler Emulator. Voller qa-apk.yml-Lauf am PR verbindlich.",
+      "ci": "Voller qa-apk.yml-Lauf für PR27 maßgeblich; aktuelles Ergebnis am PR."
     },
     "next": [
-      "PR mit vollem grünem build und emulator zur Eigentümerprüfung; nicht mergen."
+      "PR27 mit grünem build und emulator zur Eigentümerprüfung; nicht mergen."
     ]
   },
   "open_checks": [
