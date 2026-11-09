@@ -6,6 +6,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -13,6 +15,38 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PendingInspectionTest {
+    @Test
+    fun commitObservationCompletesOnlyForTheClosedStoreBoundary() = runBlocking {
+        val values =
+            flow {
+                    emit(11L)
+                    throw IllegalStateException("LOCAL_STORE_CLOSED")
+                }
+                .finishOnNativeStoreClose()
+                .toList()
+        assertEquals(listOf(11L), values)
+        val expected = IllegalStateException("QA_READ_FAILED")
+        var caught: Exception? = null
+        try {
+            flow<Long> { throw expected }.finishOnNativeStoreClose().toList()
+        } catch (failure: Exception) {
+            caught = failure
+        }
+        assertSame(expected, caught)
+    }
+
+    @Test
+    fun closedStoreObservationKeepsExplicitCancellation() = runBlocking {
+        val expected = CancellationException("LOCAL_STORE_CLOSED")
+        var caught: CancellationException? = null
+        try {
+            flow<Long> { throw expected }.finishOnNativeStoreClose().toList()
+        } catch (cancelled: CancellationException) {
+            caught = cancelled
+        }
+        assertSame(expected, caught)
+    }
+
     @Test
     fun confirmedCleanupSurvivesRestartingItsInspectionEffect() = runBlocking {
         val owner = Job()
