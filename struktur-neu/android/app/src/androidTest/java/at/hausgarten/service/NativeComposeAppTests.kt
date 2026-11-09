@@ -590,11 +590,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun openAccounting() {
         // The first tap restores this area's previous detail; the second opens
-        // its root and preserves the overview's saved filters and selected tab.
+        // its root and preserves the overview's saved filters.
         click(UiTags.area("accounting"))
         click(UiTags.area("accounting"))
+        scrollTop()
         waitUntil("ACCOUNTING_ROOT_READY") {
-            selectedArea(UiTags.area("accounting")) && node("Offen abzurechnen") != null
+            selectedArea(UiTags.area("accounting")) && node("ausgestellt") != null
         }
     }
 
@@ -605,7 +606,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun openAccountingTotals() {
         openAccounting()
-        scrollTop()
         shown("ausgestellt")
     }
 
@@ -5209,12 +5209,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
                 // Date and view controls belong to the outer page. In this three-entry
                 // fixture the grid is its final item; expose that item before time scrolling.
-                waitUntil("BOARD_OUTER_PAGE_EXPOSES_GRID_$tag") {
-                    val page = boardPageScroller() ?: return@waitUntil false
+                fun exposeBoardPage(): Boolean {
+                    val page = boardPageScroller() ?: return false
                     if (page.actionList.any { it.id == scrollDown }) {
                         performVerticalScroll(page, forward = true)
                         settleUi()
-                        false
+                        return false
                     } else {
                         val viewport = boardScroller()?.let(::visibleBounds) ?: Rect()
                         val minimum = (48 * context.resources.displayMetrics.density).toInt()
@@ -5224,9 +5224,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                                 putString("board_drag_outer_page", "$tag viewport=$viewport")
                             },
                         )
-                        viewport.width() >= minimum && viewport.height() >= minimum * 2
+                        return viewport.width() >= minimum && viewport.height() >= minimum * 2
                     }
                 }
+                waitUntil("BOARD_OUTER_PAGE_EXPOSES_GRID_$tag") { exposeBoardPage() }
                 // This is the board's inner time viewport, not the surrounding page list.
                 waitUntil("BOARD_TIME_VIEWPORT_START_$tag") {
                     val viewport = boardScroller() ?: return@waitUntil false
@@ -5237,6 +5238,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         false
                     }
                 }
+                // An upward scroll at the time boundary can carry remaining distance into
+                // the outer page. Restore its viewport after that reset, not just before it.
+                waitUntil("BOARD_OUTER_PAGE_AFTER_TIME_RESET_$tag") { exposeBoardPage() }
                 var hit = Rect()
                 waitUntil("BOARD_REAL_DRAG_TARGET_$tag") {
                     val viewportNode = boardScroller() ?: return@waitUntil false
@@ -5247,11 +5251,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     val density = context.resources.displayMetrics.density
                     val minimum = (48 * density).toInt()
                     val delta = 30 * density
+                    val grid = node(UiTags.PLANNING_GRID)
+                    val canPanRight =
+                        grid?.actionList?.any {
+                            it.id ==
+                                AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_RIGHT.id
+                        } == true
+                    val canPanLeft =
+                        grid?.actionList?.any {
+                            it.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_LEFT.id
+                        } == true
+                    val clippedRight = raw != null && raw.right >= viewport.right && canPanRight
+                    val clippedLeft = raw != null && raw.left <= viewport.left && canPanLeft
                     val visible =
                         raw != null &&
                             hit == raw &&
                             hit.width() >= minimum &&
                             hit.height() >= minimum &&
+                            !clippedRight &&
+                            !clippedLeft &&
                             hit.exactCenterY() + delta < viewport.bottom
                     if (visible) return@waitUntil true
                     test.sendStatus(
@@ -5263,8 +5281,59 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                             )
                         },
                     )
-                    if (viewport.width() < minimum || viewport.height() < minimum * 2)
+                    if (viewport.width() < minimum || viewport.height() < minimum * 2) {
+                        exposeBoardPage()
                         return@waitUntil false
+                    }
+                    if (
+                        raw != null &&
+                            raw.top >= viewport.top &&
+                            raw.bottom <= viewport.bottom &&
+                            (clippedRight ||
+                                clippedLeft ||
+                                raw.left < viewport.left ||
+                                raw.right > viewport.right)
+                    ) {
+                        // The first move can put the later appointment into another display
+                        // lane. Pan that real grid before pressing its fully visible card.
+                        val scrollRight = clippedRight || raw.right > viewport.right
+                        val y = viewport.top + (20 * density).coerceAtMost(viewport.height() / 4f)
+                        val startX =
+                            if (scrollRight) viewport.right - 20 * density
+                            else viewport.left + 20 * density
+                        val distance = (96 * density).coerceAtMost(viewport.width() / 3f)
+                        val endX = startX + if (scrollRight) -distance else distance
+                        val down = SystemClock.uptimeMillis()
+                        fun panEvent(action: Int, x: Float) {
+                            val motion =
+                                MotionEvent.obtain(
+                                    down,
+                                    SystemClock.uptimeMillis(),
+                                    action,
+                                    x,
+                                    y,
+                                    0,
+                                )
+                            motion.source = InputDevice.SOURCE_TOUCHSCREEN
+                            try {
+                                yes(
+                                    automation.injectInputEvent(motion, true),
+                                    "BOARD_HORIZONTAL_VIEWPORT_TOUCH_$tag",
+                                )
+                            } finally {
+                                motion.recycle()
+                            }
+                        }
+                        panEvent(MotionEvent.ACTION_DOWN, startX)
+                        for (step in 1..12) {
+                            SystemClock.sleep(40)
+                            panEvent(MotionEvent.ACTION_MOVE, startX + (endX - startX) * step / 12)
+                        }
+                        SystemClock.sleep(100)
+                        panEvent(MotionEvent.ACTION_UP, endX)
+                        settleUi()
+                        return@waitUntil false
+                    }
                     // Short real swipes in the hour gutter expose the card without starting
                     // its long-press drag. Page-sized accessibility scrolls can skip a card.
                     val x = viewport.left + (24 * density).coerceAtMost(viewport.width() / 4f)
