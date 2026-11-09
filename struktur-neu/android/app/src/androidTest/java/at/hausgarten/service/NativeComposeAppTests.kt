@@ -4246,6 +4246,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 event.source = InputDevice.SOURCE_TOUCHSCREEN
                 try {
                     yes(automation.injectInputEvent(event, true), "SEARCH_REAL_TOUCH_$label")
+                    if (action == MotionEvent.ACTION_DOWN) SystemClock.sleep(75)
                 } finally {
                     event.recycle()
                 }
@@ -5404,9 +5405,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             fun openProperty() {
                 openOffice()
                 click(UiTags.area("properties"))
+                scrollTop()
+                var lastScroll = 0L
                 waitUntil("TIMELINE_PROPERTY_LIST_OR_DETAIL") {
-                    node(UiTags.recordChoice("properties", property)) != null ||
-                        node(UiTags.OBJECT_ROUTE) != null
+                    val available =
+                        node(UiTags.recordChoice("properties", property)) != null ||
+                            node(UiTags.OBJECT_ROUTE) != null
+                    if (!available && SystemClock.uptimeMillis() - lastScroll > 250) {
+                        if (!scroll()) scrollTop()
+                        lastScroll = SystemClock.uptimeMillis()
+                    }
+                    available
                 }
                 if (node(UiTags.recordChoice("properties", property)) != null)
                     click(UiTags.recordChoice("properties", property))
