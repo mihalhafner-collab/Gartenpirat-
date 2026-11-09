@@ -6059,8 +6059,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "DRAFT_IS_NOT_APPOINTMENT",
         )
         back()
-        shown("Entwurf fortsetzen")
-        click("Entwurf fortsetzen")
+        click(UiTags.PRIMARY)
+        revealContaining("19. Mai 2027 · 09:00")
+        yes(
+            JSONObject(store.ownerValue(planningDraft, "{}"))
+                .getJSONObject("values")
+                .getString("local_start") == "2027-05-19T09:00",
+            "PLANNING_RESUME_RETAINS_ORIGINAL_INPUT",
+        )
         click("Ungespeicherten Entwurf verwerfen")
         shown(UiTags.PRIMARY)
         yes(store.ownerValue(planningDraft, "").isEmpty(), "PLANNING_DISCARD_REMOVES_DRAFT")

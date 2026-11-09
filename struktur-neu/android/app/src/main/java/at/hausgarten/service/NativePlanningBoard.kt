@@ -109,6 +109,7 @@ internal fun NativePlanningBoardScreen(
     var chooseCustomer by remember { mutableStateOf(false) }
     var attempt by remember { mutableIntStateOf(0) }
     var board by remember { mutableStateOf<JSONObject?>(null) }
+    var savedDraft by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var moving by remember { mutableStateOf("") }
     var checking by remember { mutableStateOf(false) }
@@ -137,6 +138,7 @@ internal fun NativePlanningBoardScreen(
         board = null
         error = ""
         try {
+            savedDraft = controller.draft("planning:appointment:new") != null
             board = controller.query("get_planning_board", request)
         } catch (cancelled: CancellationException) {
             throw cancelled
@@ -188,7 +190,13 @@ internal fun NativePlanningBoardScreen(
                 query = it
                 offset = 0
             },
-            if (board == null) "Wird geladen …" else "${board?.optInt("total")} Einsätze",
+            when {
+                board == null -> "Wird geladen …"
+                query.isNotBlank() ->
+                    "${board?.optInt("total")} Treffer · ${offset + if (entries.isEmpty()) 0 else 1}–${offset + entries.size}"
+                board?.optInt("total") == 1 -> "1 Einsatz"
+                else -> "${board?.optInt("total")} Einsätze"
+            },
             onFilters = { filters = !filters },
             onFocus = { filters = false },
         ) {
@@ -461,7 +469,11 @@ internal fun NativePlanningBoardScreen(
                         }
                     }
             }
-            if (!ime) NativeActionBar("Einsatz planen", { onNew(false, anchor, customer) })
+            if (!ime)
+                NativeActionBar(
+                    if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen",
+                    { onNew(false, anchor, customer) },
+                )
         }
         if (!ime)
             NativeCreateButton(
