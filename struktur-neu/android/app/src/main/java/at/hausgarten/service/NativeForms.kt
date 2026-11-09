@@ -1356,29 +1356,72 @@ internal fun NativeActionForm(
 ) {
     val scope = rememberCoroutineScope()
     if (tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records")) {
-        var failure by remember(tool, initial.toString()) { mutableStateOf("") }
-        var attempt by remember(tool, initial.toString()) { mutableIntStateOf(0) }
-        LaunchedEffect(tool, attempt) {
+        val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
+        var failure by remember(key) { mutableStateOf("") }
+        var attempt by remember(key) { mutableIntStateOf(0) }
+        var inspectionAttempt by remember(key) { mutableIntStateOf(0) }
+        var pendingDelete by remember(key) { mutableStateOf<JSONObject?>(null) }
+        var deleting by remember(key) { mutableStateOf(true) }
+        LaunchedEffect(key, attempt) {
+            deleting = true
             failure = ""
             try {
-                onDone(controller.deleteDirect(tool, initial))
+                val saved =
+                    controller.draft(key)
+                        ?: controller.draft(controller.actionDraftKey(tool, initial))
+                pendingDelete =
+                    saved
+                        ?.takeIf { it.optString("original_tool") == tool }
+                        ?.optJSONObject("original_args")
+                        ?.takeIf { PendingInspectionRules.sameDeletionTarget(tool, initial, it) }
+                if (pendingDelete == null) {
+                    val result =
+                        controller.deleteDirect(
+                            tool,
+                            initial,
+                            onPrepared = { pendingDelete = JSONObject(it.toString()) },
+                            onNotCommitted = { pendingDelete = null },
+                        )
+                    pendingDelete = null
+                    onDone(result)
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 failure = nativeActionError(error, "Löschen nicht bestätigt.")
+            } finally {
+                deleting = false
             }
         }
+        val inspection =
+            rememberNativePendingInspection(
+                controller,
+                tool,
+                pendingDelete,
+                !deleting,
+                inspectionAttempt,
+            ) { proof ->
+                val original = requireNotNull(pendingDelete)
+                val result = controller.acknowledgeDeleteResult(tool, initial, original, proof)
+                pendingDelete = null
+                onDone(result)
+            }
         Column(
             Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (failure.isEmpty()) {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
-                Text("Löschen …")
-            } else {
-                NativeStatus(failure, NativeStatusTone.Attention)
-                NativeActionBar("Ergebnis prüfen", { attempt++ }, "Zurück", onCancel)
+            when {
+                deleting -> {
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                    Text("Löschen …")
+                }
+                pendingDelete != null -> NativeInspectionBanner(inspection) { inspectionAttempt++ }
+                failure.isNotBlank() -> NativeStatus(failure, NativeStatusTone.Attention)
             }
+            Spacer(Modifier.weight(1f))
+            if (pendingDelete != null) NativeActionBar("Schließen", onCancel)
+            else if (!deleting && failure.isNotBlank())
+                NativeActionBar("Erneut versuchen", { attempt++ }, "Zurück", onCancel)
         }
         return
     }
@@ -1393,7 +1436,6 @@ internal fun NativeActionForm(
     var failedConfirmed by remember(tool, draftKey) { mutableStateOf(false) }
     var response by remember(tool, draftKey) { mutableStateOf<JSONObject?>(null) }
     var pending by remember(tool, draftKey) { mutableStateOf<JSONObject?>(null) }
-    var pendingState by remember(tool, draftKey) { mutableStateOf("") }
     var optionalDetails by rememberSaveable(tool, draftKey) { mutableStateOf(false) }
     var restored by remember(tool, draftKey) { mutableStateOf(false) }
     var reviewNeeded by remember(tool, draftKey) { mutableStateOf(false) }
@@ -1608,6 +1650,20 @@ internal fun NativeActionForm(
             busy = false
         }
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            tool,
+            pending,
+            loaded && !busy,
+            inspectionAttempt,
+        ) { proof ->
+            controller.removeDraft(draftKey)
+            pending = null
+            controller.message("Änderung gespeichert.")
+            onDone(proof.optJSONObject("result") ?: proof)
+        }
     val currentSchema = spec?.optJSONObject("inputSchema")
     val currentProperties = currentSchema?.optJSONObject("properties") ?: JSONObject()
     val currentArgs = JSONObject(text)
@@ -1638,7 +1694,23 @@ internal fun NativeActionForm(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) content@{
-            Text(title, style = MaterialTheme.typography.headlineSmall)
+            NativeDetailHeading(
+                title,
+                if (pending != null && !restored && inspection.state == "waiting")
+                    listOf(
+                        NativeDetailAction(
+                            "original-retry",
+                            "Vorgang fortsetzen",
+                            !busy,
+                            {
+                                scope.launch {
+                                    perform(JSONObject(requireNotNull(pending).toString()))
+                                }
+                            },
+                        )
+                    )
+                else emptyList(),
+            )
             if (tool == "set_accounting_record")
                 Text(
                     "Der Abrechnungsweg gilt für den gesamten Auftrag einschließlich seiner Arbeitseinträge. Offen entfernt die Zuordnung. Rechnungsbeträge sind hier nicht bearbeitbar.",
@@ -1647,9 +1719,9 @@ internal fun NativeActionForm(
             when {
                 pending != null ->
                     NativeStatus(
-                        when (pendingState) {
-                            "content_removed" -> "Gespeichert · Eintrag später entfernt"
-                            "changed" -> "Gespeichert · inzwischen geändert"
+                        when (inspection.state) {
+                            "removed" -> "Gespeichert · Eintrag später entfernt"
+                            "conflict" -> "Vorgang prüfen"
                             else -> "Speichern nicht bestätigt"
                         },
                         NativeStatusTone.Attention,
@@ -1684,47 +1756,10 @@ internal fun NativeActionForm(
             (args.optJSONObject("_preview") ?: initial.optJSONObject("_preview"))?.let {
                 NativeBusinessValues(it)
             }
-            if (restored || pending != null) {
-                Text(
-                    if (restored)
-                        "Dieser Entwurf stammt aus einer Wiederherstellung. Zuerst das ursprüngliche Ergebnis prüfen."
-                    else
-                        "Die Antwort auf diesen Speichervorgang ist noch offen. Eingaben und ursprünglicher Vorgang bleiben unverändert erhalten."
-                )
-                NativeBusinessValues(pending ?: args)
-            }
+            if (restored) NativeRestoreBanner()
             if (pending != null) {
-                when (pendingState) {
-                    "unknown" -> {
-                        Text(
-                            "Ergebnis weiterhin offen. Die Prüfung hat keinen eindeutigen Speicherbeleg gefunden."
-                        )
-                        if (!restored)
-                            OutlinedButton(
-                                enabled = !busy && !orderLoading,
-                                onClick = {
-                                    scope.launch {
-                                        perform(JSONObject(requireNotNull(pending).toString()))
-                                    }
-                                },
-                            ) {
-                                Text("Ursprünglichen Vorgang erneut senden")
-                            }
-                        if (!restored)
-                            Text(
-                                "Sendet dieselben unveränderten Angaben mit derselben Vorgangskennung. Eine Ergebnisprüfung allein speichert nichts.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                    }
-                    "content_removed" ->
-                        Text(
-                            "Der Vorgang wurde gespeichert; der Inhalt wurde später entfernt. Bitte den zugehörigen Eintrag oder Papierkorb ansehen. Er wird nicht erneut angelegt."
-                        )
-                    "changed" ->
-                        Text(
-                            "Der gespeicherte Vorgang wurde inzwischen geändert. Bitte den aktuellen Eintrag ansehen. Er wird nicht erneut ausgeführt."
-                        )
-                }
+                NativeInspectionBanner(inspection) { inspectionAttempt++ }
+                NativeBusinessValues(pending ?: args)
             }
             if ((restored || reviewNeeded) && pending == null) {
                 if (reviewNeeded)
@@ -1937,54 +1972,7 @@ internal fun NativeActionForm(
                     NativeBusinessValues(it)
                 }
         }
-        if (pending != null)
-            NativeActionBar(
-                "Ergebnis prüfen",
-                onPrimary = {
-                    scope.launch {
-                        busy = true
-                        error = ""
-                        pendingState = ""
-                        try {
-                            val original = JSONObject(requireNotNull(pending).toString())
-                            val proof =
-                                controller.query(
-                                    "inspect_edit_action",
-                                    JSONObject()
-                                        .put("original_tool", tool)
-                                        .put("original_args", original),
-                                )
-                            pendingState = proof.optString("state")
-                            if (pendingState == "confirmed") {
-                                controller.removeDraft(draftKey)
-                                pending = null
-                                controller.message(
-                                    "Der bereits gespeicherte Vorgang wurde gefunden."
-                                )
-                                onDone(proof.optJSONObject("result") ?: proof)
-                            } else if (
-                                pendingState !in setOf("unknown", "content_removed", "changed")
-                            )
-                                error =
-                                    "Das Ergebnis bleibt offen. Der ursprüngliche Vorgang ist erhalten; bitte später erneut prüfen."
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (failure: Exception) {
-                            error =
-                                nativeActionError(
-                                    failure,
-                                    "Das Ergebnis konnte nicht gelesen werden. Bitte später erneut prüfen.",
-                                )
-                        } finally {
-                            busy = false
-                        }
-                    }
-                },
-                secondaryLabel = "Später prüfen",
-                onSecondary = onCancel,
-                enabled = !busy && !orderLoading,
-                secondaryEnabled = !busy,
-            )
+        if (pending != null) NativeActionBar("Schließen", onCancel, enabled = !busy)
         else if (loaded && !restored && !reviewNeeded)
             NativeActionBar(
                 if (readOnly) "Prüfen" else submitLabel,
@@ -2398,50 +2386,86 @@ internal fun NativeDeleteButton(
     onDone: () -> Unit,
 ) {
     var busy by remember(entity, id) { mutableStateOf(false) }
-    OutlinedButton(
-        modifier = modifier.heightIn(min = 48.dp),
-        onClick = {
-            if (!busy) {
-                busy = true
-                scope.launch {
-                    try {
-                        val tool =
-                            if (emptyTrash) "empty_trash"
-                            else if (permanent) "purge_entity" else "delete_entity"
-                        val args =
-                            JSONObject().apply {
-                                if (!emptyTrash) put("entity", entity).put("entity_id", id)
-                            }
-                        controller.deleteDirect(tool, args)
-                        onDone()
-                        controller.message(if (emptyTrash) "Papierkorb geleert." else "Gelöscht.")
-                    } catch (cancelled: CancellationException) {
-                        throw cancelled
-                    } catch (failure: Exception) {
-                        controller.message(
-                            nativeActionError(
-                                failure,
-                                "Löschen nicht bestätigt. Erneut antippen, um das Ergebnis zu prüfen.",
+    val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "delete_entity"
+    val initial = JSONObject().apply { if (!emptyTrash) put("entity", entity).put("entity_id", id) }
+    val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
+    var pendingDelete by remember(key) { mutableStateOf<JSONObject?>(null) }
+    var failure by remember(key) { mutableStateOf("") }
+    var inspectionAttempt by remember(key) { mutableIntStateOf(0) }
+    LaunchedEffect(key) {
+        try {
+            val saved =
+                controller.draft(key) ?: controller.draft(controller.actionDraftKey(tool, initial))
+            if (!busy && pendingDelete == null)
+                pendingDelete =
+                    saved
+                        ?.takeIf { it.optString("original_tool") == tool }
+                        ?.optJSONObject("original_args")
+                        ?.takeIf { PendingInspectionRules.sameDeletionTarget(tool, initial, it) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            failure = nativeActionError(error, "Der Löschvorgang konnte nicht gelesen werden.")
+        }
+    }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            tool,
+            pendingDelete,
+            !busy,
+            inspectionAttempt,
+        ) { proof ->
+            controller.acknowledgeDeleteResult(tool, initial, requireNotNull(pendingDelete), proof)
+            pendingDelete = null
+            onDone()
+            controller.message("Gelöscht.")
+        }
+    Column {
+        if (pendingDelete != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
+        else if (failure.isNotBlank()) NativeStatus(failure, NativeStatusTone.Attention)
+        OutlinedButton(
+            modifier = modifier.heightIn(min = 48.dp),
+            onClick = {
+                if (!busy && pendingDelete == null) {
+                    busy = true
+                    scope.launch {
+                        try {
+                            failure = ""
+                            controller.deleteDirect(
+                                tool,
+                                initial,
+                                onPrepared = { pendingDelete = JSONObject(it.toString()) },
+                                onNotCommitted = { pendingDelete = null },
                             )
-                        )
-                    } finally {
-                        busy = false
+                            pendingDelete = null
+                            onDone()
+                            controller.message(
+                                if (emptyTrash) "Papierkorb geleert." else "Gelöscht."
+                            )
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (error: Exception) {
+                            failure = nativeActionError(error, "Löschen nicht bestätigt.")
+                        } finally {
+                            busy = false
+                        }
                     }
                 }
-            }
-        },
-        enabled = enabled && !busy,
-        colors =
-            ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        border =
-            BorderStroke(
-                1.dp,
-                if (enabled && !busy) MaterialTheme.colorScheme.error
-                else MaterialTheme.colorScheme.outlineVariant,
-            ),
-    ) {
-        NativeTrashIcon(LocalContentColor.current)
-        Spacer(Modifier.width(8.dp))
-        Text(if (busy) "Löschen …" else label)
+            },
+            enabled = enabled && !busy && pendingDelete == null,
+            colors =
+                ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            border =
+                BorderStroke(
+                    1.dp,
+                    if (enabled && !busy && pendingDelete == null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.outlineVariant,
+                ),
+        ) {
+            NativeTrashIcon(LocalContentColor.current)
+            Spacer(Modifier.width(8.dp))
+            Text(if (busy) "Löschen …" else label)
+        }
     }
 }

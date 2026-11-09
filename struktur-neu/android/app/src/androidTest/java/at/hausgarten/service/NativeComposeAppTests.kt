@@ -560,10 +560,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun newWork() {
         waitUntil("NEW_WORK_ENTRY") {
             node(UiTags.CREATE)?.let(::clickable) != null ||
-                node("Arbeit nachtragen")?.let(::clickable) != null
+                node(UiTags.PRIMARY)?.let(::clickable) != null
         }
-        if (node(UiTags.CREATE)?.let(::clickable) != null) click(UiTags.CREATE)
-        click("Arbeit nachtragen")
+        if (node(UiTags.CREATE)?.let(::clickable) != null) {
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("work"))
+        } else click(UiTags.PRIMARY)
     }
 
     private fun discardWork() {
@@ -1763,9 +1765,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "WORK_DELETE_UNSELECTED_HASH_DURABLE_AFTER_RECREATION",
         )
         waitUntil("WORK_DELETE_SELECTION_CLEARED_AFTER_RECREATION") {
-            visibleTexts().none {
-                it in setOf("2 ausgewählt", "Löschen", "Löschen …", "Ergebnis prüfen")
-            }
+            visibleTexts().none { it in setOf("2 ausgewählt", "Löschen", "Löschen …") }
         }
         yes(node("Löschen") == null, "WORK_DELETE_DURABLE_AFTER_RECREATION")
     }
@@ -2021,6 +2021,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             journey("list_actions", ::listActionsJourney)
             journey("planning_board", ::planningBoardJourney)
             journey("property_timeline", ::propertyTimelineJourney)
+            journey("background_feedback", ::backgroundFeedbackJourney)
             journey("list_viewports", ::listViewportJourney)
             journey("filter_keyboard", ::filterKeyboardJourney)
             journey("surfaces", ::surfaceJourney)
@@ -2513,39 +2514,35 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("original_args", JSONObject(original.toString())),
         )
         runBlocking { controller.flushDrafts() }
-        click(UiTags.area("today"))
-        newWork()
-        shown("Ergebnis prüfen")
         val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
         val count = PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
-        val requestBefore = PixelMcpWriteTools.hash(workDraft().getJSONObject("original_args"))
-        repeat(2) {
-            primaryPosition("Ergebnis prüfen", "Später prüfen")
-            click("Ergebnis prüfen")
-            reveal(
-                "Ergebnis weiterhin unbestätigt. Der ursprüngliche Vorgang bleibt erhalten; es wurde keine neue Speicherung ausgeführt."
-            )
-            yes(
-                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before,
-                "RESULT_INSPECTION_${it}_DOES_NOT_WRITE_BUSINESS_DATA",
-            )
-            yes(
-                PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
-                    count,
-                "RESULT_INSPECTION_${it}_CREATES_NO_RECORD",
-            )
-            yes(
-                PixelMcpWriteTools.hash(workDraft().getJSONObject("original_args")) ==
-                    requestBefore &&
+        val requestBefore = PixelMcpWriteTools.hash(original)
+        click(UiTags.area("today"))
+        newWork()
+        try {
+            repeat(2) { index ->
+                shown(UiTags.inspection("waiting"))
+                waitStable("AUTOMATIC_INSPECTION_${index}_READ_ONLY", stableMs = 3500) {
+                    PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                        before &&
+                        PixelMcpReadTools.effective(store.getState())
+                            .getJSONArray("worklogs")
+                            .length() == count &&
+                        PixelMcpWriteTools.hash(workDraft().getJSONObject("original_args")) ==
+                            requestBefore
+                }
+                yes(
                     workDraft().getJSONObject("original_args").getString("_request_id") ==
                         "qa_native_unknown_work_result",
-                "RESULT_INSPECTION_${it}_RETAINS_EXACT_REQUEST",
-            )
+                    "BACKGROUND_INSPECTION_${index}_KEEPS_ORIGINAL_ID",
+                )
+                if (index == 0) recreate()
+            }
+            click(UiTags.PRIMARY)
+            shown(UiTags.CREATE)
+        } finally {
+            runBlocking { controller.removeDraft("editor:worklog:new") }
         }
-        click("Später prüfen")
-        runBlocking { controller.removeDraft("editor:worklog:new") }
-        click(UiTags.area("today"))
-        shown("Arbeit starten")
     }
 
     private fun checkWorkKeyboardActions() {
@@ -5575,6 +5572,337 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
             photoFile.delete()
             photoOriginal?.delete()
+            store.notifyCommittedChange()
+            launch()
+        }
+    }
+
+    private fun backgroundFeedbackJourney() {
+        val beforeMaster = JSONObject(store.getState().getJSONObject("master").toString())
+        val beforeOwners = mutableListOf<Pair<String, String>>()
+        val beforePending = mutableListOf<Array<String>>()
+        store.readableDatabase.rawQuery("SELECT key,value FROM owner_state", null).use { cursor ->
+            while (cursor.moveToNext()) beforeOwners += cursor.getString(0) to cursor.getString(1)
+        }
+        store.readableDatabase
+            .rawQuery("SELECT id,kind,payload,created_at FROM pending", null)
+            .use { cursor ->
+                while (cursor.moveToNext()) beforePending += Array(4) { cursor.getString(it) }
+            }
+        val activation = File(context.noBackupFilesDir, "full-restore/activation.json")
+        val beforeActivation = activation.takeIf(File::isFile)?.readBytes()
+        val controller = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        val customer = customers(fixturePrefix + "000").single().getString("id")
+        var timerSession = ""
+        try {
+            val args =
+                JSONObject()
+                    .put("_request_id", "qa_background_confirmed_work")
+                    .put("customer_id", customer)
+                    .put("activity", "[TEST] QA bestätigte Hintergrundprüfung")
+                    .put("work_date", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
+                    .put("hours", 1)
+                    .put("test_record", true)
+            val saved = runBlocking { controller.saveEditor("worklog", args) }
+            var before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            val count =
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
+            controller.saveDraft(
+                "editor:worklog:new",
+                JSONObject()
+                    .put("values", JSONObject(args.toString()))
+                    .put("original_args", JSONObject(args.toString())),
+            )
+            runBlocking { controller.flushDrafts() }
+            click(UiTags.area("today"))
+            newWork()
+            waitUntil("BACKGROUND_RECEIPT_ACKNOWLEDGED") {
+                workDraft().optJSONObject("original_args") == null &&
+                    store
+                        .ownerValue(
+                            "native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new"),
+                            "",
+                        )
+                        .isEmpty()
+            }
+            click(UiTags.SNACKBAR_VIEW, scrollTo = false)
+            shown(UiTags.entityDetail("worklogs", saved))
+            yes(
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before,
+                "BACKGROUND_CONFIRMATION_ONLY_READS_BUSINESS_DATA",
+            )
+            yes(
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
+                    count,
+                "BACKGROUND_CONFIRMATION_NEVER_REPEATS_SAVE",
+            )
+            recreate()
+            yes(
+                store
+                    .ownerValue(
+                        "native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new"),
+                        "",
+                    )
+                    .isEmpty(),
+                "BACKGROUND_ACK_SURVIVES_RECREATE",
+            )
+
+            // A retained pause receipt is acknowledged on Today; its writer is never repeated.
+            timerSession =
+                read(
+                        "start_work",
+                        JSONObject()
+                            .put("request_id", "qa_feedback_timer_start")
+                            .put("customer_id", customer)
+                            .put("activity", "[TEST] QA Hintergrundzeit"),
+                    )
+                    .getJSONObject("session")
+                    .getString("id")
+            val pauseArgs =
+                JSONObject()
+                    .put("request_id", "qa_feedback_timer_pause")
+                    .put("session_id", timerSession)
+            read("start_break", pauseArgs)
+            val timerRevision = read("get_active_work_session").getString("revision_hash")
+            fun timerEvents() =
+                store.readableDatabase
+                    .rawQuery(
+                        "SELECT COUNT(*) FROM work_session_events WHERE session_id=?",
+                        arrayOf(timerSession),
+                    )
+                    .use {
+                        it.moveToFirst()
+                        it.getInt(0)
+                    }
+            val eventCount = timerEvents()
+            val timerKey = "native_form_draft:" + PixelMcpWriteTools.hash("timer_action")
+            controller.saveDraft(
+                "timer_action",
+                JSONObject()
+                    .put("original_tool", "start_break")
+                    .put("original_args", JSONObject(pauseArgs.toString())),
+            )
+            runBlocking { controller.flushDrafts() }
+            click(UiTags.area("today"))
+            waitUntil("BACKGROUND_TIMER_RECEIPT_ACKNOWLEDGED") {
+                store.ownerValue(timerKey, "").isEmpty()
+            }
+            click(UiTags.SNACKBAR_VIEW, scrollTo = false)
+            shown(UiTags.PRIMARY)
+            yes(
+                read("get_active_work_session").getString("revision_hash") == timerRevision &&
+                    timerEvents() == eventCount,
+                "BACKGROUND_TIMER_ACK_NEVER_REPEATS_PAUSE",
+            )
+            val unknownTimer =
+                JSONObject()
+                    .put("request_id", "qa_feedback_unknown_timer_resume")
+                    .put("session_id", timerSession)
+            controller.saveDraft(
+                "timer_action",
+                JSONObject()
+                    .put("original_tool", "end_break")
+                    .put("original_args", JSONObject(unknownTimer.toString())),
+            )
+            runBlocking { controller.flushDrafts() }
+            recreate()
+            click(UiTags.area("today"))
+            reveal(UiTags.inspection("waiting"))
+            waitStable("BACKGROUND_UNKNOWN_TIMER_ONLY_READS", stableMs = 3500) {
+                read("get_active_work_session").getString("revision_hash") == timerRevision &&
+                    timerEvents() == eventCount &&
+                    JSONObject(store.ownerValue(timerKey, "{}"))
+                        .optJSONObject("original_args")
+                        ?.optString("request_id") == unknownTimer.getString("request_id")
+            }
+            click(UiTags.area("customers"))
+            shown(UiTags.CREATE)
+            yes(
+                read("get_active_work_session").optString("state") == "PAUSED",
+                "BACKGROUND_UNKNOWN_TIMER_LEAVES_NORMAL_NAVIGATION_USABLE",
+            )
+            runBlocking { controller.removeDraft("timer_action") }
+            read(
+                "discard_work_session",
+                JSONObject()
+                    .put("request_id", "qa_feedback_timer_cleanup")
+                    .put("session_id", timerSession),
+            )
+
+            // A lost local acknowledgement keeps the exact deletion, then resolves by receipt only.
+            val preservedWorks =
+                PixelMcpWriteTools.hash(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                )
+            val deletionWork = runBlocking {
+                controller.saveEditor(
+                    "worklog",
+                    JSONObject(args.toString())
+                        .put("_request_id", "qa_background_deleted_work")
+                        .put("activity", "[TEST] QA automatische Löschbestätigung"),
+                )
+            }
+            val deleteInitial = JSONObject().put("work_record_ids", JSONArray().put(deletionWork))
+            val deleteDraftKey =
+                "native_form_draft:" +
+                    PixelMcpWriteTools.hash(
+                        "delete:delete_work_records:" + PixelMcpWriteTools.hash(deleteInitial)
+                    )
+            openWorklogs()
+            reveal(UiTags.recordChoice("worklogs", deletionWork))
+            waitUntil("BACKGROUND_DELETE_SELECT_OWN_WORK") {
+                var target = node(UiTags.recordChoice("worklogs", deletionWork))
+                while (
+                    target != null &&
+                        target.actionList.none { it.id == AccessibilityNodeInfo.ACTION_LONG_CLICK }
+                ) target = target.parent
+                target?.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK) == true
+            }
+            shown(UiTags.DELETE_SELECTION)
+            store.writableDatabase.execSQL(
+                "CREATE TRIGGER qa_background_delete_ack BEFORE INSERT ON owner_state WHEN NEW.key='$deleteDraftKey' AND NEW.value='' BEGIN SELECT RAISE(ABORT,'QA deletion acknowledgement failure'); END"
+            )
+            click(UiTags.DELETE_SELECTION)
+            waitUntil("BACKGROUND_DELETE_RETAINS_ORIGINAL_AFTER_ACK_FAILURE") {
+                store.ownerValue(deleteDraftKey, "").isNotBlank() &&
+                    (node(UiTags.inspection("checking")) != null ||
+                        node(UiTags.inspection("waiting")) != null)
+            }
+            val originalDeletion =
+                JSONObject(store.ownerValue(deleteDraftKey, "{}")).getJSONObject("original_args")
+            store.writableDatabase.execSQL("DROP TRIGGER qa_background_delete_ack")
+            waitUntil("BACKGROUND_DELETE_AUTOMATIC_RECEIPT_ACKNOWLEDGED") {
+                store.ownerValue(deleteDraftKey, "").isEmpty() &&
+                    node(UiTags.DELETE_SELECTION) == null &&
+                    SettlementRules.rows(
+                            PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                        )
+                        .none { it.optString("id") == deletionWork }
+            }
+            val deletionProof =
+                read(
+                    "inspect_edit_action",
+                    JSONObject()
+                        .put("original_tool", "delete_work_records")
+                        .put("original_args", JSONObject(originalDeletion.toString())),
+                )
+            yes(
+                deletionProof.optString("state") in setOf("confirmed", "content_removed") &&
+                    !deletionProof.optBoolean("business_write_performed"),
+                "BACKGROUND_DELETE_READS_ONLY_THE_EXACT_ORIGINAL_RECEIPT",
+            )
+            yes(
+                PixelMcpWriteTools.hash(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                ) == preservedWorks,
+                "BACKGROUND_DELETE_PRESERVES_ALL_OTHER_WORK",
+            )
+            recreate()
+            yes(
+                store.ownerValue(deleteDraftKey, "").isEmpty() &&
+                    node(UiTags.DELETE_SELECTION) == null,
+                "BACKGROUND_DELETE_ACK_SURVIVES_RECREATE",
+            )
+            before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+
+            // A completed synthetic restore must leave all four normal areas usable.
+            activation.parentFile!!.mkdirs()
+            activation.writeText(
+                JSONObject()
+                    .put("formatVersion", 1)
+                    .put("restore_id", "qa_feedback_activated_restore")
+                    .put("phase", "ACTIVE")
+                    .put("preview_hash", "a".repeat(64))
+                    .toString()
+            )
+            recreate()
+            shown(UiTags.RESTORE_BANNER)
+            click(UiTags.area("planning"))
+            shown(UiTags.planningView("day"))
+            click(UiTags.area("customers"))
+            shown(UiTags.CREATE)
+            click(UiTags.RESTORE_DISMISS)
+            waitUntil("RESTORE_HINT_DISMISSED") { node(UiTags.RESTORE_BANNER) == null }
+            recreate()
+            yes(node(UiTags.RESTORE_BANNER) == null, "RESTORE_HINT_ACK_IS_DURABLE")
+            yes(
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before,
+                "RESTORE_HINT_DOES_NOT_CHANGE_BUSINESS_DATA",
+            )
+
+            // Empty customer list: first creation action is reachable from the ordinary plus.
+            val empty = JSONObject(beforeMaster.toString())
+            for (collection in
+                listOf(
+                    "customers",
+                    "orders",
+                    "worklogs",
+                    "offers",
+                    "invoices",
+                    "photos",
+                    "appointments",
+                )) empty.put(collection, JSONArray())
+            val emptyDb = store.writableDatabase
+            emptyDb.beginTransaction()
+            try {
+                emptyDb.delete("pending", null, null)
+                store.putOwnerValue("snapshot", empty.toString())
+                emptyDb.setTransactionSuccessful()
+            } finally {
+                emptyDb.endTransaction()
+            }
+            store.notifyCommittedChange()
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            launch()
+            click(UiTags.area("customers"))
+            shown(UiTags.EMPTY_STATE)
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("customer"))
+            shown(UiTags.PRIMARY)
+            yes(
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("customers").length() ==
+                    0,
+                "EMPTY_FIRST_ACTION_OPENS_FORM_WITHOUT_SAVING",
+            )
+            click(UiTags.area("accounting"))
+            selectTab(UiTags.billingTab(0))
+            shown(UiTags.EMPTY_ACTION)
+            click(UiTags.EMPTY_ACTION)
+            shown(UiTags.PRIMARY)
+            yes(
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
+                    0,
+                "EMPTY_ACCOUNTING_FIRST_ACTION_OPENS_WORK_FORM_WITHOUT_SAVING",
+            )
+        } finally {
+            store.writableDatabase.execSQL("DROP TRIGGER IF EXISTS qa_background_delete_ack")
+            activity?.let { current -> test.runOnMainSync { current.finish() } }
+            val db = store.writableDatabase
+            db.beginTransaction()
+            try {
+                if (timerSession.isNotBlank()) {
+                    db.delete("work_session_events", "session_id=?", arrayOf(timerSession))
+                    db.delete("work_sessions", "id=?", arrayOf(timerSession))
+                }
+                db.delete("pending", null, null)
+                for (row in beforePending) db.execSQL(
+                    "INSERT INTO pending(id,kind,payload,created_at) VALUES(?,?,?,?)",
+                    row,
+                )
+                db.delete("owner_state", null, null)
+                for ((key, value) in beforeOwners) db.execSQL(
+                    "INSERT INTO owner_state(key,value) VALUES(?,?)",
+                    arrayOf(key, value),
+                )
+                store.putOwnerValue("snapshot", beforeMaster.toString())
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+            }
+            if (beforeActivation == null) {
+                activation.delete()
+                activation.parentFile?.takeIf { it.listFiles()?.isEmpty() == true }?.delete()
+            } else activation.writeBytes(beforeActivation)
             store.notifyCommittedChange()
             launch()
         }

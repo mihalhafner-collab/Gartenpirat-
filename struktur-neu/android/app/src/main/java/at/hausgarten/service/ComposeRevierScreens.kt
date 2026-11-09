@@ -343,6 +343,28 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
                         id == "new"
                 )
                     controller.finishAction()
+                val targetKind =
+                    when (currentEdit.kind) {
+                        "movement" -> "material"
+                        "maintenance_done",
+                        "maintenance_plan",
+                        "maintenance_adjust",
+                        "accessories",
+                        "equipment_use" -> "equipment"
+                        else -> currentEdit.kind
+                    }
+                val targetRecord =
+                    result.optJSONObject("record")
+                        ?: result.optJSONObject(targetKind)
+                        ?: currentEdit.original
+                val targetId = result.optString("${targetKind}_id", targetRecord.optString("id"))
+                val targetSection = revierSections.firstOrNull { it.kind == targetKind }?.collection
+                controller.message(
+                    "Gespeichert.",
+                    if (targetSection != null && targetId.isNotBlank())
+                        NativeRoute(targetSection, targetId, "detail")
+                    else null,
+                )
             },
         )
     } else if (selected.isNotEmpty()) {
@@ -536,7 +558,16 @@ private fun RevierList(
             if (!listLoading && failure.isEmpty() && page.rows.isEmpty())
                 item {
                     Text(
-                        "Keine passenden Einträge. Suchtext und Filter prüfen.",
+                        when (config.kind) {
+                            "property" ->
+                                "Objekte sammeln die Pflege, Fotos und Einsätze eines Gartens oder Hauses."
+                            "visit" -> "Einsätze halten fest, wann du welches Objekt besuchst."
+                            "inquiry" -> "Anfragen halten die Wünsche deiner Kunden fest."
+                            "care_plan" ->
+                                "Pflegepläne merken die regelmäßigen Arbeiten am Objekt vor."
+                            "material" -> "Material erfasst deinen Bestand und seinen Verbrauch."
+                            else -> "Geräte halten Ausstattung und Wartung fest."
+                        },
                         Modifier.padding(12.dp),
                     )
                 }
@@ -1830,6 +1861,24 @@ private fun RevierEditor(
                 }
         }
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val retainedOperation = edit.pending?.let(::JSONObject)
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            retainedOperation?.optString("tool").orEmpty(),
+            retainedOperation?.optJSONObject("args"),
+            !busy && !edit.mediaBusy,
+            inspectionAttempt,
+        ) { proof ->
+            val result = proof.optJSONObject("result") ?: proof
+            revierDeleteEditPhotos(controller, edit.row())
+            controller.removeDraft(edit.key)
+            edit.pending = null
+            edit.dirty = false
+            controller.message("Gespeichert.")
+            onSaved(result)
+        }
     confirmedResult?.let { result ->
         Column(Modifier.fillMaxSize()) {
             Column(
@@ -1951,10 +2000,8 @@ private fun RevierEditor(
                 else NativeStatusTone.Neutral,
             )
             NativeContext(controller, values)
-            if (edit.pending != null)
-                Text(
-                    "Eingaben und ursprünglicher Vorgang bleiben erhalten. Zuerst das Ergebnis prüfen."
-                )
+            if (edit.pending != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
+            if (edit.restored) NativeRestoreBanner()
             RevierFields(edit, values, controller, !locked, ::update)
             if (edit.dirty && edit.pending == null)
                 TextButton({ confirmDiscard = true }, enabled = !busy && !edit.mediaBusy) {
@@ -2002,159 +2049,173 @@ private fun RevierEditor(
                     Text("Änderungen vergleichen")
                 }
         }
-        NativeActionBar(
-            primaryLabel =
-                when {
-                    edit.mediaBusy -> "Foto wird geladen …"
-                    busy && equipmentPhotoEditor -> "Bitte warten …"
-                    edit.pending != null -> "Ergebnis prüfen"
-                    edit.kind == "movement" ->
-                        when (values.optString("movement_kind", "consume")) {
-                            "consume" -> "Verbrauch buchen"
-                            "receive" -> "Zugang buchen"
-                            "adjust" -> "Korrektur buchen"
-                            else -> "Gegenbuchung buchen"
-                        }
-                    edit.kind == "maintenance_done" -> "Wartung speichern"
-                    else -> "Speichern"
-                },
-            onPrimary = {
-                scope.launch {
-                    busy = true
-                    failure = ""
-                    if (equipmentPhotoEditor) controller.message("")
-                    val checkingPending = edit.pending != null
-                    try {
-                        val frozen = edit.pending?.let(::JSONObject)
-                        var proof: JSONObject? = null
-                        if (frozen != null) {
-                            val inspection =
-                                controller.query(
-                                    "inspect_edit_action",
-                                    JSONObject()
-                                        .put("original_tool", frozen.getString("tool"))
-                                        .put("original_args", frozen.getJSONObject("args")),
-                                )
-                            when (inspection.optString("state")) {
-                                "confirmed" ->
-                                    proof = inspection.optJSONObject("result") ?: JSONObject()
-                                "content_removed" ->
-                                    error(
-                                        "Dieser Vorgang wurde endgültig gelöscht. Keine erneute Anlage."
-                                    )
-                                else ->
-                                    error(
-                                        "Das Ergebnis ist noch offen oder der Eintrag wurde verändert. Eingaben und ursprünglicher Vorgang bleiben erhalten. Es wurde nichts erneut gespeichert."
-                                    )
+        if (edit.pending != null)
+            NativeActionBar("Schließen", ::leave, enabled = !busy && !edit.mediaBusy)
+        else
+            NativeActionBar(
+                primaryLabel =
+                    when {
+                        edit.mediaBusy -> "Foto wird geladen …"
+                        busy && equipmentPhotoEditor -> "Bitte warten …"
+                        edit.pending != null -> "Ergebnis prüfen"
+                        edit.kind == "movement" ->
+                            when (values.optString("movement_kind", "consume")) {
+                                "consume" -> "Verbrauch buchen"
+                                "receive" -> "Zugang buchen"
+                                "adjust" -> "Korrektur buchen"
+                                else -> "Gegenbuchung buchen"
                             }
-                        }
-                        if (edit.restored && proof == null)
-                            error(
-                                "Aktuellen Eintrag und Entwurf zuerst vergleichen. Es wurde nichts gespeichert."
-                            )
-                        val result =
-                            if (proof != null) proof
-                            else {
-                                var argsValues = edit.row()
-                                if (
-                                    edit.kind == "equipment" &&
-                                        argsValues.optString("selected_photo_uri").isNotEmpty() &&
-                                        frozen == null
-                                ) {
-                                    val upload =
-                                        controller.stageEquipmentPhoto(
-                                            Uri.parse(argsValues.getString("selected_photo_uri")),
-                                            edit.request +
-                                                "_photo_" +
-                                                PixelMcpWriteTools.hash(
-                                                        argsValues.getString("selected_photo_uri")
-                                                    )
-                                                    .take(16),
+                        edit.kind == "maintenance_done" -> "Wartung speichern"
+                        else -> "Speichern"
+                    },
+                onPrimary = {
+                    scope.launch {
+                        busy = true
+                        failure = ""
+                        if (equipmentPhotoEditor) controller.message("")
+                        val checkingPending = edit.pending != null
+                        try {
+                            val frozen = edit.pending?.let(::JSONObject)
+                            var proof: JSONObject? = null
+                            if (frozen != null) {
+                                val inspection =
+                                    controller.query(
+                                        "inspect_edit_action",
+                                        JSONObject()
+                                            .put("original_tool", frozen.getString("tool"))
+                                            .put("original_args", frozen.getJSONObject("args")),
+                                    )
+                                when (inspection.optString("state")) {
+                                    "confirmed" ->
+                                        proof = inspection.optJSONObject("result") ?: JSONObject()
+                                    "content_removed" ->
+                                        error(
+                                            "Dieser Vorgang wurde endgültig gelöscht. Keine erneute Anlage."
                                         )
-                                    edit.values =
-                                        argsValues.put("profile_photo_upload_id", upload).toString()
-                                    controller.saveDraft(edit.key, edit.snapshot())
-                                    controller.flushDrafts()
-                                    argsValues = edit.row()
+                                    else ->
+                                        error(
+                                            "Das Ergebnis ist noch offen oder der Eintrag wurde verändert. Eingaben und ursprünglicher Vorgang bleiben erhalten. Es wurde nichts erneut gespeichert."
+                                        )
                                 }
-                                if (edit.kind == "accessories" && frozen == null) {
-                                    val accessories =
-                                        argsValues.optJSONArray("accessories") ?: JSONArray()
-                                    for (index in 0 until accessories.length()) {
-                                        val item = accessories.getJSONObject(index)
-                                        if (item.optString("selected_photo_uri").isNotEmpty())
-                                            item.put(
-                                                "photo_upload_id",
-                                                controller.stageEquipmentPhoto(
-                                                    Uri.parse(item.getString("selected_photo_uri")),
-                                                    edit.request +
-                                                        "_" +
-                                                        PixelMcpWriteTools.hash(
-                                                                item.getString("id") +
-                                                                    item.getString(
-                                                                        "selected_photo_uri"
-                                                                    )
-                                                            )
-                                                            .take(24),
-                                                ),
-                                            )
-                                    }
-                                    edit.values =
-                                        argsValues.put("accessories", accessories).toString()
-                                    controller.saveDraft(edit.key, edit.snapshot())
-                                    controller.flushDrafts()
-                                }
-                                val operation = frozen ?: revierArguments(edit, argsValues)
-                                edit.pending = operation.toString()
-                                edit.dirty = true
-                                controller.saveDraft(edit.key, edit.snapshot())
-                                controller.flushDrafts()
-                                controller.query(
-                                    operation.getString("tool"),
-                                    operation.getJSONObject("args"),
-                                )
                             }
-                        // A confirmed business save remains confirmed if draft cleanup or rendering
-                        // fails.
-                        edit.pending = null
-                        edit.dirty = false
-                        val cleanup = runCatching {
-                            revierDeleteEditPhotos(controller, edit.row())
-                            controller.removeDraft(edit.key)
-                        }
-                        controller.message(
-                            if (cleanup.isSuccess) "Lokal gespeichert."
-                            else "Gespeichert. Entwurfsbereinigung steht noch aus."
-                        )
-                        if (edit.kind in listOf("movement", "maintenance_done"))
-                            confirmedResult = result
-                        else onSaved(result)
-                    } catch (cancelled: CancellationException) {
-                        throw cancelled
-                    } catch (error: Exception) {
-                        if (
-                            !checkingPending &&
-                                error is NativeCallFailure &&
-                                error.detail.optString("commit_state") == "not_committed"
-                        ) {
+                            if (edit.restored && proof == null)
+                                error(
+                                    "Aktuellen Eintrag und Entwurf zuerst vergleichen. Es wurde nichts gespeichert."
+                                )
+                            val result =
+                                if (proof != null) proof
+                                else {
+                                    var argsValues = edit.row()
+                                    if (
+                                        edit.kind == "equipment" &&
+                                            argsValues
+                                                .optString("selected_photo_uri")
+                                                .isNotEmpty() &&
+                                            frozen == null
+                                    ) {
+                                        val upload =
+                                            controller.stageEquipmentPhoto(
+                                                Uri.parse(
+                                                    argsValues.getString("selected_photo_uri")
+                                                ),
+                                                edit.request +
+                                                    "_photo_" +
+                                                    PixelMcpWriteTools.hash(
+                                                            argsValues.getString(
+                                                                "selected_photo_uri"
+                                                            )
+                                                        )
+                                                        .take(16),
+                                            )
+                                        edit.values =
+                                            argsValues
+                                                .put("profile_photo_upload_id", upload)
+                                                .toString()
+                                        controller.saveDraft(edit.key, edit.snapshot())
+                                        controller.flushDrafts()
+                                        argsValues = edit.row()
+                                    }
+                                    if (edit.kind == "accessories" && frozen == null) {
+                                        val accessories =
+                                            argsValues.optJSONArray("accessories") ?: JSONArray()
+                                        for (index in 0 until accessories.length()) {
+                                            val item = accessories.getJSONObject(index)
+                                            if (item.optString("selected_photo_uri").isNotEmpty())
+                                                item.put(
+                                                    "photo_upload_id",
+                                                    controller.stageEquipmentPhoto(
+                                                        Uri.parse(
+                                                            item.getString("selected_photo_uri")
+                                                        ),
+                                                        edit.request +
+                                                            "_" +
+                                                            PixelMcpWriteTools.hash(
+                                                                    item.getString("id") +
+                                                                        item.getString(
+                                                                            "selected_photo_uri"
+                                                                        )
+                                                                )
+                                                                .take(24),
+                                                    ),
+                                                )
+                                        }
+                                        edit.values =
+                                            argsValues.put("accessories", accessories).toString()
+                                        controller.saveDraft(edit.key, edit.snapshot())
+                                        controller.flushDrafts()
+                                    }
+                                    val operation = frozen ?: revierArguments(edit, argsValues)
+                                    edit.pending = operation.toString()
+                                    edit.dirty = true
+                                    controller.saveDraft(edit.key, edit.snapshot())
+                                    controller.flushDrafts()
+                                    controller.query(
+                                        operation.getString("tool"),
+                                        operation.getJSONObject("args"),
+                                    )
+                                }
+                            // A confirmed business save remains confirmed if draft cleanup or
+                            // rendering
+                            // fails.
                             edit.pending = null
-                            conflict =
-                                error.detail.optString("code").contains("CONFLICT") ||
-                                    error.detail.optString("code").contains("STALE")
+                            edit.dirty = false
+                            val cleanup = runCatching {
+                                revierDeleteEditPhotos(controller, edit.row())
+                                controller.removeDraft(edit.key)
+                            }
+                            controller.message(
+                                if (cleanup.isSuccess) "Lokal gespeichert."
+                                else "Gespeichert. Entwurfsbereinigung steht noch aus."
+                            )
+                            if (edit.kind in listOf("movement", "maintenance_done"))
+                                confirmedResult = result
+                            else onSaved(result)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (error: Exception) {
+                            if (
+                                !checkingPending &&
+                                    error is NativeCallFailure &&
+                                    error.detail.optString("commit_state") == "not_committed"
+                            ) {
+                                edit.pending = null
+                                conflict =
+                                    error.detail.optString("code").contains("CONFLICT") ||
+                                        error.detail.optString("code").contains("STALE")
+                            }
+                            failure = error.message.orEmpty()
+                            if (edit.dirty || edit.pending != null)
+                                controller.saveDraft(edit.key, edit.snapshot())
+                        } finally {
+                            busy = false
                         }
-                        failure = error.message.orEmpty()
-                        if (edit.dirty || edit.pending != null)
-                            controller.saveDraft(edit.key, edit.snapshot())
-                    } finally {
-                        busy = false
                     }
-                }
-            },
-            secondaryLabel = "Zurück",
-            onSecondary = { leave() },
-            enabled = !busy && !edit.mediaBusy,
-            secondaryEnabled = !busy && !edit.mediaBusy,
-        )
+                },
+                secondaryLabel = "Zurück",
+                onSecondary = { leave() },
+                enabled = !busy && !edit.mediaBusy,
+                secondaryEnabled = !busy && !edit.mediaBusy,
+            )
     }
     if (confirmDiscard)
         LaunchedEffect(Unit) {
@@ -3498,6 +3559,24 @@ private fun RevierTour(controller: NativeAppController) {
             }
         }
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            pending?.optString("tool").orEmpty(),
+            pending?.optJSONObject("args"),
+            !busy,
+            inspectionAttempt,
+        ) { _ ->
+            controller.removeDraft(key)
+            pending = null
+            revision++
+            failure = ""
+            controller.message(
+                "Tour gespeichert.",
+                NativeRoute("tour", args = JSONObject().put("date", date)),
+            )
+        }
     Column(Modifier.fillMaxSize()) {
         LazyColumn(
             Modifier.weight(1f),
@@ -3662,6 +3741,8 @@ private fun RevierTour(controller: NativeAppController) {
                     }
                 }
             }
+            if (pending != null) item { NativeInspectionBanner(inspection) { inspectionAttempt++ } }
+            if (restored) item { NativeRestoreBanner() }
             if (available.isEmpty()) item { Text("Für diesen Tag sind keine Besuche geplant.") }
         }
         NativeActions {

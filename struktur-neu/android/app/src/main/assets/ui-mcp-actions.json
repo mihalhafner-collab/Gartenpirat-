@@ -2774,6 +2774,56 @@
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeDetailLayout.kt"
+    },
+    {
+      "id": "rueckmeldung.automatisch_pruefen",
+      "area": "rueckmeldung",
+      "action": "Offene Speicherergebnisse automatisch prüfen",
+      "source": "NativeFeedback.kt",
+      "mcp": [
+        "inspect_edit_action"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "PendingInspectionTest and native background_feedback journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeFeedback.kt"
+    },
+    {
+      "id": "rueckmeldung.wiederherstellung",
+      "area": "rueckmeldung",
+      "action": "Wiederherstellung als Hinweisbalken",
+      "source": "NativeFeedback.kt",
+      "mcp": [
+        "get_restore_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "PendingInspectionTest and native background_feedback journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeFeedback.kt"
+    },
+    {
+      "id": "rueckmeldung.ansehen",
+      "area": "rueckmeldung",
+      "action": "Gespeicherten Eintrag aus der Snackbar ansehen",
+      "source": "NativePrimaryScreens.kt",
+      "mcp": [
+        "get_customer",
+        "get_order",
+        "get_work_record",
+        "get_photo",
+        "get_settlement",
+        "get_appointment"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "PendingInspectionTest and native background_feedback journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativePrimaryScreens.kt"
     }
   ]
 }

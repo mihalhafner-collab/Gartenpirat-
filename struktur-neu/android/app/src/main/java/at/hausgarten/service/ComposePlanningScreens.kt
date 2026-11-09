@@ -153,11 +153,17 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
                     if (routeEditorOpened && controller.route.mode in setOf("new", "edit"))
                         controller.back()
                 },
-                onSaved = {
+                onSaved = { result ->
+                    val savedId = result.optString("appointment_id", editorTarget.orEmpty())
                     edit = null
                     editorTarget = null
                     if (routeEditorOpened && controller.route.mode in setOf("new", "edit"))
                         controller.finishAction()
+                    controller.message(
+                        "Termin gespeichert.",
+                        if (savedId.isNotBlank()) NativeRoute("appointments", savedId, "detail")
+                        else null,
+                    )
                 },
             )
         selected.isNotEmpty() ->
@@ -1056,6 +1062,20 @@ private fun PlanningEditor(
             }
         }
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            edit.pending?.optString("tool").orEmpty(),
+            edit.pending?.optJSONObject("args"),
+            !busy,
+            inspectionAttempt,
+        ) { proof ->
+            controller.removeDraft(edit.key)
+            edit.pending = null
+            controller.message("Termin gespeichert.")
+            onSaved(proof.optJSONObject("result") ?: proof)
+        }
     seriesReview?.let { proposals ->
         AlertDialog(
             onDismissRequest = { seriesReview = null },
@@ -1213,11 +1233,8 @@ private fun PlanningEditor(
                 if (existing) "Termin bearbeiten" else "Einsatz planen",
                 style = MaterialTheme.typography.headlineSmall,
             )
-            if (edit.restoreReview)
-                Text(
-                    "Dieser Entwurf stammt aus einem wiederhergestellten Gerätestand. Angaben und gespeicherten Termin ausdrücklich prüfen. Eine alte unbestätigte Speicherung wird nicht automatisch wiederholt.",
-                    color = MaterialTheme.colorScheme.error,
-                )
+            if (edit.pending != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
+            if (edit.restoreReview) NativeRestoreBanner()
             PlanningPicker(
                 "Kunde",
                 "customers",
@@ -1451,27 +1468,37 @@ private fun PlanningEditor(
             collision?.optJSONArray("conflicts")?.planningRows()?.any {
                 !it.optBoolean("uncertain")
             } == true
-        NativeActionBar(
-            primaryLabel =
-                when {
-                    busy -> "Speichern …"
-                    edit.pending != null -> "Ergebnis prüfen"
-                    hardConflict -> "Andere Zeit wählen"
-                    !existing && (planningText(values, "occurrences").toIntOrNull() ?: 1) > 1 ->
-                        "Wiederholungen prüfen"
-                    else -> "Termin speichern"
+        if (edit.pending != null)
+            NativeActionBar(
+                "Schließen",
+                {
+                    edit.retain(controller)
+                    onClose()
                 },
-            onPrimary = {
-                if (hardConflict && edit.pending == null) suggestions = true else save()
-            },
-            secondaryLabel = "Zurück",
-            onSecondary = {
-                edit.retain(controller)
-                onClose()
-            },
-            enabled = !busy,
-            secondaryEnabled = !busy,
-        )
+                enabled = !busy,
+            )
+        else
+            NativeActionBar(
+                primaryLabel =
+                    when {
+                        busy -> "Speichern …"
+                        edit.pending != null -> "Ergebnis prüfen"
+                        hardConflict -> "Andere Zeit wählen"
+                        !existing && (planningText(values, "occurrences").toIntOrNull() ?: 1) > 1 ->
+                            "Wiederholungen prüfen"
+                        else -> "Termin speichern"
+                    },
+                onPrimary = {
+                    if (hardConflict && edit.pending == null) suggestions = true else save()
+                },
+                secondaryLabel = "Zurück",
+                onSecondary = {
+                    edit.retain(controller)
+                    onClose()
+                },
+                enabled = !busy,
+                secondaryEnabled = !busy,
+            )
     }
 }
 

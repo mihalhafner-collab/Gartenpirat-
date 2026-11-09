@@ -245,7 +245,11 @@ private fun AccountingTotals(controller: NativeAppController) {
                 val data = result!!
                 val records = data.getJSONArray("records").objects()
                 if (records.isEmpty())
-                    item { Text("Keine abgerechneten Aufträge für diese Auswahl.") }
+                    item {
+                        Text(
+                            "Hier vergleichst du abgerechnete Beträge nach Zeitraum und Abrechnungsweg."
+                        )
+                    }
                 items(records, key = { it.getString("key") }) { row ->
                     AccountingRow(controller, row)
                 }

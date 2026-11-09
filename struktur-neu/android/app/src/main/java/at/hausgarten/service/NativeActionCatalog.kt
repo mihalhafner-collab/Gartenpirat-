@@ -1044,6 +1044,31 @@ internal object NativeActionCatalog {
                     "update_photo",
                 ),
             ),
+            NativeAction(
+                "rueckmeldung.automatisch_pruefen",
+                "rueckmeldung",
+                "Offene Speicherergebnisse automatisch prüfen",
+                listOf("inspect_edit_action"),
+            ),
+            NativeAction(
+                "rueckmeldung.wiederherstellung",
+                "rueckmeldung",
+                "Wiederherstellung als Hinweisbalken",
+                listOf("get_restore_status"),
+            ),
+            NativeAction(
+                "rueckmeldung.ansehen",
+                "rueckmeldung",
+                "Gespeicherten Eintrag aus der Snackbar ansehen",
+                listOf(
+                    "get_customer",
+                    "get_order",
+                    "get_work_record",
+                    "get_photo",
+                    "get_settlement",
+                    "get_appointment",
+                ),
+            ),
         )
 
     /** Retired actions stay inspectable in the catalog without exposing an executable button. */

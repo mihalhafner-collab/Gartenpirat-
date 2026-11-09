@@ -168,7 +168,12 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
         ) {
             item {
                 NativeActions {
-                    Button({ controller.navigate("settlement_edit") }) { Text("Neue Abrechnung") }
+                    Button(
+                        { controller.navigate("settlement_edit") },
+                        Modifier.semantics { testTag = UiTags.EMPTY_ACTION },
+                    ) {
+                        Text("Neue Abrechnung")
+                    }
                 }
             }
             if (error.isNotEmpty())
@@ -265,7 +270,13 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
                 }
             }
             if (result != null && records.isEmpty())
-                item { Text("Keine Abschlüsse für diese Suche.") }
+                item {
+                    Text(
+                        if (search.isBlank())
+                            "Abschlüsse verbinden erbrachte Leistungen mit Belegen und Zahlungen."
+                        else "Keine Abschlüsse für diese Suche."
+                    )
+                }
         }
     }
 }
@@ -759,6 +770,15 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                 controller.removeDraft("settlement-review:$id")
                 original = null
                 after(result)
+                if (tool != "prepare_settlement")
+                    controller.message(
+                        "Abschluss gespeichert.",
+                        NativeRoute(
+                            "settlement_review",
+                            result.optString("settlement_id", id),
+                            "detail",
+                        ),
+                    )
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -777,6 +797,32 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
             }
         }
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val retainedOperation = original?.let(::JSONObject)
+    val retainedKey = retainedOperation?.let { "review:$id:${it.getString("operation_id")}" }
+    val retainedArgs =
+        retainedOperation?.getJSONObject("args")?.let {
+            JSONObject(it.toString())
+                .put("request_id", "native_settlement_" + PixelMcpWriteTools.hash(retainedKey))
+        }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            retainedOperation?.optString("tool").orEmpty(),
+            retainedArgs,
+            !busy,
+            inspectionAttempt,
+        ) { proof ->
+            controller.removeDraft("settlement-action:$retainedKey")
+            controller.removeDraft("settlement-review:$id")
+            original = null
+            val target = proof.optJSONObject("result")?.optString("settlement_id", id) ?: id
+            if (target != id) controller.navigate("settlement_review", target) else attempt++
+            controller.message(
+                "Abschluss gespeichert.",
+                NativeRoute("settlement_review", target, "detail"),
+            )
+        }
     fun document(share: Boolean) {
         scope.launch {
             try {
@@ -793,7 +839,8 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (error.isNotEmpty()) {
+            if (original != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
+            if (error.isNotEmpty() && original == null) {
                 NativeStatus(error, NativeStatusTone.Failed)
                 TextButton({ attempt++ }) { Text("Aktuellen Stand laden") }
             }
@@ -1366,18 +1413,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
         val current = data
         val record = current?.optJSONObject("record")
         if (original != null) {
-            NativeActionBar(
-                "Ursprünglichen Vorgang erneut prüfen",
-                {
-                    val operation = JSONObject(original!!)
-                    act(operation.getString("tool"), operation.getJSONObject("args")) { result ->
-                        val target = result.optString("settlement_id", id)
-                        if (target != id) controller.navigate("settlement_review", target)
-                        else attempt++
-                    }
-                },
-                enabled = !busy,
-            )
+            NativeActionBar("Schließen", { controller.back() }, enabled = !busy)
         } else if (current != null && record?.optString("status") == "draft") {
             // Design: one "Ausstellen" after the preview. Preparing (number, frozen content)
             // and completing (original PDF) still run as the two durable steps.

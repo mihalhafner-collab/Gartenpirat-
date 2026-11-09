@@ -121,9 +121,23 @@ internal fun NativeApplication(controller: NativeAppController) {
     val routeStates = rememberSaveableStateHolder()
     val snackbar = remember { SnackbarHostState() }
     NativeListUndo(controller, snackbar)
-    LaunchedEffect(notice) {
+    val noticeTarget = controller.messageTarget
+    LaunchedEffect(notice, noticeTarget) {
         if (notice.isBlank()) return@LaunchedEffect
-        snackbar.showSnackbar(notice, withDismissAction = true, duration = SnackbarDuration.Long)
+        val result =
+            snackbar.showSnackbar(
+                notice,
+                actionLabel = if (noticeTarget != null) "Ansehen" else null,
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            )
+        if (result == SnackbarResult.ActionPerformed && noticeTarget != null)
+            controller.navigate(
+                noticeTarget.section,
+                noticeTarget.id,
+                noticeTarget.mode,
+                noticeTarget.args,
+            )
         if (controller.messages.value == notice) controller.message("")
     }
     BackHandler { controller.back() }
@@ -218,16 +232,30 @@ internal fun NativeApplication(controller: NativeAppController) {
             modifier = Modifier.weight(1f),
             containerColor = MaterialTheme.colorScheme.background,
             snackbarHost = {
-                SnackbarHost(snackbar) { data ->
-                    if (data.visuals.actionLabel == "Rückgängig")
+                SnackbarHost(
+                    snackbar,
+                    modifier =
+                        Modifier.padding(
+                            bottom =
+                                if (snackbar.currentSnackbarData?.visuals?.actionLabel == "Ansehen")
+                                    if (LocalDensity.current.fontScale > 1.3f) 136.dp else 72.dp
+                                else 0.dp
+                        ),
+                ) { data ->
+                    if (data.visuals.actionLabel in setOf("Rückgängig", "Ansehen"))
                         Snackbar(
                             actionOnNewLine = LocalDensity.current.fontScale > 1.3f,
                             action = {
                                 TextButton(
                                     { data.performAction() },
-                                    Modifier.semantics { testTag = UiTags.UNDO },
+                                    Modifier.semantics {
+                                        testTag =
+                                            if (data.visuals.actionLabel == "Rückgängig")
+                                                UiTags.UNDO
+                                            else UiTags.SNACKBAR_VIEW
+                                    },
                                 ) {
-                                    Text("Rückgängig")
+                                    Text(data.visuals.actionLabel.orEmpty())
                                 }
                             },
                         ) {
@@ -239,6 +267,7 @@ internal fun NativeApplication(controller: NativeAppController) {
             topBar = {
                 if (!imeVisible)
                     Column(Modifier.statusBarsPadding()) {
+                        NativeRestoreNotice(controller)
                         // Search and "+" sit in the same place on every overview, never over a
                         // screen's own bottom actions.
                         val quick =
@@ -754,7 +783,10 @@ internal fun NativeRelatedList(
         if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
         else if (page == null) LinearProgressIndicator(Modifier.fillMaxWidth())
         else if (page!!.rows.isEmpty())
-            Text("Keine Einträge vorhanden.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Hier findest du die zugeordneten Einträge.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         page?.rows?.forEach { row ->
             NativeInfoRow(
                 row.title,
@@ -1025,7 +1057,27 @@ internal fun NativeOpenHours(
             val total =
                 (0 until groups.length()).sumOf { groups.getJSONObject(it).optDouble("hours") }
             Text(nativeDuration(total) + " offen", style = MaterialTheme.typography.headlineSmall)
-            if (groups.length() == 0) Text("Keine offen markierten Arbeiten.")
+            if (groups.length() == 0) {
+                Text(
+                    "Offene Arbeiten sind die Grundlage deiner nächsten Abrechnung.",
+                    Modifier.semantics { testTag = UiTags.EMPTY_STATE },
+                )
+                TextButton(
+                    {
+                        controller.navigate(
+                            "worklogs",
+                            mode = "new",
+                            args =
+                                JSONObject().apply {
+                                    if (customer.isNotBlank()) put("customer_id", customer)
+                                },
+                        )
+                    },
+                    Modifier.semantics { testTag = UiTags.EMPTY_ACTION },
+                ) {
+                    Text("Arbeit nachtragen")
+                }
+            }
             for (i in 0 until groups.length()) {
                 val group = groups.getJSONObject(i)
                 val recipient = group.optString("billing_customer_id")
@@ -1148,6 +1200,7 @@ private fun NativeToday(controller: NativeAppController) {
     var openHours by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
+    var pendingTimer by remember { mutableStateOf<JSONObject?>(null) }
     val scope = rememberCoroutineScope()
     val day = nativeDay()
     suspend fun refresh() {
@@ -1186,6 +1239,7 @@ private fun NativeToday(controller: NativeAppController) {
         while (isActive) {
             try {
                 session = withContext(Dispatchers.IO) { controller.store.workSessions().current() }
+                pendingTimer = controller.draft("timer_action")
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -1194,6 +1248,25 @@ private fun NativeToday(controller: NativeAppController) {
             delay(1000)
         }
     }
+    var timerInspectionAttempt by remember { mutableIntStateOf(0) }
+    val timerInspection =
+        rememberNativePendingInspection(
+            controller,
+            pendingTimer?.optString("original_tool").orEmpty(),
+            pendingTimer?.optJSONObject("original_args"),
+            !busy,
+            timerInspectionAttempt,
+        ) { _ ->
+            val original = requireNotNull(pendingTimer)
+            session =
+                controller.acknowledgeTimerResult(
+                    original.getString("original_tool"),
+                    original.getJSONObject("original_args"),
+                )
+            pendingTimer = null
+            error = ""
+            controller.message("Zeitvorgang bestätigt.", NativeRoute("timer"))
+        }
     fun rows(array: JSONArray?) = (0 until (array?.length() ?: 0)).map { array!!.getJSONObject(it) }
     val tourIds =
         rows(overview?.optJSONObject("tour")?.optJSONArray("stops")).map { it.optString("id") }
@@ -1235,7 +1308,7 @@ private fun NativeToday(controller: NativeAppController) {
             } else next?.optString("id")?.let { put("visit_id", it) }
         }
     fun timer(tool: String) {
-        if (busy) return
+        if (busy || pendingTimer != null) return
         busy = true
         scope.launch {
             try {
@@ -1254,7 +1327,7 @@ private fun NativeToday(controller: NativeAppController) {
         }
     }
     fun startWork(target: JSONObject = context) {
-        if (busy) return
+        if (busy || pendingTimer != null) return
         if (target.optString("customer_id").isEmpty()) {
             controller.navigate("timer", args = target)
             return
@@ -1358,12 +1431,12 @@ private fun NativeToday(controller: NativeAppController) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                 }
+                if (pendingTimer != null)
+                    item { NativeInspectionBanner(timerInspection) { timerInspectionAttempt++ } }
                 if (error.isNotBlank())
                     item {
                         NativeStatus(error, NativeStatusTone.Attention)
-                        TextButton({ controller.navigate("timer") }) {
-                            Text("Ursprüngliches Ergebnis prüfen")
-                        }
+                        TextButton({ controller.navigate("timer") }) { Text("Zeitstand ansehen") }
                     }
                 if (active)
                     item {
@@ -1492,7 +1565,7 @@ private fun NativeToday(controller: NativeAppController) {
                                 else if (!active && visit.optString("customer_id").isNotEmpty())
                                     FilledTonalButton(
                                         { startWork(visitContext(visit)) },
-                                        enabled = !busy,
+                                        enabled = !busy && pendingTimer == null,
                                     ) {
                                         Text("Start")
                                     }
@@ -1576,7 +1649,7 @@ private fun NativeToday(controller: NativeAppController) {
                         { timer("stop_work") },
                         "Pause",
                         { timer("start_break") },
-                        enabled = !busy,
+                        enabled = !busy && pendingTimer == null,
                         secondaryEnabled = !busy,
                     )
                 "PAUSED" ->
@@ -1585,7 +1658,7 @@ private fun NativeToday(controller: NativeAppController) {
                         { timer("end_break") },
                         "Zeit stoppen",
                         { timer("stop_work") },
-                        enabled = !busy,
+                        enabled = !busy && pendingTimer == null,
                         secondaryEnabled = !busy,
                     )
                 "STOPPED_PENDING_REVIEW" ->
@@ -1663,80 +1736,57 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             }
         }
     }
-    // A committed write can outlive this Activity before its selection is cleared.
-    // Keep the exact request even after deleteDirect has removed its durable draft.
-    suspend fun inspectPendingDeletion(): Boolean {
-        val initial = JSONObject().put("work_record_ids", JSONArray(selected))
-        val key = "delete:delete_work_records:" + PixelMcpWriteTools.hash(initial)
-        val original =
-            pendingDeletion?.let(::JSONObject)
-                ?: controller.draft(key)?.optJSONObject("original_args")
-                ?: return false
-        pendingDeletion = original.toString()
-        val proof =
-            controller.query(
-                "inspect_edit_action",
-                JSONObject()
-                    .put("original_tool", "delete_work_records")
-                    .put("original_args", original),
-            )
-        if (proof.optString("state") !in setOf("confirmed", "content_removed")) {
-            controller.message(
-                "Löschergebnis weiterhin offen. Der ursprüngliche Vorgang bleibt erhalten; Ergebnis erneut prüfen."
-            )
-            return false
-        }
-        val ids = original.getJSONArray("work_record_ids")
-        val completed = (0 until ids.length()).map { ids.getString(it) }.toSet()
-        val completedInitial = JSONObject().put("work_record_ids", ids)
-        val draftKeys =
-            listOf(
-                    "delete:delete_work_records:" + PixelMcpWriteTools.hash(completedInitial),
-                    controller.actionDraftKey("delete_work_records", completedInitial),
-                )
-                .distinct()
-        for (draftKey in draftKeys) {
-            val saved = controller.draft(draftKey)
-            val savedArgs = saved?.optJSONObject("original_args")
-            if (
-                saved?.optString("original_tool") == "delete_work_records" &&
-                    savedArgs != null &&
-                    PixelMcpWriteTools.hash(savedArgs) == PixelMcpWriteTools.hash(original)
-            )
-                controller.removeDraft(draftKey)
-        }
-        selected = selected.filterNot { it in completed }
-        pendingDeletion = null
-        return true
-    }
-    LaunchedEffect(controller) {
-        if (collection == "worklogs" && (selected.isNotEmpty() || pendingDeletion != null)) {
-            var inspecting = false
-            try {
-                // Ordinary selection restoration must not enter a deleting state.
-                if (pendingDeletion == null) {
-                    val initial = JSONObject().put("work_record_ids", JSONArray(selected))
-                    val saved =
-                        controller
-                            .draft("delete:delete_work_records:" + PixelMcpWriteTools.hash(initial))
-                            ?.optJSONObject("original_args")
-                            ?.toString()
-                    if (pendingDeletion == null) pendingDeletion = saved
-                }
-                if (pendingDeletion != null && !deleting) {
-                    inspecting = true
-                    deleting = true
-                    inspectPendingDeletion()
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Exception) {
-                controller.message(failure.message ?: "Löschergebnis noch nicht bestätigt.")
-            } finally {
-                if (inspecting) deleting = false
+    LaunchedEffect(controller, collection) {
+        try {
+            if (collection == "worklogs" && pendingDeletion == null && selected.isNotEmpty()) {
+                val initial = JSONObject().put("work_record_ids", JSONArray(selected))
+                val saved =
+                    controller.draft(
+                        "delete:delete_work_records:" + PixelMcpWriteTools.hash(initial)
+                    ) ?: controller.draft(controller.actionDraftKey("delete_work_records", initial))
+                pendingDeletion =
+                    saved
+                        ?.takeIf { it.optString("original_tool") == "delete_work_records" }
+                        ?.optJSONObject("original_args")
+                        ?.takeIf {
+                            PendingInspectionRules.sameDeletionTarget(
+                                "delete_work_records",
+                                initial,
+                                it,
+                            )
+                        }
+                        ?.toString()
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            controller.message(
+                nativeActionError(error, "Der Löschvorgang konnte nicht gelesen werden.")
+            )
         }
     }
+    var deletionInspectionAttempt by remember { mutableIntStateOf(0) }
+    val deletionInspection =
+        rememberNativePendingInspection(
+            controller,
+            "delete_work_records",
+            pendingDeletion?.let(::JSONObject),
+            collection == "worklogs" && !deleting,
+            deletionInspectionAttempt,
+        ) { proof ->
+            val original = JSONObject(requireNotNull(pendingDeletion))
+            val ids = original.getJSONArray("work_record_ids")
+            val completed = (0 until ids.length()).map { ids.getString(it) }.toSet()
+            controller.acknowledgeDeleteResult(
+                "delete_work_records",
+                JSONObject().put("work_record_ids", ids),
+                original,
+                proof,
+            )
+            selected = selected.filterNot { it in completed }
+            pendingDeletion = null
+            controller.message("Auswahl gelöscht.")
+        }
     val listState = rememberLazyListState()
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
@@ -1991,6 +2041,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                         },
                         modifier =
                             Modifier.semantics {
+                                testTag = UiTags.recordChoice(collection, row.id)
                                 if (worklog) {
                                     this.selected = checked
                                     stateDescription =
@@ -2057,10 +2108,13 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                         else
                             when (collection) {
                                 "customers" ->
-                                    "Noch keine Kunden. Mit „+“ den ersten Kunden anlegen."
-                                "orders" -> "Noch keine Aufträge. Unten „Auftrag anlegen“ antippen."
-                                else -> "Noch keine Arbeiten. Unten „Arbeit nachtragen“ antippen."
-                            }
+                                    "Kunden bündeln Kontakte, Objekte und die zugehörigen Arbeiten."
+                                "orders" ->
+                                    "Aufträge halten die vereinbarten Arbeiten deiner Kunden fest."
+                                else ->
+                                    "Arbeiten dokumentieren, was du wann für deine Kunden erledigt hast."
+                            },
+                        modifier = Modifier.semantics { testTag = UiTags.EMPTY_STATE },
                     )
                 }
             item {
@@ -2075,6 +2129,8 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             Surface(color = MaterialTheme.colorScheme.surface) {
                 Column {
                     NativeSearchSummary("${selected.size} ausgewählt")
+                    if (pendingDeletion != null)
+                        NativeInspectionBanner(deletionInspection) { deletionInspectionAttempt++ }
                     NativeActions {
                         TextButton({ selected = emptyList() }, enabled = !deleting) {
                             Text("Abbrechen")
@@ -2120,26 +2176,19 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                     deleting = true
                                     scope.launch {
                                         try {
-                                            if (pendingDeletion != null) inspectPendingDeletion()
-                                            else {
-                                                controller.deleteDirect(
-                                                    "delete_work_records",
-                                                    JSONObject()
-                                                        .put(
-                                                            "work_record_ids",
-                                                            JSONArray(selected),
-                                                        ),
-                                                    onPrepared = {
-                                                        pendingDeletion = it.toString()
-                                                    },
-                                                    onNotCommitted = { pendingDeletion = null },
-                                                )
-                                                if (page.rows.all { it.id in selected })
-                                                    offset = maxOf(0, offset - 50)
-                                                selected = emptyList()
-                                                pendingDeletion = null
-                                                controller.message("Auswahl gelöscht.")
-                                            }
+
+                                            controller.deleteDirect(
+                                                "delete_work_records",
+                                                JSONObject()
+                                                    .put("work_record_ids", JSONArray(selected)),
+                                                onPrepared = { pendingDeletion = it.toString() },
+                                                onNotCommitted = { pendingDeletion = null },
+                                            )
+                                            if (page.rows.all { it.id in selected })
+                                                offset = maxOf(0, offset - 50)
+                                            selected = emptyList()
+                                            pendingDeletion = null
+                                            controller.message("Auswahl gelöscht.")
                                         } catch (cancelled: CancellationException) {
                                             throw cancelled
                                         } catch (failure: Exception) {
@@ -2152,7 +2201,8 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                     }
                                 }
                             },
-                            enabled = !deleting,
+                            modifier = Modifier.semantics { testTag = UiTags.DELETE_SELECTION },
+                            enabled = !deleting && pendingDeletion == null,
                             colors =
                                 if (pendingDeletion != null) ButtonDefaults.buttonColors()
                                 else
@@ -2161,10 +2211,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                         contentColor = MaterialTheme.colorScheme.onError,
                                     ),
                         ) {
-                            Text(
-                                if (deleting) "Löschen …"
-                                else if (pendingDeletion != null) "Ergebnis prüfen" else "Löschen"
-                            )
+                            Text(if (deleting) "Löschen …" else "Löschen")
                         }
                     }
                 }
@@ -2334,7 +2381,7 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
     val density = LocalDensity.current
     var footerHeight by remember { mutableIntStateOf(0) }
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().semantics { testTag = UiTags.entityDetail(collection, id) }) {
             LazyColumn(
                 Modifier.weight(1f),
                 contentPadding = PaddingValues(16.dp),
@@ -3210,7 +3257,8 @@ private fun NativeEntityEditor(
         controller.removeDraft(draftKey)
         controller.finishAction()
         controller.message(
-            "${if (kind == "customer") "Kunde" else if (kind == "order") "Auftrag" else "Arbeit"} gespeichert."
+            "${if (kind == "customer") "Kunde" else if (kind == "order") "Auftrag" else "Arbeit"} gespeichert.",
+            NativeRoute(collection, saved, "detail"),
         )
     }
     fun durationAsHours(): Double? {
@@ -3322,39 +3370,21 @@ private fun NativeEntityEditor(
             }
         }
     }
-    fun inspectPending() {
-        if (busy || pending == null) return
-        scope.launch {
-            busy = true
-            try {
-                val proof =
-                    controller.query(
-                        "inspect_edit_action",
-                        JSONObject()
-                            .put(
-                                "original_tool",
-                                when (kind) {
-                                    "customer" -> "saveCustomer"
-                                    "order" -> "saveOrder"
-                                    else -> "saveWorklog"
-                                },
-                            )
-                            .put("original_args", pending),
-                    )
-                if (proof.optString("state") == "confirmed")
-                    finishSaved(proof.getString("entity_id"), includePhoto = false)
-                else
-                    error =
-                        "Ergebnis weiterhin unbestätigt. Der ursprüngliche Vorgang bleibt erhalten; es wurde keine neue Speicherung ausgeführt."
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Exception) {
-                error = failure.message ?: "Aktionsbeleg konnte nicht gelesen werden."
-            } finally {
-                busy = false
-            }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            when (kind) {
+                "customer" -> "saveCustomer"
+                "order" -> "saveOrder"
+                else -> "saveWorklog"
+            },
+            pending,
+            loaded && !busy,
+            inspectionAttempt,
+        ) { proof ->
+            finishSaved(proof.getString("entity_id"), includePhoto = false)
         }
-    }
     fun choosePhoto(camera: Boolean) {
         scope.launch {
             busy = true
@@ -3407,7 +3437,10 @@ private fun NativeEntityEditor(
                 )
             }
             item {
-                if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
+                if (pending != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
+                if (restored) NativeRestoreBanner()
+                if (error.isNotEmpty() && pending == null)
+                    Text(error, color = MaterialTheme.colorScheme.error)
                 if (busy || !loaded) LinearProgressIndicator(Modifier.fillMaxWidth())
             }
             if (savedWorkId.isNotEmpty()) {
@@ -3912,15 +3945,7 @@ private fun NativeEntityEditor(
                         entered.optString("customer_id").isNotBlank() &&
                         runCatching { WorklogRules.validate(editorPayload(), true) }.isSuccess
             }
-        if (pending != null)
-            NativeActionBar(
-                "Ergebnis prüfen",
-                { inspectPending() },
-                "Später prüfen",
-                { controller.back() },
-                enabled = !busy,
-                secondaryEnabled = !busy,
-            )
+        if (pending != null) NativeActionBar("Schließen", { controller.back() }, enabled = !busy)
         else
             NativeActionBar(
                 if (savedWorkId.isNotEmpty()) "Foto speichern"
@@ -4060,6 +4085,13 @@ private fun NativeTimer(controller: NativeAppController) {
     val scope = rememberCoroutineScope()
     suspend fun refresh() {
         session = withContext(Dispatchers.IO) { controller.store.workSessions().current() }
+        pending =
+            controller.draft("timer_action")?.let { saved ->
+                saved.getString("original_tool") to saved.getJSONObject("original_args")
+            }
+        val cancelled = controller.draft("timer_cancelled")
+        cancelledId = cancelled?.optString("session_id").orEmpty()
+        cancelledReview = cancelled?.optBoolean("_restore_action_review_required") == true
     }
     LaunchedEffect(Unit) {
         try {
@@ -4133,53 +4165,35 @@ private fun NativeTimer(controller: NativeAppController) {
             }
         }
     }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            pending?.first.orEmpty(),
+            pending?.second,
+            !busy,
+            inspectionAttempt,
+        ) { _ ->
+            val original = requireNotNull(pending)
+            session = controller.acknowledgeTimerResult(original.first, original.second)
+            pending = null
+            error = ""
+            controller.message("Zeitvorgang bestätigt.", NativeRoute("timer"))
+        }
     val state = session?.optString("state", "IDLE")
     if (pending != null) {
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text("Der ursprüngliche Zeitvorgang wird mit derselben Kennung geprüft.")
-            session?.let { NativeTimerValues(controller, it) }
-            if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
-            Button(
-                {
-                    scope.launch {
-                        busy = true
-                        try {
-                            val original = requireNotNull(pending)
-                            val proof =
-                                controller.query(
-                                    "inspect_edit_action",
-                                    JSONObject()
-                                        .put("original_tool", original.first)
-                                        .put("original_args", original.second),
-                                )
-                            if (proof.optString("state") == "confirmed") {
-                                controller.removeDraft("timer_action")
-                                refresh()
-                                pending = null
-                                error = ""
-                            } else
-                                error =
-                                    "Ergebnis weiterhin unbestätigt. Der ursprüngliche Zeitvorgang bleibt erhalten."
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (failure: Exception) {
-                            error =
-                                failure.message
-                                    ?: "Der ursprüngliche Zeitvorgang konnte nicht gelesen werden."
-                        } finally {
-                            busy = false
-                        }
-                    }
-                },
-                Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                enabled = !busy,
+        Column(Modifier.fillMaxSize()) {
+            Column(
+                Modifier.weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Ursprünglichen Vorgang prüfen")
+                session?.let { NativeTimerValues(controller, it) }
+                NativeInspectionBanner(inspection) { inspectionAttempt++ }
             }
-            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            NativeActionBar("Schließen", { controller.back() }, enabled = !busy)
         }
         return
     }

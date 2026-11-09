@@ -68,6 +68,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
         get() = NativeImages.loader(context)
 
     val messages = MutableStateFlow("")
+    var messageTarget by mutableStateOf<NativeRoute?>(null)
     var listActions by mutableStateOf<List<JSONObject>>(emptyList())
     var route by mutableStateOf(NativeRoute())
         private set
@@ -319,7 +320,8 @@ internal class NativeAppController(private val activity: MainActivity, val store
             )
             .toString()
 
-    fun message(value: String) {
+    fun message(value: String, target: NativeRoute? = null) {
+        messageTarget = target
         messages.value = value
     }
 
@@ -333,15 +335,41 @@ internal class NativeAppController(private val activity: MainActivity, val store
 
     suspend fun call(name: String, args: JSONObject = JSONObject()): JSONObject =
         withContext(Dispatchers.IO) {
-            val result =
+            val client =
+                PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
+            val write =
+                spec(name)?.optJSONObject("annotations")?.optBoolean("readOnlyHint", true) == false
+            var result =
                 try {
-                    PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
-                        .call(name, JSONObject(args.toString()))
+                    client.call(name, JSONObject(args.toString()))
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (failure: Exception) {
                     throw nativeFailure(failure)
                 }
+            if (
+                write &&
+                    result.has("ok") &&
+                    !result.optBoolean("ok") &&
+                    result.optJSONObject("error")?.optString("commit_state") != "not_committed"
+            ) {
+                val checked =
+                    PendingInspectionRules.inspect(
+                        name,
+                        args,
+                        { tool, input ->
+                            val response = client.call(tool, input)
+                            if (response.has("ok") && !response.optBoolean("ok"))
+                                throw NativeCallFailure(response.optJSONObject("error") ?: response)
+                            response.optJSONObject("data") ?: response
+                        },
+                    )
+                if (checked.state == "confirmed")
+                    result =
+                        JSONObject()
+                            .put("ok", true)
+                            .put("data", checked.proof.optJSONObject("result") ?: checked.proof)
+            }
             if (result.has("ok") && !result.optBoolean("ok")) {
                 val error = result.optJSONObject("error")
                 throw NativeCallFailure(error ?: result)
@@ -460,6 +488,26 @@ internal class NativeAppController(private val activity: MainActivity, val store
         return query("get_active_work_session")
     }
 
+    suspend fun acknowledgeTimerResult(tool: String, args: JSONObject): JSONObject {
+        val previous = draft("timer_action") ?: return query("get_active_work_session")
+        require(
+            previous.optString("original_tool") == tool &&
+                PixelMcpWriteTools.hash(previous.getJSONObject("original_args")) ==
+                    PixelMcpWriteTools.hash(args)
+        ) {
+            "Der offene Zeitvorgang hat sich geändert. Bitte den aktuellen Zeitstand ansehen."
+        }
+        if (tool == "discard_work_session") {
+            saveDraft(
+                "timer_cancelled",
+                JSONObject().put("session_id", args.getString("session_id")),
+            )
+            flushDrafts()
+        } else if (tool == "restore_work_session") removeDraft("timer_cancelled")
+        removeDraft("timer_action")
+        return query("get_active_work_session")
+    }
+
     /** Today and the timer use one durable action/recovery path. */
     suspend fun timerAction(tool: String, sessionId: String): JSONObject {
         require(
@@ -481,17 +529,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
                 ?: JSONObject()
                     .put("request_id", UUID.randomUUID().toString())
                     .put("session_id", sessionId)
-        suspend fun confirmed(): JSONObject {
-            if (tool == "discard_work_session") {
-                saveDraft(
-                    "timer_cancelled",
-                    JSONObject().put("session_id", args.getString("session_id")),
-                )
-                flushDrafts()
-            } else if (tool == "restore_work_session") removeDraft("timer_cancelled")
-            removeDraft("timer_action")
-            return query("get_active_work_session")
-        }
+        suspend fun confirmed(): JSONObject = acknowledgeTimerResult(tool, args)
         if (previous != null) {
             val proof =
                 query(

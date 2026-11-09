@@ -1090,7 +1090,20 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             if (error.isNotEmpty()) item { Text(error, color = MaterialTheme.colorScheme.error) }
             if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!listLoading && page.rows.isEmpty() && error.isEmpty())
-                item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
+                item {
+                    Text(
+                        if (query.isBlank() && customer.isBlank() && status.isBlank())
+                            when (section) {
+                                "catalog" ->
+                                    "Leistungsbausteine speichern wiederkehrende Leistungen und Preise."
+                                "offers" ->
+                                    "Angebote halten die vereinbarten Leistungen und Preise deiner Kunden fest."
+                                else ->
+                                    "Rechnungen dokumentieren die abgerechneten Leistungen deiner Kunden."
+                            }
+                        else "Keine Treffer. Suchtext oder Filter ändern."
+                    )
+                }
             items(page.rows, key = { it.id }) { row ->
                 NativeSwipeRow(
                     controller,
@@ -1563,6 +1576,32 @@ private fun FinanceEditor(
                 discard = false
             }
         }
+    var inspectionAttempt by remember { mutableIntStateOf(0) }
+    val originalTool =
+        pendingTool.ifBlank {
+            if (section == "offers")
+                if (id.isBlank()) "create_offer_draft" else "update_offer_draft"
+            else if (id.isBlank()) "create_catalog_entry" else "update_catalog_entry"
+        }
+    val inspection =
+        rememberNativePendingInspection(
+            controller,
+            originalTool,
+            pending,
+            loaded && !busy,
+            inspectionAttempt,
+        ) { proof ->
+            val result = proof.optJSONObject("result") ?: proof
+            val savedId =
+                result.optString(
+                    "offer_id",
+                    result.optString("entry_id", proof.optString("entity_id", id)),
+                )
+            controller.removeDraft(key)
+            pending = null
+            onSaved(savedId)
+            controller.message("Gespeichert.", NativeRoute(section, savedId, "detail"))
+        }
     val openItems = if (section == "offers") financeOpenItems(form) else emptyList()
     Column(Modifier.fillMaxSize()) {
         Column(
@@ -1704,48 +1743,8 @@ private fun FinanceEditor(
                     }
                 }
             }
-            if (pending != null) {
-                Text(
-                    "Der ursprüngliche Speichervorgang und seine Eingaben bleiben erhalten. Vor einer geänderten Anfrage zuerst den gespeicherten Stand lesen."
-                )
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            try {
-                                if (id.isNotEmpty()) {
-                                    val read =
-                                        controller.call(
-                                            if (section == "offers") "get_offer"
-                                            else "get_offer_template",
-                                            JSONObject()
-                                                .put(
-                                                    if (section == "offers") "offer_id"
-                                                    else "entry_id",
-                                                    id,
-                                                ),
-                                        )
-                                    controller.message(
-                                        "Aktueller Datensatz gelesen. Ihre Eingaben und der ursprüngliche Vergleichsstand bleiben erhalten."
-                                    )
-                                    if (read.optString("record_hash") == observedHash)
-                                        controller.message(
-                                            "Der gespeicherte Vergleichsstand ist unverändert."
-                                        )
-                                } else
-                                    controller.message(
-                                        "Denselben Speichervorgang erneut prüfen; seine Kennung bleibt erhalten."
-                                    )
-                            } catch (cancelled: CancellationException) {
-                                throw cancelled
-                            } catch (f: Exception) {
-                                error = f.message.orEmpty()
-                            }
-                        }
-                    }
-                ) {
-                    Text("Gespeicherten Stand lesen")
-                }
-            }
+            if (pending != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
+            if (restored) NativeRestoreBanner()
 
             if (pending == null) {
                 if (section == "catalog") {
@@ -2274,33 +2273,35 @@ private fun FinanceEditor(
                 Text("Entwurf verwerfen")
             }
         }
-        NativeActionBar(
-            primaryLabel =
-                when {
-                    busy -> "Speichern …"
-                    pending != null -> "Ergebnis prüfen"
-                    section == "catalog" -> "Baustein speichern"
-                    step == 0 -> "Weiter zu Leistungen"
-                    step == 1 -> "Weiter zur Prüfung"
-                    openItems.isNotEmpty() -> "Angaben ergänzen"
-                    else -> "Vollständig prüfen"
-                },
-            onPrimary = {
-                when {
-                    pending != null || section == "catalog" -> save()
-                    step < 2 -> step++
-                    openItems.isNotEmpty() -> {
-                        step = openItems.first().first
-                        termsOpen = true
+        if (pending != null) NativeActionBar("Schließen", onClose, enabled = !busy)
+        else
+            NativeActionBar(
+                primaryLabel =
+                    when {
+                        busy -> "Speichern …"
+                        pending != null -> "Ergebnis prüfen"
+                        section == "catalog" -> "Baustein speichern"
+                        step == 0 -> "Weiter zu Leistungen"
+                        step == 1 -> "Weiter zur Prüfung"
+                        openItems.isNotEmpty() -> "Angaben ergänzen"
+                        else -> "Vollständig prüfen"
+                    },
+                onPrimary = {
+                    when {
+                        pending != null || section == "catalog" -> save()
+                        step < 2 -> step++
+                        openItems.isNotEmpty() -> {
+                            step = openItems.first().first
+                            termsOpen = true
+                        }
+                        else -> save(reviewAfterSave = true)
                     }
-                    else -> save(reviewAfterSave = true)
-                }
-            },
-            secondaryLabel = if (section == "offers") "Entwurf speichern" else "Zurück",
-            onSecondary = { if (section == "offers") save() else onClose() },
-            enabled = !busy && loaded,
-            secondaryEnabled = !busy && loaded && pending == null,
-        )
+                },
+                secondaryLabel = if (section == "offers") "Entwurf speichern" else "Zurück",
+                onSecondary = { if (section == "offers") save() else onClose() },
+                enabled = !busy && loaded,
+                secondaryEnabled = !busy && loaded && pending == null,
+            )
     }
 }
 
