@@ -266,7 +266,7 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
 internal fun NativeSettlementEditor(
     controller: NativeAppController,
     id: String,
-    onFinished: (() -> Unit)? = null,
+    onFinished: ((Boolean) -> Unit)? = null,
 ) {
     val recipient = if (id.isEmpty()) controller.route.args.optString("billing_customer_id") else ""
     val key = "settlement-editor:$id" + if (recipient.isNotEmpty()) ":$recipient" else ""
@@ -436,14 +436,18 @@ internal fun NativeSettlementEditor(
                 controller.removeDraft(key)
                 raw = null
                 pending = null
-                onFinished?.invoke()
-                if (issue)
-                    controller.navigate(
-                        "settlement_review",
-                        savedId,
-                        args = JSONObject().put("_share_after_issue", true),
-                    )
-                else controller.navigate("settlements")
+                if (issue) {
+                    if (onFinished != null) onFinished(true)
+                    else
+                        controller.navigate(
+                            "settlement_review",
+                            savedId,
+                            args = JSONObject().put("_share_after_issue", true),
+                        )
+                } else {
+                    onFinished?.invoke(false)
+                    controller.navigate("settlements")
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -461,7 +465,7 @@ internal fun NativeSettlementEditor(
                     raw = null
                     pending = null
                     loadAttempt++
-                    onFinished?.invoke()
+                    onFinished?.invoke(false)
                     controller.navigate("settlement_review", savedId)
                     controller.message(error)
                 }
@@ -875,7 +879,6 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                 reviewedHash = loaded.optString("review_hash")
             }
             if (loaded.optJSONObject("record")?.optString("status") == "draft") editorOpen = true
-            data = loaded
             context = controller.query("get_settlement_context")
             val recipient =
                 loaded.optJSONObject("record")?.optString("billing_customer_id").orEmpty()
@@ -883,6 +886,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                 settlementObjects(context?.optJSONArray("customers"))
                     .firstOrNull { it.optString("id") == recipient }
                     ?.optBoolean("electronic_invoice_consent") == true
+            data = loaded
             val operation = controller.draft("settlement-review:$id")
             original = operation?.optJSONObject("pending")?.toString()
             error = ""
@@ -1053,8 +1057,9 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
             dismissButton = { NativeTextButton({ consentDialog = false }) { Text("Später") } },
         )
     if (editorOpen && original == null) {
-        NativeSettlementEditor(controller, id) {
+        NativeSettlementEditor(controller, id) { issued ->
             editorOpen = false
+            if (issued) shareRequested = true
             attempt++
         }
         return

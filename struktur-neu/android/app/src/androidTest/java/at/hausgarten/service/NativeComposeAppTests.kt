@@ -184,6 +184,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         checks++
     }
 
+    private fun selectCustomerTab(label: String) {
+        fun selected() =
+            nodes().any { candidate ->
+                candidate.isVisibleToUser &&
+                    matches(candidate, label) &&
+                    generateSequence(candidate) { it.parent }.any(::navigationSelected)
+            }
+        reveal(label)
+        if (!selected()) click(label)
+        waitUntil("CUSTOMER_TAB_SELECTED_$label") { selected() }
+        checks++
+    }
+
     private fun reveal(label: String) {
         if (node(label) == null) scrollTop()
         var lastScroll = 0L
@@ -567,16 +580,24 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         mode: String = "list",
         args: JSONObject = JSONObject(),
     ) {
-        test.runOnMainSync {
-            val current = requireNotNull(activity) as MainActivity
-            val delegate =
-                MainActivity::class
-                    .java
-                    .declaredFields
-                    .first { it.name.startsWith("controller") }
-                    .apply { isAccessible = true }
-                    .get(current) as androidx.compose.runtime.State<*>
-            (delegate.value as NativeAppController).navigate(section, id, mode, args)
+        // Compose can already be attached while the asynchronously loaded controller is null.
+        // Poll from the instrumentation worker; the main thread only reads and navigates.
+        waitUntil("CONTEXT_CONTROLLER_READY_$section") {
+            var opened = false
+            test.runOnMainSync {
+                val current = activity as? MainActivity ?: return@runOnMainSync
+                val delegate =
+                    MainActivity::class
+                        .java
+                        .declaredFields
+                        .first { it.name.startsWith("controller") }
+                        .apply { isAccessible = true }
+                        .get(current) as androidx.compose.runtime.State<*>
+                val controller = delegate.value as? NativeAppController ?: return@runOnMainSync
+                controller.navigate(section, id, mode, args)
+                opened = true
+            }
+            opened
         }
         settleUi()
     }
@@ -2164,7 +2185,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 node("Suchen")?.let(::clickable) != null &&
                 node(UiTags.CREATE)?.let(::clickable) != null
         }
-        searchCustomers("QA Native F")
+        searchCustomers(flowName)
         shown("0 Treffer")
         yes(node(flowName) == null, "DELETED_CUSTOMER_NOT_IN_ACTIVE_LIST")
     }
@@ -2523,7 +2544,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openOffice()
         click("Geräte")
         click("Gerät anlegen")
-        click("Gerätebezeichnung auswählen ▾")
+        click("Gerätebezeichnung auswählen")
         shown("Gerätebezeichnung auswählen")
         logVisibleActions("equipment_suggestions_open")
         enter("Vorschläge durchsuchen", "kett")
@@ -2536,7 +2557,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Gerätebezeichnung *", name)
         click("Speichern")
         reveal("Übersicht")
-        click("Zubehör")
+        selectTab("Zubehör")
         click("Zubehör hinzufügen")
         shown("Maschine: " + name)
         click("Zubehör hinzufügen")
@@ -2634,7 +2655,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOffice()
             click("Geräte")
             click(name)
-            click("Zubehör")
+            selectTab("Zubehör")
             reveal("QA Kette B")
             reveal("Aktuell verwendete Kette")
             recreate()
@@ -2668,7 +2689,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 machine().getString("record_hash") == beforePhotoShortcut,
                 "ACCESSORY_PHOTO_PREVIEW_AND_EDITOR_DO_NOT_SAVE",
             )
-            click("Übersicht")
+            selectTab("Übersicht")
             reveal("Wartung einrichten")
         } finally {
             source.delete()
@@ -2959,7 +2980,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openCustomerList()
         searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
-        click("Vorgänge")
+        selectCustomerTab("Vorgänge")
         reveal("Fotos")
         click("Fotos")
         click("Foto hinzufügen")
@@ -3022,9 +3043,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         // Saving removes the preview; reveal the confirmation before preserving its scroll
         // position.
-        reveal("Foto gespeichert.")
+        reveal("Foto gespeichert")
         recreate()
-        shown("Foto gespeichert.")
+        shown("Foto gespeichert")
         val reopened = PixelLocalStore(context)
         try {
             val attachment = requireNotNull(reopened.photoAttachment(id))
@@ -3089,11 +3110,29 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(UiTags.area("today"))
         shown("Aktuelle Arbeit")
         shown("Zeit läuft")
-        shown("Arbeitszeit ohne Pause")
-        val activeTimeBounds =
-            Rect().also { requireNotNull(node("Arbeitszeit ohne Pause")).getBoundsInScreen(it) }
+        shown("Pausen gesamt")
         val titleBounds =
             Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
+        val pauseBounds =
+            Rect().also { requireNotNull(node("Pausen gesamt")).getBoundsInScreen(it) }
+        var activeTimeBounds = Rect()
+        waitUntil("TODAY_ACTIVE_CLOCK_VISIBLE") {
+            activeTimeBounds =
+                nodes().firstNotNullOfOrNull { candidate ->
+                    if (
+                        candidate.isVisibleToUser &&
+                            Regex("[0-9]{2,}:[0-9]{2}:[0-9]{2}")
+                                .matches(candidate.text?.toString().orEmpty())
+                    )
+                        Rect().also(candidate::getBoundsInScreen).takeIf {
+                            it.top >= titleBounds.bottom &&
+                                it.bottom <= pauseBounds.top &&
+                                it.height() > 0
+                        }
+                    else null
+                } ?: Rect()
+            !activeTimeBounds.isEmpty
+        }
         yes(
             activeTimeBounds.top >= titleBounds.bottom && activeTimeBounds.height() > 0,
             "TODAY_ACTIVE_TIME_VISIBLE_WITHOUT_SCROLL",
@@ -3102,8 +3141,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Kunde: " + fixturePrefix + "000")
         captureSyntheticScreen("today-running")
         reveal("Kunde: " + fixturePrefix + "000")
-        reveal("Foto hinzufügen")
-        shown("Material")
         click("Pause")
         waitUntil("TODAY_PAUSED") { read("get_active_work_session").optString("state") == "PAUSED" }
         primaryPosition("Fortsetzen", "Zeit stoppen")
@@ -3182,7 +3219,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Laufende Arbeit öffnen")
         captureSyntheticScreen("timer-compact")
         click("Laufende Arbeit öffnen")
-        shown("Arbeitszeit ohne Pause")
+        shown("Arbeit läuft")
+        reveal("Foto")
+        shown("Material")
         yes(
             read("get_active_work_session").getString("id") == id &&
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
@@ -3191,10 +3230,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         openWorklogs()
         enter("Suchen", "")
-        yes(node("Laufende Arbeit öffnen") == null, "WORK_LIST_HAS_NO_TIMER_MENU_ENTRY")
+        yes(
+            node("Laufende Arbeit öffnen")?.let(::clickable) != null,
+            "WORK_LIST_EXPOSES_GLOBAL_RUNNING_TIMER",
+        )
         click("Laufende Arbeit öffnen")
         reveal("Arbeit läuft")
-        reveal("Arbeitszeit ohne Pause")
+        reveal("Zeit läuft")
         val minimumSeconds =
             (read("get_active_work_session").getLong("worked_ms") / 1000 - 1).coerceAtLeast(0)
         waitUntil("TIMER_HAS_READABLE_PERSISTED_DURATION") {
@@ -3834,7 +3876,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             searchCustomers(name)
             click(name)
-            click("Vorgänge")
+            selectCustomerTab("Vorgänge")
             reveal("Fotos")
             click("Fotos")
             shown(name)
@@ -3855,13 +3897,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             searchCustomers(name)
             click(name)
-            click("Vorgänge")
+            selectCustomerTab("Vorgänge")
             reveal("Alle Aufträge")
             click("Alle Aufträge")
             shown("QA Kontextauftrag $index")
             yes(node("QA Kontextauftrag ${1-index}") == null, "ORDERS_KEEP_CUSTOMER_$index")
             click(UiTags.BACK)
-            click("Objekte")
+            selectCustomerTab("Objekte")
             click("Alle Objekte")
             shown("QA Kontextobjekt $index")
             yes(node("QA Kontextobjekt ${1-index}") == null, "PROPERTIES_KEEP_CUSTOMER_$index")
@@ -3870,7 +3912,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Zurück")
             shown("Objekt anlegen")
             click(UiTags.BACK)
-            click("Vorgänge")
+            selectCustomerTab("Vorgänge")
             reveal("Alle Einsätze")
             click("Alle Einsätze")
             shown("QA Kontexteinsatz $index")
@@ -3886,7 +3928,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         click("QA Kontextanfrage 0")
                         click("Angebot aus dieser Anfrage")
                     } else {
-                        click("Objekte")
+                        selectCustomerTab("Objekte")
                         click("Alle Objekte")
                         click("QA Kontextobjekt 0")
                         click(UiTags.DETAIL_MENU)
@@ -3931,9 +3973,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
                 val invoiceCount =
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
-                click("Geld")
+                selectCustomerTab("Geld")
                 shown("Offene Stunden")
-                click("Vorgänge")
+                selectCustomerTab("Vorgänge")
                 reveal("Alle Arbeiten")
                 click("Alle Arbeiten")
                 enter("Suchen", "QA Kontextabrechnung")
@@ -4599,13 +4641,26 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
         fun swipe(tag: String, right: Boolean) {
             reveal(tag)
-            val target = requireNotNull(node(tag))
-            val bounds = Rect().also(target::getBoundsInScreen)
-            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
-            yes(
-                bounds.intersect(screen) && bounds.width() >= 48 && bounds.height() >= 48,
-                "SWIPE_REAL_TARGET_$tag",
-            )
+            var bounds = Rect()
+            waitUntil("SWIPE_REAL_TARGET_$tag") {
+                val target = node(tag) ?: return@waitUntil false
+                bounds = Rect().also(target::getBoundsInScreen)
+                val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                val density = context.resources.displayMetrics.density
+                // Swipe the real 42 dp list row; the 48 dp minimum applies to buttons.
+                val visible =
+                    screen.contains(bounds) &&
+                        bounds.width() >= (48 * density).toInt() &&
+                        bounds.height() >= (42 * density).toInt()
+                if (!visible) {
+                    target.performAction(
+                        AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
+                    )
+                    settleUi()
+                }
+                visible
+            }
+            checks++
             val start = bounds.left + bounds.width() * if (right) 0.15f else 0.85f
             val end = bounds.left + bounds.width() * if (right) 0.85f else 0.15f
             val down = SystemClock.uptimeMillis()
@@ -4939,11 +4994,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     var parent = target.parent
                     while (parent != null) {
                         val bounds = Rect().also(parent::getBoundsInScreen)
-                        if (!bounds.isEmpty && !hit.intersect(bounds)) return@waitUntil false
+                        if (!bounds.isEmpty && !hit.intersect(bounds)) hit.setEmpty()
                         parent = parent.parent
                     }
                     val minimum = (48 * context.resources.displayMetrics.density).toInt()
-                    hit.width() >= minimum && hit.height() >= minimum
+                    val visible = hit.width() >= minimum && hit.height() >= minimum
+                    if (!visible) {
+                        // A lazy card can expose semantics while clipped. Bring it into view
+                        // before injecting the same real long press and half-hour drag.
+                        target.performAction(
+                            AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
+                        )
+                        settleUi()
+                    }
+                    visible
                 }
                 val down = SystemClock.uptimeMillis()
                 val delta = 30 * context.resources.displayMetrics.density
@@ -5955,7 +6019,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             searchCustomers(fixturePrefix + "000")
             click(fixturePrefix + "000")
-            click("Vorgänge")
+            selectCustomerTab("Vorgänge")
             reveal("Alle Angebote")
             click("Alle Angebote")
             keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
@@ -6093,7 +6157,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             searchCustomers(fixturePrefix + "000")
             click(fixturePrefix + "000")
-            click("Vorgänge")
+            selectCustomerTab("Vorgänge")
             reveal("Alle Angebote")
             click("Alle Angebote")
             click("Angebot anlegen")
@@ -6518,7 +6582,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Geräte")
             enter("Suchen", "QA Zubehör Säge")
             click("[TEST] QA Zubehör Säge")
-            click("Zubehör")
+            selectTab("Zubehör")
         }
         case("maintenance", "Wartung einrichten") {
             openOffice()
@@ -6698,7 +6762,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val before =
             PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length()
         click(UiTags.PRIMARY)
-        shown("Termin speichern")
+        shown("Einsatz speichern")
         chooseDateTime("Geplanter Beginn *", "2027-05-19T09:00")
         val planningDraft =
             "native_form_draft:" + PixelMcpWriteTools.hash("planning:appointment:new")

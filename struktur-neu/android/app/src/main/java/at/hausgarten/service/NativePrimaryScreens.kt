@@ -367,6 +367,8 @@ internal fun NativeApplication(controller: NativeAppController) {
                                         DropdownMenu(
                                             controller.moreMenuOpen,
                                             { controller.moreMenuOpen = false },
+                                            modifier =
+                                                Modifier.semantics { testTagsAsResourceId = true },
                                         ) {
                                             for ((group, entries) in
                                                 listOf(
@@ -1892,25 +1894,11 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 }
         }
     val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
-    val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 50)
+    var previousPage by remember(collection) { mutableStateOf<NativeListPage?>(null) }
+    LaunchedEffect(loadedPage) { if (loadedPage != null) previousPage = loadedPage }
+    val visiblePage = loadedPage ?: previousPage
+    val page = visiblePage ?: NativeListPage(emptyList(), 0, offset, 50)
     val listLoading = loadedPage == null && listFailure.isEmpty()
-    // The first frame has no rows and resets the list to the top; keep the position and restore it
-    // once the page is there.
-    var savedScroll by rememberSaveable(collection) { mutableStateOf(listOf(0, 0)) }
-    var scrollRestored by remember { mutableStateOf(false) }
-    val tracking by rememberUpdatedState(loadedPage != null && scrollRestored)
-    LaunchedEffect(listState) {
-        snapshotFlow {
-                listOf(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
-            }
-            .collect { if (tracking) savedScroll = it }
-    }
-    LaunchedEffect(loadedPage != null) {
-        if (loadedPage != null && !scrollRestored) {
-            scrollRestored = true
-            if (savedScroll != listOf(0, 0)) listState.scrollToItem(savedScroll[0], savedScroll[1])
-        }
-    }
     val scope = rememberCoroutineScope()
     NativeSearchList(
         "Suchen",
@@ -1919,7 +1907,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             search = it
             offset = 0
         },
-        if (listLoading) "Wird geladen …"
+        if (listLoading && visiblePage == null) "Wird geladen …"
         else
             "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}",
         onFilters = { filtersOpen = !filtersOpen },
@@ -1940,238 +1928,255 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                 }
             } else null,
     ) {
-        LazyColumn(
-            Modifier.weight(1f).padding(horizontal = 16.dp),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-            if (listFailure.isNotEmpty())
-                item { Text(listFailure, color = MaterialTheme.colorScheme.error) }
-            if (!imeVisible && collection != "customers")
-                item {
-                    NativeContext(
-                        controller,
-                        JSONObject(controller.route.args.toString())
-                            .put("customer_id", customer)
-                            .put("date_from", from)
-                            .put("date_to", to),
-                    )
-                }
-            if (filtersOpen && collection != "worklogs")
-                item(key = "native-list-filters") {
-                    if (collection == "customers") {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text("Inaktive Kunden einbeziehen", Modifier.weight(1f))
-                            Switch(
-                                inactive,
-                                {
-                                    inactive = it
-                                    offset = 0
-                                },
-                            )
-                        }
-                        NativeChoice(
-                            "Abrechnungsweg",
-                            billing,
-                            listOf(
-                                "" to "Alle",
-                                "direct" to "Kunde selbst",
-                                "via_customer" to "Anderer Rechnungsempfänger",
-                            ),
-                            {
-                                billing = it
-                                offset = 0
-                            },
-                        )
-                    } else {
-                        NativeRecordPicker(
-                            controller,
-                            "customers",
-                            "Kunde",
-                            customer,
-                            onValueChange = {
-                                customer = it
-                                offset = 0
-                            },
-                        )
-                        if (collection == "orders")
-                            NativeChoice(
-                                "Status",
-                                status,
-                                listOf(
-                                    "" to "Alle",
-                                    "Geplant" to "Geplant",
-                                    "In Arbeit" to "In Arbeit",
-                                    "Wartet auf Material" to "Wartet auf Material",
-                                    "Erledigt" to "Erledigt",
-                                    "Abgerechnet" to "Abgerechnet",
-                                ),
-                                {
-                                    status = it
-                                    offset = 0
-                                },
-                            )
-                    }
-                }
-            if (
-                !imeVisible &&
-                    (search.isNotEmpty() ||
-                        status.isNotEmpty() ||
-                        customer.isNotEmpty() ||
-                        billing.isNotEmpty() ||
-                        from.isNotEmpty() ||
-                        to.isNotEmpty() ||
-                        inactive)
-            )
-                item {
-                    NativeTextButton({
-                        search = ""
-                        status = ""
-                        customer = ""
-                        billing = ""
-                        from = ""
-                        to = ""
-                        inactive = false
-                        offset = 0
-                    }) {
-                        Text("Filter zurücksetzen")
-                    }
-                }
-            items(page.rows, key = { it.id }) { row ->
-                NativeSwipeRow(
-                    controller,
-                    primaryKind(collection),
-                    row.id,
-                    positive =
-                        if (
-                            collection == "orders" &&
-                                row.status !in setOf("Erledigt", "Abgerechnet")
-                        )
-                            "Erledigt"
-                        else "",
-                    enabled = selected.isEmpty() && !deleting,
+        Box(Modifier.weight(1f)) {
+            // Do not clamp the restored position against a temporary empty loading page.
+            if (visiblePage != null || listFailure.isNotEmpty())
+                LazyColumn(
+                    Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
-                    val worklog = collection == "worklogs"
-                    val checked = row.id in selected
-                    val open =
-                        openHours[row.id]
-                            ?.takeIf { it > 0 }
-                            ?.let { nativeDuration(it) + " offen" }
-                            .orEmpty()
-                    NativeInfoRow(
-                        row.title,
-                        listOf(row.address, nativeDisplayText(row.subtitle), open)
-                            .filter { it.isNotBlank() }
-                            .distinct()
-                            .joinToString(" · "),
-                        {
-                            if (worklog && selected.isNotEmpty()) {
-                                toggleSelection(row.id)
-                            } else
-                                controller.navigate(
-                                    collection,
-                                    row.id,
-                                    mode =
-                                        if (
-                                            collection == "customers" &&
-                                                controller.route.args.optBoolean("_note_first")
-                                        )
-                                            "edit"
-                                        else "list",
-                                    args =
-                                        JSONObject(controller.route.args.toString())
-                                            .put("customer_id", customer)
-                                            .put("date_from", from)
-                                            .put("date_to", to),
-                                )
-                        },
-                        modifier =
-                            Modifier.semantics {
-                                testTag = UiTags.recordChoice(collection, row.id)
-                                if (worklog) {
-                                    this.selected = checked
-                                    stateDescription =
-                                        if (checked) "Ausgewählt"
-                                        else "Zum Auswählen gedrückt halten"
-                                }
-                            },
-                        leading =
-                            if (collection == "customers") ({ NativeInitials(row.title) })
-                            else if (worklog)
-                                ({
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    ) {
-                                        Box(
-                                            Modifier.sizeIn(minWidth = 40.dp, minHeight = 40.dp)
-                                                .padding(8.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            if (worklog && !checked) NativeAreaIcon("worklogs")
-                                            else NativeAreaIcon("worklogs")
-                                        }
-                                    }
-                                })
-                            else null,
-                        onLongClick =
-                            if (worklog)
-                                ({
-                                    if (!deleting) {
-                                        keyboard?.hide()
-                                        focus.clearFocus()
-                                        filtersOpen = false
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        toggleSelection(row.id)
-                                    }
-                                })
-                            else null,
-                        isSelected = checked,
-                        trailing =
-                            if (row.status.isNotBlank() && !worklog && collection != "customers")
-                                ({ NativeStatus(nativeValue(row.status)) })
-                            else null,
-                    )
-                }
-            }
-            if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty())
-                item {
-                    val unfiltered =
-                        search.isEmpty() &&
-                            status.isEmpty() &&
-                            customer.isEmpty() &&
-                            billing.isEmpty() &&
-                            from.isEmpty() &&
-                            to.isEmpty() &&
-                            !inactive
-                    Text(
-                        if (!unfiltered) "Keine Treffer. Suchtext oder Filter ändern."
-                        else
-                            when (collection) {
-                                "customers" ->
-                                    "Kunden bündeln Kontakte, Objekte und die zugehörigen Arbeiten."
-                                "orders" ->
-                                    "Aufträge halten die vereinbarten Arbeiten deiner Kunden fest."
-                                else ->
-                                    "Arbeiten dokumentieren, was du wann für deine Kunden erledigt hast."
-                            },
-                        modifier = Modifier.semantics { testTag = UiTags.EMPTY_STATE },
-                    )
-                }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (offset > 0)
-                        NativeOutlinedButton({ offset = maxOf(0, offset - 50) }) {
-                            Text("Vorherige 50")
+                    if (listFailure.isNotEmpty())
+                        item { Text(listFailure, color = MaterialTheme.colorScheme.error) }
+                    if (!imeVisible && collection != "customers")
+                        item {
+                            NativeContext(
+                                controller,
+                                JSONObject(controller.route.args.toString())
+                                    .put("customer_id", customer)
+                                    .put("date_from", from)
+                                    .put("date_to", to),
+                            )
                         }
-                    if (page.hasMore) NativeOutlinedButton({ offset += 50 }) { Text("Weitere 50") }
+                    if (filtersOpen && collection != "worklogs")
+                        item(key = "native-list-filters") {
+                            if (collection == "customers") {
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text("Inaktive Kunden einbeziehen", Modifier.weight(1f))
+                                    Switch(
+                                        inactive,
+                                        {
+                                            inactive = it
+                                            offset = 0
+                                        },
+                                    )
+                                }
+                                NativeChoice(
+                                    "Abrechnungsweg",
+                                    billing,
+                                    listOf(
+                                        "" to "Alle",
+                                        "direct" to "Kunde selbst",
+                                        "via_customer" to "Anderer Rechnungsempfänger",
+                                    ),
+                                    {
+                                        billing = it
+                                        offset = 0
+                                    },
+                                )
+                            } else {
+                                NativeRecordPicker(
+                                    controller,
+                                    "customers",
+                                    "Kunde",
+                                    customer,
+                                    onValueChange = {
+                                        customer = it
+                                        offset = 0
+                                    },
+                                )
+                                if (collection == "orders")
+                                    NativeChoice(
+                                        "Status",
+                                        status,
+                                        listOf(
+                                            "" to "Alle",
+                                            "Geplant" to "Geplant",
+                                            "In Arbeit" to "In Arbeit",
+                                            "Wartet auf Material" to "Wartet auf Material",
+                                            "Erledigt" to "Erledigt",
+                                            "Abgerechnet" to "Abgerechnet",
+                                        ),
+                                        {
+                                            status = it
+                                            offset = 0
+                                        },
+                                    )
+                            }
+                        }
+                    if (
+                        !imeVisible &&
+                            (search.isNotEmpty() ||
+                                status.isNotEmpty() ||
+                                customer.isNotEmpty() ||
+                                billing.isNotEmpty() ||
+                                from.isNotEmpty() ||
+                                to.isNotEmpty() ||
+                                inactive)
+                    )
+                        item {
+                            NativeTextButton({
+                                search = ""
+                                status = ""
+                                customer = ""
+                                billing = ""
+                                from = ""
+                                to = ""
+                                inactive = false
+                                offset = 0
+                            }) {
+                                Text("Filter zurücksetzen")
+                            }
+                        }
+                    items(page.rows, key = { it.id }) { row ->
+                        NativeSwipeRow(
+                            controller,
+                            primaryKind(collection),
+                            row.id,
+                            positive =
+                                if (
+                                    collection == "orders" &&
+                                        row.status !in setOf("Erledigt", "Abgerechnet")
+                                )
+                                    "Erledigt"
+                                else "",
+                            enabled = selected.isEmpty() && !deleting,
+                        ) {
+                            val worklog = collection == "worklogs"
+                            val checked = row.id in selected
+                            val open =
+                                openHours[row.id]
+                                    ?.takeIf { it > 0 }
+                                    ?.let { nativeDuration(it) + " offen" }
+                                    .orEmpty()
+                            NativeInfoRow(
+                                row.title,
+                                listOf(row.address, nativeDisplayText(row.subtitle), open)
+                                    .filter { it.isNotBlank() }
+                                    .distinct()
+                                    .joinToString(" · "),
+                                {
+                                    if (worklog && selected.isNotEmpty()) {
+                                        toggleSelection(row.id)
+                                    } else
+                                        controller.navigate(
+                                            collection,
+                                            row.id,
+                                            mode =
+                                                if (
+                                                    collection == "customers" &&
+                                                        controller.route.args.optBoolean(
+                                                            "_note_first"
+                                                        )
+                                                )
+                                                    "edit"
+                                                else "list",
+                                            args =
+                                                JSONObject(controller.route.args.toString())
+                                                    .put("customer_id", customer)
+                                                    .put("date_from", from)
+                                                    .put("date_to", to),
+                                        )
+                                },
+                                modifier =
+                                    Modifier.semantics {
+                                        testTag = UiTags.recordChoice(collection, row.id)
+                                        if (worklog) {
+                                            this.selected = checked
+                                            stateDescription =
+                                                if (checked) "Ausgewählt"
+                                                else "Zum Auswählen gedrückt halten"
+                                        }
+                                    },
+                                leading =
+                                    if (collection == "customers") ({ NativeInitials(row.title) })
+                                    else if (worklog)
+                                        ({
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor =
+                                                    MaterialTheme.colorScheme.onPrimaryContainer,
+                                            ) {
+                                                Box(
+                                                    Modifier.sizeIn(
+                                                            minWidth = 40.dp,
+                                                            minHeight = 40.dp,
+                                                        )
+                                                        .padding(8.dp),
+                                                    contentAlignment = Alignment.Center,
+                                                ) {
+                                                    NativeAreaIcon("worklogs")
+                                                }
+                                            }
+                                        })
+                                    else null,
+                                onLongClick =
+                                    if (worklog)
+                                        ({
+                                            if (!deleting) {
+                                                keyboard?.hide()
+                                                focus.clearFocus()
+                                                filtersOpen = false
+                                                haptic.performHapticFeedback(
+                                                    HapticFeedbackType.LongPress
+                                                )
+                                                toggleSelection(row.id)
+                                            }
+                                        })
+                                    else null,
+                                isSelected = checked,
+                                trailing =
+                                    if (
+                                        row.status.isNotBlank() &&
+                                            !worklog &&
+                                            collection != "customers"
+                                    )
+                                        ({ NativeStatus(nativeValue(row.status)) })
+                                    else null,
+                            )
+                        }
+                    }
+                    if (listFailure.isEmpty() && page.rows.isEmpty())
+                        item {
+                            val unfiltered =
+                                search.isEmpty() &&
+                                    status.isEmpty() &&
+                                    customer.isEmpty() &&
+                                    billing.isEmpty() &&
+                                    from.isEmpty() &&
+                                    to.isEmpty() &&
+                                    !inactive
+                            Text(
+                                if (!unfiltered) "Keine Treffer. Suchtext oder Filter ändern."
+                                else
+                                    when (collection) {
+                                        "customers" ->
+                                            "Kunden bündeln Kontakte, Objekte und die zugehörigen Arbeiten."
+                                        "orders" ->
+                                            "Aufträge halten die vereinbarten Arbeiten deiner Kunden fest."
+                                        else ->
+                                            "Arbeiten dokumentieren, was du wann für deine Kunden erledigt hast."
+                                    },
+                                modifier = Modifier.semantics { testTag = UiTags.EMPTY_STATE },
+                            )
+                        }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (offset > 0)
+                                NativeOutlinedButton({ offset = maxOf(0, offset - 50) }) {
+                                    Text("Vorherige 50")
+                                }
+                            if (page.hasMore)
+                                NativeOutlinedButton({ offset += 50 }) { Text("Weitere 50") }
+                        }
+                    }
                 }
-            }
+            if (listLoading)
+                LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
         }
         if (collection == "worklogs" && selected.isNotEmpty()) {
             Surface(color = MaterialTheme.colorScheme.surface) {
