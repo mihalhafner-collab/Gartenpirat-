@@ -51,6 +51,7 @@ internal object ListActionTools {
         }
         if (name == "queue_list_action") {
             fields
+                .put("source", McpFields.enumeration("action", "swipe"))
                 .put("original_tool", McpFields.text(60).put("enum", JSONArray(COMMANDS.toList())))
                 .put(
                     "original_args",
@@ -188,7 +189,7 @@ internal class ListActionService(
             ActiveWorkProtection.require(repository.state(), entity, entityId)
         }
         if (tool == "delete_work_records") {
-            WorklogArchiveBatch.actions(
+            WorklogDeletionBatch.actions(
                 repository.effective(),
                 original.getJSONArray("work_record_ids"),
                 original.getString("expected_preview_hash"),
@@ -202,12 +203,18 @@ internal class ListActionService(
             val ledger = SettlementRules.ledger(repository)
             val record = SettlementRules.find(ledger, entityId)
             require(
-                record.optString("kind") == "internal" && record.optString("status") == "confirmed"
+                record.optString("kind") in setOf("invoice", "internal") &&
+                    record.optString("status") == "confirmed" &&
+                    (args.optString("source", "swipe") == "action" ||
+                        record.optString("kind") == "internal")
             ) {
                 "Ausgestellte Rechnungen lassen sich nicht wegwischen."
             }
             require(SettlementRules.minor(original.get("amount")) > 0) {
                 "Nur einen offenen Betrag als bezahlt markieren."
+            }
+            require(SettlementRules.hash(record) == original.getString("expected_record_hash")) {
+                "Der Abschluss wurde inzwischen geändert."
             }
             require(
                 SettlementRules.minor(original.get("amount")) ==
@@ -233,6 +240,9 @@ internal class ListActionService(
                 .put("original_args", original)
                 .put("undo_until", clock.millis() + ListActionTools.UNDO_MS)
                 .put("restore_epoch", repository.settlementRestoreEpoch())
+        for (previous in rows) {
+            if (previous.optString("state") == "queued") previous.put("undo_until", clock.millis())
+        }
         rows.add(row)
         ListActionTools.save(repository, rows)
         return ListActionTools.publicRow(row)

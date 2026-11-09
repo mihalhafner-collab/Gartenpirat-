@@ -21,6 +21,82 @@ internal object SettlementRules {
 
     fun today() = LocalDate.now(ZoneId.of("Europe/Vienna")).toString()
 
+    /** Settings completeness is shared by the issue action and the settings links. */
+    fun invoiceMissingFields(settings: JSONObject): JSONArray {
+        val missing = JSONArray()
+        fun need(field: String, label: String, value: String = settings.optString(field)) {
+            if (value.isBlank()) missing.put(JSONObject().put("field", field).put("label", label))
+        }
+        need(
+            "business_logo",
+            "Logo",
+            if (runCatching { invoiceLogoBytes(settings.optString("business_logo")) }.isSuccess)
+                "valid"
+            else "",
+        )
+        need(
+            "business_name",
+            "Name",
+            settings.optString("business_name").ifBlank { settings.optString("owner_name") },
+        )
+        need("business_street", "Straße")
+        need("business_postal_code", "Postleitzahl")
+        need("business_city", "Ort")
+        need(
+            "business_email",
+            "Kontakt",
+            settings.optString("business_email").ifBlank { settings.optString("business_phone") },
+        )
+        need("business_iban", "IBAN")
+        need("business_bic", "BIC")
+        need("default_payment_terms", "Zahlungsziel")
+        return missing
+    }
+
+    fun invoiceLogoBytes(encoded: String): ByteArray {
+        val prefix = encoded.substringBefore(',')
+        require(
+            prefix in setOf("data:image/png;base64", "data:image/jpeg;base64") &&
+                encoded.length <= 200000
+        ) {
+            "Logo als kleines PNG- oder JPEG-Bild auswählen."
+        }
+        val bytes = java.util.Base64.getDecoder().decode(encoded.substringAfter(','))
+        val png =
+            bytes.size >= 8 &&
+                bytes
+                    .take(8)
+                    .toByteArray()
+                    .contentEquals(byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10))
+        val jpeg = bytes.size >= 4 && bytes[0] == (-1).toByte() && bytes[1] == (-40).toByte()
+        require(if (prefix == "data:image/png;base64") png else jpeg) {
+            "Logo ist nicht lesbar; ein anderes Bild auswählen."
+        }
+        return bytes
+    }
+
+    /** A selected billing interval changes the invoice quantity, never the recorded work. */
+    fun billableQuantity(hours: String, tick: String = "minute"): String {
+        val duration = decimal(hours)
+        require(duration.signum() >= 0) { "Arbeitsdauer darf nicht negativ sein." }
+        val quantity =
+            when (tick) {
+                "minute" ->
+                    duration
+                        .multiply(BigDecimal(60))
+                        .setScale(0, RoundingMode.HALF_UP)
+                        .divide(BigDecimal(60), 8, RoundingMode.HALF_UP)
+                "tenth_hour" -> duration.setScale(1, RoundingMode.CEILING)
+                "quarter_hour" ->
+                    duration
+                        .multiply(BigDecimal(4))
+                        .setScale(0, RoundingMode.CEILING)
+                        .divide(BigDecimal(4))
+                else -> throw IllegalArgumentException("Abrechnungstakt auswählen.")
+            }
+        return quantity.stripTrailingZeros().toPlainString()
+    }
+
     fun decimal(value: Any): BigDecimal {
         val text = value.toString().trim()
         require(text.matches(Regex("-?[0-9]+([.,][0-9]{1,8})?"))) {
@@ -46,6 +122,30 @@ internal object SettlementRules {
     fun active(row: JSONObject) =
         row.optString("status") in setOf("prepared", "confirmed") &&
             row.optString("kind") in setOf("invoice", "internal")
+
+    fun boundWorkIds(records: List<JSONObject>, worklogs: JSONArray?): Set<String> {
+        val bound = linkedSetOf<String>()
+        for (record in records.filter(::active)) {
+            for (ref in rows(record.optJSONArray("sources"))) {
+                if (ref.optString("collection") == "worklogs") bound.add(ref.getString("id"))
+                else if (ref.optString("collection") == "orders") {
+                    val frozen =
+                        rows(record.optJSONArray("source_snapshots"))
+                            .firstOrNull { sourceKey(it) == sourceKey(ref) }
+                            ?.optJSONArray("included_work_ids")
+                    if (frozen != null)
+                        for (index in 0 until frozen.length()) bound.add(frozen.getString(index))
+                    else
+                        bound.addAll(
+                            rows(worklogs)
+                                .filter { it.optString("order_id") == ref.getString("id") }
+                                .map { it.getString("id") }
+                        )
+                }
+            }
+        }
+        return bound
+    }
 
     fun source(master: JSONObject, collection: String, id: String): JSONObject {
         require(collection in setOf("orders", "worklogs")) {
@@ -109,8 +209,14 @@ internal object SettlementRules {
                 "payment_terms",
                 "payment_details",
                 "replacement_for",
+                "billing_interval",
             )) out.put(key, draft.optString(key))
         require(out.getString("route") in setOf("billed", "labor")) { "Abrechnungsart auswählen." }
+        val interval = draft.optString("billing_interval").ifBlank { "minute" }
+        require(interval in setOf("minute", "tenth_hour", "quarter_hour")) {
+            "Abrechnungstakt auswählen."
+        }
+        out.put("billing_interval", interval)
         val positions = JSONArray()
         val sources = linkedMapOf<String, JSONObject>()
         for ((index, p) in rows(draft.optJSONArray("positions")).withIndex()) {
@@ -216,6 +322,11 @@ internal object SettlementRules {
         needed(view.optString("title"), "Bezeichnung fehlt.")
         val issuer = view.optJSONObject("issuer") ?: JSONObject()
         val recipient = view.optJSONObject("recipient") ?: JSONObject()
+        val missingIssuer =
+            if (view.optString("route") == "billed") invoiceMissingFields(issuer) else JSONArray()
+        for (field in rows(missingIssuer)) errors.add(
+            "Rechnungsdaten: ${field.getString("label")} fehlt."
+        )
         if (issuer.optString("tax_mode", "small_business") != "small_business")
             errors.add(
                 "Abweichender Steuerstatus wird nicht unterstützt; Steuerstatus bewusst in den Stammdaten prüfen."
@@ -302,6 +413,14 @@ internal object SettlementRules {
             }
             if (BillingRules.recipient(row) != view.optString("billing_customer_id"))
                 errors.add("Alle Quellen müssen denselben rechtlichen Rechnungsempfänger haben.")
+            if (
+                collection == "worklogs" && !row.optBoolean("billable", true) ||
+                    collection == "orders" &&
+                        AccountingRules.works(master, collection, id).any {
+                            !it.optBoolean("billable", true)
+                        }
+            )
+                errors.add("Nicht abzurechnende Arbeit abwählen.")
             if (row.optString("source").contains("sevdesk", true))
                 errors.add("Historische Versuchsdaten dürfen nicht neu ausgestellt werden.")
             val groupKey = group(master, collection, id)
@@ -382,6 +501,7 @@ internal object SettlementRules {
         return JSONObject()
             .put("valid", errors.isEmpty())
             .put("errors", JSONArray(errors.distinct()))
+            .put("missing_issuer_fields", missingIssuer)
     }
 
     fun requireMutable(ledger: JSONObject, collection: String, id: String) {
@@ -405,14 +525,7 @@ internal object SettlementRules {
         }
     }
 
-    /**
-     * New draft from a recipient's open work. Price: the recipient's last hourly rate, else the
-     * last one used at all; always editable.
-     */
-    /**
-     * A draft from the recipient's open work, priced with the recipient's or the configured hourly
-     * rate.
-     */
+    /** A draft of open work, priced only from the explicitly configured hourly rate. */
     @JvmOverloads
     fun prefill(
         args: JSONObject,
@@ -420,39 +533,25 @@ internal object SettlementRules {
         records: List<JSONObject>,
         configuredRate: String = "",
     ): JSONObject {
-        val draft = JSONObject().put("route", "billed").put("positions", JSONArray())
+        val draft =
+            JSONObject()
+                .put("route", "billed")
+                .put("positions", JSONArray())
+                .put("billing_interval", args.optString("billing_interval").ifBlank { "minute" })
         val recipient = args.optString("billing_customer_id")
         val ids = args.optJSONArray("work_record_ids")
         val wanted = (0 until (ids?.length() ?: 0)).map { ids!!.getString(it) }.toSet()
         if (recipient.isEmpty() || wanted.isEmpty()) return draft
-        val bound =
-            records
-                .filter(::active)
-                .flatMap { rows(it.optJSONArray("sources")) }
-                .filter { it.optString("collection") == "worklogs" }
-                .map { it.optString("id") }
-                .toSet()
-        fun hourly(row: JSONObject) =
-            rows(row.optJSONArray("positions"))
-                .lastOrNull {
-                    it.optString("unit").lowercase().startsWith("stund") &&
-                        it.optString("price").isNotBlank()
-                }
-                ?.optString("price")
+        val bound = boundWorkIds(records, worklogs)
         val configured = configuredRate.trim().replace(',', '.')
-        // A rate agreed with this recipient wins, then the configured rate, then the last one used.
-        val rate =
-            records
-                .lastOrNull {
-                    it.optString("billing_customer_id") == recipient && hourly(it) != null
-                }
-                ?.let(::hourly)
-                ?: configured.takeIf { it.matches(Regex("[0-9]+([.][0-9]{1,2})?")) }
-                ?: records.lastOrNull { hourly(it) != null }?.let(::hourly)
-                ?: ""
+        val rate = configured.takeIf { it.matches(Regex("[0-9]+([.][0-9]{1,2})?")) }.orEmpty()
         val works =
             rows(worklogs)
-                .filter { it.optString("id") in wanted && it.optString("id") !in bound }
+                .filter {
+                    it.optString("id") in wanted &&
+                        it.optString("id") !in bound &&
+                        it.optBoolean("billable", true)
+                }
                 .sortedBy { it.optString("work_date") }
         draft.put("billing_customer_id", recipient)
         if (works.isEmpty()) return draft
@@ -472,10 +571,8 @@ internal object SettlementRules {
                     "quantity",
                     work
                         .optString("hours")
-                        .toBigDecimalOrNull()
-                        ?.setScale(2, RoundingMode.HALF_UP)
-                        ?.stripTrailingZeros()
-                        ?.toPlainString()
+                        .takeIf { it.toBigDecimalOrNull() != null }
+                        ?.let { billableQuantity(it, draft.getString("billing_interval")) }
                         .orEmpty(),
                 )
                 .put("unit", "Stunden")

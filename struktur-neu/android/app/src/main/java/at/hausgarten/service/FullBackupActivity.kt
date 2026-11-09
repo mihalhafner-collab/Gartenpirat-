@@ -10,9 +10,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -136,9 +134,7 @@ class FullBackupActivity : ComponentActivity() {
             NativeStatus(statusLabel, if (busy) NativeStatusTone.Running else statusTone)
             Text(status)
             if (showWarnings) {
-                Text(
-                    "Die ZIP wurde vollständig zurückgelesen. Das bestätigt die Dateiintegrität; fehlende Originale und bestehende Datenbezüge werden dadurch nicht repariert."
-                )
+
                 val grouped = LinkedHashMap<String, Int>()
                 for (i in 0 until warnings.length()) {
                     val message =
@@ -167,17 +163,10 @@ class FullBackupActivity : ComponentActivity() {
                             "Aktueller Bestand zum Prüfzeitpunkt",
                             inventory(currentCounts),
                         )
-                        Text(
-                            "Der aktuelle Bestand wird ersetzt. Neuere Arbeit kann dadurch fehlen. Offene Bearbeitungen werden nach dem Neustart gesichtet."
-                        )
                     }
-                } else {
-                    Text(
-                        "Neue Sicherung als unverschlüsselte ZIP-Datei auf diesem Pixel. Wähle einen lokalen Speicherort in der Android-Dateiauswahl."
-                    )
                 }
                 if (warningCount > 0)
-                    OutlinedButton(
+                    NativeOutlinedButton(
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { showWarnings = true },
@@ -191,7 +180,7 @@ class FullBackupActivity : ComponentActivity() {
                     )
                 if (!restorePending) {
                     if (showNewTarget)
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             enabled = ready && !busy,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { chooseSave() },
@@ -199,7 +188,7 @@ class FullBackupActivity : ComponentActivity() {
                             Text("Anderen Speicherort wählen")
                         }
                     if (showCheck)
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             enabled = ready && !busy,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { chooseRestore() },
@@ -207,9 +196,6 @@ class FullBackupActivity : ComponentActivity() {
                             Text("Andere Sicherungsdatei wählen")
                         }
                 }
-                Text(
-                    "Eine Datei auf diesem Pixel schützt nicht gegen Geräteverlust. Manuelles Kopieren erfolgt außerhalb der App. Dateirücklesen bestätigt keine getestete Wiederherstellung."
-                )
             }
             if (showConfirmation)
                 AlertDialog(
@@ -221,10 +207,12 @@ class FullBackupActivity : ComponentActivity() {
                         )
                     },
                     dismissButton = {
-                        TextButton(onClick = { showConfirmation = false }) { Text("Abbrechen") }
+                        NativeTextButton(onClick = { showConfirmation = false }) {
+                            Text("Abbrechen")
+                        }
                     },
                     confirmButton = {
-                        TextButton(
+                        NativeTextButton(
                             onClick = {
                                 showConfirmation = false
                                 activateRestore()

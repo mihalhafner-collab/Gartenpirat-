@@ -3,6 +3,7 @@ package at.hausgarten.service
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
@@ -38,6 +40,8 @@ internal fun NativePropertyTimeline(
     var page by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var deleting by remember { mutableStateOf(false) }
+    var editingField by remember(id) { mutableStateOf<Pair<String, String>?>(null) }
+    var adding by remember { mutableStateOf(false) }
     val changes by
         remember(controller) { controller.store.nativeData().watchCommittedChanges() }
             .collectAsStateWithLifecycle(-1L)
@@ -47,7 +51,6 @@ internal fun NativePropertyTimeline(
     val context =
         JSONObject().put("customer_id", property.getString("customer_id")).put("property_id", id)
     fun plan() = onEdit("visit", null, JSONObject(context.toString()))
-    fun edit() = onEdit("property", property, JSONObject())
     fun photo() {
         controller.navigate(
             "photos",
@@ -66,7 +69,6 @@ internal fun NativePropertyTimeline(
         }
     }
     LaunchedEffect(id, view, offset, changes, attempt) {
-        page = null
         try {
             page =
                 controller.query(
@@ -116,7 +118,6 @@ internal fun NativePropertyTimeline(
                             NativeDetailHeading(
                                 property.optString("name", "Objekt"),
                                 listOf(
-                                    NativeDetailAction("property-edit", "Bearbeiten", run = ::edit),
                                     NativeDetailAction(
                                         "property-care",
                                         "Pflegeplan anlegen",
@@ -146,33 +147,11 @@ internal fun NativePropertyTimeline(
                                             )
                                         },
                                     ),
-                                    NativeDetailAction(
-                                        "property-archive",
-                                        if (property.optBoolean("archived")) "Archivierung aufheben"
-                                        else "Archivieren",
-                                        run = {
-                                            controller.action(
-                                                "Objekt archivieren",
-                                                "set_revier_archived",
-                                                JSONObject()
-                                                    .put("entity", "property")
-                                                    .put("entity_id", id)
-                                                    .put(
-                                                        "expected_record_hash",
-                                                        (page ?: initial).getString("record_hash"),
-                                                    )
-                                                    .put(
-                                                        "archived",
-                                                        !property.optBoolean("archived"),
-                                                    ),
-                                            )
-                                        },
-                                    ),
                                 ),
+                                onTitleClick = { editingField = "name" to "Objekt" },
                             )
                             NativeStatus(
-                                if (property.optBoolean("archived")) "Archiviert"
-                                else if (property.optBoolean("active", true)) "Aktiv" else "Inaktiv"
+                                if (property.optBoolean("active", true)) "Aktiv" else "Inaktiv"
                             )
                         }
                     }
@@ -184,24 +163,16 @@ internal fun NativePropertyTimeline(
                         heading = true,
                     )
                     NativeActions {
-                        val point = PlanningBoardRules.coordinates(property)
                         val address = property.optString("address")
-                        OutlinedButton(
-                            {
-                                external(
-                                    "geo:0,0?q=" +
-                                        Uri.encode(
-                                            point?.let { "${it.first},${it.second}" } ?: address
-                                        )
-                                )
-                            },
+                        NativeOutlinedButton(
+                            { external("geo:0,0?q=" + Uri.encode(address)) },
                             Modifier.semantics { testTag = UiTags.OBJECT_ROUTE },
-                            enabled = address.isNotBlank() || point != null,
+                            enabled = address.isNotBlank(),
                         ) {
                             Text("Route")
                         }
                         val phone = customer.optString("phone")
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             {
                                 try {
                                     controller.context.startActivity(
@@ -219,7 +190,7 @@ internal fun NativePropertyTimeline(
                         ) {
                             Text("Anrufen")
                         }
-                        Button(::plan, Modifier.semantics { testTag = UiTags.OBJECT_PLAN }) {
+                        NativeButton(::plan, Modifier.semantics { testTag = UiTags.OBJECT_PLAN }) {
                             Text("Einsatz planen")
                         }
                     }
@@ -228,13 +199,23 @@ internal fun NativePropertyTimeline(
                     NativeGroup("Angaben") {
                         for ((field, label) in fields) if (property.optString(field).isNotBlank())
                             NativeKeyValue(label, nativeDisplayText(property.optString(field))) {
-                                edit()
+                                editingField = field to label
                             }
                     }
-                    NativeAddDetails(
-                        fields.keys.filter { property.optString(it).isBlank() },
-                        onEdit = ::edit,
-                    )
+                    val missing = fields.filterKeys { property.optString(it).isBlank() }
+                    if (missing.isNotEmpty())
+                        Box {
+                            NativeTextButton({ adding = true }) { Text("Ergänzen") }
+                            DropdownMenu(adding, { adding = false }) {
+                                for ((field, label) in missing) DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        adding = false
+                                        editingField = field to label
+                                    },
+                                )
+                            }
+                        }
                 }
                 item {
                     val selected = listOf("history", "care", "photos", "money").indexOf(view)
@@ -259,7 +240,7 @@ internal fun NativePropertyTimeline(
                 if (error.isNotBlank())
                     item {
                         NativeStatus(error, NativeStatusTone.Failed)
-                        TextButton(
+                        NativeTextButton(
                             { attempt++ },
                             Modifier.semantics { testTag = UiTags.OBJECT_RETRY },
                         ) {
@@ -287,15 +268,18 @@ internal fun NativePropertyTimeline(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.Top,
                     ) {
-                        if (view == "history")
-                            Text(
-                                if (entry.optBoolean("filled")) "●" else "○",
-                                Modifier.padding(top = 16.dp).semantics {
-                                    contentDescription =
-                                        if (entry.optBoolean("filled")) "Erledigt" else "Geplant"
-                                },
-                                color = MaterialTheme.colorScheme.primary,
-                            )
+                        if (view == "history") {
+                            val filled = entry.optBoolean("filled")
+                            val marker = if (filled) NativeDone else NativeNeutral
+                            Canvas(
+                                Modifier.padding(top = 16.dp).size(12.dp).semantics {
+                                    contentDescription = if (filled) "Erledigt" else "Geplant"
+                                }
+                            ) {
+                                if (filled) drawCircle(marker)
+                                else drawCircle(marker, style = Stroke(2.dp.toPx()))
+                            }
+                        }
                         Column(Modifier.weight(1f)) {
                             val amount =
                                 if (entry.has("amount_minor"))
@@ -344,14 +328,14 @@ internal fun NativePropertyTimeline(
                 if (page?.optInt("total", 0) ?: 0 > 50)
                     item {
                         NativeActions {
-                            TextButton(
+                            NativeTextButton(
                                 { offset = (offset - 50).coerceAtLeast(0) },
                                 Modifier.semantics { testTag = UiTags.OBJECT_PREVIOUS },
                                 enabled = offset > 0,
                             ) {
                                 Text("Vorige Einträge")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 { offset += 50 },
                                 Modifier.semantics { testTag = UiTags.OBJECT_NEXT },
                                 enabled = page?.optBoolean("has_more") == true,
@@ -398,8 +382,6 @@ internal fun NativePropertyTimeline(
                             else -> plan()
                         }
                     },
-                    "Bearbeiten",
-                    ::edit,
                     enabled = !deleting,
                     secondaryEnabled = !deleting,
                 )
@@ -416,5 +398,10 @@ internal fun NativePropertyTimeline(
                 ),
             context,
         )
+    }
+    editingField?.let { (field, label) ->
+        NativeRevierValueSheet(controller, "property", property, field, label, { attempt++ }) {
+            editingField = null
+        }
     }
 }

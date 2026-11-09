@@ -187,6 +187,18 @@ internal class OfferDecisionService {
                         .put("cloud_confirmed", false))!!
                     .put("invoice_created", false))!!
                 .put("replayed", false)
+        if (acceptance) {
+            val converted =
+                OfferApplicationService(repository)
+                    .perform(
+                        "convert_offer_to_order",
+                        JSONObject()
+                            .put("offer_id", id)
+                            .put("expected_record_hash", args.getString("expected_record_hash")),
+                        request + "_order",
+                    )
+            result.put("order_id", converted.getString("order_id"))
+        }
         repository.putOwnerValue(
             receipt,
             (((JSONObject()).put("fingerprint", fingerprint)).put("result", result))!!.toString(),

@@ -508,16 +508,45 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             var second = photo("qa_photo_cleanup_second")
             val access = PixelOwnerAccess(context, store)
             var sequence = 0
-            fun command(name: String, entity: String, id: String): JSONObject =
-                access.execute(
+            fun command(name: String, entity: String, id: String): JSONObject {
+                require(name == "delete_entity")
+                val proof =
+                    requireNotNull(
+                        access.query(
+                            "preview_delete",
+                            JSONObject().put("entity", entity).put("entity_id", id),
+                        )
+                    )
+                return access.execute(
                     name,
                     JSONObject()
                         .put("request_id", "qa_cleanup_${sequence++}")
                         .put("entity", entity)
                         .put("entity_id", id)
-                        .apply { if (name == "purge_entity") put("confirmed", true) },
+                        .put("expected_record_hash", proof.getString("expected_record_hash"))
+                        .put(
+                            "expected_photo_links_hash",
+                            proof.getString("expected_photo_links_hash"),
+                        ),
                 )
+            }
             fun staleDeletion(name: String, args: JSONObject) {
+                val proof =
+                    requireNotNull(
+                        access.query(
+                            "preview_delete",
+                            JSONObject()
+                                .put("entity", args.getString("entity"))
+                                .put("entity_id", args.getString("entity_id")),
+                        )
+                    )
+                if (!args.has("expected_record_hash"))
+                    args.put("expected_record_hash", proof.getString("expected_record_hash"))
+                if (!args.has("expected_photo_links_hash"))
+                    args.put(
+                        "expected_photo_links_hash",
+                        proof.getString("expected_photo_links_hash"),
+                    )
                 val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
                 var rejected = false
                 try {
@@ -533,34 +562,22 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 )
             }
             staleDeletion(
-                "archive_entity",
+                "delete_entity",
                 JSONObject()
                     .put("entity", "order")
                     .put("entity_id", "qa_order_1")
                     .put("expected_record_hash", "0".repeat(64)),
             )
             staleDeletion(
-                "archive_entity",
+                "delete_entity",
                 JSONObject()
                     .put("entity", "order")
                     .put("entity_id", "qa_order_1")
                     .put("expected_photo_links_hash", "0".repeat(64)),
             )
-            command("archive_entity", "order", "qa_order_1")
-            staleDeletion(
-                "purge_entity",
-                JSONObject()
-                    .put("entity", "order")
-                    .put("entity_id", "qa_order_1")
-                    .put("confirmed", true)
-                    .put("expected_record_hash", "0".repeat(64)),
-            )
-            staleDeletion(
-                "empty_trash",
-                JSONObject().put("confirmed", true).put("expected_preview_hash", "0".repeat(64)),
-            )
+            command("delete_entity", "order", "qa_order_1")
             var current = PixelMcpReadTools.effective(store.getState())
-            yes(current.getJSONArray("orders").length() == 0, "ORDER_ARCHIVED_WITH_WORK")
+            yes(current.getJSONArray("orders").length() == 0, "ORDER_REMOVED_WITH_WORK_PRESERVED")
             yes(
                 current.getJSONArray("worklogs").getJSONObject(0).optString("order_id").isEmpty(),
                 "WORK_ORDER_DETACHED",
@@ -570,11 +587,6 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     "qa_customer_1",
                 "WORK_CUSTOMER_PRESERVED",
             )
-            yes(
-                current.getJSONArray("photos").getJSONObject(0).optString("order_id").isEmpty(),
-                "PHOTO_ORDER_DETACHED",
-            )
-            command("purge_entity", "order", "qa_order_1")
             yes(
                 !OwnerJournalRules.archives(PixelMcpReadTools.effective(store.getState()))
                     .has("order:qa_order_1"),
@@ -593,7 +605,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             )
             first = photo("qa_photo_cleanup_kept_first", "")
             second = photo("qa_photo_cleanup_kept_second", "")
-            command("archive_entity", "appointment", "qa_appointment")
+            command("delete_entity", "appointment", "qa_appointment")
             yes(
                 PixelMcpReadTools.effective(store.getState())
                     .getJSONArray("worklogs")
@@ -602,7 +614,6 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     .isEmpty(),
                 "COMPLETED_WORK_APPOINTMENT_DETACHED",
             )
-            command("purge_entity", "appointment", "qa_appointment")
             val inspection =
                 JSONObject(store.ownerValue("revier:v1:entity:inquiry:qa_inspection", "{}"))
             yes(
@@ -636,9 +647,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 "INSERT INTO pending VALUES('receipt_qa_deleted_photo','mcp_receipt',?,'2026-10-30T00:00:00Z')",
                 arrayOf(JSONObject().put("entity_type", "photo").put("entity_id", first).toString()),
             )
-            command("archive_entity", "photo", first)
-            yes(keptPhoto.isFile, "TRASH_RETAINS_SHARED_PHOTO")
-            command("purge_entity", "photo", first)
+            command("delete_entity", "photo", first)
             yes(keptPhoto.isFile, "ACTIVE_SHARED_PHOTO_RETAINED")
             val removedReceipt = JSONObject(store.ownerValue("receipt:qa_deleted_photo", "{}"))
             yes(
@@ -651,13 +660,11 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 .use { rows ->
                     yes(rows.moveToFirst() && rows.getInt(0) == 0, "DELETED_NATIVE_RECEIPT_REMOVED")
                 }
-            command("archive_entity", "invoice", "qa_draft")
-            yes(draft.isFile, "TRASH_RETAINS_DRAFT_PDF")
-            command("purge_entity", "invoice", "qa_draft")
+            command("delete_entity", "invoice", "qa_draft")
             yes(!draft.exists() && issued.isFile, "DRAFT_PDF_REMOVED_ISSUED_RETAINED")
             var rejected = false
             try {
-                command("archive_entity", "invoice", "qa_issued")
+                command("delete_entity", "invoice", "qa_issued")
             } catch (_: Exception) {
                 rejected = true
             }
@@ -708,11 +715,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 rows ->
                 yes(rows.moveToFirst() && rows.getInt(0) == 0, "ORPHAN_UPLOAD_BLOB_REMOVED")
             }
-            command("archive_entity", "photo", second)
-            access.execute(
-                "empty_trash",
-                JSONObject().put("request_id", "qa_cleanup_empty_trash").put("confirmed", true),
-            )
+            command("delete_entity", "photo", second)
             yes(!keptPhoto.exists(), "LAST_PHOTO_REFERENCE_RECLAIMED_IMMEDIATELY")
             current = PixelMcpReadTools.effective(store.getState())
             yes(
@@ -720,7 +723,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     current.getJSONArray("invoices").length() == 1,
                 "BUSINESS_ROWS_PRESERVED",
             )
-            yes(OwnerJournalRules.archives(current).length() == 0, "TRASH_PHYSICALLY_EMPTY")
+            yes(OwnerJournalRules.archives(current).length() == 0, "DELETIONS_KEEP_NO_TOMBSTONES")
             val directWork =
                 JSONObject(current.getJSONArray("worklogs").getJSONObject(0).toString())
                     .put("id", "qa_direct_work")

@@ -337,14 +337,20 @@ internal class OfferTools {
                                                     "Finalisiert ausschließlich das geprüfte Angebot nach ausdrücklicher Bestätigung. Kunde, Aussteller und Preise sind über context_hash gebunden; kein Rechnungsabschluss."
                                                 else
                                                     (if (n!!.equals("convert_offer_to_order"))
-                                                        "Übernimmt ein ausdrücklich angenommenes Angebot mit Kunde, Einsatzort und offer_id in einen Auftrag. Keine Rechnung."
+                                                        "Verweis für Version 1.71.0: record_offer_acceptance legt den Auftrag beim Annehmen an. Liest für früher angenommene Angebote den bestehenden Auftrag oder vervollständigt den bisherigen Vorgang; kein zweiter Auftrag."
                                                     else
                                                         "Verwaltet Angebote in der bestehenden App und im lokalen Geschäftsjournal. Entwürfe dürfen unvollständig sein; Dokumentart bewusst wählen. record_hash vor Updates lesen; request_id bei Wiederholung unverändert lassen. Niemals Kunden, Stunden oder Preise erfinden.")))))))))
                 out.put(
                     ((((JSONObject()).put("name", n)).put("description", d)).put(
                             "inputSchema",
                             schema(n),
-                        ))!!
+                        ))
+                        .apply {
+                            if (n == "convert_offer_to_order") {
+                                put("deprecated", true)
+                                put("replacement", "record_offer_acceptance")
+                            }
+                        }
                         .put(
                             "annotations",
                             ((((JSONObject()).put("readOnlyHint", read(n))).put(

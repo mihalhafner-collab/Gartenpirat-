@@ -81,6 +81,7 @@ internal object SettlementTools {
             required.add("expected_record_hash")
         }
         when (name) {
+            "get_settlement_pdf" -> p.put("preview", boolean())
             "delete_settlement_draft" -> {
                 p.put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
                 required.add("confirmed")
@@ -99,6 +100,7 @@ internal object SettlementTools {
                         "payment_terms",
                         "payment_details",
                         "replacement_for",
+                        "billing_interval",
                     )
                 draft.put(
                     "positions",
@@ -169,6 +171,8 @@ internal object SettlementTools {
 
     fun description(name: String) =
         when (name) {
+            "get_settlement_pdf" ->
+                "Liest die Metadaten des Original-PDFs. Mit preview=true wird ein gespeicherter Rechnungsentwurf ausschließlich im lokalen Cache als ENTWURF gerendert, ohne Nummernreservierung, Quellenbindung oder Originalbeleg."
             "delete_settlement_draft" ->
                 "Löscht ausschließlich einen unveränderten, unvorbereiteten Abrechnungsentwurf mit aktuellem record_hash endgültig. Vorbereitete und ausgestellte Abschlüsse, Zahlungen und Nummern bleiben geschützt. Dieselbe request_id wiederholen; gelöschte Entwurfs-IDs werden nicht erneut verwendet."
             "abandon_prepared_settlement" ->
@@ -198,6 +202,13 @@ internal object SettlementTools {
         if (name == "get_settlement_context")
             return JSONObject()
                 .put("business_settings", master.optJSONObject("business_settings") ?: JSONObject())
+                .put(
+                    "invoice_missing_fields",
+                    SettlementRules.invoiceMissingFields(
+                        master.optJSONObject("business_settings") ?: JSONObject()
+                    ),
+                )
+                .put("billing_ticks", JSONArray(listOf("minute", "tenth_hour", "quarter_hour")))
                 .put("customers", master.optJSONArray("customers") ?: JSONArray())
                 .put("orders", master.optJSONArray("orders") ?: JSONArray())
                 .put("worklogs", master.optJSONArray("worklogs") ?: JSONArray())
@@ -224,6 +235,20 @@ internal object SettlementTools {
         if (name == "get_settlement" || name == "get_settlement_pdf") {
             val row = SettlementRules.find(ledger, a.getString("settlement_id"))
             if (name == "get_settlement_pdf") {
+                if (a.optBoolean("preview")) {
+                    require(
+                        row.optString("route") == "billed" && row.optString("status") == "draft"
+                    ) {
+                        "Für die Vorschau einen Rechnungsentwurf auswählen."
+                    }
+                    return JSONObject()
+                        .put(
+                            "metadata",
+                            repository.previewSettlementDocument(
+                                SettlementRules.review(row, master)
+                            ),
+                        )
+                }
                 require(row.getString("route") == "billed" && row.has("pdf")) {
                     "Für diesen Vorgang gibt es kein Original-PDF."
                 }

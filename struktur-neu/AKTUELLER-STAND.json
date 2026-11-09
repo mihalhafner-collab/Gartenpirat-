@@ -52,16 +52,14 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "APP.md an das Designkonzept vom 08.11.2026 angleichen (nur Dokumentation)",
-    "status": "Abschnitt Oberfläche und Rechnung folgen dem Designkonzept vom 08.11.2026: sechs Farbrollen, kompakte Bausteine, ⋮-Menü statt „Mehr“, Abrechnung als eine Seite, Entwurf zugleich Vorschau, Rechnungsdaten, „Nicht abrechnen“, keine Karte, kein Papierkorb und kein Archivieren. Labor clandestino bleibt unverändert. Entschieden: Objekt an der Arbeit (vorhanden), kein Materialbestand, keine Gerätenutzung. App-Code unverändert 1.70.3/157.",
-    "owner_instruction": "Eigentümer 09.11.2026: Funktionen logisch und sinnvoll umsetzen, sonst löschen; KISS. Labor bleibt erhalten. Code je eigenem PR nach main mit vollem grünem CI-Lauf.",
+    "name": "Designkonzept 08.11.2026 vollständig umsetzen",
+    "status": "Umgesetzt als 1.71.0/158 auf codex/design-08-11; Abnahme über den vollständigen PR-CI-Lauf.",
+    "owner_instruction": "09.11.2026: ein Branch, ein PR, KISS/YAGNI; Subagenten ausdrücklich erlaubt. ADB-Testbarkeit über vorhandene Instrumentierung. Keine Geräteaktionen, Signierung oder Verteilung.",
     "validation": {
-      "source": "check_release_baseline.py und check_current.py; reine Dokumentationsänderung."
+      "source": "check_current.py und ktfmt --kotlinlang-style grün; assembleRelease, assembleReleaseAndroidTest, lintRelease und testReleaseUnitTest grün (71 JVM-Tests). Kein lokaler Emulator. Voller qa-apk.yml-Lauf am PR verbindlich."
     },
     "next": [
-      "Farbkonzept und kompakte Bausteine in NativeCompose.kt.",
-      "Abrechnung als eine Seite, Entwurf als Vorschau, Rechnungsdaten, E-Rechnung je Kunde, „Nicht abrechnen“.",
-      "Funktionen löschen: Papierkorb, Archivieren, „Mehr“, Karte, Materialbestand, Gerätenutzung; mit MCP-Werkzeugen und Tests im selben Schritt."
+      "PR mit vollem grünem build und emulator zur Eigentümerprüfung; nicht mergen."
     ]
   },
   "open_checks": [

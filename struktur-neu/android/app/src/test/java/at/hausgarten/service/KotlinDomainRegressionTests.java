@@ -124,7 +124,7 @@ public final class KotlinDomainRegressionTests {
         RevierDomainTests.searchResponseContract();
         RevierDomainTests.searchSettlementsAndContact();
         RevierDomainTests.acceptanceAndInspectionCorrections();
-        RevierDomainTests.archiveDeletion();
+        RevierDomainTests.permanentDeletion();
         RevierDomainTests.restoredActionInspection();
         RevierDomainTests.restoredOwnerActionInspection();
         RevierDomainTests.calendarDayFilters();

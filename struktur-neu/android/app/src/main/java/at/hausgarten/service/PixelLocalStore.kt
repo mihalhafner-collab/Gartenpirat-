@@ -497,6 +497,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
             output.put("master", master)
             output.put("pending", pendingActions())
             output.put("work_session", workSessions().current())
+            output.put("settlement_ledger", JSONObject(ownerValue(SettlementRules.KEY, "{}")))
             output.put("storage_contract_version", 3)
             output.put("processing_engine", LocalBusinessState.ENGINE)
             output.put("business_sync_allowed", false)
@@ -548,6 +549,18 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         val orders = master.getJSONArray("orders")
         val previous = findById(master.getJSONArray("worklogs"), payload.optString("id"))
         isNew = previous == null
+        if (previous == null) payload.remove("kilometers")
+        else {
+            if (payload.has("kilometers")) {
+                require(
+                    PixelMcpWriteTools.canonical(payload.opt("kilometers")) ==
+                        PixelMcpWriteTools.canonical(previous.opt("kilometers"))
+                ) {
+                    "Frühere Angaben bleiben unverändert."
+                }
+            }
+            if (previous.has("kilometers")) payload.put("kilometers", previous.get("kilometers"))
+        }
         if (!(containsId(customers, customerId))) {
             throw IllegalArgumentException("Der ausgewählte Kunde existiert nicht.")
         }
@@ -573,8 +586,6 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
         )
         AppointmentRules.worklog(payload, previous, current)
         validateRevierContext(payload, false)
-        if (payload.has("material_cost") && payload.optString("material_cost").isBlank())
-            payload.remove("material_cost")
         PixelMcpWriteTools.applyMaterialCost(payload)
         WorklogRules.validate(payload, isNew)
         SettlementSourceProtection.requireMutable(
@@ -810,6 +821,8 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                 prepareManualChange("photo", linked, old)
                 saveAction("photo", "pho_mobile_", linked)
             }
+            RevierApplicationService(RevierLocalRepository(this, null))
+                .linkSessionMaterials(sessionId, saved)
             sessions.finalizeSession(sessionId, saved, requestId)
             database.setTransactionSuccessful()
             return saved
@@ -2132,23 +2145,7 @@ class PixelLocalStore : SQLiteOpenHelper, PixelMcpWriteTools.Sink {
                         .put("action_id", queued.getString("id")),
                 )
                 .toString()
-        var all = PixelMcpReadTools.effective(getState())
-        val entry = OwnerJournalRules.archives(all).optJSONObject(entity + ":" + entityId)
-        if (entry == null) {
-            throw IllegalArgumentException(
-                "Der Eintrag ist nicht im Papierkorb. Aktuellen Stand prüfen."
-            )
-        }
-        return PixelOwnerAccess(context, this)
-            .execute(
-                "restore_entity",
-                JSONObject()
-                    .put("request_id", "ui-restore-" + UUID.randomUUID())
-                    .put("entity", entity)
-                    .put("entity_id", entityId)
-                    .put("expected_record_hash", OwnerJournalRules.version(entry)),
-            )
-            .toString()
+        throw IllegalArgumentException("Die Rückgängig-Frist ist abgelaufen.")
     }
 
     fun remainingDeleteUndoMs(): Long {

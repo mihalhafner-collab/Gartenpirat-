@@ -56,37 +56,69 @@ public final class RevierDomainTests {
         JSONObject tourNow=app.query("get_day_tour",object().put("date","2027-05-19")).getJSONObject("record");rejected("DUPLICATE_VISIT",()->app.execute("set_day_tour",args("qa_tour_duplicate").put("date","2027-05-19").put("visit_ids",new JSONArray().put(ids.getString(1)).put(ids.getString(1))).put("expected_record_hash",tourNow.getString("record_hash"))));yes(app.validateRelationships().getString("status").equals("PASS"));
         JSONObject duplicate=new JSONObject(current(app,"get_visit","visit_id",movedId).toString()).put("id","qa_duplicate_occurrence");duplicate.remove("record_hash");store.values.put(RevierRules.ROOT+"entity:visit:qa_duplicate_occurrence",duplicate.toString());rejected("REVIER_RELATION_INVALID",()->app.validateRelationships());store.values.remove(RevierRules.ROOT+"entity:visit:qa_duplicate_occurrence");
     }
-    static void resources()throws Exception {
-        Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);String propertyId=createProperty(app,"resources").getString("id");JSONObject material=app.execute("save_material",args("qa_material_create").put("name","QA Sackmaterial").put("unit","Sack").put("billing_price_minor",900)).getJSONObject("record");yes(!material.has("purchase_price_minor"));String id=material.getString("id");JSONObject received=app.execute("record_material_movement",args("qa_material_receive").put("material_id",id).put("expected_record_hash",material.getString("record_hash")).put("quantity_decimal","5").put("kind","receive").put("reason","QA Zugang")).getJSONObject("material");yes(received.getString("stock_decimal").equals("5"));JSONObject consume=args("qa_material_consume").put("material_id",id).put("expected_record_hash",received.getString("record_hash")).put("quantity_decimal","2").put("kind","consume").put("property_id",propertyId).put("session_id","qa_session").put("reason","QA Einsatz");JSONObject used=app.execute("record_material_movement",consume);yes(used.getString("stock_decimal").equals("3"));yes(app.execute("record_material_movement",consume).getBoolean("replayed"));JSONObject current=used.getJSONObject("material");rejected("INSUFFICIENT_STOCK",()->app.execute("record_material_movement",args("qa_material_overdraw").put("material_id",id).put("expected_record_hash",current.getString("record_hash")).put("quantity_decimal","4").put("kind","consume").put("property_id",propertyId).put("reason","QA zu viel")));
-        JSONObject reversal=args("qa_material_reverse").put("material_id",id).put("expected_record_hash",current.getString("record_hash")).put("kind","reversal").put("reverses_movement_id",used.getJSONObject("movement").getString("id")).put("reason","QA Korrektur");JSONObject reversed=app.execute("record_material_movement",reversal);yes(reversed.getString("stock_decimal").equals("5"));yes(app.execute("record_material_movement",reversal).getBoolean("replayed"));rejected("MOVEMENT_ALREADY_REVERSED",()->app.execute("record_material_movement",new JSONObject(reversal.toString()).put("request_id","qa_material_reverse_twice").put("expected_record_hash",reversed.getJSONObject("material").getString("record_hash"))));yes(app.query("list_materials",object()).getJSONArray("items").getJSONObject(0).getJSONArray("movements").length()==3);
-        JSONObject cleared=app.execute("save_material",args("qa_material_clear_price").put("material_id",id).put("expected_record_hash",reversed.getJSONObject("material").getString("record_hash")).put("billing_price_minor",JSONObject.NULL)).getJSONObject("record");yes(cleared.isNull("billing_price_minor"));
-        JSONObject equipment=app.execute("save_equipment",args("qa_equipment_create").put("name","QA Mäher").put("condition","defective")).getJSONObject("record");JSONObject visit=app.execute("plan_visit",args("qa_equipment_visit").put("property_id",propertyId).put("title","QA Pflege").put("date","2027-05-19").put("planned_minutes",90).put("equipment_ids",new JSONArray().put(equipment.getString("id"))));yes(visit.getJSONArray("equipment_warnings").length()==1);yes(app.query("get_visit",object().put("visit_id",visit.getString("visit_id"))).getJSONArray("equipment_warnings").length()==1);JSONObject usage=app.execute("record_equipment_usage",args("qa_equipment_usage").put("equipment_id",equipment.getString("id")).put("expected_record_hash",equipment.getString("record_hash")).put("property_id",propertyId).put("visit_id",visit.getString("visit_id")).put("session_id","qa_session"));yes(usage.getJSONArray("equipment_warnings").length()==1);rejected("REFERENCE_NOT_FOUND",()->app.execute("record_equipment_usage",args("qa_equipment_bad_session").put("equipment_id",equipment.getString("id")).put("expected_record_hash",equipment.getString("record_hash")).put("property_id",propertyId).put("session_id","qa_missing")));yes(app.validateRelationships().getString("status").equals("PASS"));String raw=store.values.get(RevierRules.ROOT+"entity:material:"+id);store.values.put(RevierRules.ROOT+"entity:material:"+id,new JSONObject(raw).put("stock_decimal","6").toString());rejected("REVIER_RELATION_INVALID",()->app.validateRelationships());store.values.put(RevierRules.ROOT+"entity:material:"+id,raw);
-    }
-    static void timedMovementContext()throws Exception {
-        Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);
-        store.snapshot.getJSONArray("customers").put(new JSONObject(store.snapshot.getJSONArray("customers").getJSONObject(0).toString()).put("id","qa_material_billto").put("name","QA Abrechnungskunde"));
-        store.snapshot.getJSONArray("orders").getJSONObject(0).put("billing_customer_id","qa_material_billto");
-        String property=createProperty(app,"timed_material").getString("id"),other=createProperty(app,"timed_other").getString("id");
-        String visit=app.execute("plan_visit",args("qa_timed_visit").put("property_id",property).put("order_id","qa_order_1").put("title","QA Timerbesuch").put("date","2027-05-18").put("planned_minutes",60)).getString("visit_id");
-        String otherVisit=app.execute("plan_visit",args("qa_timed_other_visit").put("property_id",property).put("title","QA Anderer Besuch").put("date","2027-05-19").put("planned_minutes",60)).getString("visit_id");
-        store.sessionRows.put(object().put("id","qa_bound_timer").put("customer_id","qa_customer_1").put("order_id","qa_order_1").put("property_id",property).put("visit_id",visit).put("state","RUNNING"));
-        JSONObject material=app.execute("save_material",args("qa_timed_material_create").put("name","QA Timer-Material").put("unit","Sack")).getJSONObject("record");
-        material=app.execute("record_material_movement",args("qa_timed_material_stock").put("material_id",material.getString("id")).put("expected_record_hash",material.getString("record_hash")).put("kind","receive").put("quantity_decimal","5").put("reason","QA Zugang")).getJSONObject("material");
-        JSONObject consume=args("qa_timed_material_consume").put("material_id",material.getString("id")).put("expected_record_hash",material.getString("record_hash")).put("kind","consume").put("quantity_decimal","2").put("session_id","qa_bound_timer").put("reason","QA Sitzungsverbrauch");
-        JSONObject used=app.execute("record_material_movement",consume),movement=used.getJSONObject("movement");
-        yes(movement.getString("property_id").equals(property)&&movement.getString("visit_id").equals(visit)&&movement.getString("customer_id").equals("qa_customer_1")&&movement.getString("session_id").equals("qa_bound_timer"));
-        yes(app.execute("record_material_movement",consume).getBoolean("replayed")&&used.getString("stock_decimal").equals("3"));
-        yes(movement.getString("order_id").equals("qa_order_1"));
-        JSONObject visitOnly=app.execute("record_material_movement",args("qa_visit_only_material").put("material_id",material.getString("id")).put("expected_record_hash",used.getJSONObject("material").getString("record_hash")).put("kind","consume").put("quantity_decimal","1").put("visit_id",visit).put("reason","QA Auftrag ohne Timer")).getJSONObject("movement");
-        yes(visitOnly.getString("order_id").equals("qa_order_1")&&!visitOnly.has("session_id"));
-        yes(BillingRules.defaultRecipient(visitOnly.getString("customer_id"),visitOnly.getString("order_id"),store.snapshot).equals("qa_material_billto"));
-        JSONObject afterVisit=app.query("list_materials",object()).getJSONArray("items").getJSONObject(0);
-        String unchanged=PixelMcpWriteTools.hash(new JSONObject(store.values)),hash=afterVisit.getString("record_hash");
-        rejected("RELATION_MISMATCH",()->app.execute("record_material_movement",new JSONObject(consume.toString()).put("request_id","qa_timed_wrong_visit").put("expected_record_hash",hash).put("visit_id",otherVisit)));
-        rejected("RELATION_MISMATCH",()->app.execute("record_material_movement",new JSONObject(consume.toString()).put("request_id","qa_timed_wrong_property").put("expected_record_hash",hash).put("property_id",other)));
-        yes(unchanged.equals(PixelMcpWriteTools.hash(new JSONObject(store.values)))&&store.sessionRows.getJSONObject(0).getString("state").equals("RUNNING"));
+    static void resources() throws Exception {
+        Memory store = new Memory();
+        RevierApplicationService app = new RevierApplicationService(store, CLOCK);
+        String propertyId = createProperty(app, "resources").getString("id");
+        JSONObject work = store.snapshot.getJSONArray("worklogs").getJSONObject(0);
+        work.put("property_id", propertyId);
+        JSONObject material = app.execute("save_material", args("qa_material_create")
+            .put("name", "QA Sackmaterial").put("unit", "Sack").put("billing_price_minor", 900)).getJSONObject("record");
+        yes(!material.has("purchase_price_minor") && !material.has("stock_decimal"));
+        String id = material.getString("id");
+        JSONObject consume = args("qa_material_consume").put("material_id", id)
+            .put("expected_record_hash", material.getString("record_hash"))
+            .put("worklog_id", work.getString("id")).put("quantity_decimal", "2");
+        JSONObject used = app.execute("record_material_consumption", consume);
+        yes(app.execute("record_material_consumption", consume).getBoolean("replayed"));
+        JSONObject reread = app.query("list_materials", object()).getJSONArray("items").getJSONObject(0);
+        yes(reread.getJSONArray("movements").length() == 1);
+        yes(reread.getJSONArray("movements").getJSONObject(0).getString("quantity_decimal").equals("2"));
+        yes(used.getJSONObject("movement").getString("worklog_id").equals(work.getString("id")));
+        JSONObject cleared = app.execute("save_material", args("qa_material_clear_price").put("material_id", id)
+            .put("expected_record_hash", material.getString("record_hash")).put("billing_price_minor", JSONObject.NULL)).getJSONObject("record");
+        yes(cleared.isNull("billing_price_minor"));
+        JSONObject equipment = app.execute("save_equipment", args("qa_equipment_create").put("name", "QA Mäher")
+            .put("condition", "defective")).getJSONObject("record");
+        JSONObject visit = app.execute("plan_visit", args("qa_equipment_visit").put("property_id", propertyId)
+            .put("title", "QA Pflege").put("date", "2027-05-19").put("planned_minutes", 90)
+            .put("equipment_ids", new JSONArray().put(equipment.getString("id"))));
+        yes(visit.getJSONArray("equipment_warnings").length() == 1);
+        yes(app.query("get_visit", object().put("visit_id", visit.getString("visit_id"))).getJSONArray("equipment_warnings").length() == 1);
         yes(app.validateRelationships().getString("status").equals("PASS"));
     }
+
+    static void timedMovementContext() throws Exception {
+        Memory store = new Memory();
+        RevierApplicationService app = new RevierApplicationService(store, CLOCK);
+        String propertyId = createProperty(app, "consumption_context").getString("id");
+        store.sessionRows.put(object().put("id", "qa_running_material").put("state", "RUNNING")
+            .put("customer_id", "qa_customer_1").put("order_id", "qa_order_1").put("property_id", propertyId));
+        JSONObject material = app.execute("save_material", args("qa_context_material").put("name", "QA Mulch").put("unit", "Sack")).getJSONObject("record");
+        JSONObject consume = args("qa_context_consume").put("material_id", material.getString("id"))
+            .put("expected_record_hash", material.getString("record_hash")).put("session_id", "qa_running_material")
+            .put("quantity_decimal", "2");
+        JSONObject movement = app.execute("record_material_consumption", consume).getJSONObject("movement");
+        yes(movement.getString("property_id").equals(propertyId));
+        yes(movement.getString("customer_id").equals("qa_customer_1") && !movement.has("worklog_id"));
+        String unchanged = store.values.toString();
+        rejected("REFERENCE_NOT_FOUND", () -> app.execute("record_material_consumption",
+            new JSONObject(consume.toString()).put("request_id", "qa_context_missing_session").put("session_id", "qa_missing")));
+        yes(unchanged.equals(store.values.toString()));
+        JSONObject work = store.snapshot.getJSONArray("worklogs").getJSONObject(0).put("property_id", propertyId);
+        app.linkSessionMaterials("qa_running_material", work.getString("id"));
+        JSONObject linked = app.query("list_materials", object()).getJSONArray("items").getJSONObject(0)
+            .getJSONArray("movements").getJSONObject(0);
+        yes(linked.getString("worklog_id").equals(work.getString("id")));
+        String completed = store.values.toString();
+        app.linkSessionMaterials("qa_running_material", work.getString("id"));
+        yes(completed.equals(store.values.toString()));
+        yes(app.validateRelationships().getString("status").equals("PASS"));
+        app.detachOptionalParent("worklog", work.getString("id"), "qa_material_work_delete");
+        yes(app.query("list_materials", object()).getJSONArray("items").getJSONObject(0).getJSONArray("movements").length() == 0);
+        yes(app.validateRelationships().getString("status").equals("PASS"));
+    }
+
     static void searchScale()throws Exception {
         Memory store=new Memory();JSONArray customers=new JSONArray();for(int i=0;i<300;i++)customers.put(new JSONObject(SyntheticBusinessData.profile("minimal").getJSONArray("customers").getJSONObject(0).toString()).put("id","qa_customer_"+i).put("name","QA Kunde "+i));store.snapshot.put("customers",customers);RevierApplicationService app=new RevierApplicationService(store,CLOCK);
         for(int i=0;i<450;i++)app.execute("create_property",args("qa_scale_property_"+i).put("customer_id","qa_customer_"+(i%300)).put("name",i==449?"QA Äußerer Suchtreffer Straße":"QA Objekt "+i).put("notes","QA Suchnotiz"));
@@ -143,13 +175,43 @@ public final class RevierDomainTests {
         JSONObject recorded=app.execute("update_inquiry",args("qa_visit_observations").put("inquiry_id",otherId).put("expected_record_hash",moved.getJSONObject("record").getString("record_hash")).put("updates",object().put("inspection_notes","QA erster Besuch mit Maß").put("measurements",new JSONArray().put(object().put("name","QA Länge").put("value_decimal","12.5").put("unit","m"))))).getJSONObject("record");JSONObject extra=new JSONObject(plan.toString()).put("request_id","qa_additional_inspection").put("expected_record_hash",recorded.getString("record_hash")).put("mode","additional");JSONObject added=app.execute("plan_inquiry_inspection",extra).getJSONObject("record");yes(store.snapshot.getJSONArray("appointments").length()==2&&!added.getString("inspection_appointment_id").equals(appointmentId));yes(added.getJSONArray("inspection_visits").getJSONObject(0).getString("notes").equals("QA erster Besuch mit Maß")&&added.getJSONArray("measurements").length()==0);JSONObject last=store.snapshot.getJSONArray("appointments").getJSONObject(1);last.put("status","cancelled");JSONObject reopen=new JSONObject(plan.toString()).put("request_id","qa_reopen_cancelled_inspection").put("expected_record_hash",added.getString("record_hash")).put("mode","reopen").put("expected_appointment_hash",AppointmentRules.hash(last));app.execute("plan_inquiry_inspection",reopen);yes(last.getString("status").equals("cancelled")&&store.snapshot.getJSONArray("appointments").length()==3);
         JSONObject visit=app.execute("plan_visit",args("qa_inactive_cancel_visit").put("property_id",property.getString("id")).put("title","QA Absage").put("date","2027-05-20").put("planned_minutes",60)).getJSONObject("record");app.execute("update_property",args("qa_deactivate_for_cancel").put("property_id",property.getString("id")).put("expected_record_hash",property.getString("record_hash")).put("updates",object().put("active",false)));store.snapshot.getJSONArray("customers").getJSONObject(0).put("active",0);JSONObject cancelled=app.execute("update_visit",args("qa_cancel_inactive_visit").put("visit_id",visit.getString("id")).put("expected_record_hash",visit.getString("record_hash")).put("updates",object().put("status","cancelled")).put("reason","QA Kunde sagt bestehenden Einsatz ab")).getJSONObject("record");yes(cancelled.getString("status").equals("cancelled"));
     }
-    static void archiveDeletion()throws Exception {
-        Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);JSONObject creation=args("qa_delete_property_create").put("customer_id","qa_customer_1").put("name","QA endgültig entfernbarer Inhalt").put("notes","QA privater Text ohne verbleibende Inhaltskopie");JSONObject property=app.execute("create_property",creation).getJSONObject("record");String id=property.getString("id");JSONObject purge=args("qa_purge_before_archive").put("entity","property").put("entity_id",id).put("expected_record_hash",property.getString("record_hash")).put("confirmed",true);JSONObject direct=app.execute("create_property",args("qa_direct_delete_create").put("customer_id","qa_customer_1").put("name","QA direkt entfernen")).getJSONObject("record");JSONObject directRemoved=app.execute("purge_revier_entity",args("qa_direct_delete").put("entity","property").put("entity_id",direct.getString("id")).put("expected_record_hash",direct.getString("record_hash")).put("confirmed",true));yes(directRemoved.getBoolean("purged"));
-        JSONObject archive=args("qa_property_archive").put("entity","property").put("entity_id",id).put("expected_record_hash",property.getString("record_hash")).put("archived",true).put("confirmed",true);JSONObject archived=app.execute("set_revier_archived",archive).getJSONObject("record");yes(app.query("list_revier_archive",object()).getInt("total")==1&&app.query("list_properties",object()).getInt("total")==0);JSONObject twice=app.execute("set_revier_archived",new JSONObject(archive.toString()).put("request_id","qa_property_archive_again").put("expected_record_hash",archived.getString("record_hash")));yes(twice.getBoolean("already_in_state"));JSONObject restore=app.execute("set_revier_archived",new JSONObject(archive.toString()).put("request_id","qa_property_restore").put("expected_record_hash",archived.getString("record_hash")).put("archived",false)).getJSONObject("record");yes(restore.getBoolean("active")&&!restore.getBoolean("archived"));
-        JSONObject inquiry=app.execute("create_inquiry",args("qa_relation_keeps_property").put("customer_id","qa_customer_1").put("property_id",id).put("title","QA geschützte Beziehung")).getJSONObject("record");archived=app.execute("set_revier_archived",new JSONObject(archive.toString()).put("request_id","qa_property_archive_related").put("expected_record_hash",restore.getString("record_hash"))).getJSONObject("record");JSONObject blocked=new JSONObject(purge.toString()).put("request_id","qa_property_purge_blocked").put("expected_record_hash",archived.getString("record_hash"));rejected("DEPENDENCY_EXISTS",()->app.execute("purge_revier_entity",blocked));yes(app.query("get_property",object().put("property_id",id)).getJSONObject("record").getBoolean("archived"));
-        JSONObject unusedCreate=args("qa_unused_property_create").put("customer_id","qa_customer_1").put("name","QA zu löschende unverknüpfte Akte").put("notes","QA zu entfernender Entwurfsinhalt");JSONObject unused=app.execute("create_property",unusedCreate).getJSONObject("record");String unusedId=unused.getString("id");store.put("receipt:qa_outer_original_result",object().put("fingerprint","qa_request_fingerprint").put("result",object().put("record",unused)).toString());JSONObject unusedArchive=app.execute("set_revier_archived",args("qa_unused_property_archive").put("entity","property").put("entity_id",unusedId).put("expected_record_hash",unused.getString("record_hash")).put("archived",true).put("confirmed",true)).getJSONObject("record");JSONObject deletion=args("qa_unused_property_purge").put("entity","property").put("entity_id",unusedId).put("expected_record_hash",unusedArchive.getString("record_hash")).put("confirmed",true);yes(app.execute("purge_revier_entity",deletion).getBoolean("purged")&&app.execute("purge_revier_entity",deletion).getBoolean("replayed"));yes(!store.values.toString().contains("QA zu löschende unverknüpfte Akte")&&!store.values.toString().contains("QA zu entfernender Entwurfsinhalt"));rejected("REQUEST_EXPIRED",()->app.execute("create_property",unusedCreate));rejected("ENTITY_DELETED",()->app.query("get_property",object().put("property_id",unusedId)));yes(new JSONObject(store.get("receipt:qa_outer_original_result","")).getJSONObject("result").getBoolean("_result_content_removed"));
-        JSONObject photo=object().put("id","qa_shared_original_photo").put("customer_id","qa_customer_1").put("role","detail").put("data","QA synthetic original reference");store.snapshot.getJSONArray("photos").put(photo);String photosBefore=store.snapshot.getJSONArray("photos").toString();JSONObject bare=app.execute("create_inquiry",args("qa_bare_inquiry_create").put("customer_id","qa_customer_1").put("title","QA getrennte Anfrage")).getJSONObject("record"),bareArchive=app.execute("set_revier_archived",args("qa_bare_inquiry_archive").put("entity","inquiry").put("entity_id",bare.getString("id")).put("expected_record_hash",bare.getString("record_hash")).put("archived",true).put("confirmed",true)).getJSONObject("record");app.execute("purge_revier_entity",args("qa_bare_inquiry_purge").put("entity","inquiry").put("entity_id",bare.getString("id")).put("expected_record_hash",bareArchive.getString("record_hash")).put("confirmed",true));yes(photosBefore.equals(store.snapshot.getJSONArray("photos").toString()));app.validateRelationships();
+    static void permanentDeletion() throws Exception {
+        Memory store = new Memory();
+        RevierApplicationService app = new RevierApplicationService(store, CLOCK);
+        JSONObject property = createProperty(app, "delete_protected");
+        String id = property.getString("id");
+        app.execute("create_inquiry", args("qa_relation_keeps_property").put("customer_id", "qa_customer_1")
+            .put("property_id", id).put("title", "QA geschützte Beziehung"));
+        JSONObject blocked = args("qa_property_delete_blocked").put("entity", "property").put("entity_id", id)
+            .put("expected_record_hash", property.getString("record_hash")).put("confirmed", true);
+        rejected("DEPENDENCY_EXISTS", () -> app.execute("purge_revier_entity", blocked));
+        yes(app.query("get_property", object().put("property_id", id)).getJSONObject("record").getString("id").equals(id));
+        JSONObject creation = args("qa_unused_property_create").put("customer_id", "qa_customer_1")
+            .put("name", "QA zu löschende unverknüpfte Akte").put("notes", "QA zu entfernender Entwurfsinhalt");
+        JSONObject unused = app.execute("create_property", creation).getJSONObject("record");
+        String unusedId = unused.getString("id");
+        store.put("receipt:qa_outer_original_result", object().put("fingerprint", "qa_request_fingerprint")
+            .put("result", object().put("record", unused)).toString());
+        JSONObject deletion = args("qa_unused_property_delete").put("entity", "property").put("entity_id", unusedId)
+            .put("expected_record_hash", unused.getString("record_hash")).put("confirmed", true);
+        yes(app.execute("purge_revier_entity", deletion).getBoolean("purged"));
+        yes(app.execute("purge_revier_entity", deletion).getBoolean("replayed"));
+        yes(!store.values.toString().contains("QA zu löschende unverknüpfte Akte") && !store.values.toString().contains("QA zu entfernender Entwurfsinhalt"));
+        rejected("REQUEST_EXPIRED", () -> app.execute("create_property", creation));
+        rejected("ENTITY_DELETED", () -> app.query("get_property", object().put("property_id", unusedId)));
+        yes(new JSONObject(store.get("receipt:qa_outer_original_result", "")).getJSONObject("result").getBoolean("_result_content_removed"));
+        JSONObject photo = object().put("id", "qa_shared_original_photo").put("customer_id", "qa_customer_1")
+            .put("role", "detail").put("data", "QA synthetic original reference");
+        store.snapshot.getJSONArray("photos").put(photo);
+        String before = store.snapshot.getJSONArray("photos").toString();
+        JSONObject bare = app.execute("create_inquiry", args("qa_bare_inquiry_create").put("customer_id", "qa_customer_1")
+            .put("title", "QA getrennte Anfrage")).getJSONObject("record");
+        app.execute("purge_revier_entity", args("qa_bare_inquiry_delete").put("entity", "inquiry")
+            .put("entity_id", bare.getString("id")).put("expected_record_hash", bare.getString("record_hash")).put("confirmed", true));
+        yes(before.equals(store.snapshot.getJSONArray("photos").toString()));
+        app.validateRelationships();
     }
+
     static void restoredActionInspection()throws Exception {
         Memory store=new Memory();RevierApplicationService app=new RevierApplicationService(store,CLOCK);JSONObject original=object().put("_request_id","qa_original_editor_action").put("id","qa_original_customer").put("name","QA ursprünglicher Kunde"),payload=new JSONObject(original.toString());payload.remove("_request_id");String key="editor_commit:"+PixelMcpWriteTools.hash(original.getString("_request_id"));store.put(key,object().put("formatVersion",1).put("id","qa_original_customer").put("fingerprint",PixelMcpWriteTools.hash(object().put("kind","customer").put("payload",payload))).toString());String before=store.values.toString();JSONObject proof=app.query("inspect_edit_action",object().put("original_tool","saveCustomer").put("original_args",original));yes(proof.getString("state").equals("confirmed")&&proof.getString("entity_id").equals("qa_original_customer")&&!proof.getBoolean("business_write_performed")&&before.equals(store.values.toString()));rejected("REPLAY_MISMATCH",()->app.query("inspect_edit_action",object().put("original_tool","saveCustomer").put("original_args",new JSONObject(original.toString()).put("name","QA veränderte Argumente"))));JSONObject unknown=app.query("inspect_edit_action",object().put("original_tool","saveCustomer").put("original_args",new JSONObject(original.toString()).put("_request_id","qa_unknown_original_action")));yes(unknown.getString("state").equals("unknown")&&before.equals(store.values.toString()));
         JSONObject photo=object().put("id","qa_original_photo").put("_photo_request_id","qa_original_photo_action").put("customer_id","qa_customer_1").put("role","before").put("data","QA immutable synthetic photo bytes"),metadata=new JSONObject(photo.toString());metadata.remove("data");store.put("photo-ui:qa_original_photo_action",object().put("id","qa_original_photo").put("hash",PixelMcpWriteTools.hash(photo)).put("metadata_hash",PixelMcpWriteTools.hash(metadata)).toString());String untouched=store.values.toString();JSONObject photoProof=app.query("inspect_edit_action",object().put("original_tool","savePhoto").put("original_args",new JSONObject(photo.toString()).put("_capture_context",object().put("unknown_restore",true))));yes(photoProof.getString("state").equals("confirmed")&&photoProof.getString("entity_id").equals("qa_original_photo"));yes(app.query("inspect_edit_action",object().put("original_tool","savePhoto").put("original_args",metadata)).getString("state").equals("confirmed"));rejected("REPLAY_MISMATCH",()->app.query("inspect_edit_action",object().put("original_tool","savePhoto").put("original_args",new JSONObject(photo.toString()).put("customer_id","qa_other_customer"))));yes(untouched.equals(store.values.toString()));

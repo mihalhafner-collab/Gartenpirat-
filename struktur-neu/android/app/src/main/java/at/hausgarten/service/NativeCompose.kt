@@ -7,6 +7,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
@@ -15,12 +17,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -37,54 +43,128 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** All light app windows, including full-screen selection and connection views. */
+/** System bars follow the same system setting as the Compose palette. */
 internal fun android.view.Window.nativeLightSystemBars() {
+    val dark =
+        decorView.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
     androidx.core.view.WindowCompat.getInsetsController(this, decorView).apply {
-        isAppearanceLightStatusBars = true
-        isAppearanceLightNavigationBars = true
+        isAppearanceLightStatusBars = !dark
+        isAppearanceLightNavigationBars = !dark
     }
 }
 
-/** One Material 3 palette for main, connection and recovery activities. */
+/** Six semantic roles, shared by every native screen. */
+internal val NativeActionColor: Color
+    @Composable get() = MaterialTheme.colorScheme.primary
+internal val NativeActionContainer: Color
+    @Composable get() = MaterialTheme.colorScheme.primaryContainer
+internal val NativeDone: Color
+    @Composable get() = MaterialTheme.colorScheme.secondary
+internal val NativeDoneContainer: Color
+    @Composable get() = MaterialTheme.colorScheme.secondaryContainer
+internal val NativeMoney: Color
+    @Composable get() = MaterialTheme.colorScheme.tertiary
+internal val NativeMoneyContainer: Color
+    @Composable get() = MaterialTheme.colorScheme.tertiaryContainer
+internal val NativeDue: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xffea8fde) else Color(0xff9a1b8d)
+internal val NativeDueContainer: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xff3a1736) else Color(0xfffbe7f8)
+internal val NativeDelete: Color
+    @Composable get() = MaterialTheme.colorScheme.error
+internal val NativeDeleteContainer: Color
+    @Composable get() = MaterialTheme.colorScheme.errorContainer
+internal val NativeNeutral: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+internal val NativeNeutralContainer: Color
+    @Composable get() = MaterialTheme.colorScheme.surfaceContainerLow
+internal val NativeTransparent: Color
+    get() = Color.Transparent
+internal val NativeAttentionContainer: Color
+    @Composable get() = NativeDueContainer
+internal val NativeAttentionContent: Color
+    @Composable get() = NativeDue
+
+/** One system-aware Material 3 palette for main, connection and recovery activities. */
 @Composable
 fun HausGartenTheme(content: @Composable () -> Unit) {
+    val dark = isSystemInDarkTheme()
     MaterialTheme(
         colorScheme =
-            lightColorScheme(
-                primary = Color(0xff17634f),
-                onPrimary = Color.White,
-                primaryContainer = Color(0xffe2f0e8),
-                onPrimaryContainer = Color(0xff12543f),
-                secondary = Color(0xff52645d),
-                onSecondary = Color.White,
-                secondaryContainer = Color(0xffe2f0e8),
-                onSecondaryContainer = Color(0xff12543f),
-                tertiary = Color(0xff52645d),
-                onTertiary = Color.White,
-                tertiaryContainer = Color(0xffeaf0ec),
-                onTertiaryContainer = Color(0xff1d302a),
-                background = Color(0xfff4f7f4),
-                onBackground = Color(0xff1d302a),
-                surface = Color.White,
-                onSurface = Color(0xff1d302a),
-                surfaceVariant = Color(0xffeaf0ec),
-                onSurfaceVariant = Color(0xff52645d),
-                surfaceContainerLowest = Color.White,
-                surfaceContainerLow = Color(0xfff4f7f4),
-                surfaceContainer = Color(0xfff4f7f4),
-                surfaceContainerHigh = Color(0xffeaf0ec),
-                surfaceContainerHighest = Color(0xffe2ebe5),
-                surfaceTint = Color(0xff17634f),
-                outline = Color(0xff77877e),
-                outlineVariant = Color(0xffdce4de),
-                error = Color(0xff963d36),
-                onError = Color.White,
-                errorContainer = Color(0xfff7e9e7),
-                onErrorContainer = Color(0xff6d2420),
-                inverseSurface = Color(0xff1d302a),
-                inverseOnSurface = Color(0xfff4f7f4),
-                inversePrimary = Color(0xffa8d9c0),
-            ),
+            if (dark)
+                darkColorScheme(
+                    primary = Color(0xffa9aefc),
+                    onPrimary = Color(0xff161b65),
+                    primaryContainer = Color(0xff272d7d),
+                    onPrimaryContainer = Color(0xffe7e8fb),
+                    secondary = Color(0xff7cc98a),
+                    onSecondary = Color(0xff102f16),
+                    secondaryContainer = Color(0xff183d22),
+                    onSecondaryContainer = Color(0xffe3f2e5),
+                    tertiary = Color(0xffffa564),
+                    onTertiary = Color(0xff452006),
+                    tertiaryContainer = Color(0xff54280d),
+                    onTertiaryContainer = Color(0xfffff0e3),
+                    background = Color(0xff14151d),
+                    onBackground = Color(0xfff3f4f8),
+                    surface = Color(0xff1b1d27),
+                    onSurface = Color(0xfff3f4f8),
+                    surfaceVariant = Color(0xff30323f),
+                    onSurfaceVariant = Color(0xffa3a6bd),
+                    surfaceContainerLowest = Color(0xff101119),
+                    surfaceContainerLow = Color(0xff20222d),
+                    surfaceContainer = Color(0xff252734),
+                    surfaceContainerHigh = Color(0xff30323f),
+                    surfaceContainerHighest = Color(0xff3b3d4b),
+                    surfaceTint = Color(0xffa9aefc),
+                    outline = Color(0xffa3a6bd),
+                    outlineVariant = Color(0xff424557),
+                    error = Color(0xffff8a7a),
+                    onError = Color(0xff4a110b),
+                    errorContainer = Color(0xff571f18),
+                    onErrorContainer = Color(0xfffdecea),
+                    inverseSurface = Color(0xfff3f4f8),
+                    inverseOnSurface = Color(0xff1b1d27),
+                    inversePrimary = Color(0xff3138a0),
+                )
+            else
+                lightColorScheme(
+                    primary = Color(0xff3138a0),
+                    onPrimary = Color.White,
+                    primaryContainer = Color(0xffe7e8fb),
+                    onPrimaryContainer = Color(0xff3138a0),
+                    secondary = Color(0xff2c7738),
+                    onSecondary = Color.White,
+                    secondaryContainer = Color(0xffe3f2e5),
+                    onSecondaryContainer = Color(0xff2c7738),
+                    tertiary = Color(0xffb4470b),
+                    onTertiary = Color.White,
+                    tertiaryContainer = Color(0xfffff0e3),
+                    onTertiaryContainer = Color(0xffb4470b),
+                    background = Color(0xfff3f4f8),
+                    onBackground = Color(0xff20222e),
+                    surface = Color.White,
+                    onSurface = Color(0xff20222e),
+                    surfaceVariant = Color(0xfff3f4f8),
+                    onSurfaceVariant = Color(0xff5d6178),
+                    surfaceContainerLowest = Color.White,
+                    surfaceContainerLow = Color(0xfff3f4f8),
+                    surfaceContainer = Color(0xfff3f4f8),
+                    surfaceContainerHigh = Color(0xffe9eaf1),
+                    surfaceContainerHighest = Color(0xffdfe1eb),
+                    surfaceTint = Color(0xff3138a0),
+                    outline = Color(0xff5d6178),
+                    outlineVariant = Color(0xffd4d6e2),
+                    error = Color(0xffb42318),
+                    onError = Color.White,
+                    errorContainer = Color(0xfffdecea),
+                    onErrorContainer = Color(0xffb42318),
+                    inverseSurface = Color(0xff20222e),
+                    inverseOnSurface = Color(0xfff3f4f8),
+                    inversePrimary = Color(0xffa9aefc),
+                ),
         typography =
             Typography().let { base ->
                 base.copy(
@@ -95,22 +175,22 @@ fun HausGartenTheme(content: @Composable () -> Unit) {
                     titleLarge =
                         base.titleLarge.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold),
                     titleMedium =
-                        base.titleMedium.copy(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
+                        base.titleMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
                     titleSmall =
-                        base.titleSmall.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
-                    bodyLarge = base.bodyLarge.copy(fontSize = 17.sp, lineHeight = 25.sp),
-                    bodyMedium = base.bodyMedium.copy(fontSize = 16.sp, lineHeight = 23.sp),
-                    bodySmall = base.bodySmall.copy(fontSize = 14.sp, lineHeight = 20.sp),
+                        base.titleSmall.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
+                    bodyLarge = base.bodyLarge.copy(fontSize = 16.sp, lineHeight = 22.sp),
+                    bodyMedium = base.bodyMedium.copy(fontSize = 14.sp, lineHeight = 20.sp),
+                    bodySmall = base.bodySmall.copy(fontSize = 12.sp, lineHeight = 17.sp),
                     labelLarge = base.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                 )
             },
         shapes =
             Shapes(
-                extraSmall = RoundedCornerShape(8.dp),
-                small = RoundedCornerShape(12.dp),
-                medium = RoundedCornerShape(14.dp),
-                large = RoundedCornerShape(18.dp),
-                extraLarge = RoundedCornerShape(24.dp),
+                extraSmall = RoundedCornerShape(4.dp),
+                small = RoundedCornerShape(6.dp),
+                medium = RoundedCornerShape(8.dp),
+                large = RoundedCornerShape(10.dp),
+                extraLarge = RoundedCornerShape(16.dp),
             ),
         content = {
             // Test tags become accessibility resource ids: tests find controls by id, not text.
@@ -151,7 +231,7 @@ internal fun NativeSearchSummary(count: String, onFilters: (() -> Unit)? = null)
             style = MaterialTheme.typography.labelLarge,
         )
         if (onFilters != null)
-            TextButton(
+            NativeTextButton(
                 modifier = Modifier.semantics { testTag = UiTags.FILTER },
                 onClick = {
                     keyboard?.hide()
@@ -198,8 +278,8 @@ internal fun NativeProgressSteps(stage: Int, paymentOpen: Boolean = false) {
         for (index in 0 until 3) {
             val color =
                 when {
-                    index < stage -> MaterialTheme.colorScheme.primary
-                    index == 2 && paymentOpen -> NativeMoney
+                    index < stage -> NativeDone
+                    index == 2 && paymentOpen -> NativeDue
                     else -> MaterialTheme.colorScheme.outlineVariant
                 }
             Surface(
@@ -237,7 +317,7 @@ internal fun NativeBackButton(onBack: () -> Unit) {
     IconButton(
         onBack,
         Modifier.semantics {
-            contentDescription = "‹ Zurück"
+            contentDescription = "Zurück"
             testTag = UiTags.BACK
         },
     ) {
@@ -249,13 +329,6 @@ internal fun NativeBackButton(onBack: () -> Unit) {
         }
     }
 }
-
-/** Amber for money amounts; dark enough for text on white. */
-internal val NativeMoney = Color(0xff8a5a12)
-
-/** Attention colors shared by status chips and hint cards. */
-internal val NativeAttentionContainer = Color(0xfffff1d0)
-internal val NativeAttentionContent = Color(0xff79510b)
 
 @Composable
 internal fun NativeMicIcon() {
@@ -281,6 +354,39 @@ internal fun NativeMicIcon() {
     }
 }
 
+/** Existing stroke symbols avoid adding an icon dependency. */
+@Composable
+internal fun NativeMoreIcon() {
+    val color = LocalContentColor.current
+    Canvas(Modifier.size(24.dp)) {
+        for (fraction in listOf(.25f, .5f, .75f)) drawCircle(
+            color,
+            size.minDimension / 14f,
+            Offset(size.width / 2, size.height * fraction),
+        )
+    }
+}
+
+@Composable
+internal fun NativeCloseIcon() {
+    val color = LocalContentColor.current
+    Canvas(Modifier.size(18.dp)) {
+        val inset = size.minDimension * .2f
+        drawLine(
+            color,
+            Offset(inset, inset),
+            Offset(size.width - inset, size.height - inset),
+            2.dp.toPx(),
+        )
+        drawLine(
+            color,
+            Offset(size.width - inset, inset),
+            Offset(inset, size.height - inset),
+            2.dp.toPx(),
+        )
+    }
+}
+
 /** Opens the search over all local records. */
 @Composable
 internal fun NativeSearchButton(onClick: () -> Unit) {
@@ -294,37 +400,207 @@ internal fun NativeSearchButton(onClick: () -> Unit) {
     }
 }
 
-/** The same explicit status semantics are used in every feature. */
+/** The same status semantics are used in every feature. */
 internal enum class NativeStatusTone {
     Neutral,
     Running,
     Confirmed,
     Attention,
+    Money,
+    Due,
     Failed,
 }
 
 @Composable
 internal fun NativeStatus(label: String, tone: NativeStatusTone = NativeStatusTone.Neutral) {
     if (label.isBlank()) return
-    val (background, foreground, symbol) =
-        when (tone) {
-            NativeStatusTone.Running -> Triple(Color(0xffe2f0e8), Color(0xff12543f), "●")
-            NativeStatusTone.Confirmed -> Triple(Color(0xffe2f0e8), Color(0xff12543f), "✓")
-            NativeStatusTone.Attention ->
-                Triple(NativeAttentionContainer, NativeAttentionContent, "!")
-            NativeStatusTone.Failed -> Triple(Color(0xfff7e9e7), Color(0xff963d36), "×")
-            NativeStatusTone.Neutral -> Triple(Color(0xffeaf0ec), Color(0xff52645d), "·")
+    val labor = label == "Labor clandestino"
+    val (background, foreground) =
+        when (if (labor) NativeStatusTone.Neutral else tone) {
+            NativeStatusTone.Running -> NativeActionContainer to NativeActionColor
+            NativeStatusTone.Confirmed -> NativeDoneContainer to NativeDone
+            NativeStatusTone.Attention,
+            NativeStatusTone.Due -> NativeDueContainer to NativeDue
+            NativeStatusTone.Money -> NativeMoneyContainer to NativeMoney
+            NativeStatusTone.Failed -> NativeDeleteContainer to NativeDelete
+            NativeStatusTone.Neutral -> NativeNeutralContainer to NativeNeutral
         }
-    Surface(color = background, contentColor = foreground, shape = RoundedCornerShape(50)) {
+    val borderColor = NativeNeutral
+    val border =
+        if (labor)
+            Modifier.drawWithContent {
+                drawContent()
+                drawRoundRect(
+                    borderColor,
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
+                    style =
+                        Stroke(
+                            1.dp.toPx(),
+                            pathEffect =
+                                PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())),
+                        ),
+                )
+            }
+        else Modifier
+    Surface(
+        modifier = border,
+        color = background,
+        contentColor = foreground,
+        shape = RoundedCornerShape(4.dp),
+    ) {
         Text(
-            "$symbol $label",
-            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelLarge,
+            label,
+            Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelSmall,
         )
     }
 }
 
-/** Secondary left, primary right; large text may stack without hiding actions. */
+/** Compact visual buttons keep a separate, unobstructed 48 dp touch target. */
+@Composable
+internal fun NativeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    shape: Shape = MaterialTheme.shapes.small,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp),
+    interactionSource: MutableInteractionSource? = null,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+            Button(
+                onClick,
+                Modifier.heightIn(
+                    min = 30.dp,
+                    max =
+                        if (LocalDensity.current.fontScale > 1.3f)
+                            androidx.compose.ui.unit.Dp.Infinity
+                        else 30.dp,
+                ),
+                enabled,
+                shape,
+                colors,
+                elevation,
+                border,
+                contentPadding,
+                interactionSource,
+                content,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun NativeOutlinedButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    shape: Shape = MaterialTheme.shapes.small,
+    colors: ButtonColors = ButtonDefaults.outlinedButtonColors(),
+    elevation: ButtonElevation? = null,
+    border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp),
+    interactionSource: MutableInteractionSource? = null,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+            OutlinedButton(
+                onClick,
+                Modifier.heightIn(
+                    min = 30.dp,
+                    max =
+                        if (LocalDensity.current.fontScale > 1.3f)
+                            androidx.compose.ui.unit.Dp.Infinity
+                        else 30.dp,
+                ),
+                enabled,
+                shape,
+                colors,
+                elevation,
+                border,
+                contentPadding,
+                interactionSource,
+                content,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun NativeTextButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    shape: Shape = MaterialTheme.shapes.extraSmall,
+    colors: ButtonColors = ButtonDefaults.textButtonColors(),
+    elevation: ButtonElevation? = null,
+    border: BorderStroke? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp),
+    interactionSource: MutableInteractionSource? = null,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterEnd) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+            TextButton(
+                onClick,
+                Modifier.heightIn(
+                    min = 26.dp,
+                    max =
+                        if (LocalDensity.current.fontScale > 1.3f)
+                            androidx.compose.ui.unit.Dp.Infinity
+                        else 26.dp,
+                ),
+                enabled,
+                shape,
+                colors,
+                elevation,
+                border,
+                contentPadding,
+                interactionSource,
+                content,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun NativeFilledTonalButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    shape: Shape = MaterialTheme.shapes.small,
+    colors: ButtonColors =
+        ButtonDefaults.filledTonalButtonColors(
+            containerColor = NativeActionContainer,
+            contentColor = NativeActionColor,
+        ),
+    elevation: ButtonElevation? = ButtonDefaults.filledTonalButtonElevation(),
+    border: BorderStroke? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp),
+    interactionSource: MutableInteractionSource? = null,
+    content: @Composable RowScope.() -> Unit,
+) {
+    NativeButton(
+        onClick,
+        modifier,
+        enabled,
+        shape,
+        colors,
+        elevation,
+        border,
+        contentPadding,
+        interactionSource,
+        content,
+    )
+}
+
+/** Secondary left, primary right; large text wraps without hiding actions. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeActionBar(
     primaryLabel: String,
@@ -335,87 +611,43 @@ internal fun NativeActionBar(
     secondaryEnabled: Boolean = true,
     destructive: Boolean = false,
 ) {
-    val stacked = LocalDensity.current.fontScale > 1.3f
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth()) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            val primaryColors =
-                if (destructive)
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError,
-                    )
-                else ButtonDefaults.buttonColors()
-            if (stacked) {
-                Column(
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (secondaryLabel != null && onSecondary != null) {
-                        OutlinedButton(
-                            onSecondary,
-                            Modifier.semantics { testTag = UiTags.SECONDARY }
-                                .fillMaxWidth()
-                                .heightIn(min = 56.dp),
-                            enabled = secondaryEnabled,
-                            shape = MaterialTheme.shapes.medium,
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        ) {
-                            Text(secondaryLabel)
-                        }
-                    }
-                    Button(
-                        onPrimary,
-                        Modifier.semantics { testTag = UiTags.PRIMARY }
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp),
-                        enabled = enabled,
-                        colors = primaryColors,
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            FlowRow(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                if (secondaryLabel != null && onSecondary != null)
+                    NativeOutlinedButton(
+                        onSecondary,
+                        Modifier.semantics { testTag = UiTags.SECONDARY },
+                        enabled = secondaryEnabled,
                     ) {
-                        Text(primaryLabel)
+                        Text(secondaryLabel)
                     }
-                }
-            } else {
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                NativeButton(
+                    onPrimary,
+                    Modifier.semantics { testTag = UiTags.PRIMARY },
+                    enabled = enabled,
+                    colors =
+                        if (destructive)
+                            ButtonDefaults.buttonColors(
+                                containerColor = NativeDelete,
+                                contentColor = MaterialTheme.colorScheme.onError,
+                            )
+                        else ButtonDefaults.buttonColors(),
                 ) {
-                    if (secondaryLabel != null && onSecondary != null) {
-                        OutlinedButton(
-                            onSecondary,
-                            Modifier.semantics { testTag = UiTags.SECONDARY }
-                                .weight(1f)
-                                .heightIn(min = 56.dp),
-                            enabled = secondaryEnabled,
-                            shape = MaterialTheme.shapes.medium,
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        ) {
-                            Text(secondaryLabel)
-                        }
-                    }
-                    Button(
-                        onPrimary,
-                        Modifier.semantics { testTag = UiTags.PRIMARY }
-                            .weight(if (secondaryLabel == null) 1f else 1.25f)
-                            .heightIn(min = 56.dp),
-                        enabled = enabled,
-                        colors = primaryColors,
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Text(primaryLabel)
-                    }
+                    Text(primaryLabel)
                 }
             }
         }
     }
 }
 
-/** White outlined cards match the concept while retaining the existing row actions. */
-@Suppress("ModifierParameter") // Many call sites pass detail and onClick positionally.
+/** Compact rows share their surrounding group's surface and one divider. */
+@Suppress("ModifierParameter")
 @Composable
 internal fun NativeInfoRow(
     title: String,
@@ -425,56 +657,52 @@ internal fun NativeInfoRow(
     leading: (@Composable () -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     isSelected: Boolean = false,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
-    Surface(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .then(
-                    if (onClick != null && onLongClick != null)
-                        Modifier.combinedClickable(
-                            onClick = onClick,
-                            onLongClick = onLongClick,
-                            onLongClickLabel = "Auswählen",
-                        )
-                    else if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
-                ),
-        shape = MaterialTheme.shapes.large,
-        color =
-            if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-            else MaterialTheme.colorScheme.surface,
-        border =
-            BorderStroke(
-                if (isSelected) 2.dp else 1.dp,
-                if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.outlineVariant,
-            ),
+    val keepValues = Regex("[0-9].*(?:€|[0-9]:[0-9]| Std| Min| h\\b)")
+    Column(
+        modifier
+            .fillMaxWidth()
+            .background(
+                if (isSelected) NativeActionContainer else MaterialTheme.colorScheme.surface
+            )
+            .then(
+                if (onClick != null && onLongClick != null)
+                    Modifier.combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick,
+                        onLongClickLabel = "Auswählen",
+                    )
+                else if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+            )
     ) {
         Row(
             Modifier.fillMaxWidth()
-                .heightIn(min = 64.dp)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .heightIn(min = 42.dp)
+                .padding(horizontal = 12.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             leading?.invoke()
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(title, style = MaterialTheme.typography.titleSmall)
+            Column(Modifier.weight(1f)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = if (keepValues.containsMatchIn(title)) Int.MAX_VALUE else 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
                 if (detail.isNotBlank())
                     Text(
                         detail,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NativeNeutral,
+                        maxLines = if (keepValues.containsMatchIn(detail)) Int.MAX_VALUE else 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     )
             }
-            if (onClick != null)
-                Text(
-                    "›",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            trailing?.invoke()
         }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -506,7 +734,7 @@ internal fun NativeGroup(title: String, content: @Composable ColumnScope.() -> U
  * glance.
  */
 @Composable
-internal fun NativeInitials(name: String, size: androidx.compose.ui.unit.Dp = 40.dp) {
+internal fun NativeInitials(name: String, size: androidx.compose.ui.unit.Dp = 32.dp) {
     val words =
         name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() && it.first().isLetterOrDigit() }
     val initials =
@@ -546,15 +774,15 @@ internal fun NativeKeyValue(
     Row(
         Modifier.fillMaxWidth()
             .clickable(onClick = onClick)
-            .heightIn(min = 48.dp)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .heightIn(min = 42.dp)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
         if (value != null)
             Text(
-                value.ifBlank { "+ ergänzen" },
+                value.ifBlank { "Ergänzen" },
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color =
@@ -564,7 +792,6 @@ internal fun NativeKeyValue(
                         else -> MaterialTheme.colorScheme.onSurface
                     },
             )
-        Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
@@ -698,7 +925,7 @@ internal fun nativeDisplayText(value: String): String {
         Regex("\\b\\d{4}-\\d{2}-\\d{2}(?:T[0-9:.]+(?:Z|[+-][0-9:]+))?").replace(value) {
             nativeDisplayDate(it.value)
         }
-    return Regex("(\\d+)\\.(\\d+)(?= (?:h|km|min)\\b)").replace(dated) {
+    return Regex("(\\d+)\\.(\\d+)(?= (?:h|min)\\b)").replace(dated) {
         it.groupValues[1] + "," + it.groupValues[2]
     }
 }

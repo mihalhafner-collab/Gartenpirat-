@@ -26,7 +26,7 @@ class TrashPurgeBatch {
 
         @Throws(Exception::class)
         @JvmStatic
-        fun preview(snapshot: JSONObject): JSONObject {
+        private fun preview(snapshot: JSONObject): JSONObject {
             val archive: JSONObject = OwnerJournalRules.archives(snapshot)
             val basis: JSONObject = JSONObject()
             val candidates: TreeSet<String> = TreeSet()
@@ -40,7 +40,9 @@ class TrashPurgeBatch {
                     continue
                 }
                 if ((key.indexOf(':') < 1) || !entry.has("record")) {
-                    throw IllegalArgumentException("Ungültiger Papierkorbeintrag. Nichts entfernt.")
+                    throw IllegalArgumentException(
+                        "Ungültiger früherer Löschvorgang. Nichts entfernt."
+                    )
                 }
                 candidates.add(key)
                 archiveGuards.put(
@@ -149,13 +151,13 @@ class TrashPurgeBatch {
             val type: String = key.substring(0, split)
             var id: String = key.substring(split + 1)
             if (!Arrays.asList(*DeletionRules.ENTITIES).contains(type)) {
-                throw IllegalArgumentException("Geschützter oder unbekannter Papierkorbbereich.")
+                throw IllegalArgumentException("Geschützter oder unbekannter Löschbereich.")
             }
             val saved: JSONObject = OwnerJournalRules.archives(original).getJSONObject(key)
             var record: JSONObject = saved.getJSONObject("record")
             if (!id.equals(record.getString("id"))) {
                 throw IllegalArgumentException(
-                    "Papierkorb-ID stimmt nicht mit dem Original überein."
+                    "Die Löschkennung stimmt nicht mit dem Original überein."
                 )
             }
             var active: JSONObject? =
@@ -190,19 +192,23 @@ class TrashPurgeBatch {
 
         @Throws(Exception::class)
         @JvmStatic
-        fun payload(snapshot: JSONObject, expected: String, confirmed: Boolean): JSONObject {
+        private fun payload(
+            snapshot: JSONObject,
+            expected: String,
+            confirmed: Boolean,
+        ): JSONObject {
             if (!confirmed) {
-                throw IllegalArgumentException("Papierkorb leeren ausdrücklich bestätigen.")
+                throw IllegalArgumentException("Die frühere Löschbestätigung fehlt.")
             }
             val preview: JSONObject = preview(snapshot)
             if (!preview.getString("preview_hash").equals(expected)) {
                 throw PixelMcpWriteTools.Rejected(
                     "WRITE_CONFLICT",
-                    "Papierkorb oder Verknüpfungen wurden geändert. Nichts gelöscht; Vorschau neu öffnen.",
+                    "Der Löschvorgang oder seine Verknüpfungen wurden geändert. Nichts gelöscht.",
                 )
             }
             if (!preview.getBoolean("allowed")) {
-                throw IllegalArgumentException("Keine freigegebenen Papierkorbeinträge vorhanden.")
+                throw IllegalArgumentException("Keine freigegebenen Einträge vorhanden.")
             }
             return JSONObject()
                 .put("confirmed", true)

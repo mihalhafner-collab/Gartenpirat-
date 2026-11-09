@@ -57,6 +57,15 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 "business_settings",
                 JSONObject()
                     .put("business_name", "[TEST] Erfundener Grünbetrieb")
+                    .put(
+                        "business_logo",
+                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+                    )
+                    .put("business_email", "qa@example.invalid")
+                    .put("business_iban", "AT611904300234573201")
+                    .put("business_bic", "BKAUATWW")
+                    .put("default_payment_terms", "Binnen 14 Tagen")
+                    .put("hourly_rate", "40")
                     .put("owner_name", "Erfundene Person")
                     .put("business_street", "Synthetische Straße 9")
                     .put("business_postal_code", "2000")

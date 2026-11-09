@@ -27,6 +27,7 @@ class ListActionTest {
         var beforeMaster = ""
         var successful = false
         var writes = 0
+        var documents = 0
         val clock = TestClock()
         val transactions =
             object : OwnerRequestTransactions.Store {
@@ -72,6 +73,12 @@ class ListActionTest {
                             .put("pending", JSONArray())
                             .put("work_session", JSONObject().put("state", "IDLE"))
                     "settlementRestoreEpoch" -> epoch
+                    "settlementSeries" -> "GP-QA-DESIGN"
+                    "createSettlementDocument" -> {
+                        documents++
+                        JSONObject().put("pdf_sha256", PixelMcpWriteTools.hash(args!![0]))
+                    }
+                    "readDocument" -> Unit
                     "pendingActions" -> JSONArray()
                     "enqueue" -> {
                         writes++
@@ -108,7 +115,7 @@ class ListActionTest {
                 PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args)),
                 {
                     (if (tool == "add_settlement_payment") SettlementApplicationService(repository)
-                        else ArchiveApplicationService(repository))
+                        else DeletionApplicationService(repository))
                         .perform(tool, args, args.getString("request_id"))
                 },
                 clock.instant().toString(),
@@ -128,6 +135,52 @@ class ListActionTest {
                 clock.instant().toString(),
             )
         }
+
+        fun recordChange(tool: String, args: JSONObject): JSONObject =
+            OwnerRequestTransactions.runRequest(
+                transactions,
+                args.getString("request_id"),
+                PixelMcpWriteTools.hash(JSONObject().put("tool", tool).put("args", args)),
+                {
+                    val work = tool == "update_work_record"
+                    val payload =
+                        if (work)
+                            PixelMcpWriteTools.prepare(
+                                tool,
+                                args,
+                                repository.state(),
+                                args.getString("request_id"),
+                            )
+                        else {
+                            PixelMcpEntityWriteTools.validate(tool, args)
+                            EntityApplicationService.prepare(
+                                    tool,
+                                    args,
+                                    repository.state(),
+                                    args.getString("request_id"),
+                                )
+                                .getJSONObject("payload")
+                        }
+                    val errors =
+                        LocalJournalRules.apply(
+                            master,
+                            JSONArray()
+                                .put(
+                                    JSONObject()
+                                        .put("kind", if (work) "worklog" else "customer")
+                                        .put("client_id", args.getString("request_id"))
+                                        .put("created_at", "2026-11-09T10:00:00Z")
+                                        .put(
+                                            "payload",
+                                            payload.put("updated_at", "2026-11-09T10:00:00Z"),
+                                        )
+                                ),
+                        )
+                    check(errors.length() == 0) { errors.toString() }
+                    JSONObject().put("id", payload.getString("id"))
+                },
+                clock.instant().toString(),
+            )
 
         fun work(id: String): JSONObject {
             val row =
@@ -278,7 +331,8 @@ class ListActionTest {
                             .put("work_record_ids", ids)
                             .put(
                                 "expected_preview_hash",
-                                WorklogArchiveBatch.preview(s.master, ids).getString("preview_hash"),
+                                WorklogDeletionBatch.preview(s.master, ids)
+                                    .getString("preview_hash"),
                             )
                             .put("confirmed", true),
                     ),
@@ -318,7 +372,7 @@ class ListActionTest {
                         .put("work_record_ids", ids)
                         .put(
                             "expected_preview_hash",
-                            WorklogArchiveBatch.preview(s.master, ids).getString("preview_hash"),
+                            WorklogDeletionBatch.preview(s.master, ids).getString("preview_hash"),
                         )
                         .put("confirmed", true),
                 ),
@@ -455,56 +509,242 @@ class ListActionTest {
     }
 
     @Test
-    fun paymentUndoAndCrashReplayNeverAddASecondPayment() {
-        val s = Sandbox()
-        val id = "qa_list_internal_payment"
-        val record =
-            JSONObject()
-                .put("id", id)
-                .put("kind", "internal")
-                .put("route", "labor")
-                .put("status", "confirmed")
-                .put("total_minor", 1000)
-        s.values[SettlementRules.KEY] =
-            JSONObject()
-                .put("records", JSONArray().put(record))
-                .put("payments", JSONArray())
-                .toString()
-        fun stage(request: String) =
-            s.command(
-                "queue_list_action",
+    fun paidActionWaitsFiveSecondsAndUndoAndCrashReplayNeverAddASecondPayment() {
+        for (kind in listOf("invoice", "internal")) {
+            val s = Sandbox()
+            val id = "qa_list_${kind}_payment"
+            val record =
                 JSONObject()
-                    .put("request_id", request)
-                    .put("original_tool", "add_settlement_payment")
-                    .put(
-                        "original_args",
-                        JSONObject()
-                            .put("settlement_id", id)
-                            .put("expected_record_hash", SettlementRules.hash(record))
-                            .put("amount", "10,00")
-                            .put("date", "2026-11-08")
-                            .put("note", "[TEST] QA vollständig bezahlt"),
-                    ),
+                    .put("id", id)
+                    .put("kind", kind)
+                    .put("route", if (kind == "invoice") "billed" else "labor")
+                    .put("status", "confirmed")
+                    .put("total_minor", 1000)
+            s.values[SettlementRules.KEY] =
+                JSONObject()
+                    .put("records", JSONArray().put(record))
+                    .put("payments", JSONArray())
+                    .toString()
+            fun stage(request: String) =
+                s.command(
+                    "queue_list_action",
+                    JSONObject()
+                        .put("request_id", request)
+                        .put("source", "action")
+                        .put("original_tool", "add_settlement_payment")
+                        .put(
+                            "original_args",
+                            JSONObject()
+                                .put("settlement_id", id)
+                                .put("expected_record_hash", SettlementRules.hash(record))
+                                .put("amount", "10,00")
+                                .put("date", "2026-11-08")
+                                .put("note", "[TEST] QA vollständig bezahlt"),
+                        ),
+                )
+            val first = stage("qa_list_payment_undo")
+            assertNull(s.service().claimDue())
+            s.clock.now += 4999
+            s.command(
+                "undo_list_action",
+                JSONObject()
+                    .put("request_id", "qa_list_payment_cancel")
+                    .put("action_id", first.getString("id")),
             )
-        val first = stage("qa_list_payment_undo")
-        s.clock.now += 4999
-        s.command(
-            "undo_list_action",
+            assertEquals(0, SettlementRules.ledger(s.repository).getJSONArray("payments").length())
+            val second = stage("qa_list_payment_execute")
+            s.clock.now += 4999
+            assertNull(s.service().claimDue())
+            assertEquals(0, SettlementRules.ledger(s.repository).getJSONArray("payments").length())
+            s.clock.now += 1
+            val pending = s.service().claimDue()!!
+            assertEquals(second.getString("id"), pending.getString("id"))
+            s.original(pending)
+            assertTrue(s.original(s.service().claimDue()!!).getBoolean("replayed"))
+            s.service().finish(pending.getString("id"))
+            val ledger = SettlementRules.ledger(s.repository)
+            assertEquals(1, ledger.getJSONArray("payments").length())
+            assertEquals(1000L, SettlementRules.paid(ledger, id))
+        }
+    }
+
+    @Test
+    fun incompleteInvoiceSettingsBlockIssueAndCompleteSettingsAllowOneOriginal() {
+        val s = Sandbox()
+        s.values["personal_paid_migrated"] = "1"
+        s.master.getJSONObject("business_settings").put("tax_mode", "small_business")
+        val draft =
             JSONObject()
-                .put("request_id", "qa_list_payment_cancel")
-                .put("action_id", first.getString("id")),
+                .put("route", "billed")
+                .put("title", "[TEST] QA Rechnungsdaten")
+                .put("billing_customer_id", "qa_customer_1")
+                .put("customer_id", "qa_customer_1")
+                .put("service_from", "2026-11-08")
+                .put("service_to", "2026-11-08")
+                .put("payment_terms", "Binnen 14 Tagen")
+                .put("payment_details", "Synthetische Überweisung")
+                .put(
+                    "positions",
+                    JSONArray()
+                        .put(
+                            JSONObject()
+                                .put("title", "[TEST] QA Leistung")
+                                .put("quantity", "1")
+                                .put("unit", "Stunden")
+                                .put("price", "45")
+                        ),
+                )
+        val id =
+            s.financial(
+                    "save_settlement_draft",
+                    JSONObject().put("request_id", "qa_design_invoice_draft").put("draft", draft),
+                )
+                .getString("settlement_id")
+        fun preparation(request: String): JSONObject {
+            val row = SettlementRules.find(SettlementRules.ledger(s.repository), id)
+            return JSONObject()
+                .put("request_id", request)
+                .put("settlement_id", id)
+                .put(
+                    "expected_review_hash",
+                    SettlementRules.hash(SettlementRules.review(row, s.master)),
+                )
+                .put("confirmed", true)
+                .put("domestic_eur_confirmed", true)
+                .put("issuer_details_confirmed", true)
+                .put("electronic_delivery_accepted", false)
+        }
+        rejected { s.financial("prepare_settlement", preparation("qa_design_incomplete_invoice")) }
+        val blocked = SettlementRules.find(SettlementRules.ledger(s.repository), id)
+        assertEquals("draft", blocked.getString("status"))
+        assertFalse(blocked.has("invoice_number"))
+        assertEquals(0, s.documents)
+        val settings = s.master.getJSONObject("business_settings")
+        val settingsArgs =
+            JSONObject()
+                .put("request_id", "qa_design_invoice_settings")
+                .put("expected_record_hash", PixelMcpWriteTools.hash(settings))
+                .put(
+                    "updates",
+                    JSONObject()
+                        .put(
+                            "business_logo",
+                            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4S8AAAAASUVORK5CYII=",
+                        )
+                        .put("business_iban", "AT000000000000000000")
+                        .put("business_bic", "QATEST00")
+                        .put("default_payment_terms", "Binnen 14 Tagen"),
+                )
+        SettingsApplicationService(s.repository)
+            .perform("update_business_settings", settingsArgs, settingsArgs.getString("request_id"))
+        assertEquals(
+            0,
+            SettlementRules.invoiceMissingFields(
+                    s.repository.effective().getJSONObject("business_settings")
+                )
+                .length(),
         )
-        assertEquals(0, SettlementRules.ledger(s.repository).getJSONArray("payments").length())
-        val second = stage("qa_list_payment_execute")
-        s.clock.now += 5000
-        val pending = s.service().claimDue()!!
-        assertEquals(second.getString("id"), pending.getString("id"))
-        s.original(pending)
-        assertTrue(s.original(s.service().claimDue()!!).getBoolean("replayed"))
-        s.service().finish(pending.getString("id"))
-        val ledger = SettlementRules.ledger(s.repository)
-        assertEquals(1, ledger.getJSONArray("payments").length())
-        assertEquals(1000L, SettlementRules.paid(ledger, id))
+        s.financial("prepare_settlement", preparation("qa_design_complete_invoice"))
+        val complete =
+            JSONObject().put("request_id", "qa_design_invoice_original").put("settlement_id", id)
+        s.financial("complete_settlement", complete)
+        assertTrue(s.financial("complete_settlement", complete).getBoolean("replayed"))
+        val saved = SettlementRules.find(SettlementRules.ledger(s.repository), id)
+        assertEquals("confirmed", saved.getString("status"))
+        assertTrue(saved.has("pdf"))
+        assertEquals(1, s.documents)
+    }
+
+    @Test
+    fun nonBillableWorkDisappearsFromOpenAndReturnsWithoutLosingItsData() {
+        val s = Sandbox()
+        LocalBusinessState.prepare(s.master)
+        val id = "qa_work_1"
+        fun change(billable: Boolean, request: String): JSONObject {
+            val row = PixelMcpWriteTools.find(s.master.getJSONArray("worklogs"), id)
+            return JSONObject()
+                .put("request_id", request)
+                .put("work_record_id", id)
+                .put("expected_record_hash", PixelMcpWriteTools.hash(PixelMcpWriteTools.base(row)))
+                .put("updates", JSONObject().put("billable", billable))
+        }
+        val args = change(false, "qa_design_not_billable")
+        s.recordChange("update_work_record", args)
+        assertTrue(s.recordChange("update_work_record", args).getBoolean("replayed"))
+        val excluded =
+            PixelMcpWriteTools.find(s.repository.effective().getJSONArray("worklogs"), id)
+        assertFalse(excluded.getBoolean("billable"))
+        assertEquals(2.0, excluded.getDouble("hours"), 0.0)
+        assertEquals(
+            0,
+            BillingRules.groups(
+                    s.repository.effective().getJSONArray("worklogs"),
+                    s.repository.effective(),
+                )
+                .length(),
+        )
+        assertEquals(
+            0,
+            SettlementRules.prefill(
+                    JSONObject()
+                        .put("billing_customer_id", "qa_customer_1")
+                        .put("work_record_ids", JSONArray().put(id)),
+                    s.repository.effective().getJSONArray("worklogs"),
+                    emptyList(),
+                )
+                .getJSONArray("positions")
+                .length(),
+        )
+        s.recordChange("update_work_record", change(true, "qa_design_billable_again"))
+        val reopened = s.repository.effective()
+        assertTrue(
+            PixelMcpWriteTools.find(reopened.getJSONArray("worklogs"), id).getBoolean("billable")
+        )
+        assertEquals(
+            id,
+            BillingRules.groups(reopened.getJSONArray("worklogs"), reopened)
+                .getJSONObject(0)
+                .getJSONArray("work_records")
+                .getJSONObject(0)
+                .getString("id"),
+        )
+    }
+
+    @Test
+    fun electronicInvoiceConsentStoresTheDateAndCanBeRevoked() {
+        val s = Sandbox()
+        LocalBusinessState.prepare(s.master)
+        val id = "qa_customer_1"
+        s.master
+            .getJSONArray("customers")
+            .getJSONObject(0)
+            .put("name", "[TEST] QA Musterkunde")
+            .put("updated_at", "2026-11-08T10:00:00Z")
+        fun change(accepted: Boolean, request: String): JSONObject {
+            val row = PixelMcpWriteTools.find(s.master.getJSONArray("customers"), id)
+            return JSONObject()
+                .put("request_id", request)
+                .put("customer_id", id)
+                .put(
+                    "expected_record_hash",
+                    PixelMcpWriteTools.hash(
+                        EntityContract.editable(row, EntityContract.CUSTOMER_FIELDS)
+                    ),
+                )
+                .put("updates", JSONObject().put("electronic_invoice_consent", accepted))
+        }
+        val args = change(true, "qa_design_consent_accept")
+        s.recordChange("update_customer", args)
+        assertTrue(s.recordChange("update_customer", args).getBoolean("replayed"))
+        val saved = PixelMcpWriteTools.find(s.repository.effective().getJSONArray("customers"), id)
+        assertTrue(saved.getBoolean("electronic_invoice_consent"))
+        assertEquals(SettlementRules.today(), saved.getString("electronic_invoice_consent_date"))
+        s.recordChange("update_customer", change(false, "qa_design_consent_revoke"))
+        val revoked =
+            PixelMcpWriteTools.find(s.repository.effective().getJSONArray("customers"), id)
+        assertFalse(revoked.getBoolean("electronic_invoice_consent"))
+        assertEquals("", revoked.getString("electronic_invoice_consent_date"))
+        assertEquals("[TEST] QA Musterkunde", revoked.getString("name"))
     }
 
     @Test

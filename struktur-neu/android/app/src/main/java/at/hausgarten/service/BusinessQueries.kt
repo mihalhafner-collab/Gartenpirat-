@@ -206,7 +206,11 @@ class BusinessQueries {
                         if (a.optBoolean("group_by_billing_customer")) {
                             (data as JSONObject).put(
                                 "billing_groups",
-                                BillingRules.groups(matching, master),
+                                BillingRules.groups(
+                                    matching,
+                                    master,
+                                    state.optJSONObject("settlement_ledger") ?: JSONObject(),
+                                ),
                             )
                         }
                     }
@@ -271,7 +275,9 @@ class BusinessQueries {
                             while (logs != null && i < logs.length()) {
                                 val row = logs.getJSONObject(i)
                                 hours += row.optDouble("hours", 0.0)
-                                if (row.optInt("billed", 0) == 0) {
+                                if (
+                                    row.optInt("billed", 0) == 0 && row.optBoolean("billable", true)
+                                ) {
                                     unbilled++
                                 }
                                 i++
@@ -287,7 +293,14 @@ class BusinessQueries {
                                 .put("work_records", (if (logs == null) 0 else logs.length()))
                                 .put("hours", Math.round(hours * 100) / 100.0)
                                 .put("marked_unbilled", unbilled)
-                                .put("billing_groups", BillingRules.groups(logs, master))
+                                .put(
+                                    "billing_groups",
+                                    BillingRules.groups(
+                                        logs,
+                                        master,
+                                        state.optJSONObject("settlement_ledger") ?: JSONObject(),
+                                    ),
+                                )
                     }
                 }
                 "search_business_data" -> {

@@ -1,5 +1,6 @@
 package at.hausgarten.service
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,10 +21,22 @@ internal data class NativeDetailAction(
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-internal fun NativeDetailHeading(title: String, actions: List<NativeDetailAction> = emptyList()) {
+internal fun NativeDetailHeading(
+    title: String,
+    actions: List<NativeDetailAction> = emptyList(),
+    onTitleClick: (() -> Unit)? = null,
+) {
     var menu by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.headlineSmall)
+        Text(
+            title,
+            Modifier.weight(1f)
+                .then(
+                    if (onTitleClick != null) Modifier.clickable(onClick = onTitleClick)
+                    else Modifier
+                ),
+            style = MaterialTheme.typography.headlineSmall,
+        )
         if (actions.isNotEmpty())
             Box {
                 IconButton(
@@ -33,7 +46,7 @@ internal fun NativeDetailHeading(title: String, actions: List<NativeDetailAction
                         testTag = UiTags.DETAIL_MENU
                     },
                 ) {
-                    Text("⋮", style = MaterialTheme.typography.headlineSmall)
+                    NativeMoreIcon()
                 }
                 DropdownMenu(
                     menu,
@@ -57,15 +70,19 @@ internal fun NativeDetailHeading(title: String, actions: List<NativeDetailAction
 @Composable
 internal fun NativeAddDetails(missing: List<String>, enabled: Boolean = true, onEdit: () -> Unit) {
     if (missing.isNotEmpty())
-        TextButton(onEdit, Modifier.semantics { testTag = UiTags.DETAIL_ADD }, enabled = enabled) {
-            Text("+ ergänzen")
+        NativeTextButton(
+            onEdit,
+            Modifier.semantics { testTag = UiTags.DETAIL_ADD },
+            enabled = enabled,
+        ) {
+            Text("Ergänzen")
         }
 }
 
 @Composable
 internal fun NativeDetailDelete(enabled: Boolean = true, onDelete: () -> Unit) {
     HorizontalDivider(Modifier.padding(top = 16.dp))
-    TextButton(
+    NativeTextButton(
         onDelete,
         Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics { testTag = UiTags.DETAIL_DELETE },
         enabled = enabled,

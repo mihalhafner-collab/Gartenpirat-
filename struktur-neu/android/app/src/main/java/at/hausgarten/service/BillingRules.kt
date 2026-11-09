@@ -158,9 +158,15 @@ internal class BillingRules {
         }
 
         @JvmStatic
+        @JvmOverloads
         @Throws(Exception::class)
-        fun groups(logs: JSONArray?, master: JSONObject): JSONArray {
+        fun groups(
+            logs: JSONArray?,
+            master: JSONObject,
+            ledger: JSONObject = JSONObject(),
+        ): JSONArray {
             val groups = java.util.TreeMap<String, JSONObject>()
+            val bound = SettlementRules.boundWorkIds(SettlementRules.records(ledger), logs)
             val sorted =
                 (0 until (logs?.length() ?: 0))
                     .map { logs!!.getJSONObject(it) }
@@ -169,7 +175,12 @@ internal class BillingRules {
                             .thenBy { it.optString("id") }
                     )
             for (row in sorted) {
-                if (row.optInt("billed", 0) != 0) continue
+                if (
+                    row.optInt("billed", 0) != 0 ||
+                        !row.optBoolean("billable", true) ||
+                        row.optString("id") in bound
+                )
+                    continue
                 val recipientId = recipient(row)
                 val group =
                     groups.getOrPut(recipientId) {

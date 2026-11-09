@@ -414,7 +414,7 @@ class AppointmentRules {
                 while ((rows != null) && (i < rows.length())) {
                     if (id.equals(rows.getJSONObject(i).optString("" + entity + "_id"))) {
                         throw IllegalArgumentException(
-                            "Zugeordnete Termine zuerst in den Papierkorb verschieben. Terminverlauf und Kundenbeziehungen bleiben geschützt."
+                            "Zugeordnete Einsätze zuerst löschen; laufende Arbeit bleibt geschützt."
                         )
                     }
                     i++

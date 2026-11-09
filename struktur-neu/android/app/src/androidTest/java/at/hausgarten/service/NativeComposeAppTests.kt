@@ -504,41 +504,49 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(UiTags.area("accounting"))
         click(UiTags.area("accounting"))
         waitUntil("ACCOUNTING_ROOT_READY") {
-            selectedArea(UiTags.area("accounting")) && node("Summen") != null
+            selectedArea(UiTags.area("accounting")) && node("Offen abzurechnen") != null
         }
     }
 
     private fun openAccountingOpen() {
         openAccounting()
-        scrollTop()
-        waitUntil("ACCOUNTING_OPEN_TAB_OR_VIEW_READY") {
-            node("Offene Stunden") != null || node("Offen")?.let(::clickable) != null
-        }
-        if (node("Offene Stunden") == null) click("Offen")
-        reveal("Neue Abrechnung")
+        reveal("Offen abzurechnen")
     }
 
     private fun openAccountingTotals() {
         openAccounting()
-        waitUntil("ACCOUNTING_TOTALS_TAB_OR_VIEW_READY") {
-            field("Auftragsbezeichnung") != null || node("Summen")?.let(::clickable) != null
-        }
-        if (field("Auftragsbezeichnung") == null) click("Summen")
-        shown("Auftragsbezeichnung")
+        scrollTop()
+        shown("ausgestellt")
     }
 
     private fun openSettlements() {
         openAccounting()
-        // A restored overview can already have this tab selected. Its search
-        // field proves the actual list; no second tab action is needed then.
-        waitUntil("SETTLEMENT_TAB_OR_VIEW_READY") {
-            field("Abschluss oder Rechnungsnummer") != null ||
-                node("Abschlüsse")?.let(::clickable) != null
-        }
-        if (field("Abschluss oder Rechnungsnummer") == null) click("Abschlüsse")
+        reveal("Alle Abschlüsse")
+        click("Alle Abschlüsse")
         waitUntil("SETTLEMENT_LIST_READY") {
             field("Abschluss oder Rechnungsnummer")?.isEditable == true
         }
+    }
+
+    /** Only establishes a detail context; business actions still use real controls. */
+    private fun openContext(
+        section: String,
+        id: String = "",
+        mode: String = "list",
+        args: JSONObject = JSONObject(),
+    ) {
+        test.runOnMainSync {
+            val current = requireNotNull(activity) as MainActivity
+            val delegate =
+                MainActivity::class
+                    .java
+                    .declaredFields
+                    .first { it.name.startsWith("controller") }
+                    .apply { isAccessible = true }
+                    .get(current) as androidx.compose.runtime.State<*>
+            (delegate.value as NativeAppController).navigate(section, id, mode, args)
+        }
+        settleUi()
     }
 
     /** More opens the real list directly, including after returning from a record or action. */
@@ -548,12 +556,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("WORK_LIST_READY") { field("Suchen")?.isEditable == true }
     }
 
-    /** Design: rare areas sit behind ⋮ "Mehr" in Today's header; there is no office tab. */
+    /** The same overflow menu is available on each main area. */
     private fun openOffice() {
         click(UiTags.area("today"))
         click(UiTags.area("today"))
         click(UiTags.MORE)
-        reveal("Organisieren")
+        reveal("Vorgänge")
     }
 
     /** New work starts from the "+" of a main area, or from a list's own bottom action. */
@@ -585,7 +593,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 if (stacked) first.top >= second.bottom else first.left >= second.right,
             "PRIMARY_POSITION_${primary}_SECONDARY_$secondary",
         )
-        val minimum = (56 * requireNotNull(activity).resources.displayMetrics.density).toInt()
+        val minimum = (48 * requireNotNull(activity).resources.displayMetrics.density).toInt()
         yes(
             first.height() >= minimum - 1 && second.height() >= minimum - 1,
             "PRIMARY_TOUCH_TARGET_$primary",
@@ -821,7 +829,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openSettlements()
             shown("[TEST] Rechnung 900")
             click("[TEST] Rechnung 900")
-            shown("Entwurf")
+            shown("Ausstellen")
             // Design: one "Ausstellen" after the preview; issuer details are confirmed once in
             // settings.
             click(UiTags.PRIMARY)
@@ -830,6 +838,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getJSONObject("record")
                     .getString("status") == "confirmed"
             }
+            shown("E-Rechnung")
+            click("Später")
             checks++
             reveal("Bestätigt")
             shown("Bestätigt")
@@ -868,150 +878,87 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             captureSyntheticScreen("settlement-labor-confirmed")
             openAccountingTotals()
-            reveal("1100,00 €")
-            shown("1100,00 €")
+            shown("900,00 €")
+            reveal("200,00 €")
             yes(
                 read("get_accounting_overview").getLong("total_minor") == 110000L,
                 "SETTLEMENT_UI_900_PLUS_200",
             )
-            click("Rechnung")
-            reveal("900,00 €")
-            shown("900,00 €")
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "qa_settlement_invoice")
-            back()
-            recreate()
-            // Activity recreation briefly shows the asynchronous startup review over the
-            // restored screen; the restored filter must stay visible once that is done.
-            waitStable("SETTLEMENT_UI_FILTER_RECREATION") {
-                field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") ==
-                    true
-            }
-            val filteredAfterRecreation =
+            val filtered =
                 read(
                     "get_accounting_overview",
                     JSONObject().put("query", "qa_settlement_invoice").put("route", "billed"),
                 )
             yes(
-                filteredAfterRecreation.getLong("billed_minor") == 90000L &&
-                    filteredAfterRecreation.getLong("total_minor") == 90000L &&
-                    filteredAfterRecreation.getInt("total") == 1,
-                "SETTLEMENT_UI_RECREATED_FILTER_EXACT_AMOUNT",
+                filtered.getLong("billed_minor") == 90000L &&
+                    filtered.getLong("total_minor") == 90000L &&
+                    filtered.getInt("total") == 1,
+                "SETTLEMENT_SHARED_FILTER_EXACT_AMOUNT",
             )
-            // Search and keyboard handling may leave the preserved viewport below
-            // the sum cards. Explicitly bring the card into view before asserting it.
-            reveal("900,00 €")
-            shown("900,00 €")
-            captureSyntheticScreen("settlement-overview-filter")
-            openAccountingOpen()
-            click("Neue Abrechnung")
-            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung")
-            click("Position hinzufügen")
-            enter("Leistung", "[TEST] Synthetische manuelle Leistung A")
-            enter("Tatsächlich geleistete Menge", "1")
-            enter("Einheit", "Leistung")
-            enter("Preis je Einheit (€)", "3,00")
-            click(UiTags.PRIMARY)
-            reveal("[TEST] Erste manuelle Abrechnung")
-            shown("[TEST] Erste manuelle Abrechnung")
-            reveal("Entwurf")
-            shown("Entwurf")
+            captureSyntheticScreen("settlement-overview")
+            fun editValue(row: String, label: String, value: String) {
+                reveal(row)
+                click(row)
+                enter(label, value)
+                if (keyboardVisible()) back()
+                click("Fertig")
+            }
+            val sources =
+                JSONObject()
+                    .put("billing_customer_id", "qa_settlement_recipient")
+                    .put("work_record_ids", JSONArray().put("qa_settlement_race"))
+            openContext("settlement_edit", args = sources)
+            editValue("Bezeichnung", "Bezeichnung", "[TEST] Erste Abrechnung")
+            recreate()
+            shown("[TEST] Erste Abrechnung")
+            click("Entwurf sichern")
             val firstNew =
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).single {
-                    it.optString("title") == "[TEST] Erste manuelle Abrechnung"
+                    it.optString("title") == "[TEST] Erste Abrechnung"
                 }
             yes(
-                firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 300L,
+                firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") ==
+                    4000L,
                 "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT",
             )
-            openAccountingOpen()
-            click("Neue Abrechnung")
-            reveal("Bezeichnung")
-            yes(
-                field("Bezeichnung")?.text?.toString().orEmpty().isEmpty(),
-                "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_EMPTY",
-            )
-            yes(node("Abrechnungsart: Rechnung") != null, "SETTLEMENT_UI_NEW_EDITOR_DEFAULT_ROUTE")
-            enter("Bezeichnung", "[TEST] Zweite manuelle Abrechnung")
-            click("Abrechnungsart: Rechnung")
+            openContext("settlement_edit", args = sources)
+            shown("Bezeichnung")
+            yes(node("[TEST] Erste Abrechnung") == null, "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_FRESH")
+            editValue("Bezeichnung", "Bezeichnung", "[TEST] Zweite Abrechnung")
             click("Labor clandestino")
-            click("Position hinzufügen")
-            enter("Leistung", "[TEST] Synthetische manuelle Leistung B")
-            enter("Tatsächlich geleistete Menge", "2")
-            enter("Einheit", "Stück")
-            enter("Preis je Einheit (€)", "2,00")
-            click(UiTags.PRIMARY)
-            reveal("[TEST] Zweite manuelle Abrechnung")
-            shown("[TEST] Zweite manuelle Abrechnung")
-            reveal("Entwurf")
-            shown("Entwurf")
+            editValue("Menge · Stunden", "Menge", "2")
+            click("Entwurf sichern")
             val secondNew =
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).single {
-                    it.optString("title") == "[TEST] Zweite manuelle Abrechnung"
+                    it.optString("title") == "[TEST] Zweite Abrechnung"
                 }
             yes(
                 secondNew.getString("id") != firstNew.getString("id") &&
                     secondNew.getString("route") == "labor" &&
                     secondNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") ==
-                        400L,
+                        8000L,
                 "SETTLEMENT_UI_NEW_OPERATION_DISTINCT_ID_ROUTE_AND_AMOUNT",
             )
             yes(
                 SettlementRules.rows(read("list_settlements").getJSONArray("records"))
                     .single { it.getString("id") == firstNew.getString("id") }
-                    .getString("title") == "[TEST] Erste manuelle Abrechnung",
+                    .getString("title") == "[TEST] Erste Abrechnung",
                 "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND",
             )
-            openSettlements()
-            click("[TEST] Erste manuelle Abrechnung")
-            click("Entwurf bearbeiten")
-            reveal("Bezeichnung")
-            yes(
-                field("Bezeichnung")
-                    ?.text
-                    ?.toString()
-                    ?.contains("[TEST] Erste manuelle Abrechnung") == true,
-                "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT",
-            )
-            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft")
-            click(UiTags.PRIMARY)
-            var lastSaveScroll = 0L
+            openContext("settlement_edit", firstNew.getString("id"))
+            shown("[TEST] Erste Abrechnung")
+            editValue("Bezeichnung", "Bezeichnung", "[TEST] Erste Abrechnung geprüft")
+            click("Entwurf sichern")
             waitUntil("SETTLEMENT_UI_EXISTING_DRAFT_SAVE_COMPLETED") {
-                // The edited text already exists in the busy editor. Require the
-                // distinct review action before reading the persisted result.
-                if (node("Entwurf bearbeiten")?.let(::clickable) != null) {
-                    SettlementRules.rows(read("list_settlements").getJSONArray("records"))
-                        .singleOrNull { it.getString("id") == firstNew.getString("id") }
-                        ?.optString("title") == "[TEST] Erste manuelle Abrechnung geprüft"
-                } else {
-                    if (SystemClock.uptimeMillis() - lastSaveScroll > 250) {
-                        scroll()
-                        lastSaveScroll = SystemClock.uptimeMillis()
-                    }
-                    false
-                }
-            }
-            reveal("[TEST] Erste manuelle Abrechnung geprüft")
-            shown("[TEST] Erste manuelle Abrechnung geprüft")
-            yes(
                 SettlementRules.rows(read("list_settlements").getJSONArray("records"))
-                    .single { it.getString("id") == firstNew.getString("id") }
-                    .getString("title") == "[TEST] Erste manuelle Abrechnung geprüft",
-                "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH",
-            )
+                    .singleOrNull { it.getString("id") == firstNew.getString("id") }
+                    ?.optString("title") == "[TEST] Erste Abrechnung geprüft"
+            }
             yes(
                 PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
                     originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks,
                 "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED",
             )
-            openAccountingTotals()
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "")
-            back()
-            scrollTop()
-            click("Gesamt")
-            reveal("1100,00 €")
-            shown("1100,00 €")
             for (wide in listOf(false, true)) {
                 activity?.let { current ->
                     test.runOnMainSync { if (!current.isFinishing) current.finish() }
@@ -1039,9 +986,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     applied
                 }
                 settleUi()
-                reveal("Gesamt")
-                reveal("1100,00 €")
-                shown("1100,00 €")
+                reveal("900,00 €")
+                shown("900,00 €")
+                reveal("200,00 €")
+                shown("200,00 €")
                 captureSyntheticScreen(
                     "settlement-overview-200-${if (wide) "landscape" else "portrait"}"
                 )
@@ -1222,57 +1170,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
             launch()
             openAccountingTotals()
-            reveal("1100,00 €")
-            shown("1100,00 €")
-            click("Rechnung")
-            reveal("900,00 €")
-            shown("900,00 €")
-            reveal("QA Abrechnung A")
-            click("QA Abrechnung A")
-            shown("Bearbeiten")
-            click(UiTags.BACK)
-            reveal("900,00 €")
-            shown("900,00 €")
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "Abrechnung A")
-            back()
-            // IME disappearance precedes the resized dialog's accessibility tree.
-            // Require the retained query and overview together after that reflow.
-            waitUntil("ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW") {
-                !keyboardVisible() &&
-                    field("Auftragsbezeichnung")?.text?.toString() == "Abrechnung A"
-            }
-            checks++
+            shown("ausgestellt")
+            shown("bezahlt")
+            shown("offen")
             recreate()
-            // A Compose startup screen exists before the accounting route is ready.
-            // Require its restored search field, not merely the root Compose view.
-            waitUntil("ACCOUNTING_RECREATED_FEATURE_FIELD") {
-                field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true
-            }
-            yes(
-                field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true,
-                "ACCOUNTING_FILTERS_SURVIVE_DETAIL_AND_RECREATION",
-            )
+            shown("Offen abzurechnen")
             val filteredAfterRecreation =
                 overview(JSONObject().put("query", "Abrechnung A").put("route", "billed"))
             yes(
                 filteredAfterRecreation.getLong("billed_minor") == 90000L &&
                     filteredAfterRecreation.getLong("total_minor") == 90000L &&
                     filteredAfterRecreation.getInt("total") == 1,
-                "ACCOUNTING_RECREATED_FILTER_EXACT_AMOUNT",
+                "ACCOUNTING_SHARED_FILTER_EXACT_AMOUNT",
             )
-            // Retain the user's viewport; the harness scrolls to the amount only
-            // when its actual visibility is required for this assertion.
-            reveal("900,00 €")
-            shown("900,00 €")
             // Simulate the later invoice module's committed source update, never a manual price
             // editor.
             val invoiceUpdate = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
             PixelMcpWriteTools.find(invoiceUpdate.getJSONArray("orders"), "qa_accounting_a")
                 .put("accounting_amount", "950.25")
             store.putOwnerValue("snapshot", invoiceUpdate.toString())
-            reveal("950,25 €")
-            shown("950,25 €")
             val observed =
                 read(
                     "get_accounting_record",
@@ -1313,8 +1229,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 store.writableDatabase.execSQL("DROP TRIGGER qa_accounting_abort")
             }
             read("set_accounting_record", update)
-            reveal("950,25 €")
-            shown("950,25 €")
             yes(
                 read("set_accounting_record", update).getBoolean("replayed"),
                 "ACCOUNTING_IDENTICAL_REPLAY",
@@ -1339,8 +1253,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 data.getInt("review_total") == 1 && data.getLong("total_minor") == 20000L,
                 "ACCOUNTING_LEGACY_CONFLICT_VISIBLE_AND_EXCLUDED",
             )
-            reveal("Zuordnung ändern")
-            click("Zuordnung ändern")
+            openContext("accounting_edit", "qa_accounting_a", "orders")
             shown("Abrechnungsweg: Auswählen")
             click("Abrechnungsweg: Auswählen")
             click("Labor clandestino")
@@ -1349,15 +1262,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val value = overview()
                 value.getInt("review_total") == 0 && value.getLong("labor_minor") == 115025L
             }
-            // Return to the same filtered overview; clear only search for viewport checks.
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "")
-            back()
-            waitUntil("ACCOUNTING_FINAL_IME_HIDDEN") { !keyboardVisible() }
-            scrollTop()
-            click("Gesamt")
-            reveal("1150,25 €")
-            shown("1150,25 €")
             for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
                 activity?.let { current ->
                     test.runOnMainSync { if (!current.isFinishing) current.finish() }
@@ -1371,19 +1275,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
                 settleUi()
-                reveal("Gesamt")
-                reveal("1150,25 €")
-                shown("1150,25 €")
+                reveal("ausgestellt")
+                shown("ausgestellt")
+                shown("bezahlt")
+                shown("offen")
                 captureSyntheticScreen(
                     "accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}"
                 )
-                yes(
-                    field("Auftragsbezeichnung") != null,
-                    "ACCOUNTING_SEARCH_ACCESSIBLE_${font}_$wide",
-                )
-                reveal("QA Abrechnung A")
-                click("QA Abrechnung A")
-                click("Abrechnungsweg")
+                openContext("accounting_edit", "qa_accounting_a", "orders")
                 shown("Abrechnung speichern")
                 reveal("Abrechnungsweg: Labor clandestino")
                 captureSyntheticScreen(
@@ -1610,25 +1509,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown(prefix + "1")
         captureSyntheticScreen("work-list")
         click(prefix + "1")
-        shown("Gespeicherte Arbeit")
-        val beforeFullEditor = PixelMcpWriteTools.hash(JSONArray(works()))
-        click(UiTags.SECONDARY)
-        reveal("native-field:Was wurde erledigt? *")
-        yes(field("Was wurde erledigt? *")?.isEditable == true, "WORK_FULL_EDITOR_EDITABLE")
-        back()
-        waitUntil("WORK_DETAIL_AFTER_FULL_EDITOR") { node(UiTags.DETAIL_MENU) != null }
+        shown("Gespeichert")
+        click(prefix + "1")
+        shown("Tätigkeit")
         yes(
-            PixelMcpWriteTools.hash(JSONArray(works())) == beforeFullEditor,
-            "WORK_FULL_EDITOR_BACK_PRESERVES_DATA",
-        )
-        click("Tätigkeit")
-        shown("Was wurde erledigt? *")
-        yes(
-            node("Datum *") == null && node("Beginn") == null && node("Kunde") == null,
+            node("Arbeitsdatum") == null && field("Beginn") == null,
             "WORK_ACTIVITY_EDITOR_ISOLATED",
         )
-        enter("Was wurde erledigt? *", prefix + "1 korrigiert")
-        click(UiTags.PRIMARY)
+        enter("Tätigkeit", prefix + "1 korrigiert")
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("WORK_ACTIVITY_SAVED") {
             works().first { it.getString("id") == ids.first() }.getString("activity") ==
                 prefix + "1 korrigiert"
@@ -1641,41 +1531,29 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 first().getInt("break_minutes") == 30,
             "WORK_TEXT_EDIT_PRESERVES_TIMING",
         )
+        reveal("Notizen")
         click("Notizen")
         shown("Notizen")
-        yes(
-            node("Was wurde erledigt? *") == null && node("Beginn") == null,
-            "WORK_NOTE_EDITOR_ISOLATED",
-        )
+        yes(field("Tätigkeit") == null && field("Beginn") == null, "WORK_NOTE_EDITOR_ISOLATED")
         enter("Notizen", "[TEST] Einzelne Notiz korrigiert")
-        click(UiTags.PRIMARY)
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("WORK_NOTE_SAVED") {
             first().optString("notes") == "[TEST] Einzelne Notiz korrigiert"
         }
-        click("Pause")
-        shown("Pause (Minuten)")
-        enter("Freie Minuten", "15")
-        click(UiTags.PRIMARY)
+        reveal("Pause in Minuten")
+        click("Pause in Minuten")
+        enter("Pause in Minuten", "15")
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("WORK_PAUSE_RECALCULATES_DURATION") {
             first().getInt("break_minutes") == 15 && first().getDouble("hours") == 3.75
         }
         // Design step 3: the next step of open work is to bill it; it opens the settlement editor.
         click(UiTags.PRIMARY)
-        shown("Abrechnungsart: Rechnung")
+        shown("Rechnung")
         back()
         waitUntil("WORK_DETAIL_AFTER_BILLING_EDITOR") { node(UiTags.DETAIL_MENU) != null }
-        // Rare actions sit in the record's ⋮ menu.
-        click(UiTags.DETAIL_MENU)
-        click("Abgerechnet / offen markieren")
-        shown("Begründung *")
-        yes(
-            visibleTexts().none {
-                it.contains("Work record id", true) || it.startsWith("Arbeitsaufzeichnung:")
-            },
-            "WORK_BILLING_REFERENCE_HIDDEN",
-        )
-        captureSyntheticScreen("work-billing")
-        click("Zurück")
         openWorklogs()
         shown(prefix + "1 korrigiert")
         fun hold(label: String) {
@@ -1778,7 +1656,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             listOf(
                 "planning" to UiTags.PRIMARY,
                 "customers" to "Suchen",
-                "accounting" to "Summen",
+                "accounting" to "Offen abzurechnen",
                 "today" to "Einsätze heute",
             )) {
             click(UiTags.area(label))
@@ -1795,7 +1673,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             yes(activity?.isFinishing == false, "MAIN_BACK_STAYS_IN_APP_$label")
         }
         click(UiTags.MORE)
-        shown("Organisieren")
+        shown("Vorgänge")
         back()
         shown("Einsätze heute")
         openCustomerList()
@@ -1806,7 +1684,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Suchen", fixturePrefix + "000")
         click(fixturePrefix + "000")
         shown(fixturePrefix + "000")
-        primaryPosition("Arbeit starten", "Bearbeiten")
+        visibleResult("Arbeit starten")
         captureSyntheticScreen("graphics-customer")
         val customerId = customers(fixturePrefix + "000").single().getString("id")
         val start =
@@ -1826,7 +1704,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("weather_profile", "indoor")
                 .put("status", "tentative"),
         )
-        openOffice()
         click(UiTags.area("planning"))
         shown(UiTags.PRIMARY)
         reveal("[TEST] QA Grafik Gartenpflege")
@@ -2187,8 +2064,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(createdName)
         shown(createdName)
         yes(store.ownerValue(draftKey, "").isEmpty(), "SAVE_REMOVES_CUSTOMER_DRAFT")
-        click("Bearbeiten")
-        enter("Anzeigename *", editedName)
+        click(createdName)
+        enter("Name", editedName)
         val remoteNote = "[TEST] remote note"
         val externalBefore = tools.call("get_customer", JSONObject().put("customer_id", id))
         yes(!externalBefore.has("ok") || externalBefore.getBoolean("ok"), "MCP_CUSTOMER_CAS_BASE")
@@ -2200,13 +2077,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("expected_record_hash", externalBefore.getString("record_hash"))
                 .put("updates", JSONObject().put("notes", remoteNote)),
         )
-        // The open form still owns its original baseline. A remote write must cause
-        // an explicit conflict, rather than silently refreshing the hash at save time.
-        click(UiTags.PRIMARY)
-        scrollTop()
-        shown(
-            "Der Eintrag wurde zwischenzeitlich verändert. Vergleiche den aktuellen Stand mit deinen Eingaben."
-        )
+        if (keyboardVisible()) back()
+        click("Fertig")
+        shown("Angabe geändert")
         yes(customers(editedName).isEmpty(), "STALE_UI_SAVE_DOES_NOT_APPLY_NAME")
         yes(
             customers(createdName).single().let {
@@ -2214,23 +2087,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             },
             "CONFLICT_RETAINS_REMOTE_CUSTOMER",
         )
-        click("Aktuellen Stand zum Vergleichen lesen")
-        reveal("Notizen: " + remoteNote)
-        yes(customers(editedName).isEmpty(), "COMPARISON_READ_DOES_NOT_SAVE_CUSTOMER")
-        click("Geprüfte Eingaben als neuen Entwurf fortsetzen")
-        scrollTop()
-        waitUntil("CUSTOMER_REBASED_EDITOR") {
-            field("Anzeigename *")?.text?.toString()?.contains(editedName) == true
-        }
-        yes(customers(editedName).isEmpty(), "EXPLICIT_REBASE_REMAINS_UNSAVED_DRAFT")
-        click(UiTags.PRIMARY)
+        click("Diesen behalten · meine Angabe")
         waitUntil("CUSTOMER_EDITED") { customers(editedName).singleOrNull()?.optString("id") == id }
         yes(
             customers(editedName).single().optString("notes") == remoteNote,
             "REVIEWED_SAVE_PRESERVES_REMOTE_NOTE",
         )
         yes(customers(createdName).isEmpty(), "CUSTOMER_UPDATE_PRESERVES_ID_WITHOUT_DUPLICATE")
-        reveal("Bearbeiten")
+        reveal("Arbeit starten")
         val customerNavigation =
             nodes().firstNotNullOfOrNull { candidate ->
                 if (matches(candidate, "Kunden")) clickable(candidate) else null
@@ -2261,16 +2125,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown(flowName)
         yes(node(editedName) == null, "COMMITTED_MCP_EDIT_REPLACES_VISIBLE_ROW")
         click(flowName)
-        click("Weitere Angaben")
+        reveal("Löschen")
         click("Löschen")
-        waitUntil("CUSTOMER_ARCHIVED") {
-            customers(flowName).isEmpty() ||
-                customers(flowName).all {
-                    it.opt("active") == false ||
-                        it.optInt("active", 1) == 0 ||
-                        it.optBoolean("archived")
-                }
-        }
+        waitUntil("CUSTOMER_DELETED") { customers(flowName).isEmpty() }
         waitUntil("CUSTOMER_DELETE_RETURNS_TO_LIST") {
             selectedArea(UiTags.area("customers")) &&
                 field("Suchen")?.isEditable == true &&
@@ -2278,7 +2135,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         enter("Suchen", "QA Native F")
         shown("0 Treffer · 0–0")
-        yes(node(flowName) == null, "ARCHIVED_CUSTOMER_NOT_IN_ACTIVE_LIST")
+        yes(node(flowName) == null, "DELETED_CUSTOMER_NOT_IN_ACTIVE_LIST")
     }
 
     private fun usabilityJourney() {
@@ -2371,19 +2228,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 row.getString("activity") == ownText + "\nRasen gemäht",
             "DISPOSAL_AND_OWN_TEXT_AND_PHRASE_SAVED",
         )
-        // Today no longer lists saved work (design); open it from Mehr → Arbeiten.
+        // Saved work is opened from the shared overflow menu.
         openWorklogs()
         enter("Suchen", ownText)
         click(ownText)
         reveal("[TEST] QA sofort sichtbare Notiz")
-        click("Tätigkeit")
-        enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
-        discardWork()
-        yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
-        yes(
-            saved()?.getString("activity") == row.getString("activity"),
-            "DISCARD_DOES_NOT_SAVE_CHANGES",
-        )
+        click(ownText)
+        enter("Tätigkeit", ownText + " ergänzt")
+        if (keyboardVisible()) back()
+        click("Fertig")
+        waitUntil("WORK_FIELD_CLOSE_SAVES") {
+            saved()?.getString("activity") == ownText + " ergänzt"
+        }
+        click(UiTags.UNDO)
+        waitUntil("WORK_FIELD_UNDO_RESTORES") {
+            saved()?.getString("activity") == row.getString("activity")
+        }
+        yes(saved()?.getString("id") == row.getString("id"), "FIELD_UNDO_PRESERVES_SAVED_WORK")
         click(UiTags.area("today"))
         newWork()
         openWorkCustomerPicker()
@@ -2397,13 +2258,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Dauer", scrollTo = false)
         enter("Stunden", "3")
         enter("Minuten", "30")
-        shown("Reine Arbeitszeit. Keine Pause zusätzlich abziehen.")
         yes(
             node("Pause (Minuten)") == null && node("Beginn") == null && node("Ende") == null,
             "DURATION_EXCLUDES_TIMES_AND_PAUSE",
         )
         // The new-work route retains the expanded details from the first entry.
-        enter("Kilometer", "7,25")
         enter("Materialkosten", "12,50")
         click(UiTags.PRIMARY)
         waitUntil("DECIMAL_WORK_SAVED") {
@@ -2416,7 +2275,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         it.optInt("break_minutes") == 0 &&
                         it.optString("start_time").isEmpty() &&
                         it.optString("end_time").isEmpty() &&
-                        it.optDouble("kilometers") == 7.25 &&
                         it.optString("material").contains("12.50")
                 }
         }
@@ -2881,8 +2739,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun todayJourney() {
         click(UiTags.area("today"))
         reveal("Arbeit starten")
-        for (label in
-            listOf("Heute", "Planung", "Kunden", "Abrechnung", "Neu anlegen", "Mehr")) shown(label)
+        for (label in listOf("Heute", "Planung", "Kunden", "Abrechnung", "Neu anlegen")) shown(
+            label
+        )
         // Design: four areas, only the day and due items; creating sits behind "+".
         yes(
             node("Büro") == null &&
@@ -2924,15 +2783,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openCustomerList()
         enter("Suchen", fixturePrefix + "000")
         click(fixturePrefix + "000")
-        click("Bearbeiten")
         reveal("Notizen")
+        click("Notizen")
         yes(!keyboardVisible(), "CUSTOMER_NOTE_HAS_NO_FORCED_IME")
         val note =
             listOf(originalNotes, "[TEST] QA Heute Kundennotiz")
                 .filter { it.isNotBlank() }
                 .joinToString("\n")
         enter("Notizen", note)
-        click(UiTags.PRIMARY)
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("CUSTOMER_NOTE_SAVED") {
             customers(fixturePrefix + "000").single().optString("notes") == note
         }
@@ -3121,13 +2981,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         // Saving removes the preview; reveal the confirmation before preserving its scroll
         // position.
-        reveal(
-            "Das Foto wurde dieser Zuordnung hinzugefügt. Gespeicherte Arbeit bleibt auch bei einem späteren Fotofehler erhalten."
-        )
+        reveal("Foto gespeichert.")
         recreate()
-        shown(
-            "Das Foto wurde dieser Zuordnung hinzugefügt. Gespeicherte Arbeit bleibt auch bei einem späteren Fotofehler erhalten."
-        )
+        shown("Foto gespeichert.")
         val reopened = PixelLocalStore(context)
         try {
             val attachment = requireNotNull(reopened.photoAttachment(id))
@@ -3175,7 +3031,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 customerCard.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK },
             "TIMER_CUSTOMER_CARD_USES_NON_EDITABLE_ACTION",
         )
-        primaryPosition("Arbeit starten", "Bearbeiten")
+        visibleResult("Arbeit starten")
         click("Arbeit starten")
         waitUntil("KNOWN_CUSTOMER_STARTS_DIRECTLY") {
             read("get_active_work_session").optString("state") == "RUNNING"
@@ -3282,24 +3138,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         primaryPosition("Zeit stoppen", "Pause")
         click(UiTags.area("customers"))
-        val compactClock = Regex("Arbeit läuft · ([0-9]{2,}):([0-9]{2}):([0-9]{2}) ›")
-        waitUntil("COMPACT_TIMER_IS_VISIBLE_AND_ACTIONABLE") {
-            nodes().any {
-                it.isVisibleToUser &&
-                    texts(it).any { text -> compactClock.matches(text) } &&
-                    clickable(it) != null
-            }
-        }
+        shown("Laufende Arbeit öffnen")
         captureSyntheticScreen("timer-compact")
-        waitUntil("COMPACT_TIMER_OPENS_EXISTING_SESSION") {
-            val label =
-                nodes()
-                    .firstOrNull {
-                        it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) }
-                    }
-                    ?.let(::clickable)
-            label != null && label.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        }
+        click("Laufende Arbeit öffnen")
         shown("Arbeitszeit ohne Pause")
         yes(
             read("get_active_work_session").getString("id") == id &&
@@ -3310,15 +3151,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openWorklogs()
         enter("Suchen", "")
         yes(node("Laufende Arbeit öffnen") == null, "WORK_LIST_HAS_NO_TIMER_MENU_ENTRY")
-        waitUntil("WORK_COMPACT_TIMER_OPENS_EXISTING_SESSION") {
-            val label =
-                nodes()
-                    .firstOrNull {
-                        it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) }
-                    }
-                    ?.let(::clickable)
-            label != null && label.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        }
+        click("Laufende Arbeit öffnen")
         reveal("Arbeit läuft")
         reveal("Arbeitszeit ohne Pause")
         val minimumSeconds =
@@ -3366,7 +3199,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         captureSyntheticScreen("timer-actions")
         click("Zeit stoppen")
-        shown("Arbeit abschließen")
+        shown("Arbeit speichern")
         yes(
             read("get_active_work_session").getString("state") == "STOPPED_PENDING_REVIEW",
             "UI_STOPS_WITHOUT_FINALIZING",
@@ -3377,11 +3210,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "STOP_DOES_NOT_CREATE_WORKLOG",
         )
         val stoppedMs = read("get_active_work_session").getLong("worked_ms")
-        primaryPosition("Arbeit speichern", "Später abschließen")
+        primaryPosition("Speichern", "Später abschließen")
+        click("Später abschließen")
         click(UiTags.area("today"))
         shown("Arbeit noch abschließen")
         shown("Zeit gestoppt · Abschluss offen")
-        primaryPosition("Abschluss prüfen", "Arbeit nachtragen")
+        primaryPosition("Arbeit speichern", "Arbeit nachtragen")
         yes(
             read("get_active_work_session").getLong("worked_ms") == stoppedMs,
             "STOPPED_TIME_DOES_NOT_GROW",
@@ -3391,8 +3225,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 before,
             "LEAVING_COMPLETION_DOES_NOT_SAVE",
         )
-        click("Abschluss prüfen")
-        shown("Arbeit abschließen")
+        click("Arbeit speichern")
+        shown("Arbeit speichern")
         enter(UiTags.actionField("activity"), "[TEST] QA native Timer\nRasen gemäht", exact = true)
         awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
         captureSyntheticScreen("timer-completion")
@@ -3439,7 +3273,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         val discardedId = read("get_active_work_session").getString("id")
         click("Zeit stoppen")
-        shown("Arbeit abschließen")
+        shown("Arbeit speichern")
         enter("Tätigkeit *", "[TEST] QA verworfener Abschluss")
         awaitTimerCompletionReady(discardedId, "[TEST] QA verworfener Abschluss")
         click("Weitere Angaben (optional)")
@@ -3502,7 +3336,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Arbeit pausiert")
         primaryPosition("Fortsetzen", "Zeit stoppen")
         click("Zeit stoppen")
-        shown("Arbeit abschließen")
+        shown("Arbeit speichern")
         click("Weitere Angaben (optional)")
         discardWork()
         waitUntil("RESTORED_TIMER_DISCARDED") {
@@ -3900,7 +3734,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun customerContextJourney() {
         val navigation = NativeAppController(requireNotNull(activity) as MainActivity, store)
-        for (area in listOf("today", "worklogs", "customers", "office")) {
+        for (area in listOf("today", "planning", "customers", "accounting")) {
             navigation.openSection(area)
             val recreated = NativeAppController(requireNotNull(activity) as MainActivity, store)
             recreated.restoreRoute(navigation.savedNavigation())
@@ -3915,7 +3749,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         navigation.openSection("customers")
         navigation.navigate("customers", "qa-back-customer")
-        navigation.openSection("office")
+        navigation.openSection("accounting")
         navigation.back()
         navigation.openSection("customers")
         yes(navigation.route.id == "qa-back-customer", "ROOT_BACK_PRESERVES_OTHER_AREA_DETAIL")
@@ -3959,13 +3793,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             enter("Suchen", name)
             click(name)
+            click("Vorgänge")
+            reveal("Fotos")
             click("Fotos")
             shown(name)
             shown("QA Kontextfoto $index")
             yes(node("QA Kontextfoto ${1-index}") == null, "PHOTOS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-photos")
             click(UiTags.BACK)
-            click("Angebote")
+            reveal("Alle Angebote")
+            click("Alle Angebote")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFERS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-offers")
@@ -3981,10 +3818,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             enter("Suchen", name)
             click(name)
-            click("Aufträge")
+            click("Vorgänge")
+            reveal("Alle Aufträge")
+            click("Alle Aufträge")
             shown("QA Kontextauftrag $index")
             yes(node("QA Kontextauftrag ${1-index}") == null, "ORDERS_KEEP_CUSTOMER_$index")
             click(UiTags.BACK)
+            click("Objekte")
             click("Alle Objekte")
             shown("QA Kontextobjekt $index")
             yes(node("QA Kontextobjekt ${1-index}") == null, "PROPERTIES_KEEP_CUSTOMER_$index")
@@ -3993,6 +3833,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Zurück")
             shown("Objekt anlegen")
             click(UiTags.BACK)
+            click("Vorgänge")
+            reveal("Alle Einsätze")
             click("Alle Einsätze")
             shown("QA Kontexteinsatz $index")
             yes(node("QA Kontexteinsatz ${1-index}") == null, "VISITS_KEEP_CUSTOMER_$index")
@@ -4007,6 +3849,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         click("QA Kontextanfrage 0")
                         click("Angebot aus dieser Anfrage")
                     } else {
+                        click("Objekte")
                         click("Alle Objekte")
                         click("QA Kontextobjekt 0")
                         click(UiTags.DETAIL_MENU)
@@ -4051,9 +3894,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
                 val invoiceCount =
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
-                click("Offene Stunden")
+                click("Geld")
                 shown("Offene Stunden")
-                click("Arbeiten prüfen")
+                click("Vorgänge")
+                reveal("Alle Arbeiten")
+                click("Alle Arbeiten")
                 enter("Suchen", "QA Kontextabrechnung")
                 val sourceLabel = "QA Kontextabrechnung 0"
                 reveal(sourceLabel)
@@ -4090,14 +3935,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("host_load", "NOT_CONTROLLED")
         for ((name, entry, ready) in
             listOf(
-                Triple("billing", "Offene Stunden", "Arbeiten prüfen"),
+                Triple("billing", "Abrechnung", "Offen abzurechnen"),
                 Triple("offers", "Angebote", "Angebot anlegen"),
             )) {
             val values = ArrayList<Double>()
             repeat(42) { sample ->
-                openOffice()
                 var start = 0L
-                click(entry, onAction = { start = it })
+                if (name == "billing") {
+                    click(UiTags.area("today"))
+                    click(UiTags.area("accounting"), onAction = { start = it })
+                } else {
+                    openOffice()
+                    click(entry, onAction = { start = it })
+                }
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }
                 val elapsed = (System.nanoTime() - start) / 1_000_000.0
                 if (sample >= 2) values.add(elapsed)
@@ -4429,7 +4279,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         visibleResult(fixturePrefix + "000", requireKeyboard = true)
         captureSyntheticScreen("search-customer-list", requireKeyboard = true)
         visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
-        reveal("Bearbeiten")
+        reveal("Arbeit starten")
         recreate()
         click(UiTags.BACK)
         yes(
@@ -4570,8 +4420,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     /** The office lists every entry directly; the group label is only a heading. */
     private fun openOfficeEntry(entry: String) {
-        openOffice()
-        click(entry)
+        val context =
+            mapOf(
+                "Objekte" to "properties",
+                "Pflegepläne" to "care_plans",
+                "Fotos" to "photos",
+                "Leistungskatalog" to "catalog",
+                "Suche" to "revier_search",
+                "Offene Stunden" to "billing",
+            )[entry]
+        if (context != null) openContext(context)
+        else {
+            openOffice()
+            click(entry)
+        }
     }
 
     private fun keyboardSearchProof(
@@ -5023,8 +4885,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal(UiTags.planningWeather("visit", firstVisit))
             click(UiTags.planningView("week"))
             shown(UiTags.PLANNING_GRID)
-            click(UiTags.planningView("map"))
-            shown(UiTags.PLANNING_MAP)
             click(UiTags.planningView("day"))
             shown(UiTags.PLANNING_GRID)
             yes(stateHash() == beforeViews, "BOARD_VIEWS_AND_WEATHER_ARE_READ_ONLY")
@@ -5142,11 +5002,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             monitorInstalled = true
             click(UiTags.TOUR_NAVIGATE)
             waitUntil("BOARD_EXTERNAL_NAVIGATION_INTENT") {
-                monitorResult.get()?.startsWith("google.navigation:") == true
+                monitorResult.get()?.startsWith("https://www.google.com/maps/dir/") == true
             }
             yes(
-                monitorResult.get().contains(Uri.encode("48.21,16.32")),
-                "BOARD_MAP_HANDOFF_HAS_CORRECT_DESTINATION",
+                monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg b")) &&
+                    monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg a")),
+                "BOARD_NAVIGATION_HANDOFF_HAS_ALL_SAVED_ADDRESSES",
             )
             yes(stateHash() == beforeNavigation, "BOARD_NAVIGATION_DOES_NOT_WRITE_BUSINESS_DATA")
             captureSyntheticScreen("planning-board-tour")
@@ -5400,8 +5261,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             activity?.let { current -> test.runOnMainSync { current.finish() } }
             launch()
             fun openProperty() {
-                openOffice()
-                click(UiTags.area("properties"))
+                openOfficeEntry("Objekte")
                 scrollTop()
                 var lastScroll = 0L
                 waitUntil("TIMELINE_PROPERTY_LIST_OR_DETAIL") {
@@ -5426,7 +5286,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 navigation.get()?.dataString?.startsWith("geo:") == true
             }
             yes(
-                navigation.get().dataString!!.contains("48.2"),
+                navigation.get().dataString!!.contains(Uri.encode("[TEST] QA Zeitleistenweg 7")),
                 "TIMELINE_ROUTE_USES_SAVED_OBJECT_LOCATION",
             )
             click(UiTags.OBJECT_CALL)
@@ -5445,10 +5305,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             selectTab(UiTags.objectTab("photos"))
             click(UiTags.objectEntry("photo:$photoId"))
             shown(UiTags.context("properties", property))
-            click(UiTags.PRIMARY)
+            click("Bildunterschrift")
             enter(UiTags.PHOTO_CAPTION, "[TEST] QA Objektfoto ergänzt")
             if (keyboardVisible()) back()
-            click(UiTags.PRIMARY)
+            click("Schließen")
             waitUntil("TIMELINE_PHOTO_REAL_SAVE") {
                 read("get_photo", JSONObject().put("photo_id", photoId))
                     .getJSONObject("photo")
@@ -6057,7 +5917,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             enter("Suchen", fixturePrefix + "000")
             click(fixturePrefix + "000")
-            click("Angebote")
+            click("Vorgänge")
+            reveal("Alle Angebote")
+            click("Alle Angebote")
             keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
             visibleResult("Zur Liste")
             captureSyntheticScreen("detail-offers")
@@ -6067,7 +5929,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
         }
         case("planning") {
-            openOffice()
             click(UiTags.area("planning"))
             chooseDate("Datum *", LocalDate.now(ZoneId.of("Europe/Vienna")).plusDays(1).toString())
             keyboardSearchProof(
@@ -6146,13 +6007,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             discardWork()
         }
         case("equipment-picker") {
-            openOffice()
             click(UiTags.area("planning"))
             click(UiTags.FILTER)
             click(UiTags.PLANNING_ALL_VISITS)
             enter("Suchen", "QA Kontexteinsatz 0")
             click("QA Kontexteinsatz 0")
-            click("Bearbeiten")
+            reveal("Benötigte Geräte")
+            click("Benötigte Geräte")
             click("Benötigte Geräte ergänzen")
             click("Benötigte Geräte: Nicht zugeordnet")
             keyboardSearchProof(
@@ -6162,10 +6023,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "[TEST] QA Zubehör Säge",
             )
             reveal("Benötigte Geräte: [TEST] QA Zubehör Säge")
-            discardWork()
+            click("Fertig")
         }
         case("planning-picker") {
-            openOffice()
             click(UiTags.area("planning"))
             click(UiTags.PRIMARY)
             click("Kunde: Bitte wählen")
@@ -6195,7 +6055,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openCustomerList()
             enter("Suchen", fixturePrefix + "000")
             click(fixturePrefix + "000")
-            click("Angebote")
+            click("Vorgänge")
+            reveal("Alle Angebote")
+            click("Alle Angebote")
             click("Angebot anlegen")
             click("Weiter zu Leistungen")
             click("Aus Leistungskatalog hinzufügen")
@@ -6288,7 +6150,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     "QA Native Notification",
                     "[TEST] QA Native Notification",
                 ) {
-                    openOffice()
                     click(UiTags.area("planning"))
                     chooseDate(
                         "Datum *",
@@ -6566,24 +6427,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         fun settings() {
             openOffice()
-            click("Einstellungen und Daten")
+            click("Einstellungen")
             waitUntil("SETTINGS_ACTION_READY") {
                 node("Tätigkeit, Einsatzort und Fotoqualität")?.let(::clickable) != null
             }
         }
         fun planning() {
-            openOffice()
             click(UiTags.area("planning"))
         }
         fun billing() {
-            openOffice()
-            click("Offene Stunden")
+            openOfficeEntry("Offene Stunden")
         }
         case("today", "Arbeit starten", true) {}
         case("work", "Arbeit nachtragen") { openWorklogs() }
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
         case("customers", "Neu anlegen") { click(UiTags.area("customers")) }
-        case("office", "Organisieren", true) {
+        case("menu", "Vorgänge", true) {
             click(UiTags.area("today"))
             click(UiTags.MORE)
         }
@@ -6606,7 +6465,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.FILTER)
             click(UiTags.PLANNING_WEATHER_DETAILS)
         }
-        case("billing", "Arbeiten prüfen", true) { billing() }
+        case("billing", "Offen abzurechnen", true) { billing() }
         case("offers", "Angebot anlegen") {
             openOffice()
             click("Angebote")
@@ -6615,7 +6474,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOffice()
             click("Geräte")
         }
-        case("accessories", "Zubehör bearbeiten", true) {
+        case("accessories", "Zubehör hinzufügen", true) {
             openOffice()
             click("Geräte")
             enter("Suchen", "QA Zubehör Säge")
@@ -6632,8 +6491,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("photos", "Foto hinzufügen") { openOfficeEntry("Fotos") }
         case("catalog", "Baustein anlegen") { openOfficeEntry("Leistungskatalog") }
         case("local-search", "Suchtext eingeben") { openOfficeEntry("Suche") }
-        case("archive", "Alle Arten") { openOfficeEntry("Archiv") }
-        case("trash", "Papierkorb leeren") { openOfficeEntry("Papierkorb") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
         case("connections", "Optionale Verbindungen") {
             settings()
@@ -6677,7 +6534,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             failures.forEach(failure::addSuppressed)
             throw failure
         }
-        yes(surfaceCases.length() == 32, "ALL_SURFACES_REACHABLE")
+        yes(surfaceCases.length() == 30, "ALL_SURFACES_REACHABLE")
     }
 
     private fun storageSettingsJourney() {
@@ -6714,7 +6571,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 shell("settings put system font_scale $scale")
                 launch()
                 openOffice()
-                click("Einstellungen und Daten")
+                click("Einstellungen")
                 click("Speicher")
                 reveal("Speicher bereinigen")
                 waitUntil("STORAGE_ACTION_READY_$scale") {

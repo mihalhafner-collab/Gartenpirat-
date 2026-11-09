@@ -17,15 +17,10 @@ internal class OwnerToolSchemas {
             BUILDERS.put("get_accounting_record", OwnerToolSchemas::accounting)
             BUILDERS.put("set_accounting_record", OwnerToolSchemas::accounting)
             BUILDERS.put("get_ui_action_catalog", OwnerToolSchemas::getUiActionCatalog)
-            BUILDERS.put(
-                "preview_archive_work_records",
-                OwnerToolSchemas::previewArchiveWorkRecords,
-            )
-            BUILDERS.put("archive_work_records", OwnerToolSchemas::previewArchiveWorkRecords)
-            BUILDERS.put("delete_work_records", OwnerToolSchemas::previewArchiveWorkRecords)
-            BUILDERS.put("empty_trash", OwnerToolSchemas::emptyTrash)
+            BUILDERS.put("preview_delete_work_records", OwnerToolSchemas::previewDeleteWorkRecords)
+            BUILDERS.put("delete_work_records", OwnerToolSchemas::previewDeleteWorkRecords)
+            BUILDERS.put("preview_archive_work_records", OwnerToolSchemas::previewDeleteWorkRecords)
             BUILDERS.put("get_photo", OwnerToolSchemas::getPhoto)
-            BUILDERS.put("list_archive", OwnerToolSchemas::listArchive)
             BUILDERS.put("search_catalog", OwnerToolSchemas::searchCatalog)
             BUILDERS.put("get_catalog_entry", OwnerToolSchemas::getCatalogEntry)
             BUILDERS.put("get_file_metadata", OwnerToolSchemas::getFileMetadata)
@@ -36,12 +31,8 @@ internal class OwnerToolSchemas {
             BUILDERS.put("set_work_record_billed", OwnerToolSchemas::setWorkRecordBilled)
             BUILDERS.put("reassign_work_record", OwnerToolSchemas::setWorkRecordBilled)
             BUILDERS.put("update_photo", OwnerToolSchemas::updatePhoto)
-            BUILDERS.put("preview_purge", OwnerToolSchemas::previewPurge)
             BUILDERS.put("preview_delete", OwnerToolSchemas::previewPurge)
-            BUILDERS.put("purge_entity", OwnerToolSchemas::purgeEntity)
             BUILDERS.put("delete_entity", OwnerToolSchemas::purgeEntity)
-            BUILDERS.put("archive_entity", OwnerToolSchemas::purgeEntity)
-            BUILDERS.put("restore_entity", OwnerToolSchemas::purgeEntity)
             BUILDERS.put("update_business_settings", OwnerToolSchemas::updateBusinessSettings)
             BUILDERS.put("update_settings", OwnerToolSchemas::updateSettings)
             BUILDERS.put("set_personal_paid", OwnerToolSchemas::setPersonalPaid)
@@ -113,15 +104,7 @@ internal class OwnerToolSchemas {
             }
             if (p.has("expected_record_hash")) {
                 p.getJSONObject("expected_record_hash")
-                    .put(
-                        "description",
-                        (if (Arrays.asList("delete_entity", "archive_entity").contains(name))
-                            "entity_hash des zuvor gelesenen Datensatzes."
-                        else
-                            (if (name == "restore_entity")
-                                "record_hash des Eintrags aus list_archive."
-                            else "record_hash des zuvor gelesenen Datensatzes.")),
-                    )
+                    .put("description", "record_hash des zuvor gelesenen Datensatzes.")
             }
             return McpFields.`object`(p, *required.toTypedArray())
         }
@@ -160,7 +143,7 @@ internal class OwnerToolSchemas {
                 .put("limit", McpFields.number(1, 100))
         }
 
-        private @JvmStatic @Throws(Exception::class) fun previewArchiveWorkRecords(
+        private @JvmStatic @Throws(Exception::class) fun previewDeleteWorkRecords(
             name: String,
             p: JSONObject,
             required: MutableList<String>,
@@ -170,25 +153,15 @@ internal class OwnerToolSchemas {
                 JSONObject()
                     .put("type", "array")
                     .put("minItems", 1)
-                    .put("maxItems", WorklogArchiveBatch.MAX)
+                    .put("maxItems", WorklogDeletionBatch.MAX)
                     .put("items", McpFields.id()),
             )
             required.add("work_record_ids")
-            if (name == "archive_work_records" || name == "delete_work_records") {
+            if (name == "delete_work_records") {
                 p.put("expected_preview_hash", McpFields.hash())
                     .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
                 required.addAll(Arrays.asList("expected_preview_hash", "confirmed"))
             }
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun emptyTrash(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-            p.put("expected_preview_hash", McpFields.hash())
-                .put("confirmed", McpFields.bool().put("enum", JSONArray().put(true)))
-            required.add("confirmed")
         }
 
         private @JvmStatic @Throws(Exception::class) fun getPhoto(
@@ -198,17 +171,6 @@ internal class OwnerToolSchemas {
         ): Unit {
             p.put("photo_id", McpFields.id())
             required.add("photo_id")
-        }
-
-        private @JvmStatic @Throws(Exception::class) fun listArchive(
-            name: String,
-            p: JSONObject,
-            required: MutableList<String>,
-        ): Unit {
-            p.put("limit", McpFields.number(1, 100))
-                .put("offset", McpFields.number(0, 1000000))
-                .put("entity", McpFields.enumeration(*DeletionRules.ENTITIES))
-                .put("entity_id", McpFields.id())
         }
 
         private @JvmStatic @Throws(Exception::class) fun searchCatalog(
@@ -339,19 +301,11 @@ internal class OwnerToolSchemas {
             p: JSONObject,
             required: MutableList<String>,
         ): Unit {
-            if (name == "purge_entity") {
-                p.put(
-                    "confirmed",
-                    JSONObject().put("type", "boolean").put("enum", JSONArray().put(true)),
-                )
-                required.add("confirmed")
-            }
             p.put("entity", McpFields.enumeration(*DeletionRules.ENTITIES))
                 .put("entity_id", McpFields.id())
                 .put("expected_record_hash", McpFields.hash())
             required.addAll(Arrays.asList("entity", "entity_id"))
-            if (name == "restore_entity") required.add("expected_record_hash")
-            if ((name == "delete_entity") || (name == "archive_entity")) {
+            if (name == "delete_entity") {
                 p.put("expected_photo_links_hash", McpFields.hash())
             }
         }
@@ -366,10 +320,16 @@ internal class OwnerToolSchemas {
                 for (key in McpFields.BUSINESS_KEYS) {
                     fields.put(
                         key,
-                        if (key.endsWith("_confirmed")) McpFields.bool() else McpFields.text(2000),
+                        if (key.endsWith("_confirmed")) McpFields.bool()
+                        else McpFields.text(if (key == "business_logo") 200000 else 2000),
                     )
                 }
-                fields.put("tax_mode", McpFields.enumeration("small_business", "standard"))
+                fields
+                    .put("tax_mode", McpFields.enumeration("small_business", "standard"))
+                    .put(
+                        "billing_interval",
+                        McpFields.enumeration("minute", "tenth_hour", "quarter_hour"),
+                    )
                 p.put("expected_record_hash", McpFields.hash())
                     .put("updates", McpFields.`object`(fields).put("minProperties", 1))
                 required.addAll(Arrays.asList("expected_record_hash", "updates"))

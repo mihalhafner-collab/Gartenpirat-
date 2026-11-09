@@ -189,6 +189,19 @@ class EntityApplicationService {
                     }
                 }
                 val incoming: JSONObject = (if (update) args.getJSONObject("updates") else args)
+                if (incoming.has("electronic_invoice_consent")) {
+                    payload.put(
+                        "electronic_invoice_consent_date",
+                        if (incoming.getBoolean("electronic_invoice_consent"))
+                            SettlementRules.today()
+                        else "",
+                    )
+                } else if (incoming.has("electronic_invoice_consent_date")) {
+                    throw PixelMcpWriteTools.Rejected(
+                        "INVALID_INPUT",
+                        "Die Zustimmung mit Ja oder Nein ändern; das Datum wird automatisch gespeichert.",
+                    )
+                }
                 if (
                     ((incoming.has("email") && !incoming.optString("email").isEmpty()) &&
                         !incoming

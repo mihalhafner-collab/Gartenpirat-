@@ -40,7 +40,10 @@ public final class SettlementTests {
             .put("invoices", new JSONArray()).put("photos", new JSONArray()).put("offers", new JSONArray())
             .put("business_settings", new JSONObject().put("business_name", "Synthetischer Gartenbetrieb").put("owner_name", "Erfundene Person")
                 .put("business_street", "Erfundene Straße 20").put("business_postal_code", "2000").put("business_city", "Testort")
-                .put("business_country", "AT").put("tax_mode", "small_business"));
+                .put("business_country", "AT").put("tax_mode", "small_business")
+                .put("business_logo", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4S8AAAAASUVORK5CYII=")
+                .put("business_email", "synthetic@example.invalid").put("business_iban", "AT000000000000000000")
+                .put("business_bic", "QATEST00").put("default_payment_terms", "Binnen 14 Tagen"));
     }
     private static JSONObject draft(String route, JSONArray positions) throws Exception {
         return new JSONObject().put("route", route).put("title", "Synthetische Abrechnung").put("customer_id", "site")
@@ -323,6 +326,11 @@ public final class SettlementTests {
         String orderInvoice = orderScope.save(draft("billed", new JSONArray().put(line("orders", "order", "1", "100"))), "scope-order");
         orderScope.prepare(orderInvoice, "scope-order-prepare");
         orderScope.master.getJSONArray("worklogs").put(work("new-later-work", "order", "recipient"));
+        List<JSONObject> openWorks = RULES.rows(BillingRules.groups(orderScope.master.getJSONArray("worklogs"), orderScope.master, orderScope.ledger())).stream()
+            .flatMap(group -> RULES.rows(group.optJSONArray("work_records")).stream()).toList();
+        yes(openWorks.stream().anyMatch(work -> work.optString("id").equals("new-later-work"))
+            && openWorks.stream().noneMatch(work -> Set.of("work-a", "work-b").contains(work.optString("id"))),
+            "Open billing reads active frozen source bindings; later work remains open without reoffering included work");
         JSONObject later = review(draft("billed", new JSONArray().put(line("worklogs", "new-later-work", "1", "25"))), orderScope.master, "later");
         JSONObject old = review(draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "25"))), orderScope.master, "old");
         yes(validation(later, orderScope.master, orderScope.ledger()).getBoolean("valid") && !validation(old, orderScope.master, orderScope.ledger()).getBoolean("valid"),
@@ -451,21 +459,21 @@ public final class SettlementTests {
         JSONObject draft = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", ids), works, List.of(bound, later));
         JSONArray lines = draft.getJSONArray("positions");
         yes(lines.length() == 2, "Work bound by an active closure is not offered again");
-        yes(lines.getJSONObject(0).getString("price").equals("45") && lines.getJSONObject(1).getString("price").equals("45"), "Recipient's own last hourly rate wins");
+        yes(lines.getJSONObject(0).getString("price").isEmpty() && lines.getJSONObject(1).getString("price").isEmpty(), "Without a configured rate old invoice prices are not silently reused");
         yes(lines.getJSONObject(0).getString("unit").equals("Stunden") && lines.getJSONObject(0).getString("quantity").equals("2"), "Hours become the quantity");
         yes(lines.getJSONObject(0).getString("source_collection").equals("worklogs") && !lines.getJSONObject(0).getString("source_id").equals("work-a"), "Positions keep their work source");
         yes(lines.getJSONObject(0).getString("description").equals("01.11.2026"), "Work date is shown as Austrian date");
         yes(draft.getString("route").equals("billed") && draft.getString("billing_customer_id").equals("recipient") && draft.getString("customer_id").equals("site"), "Recipient and single work customer are set");
         yes(draft.getString("service_from").equals("2026-11-01") && draft.getString("service_to").equals("2026-11-01"), "Service period follows the work dates");
         JSONObject fallback = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later));
-        yes(fallback.getJSONArray("positions").getJSONObject(0).getString("price").equals("50"), "Without an own rate the last used rate is offered");
+        yes(fallback.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "A different recipient's historical rate is not offered as an agreed price");
         JSONObject unknown = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of());
         yes(unknown.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "Without any rate the price stays open");
         yes(RULES.prefill(new JSONObject(), works, List.of(bound)).getJSONArray("positions").length() == 0, "Without a selection the draft stays empty");
         JSONObject configured = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later), "48,50");
-        yes(configured.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The configured hourly rate comes before the last rate of another recipient");
+        yes(configured.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The configured hourly rate is used explicitly");
         JSONObject own = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", ids), works, List.of(bound, later), "48,50");
-        yes(own.getJSONArray("positions").getJSONObject(0).getString("price").equals("45"), "A rate agreed with the recipient still wins over the configured rate");
+        yes(own.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The settings rate takes precedence over historical invoice prices");
         JSONObject invalid = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of(), "viel");
         yes(invalid.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "An invalid configured rate is not used");
     }

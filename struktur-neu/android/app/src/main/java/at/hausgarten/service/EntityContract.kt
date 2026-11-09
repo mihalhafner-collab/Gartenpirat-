@@ -27,6 +27,8 @@ class EntityContract {
                 "custom_fields",
                 "billing_mode",
                 "default_billing_customer_id",
+                "electronic_invoice_consent",
+                "electronic_invoice_consent_date",
             )
         @JvmField
         val ORDER_FIELDS: Array<String> =

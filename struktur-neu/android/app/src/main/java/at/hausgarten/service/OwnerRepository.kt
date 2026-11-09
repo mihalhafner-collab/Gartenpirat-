@@ -51,6 +51,11 @@ interface OwnerRepository {
         throw UnsupportedOperationException("Local settlement document store required")
     }
 
+    @Throws(Exception::class)
+    fun previewSettlementDocument(record: JSONObject): JSONObject {
+        throw UnsupportedOperationException("Local settlement preview required")
+    }
+
     @Throws(Exception::class) fun verifyDelivery(messageId: String, offer: JSONObject): JSONObject
 
     @Throws(Exception::class) fun planningSettings(): JSONObject

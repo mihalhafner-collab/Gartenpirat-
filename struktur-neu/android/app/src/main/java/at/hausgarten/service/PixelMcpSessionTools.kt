@@ -66,7 +66,6 @@ internal class PixelMcpSessionTools {
                         "material",
                         "notes",
                         "location",
-                        "kilometers",
                         "material_cost",
                     )) {
                     props.put(key, PixelMcpWriteTools.field(key))

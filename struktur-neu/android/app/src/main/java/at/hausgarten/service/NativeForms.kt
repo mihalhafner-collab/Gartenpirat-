@@ -71,6 +71,7 @@ internal fun NativeField(
     showLabel: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     fieldTag: String = "",
+    error: String = "",
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
@@ -105,6 +106,8 @@ internal fun NativeField(
                 ({ Text(displayedLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) })
             else null,
         enabled = enabled,
+        isError = error.isNotBlank(),
+        supportingText = if (error.isNotBlank()) ({ Text(error) }) else null,
         singleLine = !multiline,
         minLines = if (multiline) 3 else 1,
         // Dictation appends to longer texts; the field stays editable as before.
@@ -143,6 +146,51 @@ internal fun NativeField(
                 onDone = { finish() },
             ),
     )
+}
+
+/** A detail value is published when its sheet closes; the caller owns validation and undo. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun NativeValueSheet(
+    label: String,
+    value: String,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    multiline: Boolean = false,
+    error: String = "",
+    enabled: Boolean = true,
+    onClose: (String) -> Unit,
+) {
+    var entered by rememberSaveable(label, value) { mutableStateOf(value) }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val close = {
+        if (enabled) {
+            keyboard?.hide()
+            onClose(entered)
+        }
+    }
+    val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    LaunchedEffect(error) { if (error.isNotBlank()) sheet.show() }
+    ModalBottomSheet(onDismissRequest = close, sheetState = sheet) {
+        Column(
+            Modifier.fillMaxWidth()
+                .imePadding()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(label, style = MaterialTheme.typography.titleMedium)
+            NativeField(
+                label,
+                entered,
+                { entered = it },
+                multiline = multiline,
+                enabled = enabled,
+                keyboardType = keyboardType,
+                error = error,
+            )
+            NativeActions { NativeTextButton(close, enabled = enabled) { Text("Fertig") } }
+        }
+    }
 }
 
 /**
@@ -287,23 +335,23 @@ private fun NativePickerField(
     onPick: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onPick,
-            Modifier.fillMaxWidth().heightIn(min = 56.dp).semantics {
+        Surface(
+            Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onPick).semantics {
                 contentDescription = label + if (required) " *" else ""
             },
-            enabled = enabled,
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         ) {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
                 Text(
                     label + if (required) " *" else "",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                 )
-                Text(displayed.ifBlank { "Auswählen" }, style = MaterialTheme.typography.bodyLarge)
+                Text(displayed.ifBlank { "Auswählen" }, style = MaterialTheme.typography.bodyMedium)
             }
         }
         if (displayed.isNotBlank() && onClear != null)
-            TextButton(onClear, enabled = enabled) { Text("$label entfernen") }
+            NativeTextButton(onClear, enabled = enabled) { Text("Entfernen") }
     }
 }
 
@@ -315,7 +363,7 @@ internal fun NativeChoice(
     onChange: (String) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    OutlinedButton({ open = true }, Modifier.fillMaxWidth()) {
+    NativeOutlinedButton({ open = true }, Modifier.fillMaxWidth()) {
         Text(label + ": " + (options.firstOrNull { it.first == selected }?.second ?: "Auswählen"))
     }
     if (open)
@@ -325,7 +373,7 @@ internal fun NativeChoice(
             text = {
                 LazyColumn(Modifier.heightIn(max = 360.dp)) {
                     items(options) { option ->
-                        TextButton(
+                        NativeTextButton(
                             {
                                 onChange(option.first)
                                 open = false
@@ -337,7 +385,7 @@ internal fun NativeChoice(
                     }
                 }
             },
-            confirmButton = { TextButton({ open = false }) { Text("Abbrechen") } },
+            confirmButton = { NativeTextButton({ open = false }) { Text("Abbrechen") } },
         )
 }
 
@@ -346,7 +394,7 @@ internal fun NativeChoice(
 internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (String) -> Unit) {
     var open by rememberSaveable(label) { mutableStateOf(false) }
     var search by rememberSaveable(label) { mutableStateOf("") }
-    TextButton({ open = !open }) { Text(label + if (open) " ▴" else " ▾") }
+    NativeTextButton({ open = !open }) { Text(label) }
     val matches = options.filter { it.contains(search, ignoreCase = true) }
     if (open)
         NativeSearchDialog(
@@ -358,7 +406,7 @@ internal fun NativeSuggestions(label: String, options: List<String>, onChoose: (
             onDismiss = { open = false },
         ) { close ->
             items(matches) { value ->
-                TextButton(
+                NativeTextButton(
                     {
                         onChoose(value)
                         close()
@@ -490,6 +538,7 @@ internal fun NativeSearchList(
     bottomSearch: Boolean = false,
     controlsVisible: Boolean = true,
     onVoice: (() -> Unit)? = null,
+    onOpenSearch: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val ime = WindowInsets.isImeVisible
@@ -512,16 +561,34 @@ internal fun NativeSearchList(
                         Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        NativeField(
-                            label,
-                            query,
-                            onQuery,
-                            search = true,
-                            onSearch = onSearch,
-                            modifier =
-                                Modifier.weight(1f).onFocusChanged { if (it.isFocused) onFocus() },
-                            showLabel = !large,
-                        )
+                        if (onOpenSearch != null)
+                            Surface(
+                                Modifier.weight(1f)
+                                    .heightIn(min = 48.dp)
+                                    .clickable(onClick = onOpenSearch)
+                                    .semantics { contentDescription = "Suchen" },
+                                shape = MaterialTheme.shapes.small,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            ) {
+                                Text(
+                                    "Suchen",
+                                    Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        else
+                            NativeField(
+                                label,
+                                query,
+                                onQuery,
+                                search = true,
+                                onSearch = onSearch,
+                                modifier =
+                                    Modifier.weight(1f).onFocusChanged {
+                                        if (it.isFocused) onFocus()
+                                    },
+                                showLabel = !large,
+                            )
                         if (onVoice != null && !ime) NativeVoiceButton(onVoice)
                         if (ime || large && !landscape)
                             Column(
@@ -538,10 +605,10 @@ internal fun NativeSearchList(
                                             contentDescription = "Eingabe beenden"
                                         },
                                     ) {
-                                        Text("×")
+                                        NativeCloseIcon()
                                     }
                                 else if (onFilters != null)
-                                    TextButton(
+                                    NativeTextButton(
                                         onFilters,
                                         Modifier.semantics { testTag = UiTags.FILTER },
                                     ) {
@@ -642,7 +709,7 @@ internal fun NativeSearchDialog(
                                     Modifier.weight(1f),
                                     style = MaterialTheme.typography.titleMedium,
                                 )
-                                TextButton(close) { Text("Abbrechen") }
+                                NativeTextButton(close) { Text("Abbrechen") }
                             }
                         Row(
                             Modifier.fillMaxWidth(),
@@ -666,7 +733,7 @@ internal fun NativeSearchDialog(
                                         close,
                                         Modifier.semantics { contentDescription = "Abbrechen" },
                                     ) {
-                                        Text("×")
+                                        NativeCloseIcon()
                                     }
                                     if (compactControls)
                                         Text(count, style = MaterialTheme.typography.labelLarge)
@@ -751,7 +818,7 @@ internal fun NativeRecordDialog(
         error = error,
         onDismiss = onDismiss,
     ) { close ->
-        if (error.isNotBlank()) item { TextButton({ retry++ }) { Text("Erneut versuchen") } }
+        if (error.isNotBlank()) item { NativeTextButton({ retry++ }) { Text("Erneut versuchen") } }
         items(page?.rows ?: emptyList(), key = { it.id }) { row ->
             Column(
                 Modifier.fillMaxWidth()
@@ -776,17 +843,17 @@ internal fun NativeRecordDialog(
         if (offset > 0 || page?.hasMore == true)
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton({ offset = maxOf(0, offset - 30) }, enabled = offset > 0) {
+                    NativeTextButton({ offset = maxOf(0, offset - 30) }, enabled = offset > 0) {
                         Text("Vorherige")
                     }
-                    TextButton({ offset += 30 }, enabled = page?.hasMore == true) {
+                    NativeTextButton({ offset += 30 }, enabled = page?.hasMore == true) {
                         Text("Weitere")
                     }
                 }
             }
         if (allowEmpty)
             item {
-                TextButton(
+                NativeTextButton(
                     {
                         onChoose(null)
                         close()
@@ -850,7 +917,9 @@ internal fun NativeRecordPicker(
                     "Ausgewählter Eintrag nicht lesbar"
                 }
     }
-    OutlinedButton({ open = true }, Modifier.fillMaxWidth()) { Text("$label: $selectedLabel") }
+    NativeOutlinedButton({ open = true }, Modifier.fillMaxWidth()) {
+        Text("$label: $selectedLabel")
+    }
     NativeRecordDialog(
         open,
         controller,
@@ -881,7 +950,7 @@ private val nativeLabels =
         "equipment_id" to "Gerät",
         "material_id" to "Material",
         "care_plan_id" to "Pflegeplan",
-        "appointment_id" to "Termin",
+        "appointment_id" to "Einsatz",
         "worklog_id" to "Tätigkeit",
         "phone" to "Telefon",
         "email" to "E-Mail",
@@ -907,12 +976,10 @@ private val nativeLabels =
         "break_minutes" to "Pause in Minuten",
         "material" to "Material",
         "material_cost" to "Materialkosten",
-        "kilometers" to "Kilometer",
         "customer_visible" to "Für Kunden sichtbar",
         "allow_overnight" to "Arbeit über Mitternacht",
         "billed" to "Abgerechnet",
         "active" to "Aktiv",
-        "archived" to "Archiviert",
         "status" to "Status",
         "updates" to "Änderungen",
         "confirmed" to "Ich bestätige diese Aktion",
@@ -924,6 +991,30 @@ private val nativeLabels =
         "tax_mode" to "Steuerregelung",
         "invoice_issuer_confirmed" to "Ausstellerangaben für Angebote und Rechnungen bestätigt",
         "hourly_rate" to "Stundensatz (€)",
+        "billable" to "Abrechnen",
+        "electronic_invoice_consent" to "E-Rechnung",
+        "electronic_invoice_consent_date" to "Zustimmung vom",
+        "business_logo" to "Logo",
+        "business_name" to "Name",
+        "owner_name" to "Inhaber",
+        "business_street" to "Straße",
+        "business_postal_code" to "Postleitzahl",
+        "business_city" to "Ort",
+        "business_phone" to "Telefon",
+        "business_email" to "E-Mail",
+        "business_tax_number" to "Steuer-Nr.",
+        "business_iban" to "IBAN",
+        "business_bic" to "BIC",
+        "business_bank" to "Bank",
+        "business_legal_info" to "Rechtliche Angaben",
+        "business_vat_id" to "UID",
+        "default_payment_terms" to "Zahlungsziel",
+        "invoice_prefix" to "Nummernkreis",
+        "billing_interval" to "Abrechnungstakt",
+        "payment_terms" to "Zahlungsziel",
+        "payment_details" to "Zahlungsangaben",
+        "service_from" to "Leistung ab",
+        "service_to" to "Leistung bis",
         "invoice_date" to "Rechnungsdatum",
         "service_start" to "Leistungsbeginn",
         "service_end" to "Leistungsende",
@@ -984,6 +1075,9 @@ internal fun nativeValue(value: String): String =
         "after" to "Nachher",
         "damage" to "Schaden",
         "other" to "Sonstiges",
+        "minute" to "Minutengenau",
+        "tenth_hour" to "0,1 Std.",
+        "quarter_hour" to "15 Min.",
         "small_business" to "Kleinunternehmer",
         "standard" to "Umsatzsteuer",
         "direct" to "Kunde selbst",
@@ -1027,6 +1121,21 @@ private fun technical(key: String) =
                 "prerequisites",
                 "requirements",
                 "request_id",
+                "kilometers",
+                "archived",
+                "stock",
+                "stock_quantity",
+                "equipment_usage",
+                "local_state",
+                "sync_state",
+                "commit_state",
+                "scope",
+                "recoverable",
+                "physical_delete",
+                "media_cleanup",
+                "business_write_performed",
+                "replayed",
+                "idempotent",
             )
 
 /** Read-only business values, never a raw JSON editor or a binary payload dump. */
@@ -1052,10 +1161,6 @@ internal fun NativeBusinessValues(value: JSONObject, depth: Int = 0) {
                             }
                         else -> Text(item?.toString() ?: "")
                     }
-                    if (field.length() > 40)
-                        Text(
-                            "Weitere ${field.length() - 40} Einträge sind in der zugehörigen Liste verfügbar."
-                        )
                 }
             null,
             JSONObject.NULL -> Unit
@@ -1068,17 +1173,13 @@ internal fun NativeBusinessValues(value: JSONObject, depth: Int = 0) {
                                 if (field) "Ja" else "Nein"
                             } else
                                 when {
+                                    key == "business_logo" -> "Vorhanden"
                                     key.endsWith("_minor") ->
                                         financeMoney(
                                             field.toString().toBigDecimalOrNull()?.movePointLeft(2)
                                         )
-                                    key in
-                                        setOf(
-                                            "hours",
-                                            "quantity",
-                                            "quantity_decimal",
-                                            "kilometers",
-                                        ) -> nativeNumber(field)
+                                    key in setOf("hours", "quantity", "quantity_decimal") ->
+                                        nativeNumber(field)
                                     else -> nativeDisplayText(nativeValue(field.toString()))
                                 }
                     )
@@ -1246,8 +1347,6 @@ private fun NativeSchemaField(
                             obj.optString(key),
                             { change(JSONObject(obj.toString()).put(key, it)) },
                         )
-                        if (keys.isEmpty())
-                            Text("Hier sind keine zusätzlichen Angaben erforderlich.")
                     }
                 }
             }
@@ -1271,7 +1370,7 @@ private fun NativeSchemaField(
                         },
                         depth + 1,
                     )
-                    TextButton({
+                    NativeTextButton({
                         val copy = JSONArray()
                         for (i in 0 until array.length()) if (i != index) copy.put(array.get(i))
                         change(copy)
@@ -1280,7 +1379,7 @@ private fun NativeSchemaField(
                     }
                 }
             }
-            OutlinedButton({
+            NativeOutlinedButton({
                 change(
                     JSONArray(array.toString())
                         .put(if (item.optString("type") == "object") JSONObject() else "")
@@ -1290,16 +1389,21 @@ private fun NativeSchemaField(
             }
         }
         else -> {
-            val numeric = spec.optString("type") in listOf("number", "integer")
+            val fieldType = spec.optJSONArray("type")?.optString(0) ?: spec.optString("type")
+            val nullable =
+                spec.optJSONArray("type")?.let { types ->
+                    (0 until types.length()).any { types.optString(it) == "null" }
+                } == true
+            val numeric = fieldType in listOf("number", "integer")
             OutlinedTextField(
                 value?.takeUnless { it == JSONObject.NULL }?.toString() ?: "",
                 {
                     if (numeric && it.isNotBlank()) {
                         val parsed =
-                            if (spec.optString("type") == "integer") it.toLongOrNull()
-                            else it.replace(',', '.').toDoubleOrNull()
+                            if (fieldType == "integer") it.toLongOrNull()
+                            else it.replace(',', '.').toBigDecimalOrNull()
                         change(parsed ?: it)
-                    } else change(it)
+                    } else change(if (nullable && it.isBlank()) JSONObject.NULL else it)
                 },
                 Modifier.fillMaxWidth().semantics {
                     testTagsAsResourceId = true
@@ -1355,7 +1459,7 @@ internal fun NativeActionForm(
     onDone: (JSONObject) -> Unit = { controller.finishAction() },
 ) {
     val scope = rememberCoroutineScope()
-    if (tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records")) {
+    if (tool in setOf("delete_entity", "delete_work_records")) {
         val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
         var failure by remember(key) { mutableStateOf("") }
         var attempt by remember(key) { mutableIntStateOf(0) }
@@ -1623,6 +1727,7 @@ internal fun NativeActionForm(
                 controller.removeDraft(draftKey)
                 pending = null
                 controller.message("Änderung lokal gespeichert.")
+                if (tool == "start_work") controller.haptic()
                 onDone(result)
             }
         } catch (cancelled: CancellationException) {
@@ -1650,6 +1755,20 @@ internal fun NativeActionForm(
             busy = false
         }
     }
+    LaunchedEffect(tool, loaded, JSONObject(text).optString("customer_id")) {
+        if (tool == "start_work" && loaded && pending == null && !restored && !reviewNeeded) {
+            val values = JSONObject(text)
+            val customerId = values.optString("customer_id")
+            if (customerId.isNotBlank() && values.optString("property_id").isBlank()) {
+                val objects =
+                    controller.store
+                        .nativeData()
+                        .list("properties", customerId = customerId, limit = 2)
+                if (objects.total == 1)
+                    text = values.put("property_id", objects.rows.single().id).toString()
+            }
+        }
+    }
     var inspectionAttempt by remember { mutableIntStateOf(0) }
     val inspection =
         rememberNativePendingInspection(
@@ -1662,6 +1781,7 @@ internal fun NativeActionForm(
             controller.removeDraft(draftKey)
             pending = null
             controller.message("Änderung gespeichert.")
+            if (tool == "start_work") controller.haptic()
             onDone(proof.optJSONObject("result") ?: proof)
         }
     val currentSchema = spec?.optJSONObject("inputSchema")
@@ -1711,11 +1831,6 @@ internal fun NativeActionForm(
                     )
                 else emptyList(),
             )
-            if (tool == "set_accounting_record")
-                Text(
-                    "Der Abrechnungsweg gilt für den gesamten Auftrag einschließlich seiner Arbeitseinträge. Offen entfernt die Zuordnung. Rechnungsbeträge sind hier nicht bearbeitbar.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
             when {
                 pending != null ->
                     NativeStatus(
@@ -1734,14 +1849,12 @@ internal fun NativeActionForm(
                 busy -> NativeStatus("Wird geprüft …", NativeStatusTone.Running)
                 readOnly && response != null ->
                     NativeStatus("Prüfung abgeschlossen", NativeStatusTone.Confirmed)
-                !readOnly -> NativeStatus("Noch nicht gespeichert", NativeStatusTone.Neutral)
             }
             if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
             if (busy || orderLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (!loaded) {
-                if (error.isBlank()) Text("Aktion wird vorbereitet …")
-                else
-                    TextButton({
+                if (error.isNotBlank())
+                    NativeTextButton({
                         error = ""
                         prepareRevision++
                     }) {
@@ -1762,11 +1875,7 @@ internal fun NativeActionForm(
                 NativeBusinessValues(pending ?: args)
             }
             if ((restored || reviewNeeded) && pending == null) {
-                if (reviewNeeded)
-                    Text(
-                        "Der gespeicherte Stand hat sich geändert. Deine Eingaben bleiben erhalten. Vor erneutem Speichern den aktuellen Stand vergleichen und ausdrücklich übernehmen."
-                    )
-                OutlinedButton(
+                NativeOutlinedButton(
                     enabled = !busy && !orderLoading,
                     onClick = {
                         scope.launch {
@@ -1809,7 +1918,7 @@ internal fun NativeActionForm(
                             Modifier.weight(1f).padding(top = 12.dp),
                         )
                     }
-                    Button(
+                    NativeButton(
                         enabled = !busy && !orderLoading && comparisonAccepted,
                         onClick = {
                             scope.launch {
@@ -1928,7 +2037,7 @@ internal fun NativeActionForm(
                     }
                     mainFields.forEach { renderField(it) }
                     if (extraFields.isNotEmpty() || detailsContent != null) {
-                        TextButton({ optionalDetails = !optionalDetails }) {
+                        NativeTextButton({ optionalDetails = !optionalDetails }) {
                             Text(
                                 if (optionalDetails) "Weniger Angaben"
                                 else "Weitere Angaben (optional)"
@@ -1942,7 +2051,7 @@ internal fun NativeActionForm(
                 }
                 if (orderError.isNotEmpty()) {
                     Text(orderError, color = MaterialTheme.colorScheme.error)
-                    TextButton(
+                    NativeTextButton(
                         enabled = !busy && !orderLoading,
                         onClick = {
                             selectExistingOrder(JSONObject(text).optString("existing_order_id"))
@@ -1955,15 +2064,6 @@ internal fun NativeActionForm(
                     Text("Gelesener Auftrag", style = MaterialTheme.typography.titleMedium)
                     NativeBusinessValues(it.optJSONObject("data") ?: it)
                 }
-                if (
-                    !nativeProofsReady(schema, args) &&
-                        !orderLoading &&
-                        orderError.isEmpty() &&
-                        !reviewNeeded
-                )
-                    Text(
-                        "Der aktuelle Eintrag muss zuerst gelesen werden. Bitte den zugehörigen Eintrag öffnen oder die Auswahl erneut lesen."
-                    )
             }
             response
                 ?.takeIf { pending == null }
@@ -1985,124 +2085,6 @@ internal fun NativeActionForm(
             )
         else NativeActionBar("Zurück", onCancel, enabled = !busy)
     }
-}
-
-@Composable
-internal fun NativeActionMenu(
-    controller: NativeAppController,
-    area: String,
-    contextArgs: JSONObject = JSONObject(),
-) {
-    var show by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    // Read-only catalog entries ("lesen", "Liste") duplicate the screen itself; only changing
-    // actions are offered.
-    var writable by remember(area) { mutableStateOf<Set<String>?>(null) }
-    LaunchedEffect(area) {
-        writable =
-            NativeActionCatalog.forArea(area)
-                .flatMap { it.tools }
-                .filter { tool ->
-                    tool in
-                        setOf(
-                            "delete_entity",
-                            "purge_entity",
-                            "empty_trash",
-                            "delete_work_records",
-                        ) ||
-                        controller
-                            .spec(tool)
-                            ?.optJSONObject("annotations")
-                            ?.optBoolean("readOnlyHint", true) == false
-                }
-                .toSet()
-    }
-    val offered =
-        NativeActionCatalog.forArea(area).filter { action ->
-            action.tools.isNotEmpty() &&
-                !action.platformOnly &&
-                action.tools.any { !it.startsWith("preview_") && it in writable.orEmpty() }
-        }
-    if (offered.isEmpty()) return
-    OutlinedButton({ show = true }) { Text("Weitere Aktionen") }
-    if (show)
-        AlertDialog(
-            onDismissRequest = { show = false },
-            title = { Text("Aktionen") },
-            text = {
-                LazyColumn(Modifier.heightIn(max = 360.dp)) {
-                    items(offered, key = { it.id }) { action ->
-                        TextButton(
-                            {
-                                show = false
-                                val tool =
-                                    action.tools.firstOrNull {
-                                        it in
-                                            setOf(
-                                                "delete_entity",
-                                                "purge_entity",
-                                                "empty_trash",
-                                                "delete_work_records",
-                                            )
-                                    } ?: action.tools.first { it in writable.orEmpty() }
-                                if (
-                                    tool in
-                                        setOf(
-                                            "delete_entity",
-                                            "purge_entity",
-                                            "empty_trash",
-                                            "delete_work_records",
-                                        )
-                                ) {
-                                    scope.launch {
-                                        try {
-                                            controller.deleteDirect(tool, contextArgs)
-                                            controller.finishAction()
-                                            controller.message("Gelöscht.")
-                                        } catch (failure: Exception) {
-                                            controller.message(
-                                                nativeActionError(
-                                                    failure,
-                                                    "Löschen nicht bestätigt.",
-                                                )
-                                            )
-                                        }
-                                    }
-                                } else controller.action(action.label, tool, contextArgs)
-                            },
-                            Modifier.fillMaxWidth(),
-                            colors =
-                                if (
-                                    action.tools.any {
-                                        it in
-                                            setOf(
-                                                "delete_entity",
-                                                "purge_entity",
-                                                "empty_trash",
-                                                "delete_work_records",
-                                            )
-                                    }
-                                )
-                                    ButtonDefaults.textButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.error
-                                    )
-                                else ButtonDefaults.textButtonColors(),
-                        ) {
-                            Text(
-                                when {
-                                    "empty_trash" in action.tools -> "Papierkorb leeren"
-                                    "purge_entity" in action.tools -> "Endgültig löschen"
-                                    "delete_entity" in action.tools -> "Löschen"
-                                    "delete_work_records" in action.tools -> "Auswahl löschen"
-                                    else -> action.label
-                                }
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = { TextButton({ show = false }) { Text("Abbrechen") } },
-        )
 }
 
 internal fun <T> Flow<T>.nativeErrors(controller: NativeAppController): Flow<T> = catch { failure ->
@@ -2287,7 +2269,7 @@ internal suspend fun NativeAppController.deleteDirect(
     onPrepared: (JSONObject) -> Unit = {},
     onNotCommitted: () -> Unit = {},
 ): JSONObject {
-    require(tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records"))
+    require(tool in setOf("delete_entity", "delete_work_records"))
     val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
     val legacyKey = actionDraftKey(tool, initial)
     val legacy =
@@ -2309,7 +2291,6 @@ internal suspend fun NativeAppController.deleteDirect(
                 "delete_work_records" ->
                     legacy.optJSONArray("work_record_ids")?.toString() ==
                         initial.optJSONArray("work_record_ids")?.toString()
-                "empty_trash" -> true
                 else ->
                     legacy.optString("entity") == initial.optString("entity") &&
                         legacy.optString("entity_id") == initial.optString("entity_id")
@@ -2379,15 +2360,13 @@ internal fun NativeDeleteButton(
     id: String,
     modifier: Modifier = Modifier,
     label: String = "Löschen",
-    permanent: Boolean = false,
-    emptyTrash: Boolean = false,
     enabled: Boolean = true,
     scope: CoroutineScope = rememberCoroutineScope(),
     onDone: () -> Unit,
 ) {
     var busy by remember(entity, id) { mutableStateOf(false) }
-    val tool = if (emptyTrash) "empty_trash" else if (permanent) "purge_entity" else "delete_entity"
-    val initial = JSONObject().apply { if (!emptyTrash) put("entity", entity).put("entity_id", id) }
+    val tool = "delete_entity"
+    val initial = JSONObject().put("entity", entity).put("entity_id", id)
     val key = "delete:$tool:" + PixelMcpWriteTools.hash(initial)
     var pendingDelete by remember(key) { mutableStateOf<JSONObject?>(null) }
     var failure by remember(key) { mutableStateOf("") }
@@ -2424,7 +2403,7 @@ internal fun NativeDeleteButton(
     Column {
         if (pendingDelete != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
         else if (failure.isNotBlank()) NativeStatus(failure, NativeStatusTone.Attention)
-        OutlinedButton(
+        NativeOutlinedButton(
             modifier = modifier.heightIn(min = 48.dp),
             onClick = {
                 if (!busy && pendingDelete == null) {
@@ -2440,9 +2419,7 @@ internal fun NativeDeleteButton(
                             )
                             pendingDelete = null
                             onDone()
-                            controller.message(
-                                if (emptyTrash) "Papierkorb geleert." else "Gelöscht."
-                            )
+                            controller.message("Gelöscht.")
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (error: Exception) {

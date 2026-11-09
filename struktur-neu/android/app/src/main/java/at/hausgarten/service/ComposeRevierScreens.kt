@@ -15,11 +15,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -67,7 +71,6 @@ private val revierActionEditors =
         "maintenance_done",
         "maintenance_adjust",
         "movement",
-        "equipment_use",
     )
 
 private data class RevierPhrase(val id: String, val label: String, val text: String)
@@ -127,10 +130,7 @@ private val revierStates =
         "ready" to "Einsatzbereit",
         "maintenance" to "Wartung",
         "defective" to "Defekt",
-        "receive" to "Zugang",
         "consume" to "Verbrauch",
-        "adjust" to "Bestandskorrektur",
-        "reversal" to "Gegenbuchung",
         "active" to "Aktiv",
         "paused" to "Pausiert",
         "days" to "Tage",
@@ -206,32 +206,6 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
             RevierSearch(controller)
             return
         }
-        "archive",
-        "revier_archive" -> {
-            RevierArchive(controller)
-            return
-        }
-        "office" -> {
-            Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Text("Büro", style = MaterialTheme.typography.headlineSmall)
-                for ((route, label) in
-                    listOf(
-                        "inquiries" to "Anfragen",
-                        "offers" to "Angebote",
-                        "orders" to "Aufträge",
-                        "invoices" to "Rechnungen",
-                        "materials" to "Material",
-                        "equipment" to "Geräte",
-                        "revier_search" to "Lokale Suche",
-                    )) {
-                    NativeInfoRow(label, onClick = { controller.navigate(route) })
-                }
-            }
-            return
-        }
     }
     val config = revierSections.firstOrNull { it.collection == normalized } ?: return
     val scope = rememberCoroutineScope()
@@ -256,7 +230,7 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
                                 "property_id",
                                 "session_id",
                                 "visit_id",
-                                "reverses_movement_id",
+                                "worklog_id",
                             )
                             .joinToString(":") { context.optString(it) }
                 val editKey = context.optString("_draft_key").ifEmpty { computedKey }
@@ -349,8 +323,7 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
                         "maintenance_done",
                         "maintenance_plan",
                         "maintenance_adjust",
-                        "accessories",
-                        "equipment_use" -> "equipment"
+                        "accessories" -> "equipment"
                         else -> currentEdit.kind
                     }
                 val targetRecord =
@@ -420,12 +393,11 @@ private fun RevierList(
     var query by rememberSaveable(config.kind) { mutableStateOf("") }
     var status by
         rememberSaveable(config.kind) { mutableStateOf(controller.route.args.optString("status")) }
-    var archived by rememberSaveable(config.kind) { mutableStateOf(false) }
     var offset by rememberSaveable(config.kind) { mutableIntStateOf(0) }
     var failure by remember { mutableStateOf("") }
     var retry by remember { mutableIntStateOf(0) }
     val source =
-        remember(config.collection, query, status, archived, offset, retry) {
+        remember(config.collection, query, status, offset, retry) {
             repository
                 .watchList(
                     config.collection,
@@ -433,7 +405,7 @@ private fun RevierList(
                     status = status,
                     offset = offset,
                     limit = 50,
-                    includeInactive = archived,
+                    includeInactive = false,
                     customerId = controller.route.args.optString("customer_id"),
                     propertyId = controller.route.args.optString("property_id"),
                     orderId = controller.route.args.optString("order_id"),
@@ -463,9 +435,7 @@ private fun RevierList(
             offset = 0
         },
         if (listLoading) "Wird geladen …"
-        else
-            "${page.total} Treffer" +
-                if (status.isNotBlank() || archived) " · Filter aktiv" else "",
+        else "${page.total} Treffer" + if (status.isNotBlank()) " · Filter aktiv" else "",
         onFilters = { filtersOpen = !filtersOpen },
         onFocus = { filtersOpen = false },
     ) {
@@ -512,30 +482,15 @@ private fun RevierList(
                                 status = it
                                 offset = 0
                             }
-                        Row(Modifier.fillMaxWidth()) {
-                            Checkbox(
-                                archived,
-                                {
-                                    archived = it
-                                    offset = 0
-                                },
-                            )
-                            Text(
-                                "Archivierte / inaktive einschließen",
-                                Modifier.padding(top = 12.dp),
-                            )
-                        }
                         Text(
                             "${page.total} Treffer" +
-                                if (query.isNotBlank() || status.isNotBlank() || archived)
-                                    " · Filter aktiv"
+                                if (query.isNotBlank() || status.isNotBlank()) " · Filter aktiv"
                                 else ""
                         )
-                        if (query.isNotBlank() || status.isNotBlank() || archived)
-                            TextButton({
+                        if (query.isNotBlank() || status.isNotBlank())
+                            NativeTextButton({
                                 query = ""
                                 status = ""
-                                archived = false
                                 offset = 0
                             }) {
                                 Text("Filter zurücksetzen")
@@ -546,7 +501,7 @@ private fun RevierList(
                 item {
                     Column {
                         Text(failure, color = MaterialTheme.colorScheme.error)
-                        TextButton({
+                        NativeTextButton({
                             failure = ""
                             retry++
                         }) {
@@ -565,7 +520,7 @@ private fun RevierList(
                             "inquiry" -> "Anfragen halten die Wünsche deiner Kunden fest."
                             "care_plan" ->
                                 "Pflegepläne merken die regelmäßigen Arbeiten am Objekt vor."
-                            "material" -> "Material erfasst deinen Bestand und seinen Verbrauch."
+                            "material" -> "Material hält die verwendeten Produkte und Preise fest."
                             else -> "Geräte halten Ausstattung und Wartung fest."
                         },
                         Modifier.padding(12.dp),
@@ -583,45 +538,68 @@ private fun RevierList(
                             "Erledigt"
                         else "",
                 ) {
-                    ListItem(
-                        headlineContent = { Text(row.title) },
-                        supportingContent = {
-                            Column {
-                                if (row.subtitle.isNotBlank()) Text(nativeDisplayText(row.subtitle))
-                                if (row.address.isNotBlank()) Text(row.address)
-                                if (row.status.isNotBlank())
-                                    NativeStatus(
-                                        revierLabel(row.status),
-                                        if (row.status == "defective") NativeStatusTone.Attention
-                                        else NativeStatusTone.Neutral,
-                                    )
-                                if (!row.active) Text("Archiviert / inaktiv")
-                            }
-                        },
-                        leadingContent =
-                            if (row.thumbnailReference.isNotBlank())
-                                ({ RevierEquipmentThumbnail(row.thumbnailReference, controller) })
-                            else null,
-                        modifier =
+                    Surface(color = MaterialTheme.colorScheme.surface) {
+                        Row(
                             Modifier.fillMaxWidth()
+                                .heightIn(min = 42.dp)
                                 .semantics {
                                     testTag = UiTags.recordChoice(config.collection, row.id)
                                 }
-                                .clickable { onSelect(row.id) },
-                    )
+                                .clickable { onSelect(row.id) }
+                                .padding(horizontal = 12.dp, vertical = 3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (row.thumbnailReference.isNotBlank())
+                                RevierEquipmentThumbnail(row.thumbnailReference, controller)
+                            else NativeInitials(row.title, 30.dp)
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    row.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                val subtitle =
+                                    listOf(row.subtitle, row.address)
+                                        .filter { it.isNotBlank() }
+                                        .joinToString(" · ")
+                                if (subtitle.isNotBlank())
+                                    Text(
+                                        nativeDisplayText(subtitle),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                            }
+                            if (row.status.isNotBlank())
+                                NativeStatus(
+                                    revierLabel(row.status),
+                                    when (row.status) {
+                                        "completed" -> NativeStatusTone.Confirmed
+                                        "defective",
+                                        "maintenance",
+                                        "new" -> NativeStatusTone.Due
+                                        else -> NativeStatusTone.Neutral
+                                    },
+                                )
+                        }
+                    }
                     HorizontalDivider()
                 }
             }
             if (offset > 0 || page.hasMore)
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        TextButton(
+                        NativeTextButton(
                             { offset = (offset - 50).coerceAtLeast(0) },
                             enabled = offset > 0,
                         ) {
                             Text("Vorherige")
                         }
-                        TextButton({ offset += 50 }, enabled = page.hasMore) { Text("Weitere") }
+                        NativeTextButton({ offset += 50 }, enabled = page.hasMore) {
+                            Text("Weitere")
+                        }
                     }
                 }
         }
@@ -668,8 +646,7 @@ internal class RevierEdit(
         fun create(key: String, kind: String, row: JSONObject?, context: JSONObject): RevierEdit {
             val values = row?.revierCopy() ?: JSONObject()
             for (field in context.keys()) values.put(field, context.get(field))
-            if (kind in listOf("movement", "equipment_use"))
-                values.put("_resource_fixed", row != null)
+            if (kind == "movement") values.put("_resource_fixed", row != null)
             val plan = values.optJSONObject("plan")
             if (kind == "maintenance_plan" && plan != null)
                 for (field in listOf("title", "interval_value", "interval_unit")) values.put(
@@ -775,7 +752,9 @@ private fun RevierDetail(
     var data by remember(id) { mutableStateOf<JSONObject?>(null) }
     var failure by remember(id) { mutableStateOf("") }
     var loadFailure by remember(id) { mutableStateOf("") }
-    var archiveMode by remember { mutableStateOf("") }
+    var deleting by remember { mutableStateOf(false) }
+    var editingField by remember(id) { mutableStateOf<Pair<String, String>?>(null) }
+    var adding by remember { mutableStateOf(false) }
     var maintenancePicker by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -805,11 +784,11 @@ private fun RevierDetail(
     val row = data?.optJSONObject("record")
     if (row == null) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            TextButton(onBack) { Text("Zurück") }
+            NativeTextButton(onBack) { Text("Zurück") }
             if (loadFailure.isEmpty()) CircularProgressIndicator()
             else {
                 Text(loadFailure, color = MaterialTheme.colorScheme.error)
-                OutlinedButton(onRefresh) { Text("Erneut lesen") }
+                NativeOutlinedButton(onRefresh) { Text("Erneut lesen") }
             }
         }
         return
@@ -866,6 +845,7 @@ private fun RevierDetail(
                     controller.query("start_work", args)
                 }
                 runCatching { controller.removeDraft(key) }
+                if (saved == null) controller.haptic()
                 controller.navigate("today")
                 controller.message("Arbeitsstart lokal bestätigt. Aktuelle Sitzung prüfen.")
             } catch (cancelled: CancellationException) {
@@ -882,7 +862,7 @@ private fun RevierDetail(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            TextButton(onBack) { Text("Zur Liste") }
+            NativeTextButton(onBack) { Text("Zur Liste") }
             NativeDetailHeading(
                 row.optString("name", row.optString("title", config.singular)),
                 if (config.kind == "visit")
@@ -917,26 +897,29 @@ private fun RevierDetail(
                                 },
                             )
                         else null,
-                        NativeDetailAction(
-                            "visit-archive",
-                            if (row.optBoolean("archived")) "Archivierung aufheben"
-                            else "Archivieren",
-                            run = {
-                                archiveMode =
-                                    if (row.optBoolean("archived")) "restore" else "archive"
-                            },
-                        ),
                     )
                 else emptyList(),
+                onTitleClick = {
+                    editingField =
+                        (if (config.kind in setOf("equipment", "material")) "name" else "title") to
+                            config.singular
+                },
             )
-            if (row.optBoolean("archived")) NativeStatus("Archiviert")
             val state = row.optString(if (config.kind == "equipment") "condition" else "status")
             if (state.isNotEmpty())
-                NativeStatus(
-                    revierLabel(state),
-                    if (state == "defective") NativeStatusTone.Attention
-                    else NativeStatusTone.Neutral,
-                )
+                Box(
+                    Modifier.clickable {
+                        editingField =
+                            (if (config.kind == "equipment") "condition" else "status") to "Status"
+                    }
+                ) {
+                    NativeStatus(
+                        revierLabel(state),
+                        if (state in setOf("defective", "maintenance", "new")) NativeStatusTone.Due
+                        else if (state == "completed") NativeStatusTone.Confirmed
+                        else NativeStatusTone.Neutral,
+                    )
+                }
             NativeContext(controller, row, heading = true)
             val detailKeys =
                 when (config.kind) {
@@ -975,24 +958,48 @@ private fun RevierDetail(
                             "planned_minutes",
                             "remaining_minutes",
                             "notes",
-                            "status_reason",
                         )
-                    "material" -> listOf("notes")
+                    "material" ->
+                        listOf("unit", "purchase_price_minor", "billing_price_minor", "notes")
+                    "equipment" -> listOf("condition", "maintenance_due", "notes")
                     else -> emptyList()
                 }
             NativeGroup("Angaben") {
                 for (key in detailKeys) if (row.revierString(key).isNotEmpty())
                     NativeKeyValue(
                         revierDetailLabels[key] ?: nativeLabel(key),
-                        nativeDisplayText(row.revierString(key)),
+                        when {
+                            key.endsWith("_price_minor") ->
+                                OfferMoney.decimal(row.getLong(key)).replace('.', ',') + " €"
+                            key == "condition" -> revierLabel(row.getString(key))
+                            else -> nativeDisplayText(row.revierString(key))
+                        },
                     ) {
-                        onEdit(config.kind, row, JSONObject())
+                        editingField = key to (revierDetailLabels[key] ?: nativeLabel(key))
                     }
             }
-            NativeAddDetails(
-                detailKeys.filter { row.revierString(it).isBlank() },
-                onEdit = { onEdit(config.kind, row, JSONObject()) },
-            )
+            val missing = detailKeys.filter { row.revierString(it).isBlank() }
+            if (missing.isNotEmpty())
+                Box {
+                    NativeTextButton({ adding = true }) { Text("Ergänzen") }
+                    DropdownMenu(adding, { adding = false }) {
+                        for (field in missing) DropdownMenuItem(
+                            text = { Text(revierDetailLabels[field] ?: nativeLabel(field)) },
+                            onClick = {
+                                adding = false
+                                editingField =
+                                    field to (revierDetailLabels[field] ?: nativeLabel(field))
+                            },
+                        )
+                    }
+                }
+            if (config.kind in setOf("visit", "care_plan"))
+                NativeKeyValue(
+                    "Benötigte Geräte",
+                    "${row.optJSONArray("equipment_ids")?.length() ?: 0}",
+                ) {
+                    editingField = "equipment_ids" to "Benötigte Geräte"
+                }
             when (config.kind) {
                 "inquiry" -> {
                     if (row.optString("order_id").isEmpty())
@@ -1007,7 +1014,7 @@ private fun RevierDetail(
                         else "Besichtigung ändern oder ergänzen",
                         onClick = { onEdit("inspection", row, JSONObject()) },
                     )
-                    OutlinedButton({
+                    NativeOutlinedButton({
                         controller.navigate(
                             "offers",
                             "",
@@ -1064,55 +1071,10 @@ private fun RevierDetail(
                 }
                 "material" -> {
                     NativeInfoRow(
-                        "Bestand",
-                        "${nativeNumber(row.optString("stock_decimal"))} ${row.optString("unit")} vorhanden",
-                    )
-                    NativeInfoRow(
                         "Verbrauch erfassen",
-                        "Menge und Zuordnung vor der Buchung prüfen",
-                        {
-                            onEdit(
-                                "movement",
-                                row,
-                                JSONObject()
-                                    .put("material_id", id)
-                                    .put("movement_kind", "consume")
-                                    .put("_movement_fixed", true),
-                            )
-                        },
+                        onClick = { onEdit("movement", row, JSONObject().put("material_id", id)) },
                     )
-                    NativeInfoRow(
-                        "Bestand ändern",
-                        "Zugang oder Bestandskorrektur bewusst buchen",
-                        {
-                            onEdit(
-                                "movement",
-                                row,
-                                JSONObject().put("material_id", id).put("movement_kind", "receive"),
-                            )
-                        },
-                    )
-                    RevierHistory(
-                        controller,
-                        repository,
-                        "material_movements",
-                        "material_id",
-                        id,
-                    ) { movement ->
-                        if (movement.optString("movement_kind") != "reversal")
-                            TextButton({
-                                onEdit(
-                                    "movement",
-                                    row,
-                                    JSONObject()
-                                        .put("material_id", id)
-                                        .put("reverses_movement_id", movement.getString("id"))
-                                        .put("movement_kind", "reversal"),
-                                )
-                            }) {
-                                Text("Gegenbuchung")
-                            }
-                    }
+                    RevierHistory(controller, repository, "material_movements", "material_id", id)
                 }
                 "equipment" -> {
                     TabRow(equipmentTab) {
@@ -1121,6 +1083,12 @@ private fun RevierDetail(
                     }
                     if (equipmentTab == 0) {
                         RevierProfilePhoto(row.optJSONObject("profile_photo"), controller)
+                        NativeInfoRow(
+                            "Gerätefoto",
+                            onClick = {
+                                onEdit("equipment", row, JSONObject().put("_photo_only", true))
+                            },
+                        )
                         if (row.optString("condition") == "defective")
                             Text(
                                 "Dieses Gerät ist als defekt markiert. Vor dem Einsatz prüfen.",
@@ -1136,20 +1104,7 @@ private fun RevierDetail(
                                 ?: "Keine Kette festgelegt",
                             { onEquipmentTab(1) },
                         )
-                        if (row.optString("notes").isNotBlank())
-                            NativeInfoRow("Notizen", row.optString("notes"))
-                        if (row.optString("maintenance_due").isNotBlank())
-                            NativeInfoRow(
-                                "Zusätzlich vorgemerkte Wartung",
-                                nativeDisplayDate(row.optString("maintenance_due")),
-                            )
-                        NativeInfoRow(
-                            "Nutzung zuordnen",
-                            "Objekt oder laufende Arbeit auswählen",
-                            { onEdit("equipment_use", row, JSONObject().put("equipment_id", id)) },
-                        )
                         RevierMaintenance(controller, row, refresh, onEdit)
-                        RevierHistory(controller, repository, "equipment_usage", "equipment_id", id)
                     } else {
                         Text(
                             "Zubehör für " + row.getString("name"),
@@ -1215,7 +1170,7 @@ private fun RevierDetail(
                                         "Foto von $name",
                                     )
                                     if (!row.optBoolean("archived"))
-                                        OutlinedButton(
+                                        NativeOutlinedButton(
                                             {
                                                 onEdit(
                                                     "accessories",
@@ -1227,7 +1182,7 @@ private fun RevierDetail(
                                                         ),
                                                 )
                                             },
-                                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                            modifier = Modifier.heightIn(min = 48.dp),
                                         ) {
                                             Text(
                                                 if (accessory.optJSONObject("photo") == null)
@@ -1240,7 +1195,7 @@ private fun RevierDetail(
                                             accessory.optString(it).isNotBlank()
                                         }
                                     if (details.isNotEmpty()) {
-                                        TextButton(
+                                        NativeTextButton(
                                             { open = !open },
                                             modifier = Modifier.heightIn(min = 48.dp),
                                         ) {
@@ -1283,58 +1238,61 @@ private fun RevierDetail(
             )
             if (loadFailure.isNotEmpty()) {
                 Text(loadFailure, color = MaterialTheme.colorScheme.error)
-                TextButton(onRefresh) { Text("Erneut lesen") }
+                NativeTextButton(onRefresh) { Text("Erneut lesen") }
             }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
-            NativeDetailDelete(enabled = !busy) { archiveMode = "purge" }
-        }
-        NativeActionBar(
-            primaryLabel =
-                when {
-                    config.kind == "visit" && canStartVisit -> "Arbeit starten"
-                    config.kind == "visit" -> "Bearbeiten"
-                    row.optBoolean("archived") -> "Löschen"
-                    config.kind == "equipment" ->
-                        if (equipmentTab == 0) "Wartung erfassen"
-                        else if (
-                            row.optJSONArray("accessories")?.length() == 0 ||
-                                row.optJSONArray("accessories") == null
-                        )
-                            "Zubehör hinzufügen"
-                        else "Zubehör bearbeiten"
-                    else -> "Bearbeiten"
-                },
-            onPrimary = {
-                when {
-                    config.kind == "visit" && canStartVisit -> startVisit()
-                    config.kind == "visit" -> onEdit("visit", row, JSONObject())
-                    row.optBoolean("archived") -> {
-                        archiveMode = "purge"
+            NativeDetailDelete(enabled = !busy && !deleting) {
+                deleting = true
+                scope.launch {
+                    try {
+                        controller.queueSwipe(config.kind, id, false)
+                        onBack()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        failure = error.message.orEmpty()
+                    } finally {
+                        deleting = false
                     }
-                    config.kind == "equipment" && equipmentTab == 0 -> {
-                        maintenancePicker = true
-                    }
-                    config.kind == "equipment" -> onEdit("accessories", row, JSONObject())
-                    else -> onEdit(config.kind, row, JSONObject())
                 }
-            },
-            secondaryLabel =
-                if (
-                    config.kind == "visit" && canStartVisit ||
-                        config.kind == "equipment" && !row.optBoolean("archived")
+            }
+        }
+        when {
+            config.kind == "visit" && canStartVisit ->
+                NativeActionBar("Arbeit starten", ::startVisit, enabled = !busy)
+            config.kind == "equipment" ->
+                NativeActionBar(
+                    if (equipmentTab == 0) "Wartung erfassen" else "Zubehör hinzufügen",
+                    {
+                        if (equipmentTab == 0) maintenancePicker = true
+                        else onEdit("accessories", row, JSONObject())
+                    },
+                    enabled = !busy,
                 )
-                    "Bearbeiten"
-                else "Zurück",
-            onSecondary = {
-                if (
-                    config.kind == "visit" && canStartVisit ||
-                        config.kind == "equipment" && !row.optBoolean("archived")
+            config.kind == "inquiry" && row.optString("order_id").isBlank() ->
+                NativeActionBar(
+                    "Annehmen",
+                    { onEdit("direct_acceptance", row, JSONObject()) },
+                    enabled = !busy,
                 )
-                    onEdit(config.kind, row, JSONObject())
-                else onBack()
-            },
-            enabled = !busy,
-        )
+            config.kind == "care_plan" ->
+                NativeActionBar(
+                    "Einsätze planen",
+                    { onEdit("generate", row, JSONObject()) },
+                    enabled = !busy,
+                )
+            config.kind == "material" ->
+                NativeActionBar(
+                    "Verbrauch erfassen",
+                    { onEdit("movement", row, JSONObject().put("material_id", id)) },
+                    enabled = !busy,
+                )
+        }
+    }
+    editingField?.let { (field, label) ->
+        NativeRevierValueSheet(controller, config.kind, row, field, label, onRefresh) {
+            editingField = null
+        }
     }
     if (maintenancePicker)
         AlertDialog(
@@ -1370,73 +1328,8 @@ private fun RevierDetail(
                     )
                 }
             },
-            confirmButton = { TextButton({ maintenancePicker = false }) { Text("Zurück") } },
+            confirmButton = { NativeTextButton({ maintenancePicker = false }) { Text("Zurück") } },
         )
-    LaunchedEffect(archiveMode) {
-        if (archiveMode.isNotEmpty() && !busy) {
-            busy = true
-            scope.launch {
-                try {
-                    val tool =
-                        if (archiveMode == "purge") "purge_revier_entity" else "set_revier_archived"
-                    val key = "revier:$tool:$id:$archiveMode"
-                    val old = controller.draft(key)
-                    val args =
-                        old?.optJSONObject("args")
-                            ?: JSONObject()
-                                .put("request_id", revierRequest())
-                                .put("entity", config.kind)
-                                .put("entity_id", id)
-                                .put("expected_record_hash", row.getString("record_hash"))
-                                .put("confirmed", true)
-                                .apply {
-                                    if (tool == "set_revier_archived")
-                                        put("archived", archiveMode == "archive")
-                                }
-                    try {
-                        val proof =
-                            if (old != null)
-                                controller.query(
-                                    "inspect_edit_action",
-                                    JSONObject()
-                                        .put("original_tool", tool)
-                                        .put("original_args", args),
-                                )
-                            else null
-                        if (proof?.optString("state") == "content_removed")
-                            error("Dieser Vorgang wurde endgültig entfernt. Keine erneute Anlage.")
-                        if (old != null && proof?.optString("state") != "confirmed")
-                            error(
-                                "Der ursprüngliche Vorgang ist noch nicht bestätigt. Angaben und Kennung bleiben erhalten; keine Aktion wiederholt."
-                            )
-                        if (old == null) {
-                            controller.saveDraft(key, JSONObject().put("args", args))
-                            controller.flushDrafts()
-                            controller.query(tool, args)
-                        }
-                        runCatching { controller.removeDraft(key) }
-                    } catch (error: NativeCallFailure) {
-                        if (
-                            old == null && error.detail.optString("commit_state") == "not_committed"
-                        ) {
-                            controller.removeDraft(key)
-                            onRefresh()
-                        }
-                        throw error
-                    }
-                    archiveMode = ""
-                    if (tool == "purge_revier_entity") onBack() else onRefresh()
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (error: Exception) {
-                    failure = error.message.orEmpty()
-                    archiveMode = ""
-                } finally {
-                    busy = false
-                }
-            }
-        }
-    }
 }
 
 private val revierDetailLabels =
@@ -1461,8 +1354,9 @@ private val revierDetailLabels =
         "interval_days" to "Turnus in Tagen",
         "season_start" to "Saisonbeginn",
         "season_end" to "Saisonende",
+        "purchase_price_minor" to "Einstandspreis",
+        "billing_price_minor" to "Abrechnungspreis",
         "unit" to "Einheit",
-        "stock_decimal" to "Bestand",
         "condition" to "Gerätezustand",
         "maintenance_due" to "Zusätzlich vorgemerkte Wartung",
         "notes" to "Notizen",
@@ -1494,9 +1388,9 @@ private fun RevierEquipmentThumbnail(reference: String, controller: NativeAppCon
             source,
             "Gerätefoto",
             imageLoader = controller.imageLoader,
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(32.dp),
         )
-    else Text("Vorschau fehlt", Modifier.size(56.dp), style = MaterialTheme.typography.bodySmall)
+    else NativeInitials("Gerät", 30.dp)
 }
 
 @Composable
@@ -1561,9 +1455,9 @@ private fun RevierProfilePhoto(
                         imageLoader = controller.imageLoader,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                     )
-                    OutlinedButton(
+                    NativeOutlinedButton(
                         { enlarged = false },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        modifier = Modifier.heightIn(min = 48.dp),
                     ) {
                         Text("Schließen")
                     }
@@ -1593,7 +1487,7 @@ private fun RevierHistory(
     val records by source.collectAsStateWithLifecycle(emptyList())
     if (failure.isNotEmpty()) {
         Text(failure, color = MaterialTheme.colorScheme.error)
-        TextButton({
+        NativeTextButton({
             failure = ""
             retry++
         }) {
@@ -1601,12 +1495,8 @@ private fun RevierHistory(
         }
     }
     val hasMore = records.size == 20
-    if (records.isNotEmpty())
-        Text(
-            if (collection == "material_movements") "Bestandsbewegungen" else "Nutzungen",
-            style = MaterialTheme.typography.titleMedium,
-        )
-    for (record in records) {
+    if (records.isNotEmpty()) Text("Verbrauch", style = MaterialTheme.typography.titleMedium)
+    for (record in records.filter { it.optString("movement_kind") == "consume" }) {
         NativeInfoRow(
             listOf(
                     revierLabel(record.optString("movement_kind")),
@@ -1614,7 +1504,7 @@ private fun RevierHistory(
                 )
                 .filter { it.isNotBlank() }
                 .joinToString(" · ")
-                .ifBlank { "Nutzung" },
+                .ifBlank { "Verbrauch" },
             listOf(
                     nativeDisplayDate(record.optString("created_at")),
                     record.optString("reason", record.optString("notes")),
@@ -1626,10 +1516,10 @@ private fun RevierHistory(
     }
     if (offset > 0 || hasMore)
         Row {
-            TextButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) {
+            NativeTextButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) {
                 Text("Vorherige")
             }
-            TextButton({ offset += 20 }, enabled = hasMore) { Text("Weitere") }
+            NativeTextButton({ offset += 20 }, enabled = hasMore) { Text("Weitere") }
         }
 }
 
@@ -1689,7 +1579,7 @@ private fun RevierMaintenance(
                 nativeDisplayDate(plan.optString("last_completed_on")),
             )
         var detailsOpen by remember(plan.optString("id")) { mutableStateOf(false) }
-        TextButton({ detailsOpen = !detailsOpen }) {
+        NativeTextButton({ detailsOpen = !detailsOpen }) {
             Text(if (detailsOpen) "Intervall schließen" else "Intervall ansehen und ändern")
         }
         if (detailsOpen) {
@@ -1700,7 +1590,7 @@ private fun RevierMaintenance(
                 Text(plan.optString("last_change_reason"))
             if (active) {
                 NativeInfoRow(
-                    "Intervall bearbeiten",
+                    "Intervall ändern",
                     onClick = { onEdit("maintenance_plan", row, context) },
                 )
                 NativeInfoRow(
@@ -1736,10 +1626,10 @@ private fun RevierMaintenance(
         )
     }
     Row {
-        TextButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) {
+        NativeTextButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) {
             Text("Vorherige")
         }
-        TextButton(
+        NativeTextButton(
             { offset += 20 },
             enabled =
                 offset + (result?.optJSONArray("items")?.length() ?: 0) <
@@ -1825,32 +1715,19 @@ private fun RevierEditor(
         }
     }
     LaunchedEffect(edit.key, values.optString("material_id"), values.optString("equipment_id")) {
-        if (
-            edit.kind in listOf("movement", "equipment_use") &&
-                edit.pending == null &&
-                !edit.restored
-        ) {
-            val field = if (edit.kind == "movement") "material_id" else "equipment_id"
+        if (edit.kind == "movement" && edit.pending == null && !edit.restored) {
+            val field = "material_id"
             val sourceId = values.optString(field, edit.original.optString("id"))
             if (sourceId.isNotEmpty())
                 try {
-                    val source =
-                        repository.detail(
-                            if (edit.kind == "movement") "materials" else "equipment",
-                            sourceId,
-                        )
+                    val source = repository.detail("materials", sourceId)
                     if (source != null) {
                         edit.observedHash = withContext(Dispatchers.IO) { RevierRules.hash(source) }
                         for (key in source.keys()) edit.original.put(key, source.get(key))
                         edit.values =
                             edit
                                 .row()
-                                .put(
-                                    if (edit.kind == "movement") "material_name"
-                                    else "equipment_name",
-                                    source.optString("name"),
-                                )
-                                .put("stock_decimal", source.optString("stock_decimal"))
+                                .put("material_name", source.optString("name"))
                                 .put("unit", source.optString("unit"))
                                 .toString()
                     }
@@ -1924,24 +1801,6 @@ private fun RevierEditor(
                             .filter { it.isNotBlank() }
                             .joinToString(" · "),
                     )
-                    val stock =
-                        result.optString(
-                            "stock_decimal",
-                            material?.optString("stock_decimal").orEmpty(),
-                        )
-                    if (stock.isNotBlank())
-                        NativeInfoRow(
-                            "Verbleibender Bestand",
-                            nativeNumber(stock) +
-                                " " +
-                                material?.optString("unit").orEmpty().ifBlank {
-                                    values.optString("unit")
-                                },
-                        )
-                    if (values.optString("session_id").isNotBlank())
-                        Text(
-                            "Der Verbrauch gehört zur bisherigen Arbeit. Der Timer läuft unverändert weiter."
-                        )
                 } else {
                     val event = result.optJSONObject("maintenance")
                     NativeInfoRow(
@@ -1961,9 +1820,6 @@ private fun RevierEditor(
                     val note =
                         event?.optString("notes").orEmpty().ifBlank { values.optString("notes") }
                     if (note.isNotBlank()) NativeInfoRow("Notiz", note)
-                    Text(
-                        "Diese Wartungsaufgabe ist erfasst. Weitere Wartungseinträge bleiben erhalten."
-                    )
                 }
             }
             NativeActionBar(
@@ -1980,14 +1836,7 @@ private fun RevierEditor(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                if (edit.kind == "movement")
-                    when (values.optString("movement_kind", "consume")) {
-                        "consume" -> "Verbrauch erfassen"
-                        "receive" -> "Zugang erfassen"
-                        "adjust" -> "Bestand korrigieren"
-                        else -> "Gegenbuchung"
-                    }
-                else revierEditorTitle(edit.kind),
+                if (edit.kind == "movement") "Verbrauch erfassen" else revierEditorTitle(edit.kind),
                 style = MaterialTheme.typography.headlineSmall,
             )
             NativeStatus(
@@ -2004,20 +1853,19 @@ private fun RevierEditor(
             if (edit.restored) NativeRestoreBanner()
             RevierFields(edit, values, controller, !locked, ::update)
             if (edit.dirty && edit.pending == null)
-                TextButton({ confirmDiscard = true }, enabled = !busy && !edit.mediaBusy) {
+                NativeTextButton({ confirmDiscard = true }, enabled = !busy && !edit.mediaBusy) {
                     Text("Entwurf verwerfen")
                 }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
             if ((conflict || edit.restored) && edit.pending == null)
-                OutlinedButton(
+                NativeOutlinedButton(
                     {
                         scope.launch {
                             try {
                                 val collection =
                                     when {
                                         edit.kind.startsWith("maintenance_") ||
-                                            edit.kind in listOf("equipment_use", "accessories") ->
-                                            "equipment"
+                                            edit.kind == "accessories" -> "equipment"
                                         edit.kind in listOf("inspection", "direct_acceptance") ->
                                             "inquiries"
                                         edit.kind == "generate" -> "care_plans"
@@ -2058,13 +1906,7 @@ private fun RevierEditor(
                         edit.mediaBusy -> "Foto wird geladen …"
                         busy && equipmentPhotoEditor -> "Bitte warten …"
                         edit.pending != null -> "Ergebnis prüfen"
-                        edit.kind == "movement" ->
-                            when (values.optString("movement_kind", "consume")) {
-                                "consume" -> "Verbrauch buchen"
-                                "receive" -> "Zugang buchen"
-                                "adjust" -> "Korrektur buchen"
-                                else -> "Gegenbuchung buchen"
-                            }
+                        edit.kind == "movement" -> "Verbrauch speichern"
                         edit.kind == "maintenance_done" -> "Wartung speichern"
                         else -> "Speichern"
                     },
@@ -2283,9 +2125,11 @@ private fun RevierEditor(
                     }
                 }
             },
-            dismissButton = { TextButton({ comparison = null }) { Text("Zurück zum Entwurf") } },
+            dismissButton = {
+                NativeTextButton({ comparison = null }) { Text("Zurück zum Entwurf") }
+            },
             confirmButton = {
-                Button(
+                NativeButton(
                     {
                         busy = true
                         scope.launch {
@@ -2382,9 +2226,8 @@ private fun revierEditorTitle(kind: String): String =
         "equipment" -> "Gerät"
         "inspection" -> "Besichtigung planen"
         "direct_acceptance" -> "Direkte Auftragsannahme"
-        "generate" -> "Besuche erzeugen"
-        "movement" -> "Materialbewegung"
-        "equipment_use" -> "Gerätenutzung"
+        "generate" -> "Einsätze planen"
+        "movement" -> "Verbrauch"
         "maintenance_plan" -> "Wartungsintervall"
         "maintenance_done" -> "Wartung erfassen"
         "maintenance_adjust" -> "Früher warten"
@@ -2614,12 +2457,9 @@ private fun RevierFields(
                 )
                 field("reason", "Grund für Änderung / Absage", true, true)
                 field("remaining_minutes", "Offener Rest in Minuten")
-                if (text("care_plan_id").isNotEmpty())
-                    Text("Nur dieser Termin wird geändert. Die Pflegeplanregel bleibt erhalten.")
             }
         }
         "direct_acceptance" -> {
-            Text("Die bestätigte direkte oder mündliche Annahme erzeugt einen Auftrag.")
             field("accepted_local", "Tatsächlicher Annahmezeitpunkt · JJJJ-MM-TTTHH:mm", true)
             field("evidence", "Annahmenachweis", true, true)
             relation("billing_customer_id", "customers", "Rechnungsempfänger")
@@ -2646,12 +2486,8 @@ private fun RevierFields(
             field("starts_local", "Beginn · JJJJ-MM-TTTHH:mm", true)
             field("duration_minutes", "Dauer in Minuten", true)
             field("notes", "Besichtigungsnotizen / Messwerte", multiline = true)
-            Text(
-                "Bekannte Konflikte werden geprüft. Ein unbekannter externer Kalenderstand bedeutet nicht frei."
-            )
         }
         "generate" -> {
-            Text("Fehlende Vorkommen werden erzeugt. Bereits verschobene Termine bleiben erhalten.")
             field("from_date", "Ab · JJJJ-MM-TT", true)
             field("to_date", "Bis · höchstens 180 Tage", true)
         }
@@ -2673,13 +2509,14 @@ private fun RevierFields(
                     modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp),
                 )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton({ pickEquipmentPhoto(true) }, enabled = enabled) {
+                NativeOutlinedButton({ pickEquipmentPhoto(true) }, enabled = enabled) {
                     Text("Aufnehmen")
                 }
-                OutlinedButton({ pickEquipmentPhoto(false) }, enabled = enabled) {
+                NativeOutlinedButton({ pickEquipmentPhoto(false) }, enabled = enabled) {
                     Text("Foto auswählen")
                 }
             }
+            if (value.optBoolean("_photo_only")) return
             field("name", "Gerätebezeichnung", true)
             if (enabled)
                 NativeSuggestions(
@@ -2715,51 +2552,16 @@ private fun RevierFields(
         }
         "movement" -> {
             if (text("material_name").isNotEmpty())
-                NativeInfoRow(
-                    text("material_name"),
-                    "${nativeNumber(text("stock_decimal"))} ${text("unit")} vorhanden",
-                )
+                NativeInfoRow(text("material_name"), text("unit"))
             if (!value.optBoolean("_resource_fixed"))
                 relation("material_id", "materials", "Material")
-            if (text("reverses_movement_id").isEmpty()) {
-                if (!value.optBoolean("_movement_fixed") && text("session_id").isEmpty())
-                    choice(
-                        "movement_kind",
-                        "Buchung",
-                        listOf("receive", "consume", "adjust"),
-                        "consume",
-                    )
-                field(
-                    "quantity_decimal",
-                    (if (text("movement_kind", "consume") == "consume") "Verbrauch" else "Menge") +
-                        text("unit").takeIf { it.isNotBlank() }?.let { " in $it" }.orEmpty(),
-                    true,
-                )
-                Text("Erst die bestätigte Buchung ändert den Bestand.")
-            } else Text("Nachvollziehbare Gegenbuchung der ursprünglichen Materialbewegung.")
-            if (text("session_id").isEmpty()) {
-                relation("property_id", "properties", "Objekt bei Einsatz")
-                relation("visit_id", "visits", "Besuch (optional)")
-            } else
-                NativeInfoRow(
-                    "Zuordnung",
-                    "Laufende Arbeit · Kunde und Objekt wie oben angegeben. Der Timer läuft unverändert weiter.",
-                )
-            field("reason", "Grund", true, true)
-        }
-        "equipment_use" -> {
-            if (value.optBoolean("_resource_fixed"))
-                Text(value.optString("equipment_name", edit.original.optString("name")))
-            else relation("equipment_id", "equipment", "Gerät")
-            if (text("session_id").isEmpty()) {
-                relation("property_id", "properties", "Objekt")
-                relation("visit_id", "visits", "Besuch (optional)")
-            } else
-                NativeInfoRow(
-                    "Zuordnung",
-                    "Laufende Arbeit · Kunde und Objekt wie oben angegeben. Der Timer läuft unverändert weiter.",
-                )
-            field("notes", "Hinweise zur Nutzung", multiline = true)
+            if (text("session_id").isBlank()) relation("worklog_id", "worklogs", "Arbeit")
+            field(
+                "quantity_decimal",
+                "Verbrauch" + text("unit").takeIf { it.isNotBlank() }?.let { " in $it" }.orEmpty(),
+                true,
+            )
+            field("reason", "Notiz", multiline = true)
         }
         "maintenance_plan",
         "maintenance_adjust",
@@ -2780,9 +2582,6 @@ private fun RevierFields(
                 if (text("plan_id").isEmpty())
                     field("starts_on", "Intervall beginnt am · JJJJ-MM-TT", true)
                 else field("reason", "Grund für die Änderung", true, true)
-                Text(
-                    "Dein eigenes Intervall. Hierdurch wird noch keine Wartung als erledigt eingetragen."
-                )
             } else if (edit.kind == "maintenance_adjust") {
                 choice(
                     "operation",
@@ -2838,9 +2637,6 @@ private fun RevierFields(
                             .joinToString("\n"),
                     )
                 }
-                Text(
-                    "Gespeichert wird diese Wartungsaufgabe. Andere Wartungseinträge bleiben erhalten."
-                )
             }
         }
     }
@@ -2858,7 +2654,7 @@ private fun RevierChoice(
     Column {
         Text(label, style = MaterialTheme.typography.labelLarge)
         Box {
-            OutlinedButton(
+            NativeOutlinedButton(
                 { expanded = true },
                 enabled = enabled,
                 modifier = Modifier.fillMaxWidth(),
@@ -2902,7 +2698,7 @@ private fun RevierMaintenanceSuggestions(
         Text(
             "Tätigkeitstexte derzeit nicht lesbar. Eine eigene Tätigkeit kannst du weiterhin eingeben."
         )
-        TextButton({ retry++ }, enabled = enabled) { Text("Texte erneut lesen") }
+        NativeTextButton({ retry++ }, enabled = enabled) { Text("Texte erneut lesen") }
     }
 }
 
@@ -2915,7 +2711,7 @@ private fun RevierPhrasePicker(
 ) {
     var open by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf("") }
-    OutlinedButton(
+    NativeOutlinedButton(
         {
             search = ""
             open = true
@@ -2941,13 +2737,13 @@ private fun RevierPhrasePicker(
             onDismiss = { open = false },
         ) { close ->
             items(matching, key = { it.id }) { phrase ->
-                TextButton(
+                NativeTextButton(
                     {
                         if (enabled) onChoose(phrase.text)
                         close()
                     },
                     enabled = enabled,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    modifier = Modifier.heightIn(min = 48.dp),
                 ) {
                     Column(
                         Modifier.fillMaxWidth(),
@@ -2992,7 +2788,7 @@ private fun RevierRelations(
                 )
         }
         if (enabled)
-            TextButton({
+            NativeTextButton({
                 update(
                     field,
                     JSONArray(
@@ -3006,7 +2802,7 @@ private fun RevierRelations(
             }
     }
     if (enabled)
-        OutlinedButton({
+        NativeOutlinedButton({
             update(
                 field,
                 JSONArray((0 until selected.length()).map { selected.optString(it) } + ""),
@@ -3044,7 +2840,7 @@ private fun RevierMaterialNeeds(
             NativeField("Menge", row.optString("quantity_decimal"), { set("quantity_decimal", it) })
         else Text("Menge: " + row.optString("quantity_decimal"))
         if (enabled)
-            TextButton({
+            NativeTextButton({
                 change(
                     JSONArray(
                         (0 until needs.length())
@@ -3057,7 +2853,7 @@ private fun RevierMaterialNeeds(
             }
     }
     if (enabled)
-        OutlinedButton({
+        NativeOutlinedButton({
             change(
                 JSONArray(needs.toString())
                     .put(JSONObject().put("material_id", "").put("quantity_decimal", ""))
@@ -3092,7 +2888,7 @@ private fun RevierMeasurements(rows: JSONArray, enabled: Boolean, change: (JSONA
             else Text("$label: " + row.optString(field))
         }
         if (enabled)
-            TextButton({
+            NativeTextButton({
                 change(
                     JSONArray(
                         (0 until rows.length())
@@ -3105,7 +2901,7 @@ private fun RevierMeasurements(rows: JSONArray, enabled: Boolean, change: (JSONA
             }
     }
     if (enabled)
-        OutlinedButton({
+        NativeOutlinedButton({
             change(
                 JSONArray(rows.toString())
                     .put(JSONObject().put("name", "").put("value_decimal", "").put("unit", ""))
@@ -3372,28 +3168,12 @@ internal fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
                 args
                     .put("material_id", value.optString("material_id", id))
                     .put("expected_record_hash", edit.observedHash)
-                    .put("kind", value.optString("movement_kind", "consume"))
-                merge(
-                    fields(
-                        "property_id",
-                        "visit_id",
-                        "session_id",
-                        "reason",
-                        "reverses_movement_id",
-                        blanks = false,
-                    )
-                )
-                if (value.optString("reverses_movement_id").isEmpty())
-                    args.put("quantity_decimal", revierDecimal(value.getString("quantity_decimal")))
-                else args.put("kind", "reversal")
-                "record_material_movement"
-            }
-            "equipment_use" -> {
-                args
-                    .put("equipment_id", value.optString("equipment_id", id))
-                    .put("expected_record_hash", edit.observedHash)
-                merge(fields("property_id", "visit_id", "session_id", "notes", blanks = false))
-                "record_equipment_usage"
+                    .put("quantity_decimal", revierDecimal(value.getString("quantity_decimal")))
+                    .put("reason", value.optString("reason"))
+                if (value.optString("session_id").isNotBlank())
+                    args.put("session_id", value.getString("session_id"))
+                else args.put("worklog_id", value.getString("worklog_id"))
+                "record_material_consumption"
             }
             "maintenance_plan",
             "maintenance_adjust",
@@ -3587,7 +3367,7 @@ private fun RevierTour(controller: NativeAppController) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Tagestour", style = MaterialTheme.typography.headlineSmall)
                     NativeDateField("Datum", dateInput, { dateInput = it }, enabled = !busy)
-                    OutlinedButton(
+                    NativeOutlinedButton(
                         {
                             date = dateInput
                             revision++
@@ -3601,10 +3381,6 @@ private fun RevierTour(controller: NativeAppController) {
                         { ordering = !ordering },
                         label = { Text("Reihenfolge") },
                         modifier = Modifier.semantics { testTag = UiTags.TOUR_ORDER },
-                    )
-                    Text(
-                        "Navigation führt zum ersten gespeicherten Stopp.",
-                        style = MaterialTheme.typography.bodySmall,
                     )
                     NativeContext(controller, controller.route.args)
                     if (tour?.optJSONObject("tour")?.optBoolean("needs_review") == true)
@@ -3625,7 +3401,7 @@ private fun RevierTour(controller: NativeAppController) {
                         )
                     if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
                     if ((failure.isNotEmpty() || restored) && pending == null)
-                        TextButton({
+                        NativeTextButton({
                             scope.launch {
                                 try {
                                     comparison =
@@ -3659,10 +3435,10 @@ private fun RevierTour(controller: NativeAppController) {
             ) { visit ->
                 val visitId = visit.getString("id")
                 val index = selected.indexOf(visitId)
-                OutlinedCard(Modifier.fillMaxWidth()) {
+                Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface) {
                     Column(
-                        Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Row {
                             if (ordering)
@@ -3695,11 +3471,11 @@ private fun RevierTour(controller: NativeAppController) {
                             }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton({ controller.navigate("visits", visitId, "detail") }) {
+                            NativeTextButton({ controller.navigate("visits", visitId, "detail") }) {
                                 Text("Details")
                             }
                             if (ordering) {
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         selected =
                                             selected.toMutableList().apply {
@@ -3715,7 +3491,7 @@ private fun RevierTour(controller: NativeAppController) {
                                 ) {
                                     Text("Nach oben")
                                 }
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         selected =
                                             selected.toMutableList().apply {
@@ -3743,19 +3519,20 @@ private fun RevierTour(controller: NativeAppController) {
             }
             if (pending != null) item { NativeInspectionBanner(inspection) { inspectionAttempt++ } }
             if (restored) item { NativeRestoreBanner() }
-            if (available.isEmpty()) item { Text("Für diesen Tag sind keine Besuche geplant.") }
+            if (available.isEmpty())
+                item { Text("Hier planst du die Reihenfolge der Einsätze dieses Tages.") }
         }
         NativeActions {
-            OutlinedButton({
+            NativeOutlinedButton({
                 controller.navigate(
                     "visits",
                     args = JSONObject().put("date_from", date).put("date_to", date),
                 )
             }) {
-                Text("Besuche")
+                Text("Einsätze")
             }
             if (ordering || pending != null)
-                Button(
+                NativeButton(
                     {
                         if (pending != null) save(requireNotNull(pending))
                         else {
@@ -3797,7 +3574,7 @@ private fun RevierTour(controller: NativeAppController) {
                     Text(if (pending != null) "Ergebnis prüfen" else "Tour speichern")
                 }
             if (!ordering)
-                Button(
+                NativeButton(
                     {
                         scope.launch {
                             busy = true
@@ -3883,9 +3660,9 @@ private fun RevierTour(controller: NativeAppController) {
                     }
                 }
             },
-            dismissButton = { TextButton({ comparison = null }) { Text("Zurück") } },
+            dismissButton = { NativeTextButton({ comparison = null }) { Text("Zurück") } },
             confirmButton = {
-                Button(
+                NativeButton(
                     {
                         busy = true
                         scope.launch {
@@ -3925,89 +3702,6 @@ private fun RevierTour(controller: NativeAppController) {
     }
 }
 
-@Composable
-private fun RevierArchive(controller: NativeAppController) {
-    var kind by rememberSaveable { mutableStateOf("") }
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    var result by remember { mutableStateOf<JSONObject?>(null) }
-    var failure by remember { mutableStateOf("") }
-    var retry by remember { mutableIntStateOf(0) }
-    LaunchedEffect(kind, offset, retry) {
-        try {
-            result =
-                controller.query(
-                    "list_revier_archive",
-                    JSONObject().put("offset", offset).put("limit", 20).apply {
-                        if (kind.isNotEmpty()) put("entity", kind)
-                    },
-                )
-            failure = ""
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (error: Exception) {
-            failure = error.message.orEmpty()
-        }
-    }
-    val rows = result?.optJSONArray("items")?.revierObjects().orEmpty()
-    Column(Modifier.fillMaxSize()) {
-        LazyColumn(
-            Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                Text("Revier-Archiv", style = MaterialTheme.typography.headlineSmall)
-                RevierChoice(
-                    "Art",
-                    kind,
-                    listOf("" to "Alle Arten") + revierSections.map { it.kind to it.title },
-                ) {
-                    kind = it
-                    offset = 0
-                }
-                result?.let { Text("${it.optInt("total")} archivierte Einträge") }
-                if (failure.isNotEmpty()) {
-                    Text(failure, color = MaterialTheme.colorScheme.error)
-                    TextButton({ retry++ }) { Text("Erneut lesen") }
-                }
-            }
-            items(
-                rows,
-                key = { it.optString("entity") + ":" + it.getJSONObject("record").getString("id") },
-            ) { entry ->
-                val row = entry.getJSONObject("record")
-                OutlinedCard(
-                    Modifier.fillMaxWidth().clickable {
-                        controller.navigate(
-                            revierCollection(entry.getString("entity")),
-                            row.getString("id"),
-                            "detail",
-                        )
-                    }
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(row.optString("name", row.optString("title", "Eintrag")))
-                        Text("Alter Eintrag · zum Löschen öffnen")
-                    }
-                }
-            }
-            if (result != null && rows.isEmpty())
-                item { Text("Keine archivierten Einträge dieser Art.") }
-        }
-        NativeActions {
-            OutlinedButton({ offset = (offset - 20).coerceAtLeast(0) }, enabled = offset > 0) {
-                Text("Vorherige")
-            }
-            OutlinedButton(
-                { offset += 20 },
-                enabled = offset + rows.size < (result?.optInt("total") ?: 0),
-            ) {
-                Text("Weitere")
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RevierSearch(controller: NativeAppController) {
@@ -4022,7 +3716,6 @@ private fun RevierSearch(controller: NativeAppController) {
     var status by rememberSaveable { mutableStateOf("") }
     var from by rememberSaveable { mutableStateOf("") }
     var until by rememberSaveable { mutableStateOf("") }
-    var archived by rememberSaveable { mutableStateOf(controller.route.mode == "archive") }
     var result by remember { mutableStateOf<JSONObject?>(null) }
     var offset by rememberSaveable { mutableIntStateOf(0) }
     var failure by remember { mutableStateOf("") }
@@ -4038,7 +3731,7 @@ private fun RevierSearch(controller: NativeAppController) {
                 val args =
                     if (usePrevious) frozen?.revierCopy() ?: JSONObject()
                     else
-                        JSONObject().put("query", query).put("include_archived", archived).apply {
+                        JSONObject().put("query", query).apply {
                             if (type.isNotEmpty()) put("types", JSONArray().put(type))
                             for ((key, value) in
                                 listOf(
@@ -4084,7 +3777,7 @@ private fun RevierSearch(controller: NativeAppController) {
         },
     ) {
         if (!imeVisible && !filtersOpen && (result == null || frozen?.optString("query") != query))
-            TextButton(
+            NativeTextButton(
                 { search(0) },
                 enabled = !busy && query.isNotBlank(),
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -4111,8 +3804,8 @@ private fun RevierSearch(controller: NativeAppController) {
                                 "inquiry" to "Anfragen",
                                 "care_plan" to "Pflegepläne",
                                 "order" to "Aufträge",
-                                "appointment" to "Termine",
-                                "visit" to "Besuche",
+                                "appointment" to "Einsätze",
+                                "visit" to "Einsätze",
                                 "activity" to "Arbeiten",
                                 "note" to "Notizen",
                                 "offer" to "Angebote",
@@ -4126,24 +3819,16 @@ private fun RevierSearch(controller: NativeAppController) {
                         NativeField("Status (optional)", status, { status = it })
                         NativeField("Zeitraum ab · JJJJ-MM-TT", from, { from = it })
                         NativeField("Zeitraum bis · JJJJ-MM-TT", until, { until = it })
-                        Row {
-                            Checkbox(archived, { archived = it })
-                            Text(
-                                "Archivierte und entfernte Einträge einschließen",
-                                Modifier.padding(top = 12.dp),
-                            )
-                        }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button({ search(0) }, enabled = !busy && query.isNotBlank()) {
+                            NativeButton({ search(0) }, enabled = !busy && query.isNotBlank()) {
                                 Text("Lokal suchen")
                             }
-                            TextButton({
+                            NativeTextButton({
                                 query = ""
                                 type = ""
                                 status = ""
                                 from = ""
                                 until = ""
-                                archived = false
                                 result = null
                                 frozenText = ""
                                 offset = 0
@@ -4151,9 +3836,7 @@ private fun RevierSearch(controller: NativeAppController) {
                                 Text("Zurücksetzen")
                             }
                         }
-                        result?.let {
-                            Text("${it.optInt("total")} Treffer im gesamten lokalen Bestand")
-                        }
+                        result?.let { Text("${it.optInt("total")} Treffer") }
                         if (failure.isNotEmpty())
                             Text(failure, color = MaterialTheme.colorScheme.error)
                     }
@@ -4162,8 +3845,6 @@ private fun RevierSearch(controller: NativeAppController) {
                 item { Text(failure, color = MaterialTheme.colorScheme.error) }
             if (result != null && rows.isEmpty())
                 item { Text("Keine Treffer. Suchtext oder Filter ändern.") }
-            if (result == null && query.isNotBlank())
-                item { Text("Mit „Suchen“ auf der Tastatur suchen.") }
             if (query.isBlank() && recent.isNotEmpty()) {
                 item(key = "recent-heading") {
                     Text("Zuletzt geöffnet", style = MaterialTheme.typography.titleSmall)
@@ -4218,14 +3899,14 @@ private fun RevierSearch(controller: NativeAppController) {
         if (!imeVisible && (offset > 0 || offset + rows.size < (result?.optInt("total") ?: 0)))
             NativeActions {
                 if (offset > 0)
-                    OutlinedButton(
+                    NativeOutlinedButton(
                         { search((offset - 50).coerceAtLeast(0), true) },
                         enabled = !busy,
                     ) {
                         Text("Vorherige")
                     }
                 if (offset + rows.size < (result?.optInt("total") ?: 0))
-                    OutlinedButton({ search(offset + 50, true) }, enabled = !busy) {
+                    NativeOutlinedButton({ search(offset + 50, true) }, enabled = !busy) {
                         Text("Weitere Treffer")
                     }
             }
@@ -4241,12 +3922,12 @@ private val revierSearchKinds =
         "settlement" to "Abschlüsse",
         "activity" to "Arbeiten",
         "order" to "Aufträge",
-        "appointment" to "Termine",
+        "appointment" to "Einsätze",
         "offer" to "Angebote",
         "invoice" to "Rechnungen",
         "inquiry" to "Anfragen",
         "care_plan" to "Pflegepläne",
-        "visit" to "Besuche",
+        "visit" to "Einsätze",
         "material" to "Material",
         "equipment" to "Geräte",
         "note" to "Notizen",
@@ -4270,7 +3951,6 @@ private fun RevierSearchHit(
             )
             val detail = row.optString("snippet", row.optString("text", row.optString("status")))
             if (detail.isNotBlank()) Text(detail)
-            if (row.optBoolean("archived")) Text("Archiviert / entfernt")
             val phone = row.optString("phone")
             val address = row.optString("address")
             if (phone.isNotBlank() || address.isNotBlank())
@@ -4324,16 +4004,7 @@ private fun openRevierSearchHit(controller: NativeAppController, row: JSONObject
             "equipment" -> "equipment"
             else -> targetType
         }
-    val archivedOwnerRecord =
-        row.optBoolean("archived") &&
-            targetType !in
-                listOf("property", "inquiry", "care_plan", "visit", "material", "equipment")
-    controller.navigate(
-        if (archivedOwnerRecord) "trash" else route,
-        id,
-        "detail",
-        JSONObject().put("entity", targetType),
-    )
+    controller.navigate(route, id, "detail", JSONObject().put("entity", targetType))
 }
 
 private val revierCompareLabels =
@@ -4582,10 +4253,13 @@ private fun RevierAccessoryFields(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     for ((camera, label) in
-                        listOf(true to "Foto aufnehmen", false to "Foto auswählen")) OutlinedButton(
+                        listOf(
+                            true to "Foto aufnehmen",
+                            false to "Foto auswählen",
+                        )) NativeOutlinedButton(
                         {
                             if (edit.mediaBusy || edit.pending != null || edit.restored)
-                                return@OutlinedButton
+                                return@NativeOutlinedButton
                             edit.mediaBusy = true
                             scope.launch {
                                 try {
@@ -4693,10 +4367,10 @@ private fun RevierAccessoryFields(
         }
     }
     if (value.optString("current_chain_id").isNotEmpty())
-        TextButton({ update("current_chain_id", "") }, enabled = enabled) {
+        NativeTextButton({ update("current_chain_id", "") }, enabled = enabled) {
             Text("Keine aktuelle Kette festlegen")
         }
-    OutlinedButton(
+    NativeOutlinedButton(
         {
             update(
                 "accessories",
@@ -4721,4 +4395,301 @@ private suspend fun revierDeleteEditPhotos(controller: NativeAppController, valu
         controller,
         item.optString("selected_photo_uri"),
     )
+}
+
+/** One value, the same guarded writer as MCP, with the previous value available for undo. */
+@Composable
+internal fun NativeRevierValueSheet(
+    controller: NativeAppController,
+    kind: String,
+    record: JSONObject,
+    field: String,
+    label: String,
+    onSaved: () -> Unit,
+    onClose: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var busy by remember(field) { mutableStateOf(false) }
+    var failure by remember(field) { mutableStateOf("") }
+    var fieldConflict by remember(field) { mutableStateOf<JSONObject?>(null) }
+    var attemptedInput by remember(field) { mutableStateOf("") }
+    var proposed by remember(field) { mutableStateOf<Any?>(null) }
+    val numeric =
+        field in
+            setOf(
+                "planned_minutes",
+                "remaining_minutes",
+                "interval_days",
+                "area_decimal",
+                "purchase_price_minor",
+                "billing_price_minor",
+            )
+    val before = remember(field, record.optString("id")) { JSONObject(record.toString()) }
+    val initialHash = remember(field, record.optString("id")) { RevierRules.hash(before) }
+    val original =
+        before.opt(field)
+            ?: if (field == "equipment_ids") JSONArray()
+            else if (field.endsWith("_price_minor")) JSONObject.NULL else ""
+    val shown =
+        if (
+            field.endsWith("_price_minor") &&
+                original != JSONObject.NULL &&
+                original.toString().isNotBlank()
+        )
+            OfferMoney.decimal(original.toString().toLong())
+        else if (original == JSONObject.NULL) "" else original.toString()
+    var chosen by remember(field) { mutableStateOf(shown) }
+    suspend fun write(value: Any, expectedUndo: Any? = null, agreed: JSONObject? = null): Any {
+        val current =
+            withContext(Dispatchers.IO) {
+                controller.store.nativeData().detail(revierCollection(kind), record.getString("id"))
+                    ?: error("Der Eintrag fehlt.")
+            }
+        if (expectedUndo != null)
+            require(
+                PixelMcpWriteTools.hash(current.opt(field) ?: "") ==
+                    PixelMcpWriteTools.hash(expectedUndo)
+            ) {
+                "Diese Angabe wurde inzwischen geändert. Beide Stände bitte prüfen."
+            }
+        val args =
+            JSONObject()
+                .put("request_id", revierRequest())
+                .put("${kind}_id", record.getString("id"))
+                .put(
+                    "expected_record_hash",
+                    if (expectedUndo == null) agreed?.let { RevierRules.hash(it) } ?: initialHash
+                    else RevierRules.hash(current),
+                )
+        val tool =
+            when (kind) {
+                "material",
+                "equipment" -> {
+                    args.put(field, value)
+                    "save_$kind"
+                }
+                else -> {
+                    args.put("updates", JSONObject().put(field, value))
+                    if (kind == "visit")
+                        args.put("scope", "only_this").put("reason", "Angabe geändert")
+                    if (kind == "care_plan")
+                        args.put("scope", "this_and_future").put("effective_from", revierDay())
+                    "update_$kind"
+                }
+            }
+        return controller.query(tool, args).optJSONObject("record")?.opt(field) ?: value
+    }
+    fun finish(entered: String, agreed: JSONObject? = null) {
+        attemptedInput = entered
+        if (entered == shown) onClose()
+        else {
+            busy = true
+            scope.launch {
+                try {
+                    val value: Any =
+                        when {
+                            field == "equipment_ids" -> JSONArray(entered)
+                            field.endsWith("_price_minor") ->
+                                if (entered.isBlank()) JSONObject.NULL
+                                else OfferMoney.minor(entered.replace(',', '.'))
+                            field in
+                                setOf("planned_minutes", "remaining_minutes", "interval_days") ->
+                                entered.toIntOrNull() ?: error("Bitte eine ganze Zahl eingeben.")
+                            field == "area_decimal" -> entered.trim().replace(',', '.')
+                            else -> entered
+                        }
+                    proposed = value
+                    val replaced =
+                        if (agreed == null) original
+                        else
+                            agreed.opt(field)
+                                ?: if (field == "equipment_ids") JSONArray()
+                                else if (field.endsWith("_price_minor")) JSONObject.NULL else ""
+                    val savedValue = write(value, agreed = agreed)
+                    onSaved()
+                    onClose()
+                    controller.messageUndo("Gespeichert") {
+                        write(replaced, savedValue, agreed)
+                        onSaved()
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    failure =
+                        nativeActionError(error, "Die Änderung konnte nicht gespeichert werden.")
+                    if (
+                        error is NativeCallFailure &&
+                            error.detail.optString("code") in
+                                setOf("WRITE_CONFLICT", "EDIT_CONFLICT")
+                    ) {
+                        fieldConflict =
+                            try {
+                                withContext(Dispatchers.IO) {
+                                    controller.store
+                                        .nativeData()
+                                        .detail(revierCollection(kind), record.getString("id"))
+                                        ?.let { RevierRules.view(it) }
+                                }
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                null
+                            }
+                    }
+                } finally {
+                    busy = false
+                }
+            }
+        }
+    }
+    fieldConflict?.let { current ->
+        AlertDialog(
+            onDismissRequest = { fieldConflict = null },
+            title = { Text("Angabe geändert") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Gespeichert", style = MaterialTheme.typography.labelMedium)
+                    if (field.endsWith("_price_minor"))
+                        Text(
+                            if (current.isNull(field)) "Leer"
+                            else OfferMoney.decimal(current.getLong(field)).replace('.', ',') + " €"
+                        )
+                    else
+                        RevierComparisonValue(
+                            field,
+                            current.opt(field),
+                            controller.store.nativeData(),
+                        )
+                    NativeTextButton(
+                        {
+                            fieldConflict = null
+                            failure = ""
+                            onSaved()
+                            onClose()
+                        },
+                        Modifier.semantics { contentDescription = "Diesen behalten · gespeichert" },
+                    ) {
+                        Text("Diesen behalten")
+                    }
+                    Text("Meine Angabe", style = MaterialTheme.typography.labelMedium)
+                    if (field.endsWith("_price_minor"))
+                        Text(
+                            if (proposed == JSONObject.NULL) "Leer"
+                            else
+                                OfferMoney.decimal(proposed.toString().toLong()).replace('.', ',') +
+                                    " €"
+                        )
+                    else RevierComparisonValue(field, proposed, controller.store.nativeData())
+                }
+            },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        fieldConflict = null
+                        failure = ""
+                        finish(attemptedInput, current)
+                    },
+                    Modifier.semantics { contentDescription = "Diesen behalten · meine Angabe" },
+                    enabled = !busy,
+                ) {
+                    Text("Diesen behalten")
+                }
+            },
+        )
+    }
+    if (field == "equipment_ids") {
+        NativeRevierRelationsSheet(
+            controller,
+            record,
+            field,
+            label,
+            chosen,
+            { chosen = it },
+            busy,
+            failure,
+        ) {
+            finish(chosen)
+        }
+    } else if (field in setOf("condition", "status")) {
+        val choices =
+            when (kind) {
+                "equipment" -> listOf("ready", "maintenance", "defective")
+                "visit" -> listOf("planned", "in_progress", "completed", "partial", "cancelled")
+                "inquiry" ->
+                    listOf("new", "inspection_planned", "offered", "accepted", "declined", "closed")
+                else -> listOf("active", "paused")
+            }
+        NativeRevierChoiceSheet(label, chosen, choices, { chosen = it }, busy, failure) {
+            finish(chosen)
+        }
+    } else
+        NativeValueSheet(
+            label,
+            shown,
+            keyboardType = if (numeric) KeyboardType.Decimal else KeyboardType.Text,
+            multiline = field in setOf("notes", "concern", "inspection_notes", "access_notes"),
+            error = failure,
+            enabled = !busy,
+            onClose = { finish(it) },
+        )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NativeRevierRelationsSheet(
+    controller: NativeAppController,
+    record: JSONObject,
+    field: String,
+    label: String,
+    value: String,
+    onChange: (String) -> Unit,
+    busy: Boolean,
+    error: String,
+    onClose: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = { if (!busy) onClose() },
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+            RevierRelations(
+                controller,
+                "equipment",
+                label,
+                field,
+                JSONObject(record.toString()).put(field, JSONArray(value)),
+                !busy,
+            ) { _, rows ->
+                onChange(rows.toString())
+            }
+            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+            NativeActions { NativeTextButton(onClose, enabled = !busy) { Text("Fertig") } }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NativeRevierChoiceSheet(
+    label: String,
+    value: String,
+    choices: List<String>,
+    onChange: (String) -> Unit,
+    busy: Boolean,
+    error: String,
+    onClose: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = { if (!busy) onClose() }) {
+        Column(Modifier.padding(16.dp)) {
+            Text(label, style = MaterialTheme.typography.titleMedium)
+            for (choice in choices) FilterChip(
+                value == choice,
+                { onChange(choice) },
+                label = { Text(revierLabel(choice)) },
+                enabled = !busy,
+            )
+            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+            NativeActions { NativeTextButton(onClose, enabled = !busy) { Text("Fertig") } }
+        }
+    }
 }

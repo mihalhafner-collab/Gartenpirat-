@@ -1,394 +1,297 @@
 package at.hausgarten.service
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Design: one billing area with tabs; "Offen" leads with what is still to bill. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** The recipient's open work and open payments share one billing page. */
 @Composable
 internal fun NativeAccounting(controller: NativeAppController) {
-    var tab by rememberSaveable { mutableIntStateOf(0) }
-    Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = tab) {
-            listOf("Offen", "Abschlüsse", "Summen").forEachIndexed { index, label ->
-                Tab(
-                    selected = tab == index,
-                    onClick = { tab = index },
-                    modifier = Modifier.semantics { testTag = UiTags.billingTab(index) },
-                    text = { Text(label, maxLines = 2) },
-                )
-            }
-        }
-        Box(Modifier.weight(1f)) {
-            when (tab) {
-                0 ->
-                    Column(
-                        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        NativeOpenHours(controller, "")
-                        Button(
-                            { controller.navigate("settlement_edit") },
-                            Modifier.heightIn(min = 48.dp),
-                        ) {
-                            Text("Neue Abrechnung")
-                        }
-                        Text(
-                            "Fertig → abgerechnet → bezahlt",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                1 -> Column(Modifier.fillMaxSize()) { NativeSettlements(controller, "") }
-                else -> AccountingTotals(controller)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AccountingTotals(controller: NativeAppController) {
-    var search by rememberSaveable { mutableStateOf("") }
-    var from by rememberSaveable { mutableStateOf("") }
-    var to by rememberSaveable { mutableStateOf("") }
-    var property by rememberSaveable { mutableStateOf("") }
-    var route by rememberSaveable { mutableStateOf("") }
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    var reviewOffset by rememberSaveable { mutableIntStateOf(0) }
-    var filters by rememberSaveable { mutableStateOf(false) }
-    var result by remember { mutableStateOf<JSONObject?>(null) }
+    var year by rememberSaveable { mutableStateOf(false) }
+    var data by remember { mutableStateOf<JSONObject?>(null) }
+    var openWork by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var attempt by remember { mutableIntStateOf(0) }
-    var exporting by remember { mutableStateOf(false) }
+    var paying by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    val changes =
-        remember(controller) {
-            controller.store.nativeData().watchCommittedChanges().nativeErrors(controller)
-        }
-    val latest by changes.collectAsStateWithLifecycle(-1L)
-    fun changed() {
-        offset = 0
-        reviewOffset = 0
-    }
-    fun selectRoute(value: String) {
-        route = value
-        changed()
-    }
-    LaunchedEffect(search, from, to, property, route, offset, reviewOffset, latest, attempt) {
-        result = null
-        error = ""
+    val changes by
+        remember(controller) { controller.store.nativeData().watchCommittedChanges() }
+            .collectAsStateWithLifecycle(-1L)
+    LaunchedEffect(changes, attempt) {
         try {
-            result =
+            data = controller.query("list_settlements")
+            openWork =
                 controller.query(
-                    "get_accounting_overview",
-                    JSONObject()
-                        .put("query", search)
-                        .put("date_from", from)
-                        .put("date_to", to)
-                        .put("route", route)
-                        .put("offset", offset)
-                        .put("review_offset", reviewOffset)
-                        .put("limit", 40)
-                        .apply { if (property.isNotEmpty()) put("property_id", property) },
+                    "get_work_record_summary",
+                    JSONObject().put("group_by_billing_customer", true),
                 )
+            error = ""
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
-            error = failure.message ?: "Abrechnung konnte nicht geladen werden."
+            error = failure.message ?: "Abrechnung nicht lesbar."
         }
     }
-    NativeSearchList(
-        "Auftragsbezeichnung",
-        search,
-        {
-            search = it
-            changed()
-        },
-        result?.let { "${it.optInt("total")} Einträge" }
-            ?: if (error.isEmpty()) "Wird geladen …" else "Nicht geladen",
-        onFilters = { filters = !filters },
-        bottomSearch = true,
+    val today = LocalDate.now(ZoneId.of("Europe/Vienna"))
+    val records = data?.optJSONArray("records").objects()
+    val period =
+        records.filter {
+            val date = it.optString("issue_date").ifBlank { it.optString("service_to") }
+            date.startsWith(if (year) today.year.toString() else today.toString().take(7))
+        }
+    val invoices =
+        period.filter {
+            it.optString("route") == AccountingRules.BILLED &&
+                it.optString("kind") == "invoice" &&
+                it.optString("status") == "confirmed"
+        }
+    val issued = invoices.sumOf { it.optLong("total_minor") }
+    val paid = invoices.sumOf { it.optLong("paid_minor") }
+    val outstanding =
+        invoices.sumOf { (it.optLong("total_minor") - it.optLong("paid_minor")).coerceAtLeast(0) }
+    val labor =
+        period
+            .filter {
+                it.optString("route") == AccountingRules.LABOR &&
+                    it.optString("kind") == "internal" &&
+                    it.optString("status") == "confirmed"
+            }
+            .sumOf { it.optLong("total_minor") }
+    val neutral = NativeNeutral
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        LazyColumn(
-            Modifier.weight(1f).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        NativeChoice(
+            "Zeitraum",
+            if (year) "year" else "month",
+            listOf("month" to "Monat", "year" to "Jahr"),
         ) {
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    for ((path, field) in
-                        listOf(
-                            AccountingRules.BILLED to "billed_minor",
-                            AccountingRules.LABOR to "labor_minor",
-                            "" to "total_minor",
-                        )) {
-                        Surface(
-                            onClick = { selectRoute(path) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.large,
-                            color =
-                                if (route == path) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surface,
-                            border =
-                                BorderStroke(
-                                    1.dp,
-                                    if (route == path) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.outlineVariant,
-                                ),
-                        ) {
-                            Column(
-                                Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Text(
-                                    if (path.isEmpty()) "Gesamt" else AccountingRules.label(path),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                                val pending =
-                                    result?.optInt(
-                                        when (path) {
-                                            AccountingRules.BILLED -> "pending_billed"
-                                            AccountingRules.LABOR -> "pending_labor"
-                                            else -> "pending_amounts"
-                                        }
-                                    ) ?: 0
-                                Text(
-                                    result?.let {
-                                        if (pending > 0 && it.getLong(field) == 0L)
-                                            "Betrag ausstehend"
-                                        else financeMoney(OfferMoney.decimal(it.getLong(field)))
-                                    } ?: "…",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = NativeMoney,
-                                )
-                                if (pending > 0)
-                                    Text(
-                                        "$pending Beträge fehlen oder sind unvollständig",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                            }
-                        }
-                    }
-                }
-            }
-            item {
-                TextButton(
-                    {
-                        scope.launch {
-                            exporting = true
-                            try {
-                                controller.shareSettlementExport(
-                                    JSONObject()
-                                        .put("query", search)
-                                        .put("date_from", from)
-                                        .put("date_to", to)
-                                        .put("property_id", property)
-                                        .put("route", route)
-                                )
-                            } catch (cancelled: CancellationException) {
-                                throw cancelled
-                            } catch (failure: Exception) {
-                                error = failure.message ?: "Export nicht möglich."
-                            } finally {
-                                exporting = false
-                            }
-                        }
-                    },
-                    enabled = !exporting,
-                ) {
-                    Text(
-                        if (
-                            search.isNotBlank() ||
-                                from.isNotBlank() ||
-                                to.isNotBlank() ||
-                                property.isNotBlank() ||
-                                route.isNotBlank()
-                        )
-                            "Gefilterte Abrechnung exportieren"
-                        else "Vollständige Abrechnung exportieren"
-                    )
-                }
-                NativeStatus(
-                    if (route.isEmpty()) "Beide Abrechnungswege" else AccountingRules.label(route)
+            year = it == "year"
+        }
+        if (error.isNotBlank()) {
+            NativeStatus(error, NativeStatusTone.Failed)
+            NativeTextButton({ attempt++ }) { Text("Erneut laden") }
+        }
+        if (data == null) LinearProgressIndicator(Modifier.fillMaxWidth())
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for ((label, amount) in
+                listOf("ausgestellt" to issued, "bezahlt" to paid, "offen" to outstanding)) Column(
+                Modifier.weight(1f)
+            ) {
+                Text(
+                    financeMoney(OfferMoney.decimal(amount)),
+                    color = if (label == "bezahlt") NativeDone else NativeMoney,
+                    fontWeight = FontWeight.Bold,
                 )
-                if (from.isNotEmpty() || to.isNotEmpty())
-                    Text(
-                        "${from.takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Ohne Beginn"} – ${to.takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Ohne Ende"}",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-            }
-            if (error.isNotEmpty())
-                item {
-                    NativeStatus(error, NativeStatusTone.Failed)
-                    TextButton({ attempt++ }) { Text("Erneut laden") }
-                }
-            else if (result == null) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-            else {
-                val data = result!!
-                val records = data.getJSONArray("records").objects()
-                if (records.isEmpty())
-                    item {
-                        Text(
-                            "Hier vergleichst du abgerechnete Beträge nach Zeitraum und Abrechnungsweg."
-                        )
-                    }
-                items(records, key = { it.getString("key") }) { row ->
-                    AccountingRow(controller, row)
-                }
-                item { AccountingPages(offset, data.getInt("total"), 40) { offset = it } }
-                if (data.getInt("review_total") > 0) {
-                    item {
-                        NativeStatus(
-                            "${data.getInt("review_total")} Aufträge prüfen · nicht in den Summen",
-                            NativeStatusTone.Attention,
-                        )
-                        Text(
-                            "Widersprüchliche Zuordnungen werden keinem Abrechnungsweg zugerechnet.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    items(
-                        data.getJSONArray("reviews").objects(),
-                        key = { "review:" + it.getString("key") },
-                    ) { row ->
-                        AccountingRow(controller, row)
-                        NativeStatus(row.getString("issue"), NativeStatusTone.Attention)
-                        TextButton({
-                            controller.navigate(
-                                "accounting_edit",
-                                row.getString("id"),
-                                row.getString("collection"),
-                            )
-                        }) {
-                            Text("Zuordnung ändern")
-                        }
-                    }
-                    item {
-                        AccountingPages(reviewOffset, data.getInt("review_total"), 40) {
-                            reviewOffset = it
-                        }
-                    }
-                }
+                Text(label, style = MaterialTheme.typography.labelSmall)
             }
         }
-    }
-    if (filters)
-        ModalBottomSheet(
-            onDismissRequest = { filters = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        ) {
-            Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
-                Column(
-                    Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text("Abrechnung filtern", style = MaterialTheme.typography.titleLarge)
-                    NativeDateField(
-                        "Ab Datum",
-                        from,
-                        {
-                            from = it
-                            changed()
-                        },
-                    )
-                    NativeDateField(
-                        "Bis Datum",
-                        to,
-                        {
-                            to = it
-                            changed()
-                        },
-                    )
-                    NativeRecordPicker(
-                        controller,
-                        "properties",
-                        "Objekt / Haus / Garten",
-                        property,
-                        onValueChange = {
-                            property = it
-                            changed()
-                        },
-                    )
-                    NativeChoice(
-                        "Abrechnungsweg",
-                        route,
-                        listOf(
-                            "" to "Beide",
-                            AccountingRules.BILLED to "Rechnung",
-                            AccountingRules.LABOR to "Labor clandestino",
+        LinearProgressIndicator(
+            progress = { if (issued > 0) (paid.toFloat() / issued).coerceIn(0f, 1f) else 0f },
+            modifier = Modifier.fillMaxWidth().height(3.dp),
+            color = NativeDone,
+        )
+        Box(Modifier.fillMaxWidth()) {
+            Canvas(Modifier.matchParentSize()) {
+                drawRoundRect(
+                    neutral,
+                    style =
+                        Stroke(
+                            width = 1.dp.toPx(),
+                            pathEffect =
+                                PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx())),
                         ),
-                        ::selectRoute,
-                    )
-                }
-                NativeActionBar(
-                    "Ergebnisse anzeigen",
-                    { filters = false },
-                    "Zurücksetzen",
-                    {
-                        from = ""
-                        to = ""
-                        property = ""
-                        route = ""
-                        search = ""
-                        changed()
-                    },
                 )
             }
+            Row(
+                Modifier.fillMaxWidth().padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Labor clandestino", color = neutral)
+                Text(financeMoney(OfferMoney.decimal(labor)), color = neutral)
+            }
         }
-}
-
-private fun JSONArray.objects() = (0 until length()).map { getJSONObject(it) }
-
-@Composable
-private fun AccountingPages(offset: Int, total: Int, size: Int, change: (Int) -> Unit) {
-    NativeActions {
-        if (offset > 0)
-            TextButton({ change((offset - size).coerceAtLeast(0)) }) { Text("Vorherige Aufträge") }
-        if (offset + size < total)
-            TextButton({ change(offset + size) }) { Text("Weitere Aufträge") }
+        NativeGroup("Offen abzurechnen") {
+            val groups = openWork?.optJSONArray("billing_groups").objects()
+            if (groups.isEmpty() && openWork != null)
+                Text(
+                    "Offene Arbeiten bilden deine nächste Abrechnung.",
+                    Modifier.padding(12.dp).semantics { testTag = UiTags.EMPTY_STATE },
+                )
+            for (group in groups) {
+                val recipient = group.optString("billing_customer_id")
+                val works = group.optJSONArray("work_records").objects()
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    NativeInitials(group.optString("billing_customer_name"), 32.dp)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            group.optString("billing_customer_name").ifBlank { "Empfänger fehlt" },
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            "${works.size} Arbeiten · ${nativeNumber(group.opt("hours"))} Std.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = NativeMoney,
+                        )
+                    }
+                    NativeTextButton(
+                        {
+                            controller.navigate(
+                                "settlement_edit",
+                                args =
+                                    JSONObject()
+                                        .put("billing_customer_id", recipient)
+                                        .put(
+                                            "work_record_ids",
+                                            JSONArray(works.map { it.getString("id") }),
+                                        ),
+                            )
+                        },
+                        enabled =
+                            group.optBoolean("valid") &&
+                                recipient.isNotEmpty() &&
+                                works.isNotEmpty(),
+                    ) {
+                        Text("Abrechnen")
+                    }
+                }
+                HorizontalDivider()
+            }
+        }
+        NativeGroup("Zahlung offen") {
+            val unpaid =
+                records.filter {
+                    it.optString("status") == "confirmed" &&
+                        it.optString("kind") in setOf("invoice", "internal") &&
+                        it.optLong("total_minor") > it.optLong("paid_minor")
+                }
+            if (unpaid.isEmpty() && data != null)
+                Text("Hier stehen noch offene Zahlungen.", Modifier.padding(12.dp))
+            for (record in unpaid) {
+                val id = record.getString("id")
+                val due =
+                    runCatching {
+                            if (record.optString("due_date").isNotBlank())
+                                LocalDate.parse(record.getString("due_date"))
+                            else {
+                                val days =
+                                    Regex("(\\d+)\\s*Tag", RegexOption.IGNORE_CASE)
+                                        .find(record.optString("payment_terms"))
+                                        ?.groupValues
+                                        ?.get(1)
+                                        ?.toLongOrNull()
+                                if (days == null) null
+                                else LocalDate.parse(record.getString("issue_date")).plusDays(days)
+                            }
+                        }
+                        .getOrNull()
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        NativeTextButton(
+                            { controller.navigate("settlement_review", id) },
+                            contentPadding = PaddingValues(0.dp),
+                        ) {
+                            Text(
+                                record.optString("invoice_number").ifBlank {
+                                    record.optString("title")
+                                }
+                            )
+                        }
+                        if (due != null)
+                            Text(
+                                if (due.isBefore(today))
+                                    "fällig seit ${nativeDisplayDate(due.toString())}"
+                                else "fällig ${nativeDisplayDate(due.toString())}",
+                                color = NativeDue,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        Text(
+                            financeMoney(
+                                OfferMoney.decimal(
+                                    record.optLong("total_minor") - record.optLong("paid_minor")
+                                )
+                            ),
+                            color = NativeMoney,
+                        )
+                    }
+                    NativeTextButton(
+                        {
+                            paying = id
+                            scope.launch {
+                                try {
+                                    settlementPaid(controller, id)
+                                } catch (cancelled: CancellationException) {
+                                    throw cancelled
+                                } catch (failure: Exception) {
+                                    error = failure.message ?: "Zahlung nicht vorgemerkt."
+                                } finally {
+                                    paying = ""
+                                }
+                            }
+                        },
+                        enabled =
+                            paying.isEmpty() &&
+                                controller.listActions.none {
+                                    ("settlement" to id) in ListActionTools.targets(it) &&
+                                        it.optString("state") in
+                                            setOf("queued", "applying", "uncertain")
+                                },
+                    ) {
+                        Text("Bezahlt")
+                    }
+                }
+                HorizontalDivider()
+            }
+        }
+        NativeInfoRow("Alle Abschlüsse", onClick = { controller.navigate("settlements") })
+        NativeActions {
+            NativeTextButton({
+                scope.launch {
+                    try {
+                        controller.shareSettlementExport(JSONObject())
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (failure: Exception) {
+                        error = failure.message ?: "Export nicht möglich."
+                    }
+                }
+            }) {
+                Text("Exportieren")
+            }
+        }
     }
 }
 
-@Composable
-private fun AccountingRow(controller: NativeAppController, row: JSONObject) {
-    NativeInfoRow(
-        row.getString("title"),
-        listOf(
-                "${row.optString("date_label")}: ${row.optString("work_date").takeIf { it.isNotEmpty() }?.let(::nativeDisplayDate) ?: "Nicht hinterlegt"}",
-                row.optString("object_label"),
-                if (row.isNull("amount_minor")) AccountingRules.PENDING_AMOUNT
-                else financeMoney(OfferMoney.decimal(row.getLong("amount_minor"))),
-                row.optString("route").takeIf { it.isNotEmpty() }?.let(AccountingRules::label)
-                    ?: "Zuordnung prüfen",
-                row.optString("issue"),
-            )
-            .filter { it.isNotBlank() }
-            .joinToString("\n"),
-        {
-            if (row.getString("collection") == "settlements")
-                controller.navigate("settlement_review", row.getString("id"))
-            else controller.navigate(row.getString("collection"), row.getString("id"))
-        },
-    )
-}
+private fun JSONArray?.objects(): List<JSONObject> =
+    if (this == null) emptyList() else (0 until length()).mapNotNull { optJSONObject(it) }
 
 /** Reuse the existing persistent action form, conflict handling and replay flow. */
 @Composable
@@ -441,7 +344,7 @@ internal fun NativeAccountingEditor(
             if (error.isEmpty()) LinearProgressIndicator(Modifier.fillMaxWidth())
             else {
                 NativeStatus(error, NativeStatusTone.Failed)
-                TextButton({ attempt++ }) { Text("Erneut laden") }
+                NativeTextButton({ attempt++ }) { Text("Erneut laden") }
             }
         }
 }

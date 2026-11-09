@@ -201,20 +201,28 @@ internal object PlanningBoardRules {
             "Die geänderten Stopps zuerst in der Tour prüfen."
         }
         val first = stops.first()
-        val target = property(first.getString("property_id"))
-        val address = target.optString("address").trim()
-        val point = coordinates(target)
-        val destination = point?.let { "${it.first},${it.second}" } ?: address
-        require(destination.isNotBlank()) {
-            "Beim ersten Stopp fehlt die Adresse. Sie lässt sich am Objekt ergänzen."
-        }
+        val addresses =
+            stops.map { stop ->
+                property(stop.getString("property_id")).optString("address").trim().also {
+                    require(it.isNotBlank()) {
+                        "Bei einem Stopp fehlt die Adresse. Bitte am Objekt ergänzen."
+                    }
+                }
+            }
+        val navigation =
+            "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" +
+                encoded(addresses.last()) +
+                if (addresses.size > 1)
+                    "&waypoints=" + encoded(addresses.dropLast(1).joinToString("|"))
+                else ""
         return JSONObject()
             .put("tour_hash", tour.getString("record_hash"))
             .put("target_visit_id", first.getString("id"))
             .put("target_title", first.optString("title", "Erster Stopp"))
-            .put("address", address)
-            .put("navigation_uri", "google.navigation:q=" + encoded(destination) + "&mode=d")
-            .put("fallback_uri", "geo:0,0?q=" + encoded(destination))
+            .put("address", addresses.first())
+            .put("addresses", JSONArray(addresses))
+            .put("navigation_uri", navigation)
+            .put("fallback_uri", navigation)
             .put("visit_ids", JSONArray(stops.map { it.getString("id") }))
     }
 }

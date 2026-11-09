@@ -239,6 +239,7 @@ internal suspend fun NativeAppController.queueSwipe(entity: String, id: String, 
             .put("original_args", args),
     )
     listActions = SettlementRules.rows(query("get_list_actions").optJSONArray("actions"))
+    if (positive && entity == "settlement") haptic()
 }
 
 /** The window is exactly five seconds; long accessibility snackbar defaults must not extend it. */

@@ -16,7 +16,6 @@ internal class LocalWorkflowTools {
             arrayOf(
                 "get_revier_overview",
                 "inspect_edit_action",
-                "list_revier_archive",
                 "list_properties",
                 "get_property",
                 "get_property_timeline",
@@ -42,7 +41,6 @@ internal class LocalWorkflowTools {
                 "create_inquiry",
                 "update_inquiry",
                 "accept_inquiry_direct",
-                "set_revier_archived",
                 "purge_revier_entity",
                 "plan_inquiry_inspection",
                 "create_care_plan",
@@ -53,9 +51,9 @@ internal class LocalWorkflowTools {
                 "set_day_tour",
                 "move_tour_stop",
                 "save_material",
+                "record_material_consumption",
                 "record_material_movement",
                 "save_equipment",
-                "record_equipment_usage",
                 "save_equipment_maintenance_plan",
                 "record_equipment_maintenance",
             )
@@ -123,10 +121,14 @@ internal class LocalWorkflowTools {
             if (name == "get_property_timeline")
                 return "Liest den Objektverlauf von Anfrage bis Zahlung sowie Pflege, Fotos und Geld. Nur ausdrückliche Objektverknüpfungen und bekannte Elternbezüge, keine Zuordnung allein über denselben Kunden. Belegbeträge gelten für den ganzen Beleg, keine erfundene Objektsumme. Reine lokale Leseabfrage mit begrenzter Seite; Fotos ohne Binärdaten."
             if (name == "get_planning_board")
-                return "Liest Einsätze und Termine gemeinsam für Tag, Woche oder Standortübersicht: begrenzte Seite mit aktuellem record_hash, echten Zeitfenstern, ausdrücklichen Objektbezügen und Wetterhinweisen aus dem vorhandenen Cache. Keine Netzabfrage, keine Umplanung und keine erfundenen Zeiten oder Koordinaten. Verschieben über update_visit bzw. update_appointment mit dem gelieferten Hash."
+                return "Liest Einsätze und Termine gemeinsam für Tag oder Woche: begrenzte Seite mit aktuellem record_hash, echten Zeitfenstern, ausdrücklichen Objektbezügen und Wetterhinweisen aus dem vorhandenen Cache. Keine Netzabfrage, keine Umplanung und keine erfundenen Zeiten oder Koordinaten. Verschieben über update_visit bzw. update_appointment mit dem gelieferten Hash."
             if (name == "get_tour_navigation")
                 return "Liefert die Übergabe an die Karten-App zum ersten gespeicherten Stopp der Tagestour. Benötigt aktuellen Tourhash; ungespeicherte oder prüfpflichtige Reihenfolge zuerst bestätigen. Keine Routenoptimierung, kein Kartendienst und keine Datenänderung. visit_ids bleiben in gespeicherter Reihenfolge."
             if (ListActionTools.handles(name)) return ListActionTools.description(name)
+            if (name == "record_material_movement")
+                return "Verweis für Version 1.71.0: record_material_consumption. Verbrauch an einer gespeicherten Arbeit."
+            if (name == "record_material_consumption")
+                return "Erfasst eine positive tatsächliche Materialmenge an einer Arbeit (worklog_id) oder deren laufender Sitzung (session_id); beim Arbeitsspeichern wird der Verbrauch atomar zugeordnet. Genau einen der beiden Bezüge und aktuellen Materialhash verwenden; gleicher request_id bucht höchstens einmal."
             if (name == "save_equipment") {
                 return "Speichert ein lokales Gerät mit unveränderter Wartung. Optional profile_photo_upload_id aus begin_file_upload/write_file_chunk: geprüfte Fotozuordnung ausschließlich zu diesem Gerät, kein Kundenfoto. Bestehendes Gerät benötigt equipment_id und aktuellen expected_record_hash. list_equipment liefert finale profile_photo-Metadaten; read_file_chunk mit resource_type photo liest das aktuell zugeordnete Original. request_id bei unklarer Antwort erhalten und zuerst inspect_edit_action lesen."
             }
@@ -146,7 +148,7 @@ internal class LocalWorkflowTools {
                 return "Liest Annahme-/Ablehnungshistorie der unveränderlichen Angebotsversion mit Nachweis und Zeitpunkt. Kein Versand-/Zustellbeleg aus bloßem Teilen."
             }
             if (name == "record_offer_acceptance") {
-                return "Hält die ausdrücklich bestätigte Annahme genau dieser finalen Angebotsversion mit tatsächlichem Zeitpunkt und nachvollziehbarem Nachweis fest. record_hash prüfen; keine Annahme erfinden und noch keinen zweiten Auftrag erzeugen. request_id bei Retry unverändert lassen."
+                return "Hält die ausdrücklich bestätigte Annahme genau dieser finalen Angebotsversion mit tatsächlichem Zeitpunkt und nachvollziehbarem Nachweis fest. record_hash prüfen; legt im selben Vorgang genau einen Auftrag an. request_id bei Retry unverändert lassen."
             }
             if (name == "decline_offer") {
                 return "Hält die ausdrückliche Ablehnung genau dieser finalen Angebotsversion samt optionalem Grund nachvollziehbar fest. Dokument und Historie bleiben erhalten; kein Auftrag und keine Rechnung entstehen."
@@ -162,12 +164,6 @@ internal class LocalWorkflowTools {
             }
             if (name == "inspect_edit_action") {
                 return "Prüft ausschließlich lesend den vorhandenen Beleg einer ursprünglichen Editoraktion mit unveränderten Argumenten. state=confirmed, content_removed oder unknown; keine Wiederholung einer Geschäftsaktion und keine Freigabe allein anhand restaurierter Requests. Unbekanntes Ergebnis separat anhand aktueller Originale klären."
-            }
-            if (name == "list_revier_archive") {
-                return "Liest archivierte Revier-Einträge mit Eintragsart und Pagination, unveränderten IDs sowie record_hash. Kein Wiederöffnen oder Löschen durch Lesen."
-            }
-            if (name == "set_revier_archived") {
-                return "Archiviert oder öffnet genau einen ausdrücklich bestätigten Revier-Eintrag mit aktuellem record_hash. Aktive Einsätze zuerst gesondert beenden; laufende Arbeit und Abhängigkeiten bleiben geschützt. Stabile request_id bei Wiederholung."
             }
             if (name == "purge_revier_entity") {
                 return "Entfernt genau einen aktiven oder früher archivierten Revier-Eintrag endgültig nach aktueller Versions- und Abhängigkeitsprüfung. Die lokale Oberfläche führt die beschriftete Löschung direkt aus. Minimale Lösch-/Request-Belege verhindern Wiederbelebung; historische Vollsicherungen bleiben gesondert erhalten. Keine produktive Löschung durch Tests."
@@ -246,7 +242,6 @@ internal class LocalWorkflowTools {
                 .put("property_id", McpFields.id())
                 .put("from_date", date())
                 .put("to_date", date())
-                .put("include_archived", McpFields.bool())
         }
 
         private @JvmStatic @Throws(Exception::class) fun propertyFields(
@@ -442,21 +437,6 @@ internal class LocalWorkflowTools {
                         .put("original_args", JSONObject().put("type", "object"))
                     required.addAll(Arrays.asList("original_tool", "original_args"))
                 }
-                "list_revier_archive" -> {
-                    p.put("offset", McpFields.number(0, 1000000))
-                        .put("limit", McpFields.number(1, 100))
-                    p.put(
-                        "entity",
-                        McpFields.enumeration(
-                            "property",
-                            "inquiry",
-                            "care_plan",
-                            "visit",
-                            "material",
-                            "equipment",
-                        ),
-                    )
-                }
                 "get_revier_overview" -> {
                     p.put("date", date())
                 }
@@ -514,7 +494,6 @@ internal class LocalWorkflowTools {
                         .put("reason", McpFields.text(4000))
                     required.addAll(Arrays.asList("inquiry_id", "expected_record_hash", "updates"))
                 }
-                "set_revier_archived",
                 "purge_revier_entity" -> {
                     p.put(
                             "entity",
@@ -534,10 +513,6 @@ internal class LocalWorkflowTools {
                     required.addAll(
                         Arrays.asList("entity", "entity_id", "expected_record_hash", "confirmed")
                     )
-                    if (name == "set_revier_archived") {
-                        p.put("archived", McpFields.bool())
-                        required.add("archived")
-                    }
                 }
                 "accept_inquiry_direct" -> {
                     p.put("inquiry_id", McpFields.id())
@@ -653,21 +628,17 @@ internal class LocalWorkflowTools {
                         .put("notes", McpFields.text(20000))
                         .put("active", McpFields.bool())
                 }
+                "record_material_consumption",
                 "record_material_movement" -> {
                     p.put("material_id", McpFields.id())
-                        .put("quantity_decimal", decimal(true))
-                        .put(
-                            "kind",
-                            McpFields.enumeration("receive", "consume", "adjust", "reversal"),
-                        )
-                        .put("reason", McpFields.text(4000).put("minLength", 1))
-                        .put("property_id", McpFields.id())
-                        .put("visit_id", McpFields.id())
+                        .put("worklog_id", McpFields.id())
                         .put("session_id", McpFields.id())
-                        .put("reverses_movement_id", McpFields.id())
+                        .put("quantity_decimal", decimal(false))
+                        .put("kind", McpFields.enumeration("consume"))
+                        .put("reason", McpFields.text(4000))
                         .put("expected_record_hash", McpFields.hash())
                     required.addAll(
-                        Arrays.asList("material_id", "kind", "reason", "expected_record_hash")
+                        Arrays.asList("material_id", "quantity_decimal", "expected_record_hash")
                     )
                 }
                 "save_equipment" -> {
@@ -707,19 +678,6 @@ internal class LocalWorkflowTools {
                         .put("maintenance_due", clearable(date()))
                         .put("notes", McpFields.text(20000))
                         .put("active", McpFields.bool())
-                }
-                "record_equipment_usage" -> {
-                    p.put("equipment_id", McpFields.id())
-                        .put("property_id", McpFields.id())
-                        .put("visit_id", McpFields.id())
-                        .put("session_id", McpFields.id())
-                        .put("starts_at", instant())
-                        .put("ends_at", instant())
-                        .put("notes", McpFields.text(20000))
-                        .put("expected_record_hash", McpFields.hash())
-                    required.addAll(
-                        Arrays.asList("equipment_id", "property_id", "expected_record_hash")
-                    )
                 }
                 "get_equipment_maintenance" -> {
                     p.put("equipment_id", McpFields.id())

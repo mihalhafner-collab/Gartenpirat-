@@ -70,7 +70,7 @@ class LocalStorageBuildTests(unittest.TestCase):
         self.assertNotIn("DriveSyncJob", source("MainActivity"))
 
     def test_old_partial_backup_and_restore_are_removed(self):
-        for name in ('LocalOwnerRepository', 'ArchiveApplicationService', 'OwnerRepository'):
+        for name in ('LocalOwnerRepository', 'DeletionApplicationService', 'OwnerRepository'):
             self.assertNotRegex(source(name), r'\b(?:createBackup|protectDeletion|restoreBackup)\s*\(')
         self.assertFalse((MAIN / 'DeletionBackupStore.kt').exists())
 

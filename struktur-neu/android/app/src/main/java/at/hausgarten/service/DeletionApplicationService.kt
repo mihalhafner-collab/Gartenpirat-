@@ -3,11 +3,8 @@ package at.hausgarten.service
 import java.util.*
 import org.json.*
 
-/**
- * Local archive and trash use cases. Effects pass through the existing owner repository
- * transaction.
- */
-class ArchiveApplicationService : OwnerCommand {
+/** Permanent deletion use cases. Effects pass through the existing owner repository transaction. */
+class DeletionApplicationService : OwnerCommand {
     private val repository: OwnerRepository
 
     constructor(repository: OwnerRepository) {
@@ -19,96 +16,15 @@ class ArchiveApplicationService : OwnerCommand {
         var all: JSONObject = repository.effective()
         val stamp: String = java.time.Instant.now().toString()
         when (name) {
-            "empty_trash" -> {
-                run {
-                    val payload =
-                        TrashPurgeBatch.payload(
-                            all,
-                            args.optString(
-                                "expected_preview_hash",
-                                TrashPurgeBatch.preview(all).getString("preview_hash"),
-                            ),
-                            args.getBoolean("confirmed"),
-                        )
-                    val targets = payload.getJSONArray("entries")
-                    for (i in 0 until targets.length()) {
-                        val target = targets.getJSONObject(i)
-                        requireInactiveSession(
-                            target.getString("entity"),
-                            target.getString("entity_id"),
-                        )
-                    }
-                    val dependents = TrashPurgeBatch.testTargets(all, targets)
-                    for (i in 0 until dependents.length()) {
-                        val target = dependents.getJSONObject(i)
-                        requireInactiveSession(
-                            target.getString("entity"),
-                            target.getString("entity_id"),
-                        )
-                    }
-                    val result = repository.enqueue(TrashPurgeBatch.KIND, payload, request)
-                    val removed = verifyRemoval(targets, true)
-                    verifyRemoval(dependents, true, removed)
-                    return result
-                        .put("deleted", targets.length())
-                        .put("recoverable", false)
-                        .put("media_cleanup", "local_after_commit")
-                }
-            }
-            "archive_work_records" -> {
-                run {
-                    var events: JSONArray =
-                        WorklogArchiveBatch.actions(
-                            all,
-                            args.getJSONArray("work_record_ids"),
-                            args.getString("expected_preview_hash"),
-                            request,
-                            stamp,
-                        )
-                    val saved: JSONArray = JSONArray()
-                    run {
-                        var i: Int = 0
-                        while (i < events.length()) {
-                            val event: JSONObject = events.getJSONObject(i)
-                            saved.put(
-                                repository.enqueue(
-                                    "archive",
-                                    event.getJSONObject("payload"),
-                                    event.getString("client_id"),
-                                )
-                            )
-                            i++
-                        }
-                    }
-                    verifyRemoval(
-                        WorklogArchiveBatch.preview(all, args.getJSONArray("work_record_ids"))
-                            .getJSONArray("entries"),
-                        false,
-                    )
-                    return JSONObject()
-                        .put("count", saved.length())
-                        .put("actions", saved)
-                        .put("recoverable", true)
-                        .put("physical_delete", false)
-                        .put("local_state", "local_saved")
-                        .put("sync_state", "not_applicable")
-                }
-            }
-            "purge_entity" -> {
-                return purgeOne(all, args, request, stamp).first
-            }
             "delete_entity" -> {
                 return deleteOne(all, args, request, stamp).first
-            }
-            "archive_entity" -> {
-                return archiveOne(all, args, request, stamp).first
             }
             "delete_work_records" -> {
                 val ids = args.getJSONArray("work_record_ids")
                 // Validate the whole selection before its first change; the owner request owns the
                 // transaction.
                 val selection =
-                    WorklogArchiveBatch.actions(
+                    WorklogDeletionBatch.actions(
                         all,
                         ids,
                         args.getString("expected_preview_hash"),
@@ -141,31 +57,6 @@ class ArchiveApplicationService : OwnerCommand {
                     .put("physical_delete", true)
                     .put("local_state", "local_saved")
                     .put("sync_state", "not_applicable")
-            }
-            "restore_entity" -> {
-                run {
-                    val entity: String = args.getString("entity")
-                    var id: String = args.getString("entity_id")
-                    var p: JSONObject =
-                        JSONObject(args.toString()).put("id", id).put("updated_at", stamp)
-                    p.remove("request_id")
-                    p.remove("entity_id")
-                    p.put(
-                        "_archive_entry",
-                        OwnerJournalRules.archives(all).getJSONObject(("" + entity + ":") + id),
-                    )
-                    OwnerJournalRules.apply(
-                        JSONObject(all.toString()),
-                        JSONObject()
-                            .put("client_id", request)
-                            .put("kind", "restore")
-                            .put("payload", p)
-                            .put("created_at", stamp),
-                        HashMap(),
-                        JSONObject(),
-                    )
-                    return repository.enqueue("restore", p, request)
-                }
             }
             else -> {
                 throw IllegalArgumentException("Eigentümerfunktion fehlt.")
@@ -313,7 +204,7 @@ class ArchiveApplicationService : OwnerCommand {
                         .contains(session.optString("state")))
             ) {
                 throw IllegalArgumentException(
-                    "Zeiterfassung dieses Termins zuerst abschließen oder bewusst verwerfen. Nichts archiviert."
+                    "Zeiterfassung dieses Termins zuerst abschließen oder bewusst verwerfen. Nichts gelöscht."
                 )
             }
         }
@@ -321,9 +212,7 @@ class ArchiveApplicationService : OwnerCommand {
         val id = args.getString("entity_id")
         val current =
             OwnerJournalRules.findOrNull(all.getJSONArray(OwnerJournalRules.group(entity)), id)
-                ?: throw IllegalArgumentException(
-                    "Der Eintrag fehlt oder liegt bereits im Papierkorb."
-                )
+                ?: throw IllegalArgumentException("Der Eintrag fehlt.")
         val p =
             DeletionRules.payload(
                 all,

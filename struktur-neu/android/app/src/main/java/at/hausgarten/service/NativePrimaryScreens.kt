@@ -4,7 +4,7 @@ import android.content.Intent
 import android.database.sqlite.SQLiteDatabaseLockedException
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,9 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -64,16 +62,14 @@ private val nativeSections =
         "materials" to "Material",
         "equipment" to "Geräte",
         "revier_search" to "Suche",
-        "revier_archive" to "Archiv",
         "orders" to "Aufträge",
         "offers" to "Angebote",
-        "billing" to "Offene Stunden",
+        "billing" to "Abrechnung",
         "catalog" to "Leistungskatalog",
         "photos" to "Fotos",
-        "appointments" to "Termine",
+        "appointments" to "Einsätze",
         "weather" to "Wetter",
         "planning" to "Planung",
-        "trash" to "Papierkorb",
         "settings" to "Einstellungen",
         "connections" to "Verbindungen",
         "backup" to "Sicherung",
@@ -122,15 +118,28 @@ internal fun NativeApplication(controller: NativeAppController) {
     val snackbar = remember { SnackbarHostState() }
     NativeListUndo(controller, snackbar)
     val noticeTarget = controller.messageTarget
-    LaunchedEffect(notice, noticeTarget) {
+    val valueUndo = controller.valueUndo
+    LaunchedEffect(notice, noticeTarget, valueUndo) {
         if (notice.isBlank()) return@LaunchedEffect
         val result =
-            snackbar.showSnackbar(
-                notice,
-                actionLabel = if (noticeTarget != null) "Ansehen" else null,
-                withDismissAction = true,
-                duration = SnackbarDuration.Long,
-            )
+            withTimeoutOrNull(5000) {
+                snackbar.showSnackbar(
+                    notice,
+                    actionLabel =
+                        if (valueUndo != null) "Rückgängig"
+                        else if (noticeTarget != null) "Ansehen" else null,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Indefinite,
+                )
+            }
+        snackbar.currentSnackbarData?.dismiss()
+        if (result == SnackbarResult.ActionPerformed && valueUndo != null) {
+            try {
+                valueUndo()
+            } catch (failure: Exception) {
+                controller.message(failure.message ?: "Rückgängig fehlgeschlagen.")
+            }
+        }
         if (result == SnackbarResult.ActionPerformed && noticeTarget != null)
             controller.navigate(
                 noticeTarget.section,
@@ -157,6 +166,15 @@ internal fun NativeApplication(controller: NativeAppController) {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text("Neu anlegen", style = MaterialTheme.typography.titleLarge)
+                NativeButton({
+                    controller.createOpen = false
+                    controller.navigate(
+                        "timer",
+                        args = JSONObject(controller.createArgs.toString()),
+                    )
+                }) {
+                    Text("Arbeit starten")
+                }
                 for ((label, open) in
                     listOf<Pair<String, () -> Unit>>(
                         "Arbeit nachtragen" to
@@ -198,7 +216,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                             {
                                 controller.navigate(
                                     "materials",
-                                    mode = "movement",
+                                    mode = "consumption",
                                     args = JSONObject(controller.createArgs.toString()),
                                 )
                             },
@@ -226,6 +244,21 @@ internal fun NativeApplication(controller: NativeAppController) {
                 NativeRecentContext(controller)
             }
         }
+    if (controller.workSaveOpen) {
+        ModalBottomSheet(
+            onDismissRequest = { controller.workSaveOpen = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            Column(Modifier.fillMaxWidth().fillMaxHeight(0.92f)) {
+                Text(
+                    "Arbeit speichern",
+                    Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                NativeTimer(controller, inSheet = true)
+            }
+        }
+    }
     Row(Modifier.fillMaxSize()) {
         if (landscape && !imeVisible) NativeMainNavigation(controller, rail = true)
         Scaffold(
@@ -246,7 +279,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                         Snackbar(
                             actionOnNewLine = LocalDensity.current.fontScale > 1.3f,
                             action = {
-                                TextButton(
+                                NativeTextButton(
                                     { data.performAction() },
                                     Modifier.semantics {
                                         testTag =
@@ -307,8 +340,8 @@ internal fun NativeApplication(controller: NativeAppController) {
                                     NativeBackButton { controller.requestBack() }
                                 if (route.section != "today")
                                     Text(
-                                        (if (route.section in listOf("office", "more")) "Mehr"
-                                        else nativeSections[route.section]) ?: "Haus & Garten",
+                                        if (route.id.isNotBlank()) ""
+                                        else nativeSections[route.section] ?: "Haus & Garten",
                                         Modifier.weight(1f).padding(12.dp),
                                         style = MaterialTheme.typography.headlineSmall,
                                     )
@@ -316,41 +349,70 @@ internal fun NativeApplication(controller: NativeAppController) {
                                     // Today and customers have their own search field on top.
                                     if (route.section !in listOf("today", "customers"))
                                         NativeSearchButton { controller.navigate("revier_search") }
-                                    // Design: rare areas (former office) sit behind ⋮ in the
-                                    // header, not in a fifth tab.
-                                    if (route.section !in listOf("office", "more"))
+                                    Box {
                                         IconButton(
-                                            { controller.openMore() },
+                                            { controller.moreMenuOpen = true },
                                             Modifier.semantics {
-                                                contentDescription = "Mehr"
+                                                contentDescription = "Menü"
                                                 testTag = UiTags.MORE
                                             },
                                         ) {
-                                            Text(
-                                                "⋮",
-                                                style = MaterialTheme.typography.headlineSmall,
-                                            )
+                                            NativeMoreIcon()
                                         }
+                                        DropdownMenu(
+                                            controller.moreMenuOpen,
+                                            { controller.moreMenuOpen = false },
+                                        ) {
+                                            for ((group, entries) in
+                                                listOf(
+                                                    "Vorgänge" to
+                                                        listOf(
+                                                            "inquiries",
+                                                            "offers",
+                                                            "orders",
+                                                            "worklogs",
+                                                        ),
+                                                    "Betrieb" to listOf("equipment", "materials"),
+                                                    "App" to listOf("backup", "settings"),
+                                                )) {
+                                                Text(
+                                                    group,
+                                                    Modifier.padding(
+                                                        horizontal = 12.dp,
+                                                        vertical = 4.dp,
+                                                    ),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                )
+                                                for (entry in entries) DropdownMenuItem(
+                                                    text = { Text(nativeSections.getValue(entry)) },
+                                                    modifier =
+                                                        Modifier.semantics {
+                                                            testTag = UiTags.area(entry)
+                                                        },
+                                                    onClick = {
+                                                        controller.moreMenuOpen = false
+                                                        controller.navigate(entry)
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                     }
             },
             bottomBar = {
-                if (!imeVisible)
-                    Column {
-                        if (route.section !in listOf("today", "timer", "work", "backup"))
-                            NativeRunningWorkBar(controller)
-                        if (!landscape) NativeMainNavigation(controller)
-                    }
+                Column {
+                    NativeRunningWorkBar(controller)
+                    if (!imeVisible && !landscape) NativeMainNavigation(controller)
+                }
             },
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
                 routeStates.SaveableStateProvider(controller.savedRoute()) {
                     when (route.section) {
                         "today" -> NativeToday(controller)
-                        "more",
-                        "office" -> NativeOffice(controller)
-                        "billing" -> NativeBillingOverview(controller)
+                        "billing",
                         "accounting" -> NativeAccounting(controller)
                         "accounting_edit" ->
                             NativeAccountingEditor(controller, route.mode, route.id)
@@ -381,8 +443,7 @@ internal fun NativeApplication(controller: NativeAppController) {
                         "tour",
                         "materials",
                         "equipment",
-                        "revier_search",
-                        "revier_archive" -> NativeRevierScreen(route.section, route.id, controller)
+                        "revier_search" -> NativeRevierScreen(route.section, route.id, controller)
                         "offers",
                         "catalog" -> NativeFinanceScreen(route.section, route.id, controller)
                         "photos" -> NativeMediaScreen(route.section, route.id, controller)
@@ -392,7 +453,6 @@ internal fun NativeApplication(controller: NativeAppController) {
                         "action" -> NativeActionForm(controller, route.id, route.mode, route.args)
                         "settings" -> NativeSettings(controller)
                         "storage" -> NativeStorageSettings(controller)
-                        "trash" -> NativeTrash(controller)
                         "connections" -> NativeConnections(controller)
                         "backup" ->
                             Column(Modifier.fillMaxSize()) {
@@ -408,9 +468,6 @@ internal fun NativeApplication(controller: NativeAppController) {
                                     )
                                     Text(
                                         "Eine unverschlüsselte ZIP-Datei mit dem vorhandenen Bestand. Das Ziel wählst du im Android-Dateidialog."
-                                    )
-                                    Text(
-                                        "Die Sicherungsansicht zeigt das letzte protokollierte Rücklesen, Hinweise und die Vorschau vor einer Wiederherstellung."
                                     )
                                 }
                                 NativeActionBar(
@@ -443,12 +500,17 @@ internal fun NativeApplication(controller: NativeAppController) {
                 if (
                     !imeVisible &&
                         route.mode == "list" &&
-                        route.id.isEmpty() &&
-                        route.section in listOf("customers", "accounting")
+                        (route.id.isEmpty() && route.section in listOf("customers", "accounting") ||
+                            route.id.isNotBlank() &&
+                                route.section in listOf("customers", "properties"))
                 )
                     NativeCreateButton(
                         controller,
-                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                        Modifier.align(Alignment.BottomEnd)
+                            .padding(
+                                end = 16.dp,
+                                bottom = if (route.id.isNotBlank()) 76.dp else 16.dp,
+                            ),
                     )
             }
         }
@@ -460,7 +522,7 @@ internal fun NativeApplication(controller: NativeAppController) {
 private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean = false) {
     // Work records have no tab of their own; they open from Today, customers, billing and the
     // office.
-    // Design: exactly four areas; everything else is reached through ⋮ "Mehr".
+    // Exactly four areas; other sections share the menu.
     val entries =
         listOf(
             "today" to "Heute",
@@ -481,9 +543,9 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
             ) {
                 entries.forEach { (section, label) ->
                     val active = controller.route.area == section
-                    TextButton(
+                    NativeTextButton(
                         { controller.openSection(section) },
-                        Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics {
+                        Modifier.heightIn(min = 48.dp).semantics {
                             testTag = UiTags.area(section)
                             selected = active
                             stateDescription =
@@ -494,7 +556,7 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                             ButtonDefaults.textButtonColors(
                                 containerColor =
                                     if (active) MaterialTheme.colorScheme.secondaryContainer
-                                    else Color.Transparent
+                                    else NativeTransparent
                             ),
                     ) {
                         Text(label)
@@ -507,14 +569,14 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
         Column(Modifier.navigationBarsPadding().padding(horizontal = 4.dp, vertical = 2.dp)) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            entries.chunked(if (large) 2 else 4).forEach { group ->
+            entries.chunked(4).forEach { group ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     group.forEach { (section, label) ->
                         val active = controller.route.area == section
-                        TextButton(
+                        NativeTextButton(
                             onClick = { controller.openSection(section) },
                             modifier =
-                                Modifier.weight(1f).heightIn(min = 48.dp).semantics {
+                                Modifier.heightIn(min = 48.dp).semantics {
                                     testTag = UiTags.area(section)
                                     selected = active
                                     stateDescription =
@@ -526,28 +588,28 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                                     containerColor =
                                         if (large && active)
                                             MaterialTheme.colorScheme.secondaryContainer
-                                        else Color.Transparent,
+                                        else NativeTransparent,
                                     contentColor =
                                         if (active) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.onSurfaceVariant,
                                 ),
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                if (!large)
-                                    Surface(
-                                        color =
-                                            if (active) MaterialTheme.colorScheme.secondaryContainer
-                                            else Color.Transparent,
-                                        shape = CircleShape,
+                                Surface(
+                                    color =
+                                        if (active) MaterialTheme.colorScheme.secondaryContainer
+                                        else NativeTransparent,
+                                    shape = CircleShape,
+                                ) {
+                                    Box(
+                                        Modifier.width(56.dp).height(30.dp),
+                                        contentAlignment = Alignment.Center,
                                     ) {
-                                        Box(
-                                            Modifier.width(56.dp).height(30.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            NativeAreaIcon(section)
-                                        }
+                                        NativeAreaIcon(section)
                                     }
-                                Text(label, style = MaterialTheme.typography.labelLarge)
+                                }
+                                if (!large || active)
+                                    Text(label, style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }
@@ -564,24 +626,44 @@ internal fun NativeCreateButton(
     modifier: Modifier = Modifier,
     contextArgs: JSONObject = controller.route.args,
 ) {
+    val scope = rememberCoroutineScope()
     FloatingActionButton(
         {
-            controller.createArgs =
-                JSONObject().apply {
-                    for (key in
-                        listOf(
-                            "customer_id",
-                            "property_id",
-                            "order_id",
-                            "visit_id",
-                            "worklog_id",
-                            "inquiry_id",
-                        )) if (contextArgs.optString(key).isNotBlank())
-                        put(key, contextArgs.getString(key))
-                    if (controller.route.section == "customers" && controller.route.id.isNotBlank())
-                        put("customer_id", controller.route.id)
-                }
-            controller.createOpen = true
+            scope.launch {
+                controller.createArgs =
+                    JSONObject().apply {
+                        for (key in
+                            listOf(
+                                "customer_id",
+                                "property_id",
+                                "order_id",
+                                "visit_id",
+                                "worklog_id",
+                                "inquiry_id",
+                            )) if (contextArgs.optString(key).isNotBlank())
+                            put(key, contextArgs.getString(key))
+                        if (
+                            controller.route.section == "customers" &&
+                                controller.route.id.isNotBlank()
+                        )
+                            put("customer_id", controller.route.id)
+                        if (
+                            controller.route.section == "properties" &&
+                                controller.route.id.isNotBlank()
+                        ) {
+                            put("property_id", controller.route.id)
+                            val property =
+                                controller.store
+                                    .nativeData()
+                                    .detail("properties", controller.route.id)
+                            property
+                                ?.optString("customer_id")
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { put("customer_id", it) }
+                        }
+                    }
+                controller.createOpen = true
+            }
         },
         modifier.semantics {
             contentDescription = "Neu anlegen"
@@ -661,87 +743,60 @@ private fun NativeRunningWorkBar(controller: NativeAppController) {
         }
     }
     val current = session ?: return
-    if (current.optString("state") !in listOf("RUNNING", "PAUSED")) return
+    if (current.optString("state") !in listOf("RUNNING", "PAUSED", "STOPPED_PENDING_REVIEW")) return
     val seconds = current.optLong("worked_ms").coerceAtLeast(0) / 1000
-    Surface(
-        onClick = { controller.navigate("timer") },
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    ) {
-        Column(
-            Modifier.fillMaxWidth()
-                .heightIn(min = 48.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Text(
-                (if (current.optString("state") == "PAUSED") "Arbeit pausiert"
-                else "Arbeit läuft") +
-                    " · " +
-                    "%02d:%02d:%02d".format(seconds / 3600, seconds / 60 % 60, seconds % 60) +
-                    " ›",
-                style = MaterialTheme.typography.labelLarge,
-            )
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    fun act(tool: String) {
+        if (busy) return
+        scope.launch {
+            busy = true
+            try {
+                controller.timerAction(
+                    tool,
+                    current.optString("id", current.optString("session_id")),
+                )
+            } catch (failure: Exception) {
+                controller.message(failure.message ?: "Zeitvorgang fehlgeschlagen.")
+            } finally {
+                busy = false
+            }
         }
     }
-}
-
-@Composable
-private fun NativeOffice(controller: NativeAppController) {
-    // Flat list: every entry is visible at once, grouped only by plain headings.
-    val groups =
-        listOf(
-            "Organisieren" to
-                listOf(
-                    Triple("worklogs", "Arbeiten", "Alle erfassten Arbeiten"),
-                    Triple("billing", "Offene Stunden", "Noch nicht abgerechnete Arbeiten"),
-                    Triple("offers", "Angebote", "Entwürfe und fertige Angebote"),
-                    Triple("orders", "Aufträge", "Laufende und erledigte Aufträge"),
-                    Triple("inquiries", "Anfragen", "Neue und offene Anfragen"),
-                ),
-            "Gärten und Pflege" to
-                listOf(
-                    Triple("properties", "Objekte", "Gärten und Häuser der Kunden"),
-                    Triple("care_plans", "Pflegepläne", "Regelmäßige Pflege je Objekt"),
-                ),
-            "Material und Geräte" to
-                listOf(
-                    Triple("materials", "Material", "Bestand und Verbrauch"),
-                    Triple("equipment", "Geräte", "Wartung und Zubehör"),
-                    Triple("photos", "Fotos", "Alle Fotos"),
-                    Triple("catalog", "Leistungskatalog", "Leistungen und Preise für Angebote"),
-                ),
-            "Weitere" to
-                listOf(
-                    Triple("revier_search", "Suche", "In allen Einträgen suchen"),
-                    Triple("revier_archive", "Archiv", "Abgeschlossene Pflege und Einsätze"),
-                    Triple("trash", "Papierkorb", "Ältere gelöschte Einträge"),
-                    Triple(
-                        "settings",
-                        "Einstellungen und Daten",
-                        "Verbindungen, Sicherung, Speicher und App-Prüfung",
-                    ),
-                ),
-        )
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-        for ((heading, rows) in groups) {
-            item {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                Modifier.weight(1f)
+                    .clickable { controller.navigate("timer") }
+                    .semantics { contentDescription = "Laufende Arbeit öffnen" }
+            ) {
                 Text(
-                    heading,
-                    Modifier.padding(
-                        top = if (heading == "Organisieren") 0.dp else 20.dp,
-                        bottom = 4.dp,
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
+                    current.optString("activity").ifBlank { "Arbeit" },
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+                Text(
+                    "%02d:%02d:%02d".format(seconds / 3600, seconds / 60 % 60, seconds % 60),
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                 )
             }
-            items(rows, key = { it.first }) { (section, title, subtitle) ->
-                NativeInfoRow(
-                    title,
-                    subtitle,
-                    { controller.openOverview(section) },
-                    modifier = Modifier.semantics { testTag = UiTags.area(section) },
-                )
-            }
+            if (current.optString("state") != "STOPPED_PENDING_REVIEW") {
+                NativeTextButton(
+                    {
+                        act(
+                            if (current.optString("state") == "PAUSED") "end_break"
+                            else "start_break"
+                        )
+                    },
+                    enabled = !busy,
+                ) {
+                    Text(if (current.optString("state") == "PAUSED") "Weiter" else "Pause")
+                }
+                NativeButton({ act("stop_work") }, enabled = !busy) { Text("Stopp") }
+            } else NativeButton({ controller.workSaveOpen = true }) { Text("Speichern") }
         }
     }
 }
@@ -796,7 +851,7 @@ internal fun NativeRelatedList(
                 { controller.navigate(section, row.id, args = args) },
             )
         }
-        TextButton({ controller.navigate(section, args = args) }) { Text("Alle $title") }
+        NativeTextButton({ controller.navigate(section, args = args) }) { Text("Alle $title") }
     }
 }
 
@@ -945,8 +1000,8 @@ private fun NativeTimeCard(value: JSONObject) {
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Surface(
-                color = Color.White.copy(alpha = 0.14f),
-                contentColor = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.14f),
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape,
             ) {
                 Text(
@@ -967,15 +1022,10 @@ private fun NativeTimeCard(value: JSONObject) {
                         MaterialTheme.typography.headlineMedium
                     else MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                 textAlign = TextAlign.Center,
             )
-            Text(
-                "Arbeitszeit ohne Pause",
-                Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-            HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.25f))
             FlowRow(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
@@ -1045,11 +1095,6 @@ internal fun NativeOpenHours(
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Offene Stunden", style = MaterialTheme.typography.titleMedium)
-        Text(
-            if (from.isEmpty() && to.isEmpty()) "Alle noch offenen Arbeiten · alle Daten"
-            else "Gewählter Zeitraum",
-            style = MaterialTheme.typography.bodySmall,
-        )
         if (error.isNotEmpty()) NativeStatus(error, NativeStatusTone.Failed)
         else if (summary == null) LinearProgressIndicator(Modifier.fillMaxWidth())
         else {
@@ -1062,7 +1107,7 @@ internal fun NativeOpenHours(
                     "Offene Arbeiten sind die Grundlage deiner nächsten Abrechnung.",
                     Modifier.semantics { testTag = UiTags.EMPTY_STATE },
                 )
-                TextButton(
+                NativeTextButton(
                     {
                         controller.navigate(
                             "worklogs",
@@ -1092,7 +1137,7 @@ internal fun NativeOpenHours(
                 if (!group.optBoolean("valid"))
                     NativeStatus("Zuordnung vor der Übertragung prüfen", NativeStatusTone.Attention)
                 else if (recipient.isNotEmpty() && rows.length() > 0)
-                    Button({
+                    NativeButton({
                         controller.navigate(
                             "settlement_edit",
                             args =
@@ -1127,67 +1172,7 @@ internal fun NativeOpenHours(
                         )
                     }
             }
-            Text(
-                "Die Markierung ist eine Zuordnung. Bestätigte Abrechnungen und tatsächliche Zahlungen werden getrennt erfasst.",
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
-    }
-}
-
-@Composable
-private fun NativeBillingOverview(controller: NativeAppController) {
-    var customer by rememberSaveable {
-        mutableStateOf(controller.route.args.optString("work_customer_id"))
-    }
-    var from by rememberSaveable { mutableStateOf("") }
-    var to by rememberSaveable { mutableStateOf("") }
-    var filters by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            NativeInfoRow(
-                "Filter",
-                if (from.isEmpty() && to.isEmpty()) "Alle Daten" else "Zeitraum eingeschränkt",
-                { filters = !filters },
-                modifier = Modifier.semantics { testTag = UiTags.FILTER },
-            )
-            if (filters) {
-                NativeRecordPicker(
-                    controller,
-                    "customers",
-                    "Arbeitskunde",
-                    customer,
-                    onValueChange = { customer = it },
-                )
-                NativeDateField("Ab Datum", from, { from = it })
-                NativeDateField("Bis Datum", to, { to = it })
-                TextButton({
-                    customer = ""
-                    from = ""
-                    to = ""
-                }) {
-                    Text("Filter zurücksetzen")
-                }
-            }
-            NativeOpenHours(controller, customer, from, to)
-        }
-        NativeActionBar(
-            "Arbeiten prüfen",
-            {
-                controller.navigate(
-                    "worklogs",
-                    args =
-                        JSONObject().apply {
-                            if (customer.isNotEmpty()) put("customer_id", customer)
-                            if (from.isNotEmpty()) put("date_from", from)
-                            if (to.isNotEmpty()) put("date_to", to)
-                        },
-                )
-            },
-        )
     }
 }
 
@@ -1198,6 +1183,8 @@ private fun NativeToday(controller: NativeAppController) {
     var session by remember { mutableStateOf<JSONObject?>(null) }
     var backup by remember { mutableStateOf<JSONObject?>(null) }
     var openHours by remember { mutableStateOf<JSONObject?>(null) }
+    var weather by remember { mutableStateOf<JSONObject?>(null) }
+    var paymentsDue by remember { mutableIntStateOf(0) }
     var error by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var pendingTimer by remember { mutableStateOf<JSONObject?>(null) }
@@ -1206,6 +1193,49 @@ private fun NativeToday(controller: NativeAppController) {
     suspend fun refresh() {
         try {
             overview = controller.query("get_revier_overview", JSONObject().put("date", day))
+            val planned = overview?.optJSONArray("planned_visits") ?: JSONArray()
+            for (index in 0 until planned.length()) {
+                val visit = planned.getJSONObject(index)
+                val customerId = visit.optString("customer_id")
+                val propertyId = visit.optString("property_id")
+                if (customerId.isNotBlank())
+                    visit.put(
+                        "customer_name",
+                        controller.store
+                            .nativeData()
+                            .detail("customers", customerId)
+                            ?.optString("name")
+                            .orEmpty(),
+                    )
+                if (propertyId.isNotBlank())
+                    visit.put(
+                        "property_name",
+                        controller.store
+                            .nativeData()
+                            .detail("properties", propertyId)
+                            ?.optString("name")
+                            .orEmpty(),
+                    )
+            }
+            val board =
+                controller.query(
+                    "get_planning_board",
+                    JSONObject().put("date_from", day).put("date_to", day),
+                )
+            val items = board.optJSONArray("items") ?: JSONArray()
+            weather =
+                (0 until items.length())
+                    .map { items.getJSONObject(it).optJSONObject("weather") }
+                    .firstOrNull { it != null && it.optString("severity") != "inactive" }
+            val settlements = controller.query("list_settlements")
+            val rows = settlements.optJSONArray("records") ?: JSONArray()
+            paymentsDue =
+                (0 until rows.length())
+                    .map { rows.getJSONObject(it) }
+                    .count {
+                        it.optLong("total_minor") > it.optLong("paid_minor") &&
+                            it.optString("due_date").let { due -> due.isNotBlank() && due < day }
+                    }
             backup = controller.query("get_full_backup_status")
             openHours =
                 controller.query(
@@ -1314,7 +1344,6 @@ private fun NativeToday(controller: NativeAppController) {
             try {
                 session = controller.timerAction(tool, context.optString("session_id"))
                 error = ""
-                if (tool == "stop_work") controller.navigate("timer")
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -1405,8 +1434,16 @@ private fun NativeToday(controller: NativeAppController) {
                         }
                     }
                 }
-                // Design: the date is the title; the day's plan sits in one quiet line below it.
+                // The date and cached weather head the day's plan.
                 item {
+                    weather?.let {
+                        NativeStatus(
+                            it.optString("label", "Wetter"),
+                            if (it.optString("severity") in setOf("warning", "danger"))
+                                NativeStatusTone.Due
+                            else NativeStatusTone.Neutral,
+                        )
+                    }
                     Text(
                         LocalDate.parse(day)
                             .format(
@@ -1436,7 +1473,9 @@ private fun NativeToday(controller: NativeAppController) {
                 if (error.isNotBlank())
                     item {
                         NativeStatus(error, NativeStatusTone.Attention)
-                        TextButton({ controller.navigate("timer") }) { Text("Zeitstand ansehen") }
+                        NativeTextButton({ controller.navigate("timer") }) {
+                            Text("Zeitstand ansehen")
+                        }
                     }
                 if (active)
                     item {
@@ -1447,8 +1486,6 @@ private fun NativeToday(controller: NativeAppController) {
                         NativeContext(controller, context)
                         session!!.optString("activity").takeIf { it.isNotBlank() }?.let { Text(it) }
                         NativeTimeCard(session!!)
-                        if (stopped)
-                            Text("Die Zeit läuft nicht weiter. Deine Eingaben bleiben erhalten.")
                         if (session!!.optBoolean("review_required"))
                             NativeStatus(
                                 "Zeit vor dem Speichern ausdrücklich prüfen",
@@ -1456,7 +1493,7 @@ private fun NativeToday(controller: NativeAppController) {
                             )
                         if (!stopped)
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton({
+                                NativeOutlinedButton({
                                     controller.navigate(
                                         "photos",
                                         mode = "import",
@@ -1466,17 +1503,17 @@ private fun NativeToday(controller: NativeAppController) {
                                 }) {
                                     Text("Foto hinzufügen")
                                 }
-                                OutlinedButton({
+                                NativeOutlinedButton({
                                     controller.navigate(
                                         "materials",
-                                        mode = "movement",
+                                        mode = "consumption",
                                         args = context,
                                     )
                                 }) {
                                     Text("Material")
                                 }
                                 if (session!!.optString("activity").isBlank())
-                                    TextButton({ controller.navigate("timer") }) {
+                                    NativeTextButton({ controller.navigate("timer") }) {
                                         Text("Tätigkeit ergänzen")
                                     }
                             }
@@ -1497,7 +1534,7 @@ private fun NativeToday(controller: NativeAppController) {
                             )
                             // Empty list names its first action (design rule).
                             if (!active)
-                                Button(
+                                NativeButton(
                                     { startWork(JSONObject()) },
                                     Modifier.padding(top = 8.dp).heightIn(min = 48.dp),
                                     enabled = session != null && !busy,
@@ -1512,37 +1549,46 @@ private fun NativeToday(controller: NativeAppController) {
                             active && session?.optString("visit_id") == visit.optString("id")
                         Surface(
                             onClick = { controller.navigate("visits", visit.optString("id")) },
-                            shape = MaterialTheme.shapes.large,
-                            color = MaterialTheme.colorScheme.surface,
-                            border =
-                                BorderStroke(
-                                    if (visit === next) 2.dp else 1.dp,
-                                    if (visit === next) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.outlineVariant,
-                                ),
+                            shape = androidx.compose.ui.graphics.RectangleShape,
+                            color =
+                                if (visit === next) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surface,
                         ) {
                             Row(
                                 Modifier.fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    .heightIn(min = 42.dp)
+                                    .padding(horizontal = 12.dp, vertical = 2.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
-                                Text(
-                                    visit.optString("window_start").ifBlank { "–" },
-                                    Modifier.widthIn(min = 48.dp),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                )
+                                if (LocalDensity.current.fontScale <= 1.3f)
+                                    Text(
+                                        visit.optString("window_start").ifBlank { "–" },
+                                        Modifier.widthIn(min = 48.dp),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                    )
                                 Column(
                                     Modifier.weight(1f),
                                     verticalArrangement = Arrangement.spacedBy(2.dp),
                                 ) {
+                                    if (LocalDensity.current.fontScale > 1.3f)
+                                        Text(
+                                            visit.optString("window_start"),
+                                            style = MaterialTheme.typography.labelMedium,
+                                        )
                                     Text(
                                         visit.optString("title", "Einsatz"),
                                         style = MaterialTheme.typography.titleSmall,
                                     )
                                     listOf(
-                                            visit.optString("location"),
+                                            listOf(
+                                                    visit.optString("customer_name"),
+                                                    visit.optString("property_name"),
+                                                )
+                                                .filter { it.isNotBlank() }
+                                                .joinToString(" · ")
+                                                .ifBlank { visit.optString("location") },
                                             listOf(
                                                     visit.optString("window_start"),
                                                     visit.optString("window_end"),
@@ -1561,9 +1607,12 @@ private fun NativeToday(controller: NativeAppController) {
                                             )
                                         }
                                 }
-                                if (current) NativeStatus("Läuft", NativeStatusTone.Running)
+                                if (current)
+                                    NativeButton({ timer("stop_work") }, enabled = !busy) {
+                                        Text("Stopp")
+                                    }
                                 else if (!active && visit.optString("customer_id").isNotEmpty())
-                                    FilledTonalButton(
+                                    NativeFilledTonalButton(
                                         { startWork(visitContext(visit)) },
                                         enabled = !busy && pendingTimer == null,
                                     ) {
@@ -1571,10 +1620,11 @@ private fun NativeToday(controller: NativeAppController) {
                                     }
                             }
                         }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 if (!active && visits.isNotEmpty())
                     item {
-                        TextButton(
+                        NativeTextButton(
                             { startWork(JSONObject()) },
                             enabled = session != null && !busy,
                         ) {
@@ -1595,7 +1645,8 @@ private fun NativeToday(controller: NativeAppController) {
                         openTotal > 0 ||
                             (overview?.optJSONArray("maintenance_due")?.length() ?: 0) > 0 ||
                             (overview?.optInt("open_inquiries") ?: 0) > 0 ||
-                            backupDue
+                            backupDue ||
+                            paymentsDue > 0
                     if (anyDue) Text("Zu erledigen", style = MaterialTheme.typography.titleMedium)
                     if (openTotal > 0)
                         NativeInfoRow(
@@ -1633,6 +1684,13 @@ private fun NativeToday(controller: NativeAppController) {
                             else "$inquiries offene Anfragen",
                             { controller.navigate("inquiries") },
                         )
+                    if (paymentsDue > 0)
+                        NativeInfoRow(
+                            "Zahlungen fällig",
+                            "$paymentsDue offen",
+                            { controller.navigate("accounting") },
+                            leading = { NativeStatus("Fällig", NativeStatusTone.Due) },
+                        )
                     if (backupDue)
                         NativeInfoRow(
                             "Sicherung prüfen",
@@ -1663,8 +1721,8 @@ private fun NativeToday(controller: NativeAppController) {
                     )
                 "STOPPED_PENDING_REVIEW" ->
                     NativeActionBar(
-                        "Abschluss prüfen",
-                        { controller.navigate("timer") },
+                        "Arbeit speichern",
+                        { controller.workSaveOpen = true },
                         "Arbeit nachtragen",
                         { controller.navigate("worklogs", mode = "new") },
                     )
@@ -1673,8 +1731,12 @@ private fun NativeToday(controller: NativeAppController) {
                 else -> Unit
             }
         }
-        if (!active && !WindowInsets.isImeVisible)
-            NativeCreateButton(controller, Modifier.align(Alignment.BottomEnd).padding(16.dp))
+        if (!WindowInsets.isImeVisible)
+            NativeCreateButton(
+                controller,
+                Modifier.align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = if (active) 76.dp else 16.dp),
+            )
     }
 }
 
@@ -1877,6 +1939,8 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         else
             "${page.total} Treffer · ${page.offset + if (page.rows.isEmpty()) 0 else 1}–${page.offset + page.rows.size}",
         onFilters = { filtersOpen = !filtersOpen },
+        onOpenSearch =
+            if (collection == "customers") ({ controller.navigate("revier_search") }) else null,
         onFocus = { filtersOpen = false },
         bottomSearch = collection == "worklogs",
         controlsVisible = selected.isEmpty(),
@@ -1884,8 +1948,10 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             if (collection == "customers") {
                 {
                     controller.speech { spoken ->
-                        search = spoken
-                        offset = 0
+                        controller.navigate(
+                            "revier_search",
+                            args = JSONObject().put("query", spoken),
+                        )
                     }
                 }
             } else null,
@@ -1893,7 +1959,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         LazyColumn(
             Modifier.weight(1f).padding(horizontal = 16.dp),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             if (listLoading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (listFailure.isNotEmpty())
@@ -1915,7 +1981,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Text("Archivierte Kunden einbeziehen", Modifier.weight(1f))
+                            Text("Inaktive Kunden einbeziehen", Modifier.weight(1f))
                             Switch(
                                 inactive,
                                 {
@@ -1978,7 +2044,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                         inactive)
             )
                 item {
-                    TextButton({
+                    NativeTextButton({
                         search = ""
                         status = ""
                         customer = ""
@@ -2064,13 +2130,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                             contentAlignment = Alignment.Center,
                                         ) {
                                             if (worklog && !checked) NativeAreaIcon("worklogs")
-                                            else
-                                                Text(
-                                                    "✓",
-                                                    style = MaterialTheme.typography.labelLarge,
-                                                    maxLines = 1,
-                                                    softWrap = false,
-                                                )
+                                            else NativeAreaIcon("worklogs")
                                         }
                                     }
                                 })
@@ -2088,9 +2148,11 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                 })
                             else null,
                         isSelected = checked,
+                        trailing =
+                            if (row.status.isNotBlank() && !worklog && collection != "customers")
+                                ({ NativeStatus(nativeValue(row.status)) })
+                            else null,
                     )
-                    if (row.status.isNotBlank() && !worklog && collection != "customers")
-                        NativeStatus(nativeValue(row.status))
                 }
             }
             if (!listLoading && listFailure.isEmpty() && page.rows.isEmpty())
@@ -2120,8 +2182,10 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (offset > 0)
-                        OutlinedButton({ offset = maxOf(0, offset - 50) }) { Text("Vorherige 50") }
-                    if (page.hasMore) OutlinedButton({ offset += 50 }) { Text("Weitere 50") }
+                        NativeOutlinedButton({ offset = maxOf(0, offset - 50) }) {
+                            Text("Vorherige 50")
+                        }
+                    if (page.hasMore) NativeOutlinedButton({ offset += 50 }) { Text("Weitere 50") }
                 }
             }
         }
@@ -2132,10 +2196,10 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                     if (pendingDeletion != null)
                         NativeInspectionBanner(deletionInspection) { deletionInspectionAttempt++ }
                     NativeActions {
-                        TextButton({ selected = emptyList() }, enabled = !deleting) {
+                        NativeTextButton({ selected = emptyList() }, enabled = !deleting) {
                             Text("Abbrechen")
                         }
-                        TextButton(
+                        NativeTextButton(
                             {
                                 selected = (selected + page.rows.map { it.id }).distinct().take(200)
                             },
@@ -2144,7 +2208,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                             Text("Seite auswählen")
                         }
                         if (selected.size == 1)
-                            TextButton(
+                            NativeTextButton(
                                 {
                                     controller.action(
                                         "Labor clandestino",
@@ -2157,7 +2221,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                                 Text("Labor clandestino")
                             }
                         if (selected.size == 1)
-                            TextButton(
+                            NativeTextButton(
                                 {
                                     controller.navigate(
                                         "worklogs",
@@ -2170,7 +2234,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                             ) {
                                 Text("Duplizieren")
                             }
-                        Button(
+                        NativeButton(
                             {
                                 if (!deleting) {
                                     deleting = true
@@ -2272,7 +2336,7 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
                             offset = 0
                         },
                     )
-                    TextButton({
+                    NativeTextButton({
                         controller.action(
                             "Wochen, Arbeitszeiten und Qualität prüfen",
                             "get_work_record_summary",
@@ -2302,49 +2366,33 @@ private fun NativeEntityList(controller: NativeAppController, collection: String
         }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun NativeEntityDetail(controller: NativeAppController, collection: String, id: String) {
     val kind = primaryKind(collection)
     var record by remember(id) { mutableStateOf<JSONObject?>(null) }
     var envelope by remember(id) { mutableStateOf<JSONObject?>(null) }
     var error by remember(id) { mutableStateOf("") }
-    var historyOffset by rememberSaveable(id) { mutableIntStateOf(0) }
-    var details by rememberSaveable(id) { mutableStateOf(false) }
-    var starting by remember { mutableStateOf(false) }
+    var field by rememberSaveable(id) { mutableStateOf("") }
+    var fieldValue by rememberSaveable(id) { mutableStateOf("") }
+    var fieldHash by rememberSaveable(id) { mutableStateOf("") }
+    var fieldBefore by rememberSaveable(id) { mutableStateOf("") }
+    var fieldConflict by remember { mutableStateOf<JSONObject?>(null) }
+    var tab by rememberSaveable(id) { mutableIntStateOf(0) }
+    var saving by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val relatedFlow =
-        remember(collection, id, historyOffset) {
-            controller.store
-                .nativeData()
-                .watchList(
-                    "worklogs",
-                    customerId = if (kind == "customer") id else "",
-                    orderId = if (kind == "order") id else "",
-                    offset = historyOffset,
-                    limit = 20,
-                )
-                .nativeErrors(controller)
-        }
-    val relatedPage by
-        relatedFlow.collectAsStateWithLifecycle(NativeListPage(emptyList(), 0, historyOffset, 20))
     LaunchedEffect(collection, id) {
         controller.store
             .nativeData()
             .watchDetail(collection, id)
             .nativeErrors(controller)
-            .collectLatest { changed ->
+            .collectLatest {
                 try {
-                    if (changed == null) {
-                        record = null
-                        error = "Eintrag nicht mehr vorhanden."
-                    } else {
-                        val loaded =
-                            controller.call(primaryGet(kind), JSONObject().put(primaryId(kind), id))
-                        envelope = loaded
-                        record = loaded.optJSONObject("data")
-                        error = ""
-                    }
+                    val loaded =
+                        controller.call(primaryGet(kind), JSONObject().put(primaryId(kind), id))
+                    envelope = loaded
+                    record = loaded.optJSONObject("data") ?: loaded
+                    error = ""
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (failure: Exception) {
@@ -2352,448 +2400,290 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                 }
             }
     }
-    fun editWorkField(field: String) {
-        controller.navigate(
-            "worklogs",
-            id,
-            "edit",
-            JSONObject(controller.route.args.toString()).put("_field", field),
+    val row = record
+    val context =
+        JSONObject().apply {
+            if (kind == "customer") put("customer_id", id)
+            else
+                for (key in listOf("customer_id", "property_id", "order_id", "visit_id")) row
+                    ?.optString(key)
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { put(key, it) }
+            if (kind == "order") put("order_id", id)
+            if (kind == "worklog") put("worklog_id", id)
+        }
+    fun edit(key: String) {
+        if (row == null || saving) return
+        fieldValue = row.opt(key)?.takeUnless { it == JSONObject.NULL }?.toString().orEmpty()
+        fieldHash = envelope?.optString("record_hash").orEmpty()
+        fieldBefore = fieldValue
+        field = key
+    }
+    suspend fun write(key: String, value: Any, expected: String? = null) {
+        val current = controller.call(primaryGet(kind), JSONObject().put(primaryId(kind), id))
+        controller.call(
+            if (kind == "worklog") "update_work_record" else "update_$kind",
+            JSONObject()
+                .put("request_id", UUID.randomUUID().toString())
+                .put(primaryId(kind), id)
+                .put(
+                    "expected_record_hash",
+                    expected
+                        ?: current.optString(
+                            "record_hash",
+                            current.optJSONObject("data")?.optString("record_hash").orEmpty(),
+                        ),
+                )
+                .put("updates", JSONObject().put(key, value)),
         )
     }
-    val row = record
-    // Design: "Gehört zu" names every record this one belongs to.
-    val belongsTo =
-        JSONObject().apply {
-            for (key in listOf("customer_id", "property_id", "order_id", "visit_id")) row
-                ?.optString(key)
-                ?.takeIf { it.isNotBlank() }
-                ?.let { put(key, it) }
-            if (kind == "order") remove("order_id")
+    fun save(key: String, entered: String) {
+        val before =
+            if (field == key) fieldBefore
+            else row?.opt(key)?.takeUnless { it == JSONObject.NULL }?.toString().orEmpty()
+        if (entered == before.toString()) {
+            field = ""
+            return
         }
-    var menu by remember { mutableStateOf(false) }
-    val context =
-        JSONObject()
-            .put(
-                "customer_id",
-                if (kind == "customer") id else row?.optString("customer_id").orEmpty(),
-            )
-            .apply { if (kind == "order") put("order_id", id) }
-    val density = LocalDensity.current
-    var footerHeight by remember { mutableIntStateOf(0) }
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().semantics { testTag = UiTags.entityDetail(collection, id) }) {
-            LazyColumn(
-                Modifier.weight(1f),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                if (error.isNotEmpty()) item { NativeStatus(error, NativeStatusTone.Failed) }
-                if (row == null && error.isEmpty())
-                    item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-                if (row != null) {
-                    item {
-                        if (kind == "worklog")
-                            Row(verticalAlignment = Alignment.Top) {
-                                Surface(
-                                    onClick = { editWorkField("activity") },
-                                    color = Color.Transparent,
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                                        Text(
-                                            "Tätigkeit",
-                                            style = MaterialTheme.typography.labelLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            row.optString("activity").ifBlank {
-                                                "Tätigkeit ergänzen"
-                                            },
-                                            style = MaterialTheme.typography.headlineSmall,
-                                        )
-                                    }
-                                }
-                                // Design: rare actions sit in the ⋮ menu of the record.
-                                Box {
-                                    IconButton(
-                                        { menu = true },
-                                        Modifier.semantics {
-                                            contentDescription = "Weitere Aktionen"
-                                            testTag = UiTags.DETAIL_MENU
-                                        },
-                                    ) {
-                                        Text("⋮", style = MaterialTheme.typography.headlineSmall)
-                                    }
-                                    DropdownMenu(menu, { menu = false }) {
-                                        @Composable
-                                        fun entry(label: String, action: () -> Unit) =
-                                            DropdownMenuItem(
-                                                text = { Text(label) },
-                                                onClick = {
-                                                    menu = false
-                                                    action()
-                                                },
-                                            )
-                                        val hash = envelope?.optString("record_hash", "").orEmpty()
-                                        entry("Als Vorlage duplizieren") {
-                                            controller.navigate(
-                                                "worklogs",
-                                                id,
-                                                "duplicate",
-                                                controller.route.args,
-                                            )
-                                        }
-                                        entry("Zuordnung ändern") {
-                                            controller.action(
-                                                "Zuordnung ändern",
-                                                "reassign_work_record",
-                                                JSONObject()
-                                                    .put("work_record_id", id)
-                                                    .put("expected_record_hash", hash),
-                                            )
-                                        }
-                                        entry("Abgerechnet / offen markieren") {
-                                            controller.action(
-                                                "Lokale Abrechnungsmarkierung",
-                                                "set_work_record_billed",
-                                                JSONObject()
-                                                    .put("work_record_id", id)
-                                                    .put("expected_record_hash", hash),
-                                            )
-                                        }
-                                        entry("Labor clandestino") {
-                                            controller.action(
-                                                "Labor clandestino",
-                                                "set_personal_paid",
-                                                JSONObject().put("work_record_id", id),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        else if (kind == "customer")
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            ) {
-                                // Design: the customer file starts with avatar, name and place.
-                                NativeInitials(row.optString("name"), 56.dp)
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        row.optString("name", "Kunde"),
-                                        style = MaterialTheme.typography.headlineSmall,
+        saving = true
+        scope.launch {
+            try {
+                val schema =
+                    if (kind == "worklog") PixelMcpWriteTools.field(key)
+                    else PixelMcpEntityWriteTools.field(key)
+                val valueType =
+                    schema.optJSONArray("type")?.optString(0) ?: schema.optString("type")
+                val nullableAmount = key in setOf("material_cost", "disposal_cost")
+                val value: Any =
+                    if (nullableAmount && entered.isBlank()) JSONObject.NULL
+                    else
+                        when (valueType) {
+                            "boolean" -> entered == "true" || entered == "Ja"
+                            "number",
+                            "integer" ->
+                                entered.replace(',', '.').toBigDecimalOrNull()
+                                    ?: throw IllegalArgumentException(
+                                        "Bitte eine gültige Zahl eingeben."
                                     )
-                                    val place =
-                                        listOf(row.optString("company"), row.optString("city"))
-                                            .filter { it.isNotBlank() }
-                                            .joinToString(" · ")
-                                    if (place.isNotEmpty())
-                                        Text(
-                                            place,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                }
-                            }
-                        else
-                            Text(
-                                row.optString("name", row.optString("title", "Eintrag")),
-                                style = MaterialTheme.typography.headlineSmall,
-                            )
-                        if (kind != "customer") NativeContext(controller, belongsTo, heading = true)
+                            else -> entered
+                        }
+                write(
+                    key,
+                    value,
+                    if (field == key) fieldHash else envelope?.optString("record_hash"),
+                )
+                field = ""
+                error = ""
+                controller.messageUndo("Gespeichert.") {
+                    val observed =
+                        controller.call(primaryGet(kind), JSONObject().put(primaryId(kind), id))
+                    val current = observed.optJSONObject("data") ?: observed
+                    val unchanged =
+                        when (valueType) {
+                            "boolean" ->
+                                current.optBoolean(
+                                    key,
+                                    current.optInt(key, if (key == "billable") 1 else 0) != 0,
+                                ) == value
+                            "number",
+                            "integer" ->
+                                if (value == JSONObject.NULL)
+                                    !current.has(key) || current.isNull(key)
+                                else
+                                    current
+                                        .optString(key)
+                                        .toBigDecimalOrNull()
+                                        ?.compareTo(value.toString().toBigDecimal()) == 0
+                            else -> current.opt(key)?.toString() == value.toString()
+                        }
+                    require(unchanged) {
+                        "Die Angabe wurde inzwischen geändert. Bitte den aktuellen Stand prüfen."
                     }
-                    if (kind == "order")
-                        item {
-                            NativeInfoRow(
-                                "Abrechnungsweg",
-                                row.opt(AccountingRules.AMOUNT)
-                                    ?.takeUnless { it == JSONObject.NULL }
-                                    ?.let(::financeMoney) ?: "Gesamtbetrag und Abrechnungsweg",
-                                { controller.navigate("accounting_edit", id, collection) },
-                            )
+                    val previous: Any =
+                        when (valueType) {
+                            "boolean" ->
+                                before in setOf("true", "1") ||
+                                    key == "billable" && before.isBlank()
+                            "number",
+                            "integer" ->
+                                before.toBigDecimalOrNull()
+                                    ?: if (nullableAmount) JSONObject.NULL
+                                    else java.math.BigDecimal.ZERO
+                            else -> before
                         }
-                    if (kind == "customer") {
-                        val address =
+                    write(key, previous, observed.getString("record_hash"))
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                fieldValue = entered
+                error = failure.message ?: "Änderung konnte nicht gespeichert werden."
+                if (
+                    failure is NativeCallFailure &&
+                        failure.detail.optString("code") in setOf("WRITE_CONFLICT", "EDIT_CONFLICT")
+                ) {
+                    try {
+                        fieldConflict =
+                            controller.call(primaryGet(kind), JSONObject().put(primaryId(kind), id))
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (readFailure: Exception) {
+                        error = readFailure.message ?: error
+                    }
+                }
+            } finally {
+                saving = false
+            }
+        }
+    }
+    fun bill() {
+        scope.launch {
+            try {
+                val recipient =
+                    if (kind == "customer")
+                        envelope
+                            ?.optJSONObject("billing_configuration")
+                            ?.optString("billing_customer_id")
+                            .orEmpty()
+                            .ifBlank { id }
+                    else
+                        envelope
+                            ?.optJSONObject("billing_assignment")
+                            ?.optString("billing_customer_id")
+                            .orEmpty()
+                val summary =
+                    controller.query(
+                        "get_work_record_summary",
+                        JSONObject().put("group_by_billing_customer", true),
+                    )
+                val groups = summary.optJSONArray("billing_groups") ?: JSONArray()
+                val group =
+                    (0 until groups.length())
+                        .map { groups.getJSONObject(it) }
+                        .firstOrNull { it.optString("billing_customer_id") == recipient }
+                val work = group?.optJSONArray("work_records") ?: JSONArray()
+                controller.navigate(
+                    "settlement_edit",
+                    args =
+                        JSONObject()
+                            .put("billing_customer_id", recipient)
+                            .put(
+                                "work_record_ids",
+                                JSONArray(
+                                    (0 until work.length()).map {
+                                        work.getJSONObject(it).getString("id")
+                                    }
+                                ),
+                            ),
+                )
+            } catch (failure: Exception) {
+                error = failure.message.orEmpty()
+            }
+        }
+    }
+    if (field.isNotEmpty() && row != null) {
+        if (field.endsWith("_id")) {
+            val pickerCollection =
+                when (field) {
+                    "property_id" -> "properties"
+                    "order_id" -> "orders"
+                    else -> "customers"
+                }
+            ModalBottomSheet(
+                onDismissRequest = { field = "" },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            ) {
+                NativeRecordPicker(
+                    controller,
+                    pickerCollection,
+                    nativeLabel(field),
+                    fieldValue,
+                    customerId =
+                        if (pickerCollection in setOf("properties", "orders"))
+                            row.optString("customer_id")
+                        else "",
+                    onValueChange = { save(field, it) },
+                )
+                Spacer(Modifier.height(24.dp))
+            }
+        } else
+            NativeValueSheet(
+                nativeLabel(field),
+                fieldValue,
+                keyboardType =
+                    when (field) {
+                        "phone" -> KeyboardType.Phone
+                        "email" -> KeyboardType.Email
+                        "hours",
+                        "break_minutes",
+                        "material_cost",
+                        "disposal_cost" -> KeyboardType.Decimal
+                        else -> KeyboardType.Text
+                    },
+                multiline = field in setOf("activity", "notes", "description", "material"),
+                error = error,
+                enabled = !saving,
+                onClose = { save(field, it) },
+            )
+    }
+    fieldConflict?.let { conflict ->
+        val current = conflict.optJSONObject("data") ?: conflict
+        AlertDialog(
+            onDismissRequest = { fieldConflict = null },
+            title = { Text("Angabe geändert") },
+            text = {
+                Column {
+                    Text("Gespeichert: " + current.optString(field))
+                    NativeTextButton(
+                        {
+                            field = ""
+                            fieldConflict = null
+                            error = ""
+                        },
+                        Modifier.semantics { contentDescription = "Diesen behalten · gespeichert" },
+                    ) {
+                        Text("Diesen behalten")
+                    }
+                    Text("Meine Angabe: $fieldValue")
+                }
+            },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        fieldHash = conflict.optString("record_hash")
+                        fieldBefore = current.opt(field)?.toString().orEmpty()
+                        fieldConflict = null
+                        save(field, fieldValue)
+                    },
+                    Modifier.semantics { contentDescription = "Diesen behalten · meine Angabe" },
+                ) {
+                    Text("Diesen behalten")
+                }
+            },
+        )
+    }
+    Column(Modifier.fillMaxSize().semantics { testTag = UiTags.entityDetail(collection, id) }) {
+        LazyColumn(
+            Modifier.weight(1f),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (error.isNotBlank() && field.isBlank())
+                item { NativeStatus(error, NativeStatusTone.Failed) }
+            if (row == null) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+            else {
+                item {
+                    val titleField =
+                        if (kind == "customer") "name"
+                        else if (kind == "worklog") "activity" else "title"
+                    NativeDetailHeading(
+                        row.optString(titleField).ifBlank { nativeLabel(titleField) },
+                        if (kind == "worklog")
                             listOf(
-                                    row.optString("street"),
-                                    listOf(row.optString("postal_code"), row.optString("city"))
-                                        .filter { it.isNotBlank() }
-                                        .joinToString(" "),
-                                )
-                                .filter { it.isNotBlank() }
-                        fun edit() = controller.navigate("customers", id, "edit")
-                        item {
-                            FlowRow(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                if (row.optString("phone").isNotBlank())
-                                    FilledTonalButton(
-                                        {
-                                            controller.context.startActivity(
-                                                Intent(
-                                                    Intent.ACTION_DIAL,
-                                                    Uri.parse(
-                                                        "tel:" + Uri.encode(row.getString("phone"))
-                                                    ),
-                                                )
-                                            )
-                                        },
-                                        Modifier.heightIn(min = 48.dp),
-                                    ) {
-                                        Text("Anrufen")
-                                    }
-                                if (row.optString("email").isNotBlank())
-                                    FilledTonalButton(
-                                        {
-                                            controller.context.startActivity(
-                                                Intent(
-                                                    Intent.ACTION_SENDTO,
-                                                    Uri.parse(
-                                                        "mailto:" +
-                                                            Uri.encode(row.getString("email"))
-                                                    ),
-                                                )
-                                            )
-                                        },
-                                        Modifier.heightIn(min = 48.dp),
-                                    ) {
-                                        Text("E-Mail")
-                                    }
-                                if (row.optString("street").isNotBlank())
-                                    FilledTonalButton(
-                                        {
-                                            val destination =
-                                                (address + row.optString("country"))
-                                                    .filter { it.isNotBlank() }
-                                                    .joinToString(", ")
-                                            try {
-                                                controller.context.startActivity(
-                                                    Intent(
-                                                        Intent.ACTION_VIEW,
-                                                        Uri.parse(
-                                                            "geo:0,0?q=" + Uri.encode(destination)
-                                                        ),
-                                                    )
-                                                )
-                                            } catch (_: android.content.ActivityNotFoundException) {
-                                                controller.message(
-                                                    "Keine Karten-App zum Öffnen der Adresse vorhanden."
-                                                )
-                                            }
-                                        },
-                                        Modifier.heightIn(min = 48.dp),
-                                    ) {
-                                        Text("Route")
-                                    }
-                            }
-                        }
-                        if (row.optString("notes").isNotBlank())
-                            item {
-                                Surface(
-                                    Modifier.fillMaxWidth(),
-                                    shape = MaterialTheme.shapes.large,
-                                    color = NativeAttentionContainer,
-                                    contentColor = NativeAttentionContent,
-                                ) {
-                                    Column(
-                                        Modifier.padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        Text(
-                                            "Hinweise zum Einsatz",
-                                            style = MaterialTheme.typography.titleSmall,
-                                        )
-                                        Text(row.optString("notes"))
-                                    }
-                                }
-                            }
-                        item { NativeOpenHours(controller, id) }
-                        item {
-                            NativeGroup("Kontakt") {
-                                NativeKeyValue("Telefon", row.optString("phone")) { edit() }
-                                NativeKeyValue("E-Mail-Adresse", row.optString("email")) { edit() }
-                                NativeKeyValue("Adresse", address.joinToString(", ")) { edit() }
-                            }
-                        }
-                        item {
-                            val assignment = envelope?.optJSONObject("billing_configuration")
-                            NativeGroup("Abrechnung") {
-                                NativeKeyValue(
-                                    "Rechnungsempfänger",
-                                    if (assignment?.optString("mode") == "direct") "Kunde selbst"
-                                    else
-                                        assignment
-                                            ?.optString("billing_customer_name")
-                                            .orEmpty()
-                                            .ifBlank { "Zuordnung prüfen" },
-                                ) {
-                                    edit()
-                                }
-                                if (assignment?.optBoolean("valid") == false)
-                                    NativeStatus(
-                                        "Rechnungsempfänger prüfen",
-                                        NativeStatusTone.Attention,
-                                    )
-                                NativeKeyValue("Offene Stunden", null) {
-                                    controller.navigate(
-                                        "billing",
-                                        args = JSONObject().put("work_customer_id", id),
-                                    )
-                                }
-                            }
-                        }
-                        item {
-                            val last = relatedPage.rows.firstOrNull()
-                            NativeGroup("Verlauf") {
-                                NativeKeyValue(
-                                    "Letzte Arbeit",
-                                    last?.let {
-                                        nativeDisplayText(it.subtitle).ifBlank { it.title }
-                                    } ?: "Noch keine",
-                                ) {
-                                    if (last != null) controller.navigate("worklogs", last.id)
-                                    else
-                                        controller.navigate(
-                                            "worklogs",
-                                            mode = "new",
-                                            args = context,
-                                        )
-                                }
-                                NativeKeyValue("Aufträge", null) {
-                                    controller.navigate("orders", args = context)
-                                }
-                                NativeKeyValue("Anfragen", null) {
-                                    controller.navigate("inquiries", args = context)
-                                }
-                            }
-                        }
-                        item {
-                            NativeGroup("Unterlagen") {
-                                NativeKeyValue("Fotos", null) {
-                                    controller.navigate("photos", args = context)
-                                }
-                                NativeKeyValue("Angebote", null) {
-                                    controller.navigate("offers", args = context)
-                                }
-                            }
-                        }
-                        item {
-                            NativeRelatedList(
-                                controller,
-                                "properties",
-                                "Objekte",
-                                JSONObject().put("customer_id", id),
-                            )
-                        }
-                        item {
-                            NativeRelatedList(
-                                controller,
-                                "appointments",
-                                "Nächste Termine",
-                                JSONObject().put("customer_id", id).put("date_from", nativeDay()),
-                            )
-                        }
-                        item {
-                            NativeRelatedList(
-                                controller,
-                                "visits",
-                                "Einsätze",
-                                JSONObject().put("customer_id", id).put("date_from", nativeDay()),
-                            )
-                        }
-                    } else if (kind == "worklog") {
-                        // Design: grouped like a delivery note instead of one card per field.
-                        val assignment = envelope?.optJSONObject("billing_assignment")
-                        fun value(field: String): String =
-                            when (field) {
-                                "order_id" ->
-                                    envelope?.optString("order_title").orEmpty().ifBlank {
-                                        if (row.optString(field).isBlank()) "Nicht zugeordnet"
-                                        else "Zugeordneter Auftrag"
-                                    }
-                                "customer_visible" ->
-                                    if (row.optBoolean(field, row.optInt(field, 1) != 0)) "Ja"
-                                    else "Nein"
-                                else ->
-                                    nativeDisplayText(
-                                        row.opt(field)
-                                            ?.takeUnless { it == JSONObject.NULL }
-                                            ?.toString()
-                                            .orEmpty()
-                                    )
-                            }
-                        item {
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                NativeStatus("Gespeicherte Arbeit", NativeStatusTone.Confirmed)
-                                NativeStatus(
-                                    if (row.optInt("billed") != 0) "Abgerechnet markiert"
-                                    else "Offen",
-                                    if (row.optInt("billed") != 0) NativeStatusTone.Neutral
-                                    else NativeStatusTone.Attention,
-                                )
-                            }
-                        }
-                        item {
-                            NativeGroup("Zeit") {
-                                NativeKeyValue(
-                                    "Datum",
-                                    nativeDisplayDate(row.optString("work_date")),
-                                ) {
-                                    editWorkField("work_date")
-                                }
-                                NativeKeyValue(
-                                    "Arbeitszeit",
-                                    nativeDuration(row.optDouble("hours")),
-                                ) {
-                                    editWorkField("hours")
-                                }
-                                if (
-                                    row.optString("start_time").isNotBlank() ||
-                                        row.optString("end_time").isNotBlank()
-                                ) {
-                                    NativeKeyValue("Beginn", row.optString("start_time")) {
-                                        editWorkField("start_time")
-                                    }
-                                    NativeKeyValue("Ende", row.optString("end_time")) {
-                                        editWorkField("end_time")
-                                    }
-                                    NativeKeyValue(
-                                        "Pause",
-                                        nativeNumber(row.opt("break_minutes")) + " Min.",
-                                    ) {
-                                        editWorkField("break_minutes")
-                                    }
-                                    NativeKeyValue(
-                                        "Arbeit über Mitternacht",
-                                        if (row.optBoolean("allow_overnight")) "Ja" else "Nein",
-                                    ) {
-                                        editWorkField("allow_overnight")
-                                    }
-                                }
-                            }
-                        }
-                        item {
-                            NativeGroup("Abrechnung") {
-                                NativeKeyValue(
-                                    "Abrechnungsweg",
-                                    row.opt(AccountingRules.AMOUNT)
-                                        ?.takeUnless { it == JSONObject.NULL }
-                                        ?.let(::financeMoney) ?: "Festlegen",
-                                    money = true,
-                                ) {
-                                    controller.navigate("accounting_edit", id, collection)
-                                }
-                                NativeKeyValue(
-                                    "Rechnungsempfänger",
-                                    assignment
-                                        ?.optString("billing_customer_name")
-                                        .orEmpty()
-                                        .ifBlank { "Zuordnung prüfen" },
-                                ) {
+                                NativeDetailAction("duplicate", "Als Vorlage duplizieren") {
+                                    controller.navigate("worklogs", id, "duplicate", context)
+                                },
+                                NativeDetailAction("assignment", "Zuordnung ändern") {
                                     controller.action(
                                         "Zuordnung ändern",
                                         "reassign_work_record",
@@ -2801,278 +2691,269 @@ private fun NativeEntityDetail(controller: NativeAppController, collection: Stri
                                             .put("work_record_id", id)
                                             .put(
                                                 "expected_record_hash",
-                                                envelope?.optString("record_hash", ""),
+                                                envelope?.optString("record_hash"),
                                             ),
                                     )
+                                },
+                            )
+                        else emptyList(),
+                        onTitleClick = { edit(titleField) },
+                    )
+                    if (kind != "customer") NativeContext(controller, context, heading = true)
+                    NativeStatus(
+                        if (kind == "worklog") {
+                            if (!row.optBoolean("billable", true)) "Nicht abrechnen"
+                            else "Gespeichert"
+                        } else nativeDetailStatus(row.optString("status").ifBlank { "active" }),
+                        if (kind == "worklog") NativeStatusTone.Confirmed
+                        else NativeStatusTone.Neutral,
+                    )
+                }
+                if (kind == "customer") {
+                    item {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                            if (row.optString("phone").isNotBlank())
+                                NativeOutlinedButton({
+                                    controller.context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_DIAL,
+                                            Uri.parse("tel:" + Uri.encode(row.getString("phone"))),
+                                        )
+                                    )
+                                }) {
+                                    Text("Anrufen")
+                                }
+                            val address =
+                                listOf("street", "postal_code", "city")
+                                    .map { row.optString(it) }
+                                    .filter(String::isNotBlank)
+                                    .joinToString(" ")
+                            if (address.isNotBlank())
+                                NativeOutlinedButton({
+                                    try {
+                                        controller.context.startActivity(
+                                            Intent(
+                                                Intent.ACTION_VIEW,
+                                                Uri.parse("geo:0,0?q=" + Uri.encode(address)),
+                                            )
+                                        )
+                                    } catch (_: android.content.ActivityNotFoundException) {
+                                        controller.message("Keine Karten-App verfügbar.")
+                                    }
+                                }) {
+                                    Text("Route")
+                                }
+                            NativeButton({ bill() }) { Text("Abrechnen") }
+                        }
+                    }
+                    item {
+                        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                            listOf("Objekte", "Vorgänge", "Geld").forEachIndexed { index, label ->
+                                SegmentedButton(
+                                    tab == index,
+                                    { tab = index },
+                                    shape = SegmentedButtonDefaults.itemShape(index, 3),
+                                ) {
+                                    Text(label)
                                 }
                             }
                         }
-                        // Design: filled details in groups, empty ones collected as "+ ergänzen".
-                        val optional =
-                            listOf(
-                                "material",
-                                "material_cost",
-                                "disposal_cost",
-                                "kilometers",
-                                "location",
-                                "order_id",
-                                "notes",
-                            )
-                        val (filled, empty) = optional.partition { row.optString(it).isNotBlank() }
-                        val costs = filled.filter { it != "order_id" && it != "notes" }
-                        if (costs.isNotEmpty())
-                            item {
-                                NativeGroup("Kosten & Weg") {
-                                    for (field in costs) NativeKeyValue(
-                                        nativeLabel(field),
-                                        value(field),
-                                    ) {
-                                        editWorkField(field)
-                                    }
+                    }
+                    if (tab == 0) {
+                        item { NativeRelatedList(controller, "properties", "Objekte", context) }
+                        item {
+                            NativeGroup("Kontakt") {
+                                for (key in
+                                    listOf(
+                                        "phone",
+                                        "email",
+                                        "street",
+                                        "postal_code",
+                                        "city",
+                                        "company",
+                                        "notes",
+                                    )) NativeKeyValue(nativeLabel(key), row.optString(key)) {
+                                    edit(key)
                                 }
                             }
+                        }
+                    } else if (tab == 1) {
+                        for ((section, title) in
+                            listOf(
+                                "inquiries" to "Anfragen",
+                                "offers" to "Angebote",
+                                "orders" to "Aufträge",
+                                "visits" to "Einsätze",
+                                "worklogs" to "Arbeiten",
+                            )) item { NativeRelatedList(controller, section, title, context) }
                         item {
-                            NativeGroup("Weiteres") {
-                                for (field in
-                                    filled.filter {
-                                        it == "order_id" || it == "notes"
-                                    }) NativeKeyValue(nativeLabel(field), value(field)) {
-                                    editWorkField(field)
+                            NativeInfoRow(
+                                "Fotos",
+                                onClick = { controller.navigate("photos", args = context) },
+                            )
+                        }
+                    } else {
+                        item { NativeOpenHours(controller, id) }
+                        item {
+                            NativeGroup("Rechnung") {
+                                NativeKeyValue(
+                                    "Rechnungsempfänger",
+                                    row.optString("default_billing_customer_id").ifBlank {
+                                        "Kunde selbst"
+                                    },
+                                ) {
+                                    edit("default_billing_customer_id")
                                 }
                                 NativeKeyValue(
-                                    nativeLabel("customer_visible"),
-                                    value("customer_visible"),
+                                    "E-Rechnung",
+                                    if (row.optBoolean("electronic_invoice_consent"))
+                                        "Zugestimmt am " +
+                                            nativeDisplayDate(
+                                                row.optString("electronic_invoice_consent_date")
+                                            )
+                                    else "Keine Zustimmung",
                                 ) {
-                                    editWorkField("customer_visible")
-                                }
-                                NativeKeyValue("Fotos", "Ansehen und hinzufügen") {
-                                    controller.navigate(
-                                        "photos",
-                                        args =
-                                            JSONObject(context.toString())
-                                                .put("worklog_id", id)
-                                                .put("order_id", row.optString("order_id")),
+                                    save(
+                                        "electronic_invoice_consent",
+                                        (!row.optBoolean("electronic_invoice_consent")).toString(),
                                     )
                                 }
-                            }
-                        }
-                        if (empty.isNotEmpty())
-                            item {
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text(
-                                        "+ ergänzen",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                    FlowRow(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        for (field in empty) AssistChip(
-                                            onClick = { editWorkField(field) },
-                                            label = { Text(nativeLabel(field)) },
-                                            leadingIcon = { Text("+") },
-                                        )
-                                    }
+                                NativeKeyValue("Abschlüsse", null) {
+                                    controller.navigate("settlements", args = context)
                                 }
-                            }
-                    } else {
-                        item {
-                            if (row.optString("status").isNotBlank())
-                                NativeStatus(nativeValue(row.optString("status")))
-                            for (field in listOf("description", "location", "scheduled_date")) if (
-                                row.optString(field).isNotBlank()
-                            )
-                                NativeInfoRow(
-                                    nativeLabel(field),
-                                    nativeDisplayText(row.getString(field)),
-                                )
-                        }
-                    }
-                    if (kind != "worklog") {
-                        item {
-                            Text(
-                                "Tätigkeiten und Historie",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                        items(relatedPage.rows, key = { it.id }) { work ->
-                            NativeInfoRow(
-                                work.title,
-                                nativeDisplayText(work.subtitle),
-                                { controller.navigate("worklogs", work.id) },
-                            )
-                        }
-                        item {
-                            Row {
-                                if (historyOffset > 0)
-                                    TextButton({ historyOffset = maxOf(0, historyOffset - 20) }) {
-                                        Text("Vorherige Arbeiten")
-                                    }
-                                if (relatedPage.hasMore)
-                                    TextButton({ historyOffset += 20 }) { Text("Weitere Arbeiten") }
                             }
                         }
                     }
+                } else if (kind == "worklog") {
+                    item {
+                        NativeGroup("Zeit") {
+                            for (key in
+                                listOf(
+                                    "work_date",
+                                    "hours",
+                                    "start_time",
+                                    "end_time",
+                                    "break_minutes",
+                                )) NativeKeyValue(
+                                nativeLabel(key),
+                                row.opt(key)?.toString().orEmpty(),
+                            ) {
+                                edit(key)
+                            }
+                        }
+                    }
+                    item {
+                        NativeGroup("Arbeit") {
+                            NativeKeyValue("Objekt", row.optString("property_id")) {
+                                edit("property_id")
+                            }
+                            NativeKeyValue("Auftrag", row.optString("order_id")) {
+                                edit("order_id")
+                            }
+                            for (key in
+                                listOf(
+                                    "material",
+                                    "material_cost",
+                                    "disposal_cost",
+                                    "location",
+                                    "notes",
+                                )) NativeKeyValue(
+                                nativeLabel(key),
+                                row.opt(key)
+                                    ?.takeUnless { it == JSONObject.NULL }
+                                    ?.toString()
+                                    .orEmpty(),
+                                money = key.endsWith("cost"),
+                            ) {
+                                edit(key)
+                            }
+                            NativeKeyValue("Fotos", null) {
+                                controller.navigate("photos", args = context)
+                            }
+                        }
+                    }
+                    item {
+                        NativeGroup("Abrechnung") {
+                            NativeKeyValue(
+                                "Nicht abrechnen",
+                                if (!row.optBoolean("billable", true)) "Ja" else "Nein",
+                            ) {
+                                save("billable", (!row.optBoolean("billable", true)).toString())
+                            }
+                            NativeKeyValue(
+                                "Rechnungsempfänger",
+                                envelope
+                                    ?.optJSONObject("billing_assignment")
+                                    ?.optString("billing_customer_name")
+                                    .orEmpty(),
+                            ) {
+                                edit("billing_customer_id")
+                            }
+                            NativeKeyValue(
+                                "Betrag",
+                                row.opt(AccountingRules.AMOUNT)
+                                    ?.takeUnless { it == JSONObject.NULL }
+                                    ?.let(::financeMoney),
+                                money = true,
+                            ) {
+                                controller.navigate("accounting_edit", id, collection)
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        NativeGroup("Auftrag") {
+                            for (key in
+                                listOf(
+                                    "description",
+                                    "location",
+                                    "scheduled_date",
+                                    "status",
+                                    "property_id",
+                                )) NativeKeyValue(nativeLabel(key), row.optString(key)) {
+                                edit(key)
+                            }
+                        }
+                    }
+                    item { NativeRelatedList(controller, "worklogs", "Arbeiten", context) }
                     item {
                         NativeInfoRow(
-                            "Weitere Angaben",
-                            if (details) "Schließen" else "Zusätzliche gespeicherte Angaben",
-                            { details = !details },
+                            "Abrechnungsweg",
+                            row.opt(AccountingRules.AMOUNT)
+                                ?.takeUnless { it == JSONObject.NULL }
+                                ?.let(::financeMoney)
+                                .orEmpty(),
+                            { controller.navigate("accounting_edit", id, collection) },
                         )
                     }
-                    if (details)
-                        item {
-                            NativeBusinessValues(
-                                JSONObject(row.toString()).apply {
-                                    for (key in
-                                        listOf(
-                                            "id",
-                                            "customer_id",
-                                            "order_id",
-                                            "billing_customer_id",
-                                            "default_billing_customer_id",
-                                            "_sync_base",
-                                            "_mcp_base",
-                                            "created_at",
-                                            "updated_at",
-                                            "name",
-                                            "activity",
-                                            "title",
-                                        )) remove(key)
-                                }
-                            )
-                            if (kind != "worklog") {
-                                NativeActionMenu(
-                                    controller,
-                                    if (kind == "customer") "kunden" else "auftraege",
-                                    JSONObject()
-                                        .put(primaryId(kind), id)
-                                        .put("entity_id", id)
-                                        .put("entity", kind),
-                                )
-                            }
-                        }
-                    // Design: "Löschen" at the very bottom, in its own row.
-                    item {
-                        // The live record can disappear before the delete result returns.
-                        NativeDeleteButton(
-                            controller,
-                            kind,
-                            id,
-                            scope = scope,
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        ) {
-                            controller.returnToList(collection)
-                        }
+                }
+                item {
+                    NativeDeleteButton(controller, kind, id, scope = scope) {
+                        controller.returnToList(collection)
                     }
                 }
             }
-            Box(Modifier.onSizeChanged { footerHeight = it.height }) {
-                if (kind != "worklog")
-                    NativeActionBar(
-                        "Arbeit starten",
-                        {
-                            if (!starting) {
-                                if (context.optString("customer_id").isEmpty())
-                                    controller.navigate("timer", args = context)
-                                else {
-                                    starting = true
-                                    scope.launch {
-                                        try {
-                                            controller.startKnownWork(context)
-                                            controller.navigate("timer", args = context)
-                                        } catch (cancelled: CancellationException) {
-                                            throw cancelled
-                                        } catch (failure: Exception) {
-                                            controller.navigate("timer", args = context)
-                                            controller.message(
-                                                failure.message
-                                                    ?: "Start nicht bestätigt. Ursprünglichen Vorgang prüfen."
-                                            )
-                                        } finally {
-                                            starting = false
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "Bearbeiten",
-                        { controller.navigate(collection, id, "edit", controller.route.args) },
-                        enabled = row != null && !starting,
-                        secondaryEnabled = row != null && !starting,
-                    )
-                // Design: the next sensible step of saved work is to bill it.
-                else if (row != null && row.optInt("billed") == 0)
-                    NativeActionBar(
-                        "Abrechnen",
-                        {
-                            // The draft starts with all open work of this work's billing recipient.
-                            val recipient =
-                                envelope
-                                    ?.optJSONObject("billing_assignment")
-                                    ?.optString("billing_customer_id")
-                                    .orEmpty()
-                            scope.launch {
-                                val ids =
-                                    try {
-                                        val groups =
-                                            controller
-                                                .query(
-                                                    "get_work_record_summary",
-                                                    JSONObject()
-                                                        .put("group_by_billing_customer", true),
-                                                )
-                                                .optJSONArray("billing_groups") ?: JSONArray()
-                                        (0 until groups.length())
-                                            .map { groups.getJSONObject(it) }
-                                            .firstOrNull {
-                                                it.optString("billing_customer_id") == recipient
-                                            }
-                                            ?.optJSONArray("work_records")
-                                            ?.let { rows ->
-                                                (0 until rows.length()).map {
-                                                    rows.getJSONObject(it).optString("id")
-                                                }
-                                            }
-                                            .orEmpty()
-                                    } catch (cancelled: CancellationException) {
-                                        throw cancelled
-                                    } catch (_: Exception) {
-                                        emptyList()
-                                    }
-                                controller.navigate(
-                                    "settlement_edit",
-                                    args =
-                                        JSONObject().apply {
-                                            if (recipient.isNotBlank())
-                                                put("billing_customer_id", recipient)
-                                            put("work_record_ids", JSONArray((ids + id).distinct()))
-                                        },
+        }
+        if (row != null) {
+            if (kind == "worklog") {
+                if (row.optBoolean("billable", true)) NativeActionBar("Abrechnen", { bill() })
+            } else
+                NativeActionBar(
+                    "Arbeit starten",
+                    {
+                        scope.launch {
+                            try {
+                                controller.startKnownWork(context)
+                                controller.navigate("timer", args = context)
+                            } catch (failure: Exception) {
+                                controller.message(
+                                    failure.message ?: "Arbeitsstart fehlgeschlagen."
                                 )
                             }
-                        },
-                        "Bearbeiten",
-                        { controller.navigate(collection, id, "edit", controller.route.args) },
-                    )
-                else if (row != null)
-                    NativeActionBar(
-                        "Bearbeiten",
-                        { controller.navigate(collection, id, "edit", controller.route.args) },
-                    )
-            }
+                        }
+                    },
+                )
         }
-        if (kind == "customer" && row != null)
-            NativeCreateButton(
-                controller,
-                Modifier.align(Alignment.BottomEnd)
-                    .padding(
-                        end = 16.dp,
-                        bottom =
-                            if (footerHeight > 0) with(density) { footerHeight.toDp() } + 16.dp
-                            else 84.dp,
-                    ),
-            )
     }
 }
 
@@ -3186,6 +3067,20 @@ private fun NativeEntityEditor(
                 value.put("_request_id", UUID.randomUUID().toString())
                 valueText = value.toString()
             }
+            if (kind == "worklog" && JSONObject(valueText).optString("property_id").isBlank()) {
+                val customerId = JSONObject(valueText).optString("customer_id")
+                if (customerId.isNotBlank()) {
+                    val objects =
+                        controller.store
+                            .nativeData()
+                            .list("properties", customerId = customerId, limit = 2)
+                    if (objects.total == 1)
+                        valueText =
+                            JSONObject(valueText)
+                                .put("property_id", objects.rows.single().id)
+                                .toString()
+                }
+            }
             val timing = JSONObject(valueText)
             timeMode =
                 saved?.optString("time_mode")?.takeIf { it.isNotBlank() }
@@ -3215,6 +3110,20 @@ private fun NativeEntityEditor(
             throw cancelled
         } catch (failure: Exception) {
             error = failure.message ?: "Formular konnte nicht geöffnet werden."
+        }
+    }
+    LaunchedEffect(loaded, JSONObject(valueText).optString("customer_id")) {
+        if (loaded && kind == "worklog" && id.isBlank() && pending == null) {
+            val values = JSONObject(valueText)
+            val customerId = values.optString("customer_id")
+            if (customerId.isNotBlank() && values.optString("property_id").isBlank()) {
+                val objects =
+                    controller.store
+                        .nativeData()
+                        .list("properties", customerId = customerId, limit = 2)
+                if (objects.total == 1)
+                    valueText = values.put("property_id", objects.rows.single().id).toString()
+            }
         }
     }
     suspend fun finishSaved(saved: String, includePhoto: Boolean = true) {
@@ -3468,7 +3377,7 @@ private fun NativeEntityEditor(
                     item { NativeStatus("Speichern nicht bestätigt", NativeStatusTone.Attention) }
                 if ((restored || conflict) && pending == null)
                     item {
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             {
                                 scope.launch {
                                     busy = true
@@ -3500,7 +3409,7 @@ private fun NativeEntityEditor(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             NativeBusinessValues(now)
-                            Button(
+                            NativeButton(
                                 {
                                     scope.launch {
                                         busy = true
@@ -3659,12 +3568,17 @@ private fun NativeEntityEditor(
                                 durationMinutes,
                                 { updateDuration(durationHours, it) },
                             )
-                            Text(
-                                "Reine Arbeitszeit. Keine Pause zusätzlich abziehen.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
                             durationAsHours()?.takeIf { it > 0 }?.let { Text(nativeDuration(it)) }
                         }
+                        if (singleField.isEmpty())
+                            NativeRecordPicker(
+                                controller,
+                                "properties",
+                                "Objekt",
+                                v.optString("property_id"),
+                                customerId = v.optString("customer_id"),
+                                onValueChange = { change("property_id", it) },
+                            )
                         if (showField("activity")) {
                             NativeField(
                                 "Was wurde erledigt?",
@@ -3693,7 +3607,7 @@ private fun NativeEntityEditor(
                                         .joinToString("\n"),
                                 )
                             }
-                            OutlinedButton({
+                            NativeOutlinedButton({
                                 controller.speech { spoken ->
                                     change(
                                         "activity",
@@ -3725,10 +3639,10 @@ private fun NativeEntityEditor(
                                         modifier = Modifier.fillMaxWidth().heightIn(max = 180.dp),
                                     )
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedButton({ choosePhoto(true) }, enabled = !busy) {
+                                    NativeOutlinedButton({ choosePhoto(true) }, enabled = !busy) {
                                         Text("Foto hinzufügen")
                                     }
-                                    OutlinedButton({ choosePhoto(false) }, enabled = !busy) {
+                                    NativeOutlinedButton({ choosePhoto(false) }, enabled = !busy) {
                                         Text("Foto auswählen")
                                     }
                                 }
@@ -3743,14 +3657,9 @@ private fun NativeEntityEditor(
                                     onValueChange = { change("order_id", it) },
                                 )
                             for (field in
-                                listOf(
-                                        "material",
-                                        "material_cost",
-                                        "kilometers",
-                                        "location",
-                                        "notes",
-                                    )
-                                    .filter { showField(it) }) NativeField(
+                                listOf("material", "material_cost", "location", "notes").filter {
+                                    showField(it)
+                                }) NativeField(
                                 nativeLabel(field),
                                 v.opt(field)?.takeUnless { it == JSONObject.NULL }?.toString()
                                     ?: "",
@@ -3774,11 +3683,6 @@ private fun NativeEntityEditor(
                                     "Rechnungsempfänger · optional",
                                     v.optString("billing_customer_id"),
                                     onValueChange = { change("billing_customer_id", it) },
-                                )
-                            if (showField("billing_customer_id"))
-                                Text(
-                                    "Ohne Auswahl gilt die vorhandene Zuordnung von Kunde oder Auftrag.",
-                                    style = MaterialTheme.typography.bodySmall,
                                 )
                             if (showField("customer_visible"))
                                 Row {
@@ -3928,7 +3832,7 @@ private fun NativeEntityEditor(
                 }
             }
             item {
-                TextButton({ discard = true }, enabled = loaded && !busy && pending == null) {
+                NativeTextButton({ discard = true }, enabled = loaded && !busy && pending == null) {
                     Text("Entwurf verwerfen")
                 }
             }
@@ -4001,12 +3905,12 @@ private fun NativeCustomerExtras(raw: Any?, change: (JSONObject) -> Unit) {
             values.opt(key)?.takeUnless { it == JSONObject.NULL }?.toString() ?: "",
             { change(JSONObject(values.toString()).put(key, it)) },
         )
-        TextButton({ change(JSONObject(values.toString()).apply { remove(key) }) }) {
+        NativeTextButton({ change(JSONObject(values.toString()).apply { remove(key) }) }) {
             Text("$key entfernen")
         }
     }
     NativeField("Neues Zusatzfeld", name, { name = it })
-    OutlinedButton({
+    NativeOutlinedButton({
         if (name.isNotBlank()) {
             change(JSONObject(values.toString()).put(name.trim(), ""))
             name = ""
@@ -4073,8 +3977,9 @@ private fun NativeTimerValues(controller: NativeAppController, value: JSONObject
         )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun NativeTimer(controller: NativeAppController) {
+private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = false) {
     var session by remember { mutableStateOf<JSONObject?>(null) }
     var error by remember { mutableStateOf("") }
     var pending by remember { mutableStateOf<Pair<String, JSONObject>?>(null) }
@@ -4202,7 +4107,10 @@ private fun NativeTimer(controller: NativeAppController) {
             if (error.isNotEmpty())
                 Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
             if (cancelledId.isNotEmpty())
-                OutlinedButton({ execute("restore_work_session", cancelledId) }, enabled = !busy) {
+                NativeOutlinedButton(
+                    { execute("restore_work_session", cancelledId) },
+                    enabled = !busy,
+                ) {
                     Text(
                         if (cancelledReview) "Übernommene verworfene Sitzung prüfen und zurückholen"
                         else "Letzte verworfene Sitzung zurückholen"
@@ -4232,6 +4140,17 @@ private fun NativeTimer(controller: NativeAppController) {
         if (sessionId.isNotEmpty()) {
             val saved = controller.draft(completionKey)
             saved?.optJSONObject("values")?.let { activity = it.optString("activity", activity) }
+            if (activity.isBlank()) {
+                controller.store.nativeData().list("worklogs", limit = 1).rows.firstOrNull()?.let {
+                    last ->
+                    activity =
+                        controller.store
+                            .nativeData()
+                            .detail("worklogs", last.id)
+                            ?.optString("activity")
+                            .orEmpty()
+                }
+            }
             activityLocked =
                 saved?.optJSONObject("original_args") != null ||
                     saved?.optBoolean("_restore_action_review_required") == true
@@ -4299,7 +4218,7 @@ private fun NativeTimer(controller: NativeAppController) {
                 NativeContext(controller, value)
                 if (value.optBoolean("review_required")) {
                     NativeStatus("Zeitprüfung erforderlich", NativeStatusTone.Attention)
-                    OutlinedButton({
+                    NativeOutlinedButton({
                         controller.action(
                             "Zeit ausdrücklich prüfen",
                             "review_work_session",
@@ -4316,14 +4235,18 @@ private fun NativeTimer(controller: NativeAppController) {
                 NativeActionForm(
                     controller,
                     "complete_work_session",
-                    "Arbeit abschließen",
+                    "Arbeit speichern",
                     args,
-                    submitLabel = "Arbeit speichern",
-                    onCancel = { controller.finishAction() },
+                    submitLabel = "Speichern",
+                    onCancel = {
+                        if (inSheet) controller.workSaveOpen = false else controller.finishAction()
+                    },
                     onDone = {
                         scope.launch {
                             refresh()
-                            controller.finishAction()
+                            controller.workSaveOpen = false
+                            if (!inSheet || controller.route.section in setOf("timer", "work"))
+                                controller.finishAction()
                             controller.message("Arbeit gespeichert.")
                         }
                     },
@@ -4358,13 +4281,13 @@ private fun NativeTimer(controller: NativeAppController) {
                             {
                                 controller.navigate(
                                     "materials",
-                                    mode = "movement",
+                                    mode = "consumption",
                                     args = resourceContext,
                                 )
                             },
                         )
                         if (error.isNotBlank()) NativeStatus(error, NativeStatusTone.Attention)
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             { execute("discard_work_session", sessionId) },
                             enabled = !busy,
                         ) {
@@ -4384,7 +4307,7 @@ private fun NativeTimer(controller: NativeAppController) {
                     )
                 },
                 confirmButton = {
-                    TextButton({
+                    NativeTextButton({
                         discardNeedsReview = false
                         controller.action(
                             "Ursprünglichen Abschluss prüfen",
@@ -4397,7 +4320,9 @@ private fun NativeTimer(controller: NativeAppController) {
                         Text("Ergebnis prüfen")
                     }
                 },
-                dismissButton = { TextButton({ discardNeedsReview = false }) { Text("Zurück") } },
+                dismissButton = {
+                    NativeTextButton({ discardNeedsReview = false }) { Text("Zurück") }
+                },
             )
         return
     }
@@ -4433,7 +4358,7 @@ private fun NativeTimer(controller: NativeAppController) {
                     )
                     if (activityLocked) {
                         NativeStatus("Offenen Abschluss zuerst prüfen", NativeStatusTone.Attention)
-                        TextButton({
+                        NativeTextButton({
                             controller.action(
                                 "Ursprünglichen Abschluss prüfen",
                                 "complete_work_session",
@@ -4480,43 +4405,35 @@ private fun NativeTimer(controller: NativeAppController) {
                             )
                                 put(field, value.getString(field))
                         }
-                    NativeInfoRow(
-                        "Foto hinzufügen",
-                        "Zur laufenden Arbeit",
-                        {
+                    FlowRow(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        NativeOutlinedButton({
                             controller.navigate(
                                 "photos",
                                 mode = "import",
                                 args =
                                     JSONObject(resourceContext.toString()).put("_open_camera", true),
                             )
-                        },
-                    )
-                    NativeInfoRow(
-                        "Material",
-                        "Verbrauch zur laufenden Arbeit buchen",
-                        {
+                        }) {
+                            Text("Foto")
+                        }
+                        NativeOutlinedButton({
                             controller.navigate(
                                 "materials",
-                                mode = "movement",
+                                mode = "consumption",
                                 args = resourceContext,
                             )
-                        },
-                    )
-                    NativeInfoRow(
-                        "Gerätenutzung",
-                        "Nutzung zur laufenden Arbeit ergänzen",
-                        {
-                            controller.navigate(
-                                "equipment",
-                                mode = "equipment_use",
-                                args = resourceContext,
-                            )
-                        },
-                    )
+                        }) {
+                            Text("Material")
+                        }
+                        NativeOutlinedButton({ controller.navigate("equipment") }) { Text("Gerät") }
+                    }
                 }
                 if (value.optBoolean("review_required"))
-                    OutlinedButton({
+                    NativeOutlinedButton({
                         controller.action(
                             "Zeit ausdrücklich prüfen",
                             "review_work_session",
@@ -4556,6 +4473,280 @@ private fun NativeTimer(controller: NativeAppController) {
                 )
         }
     }
+}
+
+@Composable
+private fun NativeInvoiceSettings(controller: NativeAppController) {
+    var data by remember { mutableStateOf<JSONObject?>(null) }
+    var field by rememberSaveable { mutableStateOf(controller.route.args.optString("_field")) }
+    var entered by rememberSaveable { mutableStateOf("") }
+    var editHash by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
+    var saving by remember { mutableStateOf(false) }
+    var conflict by remember { mutableStateOf<JSONObject?>(null) }
+    var conflictKey by remember { mutableStateOf("") }
+    var conflictValue by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    suspend fun refresh() {
+        data = controller.query("get_business_settings")
+    }
+    LaunchedEffect(Unit) {
+        try {
+            refresh()
+            entered = data?.optJSONObject("settings")?.optString(field).orEmpty()
+            editHash = data?.optString("record_hash").orEmpty()
+        } catch (failure: Exception) {
+            error = failure.message.orEmpty()
+        }
+    }
+    suspend fun write(key: String, value: String, expected: String? = null) {
+        val current = controller.query("get_business_settings")
+        controller.query(
+            "update_business_settings",
+            JSONObject()
+                .put("request_id", UUID.randomUUID().toString())
+                .put("expected_record_hash", expected ?: current.getString("record_hash"))
+                .put(
+                    "updates",
+                    JSONObject()
+                        .put(
+                            key,
+                            if (key == "invoice_issuer_confirmed") value in setOf("true", "1")
+                            else value,
+                        ),
+                ),
+        )
+        refresh()
+    }
+    fun save(key: String, value: String) {
+        val old = data?.optJSONObject("settings")?.optString(key).orEmpty()
+        if (old == value) {
+            field = ""
+            return
+        }
+        scope.launch {
+            saving = true
+            try {
+                write(key, value, if (field == key) editHash else data?.optString("record_hash"))
+                field = ""
+                error = ""
+                controller.messageUndo("Rechnungsdaten gespeichert.") {
+                    val current = controller.query("get_business_settings")
+                    val actual = current.getJSONObject("settings").optString(key)
+                    require(
+                        if (key == "invoice_issuer_confirmed")
+                            (actual in setOf("true", "1")) == (value in setOf("true", "1"))
+                        else actual == value
+                    ) {
+                        "Die Angabe wurde inzwischen geändert. Bitte den aktuellen Stand prüfen."
+                    }
+                    write(key, old, current.getString("record_hash"))
+                }
+            } catch (failure: Exception) {
+                entered = value
+                error = failure.message ?: "Rechnungsdaten konnten nicht gespeichert werden."
+                if (
+                    failure is NativeCallFailure &&
+                        failure.detail.optString("code") in setOf("WRITE_CONFLICT", "EDIT_CONFLICT")
+                ) {
+                    conflictKey = key
+                    conflictValue = value
+                    try {
+                        conflict = controller.query("get_business_settings")
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (readFailure: Exception) {
+                        error = readFailure.message ?: error
+                    }
+                }
+            } finally {
+                saving = false
+            }
+        }
+    }
+    val values = data?.optJSONObject("settings") ?: JSONObject()
+    if (field.isNotBlank() && data != null)
+        NativeValueSheet(
+            nativeLabel(field),
+            entered,
+            keyboardType =
+                when (field) {
+                    "business_phone" -> KeyboardType.Phone
+                    "business_email" -> KeyboardType.Email
+                    "hourly_rate" -> KeyboardType.Decimal
+                    else -> KeyboardType.Text
+                },
+            error = error,
+            enabled = !saving,
+            onClose = { save(field, it) },
+        )
+    conflict?.let { current ->
+        val actual = current.getJSONObject("settings").optString(conflictKey)
+        AlertDialog(
+            onDismissRequest = { conflict = null },
+            title = { Text("Angabe geändert") },
+            text = {
+                Column {
+                    Text(
+                        "Gespeichert: " +
+                            if (conflictKey == "business_logo") "Vorhandenes Logo" else actual
+                    )
+                    NativeTextButton(
+                        {
+                            data = current
+                            field = ""
+                            error = ""
+                            conflict = null
+                        },
+                        Modifier.semantics { contentDescription = "Diesen behalten · gespeichert" },
+                    ) {
+                        Text("Diesen behalten")
+                    }
+                    Text(
+                        "Meine Angabe: " +
+                            if (conflictKey == "business_logo") "Ausgewähltes Logo"
+                            else conflictValue
+                    )
+                }
+            },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        data = current
+                        editHash = current.getString("record_hash")
+                        field = conflictKey
+                        entered = conflictValue
+                        conflict = null
+                        save(conflictKey, conflictValue)
+                    },
+                    Modifier.semantics { contentDescription = "Diesen behalten · meine Angabe" },
+                ) {
+                    Text("Diesen behalten")
+                }
+            },
+        )
+    }
+    NativeGroup("Rechnungsdaten") {
+        NativeKeyValue(
+            "Logo",
+            if (values.optString("business_logo").isBlank()) "" else "Hafner Grünraum Handwerk",
+        ) {
+            scope.launch {
+                try {
+                    val uri = controller.pickPhoto(false) ?: return@launch
+                    val logo =
+                        withContext(Dispatchers.IO) {
+                            val bytes =
+                                controller.context.contentResolver.openInputStream(uri)?.use { input
+                                    ->
+                                    val buffer = java.io.ByteArrayOutputStream()
+                                    val chunk = ByteArray(8192)
+                                    var count = input.read(chunk)
+                                    while (count >= 0) {
+                                        require(buffer.size() + count <= 20 * 1024 * 1024) {
+                                            "Bitte ein Logo unter 20 MB auswählen."
+                                        }
+                                        buffer.write(chunk, 0, count)
+                                        count = input.read(chunk)
+                                    }
+                                    buffer.toByteArray()
+                                }
+                                    ?: throw IllegalArgumentException(
+                                        "Logo konnte nicht gelesen werden."
+                                    )
+                            val options =
+                                android.graphics.BitmapFactory.Options().apply {
+                                    inJustDecodeBounds = true
+                                }
+                            android.graphics.BitmapFactory.decodeByteArray(
+                                bytes,
+                                0,
+                                bytes.size,
+                                options,
+                            )
+                            val sample =
+                                (maxOf(options.outWidth, options.outHeight) / 256).coerceAtLeast(1)
+                            val image =
+                                android.graphics.BitmapFactory.decodeByteArray(
+                                    bytes,
+                                    0,
+                                    bytes.size,
+                                    android.graphics.BitmapFactory.Options().apply {
+                                        inSampleSize = sample
+                                    },
+                                ) ?: throw IllegalArgumentException("Bitte ein Bild auswählen.")
+                            val factor = 256f / maxOf(image.width, image.height).coerceAtLeast(256)
+                            val scaled =
+                                android.graphics.Bitmap.createScaledBitmap(
+                                    image,
+                                    (image.width * factor).toInt().coerceAtLeast(1),
+                                    (image.height * factor).toInt().coerceAtLeast(1),
+                                    true,
+                                )
+                            val output = java.io.ByteArrayOutputStream()
+                            scaled.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output)
+                            val result =
+                                "data:image/png;base64," +
+                                    android.util.Base64.encodeToString(
+                                        output.toByteArray(),
+                                        android.util.Base64.NO_WRAP,
+                                    )
+                            if (scaled !== image) scaled.recycle()
+                            image.recycle()
+                            result
+                        }
+                    save("business_logo", logo)
+                } catch (failure: Exception) {
+                    error = failure.message.orEmpty()
+                }
+            }
+        }
+        for (key in
+            listOf(
+                "business_name",
+                "owner_name",
+                "business_street",
+                "business_postal_code",
+                "business_city",
+                "business_phone",
+                "business_email",
+                "business_tax_number",
+                "business_iban",
+                "business_bic",
+                "default_payment_terms",
+                "hourly_rate",
+            )) NativeKeyValue(
+            nativeLabel(key),
+            values.optString(key),
+            money = key == "hourly_rate",
+        ) {
+            entered = values.optString(key)
+            editHash = data?.optString("record_hash").orEmpty()
+            error = ""
+            field = key
+        }
+        NativeKeyValue("Nummernkreis", "GP") {}
+        NativeChoice(
+            "Abrechnungstakt",
+            values.optString("billing_interval").ifBlank { "minute" },
+            listOf(
+                "minute" to "Minutengenau",
+                "tenth_hour" to "0,1 Std.",
+                "quarter_hour" to "15 Min.",
+            ),
+            { save("billing_interval", it) },
+        )
+        NativeKeyValue(
+            "Ausstellerdaten bestätigt",
+            if (values.optString("invoice_issuer_confirmed") in setOf("1", "true")) "Ja" else "Nein",
+        ) {
+            save(
+                "invoice_issuer_confirmed",
+                if (values.optString("invoice_issuer_confirmed") in setOf("1", "true")) "0" else "1",
+            )
+        }
+    }
+    if (error.isNotBlank() && field.isBlank()) Text(error, color = MaterialTheme.colorScheme.error)
 }
 
 @Composable
@@ -4599,33 +4790,7 @@ private fun NativeSettings(controller: NativeAppController) {
                 },
             )
         }
-        item {
-            NativeInfoRow(
-                "Unternehmensdaten",
-                "Angaben für Angebote",
-                {
-                    scope.launch {
-                        try {
-                            val current = controller.query("get_business_settings")
-                            controller.action(
-                                "Unternehmensdaten bearbeiten",
-                                "update_business_settings",
-                                JSONObject()
-                                    .put("expected_record_hash", current.optString("record_hash"))
-                                    .put(
-                                        "updates",
-                                        current.optJSONObject("settings") ?: JSONObject(),
-                                    ),
-                            )
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (failure: Exception) {
-                            error = failure.message.orEmpty()
-                        }
-                    }
-                },
-            )
-        }
+        item { NativeInvoiceSettings(controller) }
         item {
             Text(
                 "Verbindungen und Daten",
@@ -4666,9 +4831,6 @@ private fun NativeSettings(controller: NativeAppController) {
             )
         }
         item {
-            NativeInfoRow("Papierkorb", "Alte Einträge löschen", { controller.navigate("trash") })
-        }
-        item {
             Text(
                 "App prüfen",
                 Modifier.padding(top = 16.dp),
@@ -4676,7 +4838,7 @@ private fun NativeSettings(controller: NativeAppController) {
             )
         }
         item {
-            OutlinedButton(
+            NativeOutlinedButton(
                 {
                     scope.launch {
                         testing = true
@@ -4692,7 +4854,7 @@ private fun NativeSettings(controller: NativeAppController) {
                         }
                     }
                 },
-                Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                Modifier.heightIn(min = 48.dp),
                 enabled = !testing,
             ) {
                 Text(if (testing) "Prüfung läuft …" else "Lokale App-Funktionen prüfen")
@@ -4746,126 +4908,9 @@ private fun NativeSettings(controller: NativeAppController) {
                 }
                 HorizontalDivider()
             }
-            item {
-                Text(
-                    "Geprüft werden lokale App-Funktionen. Verbindungen und Wiederherstellung sind getrennte Prüfungen.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
         }
         item {
             Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall)
-        }
-    }
-}
-
-@Composable
-private fun NativeTrash(controller: NativeAppController) {
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    var data by remember { mutableStateOf<JSONObject?>(null) }
-    var error by remember { mutableStateOf("") }
-    var refresh by remember { mutableIntStateOf(0) }
-    LaunchedEffect(offset, refresh) {
-        try {
-            data =
-                controller.query(
-                    "list_archive",
-                    JSONObject().put("offset", offset).put("limit", 40),
-                )
-            error = ""
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (failure: Exception) {
-            error = failure.message.orEmpty()
-        }
-    }
-    val rows =
-        data?.optJSONArray("items")
-            ?: data?.optJSONArray("archive")
-            ?: data?.optJSONArray("entries")
-            ?: JSONArray()
-    val entries = (0 until rows.length()).map { rows.getJSONObject(it) }
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (error.isNotEmpty()) item { NativeStatus(error, NativeStatusTone.Failed) }
-        else if (data == null) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-        else if (rows.length() == 0) item { Text("Der Papierkorb ist leer.") }
-        items(entries, key = { it.optString("archive_key") }) { row ->
-            val archived = row.optJSONObject("entry") ?: row
-            val record =
-                archived.optJSONObject("record")
-                    ?: archived.optJSONObject("_archive_record")
-                    ?: JSONObject()
-            val key = row.optString("archive_key")
-            val entity = key.substringBefore(':')
-            val id = key.substringAfter(':')
-            val fallback =
-                when (entity) {
-                    "customer" -> "Kunde"
-                    "order" -> "Auftrag"
-                    "worklog" -> "Arbeit"
-                    "photo" -> "Foto"
-                    "invoice" -> "Rechnung"
-                    "offer" -> "Angebot"
-                    "appointment" -> "Termin"
-                    "service_template" -> "Leistung"
-                    else -> "Eintrag"
-                }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    listOf("name", "title", "activity", "caption").firstNotNullOfOrNull { field ->
-                        record.optString(field).takeIf { it.isNotBlank() }
-                    } ?: fallback,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    nativeDisplayDate(archived.optString("archived_at")),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    NativeDeleteButton(
-                        controller,
-                        entity,
-                        id,
-                        label = "Löschen",
-                        permanent = true,
-                    ) {
-                        refresh++
-                    }
-                }
-                HorizontalDivider()
-            }
-        }
-        item {
-            Row {
-                if (offset > 0)
-                    OutlinedButton({ offset = maxOf(0, offset - 40) }) { Text("Vorherige") }
-                if (offset + rows.length() < (data?.optInt("total") ?: 0))
-                    OutlinedButton({ offset += 40 }) { Text("Weitere Einträge") }
-            }
-        }
-        item {
-            NativeDeleteButton(
-                controller,
-                "",
-                "",
-                label = "Papierkorb leeren",
-                emptyTrash = true,
-                enabled = rows.length() > 0,
-            ) {
-                offset = 0
-                refresh++
-            }
-        }
-        item {
-            NativeInfoRow(
-                "Revier-Archiv",
-                "Archivierte Fachdatensätze ansehen",
-                { controller.navigate("revier_archive") },
-            )
         }
     }
 }
@@ -4946,7 +4991,7 @@ private fun NativeStorageSettings(controller: NativeAppController) {
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (result.isNotEmpty()) NativeStatus(result, NativeStatusTone.Confirmed)
             if (error.isNotEmpty()) NativeStatus(error, NativeStatusTone.Attention)
-            OutlinedButton(
+            NativeOutlinedButton(
                 {
                     scope.launch {
                         busy = true

@@ -399,12 +399,12 @@ class PlanningBoardTest {
                 called += it
                 JSONObject().put("address", "[TEST] A & B + Garten")
             }
-        assertEquals(listOf("qa_property_b"), called)
+        assertEquals(listOf("qa_property_b", "qa_property_a"), called)
         assertEquals("qa_stop_b", nav.getString("target_visit_id"))
         assertEquals("qa_stop_b", nav.getJSONArray("visit_ids").getString(0))
         assertEquals("qa_stop_a", nav.getJSONArray("visit_ids").getString(1))
         assertTrue(nav.getString("navigation_uri").contains("A%20%26%20B%20%2B%20Garten"))
-        assertTrue(nav.getString("fallback_uri").startsWith("geo:0,0?q="))
+        assertTrue(nav.getString("fallback_uri").startsWith("https://www.google.com/maps/dir/"))
         assertEquals(before, order.toString())
     }
 
@@ -423,14 +423,9 @@ class PlanningBoardTest {
     }
 
     @Test
-    fun knownCoordinatesAreUsedWithoutInventingLocations() {
+    fun knownCoordinatesRemainReadableForWeather() {
         val target = JSONObject().put("latitude", 48.2).put("longitude", 16.3)
         assertEquals(48.2 to 16.3, PlanningBoardRules.coordinates(target))
-        assertTrue(
-            PlanningBoardRules.navigation(tour()) { target }
-                .getString("navigation_uri")
-                .contains("48.2%2C16.3")
-        )
         assertNull(PlanningBoardRules.coordinates(JSONObject()))
         assertNull(PlanningBoardRules.coordinates(JSONObject().put("latitude", 48.2)))
         assertNull(

@@ -10,9 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.*
@@ -160,7 +162,7 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
                     if (routeEditorOpened && controller.route.mode in setOf("new", "edit"))
                         controller.finishAction()
                     controller.message(
-                        "Termin gespeichert.",
+                        "Einsatz gespeichert.",
                         if (savedId.isNotBlank()) NativeRoute("appointments", savedId, "detail")
                         else null,
                     )
@@ -172,7 +174,6 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
                 repository,
                 selected,
                 onBack = { if (id.isNotEmpty()) controller.back() else selected = "" },
-                onEdit = { openEditor(selected) },
                 onAlternative = { proposal ->
                     scope.launch {
                         try {
@@ -245,7 +246,6 @@ private fun PlanningDetail(
     repository: NativeDataRepository,
     id: String,
     onBack: () -> Unit,
-    onEdit: () -> Unit,
     onAlternative: (JSONObject) -> Unit,
 ) {
     val watched by
@@ -258,6 +258,7 @@ private fun PlanningDetail(
     var confirm by remember { mutableStateOf<Triple<String, JSONObject, String>?>(null) }
     var details by rememberSaveable(id) { mutableStateOf(false) }
     var suggestions by rememberSaveable(id) { mutableStateOf(false) }
+    var editingField by remember(id) { mutableStateOf<Pair<String, String>?>(null) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(id, controller.route.args) {
         if (controller.route.args.optString("action") == "alternatives") {
@@ -278,95 +279,58 @@ private fun PlanningDetail(
     if (result == null) {
         Column(Modifier.padding(16.dp)) {
             if (failure.isEmpty()) CircularProgressIndicator() else Text(failure)
-            TextButton(onBack) { Text("Zur Planung") }
+            NativeTextButton(onBack) { Text("Zur Planung") }
         }
         return
     }
     val row = result.getJSONObject("appointment")
     val risk = result.optJSONObject("weather") ?: JSONObject()
     val calendar = result.optJSONObject("calendar") ?: JSONObject()
-    val action = confirm
-    if (action != null)
-        AlertDialog(
-            onDismissRequest = { confirm = null },
-            text = { Text(action.third) },
-            dismissButton = { TextButton({ confirm = null }) { Text("Abbrechen") } },
-            confirmButton = {
-                TextButton({
-                    confirm = null
-                    busy = true
-                    scope.launch {
-                        val key = "planning:action:$id:${action.first}"
-                        var mutationAttempted = false
-                        try {
-                            val saved = controller.draft(key)
-                            if (saved != null) {
-                                val proof =
-                                    controller.query(
-                                        "inspect_edit_action",
-                                        JSONObject()
-                                            .put("original_tool", saved.getString("tool"))
-                                            .put("original_args", saved.getJSONObject("args")),
-                                    )
-                                if (proof.optString("state") == "confirmed") {
-                                    controller.removeDraft(key)
-                                    controller.message(
-                                        "Der bereits gespeicherte Vorgang wurde gefunden."
-                                    )
-                                    if (action.first == "delete_entity") onBack() else refresh++
-                                    return@launch
-                                }
-                                require(proof.optString("state") != "content_removed") {
-                                    "Der ursprüngliche Beleg wurde entfernt. Aktuellen Termin prüfen; keine erneute Übernahme."
-                                }
-                                throw IllegalStateException(
-                                    "Speichern weiterhin nicht bestätigt. Der ursprüngliche Vorgang bleibt erhalten; es wurde nur sein Ergebnis geprüft."
-                                )
-                            }
-                            val args =
-                                saved?.optJSONObject("args")
-                                    ?: action.second
-                                        .planningCopy()
-                                        .put("request_id", planningRequest())
-                            controller.saveDraft(
-                                key,
-                                JSONObject().put("tool", action.first).put("args", args),
-                            )
-                            controller.flushDrafts()
-                            mutationAttempted = true
-                            controller.query(action.first, args)
-                            controller.removeDraft(key)
-                            controller.message(
-                                when (action.first) {
-                                    "cancel_appointment" ->
-                                        "Termin lokal abgesagt. Kalenderabgleich folgt."
-                                    "resolve_calendar_conflict" ->
-                                        "Entscheidung gespeichert. Google-Version wird vor Verarbeitung erneut geprüft."
-                                    "acknowledge_weather_alert" ->
-                                        "Kenntnisnahme gespeichert. Termin bleibt unverändert."
-                                    else -> "Eintrag im Papierkorb. Original bleibt erhalten."
-                                }
-                            )
-                            if (action.first == "delete_entity") onBack() else refresh++
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (error: Exception) {
-                            if (
-                                mutationAttempted &&
-                                    error is NativeCallFailure &&
-                                    error.detail.optString("commit_state") == "not_committed"
-                            )
-                                controller.removeDraft(key)
-                            failure = error.message.orEmpty()
-                        } finally {
-                            busy = false
-                        }
-                    }
-                }) {
-                    Text("Bestätigen")
+    LaunchedEffect(confirm) {
+        val action = confirm ?: return@LaunchedEffect
+        busy = true
+        val key = "planning:action:$id:${action.first}"
+        try {
+            val saved = controller.draft(key)
+            val args =
+                saved?.optJSONObject("args")
+                    ?: action.second.planningCopy().put("request_id", planningRequest())
+            if (saved == null) {
+                controller.saveDraft(key, JSONObject().put("tool", action.first).put("args", args))
+                controller.flushDrafts()
+            }
+            controller.query(action.first, args)
+            controller.removeDraft(key)
+            refresh++
+            if (action.first == "cancel_appointment")
+                controller.messageUndo("Einsatz abgesagt") {
+                    val current =
+                        controller.query("get_appointment", JSONObject().put("appointment_id", id))
+                    controller.query(
+                        "update_appointment",
+                        JSONObject()
+                            .put("request_id", planningRequest())
+                            .put("appointment_id", id)
+                            .put("expected_record_hash", current.getString("record_hash"))
+                            .put("updates", JSONObject().put("status", row.getString("status"))),
+                    )
+                    refresh++
                 }
-            },
-        )
+            else controller.message("Gespeichert")
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            if (
+                error is NativeCallFailure &&
+                    error.detail.optString("commit_state") == "not_committed"
+            )
+                controller.removeDraft(key)
+            failure = error.message.orEmpty()
+        } finally {
+            busy = false
+            confirm = null
+        }
+    }
     if (suggestions)
         PlanningSuggestions(
             controller,
@@ -408,7 +372,7 @@ private fun PlanningDetail(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             NativeDetailHeading(
-                row.optString("title", "Termin"),
+                row.optString("title", "Einsatz"),
                 buildList {
                     add(
                         NativeDetailAction(
@@ -449,7 +413,7 @@ private fun PlanningDetail(
                                                     "expected_alert_hash",
                                                     risk.getString("alert_hash"),
                                                 ),
-                                            "Diesen Wetterhinweis als geprüft markieren? Der Termin bleibt unverändert.",
+                                            "Diesen Wetterhinweis als geprüft markieren? Der Einsatz bleibt unverändert.",
                                         )
                                 },
                             )
@@ -464,7 +428,7 @@ private fun PlanningDetail(
                     add(
                         NativeDetailAction(
                             "appointment-cancel",
-                            "Termin absagen",
+                            "Einsatz absagen",
                             !busy && row.optString("status") != "cancelled",
                             {
                                 confirm =
@@ -476,12 +440,13 @@ private fun PlanningDetail(
                                                 "expected_record_hash",
                                                 result.getString("record_hash"),
                                             ),
-                                        "Diesen Termin absagen? Auftrag und erfasste Arbeiten bleiben erhalten.",
+                                        "Diesen Einsatz absagen? Auftrag und erfasste Arbeiten bleiben erhalten.",
                                     )
                             },
                         )
                     )
                 },
+                onTitleClick = { editingField = "title" to "Tätigkeit" },
             )
             NativeContext(
                 controller,
@@ -489,37 +454,39 @@ private fun PlanningDetail(
                 heading = true,
             )
             NativeGroup("Zeit und Ort") {
-                Text(
-                    planningStamp(row.optString("starts_at")) +
-                        " – " +
-                        if (AppointmentRules.openEnd(row)) "Ende offen"
-                        else planningStamp(row.optString("ends_at"))
-                )
-                NativeStatus(planningStatuses[row.optString("status")] ?: row.optString("status"))
-                Text(row.optString("location").ifEmpty { "Einsatzort offen" })
+                NativeKeyValue("Beginn", planningStamp(row.optString("starts_at"))) {
+                    editingField = "starts_at" to "Beginn"
+                }
+                NativeKeyValue(
+                    "Ende",
+                    if (AppointmentRules.openEnd(row)) "Offen"
+                    else planningStamp(row.optString("ends_at")),
+                ) {
+                    editingField = "ends_at" to "Ende"
+                }
+                NativeKeyValue(
+                    "Status",
+                    planningStatuses[row.optString("status")] ?: row.optString("status"),
+                ) {
+                    editingField = "status" to "Status"
+                }
+                NativeKeyValue("Einsatzort", row.optString("location")) {
+                    editingField = "location" to "Einsatzort"
+                }
+                NativeKeyValue("Pause", "${row.optInt("break_minutes")} Min.") {
+                    editingField = "break_minutes" to "Pause in Minuten"
+                }
+                NativeKeyValue("Anfahrtpuffer", "${row.optInt("travel_minutes")} Min.") {
+                    editingField = "travel_minutes" to "Anfahrtpuffer in Minuten"
+                }
+                NativeKeyValue("Notizen", row.optString("notes")) {
+                    editingField = "notes" to "Notizen"
+                }
                 NativeInfoRow(
-                    "Geplante Zeit",
-                    if (result.isNull("planned_hours")) "Ende offen"
-                    else nativeNumber(result.opt("planned_hours")) + " Std.",
-                )
-                NativeInfoRow(
-                    "Tatsächlich erfasste Arbeit",
+                    "Erfasste Arbeit",
                     nativeNumber(result.optDouble("actual_hours", 0.0)) + " Std.",
                 )
-                if (row.optInt("break_minutes") > 0)
-                    Text("Geplante Pause: ${row.optInt("break_minutes")} min")
-                if (row.optInt("travel_minutes") > 0)
-                    Text("Anfahrtpuffer: ${row.optInt("travel_minutes")} min")
-                if (row.optString("notes").isNotEmpty()) Text(row.optString("notes"))
-                Text(
-                    "Geplante Zeit ist kein Arbeitsnachweis. Ein Vormerken ist keine Kundenzusage.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
             }
-            NativeAddDetails(
-                listOf("location", "notes", "order_id").filter { row.optString(it).isBlank() },
-                onEdit = onEdit,
-            )
             val collisions = result.optJSONObject("collisions")
             if (details || collisions?.optJSONArray("conflicts")?.length() ?: 0 > 0)
                 PlanningCollisions(collisions)
@@ -556,7 +523,7 @@ private fun PlanningDetail(
                         "keep_app" to "Meine App-Version behalten",
                         "use_google" to "Google-Version übernehmen",
                         "keep_without_calendar" to "Nur in der App behalten",
-                    )) OutlinedButton(
+                    )) NativeOutlinedButton(
                     {
                         confirm =
                             Triple(
@@ -572,18 +539,17 @@ private fun PlanningDetail(
                                     .put("confirmed", true),
                                 "Diese Variante auf Basis des angezeigten Vergleichs verwenden? Bei zwischenzeitlicher Änderung wird erneut geprüft." +
                                     if (choice == "keep_without_calendar")
-                                        " Der Termin wird nicht mehr mit Google abgeglichen."
+                                        " Der Einsatz wird nicht mehr mit Google abgeglichen."
                                     else "",
                             )
                     },
                     enabled = !busy,
-                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(label)
                 }
             }
             if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
-            TextButton(onBack) { Text("Zur Planung") }
+            NativeTextButton(onBack) { Text("Zur Planung") }
             NativeDeleteButton(
                 controller,
                 "appointment",
@@ -595,44 +561,42 @@ private fun PlanningDetail(
             }
         }
         val canStart = row.optString("status") !in listOf("draft", "completed", "cancelled")
-        NativeActionBar(
-            primaryLabel = if (canStart) "Arbeit starten" else "Termin bearbeiten",
-            onPrimary = {
-                if (!canStart) onEdit()
-                else if (!busy) {
-                    val args =
-                        JSONObject()
-                            .put("appointment_id", id)
-                            .put("customer_id", row.getString("customer_id"))
-                            .put("location", row.optString("location"))
-                            .put("activity", row.optString("title"))
-                            .put("work_date", planningDay().toString())
-                    if (row.optString("order_id").isNotEmpty())
-                        args.put("order_id", row.getString("order_id"))
-                    busy = true
-                    scope.launch {
-                        try {
-                            controller.startKnownWork(args)
-                            controller.navigate("timer", args = args)
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (error: Exception) {
-                            controller.navigate("timer", args = args)
-                            controller.message(
-                                error.message
-                                    ?: "Arbeitsstart nicht bestätigt. Ursprünglichen Vorgang prüfen."
-                            )
-                        } finally {
-                            busy = false
+        if (canStart)
+            NativeActionBar(
+                "Arbeit starten",
+                {
+                    if (!busy) {
+                        val args =
+                            JSONObject()
+                                .put("appointment_id", id)
+                                .put("customer_id", row.getString("customer_id"))
+                                .put("location", row.optString("location"))
+                                .put("activity", row.optString("title"))
+                                .put("work_date", planningDay().toString())
+                        if (row.optString("order_id").isNotEmpty())
+                            args.put("order_id", row.getString("order_id"))
+                        busy = true
+                        scope.launch {
+                            try {
+                                controller.startKnownWork(args)
+                                controller.navigate("timer", args = args)
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (error: Exception) {
+                                failure = error.message.orEmpty()
+                            } finally {
+                                busy = false
+                            }
                         }
                     }
-                }
-            },
-            secondaryLabel = if (canStart) "Termin bearbeiten" else "Zur Planung",
-            onSecondary = { if (canStart) onEdit() else onBack() },
-            enabled = !busy,
-            secondaryEnabled = !busy,
-        )
+                },
+                enabled = !busy,
+            )
+    }
+    editingField?.let { (field, label) ->
+        NativePlanningValueSheet(controller, row, field, label, { refresh++ }) {
+            editingField = null
+        }
     }
 }
 
@@ -644,9 +608,9 @@ private fun PlanningCollisions(report: JSONObject?) {
     }
     val conflicts = report.optJSONArray("conflicts")?.planningRows().orEmpty()
     Text(
-        if (report.optBoolean("inactive")) "Dieser Termin belegt keine Einsatzzeit."
-        else if (conflicts.any { !it.optBoolean("uncertain") }) "Terminkollision"
-        else if (conflicts.isNotEmpty()) "Mögliche Terminkollision"
+        if (report.optBoolean("inactive")) "Dieser Einsatz belegt keine Einsatzzeit."
+        else if (conflicts.any { !it.optBoolean("uncertain") }) "Einsatzkollision"
+        else if (conflicts.isNotEmpty()) "Mögliche Einsatzkollision"
         else if (!report.optBoolean("app_checked", true))
             (if (report.optBoolean("duration_unknown")) "Ende offen · Belegung noch ungeklärt"
             else "Belegung noch nicht vollständig geprüft")
@@ -667,7 +631,7 @@ private fun PlanningCollisions(report: JSONObject?) {
     Text(
         if (report.optBoolean("external_checked"))
             "Google-Belegung geprüft · " + planningStamp(report.optString("checked_at"))
-        else "Google-Belegung nicht geprüft. Externe Terminkollisionen sind möglich.",
+        else "Google-Belegung nicht geprüft. Externe Einsatzkollisionen sind möglich.",
         style = MaterialTheme.typography.bodySmall,
     )
 }
@@ -705,17 +669,11 @@ private fun PlanningWeather(risk: JSONObject) {
                 if (risk.optBoolean("forecast_complete")) "" else " · teilweise unvollständig"
         )
     if (risk.optString("forecast_notice").isNotEmpty()) Text(risk.optString("forecast_notice"))
-    if (risk.optBoolean("uncertain_long_range"))
-        Text("Früher Wettertrend: erhöhte Unsicherheit. Wird näher am Termin erneut geprüft.")
     if (checked)
         Text(
             risk.optString("source", OpenMeteoWeatherSource.ATTRIBUTION),
             style = MaterialTheme.typography.bodySmall,
         )
-    Text(
-        "Die lokale Planung und Arbeitserfassung bleiben ohne Wetter verwendbar.",
-        style = MaterialTheme.typography.bodySmall,
-    )
 }
 
 private class PlanningEdit(
@@ -931,7 +889,6 @@ private fun PlanningEditor(
     var busy by remember { mutableStateOf(false) }
     var failure by remember { mutableStateOf("") }
     var discard by remember { mutableStateOf(false) }
-    var locationConfirmation by remember { mutableStateOf(false) }
     var suggestions by remember { mutableStateOf(false) }
     var collision by remember { mutableStateOf<JSONObject?>(null) }
     var more by rememberSaveable(edit.key) { mutableStateOf(false) }
@@ -1014,12 +971,12 @@ private fun PlanningEditor(
                     if (proof.optString("state") == "confirmed") {
                         controller.removeDraft(edit.key)
                         edit.pending = null
-                        controller.message("Der bereits gespeicherte Termin wurde gefunden.")
+                        controller.message("Der bereits gespeicherte Einsatz wurde gefunden.")
                         onSaved(proof.optJSONObject("result") ?: proof)
                         return@launch
                     }
                     require(proof.optString("state") != "content_removed") {
-                        "Der ursprüngliche Beleg wurde entfernt. Aktuellen Termin prüfen; keine erneute Übernahme."
+                        "Der ursprüngliche Beleg wurde entfernt. Aktuellen Einsatz prüfen; keine erneute Übernahme."
                     }
                     throw IllegalStateException(
                         "Speichern weiterhin nicht bestätigt. Die ursprünglichen Angaben bleiben erhalten; es wird nur das Ergebnis geprüft."
@@ -1043,7 +1000,7 @@ private fun PlanningEditor(
                 controller.removeDraft(edit.key)
                 edit.pending = null
                 controller.message(
-                    "Termin auf diesem Gerät gespeichert. Kalenderübertragung wird gesondert geprüft."
+                    "Einsatz auf diesem Gerät gespeichert. Kalenderübertragung wird gesondert geprüft."
                 )
                 onSaved(result)
             } catch (cancelled: CancellationException) {
@@ -1073,7 +1030,7 @@ private fun PlanningEditor(
         ) { proof ->
             controller.removeDraft(edit.key)
             edit.pending = null
-            controller.message("Termin gespeichert.")
+            controller.message("Einsatz gespeichert.")
             onSaved(proof.optJSONObject("result") ?: proof)
         }
     seriesReview?.let { proposals ->
@@ -1086,7 +1043,7 @@ private fun PlanningEditor(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Text(
-                        "${proposals.size} Vorschläge · noch nicht gespeichert. Jeder Termin wird beim Anlegen auf Überschneidungen geprüft; bestehende Termine werden nicht verschoben."
+                        "${proposals.size} Vorschläge · noch nicht gespeichert. Jeder Einsatz wird beim Anlegen auf Überschneidungen geprüft; bestehende Einsätze werden nicht verschoben."
                     )
                     proposals.forEachIndexed { index, row ->
                         NativeInfoRow(
@@ -1097,13 +1054,13 @@ private fun PlanningEditor(
                     }
                 }
             },
-            dismissButton = { TextButton({ seriesReview = null }) { Text("Zurück") } },
+            dismissButton = { NativeTextButton({ seriesReview = null }) { Text("Zurück") } },
             confirmButton = {
-                TextButton({
+                NativeTextButton({
                     seriesReview = null
                     save(true)
                 }) {
-                    Text("${proposals.size} Termine anlegen")
+                    Text("${proposals.size} Einsätze anlegen")
                 }
             },
         )
@@ -1165,72 +1122,13 @@ private fun PlanningEditor(
                 discard = false
             }
         }
-    if (locationConfirmation)
-        AlertDialog(
-            onDismissRequest = { locationConfirmation = false },
-            text = {
-                Text(
-                    "Bist du am Einsatzort dieses Kunden? Nur dann den aktuellen Gerätestandort übernehmen."
-                )
-            },
-            dismissButton = { TextButton({ locationConfirmation = false }) { Text("Abbrechen") } },
-            confirmButton = {
-                TextButton({
-                    locationConfirmation = false
-                    scope.launch {
-                        try {
-                            val location = controller.location()
-                            require(
-                                location.optString("status") == "OK" &&
-                                    WeatherLocationRules.coordinates(location)
-                            ) {
-                                "Standort konnte nicht bestimmt werden. Termin kann ohne Wetter gespeichert werden."
-                            }
-                            change("latitude", location.getDouble("latitude"))
-                            change("longitude", location.getDouble("longitude"))
-                            controller.message(
-                                "Standort übernommen. Einsatzort vor dem Speichern prüfen."
-                            )
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (error: Exception) {
-                            failure = error.message.orEmpty()
-                        }
-                    }
-                }) {
-                    Text("Standort übernehmen")
-                }
-            },
-        )
-    if (suggestions) {
-        val source = runCatching { edit.businessValues() }.getOrElse { values.planningCopy() }
-        PlanningSuggestions(
-            controller,
-            source,
-            { suggestions = false },
-            { proposal ->
-                suggestions = false
-                change("local_start", planningLocal(proposal.getString("starts_at")))
-                change("end_open", false)
-                change(
-                    "duration_hours",
-                    (Duration.between(
-                                AppointmentRules.instant(proposal.getString("starts_at")),
-                                AppointmentRules.instant(proposal.getString("ends_at")),
-                            )
-                            .toMinutes() / 60.0)
-                        .toString(),
-                )
-            },
-        )
-    }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                if (existing) "Termin bearbeiten" else "Einsatz planen",
+                if (existing) "Einsatz" else "Einsatz planen",
                 style = MaterialTheme.typography.headlineSmall,
             )
             if (edit.pending != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
@@ -1258,7 +1156,11 @@ private fun PlanningEditor(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 for ((hours, label) in
-                    listOf("1" to "1 Std", "2" to "2 Std", "4" to "Halber Tag")) OutlinedButton(
+                    listOf(
+                        "1" to "1 Std",
+                        "2" to "2 Std",
+                        "4" to "Halber Tag",
+                    )) NativeOutlinedButton(
                     {
                         change("duration_hours", hours)
                         change("end_open", false)
@@ -1290,11 +1192,7 @@ private fun PlanningEditor(
                 enabled,
             )
             PlanningCollisions(collision)
-            if (collision?.optBoolean("display_incomplete") == true)
-                Text(
-                    "Die Vorabprüfung zeigt Termine im nahen Zeitraum. Beim Speichern wird der vollständige Bestand erneut geprüft."
-                )
-            OutlinedButton(
+            NativeOutlinedButton(
                 { suggestions = true },
                 enabled = enabled && values.optString("customer_id").isNotEmpty(),
             ) {
@@ -1362,13 +1260,8 @@ private fun PlanningEditor(
                 ) {
                     change("weather_profile", it)
                 }
-                Text(
-                    "Ungeprüftes Wetter bleibt unbekannt. Für eine Wetterprüfung wird die Einsatzadresse verwendet."
-                )
                 for ((key, label) in
                     listOf(
-                        "latitude" to "Breitengrad (optional)",
-                        "longitude" to "Längengrad (optional)",
                         "travel_minutes" to "Anfahrtpuffer (Minuten)",
                         "break_minutes" to "Geplante Pause (Minuten)",
                     )) PlanningField(label, planningText(values, key), { change(key, it) }, enabled)
@@ -1390,9 +1283,6 @@ private fun PlanningEditor(
                     { change("utc_offset", it) },
                     enabled,
                 )
-                OutlinedButton({ locationConfirmation = true }, enabled = enabled) {
-                    Text("Standort am Einsatzort übernehmen")
-                }
             }
             if (!existing) {
                 NativeInfoRow(
@@ -1423,12 +1313,8 @@ private fun PlanningEditor(
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
             )
-            Text(
-                "Bestätigt bedeutet: Kundenzusage liegt vor. Es wird keine Nachricht gesendet. Keine Ist-Stunden oder Rechnung.",
-                style = MaterialTheme.typography.bodySmall,
-            )
             if (edit.restoreReview && edit.pending == null)
-                OutlinedButton(
+                NativeOutlinedButton(
                     {
                         scope.launch {
                             busy = true
@@ -1454,7 +1340,7 @@ private fun PlanningEditor(
                     failure + " Dein Entwurf bleibt erhalten.",
                     color = MaterialTheme.colorScheme.error,
                 )
-            TextButton(
+            NativeTextButton(
                 {
                     if (edit.pending == null) discard = true
                     else failure = "Zuerst dieselbe Speicherung erneut prüfen."
@@ -1486,7 +1372,7 @@ private fun PlanningEditor(
                         hardConflict -> "Andere Zeit wählen"
                         !existing && (planningText(values, "occurrences").toIntOrNull() ?: 1) > 1 ->
                             "Wiederholungen prüfen"
-                        else -> "Termin speichern"
+                        else -> "Einsatz speichern"
                     },
                 onPrimary = {
                     if (hardConflict && edit.pending == null) suggestions = true else save()
@@ -1537,12 +1423,12 @@ private fun PlanningSuggestions(
             onDismissRequest = { selected = null },
             text = {
                 Text(
-                    "Dieses Zeitfenster in den Entwurf übernehmen? Gespeichert wird erst mit Termin speichern. Kundenverfügbarkeit ist separat zu bestätigen."
+                    "Dieses Zeitfenster in den Entwurf übernehmen? Gespeichert wird erst mit Einsatz speichern. Kundenverfügbarkeit ist separat zu bestätigen."
                 )
             },
-            dismissButton = { TextButton({ selected = null }) { Text("Abbrechen") } },
+            dismissButton = { NativeTextButton({ selected = null }) { Text("Abbrechen") } },
             confirmButton = {
-                TextButton({
+                NativeTextButton({
                     onSelect(proposal)
                     selected = null
                 }) {
@@ -1566,7 +1452,7 @@ private fun PlanningSuggestions(
                 )
                 NativeDateField("Von", from, { from = it }, required = true, enabled = !busy)
                 NativeDateField("Bis", to, { to = it }, required = true, enabled = !busy)
-                OutlinedButton(
+                NativeOutlinedButton(
                     {
                         scope.launch {
                             busy = true
@@ -1639,7 +1525,7 @@ private fun PlanningSuggestions(
                 if (failure.isNotEmpty()) Text(failure, color = MaterialTheme.colorScheme.error)
             }
         },
-        confirmButton = { TextButton(onClose) { Text("Schließen") } },
+        confirmButton = { NativeTextButton(onClose) { Text("Schließen") } },
     )
 }
 
@@ -1670,7 +1556,11 @@ private fun PlanningChoice(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton({ expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+        NativeOutlinedButton(
+            { expanded = true },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(label + ": " + (choices[value] ?: value))
         }
         DropdownMenu(expanded, { expanded = false }) {
@@ -1716,7 +1606,11 @@ private fun PlanningPicker(
                     "Ausgewählter Eintrag nicht lesbar"
                 }
     }
-    OutlinedButton({ expanded = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+    NativeOutlinedButton(
+        { expanded = true },
+        enabled = enabled,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         Text(
             label +
                 ": " +
@@ -1733,4 +1627,244 @@ private fun PlanningPicker(
         onDismiss = { expanded = false },
         onChoose = change,
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NativePlanningValueSheet(
+    controller: NativeAppController,
+    record: JSONObject,
+    field: String,
+    label: String,
+    onSaved: () -> Unit,
+    onClose: () -> Unit,
+) {
+    val id = record.getString("id")
+    val scope = rememberCoroutineScope()
+    var busy by remember(field) { mutableStateOf(false) }
+    var failure by remember(field) { mutableStateOf("") }
+    var fieldConflict by remember(field) { mutableStateOf<JSONObject?>(null) }
+    var attemptedInput by remember(field) { mutableStateOf("") }
+    var proposed by remember(field) { mutableStateOf<Any?>(null) }
+    val before = remember(field, id) { JSONObject(record.toString()) }
+    val initialHash = remember(field, id) { AppointmentRules.hash(before) }
+    val original = before.opt(field) ?: ""
+    val shown =
+        if (field in setOf("starts_at", "ends_at") && original.toString().isNotBlank())
+            planningLocal(original.toString())
+        else original.toString()
+    var chosen by remember(field) { mutableStateOf(shown) }
+    suspend fun write(value: Any, expectedUndo: Any? = null, agreed: JSONObject? = null): Any {
+        val current = controller.query("get_appointment", JSONObject().put("appointment_id", id))
+        if (expectedUndo != null)
+            require(
+                PixelMcpWriteTools.hash(current.getJSONObject("appointment").opt(field) ?: "") ==
+                    PixelMcpWriteTools.hash(expectedUndo)
+            ) {
+                "Diese Angabe wurde inzwischen geändert. Beide Stände bitte prüfen."
+            }
+        val updates = JSONObject().put(field, value)
+        if (
+            field == "starts_at" &&
+                expectedUndo == null &&
+                !AppointmentRules.openEnd(current.getJSONObject("appointment"))
+        ) {
+            val row = current.getJSONObject("appointment")
+            val duration =
+                Duration.between(
+                    Instant.parse(row.getString("starts_at")),
+                    Instant.parse(row.getString("ends_at")),
+                )
+            updates.put("ends_at", Instant.parse(value.toString()).plus(duration).toString())
+        }
+        val undoBefore = agreed ?: before
+        if (expectedUndo != null && field == "starts_at" && !AppointmentRules.openEnd(undoBefore)) {
+            val duration =
+                Duration.between(
+                    Instant.parse(undoBefore.getString("starts_at")),
+                    Instant.parse(undoBefore.getString("ends_at")),
+                )
+            require(
+                current.getJSONObject("appointment").optString("ends_at") ==
+                    Instant.parse(expectedUndo.toString()).plus(duration).toString()
+            ) {
+                "Die Endzeit wurde inzwischen geändert. Bitte beide Stände prüfen."
+            }
+            updates.put("ends_at", undoBefore.optString("ends_at"))
+        }
+        val saved =
+            controller.query(
+                "update_appointment",
+                JSONObject()
+                    .put("request_id", planningRequest())
+                    .put("appointment_id", id)
+                    .put(
+                        "expected_record_hash",
+                        if (expectedUndo == null)
+                            agreed?.let { AppointmentRules.hash(it) } ?: initialHash
+                        else current.getString("record_hash"),
+                    )
+                    .put("updates", updates),
+            )
+        return saved.optJSONObject("appointment")?.opt(field) ?: value
+    }
+    fun finish(entered: String, agreed: JSONObject? = null) {
+        attemptedInput = entered
+        if (entered == shown) onClose()
+        else {
+            busy = true
+            scope.launch {
+                try {
+                    val value: Any =
+                        when (field) {
+                            "starts_at",
+                            "ends_at" ->
+                                if (entered.isBlank() && field == "ends_at") ""
+                                else
+                                    AppointmentRules.local(
+                                            entered,
+                                            record.optString("timezone", "Europe/Vienna"),
+                                            "",
+                                        )
+                                        .toString()
+                            "break_minutes",
+                            "travel_minutes" ->
+                                entered.toIntOrNull()
+                                    ?: error("Bitte eine ganze Minutenzahl eingeben.")
+                            else -> entered
+                        }
+                    proposed = value
+                    val replaced = if (agreed == null) original else agreed.opt(field) ?: ""
+                    val savedValue = write(value, agreed = agreed)
+                    onSaved()
+                    onClose()
+                    controller.messageUndo("Gespeichert") {
+                        write(replaced, savedValue, agreed)
+                        onSaved()
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    failure =
+                        nativeActionError(error, "Die Änderung konnte nicht gespeichert werden.")
+                    if (
+                        error is NativeCallFailure &&
+                            error.detail.optString("code") in
+                                setOf("WRITE_CONFLICT", "EDIT_CONFLICT")
+                    ) {
+                        fieldConflict =
+                            try {
+                                controller
+                                    .query(
+                                        "get_appointment",
+                                        JSONObject().put("appointment_id", id),
+                                    )
+                                    .getJSONObject("appointment")
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                null
+                            }
+                    }
+                } finally {
+                    busy = false
+                }
+            }
+        }
+    }
+    fieldConflict?.let { current ->
+        AlertDialog(
+            onDismissRequest = { fieldConflict = null },
+            title = { Text("Angabe geändert") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Gespeichert", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        when (field) {
+                            "starts_at",
+                            "ends_at" ->
+                                current
+                                    .optString(field)
+                                    .takeIf { it.isNotBlank() }
+                                    ?.let(::planningStamp) ?: "Offen"
+                            "status" ->
+                                planningStatuses[current.optString(field)]
+                                    ?: current.optString(field)
+                            else ->
+                                nativeDisplayText(current.opt(field)?.toString().orEmpty())
+                                    .ifBlank { "Leer" }
+                        }
+                    )
+                    NativeTextButton(
+                        {
+                            fieldConflict = null
+                            failure = ""
+                            onSaved()
+                            onClose()
+                        },
+                        Modifier.semantics { contentDescription = "Diesen behalten · gespeichert" },
+                    ) {
+                        Text("Diesen behalten")
+                    }
+                    Text("Meine Angabe", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        when (field) {
+                            "starts_at",
+                            "ends_at" ->
+                                proposed
+                                    ?.toString()
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?.let(::planningStamp) ?: "Offen"
+                            "status" ->
+                                planningStatuses[proposed?.toString()]
+                                    ?: proposed?.toString().orEmpty()
+                            else ->
+                                nativeDisplayText(proposed?.toString().orEmpty()).ifBlank { "Leer" }
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        fieldConflict = null
+                        failure = ""
+                        finish(attemptedInput, current)
+                    },
+                    Modifier.semantics { contentDescription = "Diesen behalten · meine Angabe" },
+                    enabled = !busy,
+                ) {
+                    Text("Diesen behalten")
+                }
+            },
+        )
+    }
+    if (field == "status")
+        ModalBottomSheet(onDismissRequest = { if (!busy) finish(chosen) }) {
+            Column(Modifier.padding(16.dp)) {
+                Text(label, style = MaterialTheme.typography.titleMedium)
+                for ((value, title) in planningStatuses) FilterChip(
+                    chosen == value,
+                    { chosen = value },
+                    label = { Text(title) },
+                    enabled = !busy,
+                )
+                if (failure.isNotBlank()) Text(failure, color = MaterialTheme.colorScheme.error)
+                NativeActions {
+                    NativeTextButton({ finish(chosen) }, enabled = !busy) { Text("Fertig") }
+                }
+            }
+        }
+    else
+        NativeValueSheet(
+            label,
+            shown,
+            keyboardType =
+                if (field in setOf("break_minutes", "travel_minutes")) KeyboardType.Number
+                else KeyboardType.Text,
+            multiline = field == "notes",
+            error = failure,
+            enabled = !busy,
+            onClose = { finish(it) },
+        )
 }

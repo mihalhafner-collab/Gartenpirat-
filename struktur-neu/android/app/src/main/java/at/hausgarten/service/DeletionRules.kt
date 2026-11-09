@@ -2,7 +2,7 @@ package at.hausgarten.service
 
 import org.json.*
 
-/** User-requested deletion means recoverable removal in the existing owner archive. */
+/** Shared version and protection checks before permanent deletion. */
 class DeletionRules {
     private constructor() {}
 
@@ -32,9 +32,7 @@ class DeletionRules {
                     id,
                 )
             if (current == null) {
-                throw IllegalArgumentException(
-                    "Der Eintrag fehlt oder liegt bereits im Papierkorb."
-                )
+                throw IllegalArgumentException("Der Eintrag fehlt.")
             }
             val related: JSONArray = TrashRules.related(snapshot, entity, id)
             var out: JSONObject =
@@ -42,29 +40,24 @@ class DeletionRules {
                     .put("entity", entity)
                     .put("entity_id", id)
                     .put("expected_record_hash", OwnerJournalRules.version(current))
-                    .put("recoverable", true)
-                    .put("physical_delete", false)
+                    .put("recoverable", false)
+                    .put("physical_delete", true)
                     .put("cascade", false)
                     .put("updated_at", current.optString("updated_at"))
                     .put("related_photos", related.length())
                     .put("expected_photo_links_hash", PixelMcpWriteTools.hash(related))
-                    .put(
-                        "mode",
-                        (if (entity.equals("customer") || entity.equals("service_template"))
-                            "deactivate"
-                        else "trash"),
-                    )
+                    .put("mode", "delete")
             val archived: JSONObject? = snapshot.optJSONObject("owner_archive")
             if ((archived != null) && archived.has(("" + entity + ":") + id)) {
                 return out.put("allowed", false)
-                    .put("message", "Der Eintrag liegt bereits im Papierkorb.")
+                    .put("message", "Der Eintrag wurde bereits entfernt.")
             }
             try {
                 OwnerJournalRules.validateArchive(entity, current, snapshot)
                 out.put("allowed", true)
                     .put(
                         "message",
-                        "Aus aktiven Ansichten entfernen. Original bleibt im Papierkorb. Fotos bleiben erhalten; betroffene Fotozuordnungen werden gelöst und beim Wiederherstellen nur bei unverändertem Foto wieder verbunden.",
+                        "Endgültig löschen; bestehende Zuordnungen lösen und ungeteilte Dateien entfernen.",
                     )
             } catch (blocked: IllegalArgumentException) {
                 out.put("allowed", false).put("message", blocked.message)

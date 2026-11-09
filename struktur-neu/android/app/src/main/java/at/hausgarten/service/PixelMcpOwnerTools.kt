@@ -25,9 +25,8 @@ internal class PixelMcpOwnerTools {
                     "get_accounting_overview",
                     "get_accounting_record",
                     "get_capabilities",
-                    "preview_empty_trash",
+                    "preview_delete_work_records",
                     "preview_archive_work_records",
-                    "preview_purge",
                     "preview_delete",
                     "get_photo",
                     "get_settings",
@@ -36,7 +35,6 @@ internal class PixelMcpOwnerTools {
                     "get_catalog_entry",
                     "read_file_chunk",
                     "get_file_metadata",
-                    "list_archive",
                 ),
                 LocalWorkflowTools.READS,
             )
@@ -53,8 +51,6 @@ internal class PixelMcpOwnerTools {
                     "add_settlement_payment",
                     "review_restored_sources",
                     "record_settlement_delivery",
-                    "empty_trash",
-                    "archive_work_records",
                     "delete_work_records",
                     "set_work_record_billed",
                     "reassign_work_record",
@@ -62,10 +58,7 @@ internal class PixelMcpOwnerTools {
                     "begin_file_upload",
                     "write_file_chunk",
                     "create_photo",
-                    "purge_entity",
                     "delete_entity",
-                    "archive_entity",
-                    "restore_entity",
                     "update_settings",
                     "update_business_settings",
                     "set_personal_paid",
@@ -106,6 +99,18 @@ internal class PixelMcpOwnerTools {
                         .put("name", n)
                         .put("description", description(n))
                         .put("inputSchema", schema(n))
+                        .apply {
+                            val replacement =
+                                when (n) {
+                                    "preview_archive_work_records" -> "preview_delete_work_records"
+                                    "record_material_movement" -> "record_material_consumption"
+                                    else -> ""
+                                }
+                            if (replacement.isNotEmpty()) {
+                                put("deprecated", true)
+                                put("replacement", replacement)
+                            }
+                        }
                         .put(
                             "annotations",
                             JSONObject()
@@ -113,16 +118,11 @@ internal class PixelMcpOwnerTools {
                                 .put(
                                     "destructiveHint",
                                     (Arrays.asList(
-                                            "empty_trash",
                                             "delete_settlement_draft",
-                                            "archive_work_records",
                                             "delete_work_records",
                                             "set_work_record_billed",
                                             "reassign_work_record",
-                                            "purge_entity",
                                             "delete_entity",
-                                            "archive_entity",
-                                            "restore_entity",
                                         )
                                         .contains(n) || LocalWorkflowTools.critical(n)),
                                 )
@@ -154,16 +154,14 @@ internal class PixelMcpOwnerTools {
                 "get_ui_action_catalog" -> {
                     return "Liest die versionierte UI-MCP-Funktionsmatrix mit Werkzeugpfaden und notwendigen Geräte-/Kontofreigaben, paginiert."
                 }
-                "preview_archive_work_records" -> {
-                    return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für archive_work_records oder delete_work_records."
+                "preview_archive_work_records" ->
+                    return "Verweis für Version 1.71.0: preview_delete_work_records. Ausschließlich Löschvorschau."
+                "preview_delete_work_records" -> {
+                    return "Prüft eine ausdrückliche Auswahl von höchstens 200 Arbeitsaufzeichnungen samt Versionen, Fotozuordnungen und Finanzschutz. Keine Änderung. Liefert preview_hash für delete_work_records."
                 }
                 "delete_work_records" -> {
-                    return "Entfernt die ausgewählten Arbeitsaufzeichnungen atomar und endgültig mit aktuellem preview_hash. Kein Papierkorb-Zwischenschritt; ungeteilte Dateien nach lokalem Commit bereinigen. Bei unveränderter request_id keine Wiederholung." +
+                    return "Entfernt die ausgewählten Arbeitsaufzeichnungen atomar und endgültig mit aktuellem preview_hash. ungeteilte Dateien nach lokalem Commit bereinigen. Bei unveränderter request_id keine Wiederholung." +
                         common
-                }
-                "archive_work_records" -> {
-                    return ("Verschiebt die ausdrücklich bestätigte Auswahl anhand des unveränderten preview_hash atomar in den wiederherstellbaren Papierkorb. Bei nur einem geänderten/geschützten Eintrag keine Änderung. Bestehende Einzeljournale, Originalfotos und stabile Request-Belege bleiben erhalten." +
-                        common)
                 }
                 "get_capabilities" -> {
                     return "Liest App-/MCP-Version, tatsächlich unterstützte Funktionen, Grenzen und Berechtigungen."
@@ -180,33 +178,11 @@ internal class PixelMcpOwnerTools {
                     return ("Prüft vollständigen Upload, Prüfsumme, Bildtyp und Verknüpfungen; optimiert neue Fotos gemäß dem gespeicherten Qualitätsprofil über denselben Fotospeicher wie die App. Der gespeicherte SHA256 kann vom geprüften Uploadhash abweichen; get_photo liest die endgültigen Metadaten." +
                         common)
                 }
-                "preview_empty_trash" -> {
-                    return "Prüft den gesamten Papierkorb einschließlich interner Beziehungen; liefert Löschmenge, geschützte Restfälle und preview_hash. Keine Änderung."
-                }
-                "empty_trash" -> {
-                    return ("Entfernt die bestätigte freigegebene Papierkorbmenge atomar mit aktuellem preview_hash und dauerhafter Request-ID. Aktive Referenzen und geschützte Belege bleiben erhalten. Eine gemeinsame Journalaktion; Datei-Cleanup erst nach geprüfter Veröffentlichung." +
-                        common)
-                }
-                "preview_purge" -> {
-                    return "Prüft endgültige Entfernung eines Papierkorbeintrags ohne Änderung; zeigt Abhängigkeiten und aktuellen Archivhash."
-                }
-                "purge_entity" -> {
-                    return ("Löscht einen bestätigten Papierkorbeintrag mit aktuellem Archivhash endgültig. Eindeutige Testeinträge schließen zugehörige aktive und archivierte Testdaten mit Versionsprüfung ein. Nicht zugehörige Daten und laufende Arbeit bleiben geschützt. Entfernung im wirksamen Bestand prüfen; ungeteilte Dateien nach lokalem Commit bereinigen. Gewählte ZIP-Dateien bleiben erhalten. " +
-                        common)
-                }
                 "preview_delete" -> {
                     return "Prüft ohne Änderung Version und Verknüpfungen vor dem Löschen. Die Oberfläche führt delete_entity anschließend endgültig aus."
                 }
                 "delete_entity" -> {
-                    return ("Entfernt einen zulässigen lokalen Eintrag versionsgeschützt endgültig samt ungeteilten Dateien. Kein verbleibender Papierkorbeintrag. Zuordnungen intern prüfen; Testdaten schließen ihre zugehörigen Testdatensätze ein. Bei betroffenen Fotos expected_photo_links_hash aus preview_delete erforderlich. " +
-                        common)
-                }
-                "archive_entity" -> {
-                    return ("Entfernt einen fachlich zulässigen Eintrag aus aktiven Ansichten und bewahrt das Original im Archiv. Betroffene Fotozuordnungen lösen; bei Fotos expected_photo_links_hash aus preview_delete erforderlich. Keine physische Dateilöschung." +
-                        common)
-                }
-                "restore_entity" -> {
-                    return ("Stellt einen archivierten Eintrag mit Original-ID wieder her; bestehende IDs und Beziehungen werden nicht überschrieben." +
+                    return ("Entfernt einen zulässigen lokalen Eintrag versionsgeschützt endgültig samt ungeteilten Dateien. Zuordnungen intern prüfen; Testdaten schließen ihre zugehörigen Testdatensätze ein. Bei betroffenen Fotos expected_photo_links_hash aus preview_delete erforderlich. " +
                         common)
                 }
                 "set_work_record_billed" -> {

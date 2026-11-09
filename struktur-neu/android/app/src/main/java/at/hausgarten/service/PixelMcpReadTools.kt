@@ -351,14 +351,22 @@ class PixelMcpReadTools {
         }
         if (name == "get_customer") {
             result
-                .put("editable_fields", JSONArray(PixelMcpEntityWriteTools.CUSTOMER_FIELDS))
+                .put(
+                    "editable_fields",
+                    JSONArray(
+                        PixelMcpEntityWriteTools.CUSTOMER_FIELDS.filter {
+                            it != "electronic_invoice_consent_date"
+                        }
+                    ),
+                )
                 .put(
                     "read_only_fields",
                     JSONArray()
                         .put("id")
                         .put("created_at")
                         .put("updated_at")
-                        .put("sevdesk_contact_id"),
+                        .put("sevdesk_contact_id")
+                        .put("electronic_invoice_consent_date"),
                 )
         }
         if (name == "get_order") {

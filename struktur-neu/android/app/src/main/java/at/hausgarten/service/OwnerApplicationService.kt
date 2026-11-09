@@ -24,16 +24,8 @@ class OwnerApplicationService {
             arrayOf("begin_file_upload", "write_file_chunk", "create_photo", "update_photo"),
         )
         register(
-            ArchiveApplicationService(repository),
-            arrayOf(
-                "empty_trash",
-                "archive_work_records",
-                "delete_work_records",
-                "purge_entity",
-                "delete_entity",
-                "archive_entity",
-                "restore_entity",
-            ),
+            DeletionApplicationService(repository),
+            arrayOf("delete_work_records", "delete_entity"),
         )
         register(
             SettingsApplicationService(repository),
