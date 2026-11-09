@@ -7,6 +7,34 @@ import org.junit.Test
 
 class PropertyTimelineTest {
     @Test
+    fun visitEditorUsesThePublishedCreateAndUpdateContracts() {
+        val context =
+            JSONObject().put("customer_id", "qa_customer").put("property_id", "qa_property")
+        val edit = RevierEdit.create("qa_visit_new", "visit", null, context)
+        edit.change("title", "QA vom Objekt geplanter Einsatz")
+        val original = edit.row().toString()
+        val create = revierArguments(edit, edit.row())
+        assertEquals("plan_visit", create.getString("tool"))
+        val input = create.getJSONObject("args")
+        assertEquals("qa_property", input.getString("property_id"))
+        assertEquals("QA vom Objekt geplanter Einsatz", input.getString("title"))
+        assertEquals(60, input.getInt("planned_minutes"))
+        assertFalse(input.has("status"))
+        McpSchema.validate(input, LocalWorkflowTools.schema("plan_visit"))
+        assertEquals(original, edit.row().toString())
+        val existing = JSONObject(original).put("id", "qa_visit").put("record_hash", "a".repeat(64))
+        val updateEdit = RevierEdit.create("qa_visit_edit", "visit", existing, JSONObject())
+        updateEdit.change("status", "completed")
+        updateEdit.change("reason", "QA erledigt")
+        val update = revierArguments(updateEdit, updateEdit.row())
+        assertEquals("update_visit", update.getString("tool"))
+        val updateInput = update.getJSONObject("args")
+        assertEquals("completed", updateInput.getJSONObject("updates").getString("status"))
+        assertFalse(updateInput.getJSONObject("updates").has("property_id"))
+        McpSchema.validate(updateInput, LocalWorkflowTools.schema("update_visit"))
+    }
+
+    @Test
     fun contextIdentityIgnoresTimerTicksAndTracksOnlyLinksAndPeriod() {
         val args =
             JSONObject()

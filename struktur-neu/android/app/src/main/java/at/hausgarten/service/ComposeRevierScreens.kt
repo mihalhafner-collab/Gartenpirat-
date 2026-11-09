@@ -598,7 +598,7 @@ private fun RevierList(
     }
 }
 
-private class RevierEdit(
+internal class RevierEdit(
     val key: String,
     val kind: String,
     val original: JSONObject,
@@ -3076,7 +3076,7 @@ private fun revierLocalInstant(value: String): Instant {
     return local.toInstant(offsets.single())
 }
 
-private fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
+internal fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
     val editing = edit.original.optString("id").isNotEmpty()
     val args = JSONObject().put("request_id", edit.request)
     val id = edit.original.optString("id")
@@ -3213,6 +3213,7 @@ private fun revierArguments(edit: RevierEdit, value: JSONObject): JSONObject {
                         .put("scope", "only_this")
                     "update_visit"
                 } else {
+                    data.remove("status")
                     merge(data)
                     "plan_visit"
                 }
