@@ -5610,7 +5610,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .put("hours", 1)
                     .put("test_record", true)
             val saved = runBlocking { controller.saveEditor("worklog", args) }
-            var before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
             val count =
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
             controller.saveDraft(
@@ -5785,6 +5785,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         )
                         .none { it.optString("id") == deletionWork }
             }
+            // The receipt commits before the runner compacts its journal. Finish this
+            // independent deletion before taking the baseline for the restore notice.
+            waitUntil("BACKGROUND_DELETE_STORAGE_CLEANUP_FINISHED") {
+                SettlementRules.rows(read("get_list_actions").getJSONArray("actions"))
+                    .singleOrNull {
+                        it.optString("original_tool") == "delete_work_records" &&
+                            ("worklog" to deletionWork) in ListActionTools.targets(it)
+                    }
+                    ?.optString("state") == "done"
+            }
             val deletionProof =
                 read(
                     "inspect_edit_action",
@@ -5809,7 +5819,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     node(UiTags.DELETE_SELECTION) == null,
                 "BACKGROUND_DELETE_ACK_SURVIVES_RECREATE",
             )
-            before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            val beforeRestore = PixelMcpReadTools.effective(store.getState())
 
             // A completed synthetic restore must leave all four normal areas usable.
             activation.parentFile!!.mkdirs()
@@ -5831,9 +5841,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("RESTORE_HINT_DISMISSED") { node(UiTags.RESTORE_BANNER) == null }
             recreate()
             yes(node(UiTags.RESTORE_BANNER) == null, "RESTORE_HINT_ACK_IS_DURABLE")
+            val afterRestore = PixelMcpReadTools.effective(store.getState())
+            val changedRestoreKeys =
+                (beforeRestore.keys().asSequence().toSet() +
+                        afterRestore.keys().asSequence().toSet())
+                    .filter {
+                        PixelMcpWriteTools.hash(beforeRestore.opt(it)) !=
+                            PixelMcpWriteTools.hash(afterRestore.opt(it))
+                    }
+                    .sorted()
+                    .joinToString(",")
             yes(
-                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) == before,
-                "RESTORE_HINT_DOES_NOT_CHANGE_BUSINESS_DATA",
+                PixelMcpWriteTools.hash(afterRestore) == PixelMcpWriteTools.hash(beforeRestore),
+                "RESTORE_HINT_DOES_NOT_CHANGE_BUSINESS_DATA:$changedRestoreKeys",
             )
 
             // Empty customer list: first creation action is reachable from the ordinary plus.
