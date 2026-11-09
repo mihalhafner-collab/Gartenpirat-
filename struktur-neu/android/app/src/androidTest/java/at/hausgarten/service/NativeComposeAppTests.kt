@@ -5180,7 +5180,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             .use { cursor ->
                 while (cursor.moveToNext()) beforePending += Array(4) { cursor.getString(it) }
             }
-        val customer = customers(fixturePrefix + "000").single().getString("id")
         val day = LocalDate.now(ZoneId.of("Europe/Vienna"))
         val photoFile = File(context.cacheDir, "qa-property-timeline.png")
         var photoId = ""
@@ -5196,6 +5195,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
         test.addMonitor(monitor)
         try {
+            val customer =
+                store.saveEditorRecord(
+                    "customer",
+                    JSONObject()
+                        .put("_request_id", "qa_timeline_customer")
+                        .put("name", "[TEST] QA Zeitleistenkunde")
+                        .put("street", "[TEST] QA Empfängerweg 7")
+                        .put("postal_code", "1010")
+                        .put("city", "[TEST] QA Wien")
+                        .put("country", "AT")
+                        .put("phone", "+430000000007")
+                        .put("active", true)
+                        .put("test_record", true),
+                )
             val property =
                 read(
                         "create_property",
@@ -5243,10 +5256,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getString("care_plan_id")
             val work = "qa_timeline_work"
             val appointment = "qa_timeline_appointment"
-            val source = JSONObject(beforeMaster.toString())
-            SettlementRules.rows(source.getJSONArray("customers"))
-                .single { it.getString("id") == customer }
-                .put("phone", "+430000000007")
+            val source = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
             source.put(
                 "business_settings",
                 NativeSettlementNativeTests.fixture().getJSONObject("business_settings"),

@@ -57,7 +57,7 @@
     "owner_instruction": "Eigentümer 08.11.2026: Schritte 5–8 jeweils eigener PR nach main; vor jedem Schritt Branch neu ab origin/main, Merge nur nach vollem grünem PR-CI-Lauf.",
     "validation": {
       "source": "PASS; check_current.py und Release-Baseline für 1.69.0/149; AGENTS.md und dieser Stand zusammen unter 19 KB.",
-      "android": "PASS lokal vor dem Commit: assembleRelease, assembleReleaseAndroidTest, lintRelease mit 0 Befunden und testReleaseUnitTest mit 46 erfolgreichen Tests, 0 Fehlern und 0 übersprungenen Tests. Kotlin mit ktfmt --kotlinlang-style formatiert; OfferContract.kt unverändert. Emulator ausschließlich in CI.",
+      "android": "PASS lokal vor dem reinen Test-Commit bei unverändertem App-Code 1.69.0/149: assembleRelease, assembleReleaseAndroidTest, lintRelease mit 0 Befunden und testReleaseUnitTest mit 46 erfolgreichen Tests, 0 Fehlern und 0 übersprungenen Tests. Der Zeitleistenablauf legt seinen eigenen synthetischen Empfänger mit vollständiger Adresse und Telefonnummer über saveEditorRecord an; weitere Testdaten stammen aus dem wirksamen Stand. Alle Prüfungen für Foto, Abschluss, Zahlung, Neustart und Kontext bleiben erhalten. Emulator ausschließlich in CI.",
       "ci_gate": "PR #23 (Schritt 6) nach vollem grünem PR-Lauf 42544473230 mit build und emulator als 587c4f1 nach main gemergt. Für Schritt 7 ist ein eigener voller qa-apk.yml-Lauf auf dem aktuellen PR-Kopf erforderlich; Merge ausschließlich mit grünem build und emulator. Keine Tests überspringen oder deaktivieren."
     },
     "next": [
