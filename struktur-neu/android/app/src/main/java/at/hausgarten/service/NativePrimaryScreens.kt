@@ -3992,7 +3992,8 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
         val cancelled = controller.draft("timer_cancelled")
         cancelledId = cancelled?.optString("session_id").orEmpty()
         cancelledReview = cancelled?.optBoolean("_restore_action_review_required") == true
-        if (inSheet && finished && !completing && pending == null) controller.workSaveOpen = false
+        if (inSheet && finished && !completing && pending == null && !busy)
+            controller.workSaveOpen = false
     }
     LaunchedEffect(Unit) {
         try {
@@ -4042,7 +4043,7 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
                         )
                     }
                 }
-                session = controller.timerAction(tool, id)
+                val updated = controller.timerAction(tool, id)
                 if (tool == "discard_work_session") {
                     cancelledId = id
                     cancelledReview = false
@@ -4051,6 +4052,7 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
                     cancelledId = ""
                     cancelledReview = false
                 }
+                session = updated
                 pending = null
                 error = ""
             } catch (cancelled: CancellationException) {
