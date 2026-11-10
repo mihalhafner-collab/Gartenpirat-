@@ -3975,7 +3975,16 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
     var discardNeedsReview by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     suspend fun refresh() {
-        session = withContext(Dispatchers.IO) { controller.store.workSessions().current() }
+        val observed = withContext(Dispatchers.IO) { controller.store.workSessions().current() }
+        val finished = observed.optString("state") in setOf("IDLE", "FINALIZED")
+        // Keep the submitting form alive until its confirmed action has cleared its draft.
+        val completing =
+            finished &&
+                session?.optString("state") == "STOPPED_PENDING_REVIEW" &&
+                controller
+                    .draft("action:complete_work_session:${session?.optString("id")}")
+                    ?.optJSONObject("original_args") != null
+        if (!completing) session = observed
         pending =
             controller.draft("timer_action")?.let { saved ->
                 saved.getString("original_tool") to saved.getJSONObject("original_args")
@@ -3983,6 +3992,7 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
         val cancelled = controller.draft("timer_cancelled")
         cancelledId = cancelled?.optString("session_id").orEmpty()
         cancelledReview = cancelled?.optBoolean("_restore_action_review_required") == true
+        if (inSheet && finished && !completing && pending == null) controller.workSaveOpen = false
     }
     LaunchedEffect(Unit) {
         try {
@@ -4228,13 +4238,10 @@ private fun NativeTimer(controller: NativeAppController, inSheet: Boolean = fals
                         if (inSheet) controller.workSaveOpen = false else controller.finishAction()
                     },
                     onDone = {
-                        scope.launch {
-                            refresh()
-                            controller.workSaveOpen = false
-                            if (!inSheet || controller.route.section in setOf("timer", "work"))
-                                controller.finishAction()
-                            controller.message("Arbeit gespeichert.")
-                        }
+                        controller.workSaveOpen = false
+                        if (!inSheet || controller.route.section in setOf("timer", "work"))
+                            controller.finishAction()
+                        controller.message("Arbeit gespeichert.")
                     },
                     detailsContent = {
                         val resourceContext =
