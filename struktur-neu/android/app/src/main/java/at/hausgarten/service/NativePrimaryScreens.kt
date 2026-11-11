@@ -3534,9 +3534,13 @@ private fun NativeEntityEditor(
                 throw cancelled
             } catch (failure: Exception) {
                 error =
-                    (if (savedWorkId.isNotEmpty()) "Arbeit ist gespeichert. Foto oder Entwurf: "
-                    else "") +
-                        (failure.message ?: "Speicherergebnis ungeklärt. Angaben bleiben erhalten.")
+                    if (savedWorkId.isNotEmpty() && failure is java.io.FileNotFoundException)
+                        "Arbeit ist gespeichert. Das ausgewählte Foto konnte nicht gelesen werden. Bitte mit „Foto speichern“ erneut versuchen."
+                    else
+                        (if (savedWorkId.isNotEmpty()) "Arbeit ist gespeichert. Foto oder Entwurf: "
+                        else "") +
+                            (failure.message
+                                ?: "Speicherergebnis ungeklärt. Angaben bleiben erhalten.")
                 if (
                     savedWorkId.isEmpty() &&
                         (failure is NativeCallFailure &&

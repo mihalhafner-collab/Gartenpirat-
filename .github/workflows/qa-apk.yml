@@ -685,11 +685,12 @@ jobs:
               for proof in ('exact_runtime_schemas','real_pixel_mcp_adapter','real_rpc_tools_call','durable_business_readback','write_replay_and_stale_conflict','synthetic_only'):
                   assert catalog[proof] is True, result
               planning=result['eisbaer_planning_time_mcp']
-              for proof in ('public_adapter_and_real_sqlite','planning_settings_series_and_conflicts','timer_originals_and_replay_readback','synthetic_clock','synthetic_weather_cache_only'):
+              assert planning['calendar_adapter_two_sided_conflict']['complete'] is True, planning
+              for proof in ('public_adapter_and_real_sqlite','configured_requests_queued_and_replayed','planning_settings_series_and_conflicts','timer_originals_and_replay_readback','synthetic_clock','synthetic_weather_cache_only'):
                   assert planning[proof] is True, result
               assert planning['external_provider_success_claimed'] is False and planning['physical_calendar_weather_verification']=='NOT_RUN', result
               offers=result['eisbaer_offers_mcp']
-              for proof in ('fresh_store_readback','catalog_aliases_share_original','invalid_create_atomic','draft_validation_and_finalization','acceptance_creates_exactly_one_order','replay_and_stale_conflicts','marked_delivery_blocked_before_provider','synthetic_only'):
+              for proof in ('fresh_store_readback','catalog_aliases_share_original','invalid_create_atomic','draft_validation_and_finalization','acceptance_creates_exactly_one_order','replay_and_stale_conflicts','marked_delivery_blocked_before_provider','provider_adapter_with_synthetic_transport','synthetic_only'):
                   assert offers[proof] is True, result
               assert offers['external_messages_sent'] is False and offers['external_provider_readback_tested'] is False, result
               media=result['eisbaer_media_backup_mcp']

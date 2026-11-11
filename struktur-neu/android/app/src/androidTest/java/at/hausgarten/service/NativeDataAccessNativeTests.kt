@@ -842,7 +842,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     val marked = proof.draftAndShare(entryId)
                     phase = "eisbaer_offers_decisions"
                     proof
-                        .decisions()
+                        .decisions(context, store)
                         .put("catalog_id", entryId)
                         .put("marked_offer_id", marked.getJSONObject("offer").getString("id"))
                         .put(
@@ -894,7 +894,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 "OFFERS_MCP_ALL_REQUESTED_PUBLIC_BOUNDARIES_EXECUTED",
             )
             yes(
-                successful.containsAll(required - "confirm_offer_delivery"),
+                successful.containsAll(required),
                 "OFFERS_MCP_ALL_LOCAL_SUCCESS_PATHS_EXECUTED",
             )
             result.remove("acceptance_args")
@@ -902,7 +902,6 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 .put("executed_tools", JSONArray(executed.toList()))
                 .put("successful_tools", JSONArray(successful.toList()))
                 .put("rejections", rejections)
-                .put("negative_only_tools", JSONArray(listOf("confirm_offer_delivery")))
                 .put("checks", checks - initialChecks)
                 .put("synthetic_only", true)
                 .put("fresh_store_readback", true)
@@ -912,6 +911,10 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 .put("acceptance_creates_exactly_one_order", true)
                 .put("replay_and_stale_conflicts", true)
                 .put("marked_delivery_blocked_before_provider", true)
+                .put(
+                    "provider_adapter_with_synthetic_transport",
+                    result.getJSONObject("delivery_adapter").getBoolean("complete"),
+                )
                 .put("external_provider_readback_tested", false)
                 .put("external_messages_sent", false)
         } finally {
@@ -1270,7 +1273,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             return shared
         }
 
-        fun decisions(): JSONObject {
+        fun decisions(context: Context, store: PixelLocalStore): JSONObject {
             val args = complete("validated_create", false)
             val id = call("create_and_validate_offer", args).getString("offer_id")
             yes(
@@ -1302,13 +1305,15 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 call("prepare_offer_delivery", deliveryArgs).getBoolean("replayed"),
                 "OFFERS_MCP_DELIVERY_PREPARATION_REPLAY",
             )
-            val readyForAcceptance = read(id)
+            val preparedForDelivery = read(id)
             yes(
-                readyForAcceptance.getJSONObject("offer").getString("delivery_status") ==
+                preparedForDelivery.getJSONObject("offer").getString("delivery_status") ==
                     "share_prepared" &&
-                    !readyForAcceptance.getJSONObject("offer").has("delivery_receipt"),
+                    !preparedForDelivery.getJSONObject("offer").has("delivery_receipt"),
                 "OFFERS_MCP_LOCAL_MAIL_PREPARATION_DOES_NOT_PROVE_SENT",
             )
+            val delivery = deliveryAdapterReadback(context, store, id, preparedForDelivery)
+            val readyForAcceptance = read(id)
             val acceptedAt = java.time.Instant.now().minusSeconds(60).toString()
             val acceptance =
                 action(id, "accept", readyForAcceptance)
@@ -1420,10 +1425,330 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             )
             return JSONObject()
                 .put("accepted_offer_id", id)
+                .put("delivery_adapter", delivery)
                 .put("declined_offer_id", duplicateId)
                 .put("order_id", orderId)
                 .put("acceptance_args", acceptance)
                 .put("accepted_pdf_sha256", current.getJSONObject("offer").getString("pdf_sha256"))
+        }
+
+        /** Only the provider wire is synthetic; parsing, domain application and SQLite are real. */
+        private fun deliveryAdapterReadback(
+            context: Context,
+            store: PixelLocalStore,
+            id: String,
+            prepared: JSONObject,
+        ): JSONObject {
+            val initial = checks
+            val original = prepared.getJSONObject("offer")
+            val pdf = BusinessDocumentStore(context).read(original)
+            val pdfHash = PhotoAttachmentStore.sha256(pdf)
+            val messageId = "qa_eisbaer_sent_original"
+            val sender = original.getJSONObject("issuer").getString("business_email")
+            val recipient = original.getString("delivery_recipient")
+            val stamp = java.time.Instant.now().minusSeconds(1).toEpochMilli().toString()
+            var mode = "valid"
+            var providerReads = 0
+            val wire = HttpTransport.Wire { method, url, headers, body, _ ->
+                yes(
+                    method == "GET" &&
+                        body == null &&
+                        url ==
+                            "https://www.googleapis.com/gmail/v1/users/me/messages/$messageId?format=full" &&
+                        headers["Authorization"] == "Bearer qa_synthetic_mail_readonly",
+                    "OFFERS_MCP_DELIVERY_REAL_CLIENT_READONLY_SYNTHETIC_WIRE",
+                )
+                providerReads++
+                if (mode == "temporary")
+                    HttpTransport.Reply(503, byteArrayOf(), mapOf("Retry-After" to "1"))
+                else {
+                    val attachment = pdf.copyOf()
+                    if (mode == "wrong_pdf")
+                        attachment[attachment.lastIndex] =
+                            (attachment.last().toInt() xor 1).toByte()
+                    val message =
+                        JSONObject()
+                            .put("id", messageId)
+                            .put(
+                                "labelIds",
+                                JSONArray(listOf(if (mode == "not_sent") "DRAFT" else "SENT")),
+                            )
+                            .put("internalDate", stamp)
+                            .put(
+                                "payload",
+                                JSONObject()
+                                    .put("mimeType", "multipart/mixed")
+                                    .put(
+                                        "headers",
+                                        JSONArray()
+                                            .put(
+                                                JSONObject()
+                                                    .put("name", "From")
+                                                    .put(
+                                                        "value",
+                                                        if (mode == "wrong_sender")
+                                                            "other@example.invalid"
+                                                        else sender,
+                                                    )
+                                            )
+                                            .put(
+                                                JSONObject()
+                                                    .put("name", "To")
+                                                    .put(
+                                                        "value",
+                                                        if (mode == "wrong_recipient")
+                                                            "other@example.invalid"
+                                                        else recipient,
+                                                    )
+                                            ),
+                                    )
+                                    .put(
+                                        "parts",
+                                        JSONArray()
+                                            .put(
+                                                JSONObject()
+                                                    .put("mimeType", "application/pdf")
+                                                    .put(
+                                                        "body",
+                                                        JSONObject()
+                                                            .put("size", attachment.size)
+                                                            .put(
+                                                                "data",
+                                                                java.util.Base64.getUrlEncoder()
+                                                                    .withoutPadding()
+                                                                    .encodeToString(attachment),
+                                                            ),
+                                                    )
+                                            ),
+                                    ),
+                            )
+                    HttpTransport.Reply(
+                        200,
+                        message.toString().toByteArray(Charsets.UTF_8),
+                        emptyMap(),
+                    )
+                }
+            }
+            val client = OfferDeliveryClient({ "qa_synthetic_mail_readonly" }, wire)
+            val local = LocalOwnerRepository(context, store)
+            val repository =
+                object : OwnerRepository by local {
+                    override fun verifyDelivery(messageId: String, offer: JSONObject): JSONObject =
+                        client.verify(messageId, offer)
+                }
+            val application = OwnerApplicationService(repository)
+            // This scoped sink replaces the existing verification port for this one command.
+            // It never changes global runtime ports or the ordinary store's production client.
+            val sink =
+                object : PixelMcpWriteTools.Sink {
+                    override fun writable() = store.writable()
+
+                    override fun status(id: String, state: JSONObject) = store.status(id, state)
+
+                    override fun execute(tool: String, args: JSONObject): JSONObject {
+                        check(tool == "confirm_offer_delivery")
+                        McpSchema.validate(args, OfferTools.schema(tool))
+                        val request =
+                            "mcp_owner_" + PixelMcpWriteTools.hash(args.getString("request_id"))
+                        val fingerprint =
+                            PixelMcpWriteTools.hash(
+                                JSONObject().put("tool", tool).put("args", args)
+                            )
+                        val result =
+                            local.runRequest(request, fingerprint) {
+                                application.perform(tool, JSONObject(args.toString()), request)
+                            }
+                        return JSONObject()
+                            .put("ok", true)
+                            .put("data", result)
+                            .put("cloud_confirmed", false)
+                    }
+                }
+            val adapter =
+                PixelMcpReadTools(store.readSource(), sink, PixelOwnerAccess(context, store))
+            fun invoke(args: JSONObject): JSONObject {
+                executed.add("confirm_offer_delivery")
+                val response = adapter.call("confirm_offer_delivery", args)
+                yes(response.getBoolean("ok"), "OFFERS_MCP_DELIVERY_PUBLIC_ADAPTER_OK")
+                successful.add("confirm_offer_delivery")
+                return response.getJSONObject("data")
+            }
+            fun args(key: String) =
+                action(id, "delivery_adapter_$key", prepared)
+                    .put("provider", "gmail")
+                    .put("message_id", messageId)
+            fun rejected(args: JSONObject, code: String) {
+                executed.add("confirm_offer_delivery")
+                val receiptKey =
+                    "receipt:mcp_owner_" + PixelMcpWriteTools.hash(args.getString("request_id"))
+                val originalReceipt = store.ownerValue(receiptKey, "")
+                try {
+                    adapter.call("confirm_offer_delivery", args)
+                } catch (failure: Exception) {
+                    val actual = McpErrors.rpc(failure).getJSONObject("error").getString("code")
+                    yes(actual == code, "OFFERS_MCP_DELIVERY_REJECT_${mode}_$actual")
+                    yes(
+                        store.ownerValue(receiptKey, "") == originalReceipt,
+                        "OFFERS_MCP_DELIVERY_REJECTION_PRESERVES_REQUEST_RECEIPT",
+                    )
+                    rejections.put(
+                        JSONObject().put("tool", "confirm_offer_delivery").put("code", actual)
+                    )
+                    return
+                }
+                throw AssertionError("QA_EXPECTED_DELIVERY_REJECTION_$mode")
+            }
+            val confirmation = args("confirmed_original")
+            val confirmedRequest =
+                "mcp_owner_" + PixelMcpWriteTools.hash(confirmation.getString("request_id"))
+            fun untouchedActions(): String =
+                PixelMcpWriteTools.hash(
+                    JSONArray(
+                        SettlementRules.rows(store.pendingActions()).filter {
+                            it.getString("client_id") != confirmedRequest
+                        }
+                    )
+                )
+            fun businessProof(allowDelivery: Boolean = false): String {
+                val state = PixelMcpReadTools.effective(store.getState())
+                if (allowDelivery) {
+                    val target = PixelMcpWriteTools.find(state.getJSONArray("offers"), id)
+                    for (key in
+                        listOf(
+                            "delivery_status",
+                            "delivery_receipt",
+                            "sent_at",
+                            "updated_at",
+                        )) target.remove(key)
+                    // Remove exactly this expected action's derived indices, not other journal
+                    // data.
+                    val applied = state.getJSONArray("drive_applied_ids")
+                    state.put(
+                        "drive_applied_ids",
+                        JSONArray(
+                            (0 until applied.length())
+                                .map { applied.getString(it) }
+                                .filter { it != confirmedRequest }
+                                .sorted()
+                        ),
+                    )
+                    state.getJSONObject("drive_action_hashes").remove(confirmedRequest)
+                    state.getJSONObject("drive_action_receipts").remove(confirmedRequest)
+                }
+                val proof =
+                    JSONObject()
+                        .put("business", state)
+                        .put("ledger", store.ownerValue("settlement:v1", "{}"))
+                for (table in listOf("work_sessions", "work_session_events")) store.readableDatabase
+                    .rawQuery("SELECT COUNT(*) FROM $table", null)
+                    .use {
+                        yes(it.moveToFirst(), "OFFERS_MCP_DELIVERY_COUNT_$table")
+                        proof.put(table, it.getLong(0))
+                    }
+                return PixelMcpWriteTools.hash(proof)
+            }
+            fun deliveries(): Int =
+                SettlementRules.rows(store.pendingActions()).count {
+                    it.getString("kind") == "offer_delivery" &&
+                        it.getJSONObject("payload").optString("id") == id
+                }
+            val before = businessProof()
+            val unrelated = businessProof(true)
+            val beforeDeliveries = deliveries()
+            val otherActions = untouchedActions()
+            yes(
+                pdfHash == original.getString("pdf_sha256"),
+                "OFFERS_MCP_DELIVERY_REAL_ORIGINAL_PDF",
+            )
+            for (bad in listOf("not_sent", "wrong_sender", "wrong_recipient", "wrong_pdf")) {
+                mode = bad
+                rejected(args(bad), "INVALID_INPUT")
+                yes(
+                    businessProof() == before &&
+                        deliveries() == beforeDeliveries &&
+                        read(id).getString("record_hash") == prepared.getString("record_hash") &&
+                        PhotoAttachmentStore.sha256(
+                            BusinessDocumentStore(context).read(read(id).getJSONObject("offer"))
+                        ) == pdfHash,
+                    "OFFERS_MCP_DELIVERY_BAD_${bad}_ROLLS_BACK_ORIGINAL_AND_RECEIPT",
+                )
+            }
+            mode = "temporary"
+            rejected(confirmation, "MAIL_TEMPORARY_UNAVAILABLE")
+            yes(businessProof() == before, "OFFERS_MCP_DELIVERY_TEMPORARY_FAILURE_NO_COMMIT")
+            mode = "valid"
+            val confirmed = invoke(confirmation)
+            val saved = read(id).getJSONObject("offer")
+            val receipt = saved.getJSONObject("delivery_receipt")
+            yes(
+                confirmed.getString("offer_id") == id &&
+                    confirmed.getBoolean("sent") &&
+                    confirmed.getString("state") == "sent" &&
+                    saved.getString("delivery_status") == "sent" &&
+                    receipt.getString("verified_by") == "pixel_gmail_readback" &&
+                    receipt.getString("message_id") == messageId &&
+                    receipt.getString("recipient_email") == recipient &&
+                    receipt.getString("pdf_sha256") == pdfHash &&
+                    saved.getString("sent_at") ==
+                        java.time.Instant.ofEpochMilli(stamp.toLong()).toString() &&
+                    deliveries() == beforeDeliveries + 1 &&
+                    untouchedActions() == otherActions &&
+                    businessProof(true) == unrelated,
+                "OFFERS_MCP_DELIVERY_REAL_CLIENT_SQLITE_COMMIT_ONLY_VERIFIED_ORIGINAL",
+            )
+            val receiptHash = PixelMcpWriteTools.hash(receipt)
+            val after = businessProof()
+            val readsBeforeReplay = providerReads
+            val replay = invoke(confirmation)
+            yes(
+                replay.getBoolean("replayed") &&
+                    replay.getString("offer_id") == id &&
+                    providerReads == readsBeforeReplay &&
+                    deliveries() == beforeDeliveries + 1 &&
+                    businessProof() == after,
+                "OFFERS_MCP_DELIVERY_SAME_REQUEST_REPLAY_NO_PROVIDER_OR_BUSINESS_DUPLICATE",
+            )
+            rejected(
+                JSONObject(confirmation.toString()).put("message_id", "different_message"),
+                "REPLAY_MISMATCH",
+            )
+            rejected(
+                JSONObject(confirmation.toString())
+                    .put("request_id", "qa_offers_mcp_delivery_adapter_stale"),
+                "WRITE_CONFLICT",
+            )
+            yes(
+                providerReads == readsBeforeReplay &&
+                    businessProof() == after &&
+                    PhotoAttachmentStore.sha256(
+                        BusinessDocumentStore(context).read(read(id).getJSONObject("offer"))
+                    ) == pdfHash,
+                "OFFERS_MCP_DELIVERY_CONFLICTS_PRESERVE_VERIFIED_ORIGINAL",
+            )
+            PixelLocalStore(context).use { fresh ->
+                val reopened =
+                    PixelMcpReadTools(fresh.readSource(), fresh, PixelOwnerAccess(context, fresh))
+                        .call("get_offer", JSONObject().put("offer_id", id))
+                        .getJSONObject("data")
+                        .getJSONObject("offer")
+                yes(
+                    reopened.getString("delivery_status") == "sent" &&
+                        PixelMcpWriteTools.hash(reopened.getJSONObject("delivery_receipt")) ==
+                            receiptHash &&
+                        reopened.getString("pdf_sha256") == pdfHash,
+                    "OFFERS_MCP_DELIVERY_FRESH_SQLITE_READBACK_SAME_RECEIPT_AND_PDF",
+                )
+            }
+            return JSONObject()
+                .put("complete", true)
+                .put("offer_id", id)
+                .put("message_id", messageId)
+                .put("receipt_hash", receiptHash)
+                .put("pdf_sha256", pdfHash)
+                .put("provider_transport", "SYNTHETIC_IN_PROCESS_WIRE")
+                .put("external_provider_success_claimed", false)
+                .put("external_messages_sent", false)
+                .put("checks", checks - initial)
         }
 
         fun durableReadback(result: JSONObject) {
@@ -1431,6 +1756,16 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             val declinedId = result.getString("declined_offer_id")
             val orderId = result.getString("order_id")
             val accepted = read(acceptedId)
+            val delivery = result.getJSONObject("delivery_adapter")
+            yes(
+                accepted.getJSONObject("offer").getString("delivery_status") == "sent" &&
+                    PixelMcpWriteTools.hash(
+                        accepted.getJSONObject("offer").getJSONObject("delivery_receipt")
+                    ) == delivery.getString("receipt_hash") &&
+                    accepted.getJSONObject("offer").getString("pdf_sha256") ==
+                        delivery.getString("pdf_sha256"),
+                "OFFERS_MCP_DELIVERY_REOPEN_AFTER_ACCEPTANCE_PRESERVES_VERIFIED_ORIGINAL",
+            )
             val context =
                 call("get_offer_context", JSONObject().put("customer_id", "qa_offers_mcp_customer"))
             val orders = context.getJSONArray("open_orders")
@@ -2377,9 +2712,13 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                             store,
                             PixelOwnerAccess(context, store),
                         )
-                    fun call(name: String, args: JSONObject = JSONObject()): JSONObject {
+                    fun call(
+                        name: String,
+                        args: JSONObject = JSONObject(),
+                        adapter: PixelMcpReadTools = tools,
+                    ): JSONObject {
                         executed.add(name)
-                        val result = tools.call(name, args)
+                        val result = adapter.call(name, args)
                         yes(result.optBoolean("ok"), "EISBAER_PLANNING_TIME_PUBLIC_OK_$name")
                         return result.getJSONObject("data")
                     }
@@ -3015,8 +3354,216 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                         "EISBAER_TIME_ALL_PATHS_TWO_ORIGINALS_AND_NO_LIVE_TIMER",
                     )
 
+                    phase = "eisbaer_mcp_configured_planning_requests"
+                    // Public configured requests, with the external job boundary unavailable.
+                    // Settings, receipts, preferences and business data still use real SQLite/API.
+                    var suppressedJobs = 0
+                    val requestContext =
+                        object : ContextWrapper(context) {
+                            override fun getApplicationContext(): Context = this
+
+                            override fun getSystemService(name: String): Any? =
+                                if (name == Context.JOB_SCHEDULER_SERVICE) {
+                                    suppressedJobs++
+                                    null
+                                } else super.getSystemService(name)
+                        }
+                    fun configuredRequestTools(value: PixelLocalStore): PixelMcpReadTools {
+                        val access = PixelOwnerAccess(requestContext, value)
+                        val writer =
+                            object : PixelMcpWriteTools.Sink {
+                                override fun writable(): Boolean = value.writable()
+
+                                override fun execute(tool: String, args: JSONObject): JSONObject =
+                                    access.execute(tool, args)
+
+                                override fun status(id: String, state: JSONObject): JSONObject =
+                                    value.status(id, state)
+                            }
+                        return PixelMcpReadTools(value.readSource(), writer, access)
+                    }
+                    val requestTools = configuredRequestTools(store)
+                    fun requestTimeProof(database: SQLiteDatabase): String {
+                        val rows = JSONObject()
+                        for (table in listOf("work_sessions", "work_session_events")) {
+                            val values = JSONArray()
+                            database.rawQuery("SELECT * FROM $table ORDER BY id", null).use { cursor
+                                ->
+                                while (cursor.moveToNext()) {
+                                    val row = JSONObject()
+                                    for (column in 0 until cursor.columnCount) row.put(
+                                        cursor.getColumnName(column),
+                                        if (cursor.isNull(column)) JSONObject.NULL
+                                        else cursor.getString(column),
+                                    )
+                                    values.put(row)
+                                }
+                            }
+                            rows.put(table, values)
+                        }
+                        return PixelMcpWriteTools.hash(rows)
+                    }
+                    val beforeConfiguredSettings = call("get_planning_settings")
+                    val beforeConfiguredBusiness = originalState()
+                    val beforeConfiguredTime = requestTimeProof(store.readableDatabase)
+                    val beforeConfiguredLedger = store.ownerValue("settlement:v1", "")
+                    val requestCustomer =
+                        call("get_customer", JSONObject().put("customer_id", "qa_customer_1"))
+                    val requestLocation =
+                        WeatherLocationRules.context(
+                            appointment(series.getString(1)).getJSONObject("appointment"),
+                            JSONArray().put(requestCustomer),
+                            JSONArray(),
+                        )
+                    yes(
+                        requestLocation.getString("weather_location_state") == "pending" &&
+                            requestLocation.getString("status") != "cancelled" &&
+                            !WeatherLocationRules.coordinates(requestLocation),
+                        "EISBAER_CONFIGURED_REQUEST_RETRYABLE_LOCAL_WEATHER_LOCATION",
+                    )
+                    val requestLocationKey = WeatherLocationRules.cacheKey(requestLocation)
+                    val queuedRequests = JSONArray()
+                    try {
+                        call(
+                            "update_planning_settings",
+                            request("configured_requests_enable")
+                                .put(
+                                    "expected_record_hash",
+                                    beforeConfiguredSettings.getString("record_hash"),
+                                )
+                                .put("updates", JSONObject().put("weather_enabled", true)),
+                            requestTools,
+                        )
+                        PixelLocalStore(context, clock).use { fresh ->
+                            yes(
+                                JSONObject(fresh.ownerValue("planning:settings", "{}"))
+                                    .getBoolean("weather_enabled"),
+                                "EISBAER_CONFIGURED_REQUEST_SETTING_DURABLE",
+                            )
+                        }
+                        for (tool in listOf("request_calendar_sync", "request_weather_refresh")) {
+                            val prefs = PlanningAccount.prefs(context)
+                            yes(
+                                prefs
+                                    .edit()
+                                    .putInt("calendar_failures", 3)
+                                    .putInt("weather_failures", 4)
+                                    .putBoolean("weather_blocked", true)
+                                    .putString("calendar_retry_at", "2027-05-19T10:00:00Z")
+                                    .putString("weather_retry_at", "2027-05-19T10:00:01Z")
+                                    .commit(),
+                                "EISBAER_CONFIGURED_REQUEST_SEEDED_RETRY_STATE_$tool",
+                            )
+                            store.putOwnerValue(
+                                requestLocationKey,
+                                JSONObject()
+                                    .put("state", "unavailable")
+                                    .put("attempted_at", "2027-05-19T10:00:00Z")
+                                    .put("qa_marker", tool)
+                                    .toString(),
+                            )
+                            val args = request("configured_$tool")
+                            val queued = call(tool, args, requestTools)
+                            yes(
+                                queued.getString("state") == "queued" &&
+                                    !queued.getBoolean("confirmed") &&
+                                    !queued
+                                        .getJSONObject("integration")
+                                        .getBoolean("calendar_connected"),
+                                "EISBAER_CONFIGURED_PUBLIC_REQUEST_QUEUED_$tool",
+                            )
+                            // A synchronous commit waits for the request's asynchronous apply.
+                            yes(
+                                prefs.edit().commit() &&
+                                    prefs.getInt("calendar_failures", -1) == 0 &&
+                                    prefs.getInt("weather_failures", -1) == 0 &&
+                                    !prefs.getBoolean("weather_blocked", true) &&
+                                    !prefs.contains("calendar_retry_at") &&
+                                    !prefs.contains("weather_retry_at"),
+                                "EISBAER_CONFIGURED_REQUEST_RETRY_RESET_DURABLE_$tool",
+                            )
+                            val afterRequestPreferences = JSONObject(prefs.all)
+                            PixelLocalStore(context, clock).use { fresh ->
+                                val requestedCache =
+                                    JSONObject(fresh.ownerValue(requestLocationKey, "{}"))
+                                yes(
+                                    requestedCache.getString("state") == "pending" &&
+                                        !requestedCache.has("attempted_at") &&
+                                        requestedCache.getString("qa_marker") == tool,
+                                    "EISBAER_CONFIGURED_REQUEST_WEATHER_RETRY_CACHE_DURABLE_$tool",
+                                )
+                                val freshTools = configuredRequestTools(fresh)
+                                val replay = call(tool, args, freshTools)
+                                yes(
+                                    replay.getBoolean("replayed") &&
+                                        replay.getString("state") == "queued" &&
+                                        !replay.getBoolean("confirmed") &&
+                                        PixelMcpWriteTools.hash(JSONObject(prefs.all)) ==
+                                            PixelMcpWriteTools.hash(afterRequestPreferences) &&
+                                        PixelMcpWriteTools.hash(
+                                            JSONObject(fresh.ownerValue(requestLocationKey, "{}"))
+                                        ) == PixelMcpWriteTools.hash(requestedCache),
+                                    "EISBAER_CONFIGURED_REQUEST_FRESH_STORE_REPLAY_$tool",
+                                )
+                                yes(
+                                    PixelMcpWriteTools.hash(
+                                        PixelMcpReadTools.effective(fresh.getState())
+                                    ) == beforeConfiguredBusiness &&
+                                        fresh.ownerValue("settlement:v1", "") ==
+                                            beforeConfiguredLedger &&
+                                        requestTimeProof(fresh.readableDatabase) ==
+                                            beforeConfiguredTime,
+                                    "EISBAER_CONFIGURED_REQUEST_PRESERVES_ORIGINALS_TIME_AND_LEDGER_$tool",
+                                )
+                            }
+                            queuedRequests.put(tool)
+                        }
+                    } finally {
+                        val configuredSettings = call("get_planning_settings")
+                        call(
+                            "update_planning_settings",
+                            request("configured_requests_restore")
+                                .put(
+                                    "expected_record_hash",
+                                    configuredSettings.getString("record_hash"),
+                                )
+                                .put(
+                                    "updates",
+                                    JSONObject()
+                                        .put(
+                                            "weather_enabled",
+                                            beforeConfiguredSettings
+                                                .getJSONObject("settings")
+                                                .optBoolean("weather_enabled"),
+                                        ),
+                                ),
+                            requestTools,
+                        )
+                    }
+                    yes(
+                        suppressedJobs > 0 &&
+                            queuedRequests.length() == 2 &&
+                            call("get_planning_settings").getString("record_hash") ==
+                                beforeConfiguredSettings.getString("record_hash"),
+                        "EISBAER_CONFIGURED_REQUESTS_RESTORE_SETTINGS_WITHOUT_EXTERNAL_JOB",
+                    )
+
+                    phase = "eisbaer_mcp_calendar_adapter_conflict"
+                    val calendarAdapter = calendarAdapterConflictProof(owner)
                     JSONObject()
                         .put("executed_tools", JSONArray(executed.sorted()))
+                        .put("calendar_adapter_two_sided_conflict", calendarAdapter)
+                        .put(
+                            "configured_planning_requests",
+                            JSONObject()
+                                .put("complete", true)
+                                .put("public_queued_tools", queuedRequests)
+                                .put("fresh_store_replay", true)
+                                .put("durable_retry_state_reset", true)
+                                .put("originals_time_and_ledger_preserved", true)
+                                .put("external_job_scheduling_suppressed", true)
+                                .put("external_provider_success_claimed", false),
+                        )
                         .put("isolated_context_paths", true)
                         .put("public_adapter_and_real_sqlite", true)
                         .put("synthetic_clock", true)
@@ -3024,12 +3571,277 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                         .put("external_account_connected", false)
                         .put("external_provider_success_claimed", false)
                         .put("physical_calendar_weather_verification", "NOT_RUN")
+                        .put("configured_requests_queued_and_replayed", true)
                         .put("planning_settings_series_and_conflicts", true)
                         .put("timer_originals_and_replay_readback", true)
                 }
         } finally {
             context.clearPreferences()
             yes(root.deleteRecursively(), "EISBAER_PLANNING_TIME_ROOT_REMOVED")
+        }
+        return report.put("checks", checks - beforeChecks)
+    }
+
+    /** Real CalendarClient/SQLite sync with a synthetic transport, without OAuth or network. */
+    private fun calendarAdapterConflictProof(owner: Context): JSONObject {
+        val beforeChecks = checks
+        val token = UUID.randomUUID().toString().replace("-", "")
+        val root = File(owner.cacheDir, "qa-eisbaer-calendar-adapter-$token")
+        yes(!root.exists() && root.mkdir(), "EISBAER_CALENDAR_ADAPTER_NEW_ROOT")
+        val context = FixtureContext(owner, root, "qa_eisbaer_calendar_adapter_$token")
+        val executed = linkedSetOf<String>()
+        val report: JSONObject
+        try {
+            report =
+                PixelLocalStore(context).use { store ->
+                    store.putOwnerValue(
+                        "snapshot",
+                        SyntheticBusinessData.profile("minimal").toString(),
+                    )
+                    val tools =
+                        PixelMcpReadTools(
+                            store.readSource(),
+                            store,
+                            PixelOwnerAccess(context, store),
+                        )
+                    fun call(name: String, args: JSONObject): JSONObject {
+                        executed.add(name)
+                        val result = tools.call(name, args)
+                        yes(result.optBoolean("ok"), "EISBAER_CALENDAR_ADAPTER_PUBLIC_OK_$name")
+                        return result.getJSONObject("data")
+                    }
+                    val calendar = "qa_calendar_adapter"
+                    // The scoped calendar ID selects the binding namespace; no account is
+                    // connected.
+                    yes(
+                        PlanningAccount.prefs(context)
+                            .edit()
+                            .putString("calendar_id", calendar)
+                            .commit(),
+                        "EISBAER_CALENDAR_ADAPTER_SCOPED_CONFIGURATION",
+                    )
+                    yes(
+                        !PlanningAccount.connected(context),
+                        "EISBAER_CALENDAR_ADAPTER_NO_LIVE_ACCOUNT",
+                    )
+                    val now = java.time.Instant.now()
+                    val created =
+                        call(
+                            "create_appointment",
+                            JSONObject()
+                                .put("request_id", "qa_calendar_adapter_create")
+                                .put("customer_id", "qa_customer_1")
+                                .put("title", "[TEST] QA bestätigte Kalenderbasis")
+                                .put("starts_at", now.plusSeconds(86400).toString())
+                                .put("ends_at", now.plusSeconds(90000).toString())
+                                .put("timezone", "Europe/Vienna"),
+                        )
+                    val id = created.getString("appointment_id")
+                    val eventId = CalendarRules.eventId(id)
+                    val eventsPath = "/calendar/v3/calendars/$calendar/events"
+                    var remote: JSONObject? = null
+                    var writes = 0
+                    var syncReads = 0
+                    var eventReads = 0
+                    fun reply(status: Int, body: JSONObject) =
+                        HttpTransport.Reply(
+                            status,
+                            body.toString().toByteArray(Charsets.UTF_8),
+                            emptyMap(),
+                        )
+                    val wire = HttpTransport.Wire { method, url, headers, body, _ ->
+                        yes(
+                            headers["Authorization"] == "Bearer qa_synthetic_calendar_token",
+                            "EISBAER_CALENDAR_ADAPTER_SYNTHETIC_CREDENTIAL_ONLY",
+                        )
+                        val path = java.net.URI(url).path
+                        if (method in listOf("POST", "PATCH", "DELETE")) writes++
+                        when {
+                            method == "GET" && path == eventsPath -> {
+                                syncReads++
+                                val items = JSONArray()
+                                remote?.let { items.put(JSONObject(it.toString())) }
+                                reply(
+                                    200,
+                                    JSONObject()
+                                        .put("items", items)
+                                        .put("nextSyncToken", "qa_sync_$syncReads"),
+                                )
+                            }
+                            method == "GET" && path == "$eventsPath/$eventId" -> {
+                                eventReads++
+                                remote?.let { reply(200, JSONObject(it.toString())) }
+                                    ?: reply(404, JSONObject())
+                            }
+                            method == "POST" && path == eventsPath -> {
+                                yes(remote == null, "EISBAER_CALENDAR_ADAPTER_NO_DUPLICATE_POST")
+                                yes(
+                                    java.net.URI(url).query == "sendUpdates=none",
+                                    "EISBAER_CALENDAR_ADAPTER_NO_ATTENDEE_MESSAGES",
+                                )
+                                remote =
+                                    JSONObject(requireNotNull(body).toString(Charsets.UTF_8))
+                                        .put("etag", "\"qa_etag_1\"")
+                                CalendarRules.requireIdentity(requireNotNull(remote), id)
+                                reply(201, JSONObject(requireNotNull(remote).toString()))
+                            }
+                            else ->
+                                throw IOException("QA_UNEXPECTED_CALENDAR_TRANSPORT_$method:$path")
+                        }
+                    }
+                    val client =
+                        CalendarClient(CalendarClient.Token { "qa_synthetic_calendar_token" }, wire)
+                    val bindingKey = AppointmentRuntime.bindingKey(context, id)
+                    fun appointment() =
+                        call("get_appointment", JSONObject().put("appointment_id", id))
+                    fun binding() =
+                        PixelLocalStore(context).use { fresh ->
+                            JSONObject(fresh.ownerValue(bindingKey, "{}"))
+                        }
+                    fun businessProof() =
+                        PixelLocalStore(context).use { fresh ->
+                            val proof =
+                                JSONObject()
+                                    .put("business", PixelMcpReadTools.effective(fresh.getState()))
+                                    .put("ledger", fresh.ownerValue("settlement:v1", "{}"))
+                            for (table in listOf("work_sessions", "work_session_events")) {
+                                fresh.readableDatabase
+                                    .rawQuery("SELECT COUNT(*) FROM $table", null)
+                                    .use {
+                                        yes(
+                                            it.moveToFirst(),
+                                            "EISBAER_CALENDAR_ADAPTER_COUNT_$table",
+                                        )
+                                        proof.put(table, it.getLong(0))
+                                    }
+                            }
+                            PixelMcpWriteTools.hash(proof)
+                        }
+                    val original = appointment().getJSONObject("appointment")
+                    val beforeFirstSync = businessProof()
+                    AppointmentRuntime.syncCalendar(context, store, now, client, calendar)
+                    val confirmed = binding()
+                    yes(
+                        confirmed.getString("state") == "confirmed" &&
+                            AppointmentRules.hash(confirmed.getJSONObject("base")) ==
+                                AppointmentRules.hash(original) &&
+                            confirmed.getString("etag") ==
+                                requireNotNull(remote).getString("etag") &&
+                            writes == 1 &&
+                            syncReads == 1 &&
+                            eventReads == 2 &&
+                            businessProof() == beforeFirstSync,
+                        "EISBAER_CALENDAR_ADAPTER_INITIAL_REAL_SYNC_AND_READBACK",
+                    )
+                    CalendarRules.requireIdentity(requireNotNull(remote), id)
+                    val first = appointment()
+                    call(
+                        "update_appointment",
+                        JSONObject()
+                            .put("request_id", "qa_calendar_adapter_local_edit")
+                            .put("appointment_id", id)
+                            .put("expected_record_hash", first.getString("record_hash"))
+                            .put("updates", JSONObject().put("title", "[TEST] QA lokale Änderung")),
+                    )
+                    val local = appointment().getJSONObject("appointment")
+                    val externalTitle = "[TEST] QA externe Änderung"
+                    val prefix =
+                        requireNotNull(remote)
+                            .getJSONObject("extendedProperties")
+                            .getJSONObject("private")
+                            .optString("hg_customer_prefix")
+                    requireNotNull(remote)
+                        .put("summary", prefix + externalTitle)
+                        .put("etag", "\"qa_etag_2\"")
+                    yes(
+                        local.getString("id") == id &&
+                            local.getString("title") != original.getString("title") &&
+                            CalendarRules.title(requireNotNull(remote)) == externalTitle &&
+                            externalTitle != original.getString("title") &&
+                            externalTitle != local.getString("title"),
+                        "EISBAER_CALENDAR_ADAPTER_TWO_SIDES_CHANGED_FROM_CONFIRMED_BASE",
+                    )
+                    val beforeConflict = businessProof()
+                    val remoteHash = PixelMcpWriteTools.hash(requireNotNull(remote))
+                    val beforeWrites = writes
+                    AppointmentRuntime.syncCalendar(
+                        context,
+                        store,
+                        now.plusSeconds(1),
+                        client,
+                        calendar,
+                    )
+                    val conflict = binding()
+                    yes(
+                        conflict.getString("state") == "review_required" &&
+                            conflict.getString("error") == "CALENDAR_WRITE_CONFLICT" &&
+                            AppointmentRules.hash(conflict.getJSONObject("base")) ==
+                                AppointmentRules.hash(original) &&
+                            conflict.getString("etag") == confirmed.getString("etag") &&
+                            AppointmentRules.hash(
+                                conflict.getJSONObject("conflict").getJSONObject("local")
+                            ) == AppointmentRules.hash(local) &&
+                            PixelMcpWriteTools.hash(
+                                conflict.getJSONObject("conflict").getJSONObject("remote")
+                            ) == remoteHash,
+                        "EISBAER_CALENDAR_ADAPTER_REAL_TWO_SIDED_CONFLICT_PERSISTED",
+                    )
+                    CalendarRules.requireIdentity(
+                        conflict.getJSONObject("conflict").getJSONObject("remote"),
+                        id,
+                    )
+                    yes(
+                        businessProof() == beforeConflict &&
+                            PixelMcpWriteTools.hash(requireNotNull(remote)) == remoteHash &&
+                            writes == beforeWrites &&
+                            appointment().getString("record_hash") ==
+                                AppointmentRules.hash(local) &&
+                            PixelMcpReadTools.effective(store.getState())
+                                .getJSONArray("appointments")
+                                .length() == 1,
+                        "EISBAER_CALENDAR_ADAPTER_CONFLICT_PRESERVES_ORIGINALS_AND_REMOTE_WITHOUT_DUPLICATE",
+                    )
+                    // The same changed remote is delivered again; this repeats the real conflict
+                    // path.
+                    AppointmentRuntime.syncCalendar(
+                        context,
+                        store,
+                        now.plusSeconds(2),
+                        client,
+                        calendar,
+                    )
+                    yes(
+                        PixelMcpWriteTools.hash(binding()) == PixelMcpWriteTools.hash(conflict) &&
+                            businessProof() == beforeConflict &&
+                            PixelMcpWriteTools.hash(requireNotNull(remote)) == remoteHash &&
+                            writes == 1 &&
+                            syncReads == 3 &&
+                            eventReads == 4,
+                        "EISBAER_CALENDAR_ADAPTER_REPEATED_SYNC_PRESERVES_BOTH_VARIANTS",
+                    )
+                    JSONObject()
+                        .put("complete", true)
+                        .put("executed_tools", JSONArray(executed.sorted()))
+                        .put("real_calendar_client_and_sqlite", true)
+                        .put("initial_confirmed_base_readback", true)
+                        .put("two_sided_conflict_persisted", true)
+                        .put("business_originals_and_remote_preserved", true)
+                        .put("repeat_sync_not_request_replay", true)
+                        .put("appointment_id", id)
+                        .put("event_id", eventId)
+                        .put("confirmed_base_hash", AppointmentRules.hash(original))
+                        .put("local_hash", AppointmentRules.hash(local))
+                        .put("remote_hash", remoteHash)
+                        .put("remote_writes", writes)
+                        .put("remote_sync_reads", syncReads)
+                        .put("remote_event_reads", eventReads)
+                        .put("transport", "SYNTHETIC_IN_PROCESS_WIRE")
+                        .put("external_account_connected", false)
+                        .put("external_provider_success_claimed", false)
+                }
+        } finally {
+            context.clearPreferences()
+            yes(root.deleteRecursively(), "EISBAER_CALENDAR_ADAPTER_ROOT_REMOVED")
         }
         return report.put("checks", checks - beforeChecks)
     }

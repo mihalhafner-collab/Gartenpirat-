@@ -7,7 +7,7 @@
   "overall_status": "IN_PROGRESS",
   "candidate": null,
   "created_at_utc": "2026-11-11T04:47:24.708547Z",
-  "status_note": "Unveröffentlichter Eisbär-Kandidat 1.72.0/159 auf 158-Basis. Voller Diagnose-Run 43051214339: Build grün, 38/46 Hauptaufrufe mit 6492 Checks erfolgreich; alle 6 MCP-Blöcke, Hauptuhr, umbrechende Summen und 158→159-Datenerhalt bestätigt. Acht aktuelle Fehlaufrufe konkret bearbeitet. Neue Release-/Test-APK, Lint, Datenschutz und Quellprüfungen mit präziser Draft-/Session-Restoreprüfung bestanden. Eigener vollständiger neuer Lauf und reale Pixel-/Verbindungs-/Sicherungsabnahme offen. Keine vollständige Abnahme behauptet.",
+  "status_note": "Unveröffentlichter Eisbär-Kandidat 1.72.0/159 auf nachgewiesener 158-Basis. Diagnose-Run 43063560392 der vorigen Quelle läuft, Build mit 97 JVM-Tests grün. Nach vollständiger Sichtung von 119 echten Bildern Foto-Fehlermeldung, deutsche Arbeitsvorgaben und Gerätetreffer bei großer Schrift korrigiert. Echte Kalender-/Gmail-Adaptertests mit synthetischem Transport sowie öffentliche queued-/Replaypfade integriert. Release-/Test-APK, Lint, Datenschutz und lokale Quellprüfungen bestanden. Eigener vollständiger Folgelauf und reale Pixel-/Verbindungs-/Sicherungsabnahmen offen. Keine vollständige Abnahme behauptet.",
   "items": {
     "REQ-001": {
       "status": "NOT_STARTED",

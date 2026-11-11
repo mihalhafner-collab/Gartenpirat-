@@ -56,25 +56,25 @@
   "current_test_candidate": {
     "version_name": "1.72.0",
     "version_code": 159,
-    "source_sha256": "34a648cab75f87b548eda5637cc2198543a6eae3c37000d8dfaf8ca1f9ba0968",
-    "status": "Eisbär 1.0.1 auf exakt nachgewiesener 158-Basis. Kontaktaktionen im Suchdetail und bedienbare Planungssuchergebnisse korrigiert; Picker-Navigation, MCP-Umschlag, Segmentreiter- und Filter-Readbacktests berichtigt. Release-/Test-APK, Lint, Datenschutz und lokale Quellprüfungen bestanden. Voller neuer Kandidatenlauf steht aus. Nicht verteilt oder installiert."
+    "source_sha256": "21953aa7da9a4ac4499b69883528bc3b2096fea1766733ac758c7c5961676d6c",
+    "status": "Eisbär 1.0.1 auf nachgewiesener 158-Basis. Foto-Fehlermeldung, deutsche Arbeitsvorgaben und Gerätetreffer bei großer Schrift korrigiert. Echte Kalender-/Gmail-Adaptertests mit synthetischem Transport sowie öffentliche queued-/Replaypfade integriert. Release-/Test-APK, Lint, Datenschutz und Quellprüfungen bestanden; eigener voller Folgelauf erforderlich. Nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "IN_PROGRESS — acht aktuelle native Fehlaufrufe gezielt bearbeitet. Release-/Test-APK, Lint und lokale Quellprüfungen bestanden; vollständiger neuer CI-Lauf bis grün und reale Pixel-Abnahme erforderlich. Kein Eisbär-Abschluss.",
+    "status": "IN_PROGRESS — alle aktuellen Produkt- und Nachweiskorrekturen lokal gebaut/geprüft. Diagnose-Run 43063560392 der vorigen Quelle läuft noch; anschließend voller eigener Folgelauf und reale Pixel-Abnahme erforderlich. Kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
       "native_implementation": "IN_PROGRESS",
       "eisbaer_runtime_tests": "Run 43051214339 auf 47e537e/d48f5f34: 38/46 Hauptaufrufe abgeschlossen, 6492 Checks. Alle 6 MCP-Blöcke, Hauptuhr, responsive Summen, Erklärblatt und echtes 158→159-Update erfolgreich. Acht rote Aufrufe aus zwei Produkt-Zugangs-/Layoutfehlern sowie Picker-/Umschlag-/Tab-/Sichtbarkeits-Testfehlern gezielt bearbeitet; neue Ausführung ausstehend.",
-      "source": "PASS aktueller Produktstand 34a648ca: check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow-YAML, 14 Shellblöcke und neun eingebettete Pythonblöcke gültig. Größter run-Block 20666 Zeichen unter dem 21000-Zeichen-Limit. Eisbär-Originale unverändert.",
-      "local_jvm": "PASS aktueller voriger CI-Quellstand 47e537e: 97 JVM-Tests ohne Fehler/Skip; CI-Host-Suche p95=46.317451 ms unter unverändertem 300-ms-Limit, synthetischer MemoryPort, keine Pixel-Leistungsbehauptung. Aktuelle UI-/Testkorrekturen erhalten eigenen vollen CI einschließlich JVM.",
-      "local_build": "PASS aktueller Produktstand 34a648ca: assembleRelease und Datenschutz in 3 min 23 s; lintRelease und assembleReleaseAndroidTest einschließlich echtem Controller-Draft und präziser Session-/Restoreprüfung in 4 min 43 s. Der originalsignierte 47e-Kandidat 869ad99f… ist wegen aktueller Produktkorrekturen veraltet, intern und nicht verteilt.",
-      "full_ci": "Run 43051214339: Build SUCCESS, Emulator FAILURE, Integrität SUCCESS; 38/46 abgeschlossene Hauptaufrufe. Rechte-Restaurationskette wegen Media-Abbruch unvollständig. Aktueller Stand 34a648ca benötigt eigenen vollständigen neuen Lauf; keine roten CI-Tests als Pixel-only ausgelagert."
+      "source": "PASS aktueller Produktstand 21953aa7: check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow-YAML, 14 Bash- und neun Pythonblöcke gültig. Größter run-Block 20841 unter 21000 Zeichen. Eisbär-Originale unverändert.",
+      "local_jvm": "PASS CI 43063560392 auf 1019798/source34a648ca: 97 JVM-Tests ohne Fehler/Skip; Host-Suche p95=75.131546 ms bei unverändertem 300-ms-Limit, synthetischer MemoryPort, keine Pixel-Leistungsbehauptung. Aktuelle UI-/Testkorrekturen erhalten eigenen vollständigen CI-Lauf.",
+      "local_build": "PASS aktueller Produktstand 21953aa7: Release-/Test-APK, lintRelease und Datenschutz in 6 min 44 s; Glyphenhelper-Nachbau/Lint in 2 min 36 s; zusätzliche positive MCP-Adapterintegration/Test-APK/Lint in 2 min 53 s. Frühere signierte Kandidaten sind veraltet, intern und nicht verteilt.",
+      "full_ci": "Run 43063560392 auf 1019798/source34a648ca: Build SUCCESS, Emulator läuft; noch kein Vollergebnis. Voriger Run 43051214339: 38/46 Hauptaufrufe und unvollständige Rechte-Restaurationskette. Aktueller Quellstand 21953aa7 benötigt eigenen vollständigen neuen Lauf. Keine roten CI-Prüfungen als Pixel-only ausgelagert."
     },
     "next": [
-      "Geprüfte Änderungen im bestehenden PR #27 committen/pushen und vollständigen neuen CI-Lauf bis grün führen; dessen exakte APK intern originalsignieren und prüfen.",
+      "Nach Ende des laufenden Diagnoselaufs offene Fehler gebündelt beheben und geprüften Folgestand im bestehenden PR #27 pushen; vollen CI-Lauf bis grün führen und dessen exakte APK intern originalsignieren.",
       "Nach erfolgreichem exaktem Kandidatenlauf tatsächliche UI-/MCP-/Daten-/Migrationsnachweise in UMSETZUNG.json registrieren; Bilder und Grenzen konkret prüfen.",
       "Nach ausdrücklich beauftragter Installation: Originalidentität, Pixel-Bedienung, bestehende Verbindungen sowie tatsächlichen Sicherungsanbieter und bestätigte isolierte Wiederherstellung prüfen.",
       "Erst bei vollständig bestandenen Eisbär-Abnahmen check_eisbaer.py --completion und Abschluss."

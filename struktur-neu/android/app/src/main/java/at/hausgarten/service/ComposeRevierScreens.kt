@@ -18,6 +18,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -412,6 +413,7 @@ private fun RevierList(
 ) {
     var filtersOpen by rememberSaveable { mutableStateOf(false) }
     val imeVisible = WindowInsets.isImeVisible
+    val largeEquipment = config.kind == "equipment" && LocalDensity.current.fontScale > 1.3f
     var query by rememberSaveable(config.kind) { mutableStateOf("") }
     var status by
         rememberSaveable(config.kind) { mutableStateOf(controller.route.args.optString("status")) }
@@ -558,6 +560,14 @@ private fun RevierList(
                             "Erledigt"
                         else "",
                 ) {
+                    val statusTone =
+                        when (row.status) {
+                            "completed" -> NativeStatusTone.Confirmed
+                            "defective",
+                            "maintenance",
+                            "new" -> NativeStatusTone.Due
+                            else -> NativeStatusTone.Neutral
+                        }
                     Surface(color = MaterialTheme.colorScheme.surface) {
                         Row(
                             Modifier.fillMaxWidth()
@@ -577,7 +587,7 @@ private fun RevierList(
                                 Text(
                                     row.title,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    maxLines = 1,
+                                    maxLines = if (largeEquipment) Int.MAX_VALUE else 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 val subtitle =
@@ -591,18 +601,11 @@ private fun RevierList(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                     )
+                                if (largeEquipment && row.status.isNotBlank())
+                                    NativeStatus(revierLabel(row.status), statusTone)
                             }
-                            if (row.status.isNotBlank())
-                                NativeStatus(
-                                    revierLabel(row.status),
-                                    when (row.status) {
-                                        "completed" -> NativeStatusTone.Confirmed
-                                        "defective",
-                                        "maintenance",
-                                        "new" -> NativeStatusTone.Due
-                                        else -> NativeStatusTone.Neutral
-                                    },
-                                )
+                            if (!largeEquipment && row.status.isNotBlank())
+                                NativeStatus(revierLabel(row.status), statusTone)
                         }
                     }
                     HorizontalDivider()

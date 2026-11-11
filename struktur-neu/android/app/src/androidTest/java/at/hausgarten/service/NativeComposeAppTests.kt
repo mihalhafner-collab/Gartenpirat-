@@ -4835,11 +4835,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     node("Arbeit gespeichert · Foto noch offen") != null &&
                     node("Foto speichern") != null
             }
-            revealContaining("Arbeit ist gespeichert. Foto oder Entwurf:")
-            revealContaining(importSource.name)
+            revealContaining("Arbeit ist gespeichert.")
+            val publicError =
+                visibleTexts().firstOrNull { it.startsWith("Arbeit ist gespeichert.") }.orEmpty()
             yes(
-                visibleTexts().any { it.contains(importSource.name) && it.contains("ENOENT") },
-                "TEST21_VISIBLE_ERROR_IS_ACTUAL_MISSING_IMAGE_STREAM",
+                publicError.contains("Foto") &&
+                    publicError.contains("Foto speichern") &&
+                    publicError.contains("erneut") &&
+                    actionEnabled(UiTags.PRIMARY),
+                "TEST21_PHOTO_IMPORT_ERROR_EXPLAINS_SAVED_WORK_AND_RETRY",
+            )
+            yes(
+                visibleTexts().none {
+                    it.contains(importSource.absolutePath) ||
+                        it.contains(importSource.name) ||
+                        it.contains("ENOENT")
+                },
+                "TEST21_PHOTO_IMPORT_ERROR_HIDES_INTERNAL_PATH_AND_ERRNO",
             )
             shown("Arbeit gespeichert · Foto noch offen")
             val failedDraft = workDraft()
@@ -5898,9 +5910,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         return@firstNotNullOfOrNull null
                     val scroller =
                         parents.firstOrNull { parent ->
+                            // Compose 1.9 LazyColumn keeps CollectionInfo(rows, 1) even
+                            // without overflow, when class/scroll actions identify no scroller.
+                            val collection = parent.collectionInfo
                             parent.className?.toString() == "android.widget.ScrollView" ||
                                 (parent.isScrollable &&
-                                    parent.actionList.any { it.id == up || it.id == down })
+                                    parent.actionList.any { it.id == up || it.id == down }) ||
+                                (collection != null &&
+                                    collection.columnCount == 1 &&
+                                    collection.rowCount > 0)
                         } ?: return@firstNotNullOfOrNull null
                     candidate to scroller
                 } ?: return@waitUntil false
@@ -5931,6 +5949,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 } ?: return@waitUntil false
             val viewport = Rect().also { target.second.getBoundsInScreen(it) }
             val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+            automation.windows
+                .firstOrNull {
+                    it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD &&
+                        it.root?.isVisibleToUser == true
+                }
+                ?.let { ime ->
+                    screen.bottom =
+                        minOf(screen.bottom, Rect().also { ime.getBoundsInScreen(it) }.top)
+                }
             if (!viewport.intersect(screen)) return@waitUntil false
             diagnostic =
                 "showOnScreen=$requested chars=${characters.size}/${label.length} glyphs=$characters ownViewport=$viewport nudges=$nudges"
@@ -9883,6 +9910,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                                     .let { !it.isEmpty && screen.contains(it) }
                         }
                     }
+                    if (target.key == "equipment") {
+                        val name = textWithinOwnScrollViewport(target.result)
+                        val status =
+                            Rect().also {
+                                requireNotNull(node("Einsatzbereit")).getBoundsInScreen(it)
+                            }
+                        yes(
+                            keyboardVisible() &&
+                                name.second.contains(status) &&
+                                name.first.bottom <= status.top,
+                            "LIST_EQUIPMENT_NAME_READABLE_WITH_STATUS_BELOW_$key",
+                        )
+                    }
                     captureSyntheticScreen("list-$key", requireKeyboard = true)
                     yes(
                         requireNotNull(field(target.label))
@@ -10367,8 +10407,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             captureSyntheticScreen("settings-invoice-data-saved")
             reveal("Tätigkeit, Einsatzort und Fotoqualität")
             click("Tätigkeit, Einsatzort und Fotoqualität")
-            val activityLabel = nativeLabel("default_activity")
+            val activityLabel = "Tätigkeit"
             waitUntil("SETTINGS_UI_WORK_DEFAULT_EDITOR_READY") { field(activityLabel) != null }
+            yes(
+                field("Einsatzort") != null &&
+                    visibleTexts().any { it.startsWith("Fotoqualität: ") },
+                "SETTINGS_UI_WORK_DEFAULT_LABELS_ARE_GERMAN",
+            )
             enter(activityLabel, defaultActivity)
             if (keyboardVisible()) back()
             click(UiTags.PRIMARY)
