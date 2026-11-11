@@ -252,6 +252,256 @@ jobs:
           test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
           test "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1
           mkdir -p outputs
+          cat > "$RUNNER_TEMP/qa-provider-handoff.py" <<'PY_HANDOFF'
+          import json, os, pathlib, re, subprocess, sys, time, xml.etree.ElementTree as ET
+
+          ADB = str(pathlib.Path(os.environ['ANDROID_HOME']) / 'platform-tools/adb')
+          SERIAL = 'emulator-5580'
+          PACKAGE = 'at.hausgarten.service'
+          COMPONENT = PACKAGE + '.test/' + PACKAGE + '.PixelMcpInstrumentation'
+          TEMP = pathlib.Path(os.environ['RUNNER_TEMP'])
+          OUT = pathlib.Path('outputs')
+          DISPLAY = TEMP / 'qa-backup-display.json'
+
+
+          def adb(*args, timeout=30):
+              proc = subprocess.run([ADB, '-s', SERIAL, *args], stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, text=True, timeout=timeout)
+              if proc.returncode:
+                  raise RuntimeError('adb ' + ' '.join(args[:4]) + ': ' + proc.stdout.strip()[:500])
+              return proc.stdout.strip()
+
+
+          def guard():
+              assert adb('shell', 'getprop', 'ro.kernel.qemu') == '1', 'Disposable emulator required'
+              assert adb('shell', 'getprop', 'ro.build.version.sdk') == '35', 'API35 fixture required'
+
+
+          def wake():
+              adb('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP')
+              adb('shell', 'wm', 'dismiss-keyguard')
+
+
+          def display_setup():
+              guard()
+              values = [('system', 'screen_off_timeout'), ('global', 'stay_on_while_plugged_in')]
+              if not DISPLAY.exists():
+                  DISPLAY.write_text(json.dumps([[scope, key, adb('shell', 'settings', 'get', scope, key)]
+                                                 for scope, key in values]))
+              adb('shell', 'settings', 'put', 'system', 'screen_off_timeout', '1800000')
+              adb('shell', 'settings', 'put', 'global', 'stay_on_while_plugged_in', '7')
+              wake()
+
+
+          def display_restore():
+              if not DISPLAY.exists():
+                  return
+              guard()
+              for scope, key, value in json.loads(DISPLAY.read_text()):
+                  if value == 'null':
+                      adb('shell', 'settings', 'delete', scope, key)
+                  else:
+                      adb('shell', 'settings', 'put', scope, key, value)
+              DISPLAY.unlink()
+
+
+          def failure_line(text):
+              prefixes = ('INSTRUMENTATION_RESULT: failure=', 'INSTRUMENTATION_RESULT: shortMsg=',
+                          'INSTRUMENTATION_FAILED', 'QA_PROVIDER_HANDOFF_FAILURE:')
+              return next((line.strip() for line in text.splitlines()
+                           if line.startswith(prefixes)), 'Instrumentation result is missing or invalid')
+
+
+          def instrument(suite, phase, label, expected=None, restoration=False, timeout=360):
+              guard()
+              wake()
+              adb('shell', 'am', 'force-stop', PACKAGE)
+              adb('shell', 'am', 'force-stop', PACKAGE + '.test')
+              adb('logcat', '-c')
+              args = [ADB, '-s', SERIAL, 'shell', 'am', 'instrument', '-w', '-e', 'suite', suite,
+                      '-e', 'phase', phase]
+              if expected is not None:
+                  args += ['-e', 'expected_all_files', str(expected).lower()]
+              if restoration:
+                  args += ['-e', 'restoration_probe', 'true']
+              args.append(COMPONENT)
+              file = OUT / (label + '.txt')
+              try:
+                  proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                        text=True, timeout=timeout)
+                  text = proc.stdout
+              except subprocess.TimeoutExpired as error:
+                  text = error.stdout or ''
+                  if isinstance(text, bytes):
+                      text = text.decode('utf-8', errors='replace')
+                  text += '\nQA_PROVIDER_HANDOFF_FAILURE: instrumentation timed out\n'
+                  file.write_text(text)
+                  raise RuntimeError(suite + '/' + phase + ': instrumentation timed out') from error
+              finally:
+                  try:
+                      (OUT / (label + '-logcat.txt')).write_text(adb('logcat', '-d', '-t', '1500', timeout=15))
+                  except Exception as error:
+                      print('Diagnostic collection:', type(error).__name__, flush=True)
+              file.write_text(text)
+              print(text, flush=True)
+              if proc.returncode or 'INSTRUMENTATION_CODE: -1' not in text or 'INSTRUMENTATION_RESULT: failure=' in text or 'INSTRUMENTATION_FAILED' in text or 'INSTRUMENTATION_RESULT: shortMsg=' in text:
+                  raise RuntimeError(suite + '/' + phase + ': ' + failure_line(text))
+              result = json.loads(next(line.split('=', 1)[1] for line in text.splitlines()
+                                       if line.startswith('INSTRUMENTATION_RESULT: result=')))
+              assert result['suite'] == suite and result['checks'] > 0, result
+              assert result['synthetic_only'] is True and result['productive_data_read'] is False, result
+              assert result['phase'] == phase, result
+              if phase == 'permission_probe':
+                  assert result['phase_complete'] is False, result
+                  assert type(result['all_files_access']) is bool, result
+                  if expected is not None:
+                      assert result['all_files_access'] is expected and result['permission_state_matches_expected'] is True, result
+                  if restoration:
+                      assert result['permission_state_restored'] is True, result
+              return result
+
+
+          def settings_action(wanted):
+              guard()
+              wake()
+              adb('shell', 'am', 'start', '-W', '-a', 'android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION',
+                  '-d', 'package:' + PACKAGE)
+              xml_path = '/data/local/tmp/qa-backup-access.xml'
+
+              def switch():
+                  last = None
+                  for _ in range(12):
+                      try:
+                          wake()
+                          adb('shell', 'uiautomator', 'dump', xml_path, timeout=20)
+                          root = ET.fromstring(adb('exec-out', 'cat', xml_path))
+                          nodes = [n for n in root.iter('node') if n.get('package') == 'com.android.settings'
+                                   and n.get('checkable') == 'true' and n.get('enabled') == 'true']
+                          assert len(nodes) == 1, 'Expected exactly the app-specific Settings access switch'
+                          return nodes[0]
+                      except Exception as error:
+                          last = error
+                          time.sleep(0.3)
+                  raise RuntimeError('Android special-access Settings switch unavailable') from last
+
+              try:
+                  before = switch()
+                  changed = wanted is not None and (before.get('checked') == 'true') is not wanted
+                  if changed:
+                      bounds = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', before.get('bounds', ''))
+                      assert bounds is not None, 'Settings switch has no actionable bounds'
+                      x1, y1, x2, y2 = map(int, bounds.groups())
+                      adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+                      for _ in range(12):
+                          if (switch().get('checked') == 'true') is wanted:
+                              break
+                          time.sleep(0.3)
+                      else:
+                          raise RuntimeError('Settings toggle did not change')
+                  print('QA_SETTINGS_UI requested=' + str(wanted).lower() + ' tapped=' + str(changed).lower(), flush=True)
+              finally:
+                  adb('shell', 'rm', '-f', xml_path)
+                  adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+
+
+          def handoff(suite, phase, action):
+              result = instrument(suite, phase, suite + '.' + phase)
+              assert result['phase_complete'] is False and result['next_permission_action'] == action, result
+              wanted = {'back_without_change': None, 'grant_true': True, 'revoke_false': False}[action]
+              settings_action(wanted)
+              instrument(suite, 'permission_probe', suite + '.' + phase + '-environment',
+                         expected=False if wanted is None else wanted)
+
+
+          def cleanup(suite, original, media):
+              try:
+                  if media:
+                      settings_action(True)
+                      result = instrument(suite, 'cleanup', suite + '.cleanup')
+                      assert result['phase_complete'] is False and result['next_permission_action'] == 'restore_original', result
+              finally:
+                  settings_action(original)
+                  instrument(suite, 'permission_probe', suite + '.permission-restored', original, restoration=True)
+
+
+          def run_suite(suite):
+              assert suite in ('document_provider', 'document_provider_reopen',
+                               'document_provider_media', 'document_provider_media_reopen')
+              OUT.mkdir(exist_ok=True)
+              media = suite.startswith('document_provider_media')
+              initial = instrument(suite, 'permission_probe', suite + '.permission-initial')
+              state_file = TEMP / ('qa-backup-access-media.json' if media else 'qa-backup-access-' + suite + '.json')
+              if suite == 'document_provider_media_reopen':
+                  assert state_file.exists(), 'Previous media permission/fixture handoff is missing'
+                  original = json.loads(state_file.read_text())['original']
+              else:
+                  original = initial['all_files_access']
+                  state_file.write_text(json.dumps({'suite': suite, 'original': original, 'media': media}))
+              success = False
+              failure = None
+              try:
+                  if suite == 'document_provider_media':
+                      settings_action(False)
+                      instrument(suite, 'permission_probe', suite + '.setup-environment', expected=False)
+                      for phase, action in [('setup_refusal', 'back_without_change'), ('setup_grant', 'grant_true'),
+                                            ('seed', 'revoke_false'), ('revoked', 'grant_true')]:
+                          handoff(suite, phase, action)
+                      result = instrument(suite, 'continue', suite)
+                  else:
+                      settings_action(True)
+                      instrument(suite, 'permission_probe', suite + '.run-environment', expected=True)
+                      result = instrument(suite, 'run', suite)
+                  assert result['phase_complete'] is True, result
+                  success = True
+              except Exception as error:
+                  failure = str(error) or type(error).__name__
+              finally:
+                  if suite != 'document_provider_media' or not success:
+                      try:
+                          cleanup(suite, original, media)
+                          state_file.unlink(missing_ok=True)
+                      except Exception as error:
+                          failure = (failure + '; ' if failure else '') + 'cleanup: ' + str(error)
+                  if failure:
+                      message = 'QA_PROVIDER_HANDOFF_FAILURE: ' + failure.replace('\r', ' ').replace('\n', ' ')
+                      file = OUT / (suite + '.txt')
+                      with file.open('a') as output:
+                          output.write('\n' + message + '\n')
+                      print(message, flush=True)
+              if failure:
+                  raise RuntimeError(failure)
+
+
+          def recover_all():
+              failures = []
+              # Unwind nested failed fixtures newest first, restoring the earliest baseline last.
+              files = sorted(TEMP.glob('qa-backup-access-*.json'), key=lambda p: p.stat().st_mtime_ns, reverse=True)
+              for file in files:
+                  try:
+                      state = json.loads(file.read_text())
+                      cleanup(state['suite'], state['original'], state['media'])
+                      file.unlink()
+                  except Exception as error:
+                      failures.append(file.name + ': ' + str(error))
+              if failures:
+                  raise RuntimeError('; '.join(failures))
+
+
+          if __name__ == '__main__':
+              command = sys.argv[1]
+              if command == '--setup-display':
+                  display_setup()
+              elif command == '--recover-permissions':
+                  recover_all()
+              elif command == '--cleanup-all':
+                  try:
+                      recover_all()
+                  finally:
+                      display_restore()
+              else:
+                  run_suite(command)
+          PY_HANDOFF
+          python3 "$RUNNER_TEMP/qa-provider-handoff.py" --setup-display
           upgrade_failures=0
           if [ -f "$RUNNER_TEMP/gp-baseline158.apk" ]; then
             # Run normally: an if/|| function call would disable the child's errexit.
@@ -308,6 +558,8 @@ jobs:
           "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
           "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-app.apk"
           "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-test.apk"
+          # Keep the private QA token until external recovery has removed its public files.
+          python3 "$RUNNER_TEMP/qa-provider-handoff.py" --recover-permissions
           test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
           native_suite_failures=0
           if [ "$SETTLEMENT_UI_ONLY" = true ]; then
@@ -332,6 +584,26 @@ jobs:
               for journey in "${graphics_journeys[@]}"; do expanded_suites+=("native_graphics.$journey"); done
             else expanded_suites+=("$suite"); fi
           done
+          annotate_suite_failure() {
+            python3 - "$1" <<'PY_ANNOTATION'
+          import pathlib,sys
+          suite=sys.argv[1]
+          files=[pathlib.Path('outputs')/(suite+'.txt'),pathlib.Path('outputs')/(suite+'-validation.txt')]
+          files+=sorted(pathlib.Path('outputs').glob(suite+'.*.txt'))
+          prefixes=('INSTRUMENTATION_RESULT: failure=','INSTRUMENTATION_RESULT: shortMsg=','INSTRUMENTATION_FAILED','QA_PROVIDER_HANDOFF_FAILURE:')
+          reason='Missing or invalid result; see the synthetic suite diagnostics.'
+          for file in files:
+              if not file.is_file():
+                  continue
+              lines=file.read_text(errors='replace').splitlines()
+              found=next((line.strip() for line in lines if line.startswith(prefixes) or 'AssertionError' in line or 'TimeoutError' in line),None)
+              if found:
+                  reason=found[:900]
+                  break
+          message=(suite+': '+reason).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::error title=Native suite failed::'+message,flush=True)
+          PY_ANNOTATION
+          }
           for entry in "${expanded_suites[@]}"; do
             suite="${entry%%.*}"
             journey=""
@@ -343,11 +615,15 @@ jobs:
             if [[ "$entry" == *.* ]] || [[ "$suite" == document_provider_media || "$suite" == native_settlement || "$suite" == native_settlement_ui || "$suite" == native_accounting ]]; then
               test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
               test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+              # Keep the private QA token until external recovery has removed its public files.
+              python3 "$RUNNER_TEMP/qa-provider-handoff.py" --recover-permissions
               test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
             fi
             if [ -n "$journey" ]; then instrument_args=(-e journey "$journey"); fi
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
             "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+            "$ADB" -s emulator-5580 shell input keyevent KEYCODE_WAKEUP
+            "$ADB" -s emulator-5580 shell wm dismiss-keyguard
             # The running-work notice asks once for this permission; a system dialog would cover the UI under test.
             "$ADB" -s emulator-5580 shell pm grant at.hausgarten.service android.permission.POST_NOTIFICATIONS || true
             "$ADB" -s emulator-5580 logcat -c
@@ -355,7 +631,11 @@ jobs:
             suite_timeout=360
             if [ "$suite" = native_accounting ] || [ "$suite" = native_settlement ] || [ "$suite" = native_settlement_ui ]; then suite_timeout=900; fi
             if [ "$suite" = native_compose ] || [ "$suite" = native_graphics ]; then suite_timeout=2100; fi
-            timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" "${instrument_args[@]}" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$entry.txt" || instrumentation_status=$?
+            if [[ "$suite" == document_provider* ]]; then
+              python3 "$RUNNER_TEMP/qa-provider-handoff.py" "$suite" || instrumentation_status=$?
+            else
+              timeout "$suite_timeout" "$ADB" -s emulator-5580 shell am instrument -w -e suite "$suite" "${instrument_args[@]}" at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation 2>&1 | tee "outputs/$entry.txt" || instrumentation_status=$?
+            fi
             timeout 15 "$ADB" -s emulator-5580 logcat -d -t 1500 > "outputs/$entry-logcat.txt" 2>&1 || true
             # Collect only screenshots actually produced by this fresh synthetic run.
             while IFS= read -r image; do
@@ -364,9 +644,10 @@ jobs:
             done < <("$ADB" -s emulator-5580 shell find /sdcard/Android/data/at.hausgarten.service/files -maxdepth 1 -name 'qa-native-*.png' 2>/dev/null | tr -d '\r')
             if [ "$instrumentation_status" != 0 ]; then
               native_suite_failures=$((native_suite_failures+1))
+              annotate_suite_failure "$entry"
               continue
             fi
-            if python3 - "$suite" "$entry" "$journey" <<'PY'
+            if python3 - "$suite" "$entry" "$journey" 2> "outputs/$entry-validation.txt" <<'PY'
           import json,pathlib,sys
           text=pathlib.Path('outputs/'+sys.argv[2]+'.txt').read_text()
           assert 'INSTRUMENTATION_CODE: -1' in text, text
@@ -402,7 +683,7 @@ jobs:
                   assert media[proof] is True, result
               assert media['physical_backup_acceptance'] is False, result
               revier=result['eisbaer_revier_mcp']
-              for proof in ('public_adapter_and_real_sqlite','synthetic_only','inquiry_acceptance_inspection_roundtrip','work_alias_and_tour_move_roundtrip','property_update_list_and_permanent_purge','legacy_material_consumption_alias','legacy_originals_preserved'):
+              for proof in ('public_adapter_and_real_sqlite','synthetic_only','inquiry_acceptance_inspection_roundtrip','work_alias_and_tour_move_roundtrip','property_update_list_and_permanent_purge','legacy_material_consumption_alias','legacy_originals_preserved','inquiry_writer_rollback'):
                   assert revier[proof] is True, result
               assert revier['calendar_provider_success_claimed'] is False, result
               for proof in (mcp,catalog,planning,offers,media,revier):
@@ -439,12 +720,13 @@ jobs:
               assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           elif sys.argv[1].startswith('document_provider_media'):
+              assert result['phase_complete'] is True and result['permission_cleanup_external'] is True, result
               for proof in ('real_external_storage_provider','actual_saf_grant','same_target_atomic_replace','public_documents_target','all_files_access','permission_ui_tested'):
                   assert result[proof] is True, result
               for proof in ('unselected_target_denied','permission_revocation_preserves_zip','permission_denial_preserves_target_session_and_draft','persisted_grant_reselection','existing_target_rebinding','existing_target_cancel_preserves_state','stale_existing_target_approval_rejected','approved_request_replay_readback','long_zip_comment_fully_hashed','pending_approved_request_regrant_same_id'):
                   assert result[proof] is (not sys.argv[1].endswith('_reopen')), result
               assert result['existing_target_ui_screenshot']==('' if sys.argv[1].endswith('_reopen') else 'qa-native-backup-restore-existing-target.png'), result
-              assert result['permission_state_restored'] is sys.argv[1].endswith('_reopen'), result
+              assert result['permission_state_restored'] is False, result
               assert result['uninstall_tested'] is False, result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
               assert result['isolated_restore'] is sys.argv[1].endswith('_reopen'), result
@@ -459,6 +741,7 @@ jobs:
               assert result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
+              assert result['phase_complete'] is True, result
               assert result['real_document_provider_tested'] is True and result['separate_uid_local_provider_tested'] is True, result
               assert result['android_file_picker_tested'] is (not sys.argv[1].endswith('_reopen')), result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen') and result['drive_account_tested'] is False, result
@@ -470,13 +753,23 @@ jobs:
               :
             else
               native_suite_failures=$((native_suite_failures+1))
+              cat "outputs/$entry-validation.txt"
+              annotate_suite_failure "$entry"
             fi
           done
           "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
+          # Keep the private QA token until external recovery has removed its public files.
+          python3 "$RUNNER_TEMP/qa-provider-handoff.py" --recover-permissions
           test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
           printf 'Upgrade failures: %s; independent suite failures: %s\n' "$upgrade_failures" "$native_suite_failures"
           test "$upgrade_failures" = 0
           test "$native_suite_failures" = 0
+      - name: Restore disposable permission and display state
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/qa-provider-handoff.py" ]; then
+            python3 "$RUNNER_TEMP/qa-provider-handoff.py" --cleanup-all
+          fi
       - name: Collect isolated emulator diagnostics
         if: failure()
         run: |

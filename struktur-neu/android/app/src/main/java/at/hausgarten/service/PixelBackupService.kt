@@ -274,7 +274,9 @@ internal constructor(private val context: Context, private val store: PixelLocal
                         throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
                     requireSelectedFileAccess(selected)
                     try {
-                        context.contentResolver.openFileDescriptor(selected, "r").use { descriptor
+                        // "r" may return a MediaStore LowerFS descriptor. "rw" opens the
+                        // selected existing file directly and never requests truncation.
+                        context.contentResolver.openFileDescriptor(selected, "rw").use { descriptor
                             ->
                             if (descriptor == null)
                                 throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")

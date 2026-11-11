@@ -46,7 +46,7 @@ class BusinessDocumentStore {
         val folder = File(staging.parentFile, "offer-share")
         if (!folder.isDirectory && !folder.mkdirs())
             throw IOException("PDF-Vorschau konnte nicht angelegt werden.")
-        val file = File.createTempFile("entwurf-", ".pdf", folder)
+        val file = File(folder, "Rechnung-${java.util.UUID.randomUUID()}.pdf")
         try {
             FileOutputStream(file).use { output ->
                 output.write(raw)

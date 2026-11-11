@@ -807,6 +807,11 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                         .put("orders", JSONArray())
                         .put("worklogs", JSONArray())
                         .put("service_catalog", JSONArray())
+                    // Settlements derive their statutory exemption text, whereas offers require
+                    // the issuer's configured text explicitly before document validation.
+                    fixture
+                        .getJSONObject("business_settings")
+                        .put("tax_exemption_text", SettlementRules.EXEMPTION)
                     // Entirely invented and isolated. An unmarked fixture exercises the actual
                     // acceptance path; marked documents deliberately prohibit conversion/delivery.
                     fixture
@@ -1170,9 +1175,21 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 "WRITE_CONFLICT",
             )
             val valid = call("validate_offer", JSONObject().put("offer_id", id))
+            val validation = valid.getJSONObject("validation")
             yes(
-                valid.getJSONObject("validation").getBoolean("valid") &&
-                    valid.getJSONObject("offer").getDouble("gross_total") == 70.0,
+                validation.getBoolean("valid"),
+                "OFFERS_MCP_CORRECTED_DRAFT_VALIDATION_${validation.getJSONArray("errors")}",
+            )
+            val corrected = valid.getJSONObject("offer")
+            val correctedLine = corrected.getJSONArray("positions").getJSONObject(0)
+            yes(
+                corrected.getDouble("gross_total") == 70.0 &&
+                    correctedLine.getDouble("price") == 35.0 &&
+                    correctedLine.getDouble("quantity") == 2.0 &&
+                    correctedLine.getString("catalog_entry_id") == entryId &&
+                    correctedLine.getString("catalog_hash") == entry.getString("record_hash") &&
+                    correctedLine.getString("price_basis") == "catalog" &&
+                    !correctedLine.has("price_source"),
                 "OFFERS_MCP_CORRECTED_DRAFT_CONFIRMED_CATALOG_PRICE",
             )
             val validate = action(id, "validate_complete", valid)
@@ -3049,7 +3066,10 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         fun envelope(name: String, args: JSONObject = JSONObject()): JSONObject {
             val result = response(name, args)
             val value = result.getJSONObject("structuredContent")
-            yes(!result.getBoolean("isError") && value.optBoolean("ok"), "CATALOG_MCP_OK_$name")
+            yes(
+                !result.getBoolean("isError") && value.optBoolean("ok"),
+                "CATALOG_MCP_OK_${name}: ${value.optJSONObject("error")}",
+            )
             succeeded.add(name)
             return value
         }
@@ -3344,7 +3364,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
 
                 val createCustomer =
                     request("customer_create")
-                        .put("name", "QA Catalog Einsatzkunde")
+                        .put("name", "[TEST] QA Catalog Einsatzkunde")
                         .put("city", "QA Katalogort")
                         .put("email", "qa_catalog@example.invalid")
                         .put("test_record", true)
@@ -3357,7 +3377,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     envelope("get_customer", JSONObject().put("customer_id", customerId))
                 yes(
                     customerRead.getJSONObject("data").getString("name") ==
-                        "QA Catalog Einsatzkunde" &&
+                        "[TEST] QA Catalog Einsatzkunde" &&
                         customerRead.getJSONObject("data").getString("city") == "QA Katalogort",
                     "CATALOG_MCP_CUSTOMER_CREATE_READBACK",
                 )
@@ -3408,7 +3428,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     ids(
                         call(
                                 "search_customers",
-                                JSONObject().put("query", "QA Catalog Einsatzkunde"),
+                                JSONObject().put("query", "[TEST] QA Catalog Einsatzkunde"),
                             )
                             .getJSONArray("customers")
                     ) == setOf(customerId),
@@ -3800,6 +3820,11 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             report =
                 PixelLocalStore(context).use { store ->
                     val fixture = SyntheticBusinessData.profile("minimal")
+                    // Test documents require a visibly marked customer as well as test IDs.
+                    fixture
+                        .getJSONArray("customers")
+                        .getJSONObject(0)
+                        .put("name", "[TEST] QA MCP Revier Kunde")
                     store.putOwnerValue("snapshot", fixture.toString())
                     val tools =
                         PixelMcpReadTools(
@@ -4014,6 +4039,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     val inquiryDirectCreateArgs =
                         request("inquiry_direct_create")
                             .put("customer_id", "qa_customer_1")
+                            .put("property_id", propertyId)
                             .put("title", "[TEST] QA MCP ausdrücklich angenommene Anfrage")
                             .put("concern", "[TEST] QA tatsächlicher Kundenwunsch")
                     val inquiryDirectCreated =
@@ -4069,6 +4095,57 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                                 .toSet() == inquiryInitialOrders,
                         "EISBAER_INQUIRY_FAILED_ACCEPTANCE_DOES_NOT_CREATE_ORDER",
                     )
+                    val ignoredWriterArgs = JSONObject(inquiryDirectAcceptArgs.toString())
+                    val ignoredOrderId =
+                        RevierRules.newId("order", ignoredWriterArgs.getString("request_id"))
+                    val beforeIgnoredSnapshot = PixelMcpWriteTools.hash(inquiryMaster())
+                    fun pendingCount(): Int =
+                        store.readableDatabase.rawQuery("SELECT COUNT(*) FROM pending", null).use {
+                            it.moveToFirst()
+                            it.getInt(0)
+                        }
+                    val beforeIgnoredWriter = pendingCount()
+                    val ignoreTrigger = "qa_eisbaer_direct_order_ignore"
+                    store.writableDatabase.execSQL(
+                        "CREATE TRIGGER $ignoreTrigger BEFORE INSERT ON pending " +
+                            "WHEN NEW.kind='order' AND json_extract(NEW.payload,'$.id')='$ignoredOrderId' " +
+                            "BEGIN SELECT RAISE(IGNORE); END"
+                    )
+                    try {
+                        rejected(
+                            "accept_inquiry_direct",
+                            ignoredWriterArgs,
+                            "DIRECT_ORDER_NOT_APPLIED",
+                        )
+                    } finally {
+                        store.writableDatabase.execSQL("DROP TRIGGER $ignoreTrigger")
+                    }
+                    yes(
+                        pendingCount() == beforeIgnoredWriter &&
+                            PixelMcpWriteTools.hash(inquiryMaster()) == beforeIgnoredSnapshot &&
+                            store
+                                .ownerValue(
+                                    RevierRules.ROOT +
+                                        "request:" +
+                                        PixelMcpWriteTools.hash(
+                                            ignoredWriterArgs.getString("request_id")
+                                        ),
+                                    "",
+                                )
+                                .isEmpty() &&
+                            call(
+                                    "get_inquiry",
+                                    JSONObject().put("inquiry_id", inquiryDirectInquiryId),
+                                )
+                                .getJSONObject("record")
+                                .getString("record_hash") ==
+                                inquiryDirectFresh.getString("record_hash") &&
+                            SettlementRules.rows(inquiryMaster().getJSONArray("orders"))
+                                .map { it.getString("id") }
+                                .toSet() == inquiryInitialOrders &&
+                            store.ownerValue(SettlementRules.KEY, "{}") == inquiryInitialLedger,
+                        "EISBAER_INQUIRY_IGNORED_WRITER_ROLLS_BACK_WITHOUT_DANGLING_LINK_OR_COMMIT",
+                    )
                     val inquiryDirectAccepted =
                         call("accept_inquiry_direct", inquiryDirectAcceptArgs)
                     val inquiryDirectOrderId = inquiryDirectAccepted.getString("order_id")
@@ -4077,6 +4154,13 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                             call("accept_inquiry_direct", inquiryDirectAcceptArgs)
                                 .getBoolean("replayed"),
                         "EISBAER_INQUIRY_ACCEPTS_ONCE_WITHOUT_INVOICE",
+                    )
+                    yes(
+                        inquiryDirectOrderId == ignoredOrderId &&
+                            SettlementRules.rows(inquiryMaster().getJSONArray("orders")).count {
+                                it.getString("id") == inquiryDirectOrderId
+                            } == 1,
+                        "EISBAER_INQUIRY_ACCEPTANCE_MATERIALIZES_ORIGINAL_BEFORE_LINK_READ",
                     )
                     val inquiryAcceptedInquiry =
                         call("get_inquiry", JSONObject().put("inquiry_id", inquiryDirectInquiryId))
@@ -4094,6 +4178,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     yes(
                         inquiryDirectOrder.getString("id") == inquiryDirectOrderId &&
                             inquiryDirectOrder.getString("customer_id") == "qa_customer_1" &&
+                            inquiryDirectOrder.getString("inquiry_id") == inquiryDirectInquiryId &&
+                            inquiryDirectOrder.getString("property_id") == propertyId &&
                             inquiryDirectOrder.getString("billing_customer_id") ==
                                 inquiryRecipientId &&
                             inquiryDirectOrder.getString("title") ==
@@ -4572,6 +4658,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                         .put("public_adapter_and_real_sqlite", true)
                         .put("synthetic_only", true)
                         .put("inquiry_acceptance_inspection_roundtrip", true)
+                        .put("inquiry_writer_rollback", true)
                         .put("work_alias_and_tour_move_roundtrip", true)
                         .put("property_update_list_and_permanent_purge", true)
                         .put("legacy_material_consumption_alias", true)

@@ -1248,6 +1248,7 @@ class RevierApplicationService {
             JSONObject()
                 .put("id", RevierRules.newId("order", request))
                 .put("customer_id", old.getString("customer_id"))
+                .put("inquiry_id", old.getString("id"))
                 .put("title", old.getString("title"))
                 .put("description", old.optString("concern"))
                 .put("status", "Geplant")
@@ -1258,6 +1259,7 @@ class RevierApplicationService {
         }
         val property: String = old.optString("property_id")
         if (!property.isEmpty()) {
+            order.put("property_id", property)
             order.put("location", load("property", property).optString("address"))
         }
         var id: String = repository.createDirectOrder(order)

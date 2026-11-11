@@ -83,6 +83,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val callbacks =
             object : Application.ActivityLifecycleCallbacks {
                 override fun onActivityCreated(value: Activity, state: Bundle?) {
+                    value.window.addFlags(
+                        android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    )
                     if (value is MainActivity) {
                         latest = value
                         activity = value
@@ -151,6 +154,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     thread.name + ": " + thread.state + "\n" + frames.take(16).joinToString("\n")
                 }
         test.sendStatus(0, Bundle().apply { putString("timeout_threads", "$code\n$threads") })
+        logUiTimeoutState(code)
         throw AssertionError(
             "QA_NATIVE_COMPOSE_TIMEOUT_$code; visible=" +
                 visibleTexts().joinToString(" | ").take(3000)
@@ -2801,6 +2805,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     "eisbaer-accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}"
                 )
             }
+            // The asynchronously loaded invoices do not change a disclosure's saved state.
+            // Open the actual group before acting on its payment control.
+            openDetails("Zahlung offen")
             reveal("Bezahlt")
             click("Bezahlt")
             click("Rückgängig")
@@ -3263,7 +3270,134 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         captureSyntheticScreen("graphics-equipment")
     }
 
+    private var foregroundDiagnostic = "No foreground check yet"
+
+    /** A Compose object or cached A11y package does not prove a usable focused window. */
+    private fun uiForegroundReady(): Boolean {
+        val interactive =
+            context.getSystemService(android.os.PowerManager::class.java)?.isInteractive == true
+        val unlocked =
+            context.getSystemService(android.app.KeyguardManager::class.java)?.isKeyguardLocked ==
+                false
+        var resumed = false
+        var attachedVisible = false
+        var baseFocused = false
+        test.runOnMainSync {
+            activity
+                ?.takeUnless { it.isFinishing || it.isDestroyed }
+                ?.let { current ->
+                    resumed =
+                        (current as? androidx.lifecycle.LifecycleOwner)
+                            ?.lifecycle
+                            ?.currentState
+                            ?.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED) == true
+                    val decor = current.window.decorView
+                    attachedVisible =
+                        decor.isAttachedToWindow &&
+                            decor.isShown &&
+                            decor.windowVisibility == View.VISIBLE &&
+                            hasCompose(decor)
+                    baseFocused = current.hasWindowFocus() && decor.hasWindowFocus()
+                }
+        }
+        val windows = automation.windows
+        // NativeValueSheet/DatePicker may legitimately own focus over their MainActivity.
+        val ownedDialogOrMainFocused = windows.any { window ->
+            window.type == AccessibilityWindowInfo.TYPE_APPLICATION &&
+                window.isFocused &&
+                window.root?.packageName?.toString() == context.packageName
+        }
+        val rootPackage = automation.rootInActiveWindow?.packageName?.toString()
+        foregroundDiagnostic =
+            "interactive=$interactive unlocked=$unlocked resumed=$resumed attachedVisible=$attachedVisible baseFocused=$baseFocused ownedFocused=$ownedDialogOrMainFocused root=$rootPackage windows=" +
+                windows.joinToString {
+                    "${it.id}:${it.type}:active=${it.isActive}:focused=${it.isFocused}:${it.root?.packageName}"
+                }
+        return interactive &&
+            unlocked &&
+            resumed &&
+            attachedVisible &&
+            (baseFocused || ownedDialogOrMainFocused) &&
+            rootPackage == context.packageName
+    }
+
+    private fun logUiTimeoutState(code: String) {
+        val fields =
+            listOf(
+                "mWakefulness=",
+                "mInteractive=",
+                "mIsPowered=",
+                "mScreenOffTimeoutSetting=",
+                "mCurrentFocus=",
+                "mFocusedApp=",
+                "topResumedActivity=",
+                "mResumedActivity=",
+                "mCurFocusedWindow=",
+                "mCurFocusedWindowClient=",
+                "mInputShown=",
+                "mShowRequested=",
+                "mServedView=",
+                "mCurMethodId=",
+            )
+        val state = runCatching {
+            listOf("power", "window windows", "activity activities", "input_method").joinToString(
+                "\n"
+            ) { service ->
+                val snapshot = shell("dumpsys -t 3 $service")
+                service +
+                    ":\n" +
+                    snapshot
+                        .lineSequence()
+                        .filter { line -> fields.any(line::contains) }
+                        .take(24)
+                        .joinToString("\n")
+            }
+        }
+            .getOrElse { "System diagnostics failed: ${it.javaClass.simpleName}" }
+        test.sendStatus(
+            0,
+            Bundle().apply {
+                putString(
+                    "ui_timeout_window_state",
+                    "$code\nlastForegroundCheck: $foregroundDiagnostic\n$state",
+                )
+            },
+        )
+    }
+
+    /** A real field tap asks the focused Android window to show IME, without editing its value. */
+    private fun tapFieldForKeyboard(label: String): Boolean {
+        val selected =
+            field(label)?.takeIf { it.refresh() && it.isEnabled && it.isVisibleToUser }
+                ?: return false
+        val hit = Rect().also { selected.getBoundsInScreen(it) }
+        val frame = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+        if (!hit.intersect(frame) || hit.isEmpty) return false
+        val began = SystemClock.uptimeMillis()
+        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+            val event =
+                MotionEvent.obtain(
+                    began,
+                    SystemClock.uptimeMillis(),
+                    action,
+                    hit.exactCenterX(),
+                    hit.exactCenterY(),
+                    0,
+                )
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            try {
+                yes(automation.injectInputEvent(event, true), "SEARCH_REAL_FIELD_FOCUS_$label")
+                if (action == MotionEvent.ACTION_DOWN) SystemClock.sleep(75)
+            } finally {
+                event.recycle()
+            }
+        }
+        settleUi()
+        return true
+    }
+
     private fun launch(planning: Boolean = false, appointment: String = "", action: String = "") {
+        shell("input keyevent KEYCODE_WAKEUP")
         shell("wm dismiss-keyguard")
         // Each launch intentionally starts a fresh synthetic task. Without CLEAR_TASK,
         // Android can only bring a child connection Activity to the front and
@@ -3277,11 +3411,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .putExtra("planning_action", action)
             )
         latest = activity
-        waitUntil("MAIN_COMPOSE_CONTENT") {
-            var found = false
-            test.runOnMainSync { found = hasCompose(requireNotNull(activity).window.decorView) }
-            found && automation.rootInActiveWindow?.packageName?.toString() == context.packageName
-        }
+        waitUntil("MAIN_COMPOSE_CONTENT") { uiForegroundReady() }
         checks++
     }
 
@@ -3290,6 +3420,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             view is ViewGroup && (0 until view.childCount).any { hasCompose(view.getChildAt(it)) }
 
     private fun recreate() {
+        shell("input keyevent KEYCODE_WAKEUP")
+        shell("wm dismiss-keyguard")
         var old: Activity? = null
         waitUntil("REAL_ACTIVITY_RECREATION_REQUESTED") {
             var requested = false
@@ -3304,15 +3436,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             requested
         }
         waitUntil("REAL_ACTIVITY_RECREATION") { latest != null && latest !== old }
-        waitUntil("RECREATED_COMPOSE") {
-            var found = false
-            test.runOnMainSync {
-                activity
-                    ?.takeUnless { it.isDestroyed || it.isFinishing }
-                    ?.let { found = hasCompose(it.window.decorView) }
-            }
-            found
-        }
+        waitUntil("RECREATED_COMPOSE") { uiForegroundReady() }
         checks++
     }
 
@@ -6231,11 +6355,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
             false
         }
-        yes(
-            requireNotNull(field(label)).performAction(AccessibilityNodeInfo.ACTION_CLICK),
-            "SEARCH_FOCUS_$label",
-        )
-        waitUntil("SEARCH_IME_VISIBLE") { keyboardVisible() }
+        waitUntil("SEARCH_FOCUSED_WINDOW_$label") { uiForegroundReady() }
+        yes(tapFieldForKeyboard(label), "SEARCH_FOCUS_$label")
+        var focusAttempts = 1
+        var lastFocus = SystemClock.uptimeMillis()
+        waitUntil("SEARCH_IME_VISIBLE") {
+            if (keyboardVisible()) return@waitUntil true
+            if (
+                focusAttempts < 3 &&
+                    SystemClock.uptimeMillis() - lastFocus >= 1000 &&
+                    uiForegroundReady()
+            ) {
+                if (tapFieldForKeyboard(label)) focusAttempts++
+                lastFocus = SystemClock.uptimeMillis()
+            }
+            false
+        }
         settleUi()
     }
 

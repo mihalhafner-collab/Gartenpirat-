@@ -11,7 +11,6 @@ import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.os.SystemClock
-import android.provider.Settings
 import android.util.Base64
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -26,12 +25,20 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     companion object {
         /** Run provider first, force-stop the target, then run provider_reopen in a new process. */
         @JvmStatic
-        fun run(test: Instrumentation, reopen: Boolean): JSONObject =
-            BackupDocumentProviderNativeTests(test).execute(reopen)
+        fun run(test: Instrumentation, reopen: Boolean, phase: String): JSONObject =
+            BackupDocumentProviderNativeTests(test)
+                .apply {
+                    yes(phase == "run", "PROVIDER_RUN_PHASE")
+                    yes(
+                        Environment.isExternalStorageManager(),
+                        "PROVIDER_EXTERNAL_PERMISSION_READY",
+                    )
+                }
+                .execute(reopen)
 
         @JvmStatic
-        fun runMedia(test: Instrumentation, reopen: Boolean): JSONObject =
-            BackupDocumentProviderNativeTests(test).mediaProviderProof(reopen)
+        fun runMedia(test: Instrumentation, reopen: Boolean, phase: String): JSONObject =
+            BackupDocumentProviderNativeTests(test).mediaPhase(reopen, phase)
 
         // AndroidX ProfileInstaller 1.4.1 writes these two package-bound cache
         // records after startup. They contain no application or fixture data.
@@ -161,59 +168,98 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun uri(id: String): Uri = SyntheticBackupDocumentsProvider.document(id)
 
-    /** Real user-selected ZIP in public Documents, with actual special-access Settings UI. */
-    @Suppress("DEPRECATION") // The deliberate public Documents fixture is outside app directories.
-    private fun mediaProviderProof(reopen: Boolean): JSONObject {
+    private fun mediaPhase(reopen: Boolean, phase: String): JSONObject {
+        requireMediaFixture()
+        return when (phase) {
+            "setup_refusal",
+            "setup_grant" -> permissionSetupPhase(phase)
+            "cleanup" -> {
+                yes(Environment.isExternalStorageManager(), "MEDIA_EXTERNAL_CLEANUP_PERMISSION")
+                cleanupOwnedMediaFixture()
+                partialMediaReport(phase, "restore_original")
+            }
+            else -> mediaProviderProof(reopen, phase)
+        }
+    }
+
+    private fun requireMediaFixture() {
         yes(test.context.packageName == "at.hausgarten.service.test", "MEDIA_TEST_PACKAGE")
         yes(context.packageName == "at.hausgarten.service", "MEDIA_TARGET_PACKAGE")
         yes(
             shell("getprop ro.kernel.qemu") == "1" && android.os.Build.VERSION.SDK_INT == 35,
             "MEDIA_DISPOSABLE_EMULATOR_ONLY",
         )
+    }
+
+    /** OS permission transitions occur outside the instrumentation process, after handoff. */
+    @Suppress("DEPRECATION") // This is a deliberate public Documents fixture.
+    private fun mediaProviderProof(reopen: Boolean, phase: String): JSONObject {
+        yes(
+            if (reopen) phase == "run" else phase in listOf("seed", "revoked", "continue"),
+            "MEDIA_ALLOWED_PHASE",
+        )
+        val seed = phase == "seed"
+        val revoked = phase == "revoked"
+        yes(
+            Environment.isExternalStorageManager() != revoked,
+            "MEDIA_EXTERNAL_PERMISSION_MATCHES_PHASE",
+        )
         val documents =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         val savedState = File(context.noBackupFilesDir, "qa-real-media-backup.json")
-        val saved = if (reopen) JSONObject(savedState.readText()) else JSONObject()
-        val originalAllFilesAccess =
-            if (reopen) saved.getBoolean("original_all_files_access")
-            else Environment.isExternalStorageManager()
-        val token =
-            if (reopen) saved.getString("token")
-            else java.util.UUID.randomUUID().toString().replace("-", "")
-        yes(token.matches(Regex("[a-f0-9]{32}")), "MEDIA_OWN_TOKEN")
-        if (reopen)
+        val setupFile = File(context.noBackupFilesDir, "qa-backup-permission-setup.json")
+        val saved = if (seed) JSONObject() else JSONObject(savedState.readText())
+        val setup = if (seed) JSONObject(setupFile.readText()) else JSONObject()
+        if (seed) {
+            yes(!savedState.exists(), "MEDIA_NEW_TEST_MARKER")
+            yes(setup.getString("stage") == "setup_grant_opened", "MEDIA_SETUP_GRANT_HANDOFF")
+            checks += setup.getInt("checks")
+        } else {
             yes(
                 saved.getString("fixture") == "synthetic-public-documents-backup-v1",
                 "MEDIA_REOPEN_MARKER",
             )
-        else {
-            yes(!savedState.exists(), "MEDIA_NEW_TEST_MARKER")
-            yes(
-                !context.getDatabasePath("haus-garten-mobile.db").exists(),
-                "MEDIA_FRESH_CREDENTIAL_FIXTURE",
-            )
+            val expected = if (reopen) "ready" else if (revoked) "seeded" else "revoked_checked"
+            yes(saved.getString("stage") == expected, "MEDIA_PRECEDING_PHASE_REQUIRED")
+            checks += saved.getInt("checks")
+            if (!reopen)
+                yes(saved.getInt("phase_pid") != Process.myPid(), "MEDIA_PERMISSION_NEW_PROCESS")
         }
+        val token =
+            if (seed) java.util.UUID.randomUUID().toString().replace("-", "")
+            else saved.getString("token")
+        yes(token.matches(Regex("[a-f0-9]{32}")), "MEDIA_OWN_TOKEN")
         val directory = File(documents, "qa-backup-$token")
         val filename = "QA-Eisbaer-$token.zip"
         val archive = File(directory, filename)
         var completed = false
-        var ownsDirectory = false
-        var target: Uri? = if (reopen) Uri.parse(saved.getString("uri")) else null
+        var target: Uri? = if (seed) null else Uri.parse(saved.getString("uri"))
+        if (seed) {
+            saved
+                .put("fixture", "synthetic-public-documents-backup-v1")
+                .put("token", token)
+                .put("stage", "preparing")
+                .put("directory_created", false)
+            savedState.writeText(saved.toString())
+        }
         try {
-            if (reopen) setAllFilesAccess(true) else backupPermissionSetup()
-            yes(Environment.isExternalStorageManager(), "MEDIA_EFFECTIVE_ALL_FILES_ACCESS")
-            yes(
-                documents.isDirectory && documents.canonicalPath.endsWith("/Documents"),
-                "MEDIA_PUBLIC_DOCUMENTS_DIRECTORY",
-            )
-            if (!reopen) yes(!directory.exists() && directory.mkdir(), "MEDIA_NEW_OWNED_FOLDER")
-            ownsDirectory = true
-            yes(
-                directory.isDirectory &&
-                    directory.canonicalFile.parentFile == documents.canonicalFile &&
-                    !directory.canonicalPath.contains("/Android/"),
-                "MEDIA_EXACT_PUBLIC_OWNED_FOLDER",
-            )
+            if (!revoked) {
+                yes(
+                    documents.isDirectory && documents.canonicalPath.endsWith("/Documents"),
+                    "MEDIA_PUBLIC_DOCUMENTS_DIRECTORY",
+                )
+                if (seed) {
+                    yes(!directory.exists() && directory.mkdir(), "MEDIA_NEW_OWNED_FOLDER")
+                    saved.put("directory_created", true)
+                    savedState.writeText(saved.toString())
+                }
+                yes(
+                    directory.isDirectory &&
+                        directory.canonicalFile.parentFile == documents.canonicalFile &&
+                        !directory.canonicalPath.contains("/Android/"),
+                    "MEDIA_EXACT_PUBLIC_OWNED_FOLDER",
+                )
+            }
             PixelLocalStore(context).use { store ->
                 val tools =
                     PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
@@ -322,7 +368,15 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         "get_file_metadata",
                         JSONObject().put("resource_type", "photo").put("resource_id", id),
                     )
-                if (!reopen) {
+                if (seed) {
+                    yes(
+                        backupOwnerState() == setup.getString("backup_owner_hash") &&
+                            PixelBackupService(context, store)
+                                .targetSelection()
+                                .optString("uri")
+                                .isEmpty(),
+                        "MEDIA_PERMISSION_GRANT_RETURN_DID_NOT_AUTOSAVE",
+                    )
                     val initial = PixelMcpReadTools.effective(store.getState())
                     for (name in
                         listOf("customers", "worklogs", "photos", "invoices", "offers")) yes(
@@ -387,6 +441,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     val selected =
                         Uri.parse(first.getJSONObject("destination").getString("treeUri"))
                     target = selected
+                    saved.put("uri", selected.toString())
+                    savedState.writeText(saved.toString())
                     yes(
                         selected.authority == "com.android.externalstorage.documents" &&
                             android.provider.DocumentsContract.getDocumentId(selected) ==
@@ -400,7 +456,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         "MEDIA_REAL_PERSISTED_READ_WRITE_GRANT",
                     )
                     yes(archive.isFile, "MEDIA_ACTUAL_SCOPED_STORAGE_FILE")
-                    var oldHash = BackupArchive.sha256(archive)
+                    val oldHash = BackupArchive.sha256(archive)
                     yes(
                         oldHash == first.getJSONObject("archive").getString("sha256"),
                         "MEDIA_INITIAL_PROVIDER_READBACK_MATCH",
@@ -437,8 +493,32 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         protectedState() == protectedBeforeDenial,
                         "MEDIA_UNSELECTED_DENIAL_PRESERVES_TARGET_SESSION_AND_DRAFT",
                     )
-                    val oldSize = archive.length()
-                    setAllFilesAccess(false)
+                    saved
+                        .put("stage", "seeded")
+                        .put("phase_pid", Process.myPid())
+                        .put("customer", customer)
+                        .put("retained_work", retainedWork)
+                        .put("removed_work", removedWork)
+                        .put("retained_photo", retainedPhoto)
+                        .put("retained_photo_sha256", retainedPhotoSha)
+                        .put("archive_sha256", oldHash)
+                        .put("archive_size", archive.length())
+                        .put("source_hash", originalHash())
+                        .put("protected_state", protectedBeforeDenial)
+                        .put("checks", checks)
+                    savedState.writeText(saved.toString())
+                    completed = true
+                    return partialMediaReport(phase, "revoke_false")
+                } else if (revoked) {
+                    val selected = requireNotNull(target)
+                    val oldHash = saved.getString("archive_sha256")
+                    val oldSize = saved.getLong("archive_size")
+                    val protectedBeforeDenial = saved.getString("protected_state")
+                    yes(
+                        protectedState() == protectedBeforeDenial &&
+                            originalHash() == saved.getString("source_hash"),
+                        "MEDIA_REVOKED_NEW_PROCESS_PRESERVES_FIXTURE",
+                    )
                     yes(!Environment.isExternalStorageManager(), "MEDIA_ALL_FILES_ACCESS_REVOKED")
                     rejectsCode("BACKUP_ALL_FILES_ACCESS_REQUIRED") {
                         PixelBackupService(context, store).save(
@@ -468,8 +548,29 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         protectedState() == protectedBeforeDenial,
                         "MEDIA_PERMISSION_DENIAL_PRESERVES_TARGET_SESSION_AND_DRAFT",
                     )
-                    setAllFilesAccess(true)
-                    mediaAtomicPathDiagnostics(selected)
+                    saved
+                        .put("stage", "revoked_checked")
+                        .put("phase_pid", Process.myPid())
+                        .put("checks", checks)
+                    savedState.writeText(saved.toString())
+                    completed = true
+                    return partialMediaReport(phase, "grant_true")
+                } else if (!reopen) {
+                    val selected = requireNotNull(target)
+                    val customer = saved.getString("customer")
+                    val retainedWork = saved.getString("retained_work")
+                    val removedWork = saved.getString("removed_work")
+                    val retainedPhoto = saved.getString("retained_photo")
+                    val retainedPhotoSha = saved.getString("retained_photo_sha256")
+                    val oldSize = saved.getLong("archive_size")
+                    var oldHash = saved.getString("archive_sha256")
+                    val protectedBeforeDenial = saved.getString("protected_state")
+                    yes(
+                        protectedState() == protectedBeforeDenial &&
+                            originalHash() == saved.getString("source_hash"),
+                        "MEDIA_REGRANTED_NEW_PROCESS_PRESERVES_FIXTURE",
+                    )
+                    mediaAtomicPathDiagnostics(selected, archive)
                     context.contentResolver.releasePersistableUriPermission(
                         selected,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION or
@@ -627,7 +728,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                             unboundStatus.getString("last_local_verified_at").isEmpty(),
                         "MEDIA_NEW_EPOCH_DOES_NOT_INHERIT_OLD_TARGET_OR_PROOF",
                     )
-                    mediaAtomicPathDiagnostics(selected)
+                    mediaAtomicPathDiagnostics(selected, archive)
                     mediaExistingTargetRebind(selected, filename, archive) { protectedState() }
                     val firstRebound = JSONObject(store.ownerValue("pixel_backup_success", ""))
                     yes(
@@ -733,7 +834,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     savedState.writeText(
                         JSONObject()
                             .put("fixture", "synthetic-public-documents-backup-v1")
-                            .put("original_all_files_access", originalAllFilesAccess)
+                            .put("stage", "ready")
+                            .put("directory_created", true)
                             .put("token", token)
                             .put("uri", target.toString())
                             .put("request_id", rebound.getString("requestId"))
@@ -749,6 +851,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                                 "added_photo_sha256",
                                 photoMetadata(addedPhoto).getString("sha256"),
                             )
+                            .put("checks", checks)
                             .toString()
                     )
                 } else {
@@ -794,6 +897,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 )
             completed = true
             return JSONObject()
+                .put("phase_complete", true)
+                .put("phase", phase)
                 .put("checks", checks)
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
@@ -817,7 +922,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     "existing_target_ui_screenshot",
                     if (reopen) "" else "qa-native-backup-restore-existing-target.png",
                 )
-                .put("permission_state_restored", reopen)
+                .put("permission_state_restored", false)
+                .put("permission_cleanup_external", true)
                 .put("uninstall_tested", false)
                 .put("new_process_readback", reopen)
                 .put("isolated_restore", reopen)
@@ -839,171 +945,177 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 )
                 .put("physical_pixel_tested", false)
         } finally {
-            // Phase one keeps only its own fixture until the following new-process test.
-            if (reopen || !completed) {
-                try {
-                    setAllFilesAccess(true)
-                    target?.let { selected ->
-                        if (
-                            selected.authority == "com.android.externalstorage.documents" &&
-                                android.provider.DocumentsContract.getDocumentId(selected)
-                                    .substringAfterLast('/') == filename &&
-                                context.contentResolver.persistedUriPermissions.any {
-                                    it.uri == selected &&
-                                        it.isReadPermission &&
-                                        it.isWritePermission
-                                }
-                        )
-                            yes(
-                                android.provider.DocumentsContract.deleteDocument(
-                                    context.contentResolver,
-                                    selected,
-                                ),
-                                "MEDIA_OWN_DOCUMENT_REMOVED",
-                            )
-                        try {
-                            context.contentResolver.releasePersistableUriPermission(
-                                selected,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                            )
-                        } catch (_: SecurityException) {
-                            /* A failed picker may not have persisted a grant. */
-                        }
-                    }
-                    if (
-                        ownsDirectory &&
-                            directory.canonicalFile.parentFile == documents.canonicalFile &&
-                            directory.name == "qa-backup-$token"
-                    )
-                        yes(directory.deleteRecursively(), "MEDIA_OWN_TEST_FOLDER_REMOVED")
-                    if (savedState.isFile) yes(savedState.delete(), "MEDIA_OWN_TEST_MARKER_REMOVED")
-                } finally {
-                    setAllFilesAccess(originalAllFilesAccess)
-                }
-            }
+            // External cleanup first grants access outside this process if an earlier phase failed.
+            if ((reopen || !completed) && Environment.isExternalStorageManager())
+                cleanupOwnedMediaFixture()
         }
     }
 
-    /** Exercise the product handoff, including refusal and no automatic save on return. */
-    private fun backupPermissionSetup() {
-        setAllFilesAccess(false)
+    private fun partialMediaReport(phase: String, nextAction: String): JSONObject =
+        JSONObject()
+            .put("phase", phase)
+            .put("phase_complete", false)
+            .put("next_permission_action", nextAction)
+            .put("checks", checks)
+            .put("synthetic_only", true)
+            .put("productive_data_read", false)
+            .put("all_files_access", Environment.isExternalStorageManager())
+            .put("permission_cleanup_external", true)
+            .put("permission_state_restored", false)
+
+    private fun backupOwnerState(): String =
+        PixelLocalStore(context).use { store ->
+            PixelMcpWriteTools.hash(
+                JSONObject()
+                    .put("last", store.ownerValue("pixel_backup_last", ""))
+                    .put("success", store.ownerValue("pixel_backup_success", ""))
+            )
+        }
+
+    /** Opening Settings is observed here; only the external driver may change its app-op. */
+    private fun permissionSetupPhase(phase: String): JSONObject {
+        yes(!Environment.isExternalStorageManager(), "MEDIA_SETUP_REQUIRES_DENIED_PERMISSION")
+        val stateFile = File(context.noBackupFilesDir, "qa-backup-permission-setup.json")
+        val state = if (phase == "setup_grant") JSONObject(stateFile.readText()) else JSONObject()
+        if (phase == "setup_refusal") {
+            yes(
+                !stateFile.exists() &&
+                    !File(context.noBackupFilesDir, "qa-real-media-backup.json").exists() &&
+                    !context.getDatabasePath("haus-garten-mobile.db").exists(),
+                "MEDIA_FRESH_CREDENTIAL_FIXTURE",
+            )
+        } else {
+            yes(
+                state.getString("stage") == "setup_refusal_opened",
+                "MEDIA_REFUSAL_HANDOFF_REQUIRED",
+            )
+            checks += state.getInt("checks")
+            yes(
+                backupOwnerState() == state.getString("backup_owner_hash"),
+                "MEDIA_PERMISSION_REFUSAL_DID_NOT_AUTOSAVE",
+            )
+        }
         var activity: Activity? = null
         try {
+            automation.serviceInfo =
+                automation.serviceInfo.apply {
+                    flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                }
+            shell("wm dismiss-keyguard")
             activity =
                 test.startActivitySync(
                     Intent(context, FullBackupActivity::class.java)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
             waitUntil("ACCESS_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
-            val before =
-                PixelLocalStore(context).use { store ->
-                    listOf("pixel_backup_last", "pixel_backup_success").map {
-                        store.ownerValue(it, "")
-                    }
-                }
+            val before = backupOwnerState()
+            PixelLocalStore(context).use { store ->
+                yes(
+                    PixelBackupService(context, store).targetSelection().optString("uri").isEmpty(),
+                    "MEDIA_SETUP_HAS_NO_SELECTED_TARGET",
+                )
+            }
             click("Jetzt sichern")
             waitUntil("ACCESS_REQUIRED_BEFORE_PICKER") {
                 node("Dateizugriff erforderlich") != null && !pickerVisible()
             }
-            setAllFilesAccess(false) { click("Dateizugriff einrichten") }
-            waitUntil("ACCESS_SETTINGS_REFUSED") {
-                node("Dateizugriff nicht freigegeben") != null && !pickerVisible()
-            }
-            yes(!Environment.isExternalStorageManager(), "MEDIA_SETTINGS_REFUSAL_ENFORCED")
-            setAllFilesAccess(true) { click("Dateizugriff einrichten") }
-            waitUntil("ACCESS_SETTINGS_GRANTED_WITHOUT_SAVE") {
-                node("Dateizugriff eingerichtet") != null &&
-                    node("Jetzt sichern") != null &&
-                    !pickerVisible()
-            }
-            val state = Bundle()
+            val savedActivity = Bundle()
             test.runOnMainSync {
-                test.callActivityOnSaveInstanceState(requireNotNull(activity), state)
+                test.callActivityOnSaveInstanceState(requireNotNull(activity), savedActivity)
             }
             yes(
-                state.getString("target", "").isEmpty() && state.getString("request", "").isEmpty(),
+                savedActivity.getString("target", "").isEmpty() &&
+                    savedActivity.getString("request", "").isEmpty() &&
+                    backupOwnerState() == before,
                 "MEDIA_PERMISSION_RETURN_DOES_NOT_CHOOSE_OR_SAVE",
             )
-            PixelLocalStore(context).use { store ->
-                yes(
-                    listOf("pixel_backup_last", "pixel_backup_success").map {
-                        store.ownerValue(it, "")
-                    } == before,
-                    "MEDIA_PERMISSION_HANDOFF_PRESERVES_BACKUP_STATE",
-                )
+            click("Dateizugriff einrichten")
+            waitUntil("MEDIA_REAL_PERMISSION_SETTINGS_VISIBLE") {
+                automation.rootInActiveWindow?.packageName?.toString() == "com.android.settings" &&
+                    find(automation.rootInActiveWindow) {
+                        it.isVisibleToUser && it.isEnabled && it.isCheckable
+                    } != null
             }
+            yes(!Environment.isExternalStorageManager(), "MEDIA_SETTINGS_OPEN_DOES_NOT_GRANT")
+            state
+                .put("stage", phase + "_opened")
+                .put("backup_owner_hash", before)
+                .put("checks", checks)
+            stateFile.writeText(state.toString())
+            return partialMediaReport(
+                phase,
+                if (phase == "setup_refusal") "back_without_change" else "grant_true",
+            )
         } finally {
+            // The driver opens the targeted Settings page independently after the report.
             activity?.let { value -> test.runOnMainSync { value.finish() } }
         }
     }
 
-    /** Change only this disposable app's real Android special-access switch, never an app-op. */
-    private fun setAllFilesAccess(enabled: Boolean, launch: (() -> Unit)? = null) {
-        yes(
-            test.context.packageName == "at.hausgarten.service.test" &&
-                context.packageName == "at.hausgarten.service" &&
-                android.os.Build.VERSION.SDK_INT == 35 &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "ALL_FILES_SETTINGS_DISPOSABLE_EMULATOR_ONLY",
-        )
-        automation.serviceInfo =
-            automation.serviceInfo.apply {
-                flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-            }
-        shell("wm dismiss-keyguard")
-        if (launch != null) launch()
-        else
-            test.runOnMainSync {
-                context.startActivity(
-                    Intent(
-                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                            Uri.parse("package:${context.packageName}"),
-                        )
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    @Suppress("DEPRECATION") // Only the previously recorded public Documents QA folder is removed.
+    private fun cleanupOwnedMediaFixture() {
+        yes(Environment.isExternalStorageManager(), "MEDIA_CLEANUP_PERMISSION_ALREADY_GRANTED")
+        val savedState = File(context.noBackupFilesDir, "qa-real-media-backup.json")
+        if (savedState.exists()) {
+            val saved = JSONObject(savedState.readText())
+            val token = saved.getString("token")
+            yes(
+                saved.getString("fixture") == "synthetic-public-documents-backup-v1" &&
+                    token.matches(Regex("[a-f0-9]{32}")),
+                "MEDIA_CLEANUP_OWN_MARKER",
+            )
+            val documents =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            val directory = File(documents, "qa-backup-$token")
+            val filename = "QA-Eisbaer-$token.zip"
+            val selected = saved.optString("uri").takeIf { it.isNotEmpty() }?.let(Uri::parse)
+            if (selected != null) {
+                val ownDocument =
+                    selected.authority == "com.android.externalstorage.documents" &&
+                        android.provider.DocumentsContract.getDocumentId(selected) ==
+                            "primary:Documents/${directory.name}/$filename"
+                if (
+                    ownDocument &&
+                        File(directory, filename).exists() &&
+                        context.contentResolver.persistedUriPermissions.any {
+                            it.uri == selected && it.isReadPermission && it.isWritePermission
+                        }
                 )
-            }
-        try {
-            waitUntil("ALL_FILES_SETTINGS_PAGE") {
-                automation.rootInActiveWindow?.packageName?.toString() == "com.android.settings"
-            }
-            val root = requireNotNull(automation.rootInActiveWindow)
-            var toggle: AccessibilityNodeInfo? = null
-            waitUntil("ALL_FILES_SETTINGS_SWITCH") {
-                toggle =
-                    find(automation.rootInActiveWindow) {
-                        it.isVisibleToUser && it.isEnabled && it.isCheckable
-                    }
-                toggle != null
-            }
-            if (Environment.isExternalStorageManager() != enabled) {
-                val switch = requireNotNull(toggle)
-                val action = if (switch.isClickable) switch else actionableAncestor(switch, root)
-                yes(
-                    action?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true,
-                    "ALL_FILES_REAL_SETTINGS_TOGGLE",
-                )
-                waitUntil("ALL_FILES_EFFECTIVE_PERMISSION") {
-                    Environment.isExternalStorageManager() == enabled
+                    yes(
+                        android.provider.DocumentsContract.deleteDocument(
+                            context.contentResolver,
+                            selected,
+                        ),
+                        "MEDIA_OWN_DOCUMENT_REMOVED",
+                    )
+                try {
+                    context.contentResolver.releasePersistableUriPermission(
+                        selected,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                    )
+                } catch (_: SecurityException) {
+                    // A deliberately revoked or failed picker grant may already be absent.
                 }
             }
-        } finally {
-            if (automation.rootInActiveWindow?.packageName?.toString() == "com.android.settings")
-                back()
+            if (saved.optBoolean("directory_created")) {
+                yes(
+                    directory.canonicalFile.parentFile == documents.canonicalFile &&
+                        !java.nio.file.Files.isSymbolicLink(directory.toPath()),
+                    "MEDIA_CLEANUP_EXACT_OWN_FOLDER",
+                )
+                yes(directory.deleteRecursively(), "MEDIA_OWN_TEST_FOLDER_REMOVED")
+            }
+            yes(savedState.delete(), "MEDIA_OWN_TEST_MARKER_REMOVED")
         }
-        yes(
-            Environment.isExternalStorageManager() == enabled,
-            "ALL_FILES_SETTINGS_RESULT_$enabled",
-        )
-        waitUntil("ALL_FILES_SETTINGS_RETURNED") {
-            automation.rootInActiveWindow?.packageName?.toString() != "com.android.settings"
-        }
+        val setup = File(context.noBackupFilesDir, "qa-backup-permission-setup.json")
+        if (setup.exists()) yes(setup.delete(), "MEDIA_OWN_SETUP_MARKER_REMOVED")
     }
 
     /**
      * Synthetic diagnostics survive a later assertion or adapter failure without exposing a URI.
      */
-    private fun mediaAtomicPathDiagnostics(target: Uri) {
+    private fun mediaAtomicPathDiagnostics(target: Uri, archive: File) {
         val report = JSONObject().put("all_files_access", Environment.isExternalStorageManager())
         try {
             context.assets.openXmlResourceParser("AndroidManifest.xml").use { parser ->
@@ -1032,43 +1144,70 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             report.put("raw_optin", JSONObject.NULL)
             report.put("raw_optin_read_error", failure.javaClass.simpleName)
         }
-        try {
-            context.contentResolver.openFileDescriptor(target, "r").use { descriptor ->
-                val fd = requireNotNull(descriptor)
-                val provider = android.system.Os.fstat(fd.fileDescriptor)
-                report.put(
-                    "provider_fstat",
-                    JSONObject().put("st_dev", provider.st_dev).put("st_ino", provider.st_ino),
-                )
-                val path = android.system.Os.readlink("/proc/self/fd/${fd.fd}")
-                val file = File(path)
-                val local = android.system.Os.stat(path)
-                report.put(
-                    "rawpath_stat",
-                    JSONObject().put("st_dev", local.st_dev).put("st_ino", local.st_ino),
-                )
-                report.put(
-                    "path_class",
-                    if (
-                        Regex("/Documents/qa-backup-[a-f0-9]{32}/QA-Eisbaer-[a-f0-9]{32}\\.zip$")
-                            .containsMatchIn(path)
-                    )
-                        "public_documents_qa"
-                    else "unexpected",
-                )
-                report.put("canonical_equals_absolute", file.canonicalFile == file.absoluteFile)
-                report.put(
-                    "same_device_and_inode",
-                    provider.st_dev == local.st_dev && provider.st_ino == local.st_ino,
-                )
-            }
-        } catch (failure: Exception) {
-            report.put("stat_read_error", failure.javaClass.simpleName)
-        } finally {
-            test.sendStatus(
-                0,
-                Bundle().apply { putString("qa_backup_atomic_path", report.toString()) },
+        for (mode in listOf("r", "rw")) {
+            val current = JSONObject(report.toString()).put("mode", mode)
+            val beforeHash = BackupArchive.sha256(archive)
+            val beforeSize = archive.length()
+            current.put(
+                "before_open",
+                JSONObject().put("sha256", beforeHash).put("size", beforeSize),
             )
+            var descriptorOpened = false
+            try {
+                context.contentResolver.openFileDescriptor(target, mode).use { descriptor ->
+                    val fd = requireNotNull(descriptor)
+                    descriptorOpened = true
+                    val provider = android.system.Os.fstat(fd.fileDescriptor)
+                    current.put(
+                        "provider_fstat",
+                        JSONObject().put("st_dev", provider.st_dev).put("st_ino", provider.st_ino),
+                    )
+                    val path = android.system.Os.readlink("/proc/self/fd/${fd.fd}")
+                    val file = File(path)
+                    current.put(
+                        "path_class",
+                        if (
+                            Regex(
+                                    "/Documents/qa-backup-[a-f0-9]{32}/QA-Eisbaer-[a-f0-9]{32}\\.zip$"
+                                )
+                                .containsMatchIn(path)
+                        )
+                            "public_documents_qa"
+                        else "unexpected",
+                    )
+                    val local = android.system.Os.stat(path)
+                    current.put(
+                        "rawpath_stat",
+                        JSONObject().put("st_dev", local.st_dev).put("st_ino", local.st_ino),
+                    )
+                    current.put(
+                        "canonical_equals_absolute",
+                        file.canonicalFile == file.absoluteFile,
+                    )
+                    current.put(
+                        "same_device_and_inode",
+                        provider.st_dev == local.st_dev && provider.st_ino == local.st_ino,
+                    )
+                }
+            } catch (failure: Exception) {
+                current.put("stat_read_error", failure.javaClass.simpleName)
+            } finally {
+                val afterHash = BackupArchive.sha256(archive)
+                val afterSize = archive.length()
+                val unchanged = beforeHash == afterHash && beforeSize == afterSize
+                current.put(
+                    "after_close",
+                    JSONObject().put("sha256", afterHash).put("size", afterSize),
+                )
+                current.put("no_truncate_verified", unchanged)
+                current.put("descriptor_opened", descriptorOpened)
+                test.sendStatus(
+                    0,
+                    Bundle().apply { putString("qa_backup_atomic_path", current.toString()) },
+                )
+                if (mode == "rw") yes(descriptorOpened, "MEDIA_RW_IDENTITY_DESCRIPTOR_OPENED")
+                yes(unchanged, "MEDIA_IDENTITY_OPEN_${mode}_DOES_NOT_TRUNCATE")
+            }
         }
     }
 
@@ -1871,6 +2010,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun report(reopened: Boolean): JSONObject =
         JSONObject()
+            .put("phase_complete", true)
+            .put("phase", "run")
             .put("checks", checks)
             .put("synthetic_only", true)
             .put("productive_data_read", false)
@@ -1881,6 +2022,9 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             .put("picker_activity_recreation_tested", !reopened)
             .put("new_process_readback", reopened)
             .put("provider_process_restart_tested", reopened)
+            .put("all_files_access", Environment.isExternalStorageManager())
+            .put("permission_cleanup_external", true)
+            .put("permission_state_restored", false)
             .put("drive_account_tested", false)
 
     private fun waitUntil(code: String, timeout: Long = 20000, condition: () -> Boolean) {
@@ -2067,9 +2211,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun pickerChecks(): String {
         var activity: Activity? = null
-        val originalAllFilesAccess = Environment.isExternalStorageManager()
         try {
-            setAllFilesAccess(true)
+            yes(Environment.isExternalStorageManager(), "PROVIDER_EXTERNAL_PERMISSION_READY")
             automation.serviceInfo =
                 automation.serviceInfo.apply {
                     flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
@@ -2197,7 +2340,6 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             return id
         } finally {
             activity?.let { value -> test.runOnMainSync { value.finish() } }
-            setAllFilesAccess(originalAllFilesAccess)
         }
     }
 }
