@@ -247,12 +247,16 @@ jobs:
 
           def display_setup():
               guard()
-              values = [('system', 'screen_off_timeout'), ('global', 'stay_on_while_plugged_in')]
+              values = [('system', 'screen_off_timeout'), ('global', 'stay_on_while_plugged_in'),
+                        ('global', 'window_animation_scale'), ('global', 'transition_animation_scale'),
+                        ('global', 'animator_duration_scale')]
               if not DISPLAY.exists():
                   DISPLAY.write_text(json.dumps([[scope, key, adb('shell', 'settings', 'get', scope, key)]
                                                  for scope, key in values]))
               adb('shell', 'settings', 'put', 'system', 'screen_off_timeout', '1800000')
               adb('shell', 'settings', 'put', 'global', 'stay_on_while_plugged_in', '7')
+              for key in ('window_animation_scale', 'transition_animation_scale', 'animator_duration_scale'):
+                  adb('shell', 'settings', 'put', 'global', key, '0')
               wake()
 
 
@@ -298,11 +302,18 @@ jobs:
                   if isinstance(text, bytes):
                       text = text.decode('utf-8', errors='replace')
                   text += '\nQA_PROVIDER_HANDOFF_FAILURE: instrumentation timed out\n'
+                  try:
+                      pid = adb('shell', 'pidof', PACKAGE, timeout=10).strip()
+                      if re.fullmatch(r'\d+', pid):
+                          (OUT / (label + '-timeout-stacks.txt')).write_text(
+                              adb('shell', 'debuggerd', '-b', pid, timeout=15))
+                  except Exception as diagnostic:
+                      print('Timeout stack diagnostic:', type(diagnostic).__name__, flush=True)
                   file.write_text(text)
                   raise RuntimeError(suite + '/' + phase + ': instrumentation timed out') from error
               finally:
                   try:
-                      (OUT / (label + '-logcat.txt')).write_text(adb('logcat', '-d', '-t', '1500', timeout=15))
+                      (OUT / (label + '-instrumentation-logcat.txt')).write_text(adb('logcat', '-d', timeout=15))
                   except Exception as error:
                       print('Diagnostic collection:', type(error).__name__, flush=True)
               file.write_text(text)
@@ -392,17 +403,18 @@ jobs:
                                'document_provider_media', 'document_provider_media_reopen')
               OUT.mkdir(exist_ok=True)
               media = suite.startswith('document_provider_media')
-              initial = instrument(suite, 'permission_probe', suite + '.permission-initial')
               state_file = TEMP / ('qa-backup-access-media.json' if media else 'qa-backup-access-' + suite + '.json')
-              if suite == 'document_provider_media_reopen':
-                  assert state_file.exists(), 'Previous media permission/fixture handoff is missing'
-                  original = json.loads(state_file.read_text())['original']
-              else:
-                  original = initial['all_files_access']
-                  state_file.write_text(json.dumps({'suite': suite, 'original': original, 'media': media}))
+              original = None
               success = False
               failure = None
               try:
+                  initial = instrument(suite, 'permission_probe', suite + '.permission-initial')
+                  if suite == 'document_provider_media_reopen':
+                      assert state_file.exists(), 'Previous media permission/fixture handoff is missing'
+                      original = json.loads(state_file.read_text())['original']
+                  else:
+                      original = initial['all_files_access']
+                      state_file.write_text(json.dumps({'suite': suite, 'original': original, 'media': media}))
                   if suite == 'document_provider_media':
                       settings_action(False)
                       instrument(suite, 'permission_probe', suite + '.setup-environment', expected=False)
@@ -419,7 +431,7 @@ jobs:
               except Exception as error:
                   failure = str(error) or type(error).__name__
               finally:
-                  if suite != 'document_provider_media' or not success:
+                  if original is not None and (suite != 'document_provider_media' or not success):
                       try:
                           cleanup(suite, original, media)
                           state_file.unlink(missing_ok=True)
@@ -725,7 +737,7 @@ jobs:
               assert result['phase_complete'] is True and result['permission_cleanup_external'] is True, result
               for proof in ('real_external_storage_provider','actual_saf_grant','same_target_atomic_replace','public_documents_target','all_files_access','permission_ui_tested'):
                   assert result[proof] is True, result
-              for proof in ('unselected_target_denied','permission_revocation_preserves_zip','permission_denial_preserves_target_session_and_draft','persisted_grant_reselection','existing_target_rebinding','existing_target_cancel_preserves_state','stale_existing_target_approval_rejected','approved_request_replay_readback','long_zip_comment_fully_hashed','pending_approved_request_regrant_same_id'):
+              for proof in ('logical_change_comparison','unselected_target_denied','permission_revocation_preserves_zip','permission_denial_preserves_target_session_and_draft','persisted_grant_reselection','existing_target_rebinding','existing_target_cancel_preserves_state','stale_existing_target_approval_rejected','approved_request_replay_readback','long_zip_comment_fully_hashed','pending_approved_request_regrant_same_id'):
                   assert result[proof] is (not sys.argv[1].endswith('_reopen')), result
               assert result['existing_target_ui_screenshot']==('' if sys.argv[1].endswith('_reopen') else 'qa-native-backup-restore-existing-target.png'), result
               assert result['permission_state_restored'] is False, result

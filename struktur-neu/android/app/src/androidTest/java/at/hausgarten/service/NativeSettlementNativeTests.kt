@@ -34,6 +34,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                     .put(
                         JSONObject()
                             .put("id", "qa_settlement_recipient")
+                            .put("updated_at", "2026-11-02T08:00:00Z")
                             .put("name", "[TEST] Erfundene Empfängerin Änne")
                             .put("street", "Erfundener Gartenweg 1")
                             .put("postal_code", "1000")
@@ -75,6 +76,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                         "Synthetischer nicht eingetragener Einzelunternehmer",
                     )
                     .put("tax_mode", "small_business")
+                    .put("tax_exemption_text", SettlementRules.EXEMPTION)
                     .put("invoice_issuer_confirmed", "true"),
             )
             return state

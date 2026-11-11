@@ -29,6 +29,7 @@ private fun JSONArray?.objects(): List<JSONObject> =
 private fun accountingMoney(value: Long) = financeMoney(OfferMoney.decimal(value))
 
 /** Invoices, cohort payments and current open work retain distinct meanings. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun NativeAccounting(controller: NativeAppController) {
     var year by rememberSaveable { mutableStateOf(false) }
@@ -86,30 +87,31 @@ internal fun NativeAccounting(controller: NativeAppController) {
         }
         if (report == null) LinearProgressIndicator(Modifier.fillMaxWidth())
         report?.let { summary ->
-            val large = androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.3f
             @Composable
             fun total(label: String, key: String) {
-                Column {
+                Column(Modifier.semantics { testTag = "accounting-total:$key" }) {
+                    Text(
+                        label,
+                        modifier = Modifier.semantics { testTag = "accounting-total-label:$key" },
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                     Text(
                         accountingMoney(summary.optLong(key)),
+                        modifier = Modifier.semantics { testTag = "accounting-total-value:$key" },
                         color = NativeMoney,
                         fontWeight = FontWeight.Bold,
                     )
-                    Text(label, style = MaterialTheme.typography.labelSmall)
                 }
             }
-            if (large)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    total("ausgestellt", "issued_minor")
-                    total("bezahlt · diese Belege", "paid_minor")
-                    total("offen · diese Belege", "open_minor")
-                }
-            else
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    total("ausgestellt", "issued_minor")
-                    total("bezahlt · diese Belege", "paid_minor")
-                    total("offen · diese Belege", "open_minor")
-                }
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                total("ausgestellt", "issued_minor")
+                total("bezahlt · diese Belege", "paid_minor")
+                total("offen · diese Belege", "open_minor")
+            }
             HorizontalDivider()
             if (summary.optLong("credit_minor") > 0)
                 NativeInfoRow(

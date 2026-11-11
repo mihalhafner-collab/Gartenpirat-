@@ -89,11 +89,65 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     }
 
     private val context: Context = test.targetContext
-    private val automation = test.uiAutomation
+    private val automation by lazy {
+        step("automation_connect")
+        test.uiAutomation.also { step("automation_ready") }
+    }
     private val marker: File
         get() = File(context.noBackupFilesDir, "qa-provider-fixture.json")
 
     private var checks = 0
+
+    /** Synthetic phase labels localize Binder/lifecycle stalls without exposing target URIs. */
+    private fun step(code: String) {
+        test.sendStatus(0, Bundle().apply { putString("qa_provider_step", code) })
+    }
+
+    private fun onMainBounded(code: String, action: () -> Unit) {
+        val done = java.util.concurrent.CountDownLatch(1)
+        val failure = java.util.concurrent.atomic.AtomicReference<Throwable?>()
+        yes(
+            android.os.Handler(context.mainLooper).post {
+                try {
+                    action()
+                } catch (error: Throwable) {
+                    failure.set(error)
+                } finally {
+                    done.countDown()
+                }
+            },
+            "MAIN_ACTION_POSTED",
+        )
+        if (!done.await(20, java.util.concurrent.TimeUnit.SECONDS))
+            throw AssertionError("QA_PROVIDER_MAIN_TIMEOUT_$code")
+        failure.get()?.let { throw it }
+    }
+
+    /** NEW_TASK alone can reuse a task still topped by Android Settings/DocumentsUI. */
+    private fun startBackupActivity(): Activity {
+        val monitor = test.addMonitor(FullBackupActivity::class.java.name, null, false)
+        try {
+            step("backup_launch_requested")
+            context.startActivity(
+                Intent(context, FullBackupActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            )
+            val activity =
+                monitor.waitForActivityWithTimeout(20000)
+                    ?: throw AssertionError("QA_PICKER_TIMEOUT_BACKUP_ACTIVITY_CREATED")
+            step("backup_activity_created")
+            waitUntil("BACKUP_ACTIVITY_FOCUSED") {
+                !activity.isFinishing &&
+                    !activity.isDestroyed &&
+                    activity.hasWindowFocus() &&
+                    automation.rootInActiveWindow?.packageName?.toString() == context.packageName
+            }
+            step("backup_activity_focused")
+            return activity
+        } finally {
+            test.removeMonitor(monitor)
+        }
+    }
 
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_PROVIDER_$code")
@@ -169,7 +223,9 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     private fun uri(id: String): Uri = SyntheticBackupDocumentsProvider.document(id)
 
     private fun mediaPhase(reopen: Boolean, phase: String): JSONObject {
+        step("media_" + phase + "_fixture_begin")
         requireMediaFixture()
+        step("media_" + phase + "_fixture_ready")
         return when (phase) {
             "setup_refusal",
             "setup_grant" -> permissionSetupPhase(phase)
@@ -641,6 +697,30 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         updated.getBoolean("verified") && BackupArchive.sha256(archive) != oldHash,
                         "MEDIA_SAME_TARGET_ATOMIC_UPDATE",
                     )
+                    val comparison = updated.getJSONObject("logical_comparison")
+                    val compared = comparison.getJSONObject("records").getJSONObject("by_source")
+                    val changedWorks = compared.getJSONObject("worklogs")
+                    val changedPhotos = compared.getJSONObject("photos")
+                    yes(
+                        comparison.getString("mode") == "INCREMENTAL" &&
+                            comparison.getString("basis_archive_sha256") == oldHash &&
+                            changedWorks.getInt("changed") == 1 &&
+                            changedWorks.getInt("deleted") == 1 &&
+                            changedWorks.getInt("added") == 0 &&
+                            changedPhotos.getInt("added") == 1 &&
+                            changedPhotos.getInt("unchanged") == 1,
+                        "MEDIA_LOGICAL_ORIGINAL_CHANGE_DELETE_AND_UNCHANGED_PHOTO",
+                    )
+                    val updatedHash = BackupArchive.sha256(archive)
+                    val updatedInode = android.system.Os.stat(archive.path).st_ino
+                    val replay = PixelBackupService(context, store).save(secondRequest, selected) {}
+                    yes(
+                        PixelMcpWriteTools.hash(replay.getJSONObject("logical_comparison")) ==
+                            PixelMcpWriteTools.hash(comparison) &&
+                            BackupArchive.sha256(archive) == updatedHash &&
+                            android.system.Os.stat(archive.path).st_ino == updatedInode,
+                        "MEDIA_LOGICAL_REPLAY_RETAINS_COMPARISON_WITHOUT_REWRITE",
+                    )
                     val current = JSONObject(store.ownerValue("pixel_backup_success", ""))
                     yes(
                         current.getJSONObject("destination").getString("treeUri") ==
@@ -905,6 +985,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 .put("real_external_storage_provider", true)
                 .put("actual_saf_grant", true)
                 .put("same_target_atomic_replace", true)
+                .put("logical_change_comparison", !reopen)
                 .put("public_documents_target", true)
                 .put("all_files_access", true)
                 .put("permission_ui_tested", true)
@@ -963,17 +1044,22 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             .put("permission_cleanup_external", true)
             .put("permission_state_restored", false)
 
-    private fun backupOwnerState(): String =
-        PixelLocalStore(context).use { store ->
-            PixelMcpWriteTools.hash(
-                JSONObject()
-                    .put("last", store.ownerValue("pixel_backup_last", ""))
-                    .put("success", store.ownerValue("pixel_backup_success", ""))
-            )
-        }
+    private fun backupOwnerState(): String {
+        step("backup_owner_state_begin")
+        return PixelLocalStore(context)
+            .use { store ->
+                PixelMcpWriteTools.hash(
+                    JSONObject()
+                        .put("last", store.ownerValue("pixel_backup_last", ""))
+                        .put("success", store.ownerValue("pixel_backup_success", ""))
+                )
+            }
+            .also { step("backup_owner_state_ready") }
+    }
 
     /** Opening Settings is observed here; only the external driver may change its app-op. */
     private fun permissionSetupPhase(phase: String): JSONObject {
+        step(phase + "_begin")
         yes(!Environment.isExternalStorageManager(), "MEDIA_SETUP_REQUIRES_DENIED_PERMISSION")
         val stateFile = File(context.noBackupFilesDir, "qa-backup-permission-setup.json")
         val state = if (phase == "setup_grant") JSONObject(stateFile.readText()) else JSONObject()
@@ -996,17 +1082,17 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             )
         }
         var activity: Activity? = null
+        var phaseFailure: Throwable? = null
         try {
             automation.serviceInfo =
                 automation.serviceInfo.apply {
-                    flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                    flags =
+                        flags or
+                            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                            AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
                 }
             shell("wm dismiss-keyguard")
-            activity =
-                test.startActivitySync(
-                    Intent(context, FullBackupActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+            activity = startBackupActivity()
             waitUntil("ACCESS_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             val before = backupOwnerState()
             PixelLocalStore(context).use { store ->
@@ -1020,9 +1106,11 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 node("Dateizugriff erforderlich") != null && !pickerVisible()
             }
             val savedActivity = Bundle()
-            test.runOnMainSync {
+            step(phase + "_save_instance_begin")
+            onMainBounded(phase + "_save_instance") {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), savedActivity)
             }
+            step(phase + "_save_instance_ready")
             yes(
                 savedActivity.getString("target", "").isEmpty() &&
                     savedActivity.getString("request", "").isEmpty() &&
@@ -1046,9 +1134,19 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 phase,
                 if (phase == "setup_refusal") "back_without_change" else "grant_true",
             )
+        } catch (failure: Throwable) {
+            phaseFailure = failure
+            throw failure
         } finally {
-            // The driver opens the targeted Settings page independently after the report.
-            activity?.let { value -> test.runOnMainSync { value.finish() } }
+            // Finish cannot hide the original UI assertion behind an unbounded main-thread wait.
+            step(phase + "_finish_begin")
+            try {
+                activity?.let { value -> onMainBounded(phase + "_finish") { value.finish() } }
+                step(phase + "_finish_ready")
+            } catch (cleanup: Throwable) {
+                val original = phaseFailure
+                if (original == null) throw cleanup else original.addSuppressed(cleanup)
+            }
         }
     }
 
@@ -1222,11 +1320,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         val originalHash = BackupArchive.sha256(archive)
         val originalProtected = protectedState()
         try {
-            activity =
-                test.startActivitySync(
-                    Intent(context, FullBackupActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+            activity = startBackupActivity()
             waitUntil("MEDIA_BINDING_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             click("Vorhandene Sicherungsdatei wählen")
             waitUntil("MEDIA_BINDING_REAL_OPEN_PICKER") { pickerVisible() }
@@ -1287,11 +1381,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     ) {
         var activity: Activity? = null
         try {
-            activity =
-                test.startActivitySync(
-                    Intent(context, FullBackupActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+            activity = startBackupActivity()
             waitUntil("MEDIA_REGRANT_BACKUP_ACTIVITY") {
                 node(if (expectedRequestId == null) "Jetzt sichern" else "Sicherung fortsetzen") !=
                     null
@@ -1368,18 +1458,17 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         test.addMonitor(monitor)
         automation.serviceInfo =
             automation.serviceInfo.apply {
-                flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                flags =
+                    flags or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
             }
         var activity: Activity? = null
         var restoreId = ""
         var previewHash = ""
         try {
             shell("wm dismiss-keyguard")
-            activity =
-                test.startActivitySync(
-                    Intent(context, FullBackupActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+            activity = startBackupActivity()
             waitUntil("MEDIA_UI_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             click("Sicherung wiederherstellen")
             waitUntil("MEDIA_UI_REAL_OPEN_PICKER") { pickerVisible() }
@@ -1542,16 +1631,15 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         test.addMonitor(monitor)
         automation.serviceInfo =
             automation.serviceInfo.apply {
-                flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                flags =
+                    flags or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
             }
         var activity: Activity? = null
         try {
             shell("wm dismiss-keyguard")
-            activity =
-                test.startActivitySync(
-                    Intent(context, FullBackupActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+            activity = startBackupActivity()
             waitUntil("MEDIA_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             click("Jetzt sichern")
             waitUntil("MEDIA_REAL_CREATE_PICKER") { pickerVisible() }
@@ -1801,6 +1889,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         marker.writeText(
             JSONObject()
                 .put("fixture", "synthetic-provider-app-v1")
+                .put("stage", "preparing")
                 .put("pid", android.os.Process.myPid())
                 .toString()
         )
@@ -1945,6 +2034,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         marker.writeText(
             JSONObject()
                 .put("fixture", "synthetic-provider-app-v1")
+                .put("stage", "ready")
                 .put("pid", android.os.Process.myPid())
                 .put("provider_pid", control("stats").getInt("pid"))
                 .put("document_id", picked)
@@ -1961,6 +2051,19 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         yes(marker.isFile, "REOPEN_MARKER")
         val saved = JSONObject(marker.readText())
         yes(saved.getString("fixture") == "synthetic-provider-app-v1", "REOPEN_SYNTHETIC_IDENTITY")
+        yes(
+            saved.optString("stage") == "ready" &&
+                listOf(
+                        "provider_pid",
+                        "document_id",
+                        "writes",
+                        "request_id",
+                        "archive_sha256",
+                        "snapshot_sha256",
+                    )
+                    .all(saved::has),
+            "REOPEN_COMPLETED_PREDECESSOR_REQUIRED",
+        )
         yes(saved.getInt("pid") != android.os.Process.myPid(), "NEW_TARGET_PROCESS")
         yes(saved.getInt("provider_pid") != control("stats").getInt("pid"), "NEW_PROVIDER_PROCESS")
         yes(
@@ -2164,11 +2267,12 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     }
 
     private fun back() {
+        val downAt = SystemClock.uptimeMillis()
         for (action in listOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP)) {
             yes(
                 automation.injectInputEvent(
                     KeyEvent(
-                        SystemClock.uptimeMillis(),
+                        downAt,
                         SystemClock.uptimeMillis(),
                         action,
                         KeyEvent.KEYCODE_BACK,
@@ -2184,6 +2288,21 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 "BACK_EVENT",
             )
         }
+    }
+
+    private fun cancelPicker(code: String) {
+        yes(pickerVisible(), "PICKER_REQUIRED_FOR_CANCEL")
+        fun keyboardVisible() =
+            automation.windows.any {
+                it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD
+            }
+        // CREATE_DOCUMENT focuses its filename: the first Back may only close the IME.
+        if (keyboardVisible()) {
+            back()
+            waitUntil(code + "_KEYBOARD_DISMISSED") { !keyboardVisible() || !pickerVisible() }
+        }
+        if (pickerVisible()) back()
+        waitUntil(code) { !pickerVisible() && node("Jetzt sichern") != null }
     }
 
     private fun pickerVisible(): Boolean =
@@ -2215,14 +2334,13 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             yes(Environment.isExternalStorageManager(), "PROVIDER_EXTERNAL_PERMISSION_READY")
             automation.serviceInfo =
                 automation.serviceInfo.apply {
-                    flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+                    flags =
+                        flags or
+                            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                            AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
                 }
             shell("wm dismiss-keyguard")
-            activity =
-                test.startActivitySync(
-                    Intent(context, FullBackupActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
+            activity = startBackupActivity()
             waitUntil("BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             val before = stats().toString()
             val beforeRegrant = Bundle()
@@ -2231,10 +2349,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             }
             click("Sicherungsdatei erneut wählen")
             waitUntil("EXISTING_BACKUP_PICKER_CANCEL") { pickerVisible() }
-            back()
-            waitUntil("EXISTING_BACKUP_CANCEL_RETURNED") {
-                !pickerVisible() && node("Jetzt sichern") != null
-            }
+            cancelPicker("EXISTING_BACKUP_CANCEL_RETURNED")
             val afterRegrant = Bundle()
             test.runOnMainSync {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), afterRegrant)
@@ -2247,8 +2362,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             )
             click("Anderen Speicherort wählen")
             waitUntil("CREATE_PICKER_CANCEL") { pickerVisible() }
-            back()
-            waitUntil("CREATE_CANCEL_RETURNED") { node("Jetzt sichern") != null }
+            cancelPicker("CREATE_CANCEL_RETURNED")
             yes(stats().toString() == before, "CREATE_CANCEL_NO_PROVIDER_MUTATION")
             val state = Bundle()
             test.runOnMainSync {
@@ -2260,8 +2374,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             )
             click("Sicherung wiederherstellen")
             waitUntil("OPEN_PICKER_CANCEL") { pickerVisible() }
-            back()
-            waitUntil("OPEN_CANCEL_RETURNED") { !pickerVisible() && node("Jetzt sichern") != null }
+            cancelPicker("OPEN_CANCEL_RETURNED")
             val canceled = Bundle()
             test.runOnMainSync {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), canceled)

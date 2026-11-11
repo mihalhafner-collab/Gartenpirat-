@@ -530,7 +530,26 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     )
                 }
                 FileOutputStream(staged, true).use { it.fd.sync() }
-                BackupArchive.verifyWritten(staged, PixelLocalStore.SCHEMA_VERSION)
+                val manifest = BackupArchive.verifyWritten(staged, PixelLocalStore.SCHEMA_VERSION)
+                val logicalIndex = BackupInventory.logicalIndex(manifest)
+                val oldArchive =
+                    if (approval != null)
+                        JSONObject()
+                            .put("sha256", approval.getString("archive_sha256"))
+                            .put("size", approval.getLong("archive_size"))
+                    else if (sameTarget) saved?.getJSONObject("archive") else null
+                current.put(
+                    "logical_comparison",
+                    BackupInventory.compareLogical(
+                        logicalIndex,
+                        saved,
+                        destination,
+                        identity,
+                        oldArchive?.getString("sha256").orEmpty(),
+                        oldArchive?.getLong("size") ?: 0L,
+                    ),
+                )
+                if (logicalIndex != null) current.put("logical_index", logicalIndex)
                 val sha = BackupArchive.sha256(staged)
                 current
                     .put("phase", "PROVIDER_WRITING")
@@ -552,17 +571,12 @@ internal constructor(private val context: Context, private val store: PixelLocal
                 store.putOwnerValue("pixel_backup_last", current.toString())
                 progress.accept("Gewählte Sicherungsdatei aktualisieren und zurücklesen …")
                 if (sameTarget || approval != null) {
-                    val oldArchive =
-                        if (approval != null)
-                            JSONObject()
-                                .put("sha256", approval.getString("archive_sha256"))
-                                .put("size", approval.getLong("archive_size"))
-                        else checkNotNull(saved).getJSONObject("archive")
+                    val previousArchive = checkNotNull(oldArchive)
                     BackupDocumentTransfer.updateLocal(
                         staged,
                         sha,
-                        oldArchive.getString("sha256"),
-                        oldArchive.getLong("size"),
+                        previousArchive.getString("sha256"),
+                        previousArchive.getLong("size"),
                         selectedFile,
                     )
                 } else {
@@ -613,6 +627,11 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     .put("destination_location", "DOCUMENT_PROVIDER")
                     .put("external_storage_verified", false),
             )
+        record.optJSONObject("logical_index")?.let { index ->
+            record
+                .getJSONObject("provider")
+                .put("logical_index_sha256", PixelMcpWriteTools.hash(index))
+        }
         store.putOwnerValue("pixel_backup_success", record.toString())
         store.putOwnerValue("pixel_backup_last", record.toString())
         return result(record)
@@ -628,6 +647,13 @@ internal constructor(private val context: Context, private val store: PixelLocal
             .put("warning_count", record.optInt("warning_count"))
             .put("warnings", record.optJSONArray("warnings") ?: JSONArray())
             .put("counts", record.optJSONObject("counts") ?: JSONObject())
+            .put(
+                "logical_comparison",
+                JSONObject(
+                    record.optJSONObject("logical_comparison")?.toString()
+                        ?: "{\"mode\":\"UNAVAILABLE\",\"reason\":\"LEGACY_JOB_WITHOUT_COMPARISON\"}"
+                ),
+            )
             .put("captured_at", record.getJSONObject("archive").optString("capturedAt"))
             .put("verified_at", record.getJSONObject("provider").optString("verified_at"))
             .put("cloud_confirmed", false)

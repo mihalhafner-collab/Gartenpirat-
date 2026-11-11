@@ -203,15 +203,69 @@ public final class PixelPlainBackupTests {
         try{reject(()->BackupArchive.removeWorkDirectories(parent));yes(interrupted.isDirectory());}finally{Thread.interrupted();}
         yes(BackupArchive.removeWorkDirectories(parent)==0&&!new File(parent,"full-backup-work").exists());
     }
+    static JSONObject logicalMetadata(File records,File photo)throws Exception {
+        JSONObject originals=new JSONObject(Files.readString(records.toPath()));
+        originals.put("photos",new JSONArray().put(new JSONObject().put("id","qa_photo_original").put("content_sha256",BackupArchive.sha256(photo))));
+        // Same original ID in another source is a distinct original, not a replacement.
+        originals.put("orders",new JSONArray().put(new JSONObject().put("id","qa_same").put("title","QA unchanged order")));
+        return metadata().put("datasetFormat","pixel.snapshot.v2").put("logical_records",BackupInventory.logicalRecords(originals));
+    }
+    static JSONObject logicalProof(JSONObject index,String hash,long size)throws Exception {
+        return new JSONObject().put("backupId","qa_logical_basis").put("phase","PROVIDER_VERIFIED")
+            .put("installationId","qa_install").put("restoreEpoch","qa_epoch")
+            .put("destination",new JSONObject().put("treeUri","qa_chosen_zip"))
+            .put("archive",new JSONObject().put("sha256",hash).put("size",size))
+            .put("logical_index",index)
+            .put("provider",new JSONObject().put("backup_id","qa_logical_basis").put("archive_sha256",hash).put("byte_size",size)
+                .put("verification_scope","DOCUMENT_PROVIDER_READBACK").put("logical_index_sha256",PixelMcpWriteTools.hash(index)));
+    }
+    static JSONObject compare(JSONObject current,JSONObject basis,String hash,long size)throws Exception {
+        return BackupInventory.compareLogical(current,basis,"qa_chosen_zip",new JSONObject().put("installationId","qa_install").put("restoreEpoch","qa_epoch"),hash,size);
+    }
+    static void logicalComparisonChecks(JSONObject first,JSONObject next,String oldHash,long oldSize)throws Exception {
+        JSONObject before=BackupInventory.logicalIndex(first),after=BackupInventory.logicalIndex(next);
+        JSONObject basis=logicalProof(before,oldHash,oldSize);
+        String originalBasis=basis.toString(),originalAfter=after.toString();
+        JSONObject changes=compare(after,basis,oldHash,oldSize);
+        yes(changes.getString("mode").equals("INCREMENTAL")&&changes.getString("physical_write").equals("FULL_SNAPSHOT"));
+        yes(changes.getString("basis_archive_sha256").equals(oldHash)&&changes.getLong("basis_archive_size")==oldSize);
+        JSONObject work=changes.getJSONObject("records").getJSONObject("by_source").getJSONObject("worklogs");
+        yes(work.getInt("changed")==1&&work.getInt("deleted")==1&&work.getInt("added")==1&&work.getInt("unchanged")==0);
+        yes(changes.getJSONObject("records").getJSONObject("by_source").getJSONObject("photos").getInt("unchanged")==1);
+        yes(changes.getJSONObject("records").getJSONObject("by_source").getJSONObject("orders").getInt("unchanged")==1);
+        JSONObject files=changes.getJSONObject("files");yes(files.getInt("changed")==1&&files.getInt("added")==1&&files.getInt("unchanged")==1&&files.getInt("deleted")==1);
+        yes(PixelMcpWriteTools.hash(changes).equals(PixelMcpWriteTools.hash(compare(after,basis,oldHash,oldSize))));
+        JSONObject full=compare(after,null,"",0);yes(full.getString("mode").equals("FULL_BASELINE")&&!full.has("records")&&!full.has("files"));
+        JSONObject legacy=new JSONObject(basis.toString());legacy.remove("logical_index");
+        yes(compare(after,legacy,oldHash,oldSize).getString("mode").equals("FULL_BASELINE"));
+        yes(compare(after,basis,"0".repeat(64),oldSize).getString("mode").equals("FULL_BASELINE"));
+        yes(compare(after,basis,oldHash,oldSize+1).getString("mode").equals("FULL_BASELINE"));
+        for(String field:new String[]{"installationId","restoreEpoch"}){
+            JSONObject foreign=new JSONObject(basis.toString()).put(field,"qa_other");yes(compare(after,foreign,oldHash,oldSize).getString("mode").equals("FULL_BASELINE"));
+        }
+        JSONObject foreign=new JSONObject(basis.toString());foreign.getJSONObject("destination").put("treeUri","qa_other_zip");
+        yes(compare(after,foreign,oldHash,oldSize).getString("mode").equals("FULL_BASELINE"));
+        JSONObject tampered=new JSONObject(basis.toString());tampered.getJSONObject("logical_index").getJSONObject("records").getJSONObject("worklogs").put("qa_same","0".repeat(64));
+        yes(compare(after,tampered,oldHash,oldSize).getString("mode").equals("FULL_BASELINE"));
+        JSONObject unverified=new JSONObject(basis.toString()).put("phase","FAILED");yes(compare(after,unverified,oldHash,oldSize).getString("mode").equals("FULL_BASELINE"));
+        yes(compare(null,basis,oldHash,oldSize).getString("mode").equals("UNAVAILABLE"));
+        // Object insertion order is not a business change; exact original values remain authoritative.
+        JSONObject left=BackupInventory.logicalRecords(new JSONObject().put("worklogs",new JSONArray().put(new JSONObject("{\"id\":\"qa_order\",\"amount\":\"12.3400\",\"notes\":\"QA\"}"))));
+        JSONObject right=BackupInventory.logicalRecords(new JSONObject().put("worklogs",new JSONArray().put(new JSONObject("{\"notes\":\"QA\",\"amount\":\"12.3400\",\"id\":\"qa_order\"}"))));
+        yes(PixelMcpWriteTools.hash(left).equals(PixelMcpWriteTools.hash(right)));
+        reject(()->BackupInventory.logicalRecords(new JSONObject().put("worklogs",new JSONArray().put(new JSONObject().put("id","qa_duplicate")).put(new JSONObject().put("id","qa_duplicate")))));
+        yes(basis.toString().equals(originalBasis)&&after.toString().equals(originalAfter));
+    }
     static void safeUpdateChecks(File root)throws Exception {
         File directory=new File(root,"qa_safe_update");yes(directory.mkdir());
-        File data=new File(directory,"records.json"),photo=new File(directory,"photo.bin"),added=new File(directory,"added.bin");
+        File data=new File(directory,"records.json"),photo=new File(directory,"photo.bin"),added=new File(directory,"added.bin"),removed=new File(directory,"removed.bin");
         File first=new File(directory,"first.zip"),next=new File(directory,"next.zip"),target=new File(directory,"chosen.zip");
-        Files.writeString(data.toPath(),"{\"works\":[{\"id\":\"qa_same\",\"note\":\"before\"},{\"id\":\"qa_removed\"}]}");
+        Files.writeString(data.toPath(),"{\"worklogs\":[{\"id\":\"qa_same\",\"note\":\"before\"},{\"id\":\"qa_removed\"}]}");
         Files.writeString(photo.toPath(),"QA unchanged original photo bytes");
         List<BackupArchive.Source> sources=new ArrayList<>();
         sources.add(new BackupArchive.Source("records.json",data));sources.add(new BackupArchive.Source("files/photo.bin",photo));
-        try(OutputStream output=new FileOutputStream(first)){BackupArchive.writePlain(output,metadata().put("datasetFormat","pixel.snapshot.v2"),sources);}
+        Files.writeString(removed.toPath(),"QA removed original file");sources.add(new BackupArchive.Source("files/removed.bin",removed));
+        try(OutputStream output=new FileOutputStream(first)){BackupArchive.writePlain(output,logicalMetadata(data,photo),sources);}
         JSONObject firstManifest=BackupArchive.verifyWritten(first,6);
         yes(target.createNewFile());int[] writes={0};
         BackupDocumentTransfer.LocalFile provider=new BackupDocumentTransfer.LocalFile(){
@@ -223,11 +277,13 @@ public final class PixelPlainBackupTests {
         };
         String oldHash=BackupArchive.sha256(first);long oldSize=first.length();
         BackupDocumentTransfer.exportLocal(first,oldHash,false,provider);yes(writes[0]==1);
-        String newer="{\"works\":[{\"id\":\"qa_same\",\"note\":\"changed\"},{\"id\":\"qa_new\"}]}";
+        String newer="{\"worklogs\":[{\"id\":\"qa_same\",\"note\":\"changed\"},{\"id\":\"qa_new\"}]}";
         Files.writeString(data.toPath(),newer);Files.writeString(added.toPath(),"QA additional photo");
         sources.add(new BackupArchive.Source("files/added.bin",added));
-        try(OutputStream output=new FileOutputStream(next)){BackupArchive.writePlain(output,metadata().put("datasetFormat","pixel.snapshot.v2"),sources);}
+        sources.removeIf(source->source.path.equals("files/removed.bin"));yes(removed.delete());
+        try(OutputStream output=new FileOutputStream(next)){BackupArchive.writePlain(output,logicalMetadata(data,photo),sources);}
         JSONObject nextManifest=BackupArchive.verifyWritten(next,6);String newHash=BackupArchive.sha256(next);
+        logicalComparisonChecks(firstManifest,nextManifest,oldHash,oldSize);
         yes(firstManifest.getJSONArray("files").getJSONObject(1).getString("sha256").equals(nextManifest.getJSONArray("files").getJSONObject(1).getString("sha256")));
         BackupDocumentTransfer.LocalFile unsafe=new BackupDocumentTransfer.LocalFile(){
             public OutputStream write(){throw new AssertionError("must not truncate existing ZIP");}

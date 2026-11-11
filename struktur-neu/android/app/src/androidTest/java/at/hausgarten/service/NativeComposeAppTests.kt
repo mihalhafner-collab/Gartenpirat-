@@ -805,6 +805,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         return response.optJSONObject("data") ?: response
     }
 
+    private fun planningWorkAndDeliveryState(): String {
+        val current = PixelMcpReadTools.effective(store.getState())
+        return PixelMcpWriteTools.hash(
+            JSONObject()
+                .put("worklogs", current.getJSONArray("worklogs"))
+                .put("invoices", current.getJSONArray("invoices"))
+                .put("offers", current.getJSONArray("offers"))
+                .put("settlement", store.ownerValue(SettlementRules.KEY, "{}"))
+        )
+    }
+
     private fun customers(name: String): List<JSONObject> {
         val master = PixelMcpReadTools.effective(store.getState())
         val rows = master.getJSONArray("customers")
@@ -2383,9 +2394,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             field("Suchen")?.text?.toString() == inquiryFilter
         }
         enter("Suchen", inquiryTitle)
-        click(inquiryTitle)
-        shown(inquiryTitle)
-        captureSyntheticScreen("inquiry-created-readback")
+        shown(UiTags.recordChoice("inquiries", inquiryId))
+        captureSyntheticScreen("inquiry-created-list-readback")
+        val beforeInquiryOpen =
+            PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        click(UiTags.recordChoice("inquiries", inquiryId))
+        waitUntil("M05_NATIVE_NEW_ORIGINAL_INQUIRY_DETAIL_LOADED") {
+            field("Suchen") == null &&
+                node("Zur Liste") != null &&
+                node(inquiry.getString("title")) != null
+        }
+        reveal("Kunde: $customerName")
+        reveal(inquiry.getString("concern"))
+        val inquiryAfterOpen =
+            read("get_inquiry", JSONObject().put("inquiry_id", inquiryId)).getJSONObject("record")
+        yes(
+            inquiryAfterOpen.getString("id") == inquiryId &&
+                inquiryAfterOpen.getString("record_hash") == inquiry.getString("record_hash") &&
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                    beforeInquiryOpen,
+            "M05_NATIVE_OPENED_ORIGINAL_INQUIRY_DETAIL_RETAINS_ID_VALUES_AND_BUSINESS_STATE",
+        )
+        scrollTop()
+        shown(inquiry.getString("title"))
+        captureSyntheticScreen("inquiry-created-detail-readback")
         openOffice()
         click("Aufträge")
         click("Auftrag anlegen")
@@ -2648,7 +2680,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal("[TEST] Tatsächliche synthetische Gartenarbeit qa_settlement_old_unbound")
             captureSyntheticScreen("lcr-original-reference-list")
             click("[TEST] Tatsächliche synthetische Gartenarbeit qa_settlement_old_unbound")
+            shown(UiTags.entityDetail("worklogs", "qa_settlement_old_unbound"))
             reveal("work-lcr")
+            @Suppress("DEPRECATION") // API 35 exposes the actual switch state through isChecked.
+            fun lcrControlChecked(checked: Boolean) =
+                node("work-lcr")?.let { it.isCheckable && it.isChecked == checked } == true
+            waitStable("ACCOUNTING_REFERENCE_OPENS_SAME_ORIGINAL_WITH_VISIBLE_ACTIVE_LCR") {
+                lcrControlChecked(true) && actionEnabled("work-lcr")
+            }
+            captureSyntheticScreen("lcr-original-marked-detail")
             click("work-lcr")
             waitUntil("ACCOUNTING_UI_LCR_UNMARKED") {
                 !AccountingRules.ids(JSONArray(store.ownerValue(SettlementRules.LCR_KEY, "[]")))
@@ -2677,7 +2717,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getJSONArray("records")
                     .getJSONObject(0)
             yes(
-                !boundOriginal.getBoolean("lcr_mutable") &&
+                boundOriginal.getString("id") == "qa_settlement_invoice" &&
+                    !boundOriginal.getBoolean("lcr") &&
+                    !boundOriginal.getBoolean("lcr_mutable") &&
                     boundOriginal.getString("lcr_block_reason").isNotBlank(),
                 "ACCOUNTING_ORIGINAL_HAS_ACTUAL_RETAINED_DOCUMENT_BINDING",
             )
@@ -2696,6 +2738,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     frame.contains(bounds) &&
                     bounds.top >= top &&
                     bounds.bottom <= bottom &&
+                    lcrControlChecked(false) &&
                     runCatching { !actionEnabled("work-lcr") }.getOrDefault(false)
             }
             var lastBoundScroll = 0L
@@ -2719,6 +2762,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
             }
             waitStable("ACCOUNTING_DOCUMENT_BOUND_LCR_CONTROL_LOCKED") { boundControlReady() }
+            shown(boundOriginal.getString("lcr_block_reason"))
+            captureSyntheticScreen("lcr-original-bound-detail")
             val rejectedMark = runCatching {
                 tools.call(
                     "set_work_record_lcr",
@@ -2785,6 +2830,45 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     applied
                 }
                 settleUi()
+                val totals =
+                    listOf(
+                        Triple("issued_minor", "ausgestellt", "900,00 €"),
+                        Triple("paid_minor", "bezahlt · diese Belege", "0,00 €"),
+                        Triple("open_minor", "offen · diese Belege", "900,00 €"),
+                    )
+                for ((key, label, amount) in totals) {
+                    val tag = "accounting-total:$key"
+                    reveal(tag)
+                    node(tag)
+                        ?.performAction(
+                            AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
+                        )
+                    settleUi()
+                    textWithinOwnScrollViewport(label, tag)
+                    textWithinOwnScrollViewport(amount, tag)
+                    waitStable("ACCOUNTING_TOTAL_${font}_${wide}_${key}_COMPLETE_WITHOUT_OVERLAP") {
+                        val current = nodes()
+                        fun bounds(tag: String): Rect? =
+                            current
+                                .firstOrNull { it.isVisibleToUser && matches(it, tag) }
+                                ?.let {
+                                    Rect().also(it::getBoundsInScreen).takeUnless(Rect::isEmpty)
+                                }
+                        val cell = bounds(tag) ?: return@waitStable false
+                        val caption =
+                            bounds("accounting-total-label:$key") ?: return@waitStable false
+                        val value = bounds("accounting-total-value:$key") ?: return@waitStable false
+                        val cells = totals.mapNotNull { bounds("accounting-total:${it.first}") }
+                        cell.contains(caption) &&
+                            cell.contains(value) &&
+                            caption.bottom <= value.top &&
+                            cells.indices.all { left ->
+                                (left + 1 until cells.size).all { right ->
+                                    !Rect.intersects(cells[left], cells[right])
+                                }
+                            }
+                    }
+                }
                 reveal("900,00 €")
                 reveal("ausgestellt")
                 shown("ausgestellt")
@@ -5190,30 +5274,85 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Aktuelle Arbeit")
         shown("Zeit läuft")
         shown("Pausen gesamt")
-        val titleBounds =
-            Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
-        val pauseBounds =
-            Rect().also { requireNotNull(node("Pausen gesamt")).getBoundsInScreen(it) }
+        val characterLocations = AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
         var activeTimeBounds = Rect()
+        var activeViewport = Rect()
+        var clockDiagnostic = "Main clock has no complete character-location proof"
         waitUntil("TODAY_ACTIVE_CLOCK_VISIBLE") {
-            activeTimeBounds =
-                nodes().firstNotNullOfOrNull { candidate ->
-                    if (
-                        candidate.isVisibleToUser &&
-                            Regex("[0-9]{2,}:[0-9]{2}:[0-9]{2}")
-                                .matches(candidate.text?.toString().orEmpty())
+            val currentNodes = nodes()
+            val heading =
+                currentNodes.firstOrNull { it.isVisibleToUser && matches(it, "Aktuelle Arbeit") }
+                    ?: return@waitUntil false
+            val clock =
+                currentNodes.firstOrNull {
+                    it.isVisibleToUser && matches(it, UiTags.TIMER_CLOCK) && !it.isEditable
+                } ?: return@waitUntil false
+            val text = clock.text?.toString().orEmpty()
+            if (
+                !Regex("[0-9]{2,}:[0-9]{2}:[0-9]{2}").matches(text) ||
+                    characterLocations !in clock.availableExtraData
+            )
+                return@waitUntil false
+            val scroller =
+                generateSequence(clock.parent) { it.parent }
+                    .firstOrNull { parent ->
+                        parent.className?.toString() == "android.widget.ScrollView" ||
+                            parent.isScrollable &&
+                                parent.actionList.any {
+                                    it.id ==
+                                        AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP
+                                            .id ||
+                                        it.id ==
+                                            AccessibilityNodeInfo.AccessibilityAction
+                                                .ACTION_SCROLL_DOWN
+                                                .id
+                                }
+                    } ?: return@waitUntil false
+            val args =
+                Bundle().apply {
+                    putInt(
+                        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX,
+                        0,
                     )
-                        Rect().also(candidate::getBoundsInScreen).takeIf {
-                            it.top >= titleBounds.bottom &&
-                                it.bottom <= pauseBounds.top &&
-                                it.height() > 0
-                        }
-                    else null
-                } ?: Rect()
-            !activeTimeBounds.isEmpty
+                    putInt(
+                        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
+                        text.length,
+                    )
+                }
+            // Read the running clock in place: no show-on-screen action or scroll is allowed.
+            if (!clock.refreshWithExtraData(characterLocations, args) || !scroller.refresh())
+                return@waitUntil false
+            @Suppress("DEPRECATION")
+            val glyphs =
+                clock.extras.getParcelableArray(characterLocations)?.map {
+                    it as? android.graphics.RectF
+                } ?: return@waitUntil false
+            val viewport = Rect().also { scroller.getBoundsInScreen(it) }
+            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+            if (!viewport.intersect(screen) || !heading.refresh()) return@waitUntil false
+            val headingBounds = Rect().also { heading.getBoundsInScreen(it) }
+            val bounds = Rect().also { clock.getBoundsInScreen(it) }
+            val complete =
+                glyphs.size == text.length &&
+                    glyphs.all { box ->
+                        box != null &&
+                            !box.isEmpty &&
+                            box.left >= viewport.left + 1f &&
+                            box.right <= viewport.right - 1f &&
+                            box.top >= viewport.top + 1f &&
+                            box.bottom <= viewport.bottom - 1f
+                    }
+            clockDiagnostic =
+                "text=$text bounds=$bounds viewport=$viewport heading=$headingBounds glyphs=$glyphs"
+            if (!complete || bounds.top < headingBounds.bottom || !viewport.contains(bounds))
+                return@waitUntil false
+            activeTimeBounds = bounds
+            activeViewport = viewport
+            true
         }
+        test.sendStatus(0, Bundle().apply { putString("today_clock_visibility", clockDiagnostic) })
         yes(
-            activeTimeBounds.top >= titleBounds.bottom && activeTimeBounds.height() > 0,
+            activeTimeBounds.height() > 0 && activeViewport.contains(activeTimeBounds),
             "TODAY_ACTIVE_TIME_VISIBLE_WITHOUT_SCROLL",
         )
         primaryPosition("Zeit stoppen", "Pause")
@@ -5245,7 +5384,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f
                 }
                 reveal("Pausiert")
-                val mainClock = textWithinOwnScrollViewport(frozenClock)
+                val mainClock = textWithinOwnScrollViewport(frozenClock, UiTags.TIMER_CLOCK)
                 primaryPosition("Fortsetzen", "Zeit stoppen")
                 val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
                 val clockBounds = mainClock.first
@@ -5759,8 +5898,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         return@firstNotNullOfOrNull null
                     val scroller =
                         parents.firstOrNull { parent ->
-                            parent.isScrollable &&
-                                parent.actionList.any { it.id == up || it.id == down }
+                            parent.className?.toString() == "android.widget.ScrollView" ||
+                                (parent.isScrollable &&
+                                    parent.actionList.any { it.id == up || it.id == down })
                         } ?: return@firstNotNullOfOrNull null
                     candidate to scroller
                 } ?: return@waitUntil false
@@ -5851,12 +5991,87 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun captureSyntheticScreen(name: String, requireKeyboard: Boolean = false) {
+        settleUi()
+        val display = android.graphics.Point()
+        var ownWindow: View? = null
+        waitUntil("SCREENSHOT_WINDOW_DRAW_READY_$name") {
+            val root = automation.rootInActiveWindow ?: return@waitUntil false
+            val rootBounds = Rect().also { root.getBoundsInScreen(it) }
+            if (!root.isVisibleToUser || rootBounds.isEmpty) return@waitUntil false
+            var ready = false
+            test.runOnMainSync {
+                @Suppress("DEPRECATION")
+                context
+                    .getSystemService(android.view.WindowManager::class.java)
+                    .defaultDisplay
+                    .getRealSize(display)
+                ownWindow =
+                    if (root.packageName?.toString() == context.packageName)
+                        WindowInspector.getGlobalWindowViews().firstOrNull {
+                            it.isAttachedToWindow && it.isShown && it.hasWindowFocus()
+                        }
+                    else null
+                val focused = ownWindow
+                ready =
+                    if (root.packageName?.toString() != context.packageName) {
+                        // The real Android camera may legitimately own the active window.
+                        display.x > 0 && display.y > 0
+                    } else if (focused == null) false
+                    else {
+                        val orientation = focused.resources.configuration.orientation
+                        val displayMatches =
+                            when (orientation) {
+                                android.content.res.Configuration.ORIENTATION_LANDSCAPE ->
+                                    display.x > display.y
+                                android.content.res.Configuration.ORIENTATION_PORTRAIT ->
+                                    display.y > display.x
+                                else -> false
+                            }
+                        focused.width > 0 &&
+                            focused.height > 0 &&
+                            !focused.isLayoutRequested &&
+                            displayMatches
+                    }
+            }
+            ready
+        }
+        ownWindow?.let { view ->
+            val drawn = java.util.concurrent.CountDownLatch(1)
+            test.runOnMainSync {
+                if (view.isHardwareAccelerated) {
+                    view.viewTreeObserver.registerFrameCommitCallback { drawn.countDown() }
+                } else {
+                    val listener =
+                        object : android.view.ViewTreeObserver.OnDrawListener {
+                            override fun onDraw() {
+                                view.post {
+                                    if (view.viewTreeObserver.isAlive)
+                                        view.viewTreeObserver.removeOnDrawListener(this)
+                                    drawn.countDown()
+                                }
+                            }
+                        }
+                    view.viewTreeObserver.addOnDrawListener(listener)
+                }
+                view.invalidate()
+            }
+            yes(
+                drawn.await(5, java.util.concurrent.TimeUnit.SECONDS),
+                "SCREENSHOT_FRESH_FRAME_COMMITTED_$name",
+            )
+        }
+        // The frame-commit callback fences the actual draw; finish pending public UI work.
+        test.waitForIdleSync()
         if (requireKeyboard) yes(keyboardVisible(), "SCREENSHOT_IME_BEFORE_$name")
         val bitmap =
             requireNotNull(automation.takeScreenshot()) {
                 "Synthetic emulator screenshot unavailable"
             }
         try {
+            yes(
+                bitmap.width == display.x && bitmap.height == display.y,
+                "SCREENSHOT_MATCHES_CURRENT_DISPLAY_$name",
+            )
             File(requireNotNull(context.getExternalFilesDir(null)), "qa-native-$name.png")
                 .outputStream()
                 .use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
@@ -6126,6 +6341,90 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(name)
             if (index == 0) {
                 val customerId = customers(name).single().getString("id")
+                val customerArgs = JSONObject().put("customer_id", customerId)
+                val contactSeedProof = tools.call("get_customer", customerArgs)
+                yes(contactSeedProof.optBoolean("ok"), "CUSTOMER_CONTACT_FIXTURE_ORIGINAL_READ")
+                read(
+                    "update_customer",
+                    JSONObject()
+                        .put("request_id", "qa_native_customer_contact_context")
+                        .put("customer_id", customerId)
+                        .put("expected_record_hash", contactSeedProof.getString("record_hash"))
+                        .put(
+                            "updates",
+                            JSONObject()
+                                .put("phone", "+430000000011")
+                                .put("street", "[TEST] QA Kundenkontaktweg 11")
+                                .put("postal_code", "1010")
+                                .put("city", "[TEST] QA Wien"),
+                        ),
+                )
+                val contactOriginal = read("get_customer", customerArgs)
+                val contactProof = tools.call("get_customer", customerArgs)
+                yes(contactProof.optBoolean("ok"), "CUSTOMER_CONTACT_ORIGINAL_PROOF")
+                val contactBusiness =
+                    PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+                val contactLedger = store.ownerValue(SettlementRules.KEY, "{}")
+                val contactIntent = java.util.concurrent.atomic.AtomicReference<Intent>()
+                val contactMonitor =
+                    object : Instrumentation.ActivityMonitor() {
+                        override fun onStartActivity(
+                            intent: Intent
+                        ): Instrumentation.ActivityResult? {
+                            if (intent.action !in setOf(Intent.ACTION_DIAL, Intent.ACTION_VIEW))
+                                return null
+                            contactIntent.set(intent)
+                            return Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null)
+                        }
+                    }
+                test.addMonitor(contactMonitor)
+                try {
+                    for (tab in listOf("Objekte", "Vorgänge", "Geld")) {
+                        selectCustomerTab(tab)
+                        shown(UiTags.entityDetail("customers", customerId))
+                        contactIntent.set(null)
+                        click("Anrufen")
+                        waitUntil("CUSTOMER_CONTACT_DIALS_EXACT_ORIGINAL_$tab") {
+                            contactIntent.get()?.let {
+                                it.action == Intent.ACTION_DIAL &&
+                                    it.data?.scheme == "tel" &&
+                                    it.data?.schemeSpecificPart ==
+                                        contactOriginal.getString("phone")
+                            } == true
+                        }
+                        contactIntent.set(null)
+                        click("Route")
+                        val address =
+                            listOf("street", "postal_code", "city")
+                                .map { contactOriginal.optString(it) }
+                                .filter { it.isNotBlank() }
+                                .joinToString(", ")
+                        waitUntil("CUSTOMER_CONTACT_ROUTES_EXACT_ORIGINAL_$tab") {
+                            contactIntent.get()?.let {
+                                it.action == Intent.ACTION_VIEW &&
+                                    it.dataString == "geo:0,0?q=" + Uri.encode(address)
+                            } == true
+                        }
+                        shown(UiTags.entityDetail("customers", customerId))
+                        val afterContacts = tools.call("get_customer", customerArgs)
+                        yes(
+                            afterContacts.optBoolean("ok") &&
+                                afterContacts.getJSONObject("data").getString("id") == customerId &&
+                                afterContacts.getString("record_hash") ==
+                                    contactProof.getString("record_hash") &&
+                                selectedArea(UiTags.area("customers")) &&
+                                PixelMcpWriteTools.hash(
+                                    PixelMcpReadTools.effective(store.getState())
+                                ) == contactBusiness &&
+                                store.ownerValue(SettlementRules.KEY, "{}") == contactLedger,
+                            "CUSTOMER_CONTACT_CANCELED_INTENTS_KEEP_ORIGINAL_AND_BUSINESS_$tab",
+                        )
+                    }
+                    captureSyntheticScreen("customer-contact-actions-readback")
+                } finally {
+                    test.removeMonitor(contactMonitor)
+                }
+                selectCustomerTab("Objekte")
                 val businessBeforePlus =
                     PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
                 click(UiTags.CREATE)
@@ -6146,6 +6445,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         workDraft().getJSONObject("values").getString("_request_id") == workRequest,
                     "CUSTOMER_PLUS_RECREATE_RETAINS_EXACT_CUSTOMER_AND_REQUEST",
                 )
+                val originalCustomerLabel =
+                    "Kunde: " +
+                        read("get_customer", JSONObject().put("customer_id", customerId))
+                            .getString("name")
+                waitStable("CUSTOMER_PLUS_RECREATED_ORIGINAL_NAME_READY", stableMs = 500) {
+                    node(originalCustomerLabel) != null &&
+                        workDraft().getJSONObject("values").getString("customer_id") == customerId
+                }
                 captureSyntheticScreen("customer-plus-work-context")
                 discardWork()
                 yes(
@@ -7651,6 +7958,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments")
                 )
             val idsBeforeEmpty = appointmentRows().map { it.getString("id") }.toSet()
+            val workAndDeliveryBeforeEmpty = planningWorkAndDeliveryState()
             val workBeforeEmpty =
                 PixelMcpWriteTools.hash(
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
@@ -7861,6 +8169,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
                 ) == workBeforeEmpty,
                 "BOARD_EMPTY_PLAN_FLOW_CREATES_NO_ACTUAL_WORK",
+            )
+            yes(
+                planningWorkAndDeliveryState() == workAndDeliveryBeforeEmpty,
+                "BOARD_EMPTY_SAVE_AND_EDIT_PRESERVE_WORK_DOCUMENTS_PAYMENTS_AND_DELIVERY",
             )
             captureSyntheticScreen("planning-explicit-empty-save-and-edit")
             val movedBlankDay = day.plusDays(2).toString()
@@ -9737,6 +10049,107 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun surfaceJourney() {
         seedEquipment()
         val failures = ArrayList<Throwable>()
+        val connectionProofs = HashMap<String, JSONObject>()
+        fun connectionState(): String {
+            val result = JSONObject()
+            val local = JSONObject()
+            store.readableDatabase
+                .rawQuery(
+                    "SELECT key,value FROM owner_state WHERE key LIKE 'planning:%' OR key LIKE 'calendar:%' OR key LIKE 'weather:%' ORDER BY key",
+                    null,
+                )
+                .use { rows ->
+                    while (rows.moveToNext()) local.put(rows.getString(0), rows.getString(1))
+                }
+            result.put("local_planning_calendar_weather", local)
+            for (name in
+                listOf("planning_private", "pixel_tunnel_private", "pixel_tunnel_status")) {
+                val values = JSONObject()
+                for ((key, value) in context.getSharedPreferences(name, 0).all.toSortedMap()) values
+                    .put(
+                        key,
+                        if (value is Set<*>) JSONArray(value.map { it.toString() }.sorted())
+                        else value,
+                    )
+                result.put(name, values)
+            }
+            val scheduler = context.getSystemService(android.app.job.JobScheduler::class.java)
+            result.put(
+                "planning_jobs",
+                JSONArray().apply {
+                    for (job in
+                        scheduler
+                            ?.allPendingJobs
+                            .orEmpty()
+                            .filter {
+                                it.service.className == PlanningJob::class.java.name
+                            }
+                            .sortedBy { it.id }) put(
+                        JSONObject()
+                            .put("id", job.id)
+                            .put("minimum_latency", job.minLatencyMillis)
+                            .put("periodic", job.isPeriodic)
+                            .put("interval", job.intervalMillis)
+                    )
+                },
+            )
+            return PixelMcpWriteTools.hash(result)
+        }
+        fun connectionReadOnlyProof(key: String, scale: Int) {
+            waitUntil("CONNECTIONS_ACTUAL_FONT_SCALE_$scale") {
+                kotlin.math.abs(
+                    (activity?.resources?.configuration?.fontScale ?: 0f) - scale / 100f
+                ) < 0.01f
+            }
+            waitUntil("CONNECTIONS_LOCAL_STATUS_READY_$scale") {
+                node("Lokalen Status gelesen") != null &&
+                    node("Status prüfen")?.let(::clickable)?.isEnabled == true
+            }
+            val businessBefore = PixelMcpWriteTools.hash(store.getState())
+            val connectionBefore = connectionState()
+            click("Status prüfen")
+            waitUntil("CONNECTIONS_EXPLICIT_LOCAL_STATUS_READY_$scale") {
+                node("Lokalen Status gelesen") != null &&
+                    node("Status prüfen")?.let(::clickable)?.isEnabled == true
+            }
+            yes(
+                PixelMcpWriteTools.hash(store.getState()) == businessBefore &&
+                    connectionState() == connectionBefore,
+                "CONNECTIONS_STATUS_READ_ONLY_WITHOUT_SYNC_OR_REFRESH_$scale",
+            )
+            click("UI und MCP erklären")
+            shown("UI und MCP: Funktionsprüfung")
+            shown("Dieses Blatt erklärt die vorhandenen Wege. Es führt keine Prüfung aus.")
+            visibleResult("Erklärung schließen")
+            captureSyntheticScreen("connection-explanation-$scale")
+            reveal("Prüfung der Abläufe")
+            val section = requireNotNull(node("Prüfung der Abläufe"))
+            yes(
+                generateSequence(section.parent) { it.parent }.any { it.isScrollable },
+                "CONNECTIONS_EXPLANATION_HAS_OWN_SCROLL_$scale",
+            )
+            captureSyntheticScreen("connection-explanation-end-$scale")
+            visibleResult("Erklärung schließen")
+            click("Erklärung schließen")
+            waitUntil("CONNECTIONS_EXPLANATION_CLOSED_$scale") {
+                node("UI und MCP: Funktionsprüfung") == null &&
+                    node("Optionale Verbindungen") != null
+            }
+            yes(
+                PixelMcpWriteTools.hash(store.getState()) == businessBefore &&
+                    connectionState() == connectionBefore,
+                "CONNECTIONS_EXPLANATION_OPEN_CLOSE_PRESERVES_ALL_DATA_$scale",
+            )
+            connectionProofs[key] =
+                JSONObject()
+                    .put("explicit_status_click", true)
+                    .put("business_state_unchanged", true)
+                    .put("connection_configuration_unchanged", true)
+                    .put("no_sync_or_refresh_state_or_job_change", true)
+                    .put("explanation_opened_and_closed", true)
+                    .put("explanation_own_scroll", true)
+                    .put("font_scale_percent", scale)
+        }
         fun case(key: String, ready: String, screenshot: Boolean = false, body: () -> Unit) {
             test.sendStatus(0, Bundle().apply { putString("surface_start", key) })
             try {
@@ -9750,7 +10163,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 if (target != null) visibleResult(ready, scrollIntoView = true)
                 if (screenshot) captureSyntheticScreen("surface-$key")
                 surfaceCases.put(
-                    JSONObject().put("surface", key).put("ready", ready).put("no_auto_ime", true)
+                    JSONObject()
+                        .put("surface", key)
+                        .put("ready", ready)
+                        .put("no_auto_ime", true)
+                        .apply { connectionProofs[key]?.let { put("connection_read_only", it) } }
                 )
             } catch (failure: Throwable) {
                 test.sendStatus(
@@ -9833,9 +10250,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("catalog", "Baustein anlegen") { openOfficeEntry("Leistungskatalog") }
         case("local-search", "Suchtext eingeben") { openOfficeEntry("Suche") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
-        case("connections", "Optionale Verbindungen") {
+        case("connections", "Optionale Verbindungen", true) {
             settings()
             click("Verbindungen")
+            connectionReadOnlyProof("connections", 100)
         }
         case("calendar", "Verbinden", true) {
             settings()
@@ -9856,6 +10274,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         try {
             shell("settings put system font_scale 2.0")
             case("settings-200", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
+            case("connections-200", "Optionale Verbindungen", true) {
+                settings()
+                click("Verbindungen")
+                connectionReadOnlyProof("connections-200", 200)
+            }
             case("calendar-200", "Verbinden", true) {
                 settings()
                 click("Verbindungen")
@@ -9875,7 +10298,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             failures.forEach(failure::addSuppressed)
             throw failure
         }
-        yes(surfaceCases.length() == 30, "ALL_SURFACES_REACHABLE")
+        yes(surfaceCases.length() == 31, "ALL_SURFACES_REACHABLE")
     }
 
     private fun storageSettingsJourney() {
@@ -10230,6 +10653,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments")
             )
         val beforeIds = appointments().map { it.getString("id") }.toSet()
+        val workAndDeliveryBeforeAutosave = planningWorkAndDeliveryState()
         fun created(): JSONObject? =
             appointments().filter { it.getString("id") !in beforeIds }.singleOrNull()
         fun localStart(record: JSONObject): String = runCatching {
@@ -10275,6 +10699,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("PLANNING_RECREATED_SAVE_FINISHED_IN_UI") {
             actionEnabled(UiTags.PRIMARY) && node("Termin speichern") != null
         }
+        yes(
+            planningWorkAndDeliveryState() == workAndDeliveryBeforeAutosave,
+            "PLANNING_AUTOSAVE_AND_RECREATED_EDIT_PRESERVE_WORK_DOCUMENTS_PAYMENTS_AND_DELIVERY",
+        )
         back()
         reveal(UiTags.PLANNING_TOUR)
         shown(UiTags.planningView("day"))

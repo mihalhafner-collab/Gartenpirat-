@@ -1421,6 +1421,7 @@ class PlanningConnectionActivity : ComponentActivity() {
 }
 
 /** This overview reads only local evidence; foreign ChatGPT accounts are outside the app. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NativeConnections(controller: NativeAppController) {
     val scope = rememberCoroutineScope()
@@ -1428,6 +1429,7 @@ internal fun NativeConnections(controller: NativeAppController) {
     var snapshot by remember(controller) { mutableStateOf<JSONObject?>(null) }
     var checking by remember(controller) { mutableStateOf(false) }
     var error by remember(controller) { mutableStateOf("") }
+    var explanationOpen by remember(controller) { mutableStateOf(false) }
     fun refreshPresentation() {
         if (checking) return
         checking = true
@@ -1473,12 +1475,67 @@ internal fun NativeConnections(controller: NativeAppController) {
         owner.lifecycle.addObserver(observer)
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
+    if (explanationOpen)
+        ModalBottomSheet(
+            onDismissRequest = { explanationOpen = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
+                Text(
+                    "UI und MCP: Funktionsprüfung",
+                    Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text("Dieses Blatt erklärt die vorhandenen Wege. Es führt keine Prüfung aus.")
+                    NativeGroup("Fachdaten lesen und ändern") {
+                        Text(
+                            "Arbeiten, L.C.R., Planung, Kunden und Abrechnung haben native Bedienwege und MCP-Werkzeuge. Lesen öffnet Originale; Änderungen brauchen die jeweilige bewusste Aktion und dieselben fachlichen Prüfungen.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                        Text(
+                            "MCP-Schreibzugriff gibt der Eigentümer in der App frei. Eine gespeicherte Freigabe ist noch kein Nachweis einer erfolgreichen Anfrage.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Android-Bedienung und Freigaben") {
+                        Text(
+                            "Kamera, Spracheingabe, Kontoauswahl und Dateiauswahl benötigen die passenden Android-Apps und Freigaben. MCP ersetzt diese Bedienung nicht.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Sicherung, Wiederherstellung und Speicher") {
+                        Text(
+                            "Eine ausgewählte ZIP-Datei wird fortgeschrieben. Wiederherstellen ist ein eigener bewusst bestätigter Weg. Dateizugriff, Integrität und erhaltene Originale müssen tatsächlich geprüft werden.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Verbindungen und Prüfstand") {
+                        Text(
+                            "Status prüfen liest den lokalen Zustand. Kalenderabgleich und Wetteraktualisierung sind eigene Aktionen. Konten, Tunnel und Freigaben bleiben erhalten; lokale Statusangaben bestätigen keine neue Verbindung oder Zustellung.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Prüfung der Abläufe") {
+                        Text(
+                            "Eine Funktionsabnahme muss Lesen, Schreiben, Fehler, Wiederholung und Konflikte mit synthetischen Daten ausführen und das Ergebnis erneut am Original lesen. Dieses Erklärblatt meldet keine bestandene Abnahme.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+                NativeActionBar("Erklärung schließen", { explanationOpen = false })
+            }
+        }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Optionale Verbindungen", style = MaterialTheme.typography.titleLarge)
+            NativeTextButton({ explanationOpen = true }) { Text("UI und MCP erklären") }
 
             NativeStatus(
                 if (checking) "Lokalen Status lesen …"
@@ -1502,8 +1559,9 @@ internal fun NativeConnections(controller: NativeAppController) {
                 val calendarTime =
                     if (last.isBlank()) "Noch kein erfolgreicher Abgleich gespeichert."
                     else {
-                        val time =
-                            runCatching { Instant.parse(last).toEpochMilli() }.getOrDefault(0)
+                        val time = runCatching {
+                            Instant.parse(last).toEpochMilli()
+                        }.getOrDefault(0)
                         "Letzter erfolgreicher Abgleich: " +
                             pixelConnectionTime(time, "Zeitpunkt nicht lesbar")
                     }

@@ -7,7 +7,7 @@
   "overall_status": "IN_PROGRESS",
   "candidate": null,
   "created_at_utc": "2026-11-11T04:47:24.708547Z",
-  "status_note": "Native Eisbär-Umsetzung auf exakt nachgewiesener installierter 158-Quellbasis; Kandidat 1.72.0/159. FullCI e85 bestand Build und 27 von 46 nativen Aufrufen; die 19 fehlgeschlagenen Aufrufe wurden gezielt bearbeitet. PDF-Vorschau und Auftrags-Originalreadback korrigiert. Aktuell bestehen 64 Python- und 97 JVM-Tests, lintRelease, Release-/Test-APK und Artefakt-Datenschutz. Die Testabfolge behandelt Android-Rechtewechsel mit Prozessneustart sowie sichtbare fokussierte Fenster. Vollständiger grüner Kandidatenlauf und reale Pixel-Abnahme offen. Keine vollständige Abnahme behauptet.",
+  "status_note": "Unveröffentlichter Eisbär-Kandidat 1.72.0/159 auf exakt nachgewiesener 158-Basis. Diagnose-Run 43037244345: Build grün, 40/46 Hauptaufrufe und 6708 Checks erfolgreich; alle 6 MCP-Blöcke und echtes Update mit erhaltenen Originalen/Sitzung/Entwürfen/Fotobytes. Sechs rote Aufrufe gezielt bearbeitet. Tatsächlicher logischer Sicherungsvergleich, UI/MCP-Erklärblatt und umbrechende Summenanzeige integriert; Aktuelle Release-/Test-APK, lintRelease, Datenschutz und Quellprüfungen bestanden. Voller neuer Kandidatenlauf und reale Pixel-/Verbindungs-/Sicherungsabnahme offen. Keine vollständige Abnahme behauptet.",
   "items": {
     "REQ-001": {
       "status": "NOT_STARTED",

@@ -93,11 +93,18 @@ final class LocalBackupNativeTests {
                 }
             });
             id = result.getString("backup_id");
+            yes(result.getJSONObject("logical_comparison").getString("mode").equals("FULL_BASELINE"));
             yes(result.getBoolean("verified")); yes(result.getInt("warning_count") >= 3); yes(writes[0] == 1);
             yes(store.ownerValue("qa_backup_marker", "").equals("QA before save"));
             yes(service.status(new JSONObject()).getString("state").equals("VERIFIED"));
             service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {}); yes(writes[0] == 1);
-            yes(service.saveTo("qa_native_save_002", "qa_destination", provider, message -> {}).getBoolean("verified")); yes(writes[0] == 2);
+            JSONObject second = service.saveTo("qa_native_save_002", "qa_destination", provider, message -> {});
+            yes(second.getBoolean("verified")); yes(writes[0] == 2);
+            JSONObject logical = second.getJSONObject("logical_comparison");
+            yes(logical.getString("mode").equals("INCREMENTAL"));
+            // Persisting the previous backup job/proof must not change any business original.
+            JSONObject records = logical.getJSONObject("records");
+            yes(records.getInt("added") == 0 && records.getInt("changed") == 0 && records.getInt("deleted") == 0);
             String confirmed = store.ownerValue("pixel_backup_success", "");
             boolean[] replacementDone = {false}, readbackFails = {true};
             BackupDocumentTransfer.LocalFile flaky = new BackupDocumentTransfer.LocalFile() {
@@ -115,9 +122,12 @@ final class LocalBackupNativeTests {
             yes(service.status(new JSONObject()).getString("state").equals("FAILED"));
             yes(store.ownerValue("pixel_backup_success", "").equals(confirmed));
             yes(service.targetSelection().getString("request_id").equals("qa_native_save_003"));
+            String pendingComparison = PixelMcpWriteTools.hash(new JSONObject(store.ownerValue("pixel_backup_last", "")).getJSONObject("logical_comparison"));
             readbackFails[0] = false;
             JSONObject resumed = service.saveTo("qa_native_save_003", "qa_destination", flaky, message -> {});
             yes(resumed.getBoolean("verified") && writes[0] == 3);
+            yes(PixelMcpWriteTools.hash(resumed.getJSONObject("logical_comparison")).equals(pendingComparison));
+            yes(PixelMcpWriteTools.hash(service.saveTo("qa_native_save_003", "qa_destination", flaky, message -> {}).getJSONObject("logical_comparison")).equals(pendingComparison) && writes[0] == 3);
             yes(service.targetSelection().getString("uri").equals("qa_destination"));
             yes(service.targetSelection().getString("request_id").isEmpty());
             String savedHash = BackupArchive.sha256(saved);

@@ -91,6 +91,7 @@ internal object UiTags {
     const val SECONDARY = "action:secondary"
     const val FILTER = "action:filter"
     const val VOICE = "action:voice"
+    const val TIMER_CLOCK = "timer:main-clock"
     const val DETAIL_MENU = "action:detail-menu"
     const val PROGRESS = "billing:progress"
     const val TODAY_SEARCH = "action:today-search"

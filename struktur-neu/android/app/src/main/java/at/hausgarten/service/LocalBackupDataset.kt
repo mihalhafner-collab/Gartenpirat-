@@ -103,6 +103,7 @@ internal object LocalBackupDataset {
                         .put("warnings", JSONArray())
                         .put("lastIssuedDocumentIds", JSONArray())
                 val extra = JSONArray()
+                var logicalRecordIndex: JSONObject? = null
                 SQLiteDatabase.openDatabase(
                         database.absolutePath,
                         null,
@@ -140,6 +141,7 @@ internal object LocalBackupDataset {
                                         else row
                                     BackupInventory.originalProblem(filesRoot, kind, metadata)
                                 }
+                            logicalRecordIndex = logicalRecords(snapshot, effective)
                         } catch (unavailable: Exception) {
                             extra.put(
                                 JSONObject()
@@ -186,11 +188,57 @@ internal object LocalBackupDataset {
                         .put("warning_count", warnings.length())
                         .put("captureScope", "database_all_tables_private_files_preferences")
                         .put("media_coverage", "AVAILABLE_FILES_WITH_NOTES")
+                        .put("logical_records", logicalRecordIndex)
                 Captured(directory, metadata, originals, report)
             } catch (failure: Exception) {
                 throw BackupScheduleRules.captureFailure(stage, failure)
             }
         }
+
+    /** Only the captured database is read. Backup job/proof metadata is never a business row. */
+    private fun logicalRecords(database: SQLiteDatabase, effective: JSONObject): JSONObject {
+        val index = BackupInventory.logicalRecords(effective)
+        val owner = JSONArray()
+        database
+            .rawQuery(
+                "SELECT key,value FROM owner_state WHERE key LIKE 'revier:v1:%' OR key LIKE 'offer_decision:v1:%' OR key IN ('personal_paid','personal_paid_migrated','settings','settlement:v1','lcr_work_ids:v1') ORDER BY key",
+                null,
+            )
+            .use { rows ->
+                while (rows.moveToNext()) {
+                    val value = rows.getString(1)
+                    val original =
+                        try {
+                            org.json.JSONTokener(value).nextValue()
+                        } catch (_: Exception) {
+                            value
+                        }
+                    owner.put(JSONObject().put("id", rows.getString(0)).put("value", original))
+                }
+            }
+        BackupInventory.addLogicalRecords(index, "owner_state_business", owner, "id")
+        for (table in arrayOf("work_sessions", "work_session_events", "photo_attachments")) {
+            val originals = JSONArray()
+            database.rawQuery("SELECT * FROM $table ORDER BY 1", null).use { rows ->
+                val names = rows.columnNames
+                while (rows.moveToNext()) {
+                    val original = JSONObject()
+                    for (i in names.indices) original.put(
+                        names[i],
+                        if (rows.isNull(i)) JSONObject.NULL else rows.getString(i),
+                    )
+                    originals.put(original)
+                }
+            }
+            BackupInventory.addLogicalRecords(
+                index,
+                "table:$table",
+                originals,
+                if (table == "photo_attachments") "photo_id" else "id",
+            )
+        }
+        return index
+    }
 
     @JvmStatic
     @Throws(Exception::class)

@@ -1269,7 +1269,7 @@ private fun NativeTimeCard(value: JSONObject) {
             }
             Text(
                 "%02d:%02d:%02d".format(seconds / 3600, seconds / 60 % 60, seconds % 60),
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().semantics { testTag = UiTags.TIMER_CLOCK },
                 style =
                     if (LocalDensity.current.fontScale > 1.3f)
                         MaterialTheme.typography.headlineMedium

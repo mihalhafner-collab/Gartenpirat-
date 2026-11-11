@@ -56,25 +56,25 @@
   "current_test_candidate": {
     "version_name": "1.72.0",
     "version_code": 159,
-    "source_sha256": "33880395a0a2cb7a9d6d9252ff4459b7e78e1c657ee5e8f2f0ac0e3979636eeb",
-    "status": "Eisbär 1.0.1 auf exakt nachgewiesener 158-Basis. Aktueller Produktstand besteht Release-/Test-APK, lintRelease, 97 JVM-Tests und Artefakt-Datenschutz. Android-Rechtewechsel werden außerhalb der instrumentierten UID mit bindenden Folgeprozess-Proben geprüft; UI-Tests warten auf sichtbare fokussierte Fenster. Neuer vollständiger CI-Lauf steht aus. Nicht verteilt oder installiert."
+    "source_sha256": "d48f5f344c53845bc036530f18bcccad482dedb3eac5e131f17db453ca312c6f",
+    "status": "Eisbär 1.0.1 auf exakt nachgewiesener 158-Basis. Tatsächlicher logischer Sicherungsvergleich, UI/MCP-Erklärblatt, umbrechende Summen und gezielte Runtime-/Darstellungskorrekturen integriert. Aktuelle Release-/Test-APK, lintRelease und Datenschutz bestanden. Eigener vollständiger Kandidatenlauf und reale Pixel-Abnahme offen. Nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "IN_PROGRESS — Produktkorrekturen und Teststeuerung lokal gebaut/geprüft. Nächster Schritt: vollständiger CI-Lauf, konkrete Nachweise desselben Kandidaten und reale Pixel-Abnahme. Kein Eisbär-Abschluss.",
+    "status": "IN_PROGRESS — abschließende Konzept-/Laufzeitkorrekturen lokal gebaut und geprüft. Nächster Schritt vollständiger CI-Lauf bis grün, danach konkrete Nachweise und reale Pixel-Abnahme. Kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
       "native_implementation": "IN_PROGRESS",
-      "eisbaer_runtime_tests": "FullCI 43022570742 auf e85f49a: 46 Aufrufe, 27 erfolgreich und 19 fehlgeschlagen; 3427 Checks in vollständig erfolgreichen Aufrufen. Viele UI-Fälle zeigten schwarze Displays/fehlenden Fokus; AllFiles-Änderungen beendeten erwartbar den instrumentierten UID-Prozess. Drei von sechs unabhängigen MCP-Proofs vollständig, drei konkrete Testdaten-/Adapterfehler behoben. Aktuelle Korrekturen noch nicht nativ ausgeführt.",
-      "source": "PASS check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow-YAML, 14 Shellblöcke und neun eingebettete Pythonblöcke gültig. Jeder run-Block hält das GitHub-Limit von 21000 Zeichen ein. Eisbär-Originale unverändert.",
-      "local_jvm": "PASS aktueller Produktstand: 97 JVM-Tests, keine Fehler; Host-Suchmessung p95=75.505092 ms unter unverändertem 300-ms-Limit, synthetische Daten, keine Pixel-Leistungsbehauptung.",
-      "local_build": "PASS aktueller Produktstand: assembleRelease, assembleReleaseAndroidTest, lintRelease und Artefakt-Datenschutz; Bauzeit 5 min 12 s. Kein Pixel-Laufzeitnachweis. Der vorherige originalsignierte e85-Kandidat ist wegen der Produktkorrekturen veraltet und wurde nicht verteilt.",
-      "full_ci": "Run 43022570742: Build SUCCESS, Emulator FAILURE, Eisbär-Integrität SUCCESS. Korrekturen betreffen echten PDF-Vorschau-Dateizugriff, bestätigten Auftrags-Readback, Testdatenmarkierung/Steuerhinweis und gemeinsame Test-Lifecycle-Steuerung. Vollständiger neuer Lauf erforderlich."
+      "eisbaer_runtime_tests": "Diagnose-Run 43037244345 auf eda9f491/source33880395: 40 von 46 Hauptaufrufen abgeschlossen, 6708 Checks; alle 6 MCP-Proofblöcke und echtes 158→159-Update mit Daten/Session/Drafts/Fotobytes erfolgreich. Sechs rote Aufrufe betreffen Provider-/Media-Handoffs, Hauptuhrprüfung und Consent-Testfixture. Korrekturen lokal integriert, noch nicht nativ ausgeführt.",
+      "source": "PASS aktueller Produktstand d48f5f34: check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow-YAML, 14 Shellblöcke und neun eingebettete Pythonblöcke gültig. Größter run-Block 20456 Zeichen, unter dem 21000-Zeichen-Limit. Eisbär-Originale unverändert.",
+      "local_jvm": "PASS 97 JVM-Tests ohne Fehler/Skip auf integriertem Sicherungsvergleichskern c53e02ea; Host-Suche p95=85.799014 ms bei unverändertem 300-ms-Limit. Anschließende UI-/Teststeuerungskorrekturen werden neu gebaut und im eigenen vollständigen CI-Lauf geprüft; keine Pixel-Leistungsbehauptung.",
+      "local_build": "PASS aktueller Produktstand d48f5f34: Release-APK, Test-APK, lintRelease und Artefakt-Datenschutz. Testfixture-Korrekturen abschließend mit Test-APK/Lint, Bauzeit 2 min 27 s bestätigt. Screenshot-Helfer nutzt öffentliche APIs und echten Frame-Commit. Frühere originalsignierte APKs sind intern und veraltet, nicht verteilt.",
+      "full_ci": "Run 43037244345: Build SUCCESS, Emulator FAILURE, Eisbär-Integrität SUCCESS; 40/46 Hauptaufrufe mit 6708 Checks. Aktueller Stand d48f5f34 benötigt eigenen vollständigen neuen Lauf; keine offene CI-Prüfung wird als Pixel-only ausgegeben."
     },
     "next": [
-      "Aktuellen Quellstand lokal abschließend prüfen, committen, im bestehenden PR #27 pushen und vollständigen CI-Lauf ohne Teilfilter bis grün ausführen.",
+      "Aktuellen Schlussbau abschließen, neue vollständige Quell-/Workflowprüfungen ausführen, eigene geprüfte Änderungen im bestehenden PR #27 committen/pushen und vollen CI-Lauf bis grün führen.",
       "Nach erfolgreichem exaktem Kandidatenlauf tatsächliche UI-/MCP-/Daten-/Migrationsnachweise in UMSETZUNG.json registrieren; Bilder und Grenzen konkret prüfen.",
       "Nach ausdrücklich beauftragter Installation: Originalidentität, Pixel-Bedienung, bestehende Verbindungen sowie tatsächlichen Sicherungsanbieter und bestätigte isolierte Wiederherstellung prüfen.",
       "Erst bei vollständig bestandenen Eisbär-Abnahmen check_eisbaer.py --completion und Abschluss."
@@ -83,7 +83,7 @@
   },
   "open_checks": [
     "Nach tatsächlicher Eisbär-Implementierung und ausdrücklich beauftragter Installation: Pixel-Paket, Version, Git-/Quellhash desselben Kandidaten lesen.",
-    "Eisbär-Bedienbarkeit mit großer Schrift, Tastatur, Randgesten und Kamera am Pixel nachweisen.",
+    "Eisbär-Bedienbarkeit mit großer Schrift, Tastatur, Randgesten, Kamera und realer Spracheingabe am Pixel nachweisen.",
     "Bestehende Kalender-/Wetter-/Codex-MCP-Verbindungen und Android-Freigaben am Pixel nachweisen.",
     "Fortschreibung derselben Sicherungsdatei, Integrität und bewusst bestätigte Wiederherstellung mit synthetischen Daten am Pixel nachweisen."
   ],
