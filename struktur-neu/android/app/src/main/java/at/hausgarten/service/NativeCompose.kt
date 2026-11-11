@@ -441,10 +441,7 @@ internal fun NativeButton(
             modifier
                 .minimumInteractiveComponentSize()
                 .wrapContentWidth(Alignment.End)
-                .then(
-                    if (LocalDensity.current.fontScale > 1.3f) Modifier.heightIn(min = 30.dp)
-                    else Modifier.requiredHeight(30.dp)
-                ),
+                .heightIn(min = 30.dp),
             enabled,
             shape,
             colors,
@@ -476,10 +473,7 @@ internal fun NativeOutlinedButton(
             modifier
                 .minimumInteractiveComponentSize()
                 .wrapContentWidth(Alignment.End)
-                .then(
-                    if (LocalDensity.current.fontScale > 1.3f) Modifier.heightIn(min = 30.dp)
-                    else Modifier.requiredHeight(30.dp)
-                ),
+                .heightIn(min = 30.dp),
             enabled,
             shape,
             colors,
@@ -511,10 +505,7 @@ internal fun NativeTextButton(
             modifier
                 .minimumInteractiveComponentSize()
                 .wrapContentWidth(Alignment.End)
-                .then(
-                    if (LocalDensity.current.fontScale > 1.3f) Modifier.heightIn(min = 26.dp)
-                    else Modifier.requiredHeight(26.dp)
-                ),
+                .heightIn(min = 26.dp),
             enabled,
             shape,
             colors,

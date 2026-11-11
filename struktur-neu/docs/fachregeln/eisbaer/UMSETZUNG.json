@@ -7,7 +7,7 @@
   "overall_status": "IN_PROGRESS",
   "candidate": null,
   "created_at_utc": "2026-11-11T04:47:24.708547Z",
-  "status_note": "Unveröffentlichter Eisbär-Kandidat 1.72.0/159 auf nachgewiesener 158-Basis. Diagnose-Run 43063560392 der vorigen Quelle läuft, Build mit 97 JVM-Tests grün. Nach vollständiger Sichtung von 119 echten Bildern Foto-Fehlermeldung, deutsche Arbeitsvorgaben und Gerätetreffer bei großer Schrift korrigiert. Echte Kalender-/Gmail-Adaptertests mit synthetischem Transport sowie öffentliche queued-/Replaypfade integriert. Release-/Test-APK, Lint, Datenschutz und lokale Quellprüfungen bestanden. Eigener vollständiger Folgelauf und reale Pixel-/Verbindungs-/Sicherungsabnahmen offen. Keine vollständige Abnahme behauptet.",
+  "status_note": "Unveröffentlichter Eisbär-Kandidat 1.72.0/159 auf nachgewiesener 158-Basis. Gesamtlauf 43063560392: 44/46 Hauptaufrufe und 7475 gemeldete Checks; gesamte Provider-/Media-/isolierte Restorekette mit echten Entwurfs-/Sessionwerten und regulärer Rechte-Restauration bestätigt. Zwei Testannahmen korrigiert; tatsächliche Caption-Beschneidung durch feste Buttonhöhen behoben und unbeschnittene Textlayoutprüfung ergänzt. Aktuelle Release-/Test-APK, Lint, Datenschutz und Quellprüfungen bestanden. Eigener Vollauf und reale Pixel-/Verbindungs-/Sicherungsabnahmen offen. Keine vollständige Abnahme behauptet.",
   "items": {
     "REQ-001": {
       "status": "NOT_STARTED",

@@ -25,6 +25,12 @@ import android.view.accessibility.AccessibilityWindowInfo
 import android.view.inspector.WindowInspector
 import android.widget.DatePicker
 import android.widget.TimePicker
+import androidx.compose.ui.platform.ViewRootForTest
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getAllSemanticsNodes
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.text.TextLayoutResult
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
@@ -1433,6 +1439,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "SETTLEMENT_ACCOUNTING_PLUS_HAS_ONLY_AUTHORIZED_SHORTCUTS_AND_NO_RETIRED_COMPLETION",
             )
             click(UiTags.createChoice("work"))
+            reveal("Was wurde erledigt? *")
             shown("Was wurde erledigt? *")
             back()
             openAccountingTotals()
@@ -6363,11 +6370,34 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         seedCustomerContext()
         for (index in 0..1) {
             val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
+            val customerId = customers(name).single().getString("id")
+            fun originalCustomerCaption(): String {
+                val original = read("get_customer", JSONObject().put("customer_id", customerId))
+                yes(
+                    original.getString("id") == customerId && original.getString("name") == name,
+                    "CUSTOMER_CONTEXT_CAPTION_READS_EXACT_ORIGINAL_$index",
+                )
+                val address =
+                    original.optString("address").ifBlank {
+                        listOf(
+                                original.optString("street"),
+                                listOf(
+                                        original.optString("postal_code"),
+                                        original.optString("city"),
+                                    )
+                                    .filter { it.isNotBlank() }
+                                    .joinToString(" "),
+                            )
+                            .filter { it.isNotBlank() }
+                            .joinToString(", ")
+                    }
+                return "Kunde: " +
+                    listOf(name, address).filter { it.isNotBlank() }.joinToString(" · ")
+            }
             openCustomerList()
             searchCustomers(name)
             click(name)
             if (index == 0) {
-                val customerId = customers(name).single().getString("id")
                 val customerArgs = JSONObject().put("customer_id", customerId)
                 val contactSeedProof = tools.call("get_customer", customerArgs)
                 yes(contactSeedProof.optBoolean("ok"), "CUSTOMER_CONTACT_FIXTURE_ORIGINAL_READ")
@@ -6459,27 +6489,87 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 for (label in listOf("Arbeiten", "L.C.R.", "Geräte")) reveal(label)
                 captureSyntheticScreen("customer-context-plus")
                 click(UiTags.createChoice("work"))
-                shown("Kunde: $name")
+                shown(originalCustomerCaption())
                 enter("Was wurde erledigt? *", "[TEST] QA Kunden-Plus-Kontext")
                 waitUntil("CUSTOMER_PLUS_ORIGINAL_CONTEXT_DURABLE_IN_WORK_DRAFT") {
                     workDraft().optJSONObject("values")?.optString("customer_id") == customerId
                 }
                 val workRequest = workDraft().getJSONObject("values").getString("_request_id")
                 recreate()
-                shown("Kunde: $name")
+                shown(originalCustomerCaption())
                 yes(
                     workDraft().getJSONObject("values").getString("customer_id") == customerId &&
                         workDraft().getJSONObject("values").getString("_request_id") == workRequest,
                     "CUSTOMER_PLUS_RECREATE_RETAINS_EXACT_CUSTOMER_AND_REQUEST",
                 )
-                val originalCustomerLabel =
-                    "Kunde: " +
-                        read("get_customer", JSONObject().put("customer_id", customerId))
-                            .getString("name")
+                val originalCustomerLabel = originalCustomerCaption()
                 waitStable("CUSTOMER_PLUS_RECREATED_ORIGINAL_NAME_READY", stableMs = 500) {
                     node(originalCustomerLabel) != null &&
                         workDraft().getJSONObject("values").getString("customer_id") == customerId
                 }
+                yes(
+                    kotlin.math.abs(
+                        requireNotNull(activity).resources.configuration.fontScale - 1f
+                    ) < 0.02f && !keyboardVisible(),
+                    "CUSTOMER_PLUS_ORIGINAL_CAPTION_READBACK_AT_100_PERCENT_WITHOUT_IME",
+                )
+                textWithinOwnScrollViewport(originalCustomerLabel)
+                var captionLayoutUnclipped = false
+                test.runOnMainSync {
+                    fun composeRoot(view: View): ViewRootForTest? {
+                        if (view is ViewRootForTest) return view
+                        if (view is ViewGroup)
+                            for (child in 0 until view.childCount) composeRoot(
+                                    view.getChildAt(child)
+                                )
+                                ?.let {
+                                    return it
+                                }
+                        return null
+                    }
+                    val root =
+                        composeRoot(requireNotNull(activity).window.decorView)
+                            ?: return@runOnMainSync
+                    val textNode =
+                        root.semanticsOwner
+                            .getAllSemanticsNodes(mergingEnabled = false)
+                            .singleOrNull {
+                                it.config
+                                    .getOrNull(SemanticsProperties.Text)
+                                    ?.singleOrNull()
+                                    ?.text == originalCustomerLabel &&
+                                    it.config.contains(SemanticsActions.GetTextLayoutResult)
+                            } ?: return@runOnMainSync
+                    val layouts = mutableListOf<TextLayoutResult>()
+                    if (
+                        textNode.config
+                            .getOrNull(SemanticsActions.GetTextLayoutResult)
+                            ?.action
+                            ?.invoke(layouts) != true
+                    )
+                        return@runOnMainSync
+                    val layout = layouts.singleOrNull() ?: return@runOnMainSync
+                    val visible = textNode.boundsInRoot
+                    // Raw layout boxes retain portions clipped by this Text or its parent Button.
+                    captionLayoutUnclipped =
+                        layout.layoutInput.text.text == originalCustomerLabel &&
+                            !layout.hasVisualOverflow &&
+                            originalCustomerLabel.indices.all { character ->
+                                val glyph =
+                                    layout
+                                        .getBoundingBox(character)
+                                        .translate(textNode.positionInRoot)
+                                !glyph.isEmpty &&
+                                    glyph.left >= visible.left &&
+                                    glyph.top >= visible.top &&
+                                    glyph.right <= visible.right &&
+                                    glyph.bottom <= visible.bottom
+                            }
+                }
+                yes(
+                    captionLayoutUnclipped,
+                    "CUSTOMER_PLUS_FULL_CAPTION_LAYOUT_NOT_CLIPPED_BY_TEXT_OR_BUTTON",
+                )
                 captureSyntheticScreen("customer-plus-work-context")
                 discardWork()
                 yes(
@@ -6522,7 +6612,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("QA Kontextobjekt $index")
             yes(node("QA Kontextobjekt ${1-index}") == null, "PROPERTIES_KEEP_CUSTOMER_$index")
             click("Objekt anlegen")
-            shown("Kunde: $name")
+            shown(originalCustomerCaption())
             click("Zurück")
             shown("Objekt anlegen")
             click(UiTags.BACK)
@@ -6550,7 +6640,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         click(UiTags.detailAction("property-offer"))
                     }
                     val title = if (fromInquiry) "QA Kontextanfrage 0" else "QA Kontextobjekt 0"
-                    shown("Kunde: $name")
+                    shown(originalCustomerCaption())
                     reveal("Titel *")
                     waitUntil("OFFER_SOURCE_TITLE_$fromInquiry") {
                         field("Titel *")?.text?.toString() == title
