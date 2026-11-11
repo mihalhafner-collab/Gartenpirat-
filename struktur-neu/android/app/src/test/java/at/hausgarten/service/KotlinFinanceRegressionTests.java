@@ -1,7 +1,15 @@
 package at.hausgarten.service;
 
 import java.math.BigDecimal;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -77,6 +85,94 @@ public final class KotlinFinanceRegressionTests {
                 "Changing immutable version content does not transfer its acceptance");
     }
 
+    /** Production decision, conversion and transaction rules; only storage/document I/O are ports. */
+    private static final class DecisionStore implements InvocationHandler, OwnerRequestTransactions.Store {
+        JSONObject data, beforeData;
+        final Map<String, String> owner = new HashMap<>();
+        Map<String, String> beforeOwner;
+        boolean committed;
+        int documentReads;
+        final OwnerRepository repository;
+        DecisionStore() throws Exception {
+            data = master();
+            JSONObject finalized = offer().put("status", "finalized").put("offer_number", "QA-OFFER-000001")
+                    .put("finalized_at", STAMP).put("pdf_sha256", "a".repeat(64))
+                    .put("pdf_byte_size", 1234).put("document_id", "synthetic-existing-offer-pdf");
+            data.getJSONArray("offers").put(finalized);
+            repository = (OwnerRepository) Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(),
+                    new Class<?>[]{OwnerRepository.class}, this);
+        }
+        @Override public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
+            switch (method.getName()) {
+                case "effective": return copy(data);
+                case "state": return new JSONObject().put("master", copy(data)).put("pending", new JSONArray());
+                case "ownerValue": return owner.getOrDefault((String) args[0], (String) args[1]);
+                case "putOwnerValue": owner.put((String) args[0], (String) args[1]); return null;
+                case "readDocument":
+                    yes(((JSONObject) args[0]).getString("pdf_sha256").equals("a".repeat(64)),
+                            "Acceptance reads the exact finalized document through its I/O port");
+                    documentReads++; return null;
+                case "enqueue":
+                    JSONObject event = new JSONObject().put("kind", args[0]).put("payload", args[1])
+                            .put("client_id", args[2]).put("created_at", STAMP);
+                    OfferJournalRules.apply(data, event);
+                    return new JSONObject().put("local_state", "local_saved");
+                default: throw new UnsupportedOperationException("Unimplemented synthetic port: " + method.getName());
+            }
+        }
+        JSONObject decide(JSONObject args) throws Exception {
+            return OwnerRequestTransactions.runRequest(this, args.getString("request_id"), PixelMcpWriteTools.hash(args),
+                    () -> new OfferDecisionService(repository, Clock.fixed(Instant.parse(STAMP), ZoneOffset.UTC))
+                            .perform("record_offer_acceptance", args, args.getString("request_id")), STAMP);
+        }
+        @Override public void begin() {
+            try { beforeData = copy(data); } catch (Exception failure) { throw new AssertionError(failure); }
+            beforeOwner = new HashMap<>(owner); committed = false;
+        }
+        @Override public String read(String key) { return owner.getOrDefault(key, ""); }
+        @Override public void write(String key, String value) { owner.put(key, value); }
+        @Override public void successful() { committed = true; }
+        @Override public void end() { if (!committed) { data = beforeData; owner.clear(); owner.putAll(beforeOwner); } }
+    }
+
+    private static void acceptedOfferCreatesOrderAndReplays() throws Exception {
+        DecisionStore store = new DecisionStore();
+        JSONObject original = copy(store.data.getJSONArray("offers").getJSONObject(0));
+        String originalHash = PixelMcpWriteTools.hash(LocalJournalRules.clean(original));
+        JSONObject unconfirmed = new JSONObject().put("kind", "offer_convert").put("client_id", "qa_unconfirmed_conversion")
+                .put("created_at", STAMP).put("payload", new JSONObject().put("id", "off1").put("expected_record_hash", originalHash));
+        invalid("Ausdrückliche Bestätigung erforderlich.", () -> OfferJournalRules.apply(copy(store.data), unconfirmed));
+        JSONObject args = new JSONObject().put("request_id", "qa_actual_offer_acceptance").put("offer_id", "off1")
+                .put("expected_record_hash", originalHash).put("accepted_at", STAMP)
+                .put("evidence", "Synthetic explicit acceptance of this exact finalized offer");
+        int ordersBefore = store.data.getJSONArray("orders").length();
+        String invoicesBefore = store.data.getJSONArray("invoices").toString();
+        JSONObject accepted = store.decide(args);
+        String orderId = accepted.getString("order_id");
+        JSONObject order = PixelMcpWriteTools.find(store.data.getJSONArray("orders"), orderId);
+        JSONObject acceptedOffer = store.data.getJSONArray("offers").getJSONObject(0);
+        yes(acceptedOffer.getString("status").equals("accepted") && acceptedOffer.getString("converted_order_id").equals(orderId)
+                        && store.data.getJSONArray("orders").length() == ordersBefore + 1 && order.getString("customer_id").equals("c1")
+                        && order.getString("offer_id").equals("off1") && order.getJSONArray("offer_refs").getJSONObject(0).getString("offer_id").equals("off1"),
+                "Explicit acceptance passes real conversion validation and atomically persists exactly one linked order");
+        yes(OfferDecisionRules.contentVersion(acceptedOffer).equals(OfferDecisionRules.contentVersion(original))
+                        && !accepted.getBoolean("invoice_created") && store.data.getJSONArray("invoices").toString().equals(invoicesBefore),
+                "Actual acceptance preserves finalized offer content and PDF and never creates an invoice");
+        JSONObject history = new OfferDecisionService(store.repository).query("get_offer_decision_history", new JSONObject().put("offer_id", "off1"));
+        yes(history.getInt("total") == 1 && history.getJSONArray("history").getJSONObject(0).getString("evidence").equals(args.getString("evidence")),
+                "Real accepted-version evidence survives readback");
+        int readsBeforeReplay = store.documentReads;
+        JSONObject replay = store.decide(args);
+        yes(replay.getBoolean("replayed") && replay.getString("order_id").equals(orderId) && store.documentReads == readsBeforeReplay,
+                "Exact acceptance request replay returns the same order without repeating the document or conversion effect");
+        Map<String, String> ownerBeforeDuplicate = new HashMap<>(store.owner);
+        rejected("OFFER_DECISION_ALREADY_RECORDED", () -> store.decide(copy(args).put("request_id", "qa_second_offer_acceptance")
+                .put("expected_record_hash", PixelMcpWriteTools.hash(LocalJournalRules.clean(acceptedOffer)))));
+        yes(store.owner.equals(ownerBeforeDuplicate) && store.data.getJSONArray("orders").length() == ordersBefore + 1
+                        && store.data.getJSONArray("invoices").toString().equals(invoicesBefore),
+                "A distinct duplicate acceptance rolls back completely and cannot create a second order or invoice");
+    }
+
     private static void optionalOfferReview() throws Exception {
         JSONObject stateMaster = master(), value = offer();
         JSONObject entry = json("{id:'synthetic-catalog-1',title:'Synthetic price',default_price:31.55,price_confirmed:true,active:true}");
@@ -107,6 +203,7 @@ public final class KotlinFinanceRegressionTests {
     public static void main(String[] ignored) throws Exception {
         billingRelations();
         offersAndDecisions();
+        acceptedOfferCreatesOrderAndReplays();
         optionalOfferReview();
         System.out.println("PASS " + checks + " Kotlin business assertions: customer/billing relationships, offer prices, offer decisions and contextual reviews; synthetic JVM only");
     }

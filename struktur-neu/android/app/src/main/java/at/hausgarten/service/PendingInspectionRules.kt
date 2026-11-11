@@ -16,13 +16,11 @@ internal object PendingInspectionRules {
                     ?.takeIf { it.length() > 0 }
                     ?.toString()
                     ?.let { it == original.optJSONArray("work_record_ids")?.toString() } == true
-            "delete_entity",
-            "purge_entity" ->
+            "delete_entity" ->
                 initial.optString("entity").isNotBlank() &&
                     initial.optString("entity_id").isNotBlank() &&
                     initial.getString("entity") == original.optString("entity") &&
                     initial.getString("entity_id") == original.optString("entity_id")
-            "empty_trash" -> true
             else -> false
         }
 
@@ -52,15 +50,7 @@ internal object PendingInspectionRules {
                             when (proof.optString("state")) {
                                 "confirmed" -> "confirmed"
                                 "content_removed" ->
-                                    if (
-                                        tool in
-                                            setOf(
-                                                "delete_entity",
-                                                "purge_entity",
-                                                "empty_trash",
-                                                "delete_work_records",
-                                            )
-                                    )
+                                    if (tool in setOf("delete_entity", "delete_work_records"))
                                         "confirmed"
                                     else "removed"
                                 "unknown",

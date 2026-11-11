@@ -21,12 +21,13 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -111,7 +112,6 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
         rememberSaveable(initialId) {
             mutableStateOf(controller.route.args.optString("_draft_key"))
         }
-    var archive by rememberSaveable(initialId) { mutableStateOf(false) }
     var settings by rememberSaveable(initialId) { mutableStateOf(false) }
     when {
         importing ->
@@ -124,7 +124,6 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                 selected = ""
                 editorDraftKey = ""
             }
-        archive -> NativePhotoTrash(controller) { archive = false }
         settings -> NativePhotoSettings(controller) { settings = false }
         else ->
             listStates.SaveableStateProvider("photo-list") {
@@ -219,7 +218,9 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                             }
                     }
                 val loadedPage by displayFlow.collectAsStateWithLifecycle(null)
-                val page = loadedPage ?: NativeListPage(emptyList(), 0, offset, 40)
+                var lastPage by remember { mutableStateOf<NativeListPage?>(null) }
+                LaunchedEffect(loadedPage) { if (loadedPage != null) lastPage = loadedPage }
+                val page = loadedPage ?: lastPage ?: NativeListPage(emptyList(), 0, offset, 40)
                 val listLoading = loadedPage == null && readFailure.isEmpty()
                 val photoActions: @Composable () -> Unit = {
                     NativeActionBar(
@@ -246,13 +247,14 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                     if (listLoading) "Wird geladen …" else "${page.total} Treffer",
                     onFilters = { filterOpen = true },
                 ) {
+                    if (listLoading) LinearProgressIndicator(Modifier.fillMaxWidth().height(2.dp))
                     if (readFailure.isNotEmpty()) {
                         Text(
                             readFailure,
                             Modifier.padding(horizontal = 16.dp),
                             color = MaterialTheme.colorScheme.error,
                         )
-                        TextButton(
+                        NativeTextButton(
                             onClick = {
                                 readFailure = ""
                                 readRetry++
@@ -289,8 +291,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                             Modifier.weight(1f).fillMaxWidth(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (listLoading) CircularProgressIndicator()
-                            else if (readFailure.isEmpty())
+                            if (!listLoading && readFailure.isEmpty())
                                 Text(
                                     if (search.isBlank() && active.isEmpty())
                                         "Fotos dokumentieren deine Arbeiten und den Zustand eines Objekts."
@@ -353,8 +354,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                         MediaPagination(offset, page.rows.size, page.total, 40) { offset = it }
                     if (!imeVisible && search.isBlank()) {
                         Row(Modifier.padding(horizontal = 16.dp)) {
-                            TextButton(onClick = { archive = true }) { Text("Papierkorb") }
-                            TextButton(onClick = { settings = true }) { Text("Fotoqualität") }
+                            NativeTextButton(onClick = { settings = true }) { Text("Fotoqualität") }
                         }
                         photoActions()
                     }
@@ -369,7 +369,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 Text("Fotos filtern", style = MaterialTheme.typography.titleLarge)
-                                TextButton({
+                                NativeTextButton({
                                     search = ""
                                     customerId = ""
                                     customerLabel = ""
@@ -440,7 +440,7 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                                     },
                                 )
                                 val scope = rememberCoroutineScope()
-                                TextButton(
+                                NativeTextButton(
                                     onClick = {
                                         scope.launch {
                                             try {
@@ -467,7 +467,10 @@ private fun NativePhotoLibrary(initialId: String, controller: NativeAppControlle
                                 ) {
                                     Text("Laufende Arbeit")
                                 }
-                                Button(onClick = { filterOpen = false }, Modifier.fillMaxWidth()) {
+                                NativeButton(
+                                    onClick = { filterOpen = false },
+                                    Modifier.fillMaxWidth(),
+                                ) {
                                     Text("Anwenden")
                                 }
                             }
@@ -593,6 +596,7 @@ internal fun NativePhotoImage(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun NativePhotoDetail(
     id: String,
@@ -601,88 +605,103 @@ private fun NativePhotoDetail(
     close: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var revision by remember { mutableIntStateOf(0) }
     var record by remember(id) { mutableStateOf<JSONObject?>(null) }
+    var revision by remember { mutableIntStateOf(0) }
     var error by remember(id) { mutableStateOf("") }
-    var editing by rememberSaveable(id) { mutableStateOf(false) }
-    var caption by rememberSaveable(id) { mutableStateOf("") }
-    var capture by rememberSaveable(id) { mutableStateOf("") }
-    var role by rememberSaveable(id) { mutableStateOf("documentation") }
-    var visible by rememberSaveable(id) { mutableStateOf(false) }
-    var order by rememberSaveable(id) { mutableStateOf("") }
-    var orderTitle by rememberSaveable(id) { mutableStateOf("") }
-    var worklog by rememberSaveable(id) { mutableStateOf("") }
-    var workTitle by rememberSaveable(id) { mutableStateOf("") }
-    var session by rememberSaveable(id) { mutableStateOf("") }
+    var field by rememberSaveable(id) { mutableStateOf("") }
+    var value by rememberSaveable(id) { mutableStateOf("") }
+    var before by rememberSaveable(id) { mutableStateOf("") }
+    var fieldHash by rememberSaveable(id) { mutableStateOf("") }
     var pending by rememberSaveable(id) { mutableStateOf("") }
+    var conflict by rememberSaveable(id) { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var picker by remember { mutableStateOf("") }
     var fullscreen by remember { mutableStateOf(false) }
     var detailsOpen by rememberSaveable(id) { mutableStateOf(false) }
-    var discardChanges by remember { mutableStateOf(false) }
+    var picker by remember { mutableStateOf("") }
     val draftKey = draftKeyOverride.ifEmpty { "photo_edit_" + id }
-    var draftReady by remember { mutableStateOf(false) }
-    var draftTouched by rememberSaveable(id) { mutableStateOf(false) }
+    val labels =
+        mapOf(
+            "caption" to "Bildunterschrift",
+            "capture_time" to "Aufnahmedatum",
+            "role" to "Rolle",
+            "customer_visible" to "Für Kunden sichtbar",
+            "order_id" to "Auftrag",
+            "worklog_id" to "Arbeit",
+            "session_id" to "Sitzung",
+        )
+    fun draftValue() =
+        JSONObject()
+            .put("field", field)
+            .put("value", value)
+            .put("before", before)
+            .put("record_hash", fieldHash)
+            .put("pending", pending)
+            .put("conflict", conflict)
     LaunchedEffect(id, revision) {
         try {
-            val draft = if (revision == 0) controller.draft(draftKey) else null
-            val read =
-                try {
-                    controller.query("get_photo", JSONObject().put("photo_id", id))
-                } catch (failure: Exception) {
-                    if (draft == null) throw failure else null
+            record = controller.query("get_photo", JSONObject().put("photo_id", id))
+            if (revision == 0)
+                controller.draft(draftKey)?.let { draft ->
+                    pending = draft.optString("pending")
+                    conflict = draft.optString("conflict")
+                    field = draft.optString("field")
+                    value = draft.optString("value")
+                    before = draft.optString("before")
+                    fieldHash = draft.optString("record_hash")
                 }
-            record = read
-            if (pending.isBlank() || draft != null) {
-                val p = draft ?: requireNotNull(read).getJSONObject("photo")
-                caption = p.optString("caption")
-                capture = p.optString("capture_time")
-                role = p.optString("role", "documentation")
-                visible = p.optBoolean("customer_visible")
-                order = p.optString("order_id")
-                worklog = p.optString("worklog_id")
-                session = p.optString("session_id")
-                pending = draft?.optString("pending").orEmpty()
-            }
-            draftTouched = draft != null
-            if (draft != null) editing = true
-            draftReady = true
-            error =
-                if (read == null)
-                    "Das aktuelle Foto ist nicht lesbar. Erhaltene Angaben und die ursprüngliche Aktion bleiben zur Prüfung geöffnet."
-                else ""
+            error = ""
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (failure: Exception) {
             error = mediaError(failure)
         }
     }
-    fun draftValue() =
-        JSONObject()
-            .put("caption", caption)
-            .put("capture_time", capture)
-            .put("role", role)
-            .put("customer_visible", visible)
-            .put("order_id", order)
-            .put("worklog_id", worklog)
-            .put("session_id", session)
-            .put("pending", pending)
-    fun leave() {
-        if (!busy)
-            scope.launch {
-                try {
-                    if (draftTouched) {
-                        controller.saveDraft(draftKey, draftValue())
-                        controller.flushDrafts()
-                    }
-                    close()
-                } catch (failure: Exception) {
-                    controller.message(mediaError(failure))
-                }
-            }
+    val photo = record?.optJSONObject("photo")
+    fun open(key: String) {
+        if (busy || pending.isNotBlank() || photo == null) return
+        field = key
+        value =
+            if (key == "customer_visible") photo.optBoolean(key).toString()
+            else photo.optString(key)
+        before = value
+        fieldHash = record!!.getString("record_hash")
+        error = ""
     }
-    BackHandler { leave() }
-    val draftSnapshot = draftValue().toString()
-    LaunchedEffect(draftSnapshot, draftReady, draftTouched) {
-        if (draftReady && draftTouched) controller.saveDraft(draftKey, JSONObject(draftSnapshot))
+    fun changed(next: String) {
+        value = next
+        controller.saveDraft(draftKey, draftValue())
+    }
+    suspend fun confirmed(key: String, oldValue: String, newValue: String) {
+        record = controller.query("get_photo", JSONObject().put("photo_id", id))
+        controller.removeDraft(draftKey)
+        pending = ""
+        field = ""
+        error = ""
+        controller.messageUndo("Gespeichert") {
+            val current = controller.query("get_photo", JSONObject().put("photo_id", id))
+            val currentPhoto = current.getJSONObject("photo")
+            val actual =
+                if (key == "customer_visible") currentPhoto.optBoolean(key).toString()
+                else currentPhoto.optString(key)
+            require(actual == newValue) { "Die Angabe wurde inzwischen geändert." }
+            mediaWrite(
+                controller,
+                "update_photo",
+                JSONObject()
+                    .put("request_id", mediaRequest())
+                    .put("photo_id", id)
+                    .put("expected_record_hash", current.getString("record_hash"))
+                    .put(
+                        "updates",
+                        JSONObject()
+                            .put(
+                                key,
+                                if (key == "customer_visible") oldValue.toBoolean() else oldValue,
+                            ),
+                    ),
+            )
+            revision++
+        }
     }
     var inspectionAttempt by remember { mutableIntStateOf(0) }
     val inspection =
@@ -690,39 +709,120 @@ private fun NativePhotoDetail(
             controller,
             "update_photo",
             pending.takeIf(String::isNotBlank)?.let(::JSONObject),
-            draftReady && !busy,
+            !busy,
             inspectionAttempt,
-        ) { _ ->
-            controller.removeDraft(draftKey)
-            pending = ""
-            draftTouched = false
-            editing = false
-            revision++
-            controller.message("Fotoangaben gespeichert.", NativeRoute("photos", id, "detail"))
+        ) {
+            val original = JSONObject(pending)
+            val updates = original.getJSONObject("updates")
+            val key = field.ifBlank { updates.keys().asSequence().first() }
+            confirmed(key, before, updates.get(key).toString())
         }
-    val photo = record?.optJSONObject("photo")
+    suspend fun conflictValue(key: String, entered: String): String =
+        when (key) {
+            "customer_visible" -> if (entered.toBoolean()) "Ja" else "Nein"
+            "capture_time" -> nativeDisplayDate(entered)
+            "role" -> photoRoles[entered] ?: entered
+            "order_id",
+            "worklog_id" ->
+                if (entered.isBlank()) "Nicht zugeordnet"
+                else {
+                    val related =
+                        controller.query(
+                            if (key == "order_id") "get_order" else "get_work_record",
+                            JSONObject()
+                                .put(
+                                    if (key == "order_id") "order_id" else "work_record_id",
+                                    entered,
+                                ),
+                        )
+                    related.optString(if (key == "order_id") "title" else "activity")
+                }
+            else -> entered
+        }
+    fun save() {
+        if (busy || pending.isNotBlank() || conflict.isNotBlank()) return
+        if (value == before) {
+            field = ""
+            scope.launch { controller.removeDraft(draftKey) }
+            return
+        }
+        scope.launch {
+            busy = true
+            try {
+                val key = field
+                val oldValue = before
+                val newValue = value
+                pending =
+                    JSONObject()
+                        .put("request_id", mediaRequest())
+                        .put("photo_id", id)
+                        .put("expected_record_hash", fieldHash)
+                        .put(
+                            "updates",
+                            JSONObject()
+                                .put(
+                                    key,
+                                    if (key == "customer_visible") newValue.toBoolean()
+                                    else newValue,
+                                ),
+                        )
+                        .toString()
+                controller.saveDraft(draftKey, draftValue())
+                controller.flushDrafts()
+                mediaWrite(controller, "update_photo", JSONObject(pending))
+                confirmed(key, oldValue, newValue)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                error = mediaError(failure)
+                if (
+                    failure is NativeCallFailure &&
+                        failure.detail.optString("commit_state") == "not_committed" &&
+                        failure.detail.optString("code") in setOf("WRITE_CONFLICT", "EDIT_CONFLICT")
+                ) {
+                    try {
+                        val current =
+                            controller.query("get_photo", JSONObject().put("photo_id", id))
+                        val currentPhoto = current.getJSONObject("photo")
+                        val stored =
+                            if (field == "customer_visible")
+                                currentPhoto.optBoolean(field).toString()
+                            else currentPhoto.optString(field)
+                        current
+                            .put("_display_stored", conflictValue(field, stored))
+                            .put("_display_entered", conflictValue(field, value))
+                        val encoded = current.toString()
+                        controller.saveDraft(
+                            draftKey,
+                            draftValue().put("pending", "").put("conflict", encoded),
+                        )
+                        controller.flushDrafts()
+                        pending = ""
+                        conflict = encoded
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (readFailure: Exception) {
+                        error = mediaError(readFailure)
+                    }
+                }
+            } finally {
+                busy = false
+            }
+        }
+    }
+    BackHandler { if (field.isNotBlank()) save() else if (!busy) close() }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { leave() }) { Text("Zurück") }
+            NativeBackButton { if (field.isNotBlank()) save() else close() }
             NativeDetailHeading(
                 photo?.optString("caption")?.ifBlank { photo.optString("original_name", "Foto") }
                     ?: "Foto",
                 listOf(
-                    NativeDetailAction(
-                        "photo-fullscreen",
-                        "Vollbild und Vergrößern",
-                        run = { fullscreen = true },
-                    ),
+                    NativeDetailAction("photo-fullscreen", "Vollbild", run = { fullscreen = true }),
                     NativeDetailAction(
                         "photo-file",
-                        "Dateiangaben ansehen",
+                        "Dateiangaben",
                         run = { detailsOpen = !detailsOpen },
-                    ),
-                    NativeDetailAction(
-                        "photo-discard",
-                        "Änderungen verwerfen",
-                        draftTouched && !busy && pending.isBlank(),
-                        { discardChanges = true },
                     ),
                 ),
             )
@@ -732,18 +832,9 @@ private fun NativePhotoDetail(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (pending.isNotBlank()) NativeInspectionBanner(inspection) { inspectionAttempt++ }
-            NativeStatus(
-                if (pending.isNotBlank()) "Speichern nicht bestätigt"
-                else if (draftTouched) "Ungespeicherte Änderungen" else "Foto gespeichert",
-                if (pending.isNotBlank()) NativeStatusTone.Attention
-                else if (draftTouched) NativeStatusTone.Neutral else NativeStatusTone.Confirmed,
-            )
             if (photo != null) NativeContext(controller, photo, heading = true)
-            if (error.isNotBlank())
-                Text(
-                    error + " Bereits gespeicherte Arbeit bleibt erhalten.",
-                    color = MaterialTheme.colorScheme.error,
-                )
+            if (error.isNotBlank() && field.isBlank())
+                Text(error, color = MaterialTheme.colorScheme.error)
             NativePhotoImage(
                 id,
                 controller,
@@ -751,138 +842,34 @@ private fun NativePhotoDetail(
                 ContentScale.Fit,
                 original = true,
             )
-            if (!editing && pending.isBlank()) {
+            if (photo != null)
                 NativeGroup("Fotoangaben") {
-                    if (caption.isNotBlank())
-                        NativeKeyValue("Bildunterschrift", caption) { editing = true }
-                    if (capture.isNotBlank())
-                        NativeKeyValue("Aufnahmedatum", nativeDisplayDate(capture)) {
-                            editing = true
-                        }
-                    NativeKeyValue("Rolle", photoRoles[role] ?: "Dokumentation") { editing = true }
-                    NativeKeyValue("Für Kunden sichtbar", if (visible) "Ja" else "Nein") {
-                        editing = true
+                    NativeKeyValue("Bildunterschrift", photo.optString("caption")) {
+                        open("caption")
                     }
-                }
-                NativeAddDetails(
-                    listOf(
-                            "caption" to caption,
-                            "capture_time" to capture,
-                            "order_id" to order,
-                            "worklog_id" to worklog,
-                        )
-                        .filter { it.second.isBlank() }
-                        .map { it.first },
-                    onEdit = { editing = true },
-                )
-            } else {
-                OutlinedTextField(
-                    caption,
-                    {
-                        caption = it
-                        draftTouched = true
-                    },
-                    Modifier.fillMaxWidth().semantics { testTag = UiTags.PHOTO_CAPTION },
-                    label = { Text("Bildunterschrift") },
-                    enabled = !busy && pending.isBlank(),
-                )
-                NativeDateTimeField(
-                    "Aufnahmedatum",
-                    capture,
-                    { selectedTime ->
-                        capture =
-                            runCatching {
-                                    java.time.LocalDateTime.parse(selectedTime)
-                                        .atZone(java.time.ZoneId.of("Europe/Vienna"))
-                                        .toInstant()
-                                        .toString()
-                                }
-                                .getOrDefault(selectedTime)
-                        draftTouched = true
-                    },
-                    enabled = !busy && pending.isBlank(),
-                )
-                MediaDropdown("Rolle", role, photoRoles, enabled = !busy && pending.isBlank()) {
-                    role = it
-                    draftTouched = true
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        visible,
-                        {
-                            visible = it
-                            draftTouched = true
-                        },
-                        enabled = !busy && pending.isBlank(),
-                    )
-                    Text("Für Kunden sichtbar")
-                }
-                MediaChoice(
-                    "Auftrag",
-                    orderTitle.ifBlank {
-                        if (order.isBlank()) "Nicht zugeordnet"
-                        else
-                            photo?.optString("order_title").orEmpty().ifBlank {
-                                "Auftrag zugeordnet"
-                            }
-                    },
-                    { picker = "orders" },
-                    {
-                        order = ""
-                        orderTitle = ""
-                        draftTouched = true
-                    },
-                    pending.isBlank(),
-                )
-                MediaChoice(
-                    "Arbeit",
-                    workTitle.ifBlank {
-                        if (worklog.isBlank()) "Nicht zugeordnet" else "Arbeit zugeordnet"
-                    },
-                    { picker = "worklogs" },
-                    {
-                        worklog = ""
-                        workTitle = ""
-                        draftTouched = true
-                    },
-                    pending.isBlank(),
-                )
-                if (session.isNotBlank()) Text("Mit einer Arbeitssitzung verknüpft.")
-                TextButton(
-                    enabled = !busy && pending.isBlank(),
-                    onClick = {
-                        scope.launch {
-                            try {
-                                val active =
-                                    controller.query("get_active_work_session", JSONObject())
-                                val customer = photo?.optString("customer_id")
-                                if (active.optString("customer_id") != customer)
-                                    throw IllegalArgumentException(
-                                        "Die laufende Arbeit gehört zu einem anderen Kunden."
-                                    )
-                                session = active.optString("id", active.optString("session_id"))
-                                order = active.optString("order_id")
-                                worklog = active.optString("finalized_worklog_id")
-                                draftTouched = true
-                            } catch (failure: Exception) {
-                                controller.message(mediaError(failure))
-                            }
-                        }
-                    },
-                ) {
-                    Text("Laufender Arbeit zuordnen")
-                }
-                if (session.isNotBlank())
-                    TextButton(
-                        enabled = !busy && pending.isBlank(),
-                        onClick = {
-                            session = ""
-                            draftTouched = true
-                        },
+                    NativeKeyValue(
+                        "Aufnahmedatum",
+                        nativeDisplayDate(photo.optString("capture_time")),
                     ) {
-                        Text("Sitzungsverknüpfung lösen")
+                        open("capture_time")
                     }
-            }
+                    NativeKeyValue(
+                        "Rolle",
+                        photoRoles[photo.optString("role")] ?: "Dokumentation",
+                    ) {
+                        open("role")
+                    }
+                    NativeKeyValue(
+                        "Für Kunden sichtbar",
+                        if (photo.optBoolean("customer_visible")) "Ja" else "Nein",
+                    ) {
+                        open("customer_visible")
+                    }
+                    NativeKeyValue("Auftrag", photo.optString("order_title")) { open("order_id") }
+                    NativeKeyValue("Arbeit", photo.optString("worklog_title")) {
+                        open("worklog_id")
+                    }
+                }
             if (photo != null && detailsOpen)
                 NativeInfoRow(
                     "Bilddatei",
@@ -892,103 +879,144 @@ private fun NativePhotoDetail(
                 controller,
                 "photo",
                 id,
-                modifier = Modifier.fillMaxWidth().semantics { testTag = UiTags.DETAIL_DELETE },
+                modifier = Modifier.semantics { testTag = UiTags.DETAIL_DELETE },
                 enabled = !busy && pending.isBlank(),
             ) {
                 close()
             }
         }
-        if (pending.isNotBlank()) NativeActionBar("Schließen", { leave() }, enabled = !busy)
-        else
-            NativeActionBar(
-                primaryLabel =
-                    if (busy) "Speichert …"
-                    else if (pending.isNotBlank()) "Ergebnis prüfen"
-                    else if (!editing) "Bearbeiten" else "Fotoangaben speichern",
-                onPrimary = {
-                    if (!editing && pending.isBlank()) editing = true
-                    else
-                        scope.launch {
-                            busy = true
-                            try {
-                                if (pending.isNotBlank()) {
-                                    val proof =
-                                        controller.query(
-                                            "inspect_edit_action",
-                                            JSONObject()
-                                                .put("original_tool", "update_photo")
-                                                .put("original_args", JSONObject(pending)),
-                                        )
-                                    if (proof.optString("state") != "confirmed") {
-                                        error = mediaInspectionMessage(proof)
-                                        return@launch
-                                    }
-                                } else {
-                                    draftTouched = true
-                                    pending =
-                                        JSONObject()
-                                            .put("request_id", mediaRequest())
-                                            .put("photo_id", id)
-                                            .put(
-                                                "expected_record_hash",
-                                                record!!.getString("record_hash"),
-                                            )
-                                            .put(
-                                                "updates",
-                                                JSONObject()
-                                                    .put("caption", caption)
-                                                    .put("capture_time", capture)
-                                                    .put("role", role)
-                                                    .put("customer_visible", visible)
-                                                    .put("order_id", order)
-                                                    .put("worklog_id", worklog)
-                                                    .put("session_id", session),
-                                            )
-                                            .toString()
-                                    controller.saveDraft(draftKey, draftValue())
-                                    controller.flushDrafts()
-                                    mediaWrite(controller, "update_photo", JSONObject(pending))
-                                }
-                                pending = ""
-                                draftTouched = false
-                                editing = false
-                                revision++
-                                val cleanup = runCatching { controller.removeDraft(draftKey) }
-                                error =
-                                    if (cleanup.isFailure)
-                                        "Fotoangaben bestätigt gespeichert. Entwurfsbereinigung steht noch aus."
-                                    else ""
-                                controller.message(
-                                    "Fotoangaben gespeichert.",
-                                    NativeRoute("photos", id, "detail"),
-                                )
-                            } catch (cancelled: CancellationException) {
-                                throw cancelled
-                            } catch (failure: Exception) {
-                                error = mediaError(failure)
-                            } finally {
-                                busy = false
-                            }
-                        }
-                },
-                secondaryLabel = "Zurück",
-                onSecondary = { leave() },
-                enabled = (photo != null || pending.isNotBlank()) && !busy && draftReady,
-                secondaryEnabled = !busy,
-            )
     }
-    if (discardChanges)
-        LaunchedEffect(Unit) {
-            try {
-                controller.removeDraft(draftKey)
-                draftTouched = false
-                close()
-            } catch (failure: Exception) {
-                controller.message(mediaError(failure))
-            } finally {
-                discardChanges = false
+    if (field.isNotBlank())
+        ModalBottomSheet(
+            modifier = Modifier.semantics { testTagsAsResourceId = true },
+            onDismissRequest = { save() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            Column(
+                Modifier.fillMaxWidth().imePadding().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(labels[field].orEmpty(), style = MaterialTheme.typography.titleLarge)
+                when (field) {
+                    "caption" ->
+                        OutlinedTextField(
+                            value,
+                            ::changed,
+                            Modifier.fillMaxWidth().semantics { testTag = UiTags.PHOTO_CAPTION },
+                            label = { Text("Bildunterschrift") },
+                            enabled = !busy && pending.isBlank(),
+                        )
+                    "capture_time" ->
+                        NativeDateTimeField(
+                            "Aufnahmedatum",
+                            value,
+                            { selected ->
+                                changed(
+                                    runCatching {
+                                            java.time.LocalDateTime.parse(selected)
+                                                .atZone(java.time.ZoneId.of("Europe/Vienna"))
+                                                .toInstant()
+                                                .toString()
+                                        }
+                                        .getOrDefault(selected)
+                                )
+                            },
+                            enabled = !busy && pending.isBlank(),
+                        )
+                    "role" ->
+                        MediaDropdown(
+                            "Rolle",
+                            value,
+                            photoRoles,
+                            enabled = !busy && pending.isBlank(),
+                            changed = ::changed,
+                        )
+                    "customer_visible" ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                value.toBoolean(),
+                                { changed(it.toString()) },
+                                enabled = !busy && pending.isBlank(),
+                            )
+                            Text("Für Kunden sichtbar")
+                        }
+                    else -> {
+                        MediaChoice(
+                            labels[field].orEmpty(),
+                            if (value.isBlank()) "Nicht zugeordnet" else "Zugeordnet",
+                            { picker = if (field == "order_id") "orders" else "worklogs" },
+                            { changed("") },
+                            !busy && pending.isBlank(),
+                        )
+                    }
+                }
+                if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    NativeTextButton({ save() }, enabled = !busy && pending.isBlank()) {
+                        Text("Schließen")
+                    }
+                }
             }
         }
+    if (conflict.isNotBlank()) {
+        val current = JSONObject(conflict)
+        val storedPhoto = current.getJSONObject("photo")
+        AlertDialog(
+            onDismissRequest = {
+                conflict = ""
+                controller.saveDraft(draftKey, draftValue())
+            },
+            title = { Text("Angabe geändert") },
+            text = {
+                Column {
+                    Text("Gespeichert: " + current.optString("_display_stored"))
+                    NativeTextButton(
+                        {
+                            scope.launch {
+                                busy = true
+                                try {
+                                    controller.removeDraft(draftKey)
+                                    record = current
+                                    field = ""
+                                    conflict = ""
+                                    error = ""
+                                } catch (cancelled: CancellationException) {
+                                    throw cancelled
+                                } catch (failure: Exception) {
+                                    error = mediaError(failure)
+                                } finally {
+                                    busy = false
+                                }
+                            }
+                        },
+                        Modifier.semantics { contentDescription = "Diesen behalten · gespeichert" },
+                        enabled = !busy,
+                    ) {
+                        Text("Diesen behalten")
+                    }
+                    Text("Meine Angabe: " + current.optString("_display_entered"))
+                }
+            },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        before =
+                            if (field == "customer_visible")
+                                storedPhoto.optBoolean(field).toString()
+                            else storedPhoto.optString(field)
+                        fieldHash = current.getString("record_hash")
+                        record = current
+                        conflict = ""
+                        save()
+                    },
+                    Modifier.semantics { contentDescription = "Diesen behalten · meine Angabe" },
+                    enabled = !busy,
+                ) {
+                    Text("Diesen behalten")
+                }
+            },
+        )
+    }
     if (picker.isNotBlank())
         MediaEntityPicker(
             picker,
@@ -996,14 +1024,7 @@ private fun NativePhotoDetail(
             photo?.optString("customer_id").orEmpty(),
             dismiss = { picker = "" },
         ) { row ->
-            draftTouched = true
-            if (picker == "orders") {
-                order = row.id
-                orderTitle = row.title
-            } else {
-                worklog = row.id
-                workTitle = row.title
-            }
+            changed(row.id)
             picker = ""
         }
     if (fullscreen) MediaZoomDialog(id, controller, close = { fullscreen = false })
@@ -1211,7 +1232,7 @@ private fun NativePhotoImport(
     BackHandler { leave() }
     Column(Modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { leave() }) { Text("Zurück") }
+            NativeTextButton(onClick = { leave() }) { Text("Zurück") }
             Text("Foto hinzufügen", style = MaterialTheme.typography.titleLarge)
         }
         Column(
@@ -1244,9 +1265,6 @@ private fun NativePhotoImport(
             if (worklog.isNotBlank())
                 NativeInfoRow("Arbeit", workLabel.ifBlank { "Gespeicherte Arbeit zugeordnet" })
             if (savedId.isNotBlank()) {
-                Text(
-                    "Das Foto wurde dieser Zuordnung hinzugefügt. Gespeicherte Arbeit bleibt auch bei einem späteren Fotofehler erhalten."
-                )
                 NativeInfoRow(
                     "Gespeichertes Foto öffnen",
                     onClick = { controller.navigate("photos", savedId) },
@@ -1265,17 +1283,13 @@ private fun NativePhotoImport(
                         contentScale = ContentScale.Fit,
                     )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(onClick = { choose(false) }, enabled = changeable) {
+                    NativeOutlinedButton(onClick = { choose(false) }, enabled = changeable) {
                         Text("Foto auswählen")
                     }
-                    FilledTonalButton(onClick = { choose(true) }, enabled = changeable) {
+                    NativeOutlinedButton(onClick = { choose(true) }, enabled = changeable) {
                         Text("Foto aufnehmen")
                     }
                 }
-                Text(
-                    "Die Kamera liefert nur die Aufnahme. Erst „Foto speichern“ legt den Fotodatensatz an.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
                 MediaChoice(
                     "Kunde *",
                     customerLabel.ifBlank { "Kunden auswählen" },
@@ -1338,7 +1352,7 @@ private fun NativePhotoImport(
                     },
                     changeable && customer.isNotBlank(),
                 )
-                TextButton(
+                NativeTextButton(
                     enabled = changeable,
                     onClick = {
                         scope.launch {
@@ -1368,11 +1382,6 @@ private fun NativePhotoImport(
                 ) {
                     Text("Laufender Arbeit zuordnen")
                 }
-                if (session.isNotBlank())
-                    Text(
-                        "Weitere Fotos bleiben dieser Arbeitssitzung zugeordnet.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
                 if (pending.isNotBlank()) NativeInspectionBanner(inspection) { inspectionAttempt++ }
             }
         }
@@ -1528,94 +1537,6 @@ private fun NativePhotoImport(
 }
 
 @Composable
-private fun NativePhotoTrash(controller: NativeAppController, close: () -> Unit) {
-    var offset by rememberSaveable { mutableIntStateOf(0) }
-    var revision by remember { mutableIntStateOf(0) }
-    var result by remember { mutableStateOf(JSONObject()) }
-    var error by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(offset, revision) {
-        try {
-            result =
-                controller.query(
-                    "list_archive",
-                    JSONObject().put("entity", "photo").put("offset", offset).put("limit", 30),
-                )
-            error = ""
-        } catch (failure: Exception) {
-            error = mediaError(failure)
-        }
-    }
-    val rows = jsonRows(result.optJSONArray("archive"))
-    Column(Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = close) { Text("Zurück") }
-            Text("Foto-Papierkorb", style = MaterialTheme.typography.titleLarge)
-        }
-        if (error.isNotBlank())
-            Text(error, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
-        LazyColumn(
-            Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            if (rows.isEmpty()) item { Text("Keine Fotos im Papierkorb.") }
-            items(rows, key = { it.getString("archive_key") }) { row ->
-                val entry = row.getJSONObject("entry")
-                val restoreRequest =
-                    rememberSaveable(row.getString("archive_key")) { mediaRequest() }
-                val record =
-                    entry.optJSONObject("record")
-                        ?: entry.optJSONObject("_archive_record")
-                        ?: JSONObject()
-                Card {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(
-                            record.optString("caption").ifBlank {
-                                record.optString("original_name", "Foto")
-                            }
-                        )
-                        Text(nativeDisplayDate(entry.optString("archived_at").take(10)))
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    try {
-                                        mediaWrite(
-                                            controller,
-                                            "restore_entity",
-                                            JSONObject()
-                                                .put("request_id", restoreRequest)
-                                                .put("entity", "photo")
-                                                .put(
-                                                    "entity_id",
-                                                    row.getString("archive_key").substringAfter(':'),
-                                                )
-                                                .put(
-                                                    "expected_record_hash",
-                                                    row.getString("record_hash"),
-                                                ),
-                                        )
-                                        revision++
-                                        controller.message(
-                                            "Foto einschließlich geprüfter Zuordnung wiederhergestellt."
-                                        )
-                                    } catch (failure: Exception) {
-                                        controller.message(mediaError(failure))
-                                    }
-                                }
-                            }
-                        ) {
-                            Text("Wiederherstellen")
-                        }
-                    }
-                }
-            }
-        }
-        MediaPagination(offset, rows.size, result.optInt("total"), 30) { offset = it }
-    }
-}
-
-@Composable
 private fun NativePhotoSettings(controller: NativeAppController, close: () -> Unit) {
     var data by remember { mutableStateOf<JSONObject?>(null) }
     var quality by rememberSaveable { mutableStateOf("optimized") }
@@ -1653,7 +1574,6 @@ private fun NativePhotoSettings(controller: NativeAppController, close: () -> Un
                 "${storage.optInt("local_files")} Originale · ${storage.optLong("original_bytes") / (1024 * 1024)} MB\nVorschauen: ${storage.optLong("thumbnail_bytes") / 1024} KB"
             )
         }
-        Text("Die Auswahl gilt für neue Fotos. Gespeicherte Originale bleiben erhalten.")
         MediaDropdown(
             "Fotoqualität",
             quality,
@@ -1734,7 +1654,11 @@ private fun MediaZoomDialog(photoId: String, controller: NativeAppController, cl
         onDismissRequest = close,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Column(Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
+        Column(
+            Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.inverseSurface)
+                .safeDrawingPadding()
+        ) {
             Box(
                 Modifier.weight(1f).fillMaxWidth().transformable(transform),
                 contentAlignment = Alignment.Center,
@@ -1757,17 +1681,11 @@ private fun MediaZoomDialog(photoId: String, controller: NativeAppController, cl
                     contentScale = ContentScale.Fit,
                 )
             }
-            Text(
-                "Mit zwei Fingern vergrößern und verschieben.",
-                Modifier.padding(horizontal = 12.dp),
-                color = Color.White,
-                style = MaterialTheme.typography.bodySmall,
-            )
             Row(
                 Modifier.fillMaxWidth().padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                TextButton(
+                NativeTextButton(
                     onClick = {
                         scale = 1f
                         pan = Offset.Zero
@@ -1775,7 +1693,7 @@ private fun MediaZoomDialog(photoId: String, controller: NativeAppController, cl
                 ) {
                     Text("Zurücksetzen")
                 }
-                TextButton(onClick = close) { Text("Schließen") }
+                NativeTextButton(onClick = close) { Text("Schließen") }
             }
         }
     }
@@ -1792,7 +1710,7 @@ private fun MediaDropdown(
     var expanded by remember { mutableStateOf(false) }
     Column {
         Text(label, style = MaterialTheme.typography.labelLarge)
-        OutlinedButton(
+        NativeOutlinedButton(
             onClick = { expanded = true },
             enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
@@ -1824,10 +1742,10 @@ private fun MediaChoice(
     Column {
         Text(label, style = MaterialTheme.typography.labelLarge)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = open, Modifier.weight(1f), enabled = enabled) {
+            NativeOutlinedButton(onClick = open, Modifier.weight(1f), enabled = enabled) {
                 Text(selected)
             }
-            TextButton(onClick = clear, enabled = enabled) { Text("Lösen") }
+            NativeTextButton(onClick = clear, enabled = enabled) { Text("Lösen") }
         }
     }
 }
@@ -1871,14 +1789,20 @@ private fun MediaPagination(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TextButton(enabled = offset > 0, onClick = { changed(maxOf(0, offset - limit)) }) {
+            NativeTextButton(
+                enabled = offset > 0,
+                onClick = { changed(maxOf(0, offset - limit)) },
+            ) {
                 Text("Vorherige")
             }
             Text(
                 "${if (total == 0) 0 else offset + 1}–${offset + count} / $total",
                 style = MaterialTheme.typography.bodySmall,
             )
-            TextButton(enabled = offset + count < total, onClick = { changed(offset + limit) }) {
+            NativeTextButton(
+                enabled = offset + count < total,
+                onClick = { changed(offset + limit) },
+            ) {
                 Text("Weitere")
             }
         }

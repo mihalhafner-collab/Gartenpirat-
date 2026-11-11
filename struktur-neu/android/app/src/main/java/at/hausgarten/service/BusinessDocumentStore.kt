@@ -24,6 +24,42 @@ class BusinessDocumentStore {
     /** Render only the frozen local invoice snapshot; never consult live master data. */
     @Throws(Exception::class)
     fun createSettlement(record: JSONObject): JSONObject {
+        val raw = settlementBytes(record)
+        val number = record.getString("invoice_number")
+        val hash = PhotoAttachmentStore.sha256(raw)
+        val metadata =
+            JSONObject()
+                .put("document_id", "settlement:" + record.getString("id"))
+                .put("pdf_filename", "$number.pdf")
+                .put("pdf_storage_name", "$hash.pdf")
+                .put("pdf_sha256", hash)
+                .put("pdf_byte_size", raw.size)
+        store(raw, metadata)
+        read(metadata)
+        return metadata
+    }
+
+    /** A disposable PDF preview never reserves a number or creates an original document. */
+    fun createSettlementPreview(record: JSONObject): File {
+        val draft = JSONObject(record.toString()).put("invoice_number", "ENTWURF")
+        val raw = settlementBytes(draft, preview = true)
+        val folder = File(staging.parentFile, "offer-share")
+        if (!folder.isDirectory && !folder.mkdirs())
+            throw IOException("PDF-Vorschau konnte nicht angelegt werden.")
+        val file = File(folder, "Rechnung-${java.util.UUID.randomUUID()}.pdf")
+        try {
+            FileOutputStream(file).use { output ->
+                output.write(raw)
+                output.fd.sync()
+            }
+            return file
+        } catch (failure: Exception) {
+            file.delete()
+            throw failure
+        }
+    }
+
+    private fun settlementBytes(record: JSONObject, preview: Boolean = false): ByteArray {
         require(record.getString("route") == "billed") {
             "Interne Abrechnungen erhalten keinen Rechnungsbeleg."
         }
@@ -41,7 +77,31 @@ class BusinessDocumentStore {
         val pdf = PdfDocument()
         val writer = Writer(pdf, number)
         try {
-            writer.line(if (cancellation) "Stornorechnung" else "Rechnung")
+            val issuer = record.getJSONObject("issuer")
+            issuer
+                .optString("business_logo")
+                .takeIf { it.isNotBlank() }
+                ?.let { encoded ->
+                    val bytes = SettlementRules.invoiceLogoBytes(encoded)
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    require(bounds.outWidth in 1..2048 && bounds.outHeight in 1..2048) {
+                        "Logo ist nicht lesbar; ein kleines Bild auswählen."
+                    }
+                    val bitmap =
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                            ?: throw IllegalArgumentException(
+                                "Logo ist nicht lesbar; ein anderes Bild auswählen."
+                            )
+                    try {
+                        writer.logo(bitmap)
+                    } finally {
+                        bitmap.recycle()
+                    }
+                }
+            writer.line(
+                if (preview) "ENTWURF" else if (cancellation) "Stornorechnung" else "Rechnung"
+            )
             writer.line("Rechnungsnummer: $number")
             if (cancellation)
                 writer.line(
@@ -54,7 +114,6 @@ class BusinessDocumentStore {
             writer.line("Rechnungsdatum: " + record.getString("issue_date"))
             writer.line("")
             writer.line("Aussteller")
-            val issuer = record.getJSONObject("issuer")
             for (field in
                 arrayOf(
                     "business_name",
@@ -68,6 +127,14 @@ class BusinessDocumentStore {
             writer.line(
                 issuer.optString("business_postal_code") + " " + issuer.optString("business_city")
             )
+            for (field in arrayOf("business_phone", "business_email")) issuer
+                .optString(field)
+                .takeIf { it.isNotBlank() }
+                ?.let(writer::line)
+            issuer
+                .optString("business_tax_number")
+                .takeIf { it.isNotBlank() }
+                ?.let { writer.line("Steuer-Nr.: $it") }
             issuer
                 .optString("business_register_number")
                 .takeIf { it.isNotBlank() }
@@ -139,17 +206,7 @@ class BusinessDocumentStore {
             throw IOException("Rechnungs-PDF überschreitet die sichere Dateigrenze.")
         // A matching hash/header alone cannot establish that Android can open the PDF.
         verifyRenderable(raw)
-        val hash = PhotoAttachmentStore.sha256(raw)
-        val metadata =
-            JSONObject()
-                .put("document_id", "settlement:" + record.getString("id"))
-                .put("pdf_filename", "$number.pdf")
-                .put("pdf_storage_name", "$hash.pdf")
-                .put("pdf_sha256", hash)
-                .put("pdf_byte_size", raw.size)
-        store(raw, metadata)
-        read(metadata)
-        return metadata
+        return raw
     }
 
     private fun verifyRenderable(raw: ByteArray) {
@@ -415,6 +472,15 @@ class BusinessDocumentStore {
                     rest = rest.substring(n).replaceFirst(Regex("^ +"), "")
                 } while (!(rest.isEmpty()))
             }
+        }
+
+        fun logo(bitmap: Bitmap) {
+            val scale = minOf(120f / bitmap.width, 54f / bitmap.height)
+            val width = bitmap.width * scale
+            val height = bitmap.height * scale
+            page!!
+                .canvas
+                .drawBitmap(bitmap, null, RectF(550f - width, 36f, 550f, 36f + height), paint)
         }
 
         fun finish(): Unit {

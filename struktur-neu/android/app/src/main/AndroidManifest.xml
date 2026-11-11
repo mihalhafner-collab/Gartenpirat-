@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -8,14 +9,22 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Persönlich beauftragte APK ohne Play-Verteilung: atomarer Austausch ausschließlich
+         der gewählten öffentlichen Sicherungs-ZIP nach bewusster Android-Sonderfreigabe. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <queries>
         <intent><action android:name="android.intent.action.SENDTO" /><data android:scheme="mailto" /></intent>
         <package android:name="com.whatsapp" /><package android:name="com.whatsapp.w4b" />
     </queries>
 
+    <!-- Raw-Zugriff wirkt ab API31. API26–30 behalten im Code die initiale SAF-Erstellung;
+         der dort nicht nachgewiesene Raw-NIO-Austausch bleibt gesperrt. Kein minSdk-Wechsel. -->
     <application
         android:name=".RevierApplication"
         android:allowBackup="false"
+        android:requestRawExternalStorageAccess="true"
+        tools:targetApi="s"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@drawable/app_icon"

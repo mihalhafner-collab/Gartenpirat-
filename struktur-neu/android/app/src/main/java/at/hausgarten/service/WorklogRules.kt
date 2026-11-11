@@ -23,7 +23,7 @@ class WorklogRules {
                     payload.put("disposal_cost", amount)
                 }
             }
-            for (field in listOf("break_minutes", "hours", "kilometers")) {
+            for (field in listOf("break_minutes", "hours")) {
                 if (
                     payload.has(field) &&
                         !payload.isNull(field) &&
@@ -32,21 +32,22 @@ class WorklogRules {
                     val number =
                         payload.get(field).toString().trim().replace(',', '.').toDoubleOrNull()
                     require(number?.isFinite() == true) {
-                        "Bitte gültige Stunden, Kilometer und eine Pause in ganzen Minuten eingeben."
+                        "Bitte gültige Stunden und eine Pause in ganzen Minuten eingeben."
                     }
                     payload.put(field, number)
                 }
             }
             val pause: Double = payload.optDouble("break_minutes", (0).toDouble())
-            val km: Double = payload.optDouble("kilometers", (0).toDouble())
             var hours: Double = payload.optDouble("hours", (0).toDouble())
             if (
-                ((((((!java.lang.Double.isFinite(pause) || !java.lang.Double.isFinite(km)) ||
-                    !java.lang.Double.isFinite(hours)) || (pause < 0)) || (km < 0)) ||
-                    (hours < 0)) || (pause != Math.floor(pause)))
+                !pause.isFinite() ||
+                    !hours.isFinite() ||
+                    pause < 0 ||
+                    hours < 0 ||
+                    pause != Math.floor(pause)
             ) {
                 throw IllegalArgumentException(
-                    "Bitte gültige Stunden, Kilometer und eine Pause in ganzen Minuten eingeben."
+                    "Bitte gültige Stunden und eine Pause in ganzen Minuten eingeben."
                 )
             }
             var day: String = payload.optString("work_date")
@@ -89,7 +90,6 @@ class WorklogRules {
             }
             payload
                 .put("break_minutes", (pause).toInt())
-                .put("kilometers", km)
                 .put("billed", payload.optInt("billed", 0))
                 .put("customer_visible", payload.optInt("customer_visible", 1))
         }

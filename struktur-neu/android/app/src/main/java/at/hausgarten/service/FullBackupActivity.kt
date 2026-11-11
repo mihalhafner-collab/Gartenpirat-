@@ -3,24 +3,26 @@ package at.hausgarten.service
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.OpenableColumns
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import java.io.IOException
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -53,9 +55,27 @@ class FullBackupActivity : ComponentActivity() {
     private var showWarnings by mutableStateOf(false)
     private var saveFinished by mutableStateOf(false)
     private var restorePending by mutableStateOf(false)
+    private var existingTargetApproval by mutableStateOf<JSONObject?>(null)
+    private var showExistingConfirmation by mutableStateOf(false)
+    private var pickingExistingTarget = false
     private var selectedName by mutableStateOf("")
     private var lastVerified by mutableStateOf("")
     private var warningCount by mutableIntStateOf(0)
+    private var allFilesAccess by mutableStateOf(hasFileAccess())
+    private val fileAccessSettings =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            allFilesAccess = hasFileAccess()
+            statusLabel =
+                if (allFilesAccess) "Dateizugriff eingerichtet"
+                else "Dateizugriff nicht freigegeben"
+            statusTone =
+                if (allFilesAccess) NativeStatusTone.Neutral else NativeStatusTone.Attention
+            status =
+                if (allFilesAccess)
+                    "Starte die Sicherung mit der unteren Aktion. Die App verwendet den Dateizugriff ausschließlich für die gewählte Sicherung."
+                else
+                    "Ohne Freigabe kann dieselbe lokale ZIP nicht sicher ausgetauscht werden. Die vorhandene Datei wurde nicht überschrieben."
+        }
     private val saveDocument =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             documentChosen(SAVE, it.resultCode, it.data)
@@ -87,13 +107,15 @@ class FullBackupActivity : ComponentActivity() {
             restoreUri = savedInstanceState.getString("restore_uri", "")
             restoreId = savedInstanceState.getString("restore_id", "")
             selectedName = savedInstanceState.getString("selected_name", "")
+            pickingExistingTarget = savedInstanceState.getBoolean("picking_existing_target", false)
+            existingTargetApproval =
+                savedInstanceState.getString("existing_target_approval")?.let { JSONObject(it) }
         }
         showCheck = restoreUri.isNotEmpty()
         if (target.isNotEmpty()) {
             statusLabel = "Speichern nicht bestätigt"
             statusTone = NativeStatusTone.Attention
-            status =
-                "Der vorherige Speichervorgang ist noch nicht bestätigt. „Sicherung fortsetzen“ liest eine bereits bestätigte Datei zurück. Ohne passenden Speicherbeleg wird die ZIP am gewählten Speicherort erneut geschrieben und vollständig zurückgelesen."
+            status = "Letzten Sicherungsvorgang fortsetzen und Datei prüfen."
         }
         nativeContent(
             "Sicherung",
@@ -105,7 +127,7 @@ class FullBackupActivity : ComponentActivity() {
                             restorePending || saveFinished -> "Fertig"
                             showActivate -> "Wiederherstellen"
                             showCheck -> "Datei prüfen"
-                            target.isNotEmpty() -> "Sicherung fortsetzen"
+                            target.isNotEmpty() && request.isNotEmpty() -> "Sicherung fortsetzen"
                             else -> "Jetzt sichern"
                         },
                     onPrimary = {
@@ -130,15 +152,12 @@ class FullBackupActivity : ComponentActivity() {
             },
         ) {
             BackHandler(enabled = busy || showWarnings || showCheck) {
-                if (busy) status = "Der Vorgang läuft noch. Bitte auf das Ergebnis warten."
-                else leaveScreen()
+                if (busy) status = "Vorgang läuft" else leaveScreen()
             }
             NativeStatus(statusLabel, if (busy) NativeStatusTone.Running else statusTone)
             Text(status)
             if (showWarnings) {
-                Text(
-                    "Die ZIP wurde vollständig zurückgelesen. Das bestätigt die Dateiintegrität; fehlende Originale und bestehende Datenbezüge werden dadurch nicht repariert."
-                )
+
                 val grouped = LinkedHashMap<String, Int>()
                 for (i in 0 until warnings.length()) {
                     val message =
@@ -156,28 +175,27 @@ class FullBackupActivity : ComponentActivity() {
                         NativeInfoRow(if (count == 1) "1 Hinweis" else "$count Hinweise", message)
                     }
             } else {
-                if (showCheck || saveFinished) {
-                    if (selectedName.isNotEmpty()) NativeInfoRow("Gewählte Datei", selectedName)
-                    if (capturedAt.isNotEmpty())
-                        NativeInfoRow("Datenstand in der Datei", displayTime(capturedAt))
-                    if (backupCounts != null)
-                        NativeInfoRow("Bestand in der Datei", inventory(backupCounts))
+                if (showCheck || saveFinished || target.isNotEmpty()) {
+                    if (selectedName.isNotEmpty())
+                        NativeGroup("Gewählte Datei") {
+                            Text(selectedName, Modifier.padding(12.dp))
+                        }
+                    // Restore decisions keep the inspected file's date and counts visible.
+                    if (showCheck) {
+                        if (capturedAt.isNotEmpty())
+                            NativeInfoRow("Datenstand in der Datei", displayTime(capturedAt))
+                        if (backupCounts != null)
+                            NativeInfoRow("Bestand in der Datei", inventory(backupCounts))
+                    }
                     if (showActivate) {
                         NativeInfoRow(
                             "Aktueller Bestand zum Prüfzeitpunkt",
                             inventory(currentCounts),
                         )
-                        Text(
-                            "Der aktuelle Bestand wird ersetzt. Neuere Arbeit kann dadurch fehlen. Offene Bearbeitungen werden nach dem Neustart gesichtet."
-                        )
                     }
-                } else {
-                    Text(
-                        "Neue Sicherung als unverschlüsselte ZIP-Datei auf diesem Pixel. Wähle einen lokalen Speicherort in der Android-Dateiauswahl."
-                    )
                 }
                 if (warningCount > 0)
-                    OutlinedButton(
+                    NativeOutlinedButton(
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { showWarnings = true },
@@ -189,17 +207,58 @@ class FullBackupActivity : ComponentActivity() {
                         "Letzte erfolgreiche Sicherung",
                         "${displayTime(lastVerified)} · Datei vollständig zurückgelesen",
                     )
+                if (!showCheck && !restorePending)
+                    NativeDisclosure("Einzelheiten", "Dateistand und gesicherter Bestand") {
+                        NativeInfoRow(
+                            "Datenstand in der Datei",
+                            if (capturedAt.isNotEmpty()) displayTime(capturedAt)
+                            else "Noch nicht ausgelesen",
+                        )
+                        NativeInfoRow(
+                            "Bestand in der Datei",
+                            if (backupCounts != null) inventory(backupCounts)
+                            else "Noch nicht ausgelesen",
+                        )
+                    }
                 if (!restorePending) {
+                    if (
+                        Build.VERSION.SDK_INT >= 31 &&
+                            !allFilesAccess &&
+                            !showCheck &&
+                            !saveFinished
+                    ) {
+                        Text(
+                            "Für den sicheren Austausch derselben lokalen ZIP verlangt Android Zugriff auf alle Dateien. Die App verwendet diesen Zugriff ausschließlich für die von dir gewählte Sicherung. Du erteilst die Freigabe in den Android-Einstellungen."
+                        )
+                        NativeOutlinedButton(
+                            enabled = ready && !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { openFileAccessSettings() },
+                        ) {
+                            Text("Dateizugriff einrichten")
+                        }
+                    }
                     if (showNewTarget)
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             enabled = ready && !busy,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { chooseSave() },
                         ) {
                             Text("Anderen Speicherort wählen")
                         }
+                    if (!showCheck && !saveFinished)
+                        NativeOutlinedButton(
+                            enabled = ready && !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { chooseExistingSave() },
+                        ) {
+                            Text(
+                                if (target.isEmpty()) "Vorhandene Sicherungsdatei wählen"
+                                else "Sicherungsdatei erneut wählen"
+                            )
+                        }
                     if (showCheck)
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             enabled = ready && !busy,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { chooseRestore() },
@@ -207,9 +266,6 @@ class FullBackupActivity : ComponentActivity() {
                             Text("Andere Sicherungsdatei wählen")
                         }
                 }
-                Text(
-                    "Eine Datei auf diesem Pixel schützt nicht gegen Geräteverlust. Manuelles Kopieren erfolgt außerhalb der App. Dateirücklesen bestätigt keine getestete Wiederherstellung."
-                )
             }
             if (showConfirmation)
                 AlertDialog(
@@ -221,10 +277,12 @@ class FullBackupActivity : ComponentActivity() {
                         )
                     },
                     dismissButton = {
-                        TextButton(onClick = { showConfirmation = false }) { Text("Abbrechen") }
+                        NativeTextButton(onClick = { showConfirmation = false }) {
+                            Text("Abbrechen")
+                        }
                     },
                     confirmButton = {
-                        TextButton(
+                        NativeTextButton(
                             onClick = {
                                 showConfirmation = false
                                 activateRestore()
@@ -234,17 +292,53 @@ class FullBackupActivity : ComponentActivity() {
                         }
                     },
                 )
+            if (showExistingConfirmation && existingTargetApproval != null)
+                AlertDialog(
+                    onDismissRequest = { showExistingConfirmation = false },
+                    title = { Text("Vorhandene Sicherung ersetzen?") },
+                    text = {
+                        val approval = existingTargetApproval!!
+                        Text(
+                            "Bestand in der Datei: ${inventory(approval.getJSONObject("counts"))}\n\nAktueller Bestand: ${inventory(approval.getJSONObject("current_counts"))}\n\nDie gewählte ZIP wird durch den aktuellen App-Stand ersetzt. Der bisherige Sicherungsstand in dieser Datei geht dadurch verloren."
+                        )
+                    },
+                    dismissButton = {
+                        NativeTextButton(onClick = { showExistingConfirmation = false }) {
+                            Text("Abbrechen")
+                        }
+                    },
+                    confirmButton = {
+                        NativeTextButton(
+                            onClick = {
+                                showExistingConfirmation = false
+                                save(true)
+                            }
+                        ) {
+                            Text("Diese Datei aktualisieren")
+                        }
+                    },
+                )
         }
         WORK.launch {
             if (!startupReady()) return@launch
             try {
                 PixelBackupService.cancelRetiredJobs(this@FullBackupActivity)
-                val initial =
+                val (initial, rememberedSelection) =
                     PixelLocalStore(this@FullBackupActivity).use { store ->
-                        PixelBackupService(this@FullBackupActivity, store)
-                            .status(JSONObject().put("limit", 1))
+                        val service = PixelBackupService(this@FullBackupActivity, store)
+                        service.status(JSONObject().put("limit", 1)) to service.targetSelection()
                     }
+                val rememberedTarget = rememberedSelection.optString("uri")
+                val rememberedName =
+                    if (rememberedTarget.isEmpty()) ""
+                    else documentName(Uri.parse(rememberedTarget))
                 ui {
+                    if (target.isEmpty() && restoreUri.isEmpty() && rememberedTarget.isNotEmpty()) {
+                        target = rememberedTarget
+                        request = rememberedSelection.optString("request_id")
+                        selectedName = rememberedName
+                        showNewTarget = true
+                    }
                     lastVerified = initial.optString("last_local_verified_at")
                     if (status == "Sicherungsstatus wird geprüft …") {
                         status = BackupStatusRules.message(initial)
@@ -332,22 +426,22 @@ class FullBackupActivity : ComponentActivity() {
         }
 
     private fun chooseSave() {
-        clearPreview()
-        restoreUri = ""
-        showCheck = false
-        target = ""
-        saveFinished = false
-        request = UUID.randomUUID().toString()
-        val filename =
-            "Haus-Garten-" +
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss")) +
-                ".zip"
+        if (!ensureFileAccess()) return
+        pickingExistingTarget = false
+        val filename = "Haus-Garten-Sicherung.zip"
         val intent =
             Intent(Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("application/zip")
                 .putExtra(Intent.EXTRA_TITLE, filename)
                 .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+                .putExtra(
+                    android.provider.DocumentsContract.EXTRA_INITIAL_URI,
+                    android.provider.DocumentsContract.buildDocumentUri(
+                        "com.android.externalstorage.documents",
+                        "primary:Documents",
+                    ),
+                )
         try {
             saveDocument.launch(intent)
         } catch (_: ActivityNotFoundException) {
@@ -368,6 +462,35 @@ class FullBackupActivity : ComponentActivity() {
         }
     }
 
+    private fun chooseExistingSave() {
+        if (!ensureFileAccess()) return
+        pickingExistingTarget = true
+        val intent =
+            Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("application/zip")
+                .addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                        Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                )
+                .putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+        intent.putExtra(
+            android.provider.DocumentsContract.EXTRA_INITIAL_URI,
+            if (target.isNotEmpty()) Uri.parse(target)
+            else
+                android.provider.DocumentsContract.buildDocumentUri(
+                    "com.android.externalstorage.documents",
+                    "primary:Documents",
+                ),
+        )
+        try {
+            saveDocument.launch(intent)
+        } catch (_: ActivityNotFoundException) {
+            pickerUnavailable()
+        }
+    }
+
     private fun pickerUnavailable() {
         status = "Die Android-Dateiauswahl ist nicht verfügbar."
         statusLabel = "Dateiauswahl fehlgeschlagen"
@@ -378,7 +501,7 @@ class FullBackupActivity : ComponentActivity() {
         if (busy || !ready) return
         busy = true
         statusLabel = "Vorgang läuft"
-        status = "Bitte auf das Ergebnis warten."
+        status = "Vorgang läuft"
         WORK.launch {
             try {
                 task()
@@ -410,16 +533,30 @@ class FullBackupActivity : ComponentActivity() {
         runOnUiThread { if (!isDestroyed && !isFinishing) action() }
     }
 
-    private fun save() {
+    private fun save(confirmedExistingTarget: Boolean = false) {
+        if (!ensureFileAccess()) return
+        val approval = existingTargetApproval?.let { JSONObject(it.toString()) }
+        if (approval != null && !confirmedExistingTarget) {
+            showExistingConfirmation = true
+            return
+        }
+        if (request.isEmpty()) request = UUID.randomUUID().toString()
         val current = request
         val destination = target
         runTask {
             PixelLocalStore(this).use { store ->
+                val service = PixelBackupService(this, store)
+                val progress =
+                    java.util.function.Consumer<String> { message -> ui { status = message } }
                 val result =
-                    PixelBackupService(this, store).save(current, Uri.parse(destination)) { message
-                        ->
-                        ui { status = message }
-                    }
+                    if (approval == null) service.save(current, Uri.parse(destination), progress)
+                    else
+                        service.saveWithApproval(
+                            current,
+                            Uri.parse(destination),
+                            approval,
+                            progress,
+                        )
                 if (!result.optBoolean("verified"))
                     throw IOException("BACKUP_LOCAL_READBACK_FAILED")
                 ui {
@@ -436,16 +573,49 @@ class FullBackupActivity : ComponentActivity() {
                         if (warningCount > 0) NativeStatusTone.Attention
                         else NativeStatusTone.Confirmed
                     status =
-                        if (warningCount > 0)
-                            "ZIP vollständig zurückgelesen; der Ausgangsbestand enthält Einschränkungen. Hinweise vor einer Wiederherstellung ansehen."
-                        else
-                            "ZIP vollständig zurückgelesen · keine Hinweise. Die Datei liegt am gewählten Speicherort."
+                        if (warningCount > 0) "ZIP geprüft · Ausgangsbestand mit Einschränkungen."
+                        else "ZIP geprüft."
                     request = ""
                     target = ""
                     showNewTarget = false
                     saveFinished = true
+                    existingTargetApproval = null
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        allFilesAccess = hasFileAccess()
+    }
+
+    private fun hasFileAccess(): Boolean =
+        Build.VERSION.SDK_INT < 31 || Environment.isExternalStorageManager()
+
+    private fun ensureFileAccess(): Boolean {
+        allFilesAccess = hasFileAccess()
+        if (allFilesAccess) return true
+        statusLabel = "Dateizugriff erforderlich"
+        statusTone = NativeStatusTone.Attention
+        status = BackupStatusRules.failureMessage("BACKUP_ALL_FILES_ACCESS_REQUIRED")
+        return false
+    }
+
+    private fun openFileAccessSettings() {
+        if (Build.VERSION.SDK_INT < 31) return
+        try {
+            fileAccessSettings.launch(
+                Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:$packageName"),
+                )
+            )
+        } catch (_: ActivityNotFoundException) {
+            statusLabel = "Android-Freigabe nicht verfügbar"
+            statusTone = NativeStatusTone.Failed
+            status =
+                "Die Android-Seite für den Dateizugriff konnte nicht geöffnet werden. Die vorhandene ZIP wurde nicht überschrieben."
         }
     }
 
@@ -498,7 +668,7 @@ class FullBackupActivity : ComponentActivity() {
                 else "Datei geprüft"
             statusTone =
                 if (warningCount > 0) NativeStatusTone.Attention else NativeStatusTone.Neutral
-            status = "Vorschau bereit. Der aktuelle Bestand ist unverändert."
+            status = "Vorschau bereit."
             showCheck = true
             showActivate = true
             saveFinished = false
@@ -529,8 +699,20 @@ class FullBackupActivity : ComponentActivity() {
     private fun documentChosen(code: Int, result: Int, data: Intent?) {
         if (result != RESULT_OK) return
         val uri = data?.data ?: return
-        if (code == SAVE) target = uri.toString()
-        else {
+        val resumeRequest = if (code == SAVE && target == uri.toString()) request else ""
+        val inspectExisting = code == SAVE && pickingExistingTarget
+        pickingExistingTarget = false
+        existingTargetApproval = null
+        showExistingConfirmation = false
+        if (code == SAVE) {
+            val sameTarget = target == uri.toString()
+            clearPreview()
+            restoreUri = ""
+            showCheck = false
+            target = uri.toString()
+            if (!sameTarget || request.isEmpty()) request = UUID.randomUUID().toString()
+            saveFinished = false
+        } else {
             restoreUri = uri.toString()
             clearPreview()
             saveFinished = false
@@ -538,6 +720,12 @@ class FullBackupActivity : ComponentActivity() {
         }
         resolvingDocument = true
         busy = true
+        if (inspectExisting) {
+            statusLabel = "Sicherungsdatei wird geprüft"
+            statusTone = NativeStatusTone.Running
+            status =
+                "Die vorhandene ZIP wird vollständig zurückgelesen. Ihr Sicherungsstand bleibt dabei erhalten."
+        }
         WORK.launch {
             try {
                 if (!startupReady()) return@launch
@@ -553,44 +741,65 @@ class FullBackupActivity : ComponentActivity() {
                 } catch (_: SecurityException) {
                     /* This explicit operation may use its temporary grant. */
                 }
-                val name =
-                    try {
-                        contentResolver
-                            .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                            ?.use { cursor ->
-                                if (cursor.moveToFirst()) cursor.getString(0) else null
-                            }
-                            .orEmpty()
-                    } catch (_: Exception) {
-                        "Gewählte ZIP-Datei"
-                    }
+                val name = documentName(uri)
+                val approval =
+                    if (inspectExisting)
+                        PixelLocalStore(this@FullBackupActivity).use { store ->
+                            val service = PixelBackupService(this@FullBackupActivity, store)
+                            val selection = service.targetSelection()
+                            val resumesPending =
+                                resumeRequest.isNotEmpty() &&
+                                    selection.optString("uri") == uri.toString() &&
+                                    selection.optString("request_id") == resumeRequest
+                            if (resumesPending || service.hasVerifiedTarget(uri)) null
+                            else service.inspectExistingTarget(uri)
+                        }
+                    else null
                 ui {
                     selectedName = name
                     resolvingDocument = false
                     busy = false
-                    if (code == SAVE) save()
+                    if (code == SAVE && approval != null) {
+                        request = UUID.randomUUID().toString()
+                        existingTargetApproval = approval
+                        showExistingConfirmation = true
+                        statusLabel = "Vorhandene Sicherung geprüft"
+                        statusTone = NativeStatusTone.Attention
+                        status =
+                            "Der bisherige Sicherungsstand wird erst nach deiner Bestätigung ersetzt."
+                    } else if (code == SAVE) save()
                     else {
                         showCheck = true
                         statusLabel = "Datei gewählt"
                         statusTone = NativeStatusTone.Neutral
-                        status =
-                            "Zuerst die Datei prüfen und den Bestand vergleichen. Der aktuelle Bestand bleibt bis zur ausdrücklichen Bestätigung unverändert."
+                        status = "Datei noch nicht geprüft."
                     }
                 }
-            } catch (_: Exception) {
+            } catch (failure: Exception) {
                 ui {
                     resolvingDocument = false
                     busy = false
                     statusLabel = "Dateizugriff fehlgeschlagen"
                     statusTone = NativeStatusTone.Failed
                     status =
-                        "Die gewählte Datei ist nicht zugänglich. Bitte die Android-Dateiauswahl erneut öffnen. Es wurde kein neuer Sicherungserfolg bestätigt."
+                        BackupStatusRules.failureMessage(BackupScheduleRules.errorCode(failure))
                     request = ""
                     target = ""
                 }
             }
         }
     }
+
+    private fun documentName(uri: Uri): String =
+        try {
+            contentResolver
+                .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { if (it.moveToFirst()) it.getString(0) else null }
+                .orEmpty()
+                .ifBlank { "Gewählte ZIP-Datei" }
+        } catch (_: Exception) {
+            "Gewählte ZIP-Datei"
+        }
 
     override fun onDestroy() {
         if (!isChangingConfigurations && restoreId.isNotEmpty()) {
@@ -612,6 +821,10 @@ class FullBackupActivity : ComponentActivity() {
         outState.putString("restore_uri", restoreUri)
         outState.putString("restore_id", restoreId)
         outState.putString("selected_name", selectedName)
+        outState.putBoolean("picking_existing_target", pickingExistingTarget)
+        existingTargetApproval?.let {
+            outState.putString("existing_target_approval", it.toString())
+        }
         // A preview and its replacement confirmation must be checked again after recreation.
     }
 

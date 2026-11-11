@@ -314,6 +314,11 @@ internal object AppointmentRuntime {
         appointment: JSONObject,
         now: Instant,
     ): JSONObject {
+        if (!AppointmentRules.timed(appointment))
+            return JSONObject()
+                .put("severity", "unknown")
+                .put("forecast_available", false)
+                .put("reasons", JSONArray().put("Ohne Uhrzeit"))
         var cache: JSONObject? = null
         if (appointment.has("latitude") && !appointment.isNull("latitude"))
             cache =
@@ -654,7 +659,8 @@ internal object AppointmentRuntime {
                             .put("order_id", args.optString("order_id"))
                             .put(
                                 "title",
-                                if (prior == null) "Geplanter Einsatz" else prior.optString("title"),
+                                if (prior == null) "Geplanter Einsatz"
+                                else prior.optString("title"),
                             )
                             .put("starts_at", candidateTime.toInstant().toString())
                             .put(
@@ -1357,6 +1363,7 @@ internal object AppointmentRuntime {
             val original = all.getJSONObject(i)
             if (
                 !AppointmentRules.active(original) ||
+                    !AppointmentRules.timed(original) ||
                     original.optString("status") == "draft" ||
                     !AppointmentRules.pending(original, now) ||
                     AppointmentRules.instant(original.getString("starts_at"))

@@ -18,14 +18,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -134,17 +132,12 @@ class PixelTunnelActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Text("ChatGPT-Verbindung", style = MaterialTheme.typography.headlineSmall)
-                        Text(
-                            "Eine private Verbindung zu diesem Pixel. Mit deiner Freigabe nutzt ChatGPT den aktuellen Funktionsumfang der App. Die lokale Arbeitserfassung benötigt diese Verbindung nicht."
-                        )
+
                         NativeStatus(status, statusTone)
                         NativeInfoRow("Letzte beantwortete Anfrage", lastResponse)
                         NativeInfoRow("Letzter Tunnelkontakt", lastContact)
                         NativeInfoRow("Zugriff", access)
-                        Text(
-                            "Ein Tunnelkontakt bestätigt noch keine beantwortete Anfrage. Eine bestätigte Antwort gilt für ihren Zeitpunkt. Android und Netzwerk können die Verbindung später unterbrechen.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
+
                         Row {
                             Text("Pixel-Verbindung eingeschaltet", Modifier.weight(1f))
                             Switch(
@@ -164,11 +157,8 @@ class PixelTunnelActivity : ComponentActivity() {
                             Text("ChatGPT darf Daten ändern", Modifier.weight(1f))
                             Switch(write, ::changeWrite, enabled = !busy)
                         }
-                        Text(
-                            "Kunden, Arbeitszeiten, Angebote, Abrechnung und Fotos. Ausgeschaltet kann ChatGPT nur lesen.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        TextButton(onClick = { advanced = !advanced }) {
+
+                        NativeTextButton(onClick = { advanced = !advanced }) {
                             Text(
                                 if (advanced) "Einrichtung und Diagnose schließen"
                                 else "Einrichtung und Diagnose"
@@ -182,9 +172,7 @@ class PixelTunnelActivity : ComponentActivity() {
                                 "Einmalig einrichten",
                                 style = MaterialTheme.typography.titleMedium,
                             )
-                            Text(
-                                "Die bestehende private Pixel-Verbindung verwenden. Ein eigener Runtime-Schlüssel wird verschlüsselt auf diesem Gerät gespeichert."
-                            )
+
                             OutlinedTextField(
                                 tunnelId,
                                 { tunnelId = it },
@@ -203,9 +191,7 @@ class PixelTunnelActivity : ComponentActivity() {
                                 enabled = !busy,
                                 modifier = Modifier.fillMaxWidth(),
                             )
-                            Text(
-                                "Tunnel und Schlüssel müssen zur selben OpenAI-Organisation gehören. Die Angaben werden beim Übernehmen gespeichert. Ein gültiger Schlüssel aus einem anderen Konto funktioniert hier nicht."
-                            )
+
                             OutlinedTextField(
                                 runtimeKey,
                                 { runtimeKey = it },
@@ -226,24 +212,22 @@ class PixelTunnelActivity : ComponentActivity() {
                                 enabled = !busy,
                                 modifier = Modifier.fillMaxWidth(),
                             )
-                            Button(onClick = ::startConnection, enabled = !busy) {
+                            NativeButton(onClick = ::startConnection, enabled = !busy) {
                                 Text("Einrichtung und Freigabe übernehmen")
                             }
-                            TextButton(onClick = ::stopConnection, enabled = !busy) {
+                            NativeTextButton(onClick = ::stopConnection, enabled = !busy) {
                                 Text("Verbindung beenden")
                             }
                             Text("Hintergrundbetrieb", style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                "Damit Android die Verbindung seltener unterbricht, Hintergrundnutzung zulassen und diese App vom extremen Energiesparen ausnehmen. Eine sichtbare Statusmeldung bleibt aktiv."
-                            )
-                            TextButton(
+
+                            NativeTextButton(
                                 onClick = {
                                     open(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS, null)
                                 }
                             ) {
                                 Text("Akku-Einstellungen öffnen")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 onClick = {
                                     open(
                                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -253,7 +237,7 @@ class PixelTunnelActivity : ComponentActivity() {
                             ) {
                                 Text("App- und Hintergrunddaten-Einstellungen")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 onClick = {
                                     open(
                                         Intent.ACTION_VIEW,

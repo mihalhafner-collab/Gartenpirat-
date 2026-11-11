@@ -226,50 +226,75 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         worklogId: String = "",
         sessionId: String = "",
         chronological: Boolean = false,
-    ): Flow<NativeListPage> =
-        flow {
-                changes.collect {
-                    awaitCommit()
-                    emit(
-                        list(
-                            collection,
-                            search,
-                            status,
-                            customerId,
-                            offset,
-                            limit,
-                            includeInactive,
-                            billingType,
-                            propertyId,
-                            role,
-                            dateFrom,
-                            dateTo,
-                            orderId,
-                            worklogId,
-                            sessionId,
-                            chronological,
-                        )
-                    )
-                }
-            }
-            .distinctUntilChanged()
-            .flowOn(Dispatchers.IO)
+    ): Flow<NativeListPage> = flow {
+        changes.collect {
+            awaitCommit()
+            emit(
+                list(
+                    collection,
+                    search,
+                    status,
+                    customerId,
+                    offset,
+                    limit,
+                    includeInactive,
+                    billingType,
+                    propertyId,
+                    role,
+                    dateFrom,
+                    dateTo,
+                    orderId,
+                    worklogId,
+                    sessionId,
+                    chronological,
+                )
+            )
+        }
+    }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.IO)
 
     /** Overview data can change outside the visible page of a list. */
-    fun watchCommittedChanges(): Flow<Long> =
-        flow {
-                changes.collect { version ->
-                    awaitCommit()
-                    emit(version)
-                }
-            }
-            .retryNativeStoreLock()
-            .finishOnNativeStoreClose()
-            .flowOn(Dispatchers.IO)
+    fun watchCommittedChanges(): Flow<Long> = flow {
+        changes.collect { version ->
+            awaitCommit()
+            emit(version)
+        }
+    }
+        .retryNativeStoreLock()
+        .finishOnNativeStoreClose()
+        .flowOn(Dispatchers.IO)
 
     /** One paged projection for both planning sources; original records are read by selected ID. */
     internal fun planningBoard(args: JSONObject): JSONObject = readCurrent { db ->
-        val query = PlanningBoardRules.query(args)
+        val appointments = JSONArray()
+        val visits = JSONArray()
+        // Read only identity fields for alias resolution, never the full business records.
+        db.rawQuery(
+                "SELECT collection,id,json_extract(record_json,'$.appointment_id'),json_extract(record_json,'$.visit_id'),json_extract(record_json,'$.source_collection'),json_extract(record_json,'$.source_id'),json_extract(record_json,'$.care_plan_id'),json_extract(record_json,'$.planning_adopted') FROM native_read_records WHERE collection IN ('appointments','visits')",
+                null,
+            )
+            .use { cursor ->
+                while (cursor.moveToNext()) {
+                    val row = JSONObject().put("id", cursor.getString(1))
+                    for ((index, field) in
+                        listOf(
+                            2 to "appointment_id",
+                            3 to "visit_id",
+                            4 to "source_collection",
+                            5 to "source_id",
+                            6 to "care_plan_id",
+                        )) if (!cursor.isNull(index)) row.put(field, cursor.getString(index))
+                    if (!cursor.isNull(7)) row.put("planning_adopted", cursor.getInt(7) != 0)
+                    (if (cursor.getString(0) == "appointments") appointments else visits).put(row)
+                }
+            }
+        val aliases = PlanningBoardRules.aliases(appointments, visits)
+        val retired =
+            SettlementRules.rows(visits).filterNot(PlanningBoardRules::independentVisit).map {
+                it.getString("id")
+            }
+        val query = PlanningBoardRules.query(args, aliases.keys + retired)
         val total =
             db.rawQuery(query.countSql, query.values.toTypedArray()).use {
                 it.moveToFirst()
@@ -309,6 +334,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                     )) {
                     if (source.has(key)) compact.put(key, source.get(key))
                 }
+                compact.put("source_collection", collection).put("source_id", id)
                 val propertyId = source.optString("property_id")
                 val property =
                     if (propertyId.isBlank()) JSONObject()
@@ -326,9 +352,16 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                 items.put(
                     JSONObject()
                         .put("kind", kind)
+                        .put("source_collection", collection)
+                        .put("source_id", id)
+                        .put("aliases", JSONArray(aliases.filterValues { it == id }.keys))
                         .put("record", compact)
                         .put("property", property)
-                        .put("title", cursor.getString(2))
+                        .put(
+                            "title",
+                            if (kind == "appointment") AppointmentRules.title(source)
+                            else source.optString("title").ifBlank { "Termin" },
+                        )
                         .put("subtitle", cursor.getString(3))
                         .put(
                             "record_hash",
@@ -340,6 +373,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         }
         JSONObject()
             .put("items", items)
+            .put("legacy_visits_pending", retired.size)
             .put("total", total)
             .put("offset", query.offset)
             .put("limit", query.limit)
@@ -543,15 +577,14 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             readCurrent { db -> record(db, collection, id) }
         }
 
-    fun watchDetail(collection: String, id: String): Flow<JSONObject?> =
-        flow {
-                changes.collect {
-                    awaitCommit()
-                    emit(detail(collection, id))
-                }
-            }
-            .distinctUntilChanged { old, next -> old?.toString() == next?.toString() }
-            .flowOn(Dispatchers.IO)
+    fun watchDetail(collection: String, id: String): Flow<JSONObject?> = flow {
+        changes.collect {
+            awaitCommit()
+            emit(detail(collection, id))
+        }
+    }
+        .distinctUntilChanged { old, next -> old?.toString() == next?.toString() }
+        .flowOn(Dispatchers.IO)
 
     @JvmOverloads
     suspend fun history(
@@ -577,11 +610,10 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                         arrayOf(collection, id, limit.toString(), offset.toString()),
                     )
                     .use { cursor -> while (cursor.moveToNext()) ids.add(cursor.getString(0)) }
-                val records =
-                    ids.map {
-                        record(db, collection, it)
-                            ?: throw IllegalStateException("NATIVE_DETAIL_MISSING")
-                    }
+                val records = ids.map {
+                    record(db, collection, it)
+                        ?: throw IllegalStateException("NATIVE_DETAIL_MISSING")
+                }
                 records
             }
         }
@@ -593,17 +625,16 @@ class NativeDataRepository(private val store: PixelLocalStore) {
         id: String,
         offset: Int = 0,
         limit: Int = 20,
-    ): Flow<List<JSONObject>> =
-        flow {
-                changes.collect {
-                    awaitCommit()
-                    emit(history(collection, relation, id, offset, limit))
-                }
-            }
-            .distinctUntilChanged { left, right ->
-                left.map { it.toString() } == right.map { it.toString() }
-            }
-            .flowOn(Dispatchers.IO)
+    ): Flow<List<JSONObject>> = flow {
+        changes.collect {
+            awaitCommit()
+            emit(history(collection, relation, id, offset, limit))
+        }
+    }
+        .distinctUntilChanged { left, right ->
+            left.map { it.toString() } == right.map { it.toString() }
+        }
+        .flowOn(Dispatchers.IO)
 
     /** Existing MCP response bodies, selected through the same indexed cache. */
     internal fun queryState(tool: String, args: JSONObject, metadata: JSONObject): JSONObject? {
@@ -936,7 +967,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
             val condition =
                 when (table) {
                     "owner_state" ->
-                        " WHEN $row.key='snapshot' OR $row.key='settlement:v1' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1' OR $row.key='personal_paid' OR $row.key='personal_paid_migrated'"
+                        " WHEN $row.key='snapshot' OR $row.key='settlement:v1' OR $row.key='purged_local_test_records_v1' OR $row.key LIKE 'revier:v1:entity:%' OR $row.key LIKE 'offer_decision:v1:%' OR $row.key='business_tables:v1' OR $row.key='personal_paid' OR $row.key='personal_paid_migrated' OR $row.key='lcr_work_ids:v1'"
                     "pending" -> " WHEN $row.kind<>'mcp_receipt'"
                     else -> ""
                 }
@@ -1198,7 +1229,8 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                     "description",
                 )
                 .map { row.optString(it) }
-                .firstOrNull { it.isNotBlank() } ?: id
+                .firstOrNull { it.isNotBlank() }
+                ?: if (collection in setOf("appointments", "visits")) "Termin" else id
         val customer = row.optString("customer_id")
         val address =
             row.optString("address").ifEmpty {
@@ -1217,7 +1249,7 @@ class NativeDataRepository(private val store: PixelLocalStore) {
                 "photos" -> row.optString("capture_time", row.optString("created_at"))
                 "appointments" ->
                     row.optString("starts_at").let { value ->
-                        if (value.isEmpty()) ""
+                        if (value.isEmpty()) row.optString("date")
                         else
                             try {
                                 java.time.Instant.parse(value)

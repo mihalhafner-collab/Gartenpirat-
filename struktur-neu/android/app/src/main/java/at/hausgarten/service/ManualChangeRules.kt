@@ -40,6 +40,7 @@ class ManualChangeRules {
                 )
             allowed.remove("id")
             allowed.remove("updated_at")
+            if (kind == "worklog") allowed.remove("kilometers")
             run {
                 val keys: MutableIterator<String> = changes.keys()
                 while (keys.hasNext()) {

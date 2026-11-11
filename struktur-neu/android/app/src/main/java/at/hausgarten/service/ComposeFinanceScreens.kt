@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -330,10 +332,12 @@ private fun financeOpenItems(form: JSONObject): List<Pair<Int, String>> = buildL
         val line = lines.getJSONObject(index)
         if (line.optString("title").isBlank() || line.optString("unit").isBlank())
             add(1 to "Position ${index + 1}: Leistung und Einheit ergänzen")
-        val quantity =
-            runCatching { BigDecimal(line.optString("quantity").replace(',', '.')) }.getOrNull()
-        val price =
-            runCatching { BigDecimal(line.optString("price").replace(',', '.')) }.getOrNull()
+        val quantity = runCatching {
+            BigDecimal(line.optString("quantity").replace(',', '.'))
+        }.getOrNull()
+        val price = runCatching {
+            BigDecimal(line.optString("price").replace(',', '.'))
+        }.getOrNull()
         if (quantity == null || quantity.signum() <= 0 || price == null || price.signum() < 0)
             add(1 to "Position ${index + 1}: Menge und Preis ergänzen")
         if (
@@ -374,6 +378,188 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
     var offerReview by remember(section, id) { mutableStateOf<JSONObject?>(null) }
     var offerReviewed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    var detailField by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var detailFieldError by remember { mutableStateOf("") }
+    var detailFieldBusy by remember { mutableStateOf(false) }
+    var detailFieldHash by remember { mutableStateOf("") }
+    var detailConflict by remember { mutableStateOf<JSONObject?>(null) }
+    LaunchedEffect(detailField) {
+        detailFieldError = ""
+        detailFieldHash = detail?.optString("record_hash").orEmpty()
+    }
+    val detailUndo = remember { SnackbarHostState() }
+    fun detailValue(record: JSONObject, path: String): String {
+        val parts = path.split(':')
+        return if (parts.size == 3)
+            record
+                .optJSONArray("positions")
+                ?.optJSONObject(parts[1].toInt())
+                ?.optString(parts[2])
+                .orEmpty()
+        else record.optString(path)
+    }
+    suspend fun readDetail(): JSONObject =
+        controller.query(
+            if (section == "offers") "get_offer" else "get_offer_template",
+            JSONObject().put(if (section == "offers") "offer_id" else "entry_id", id),
+        )
+    suspend fun writeDetailValue(
+        path: String,
+        value: String,
+        expected: String,
+        expectedHash: String,
+    ): JSONObject {
+        val tool = if (section == "offers") "update_offer_draft" else "update_catalog_entry"
+        val operationKey =
+            "finance-field:$section:$id:" +
+                PixelMcpWriteTools.hash(
+                    JSONObject()
+                        .put("field", path)
+                        .put("value", value)
+                        .put("record_hash", expectedHash)
+                )
+        val retained =
+            controller.draft("settlement-action:$operationKey")?.optJSONObject("original_args")
+        if (retained != null) {
+            controller.settlementAction(
+                operationKey,
+                tool,
+                JSONObject(retained.toString()).apply { remove("request_id") },
+            )
+            return readDetail().also { detail = it }
+        }
+        val latest = readDetail()
+        if (latest.getString("record_hash") != expectedHash)
+            throw PixelMcpWriteTools.Rejected(
+                "WRITE_CONFLICT",
+                "Der Wert wurde inzwischen geändert.",
+            )
+        val current = latest.getJSONObject(if (section == "offers") "offer" else "entry")
+        val currentValue = detailValue(current, path)
+        val numeric = path.endsWith("price") || path.endsWith("quantity")
+        val currentNumber = currentValue.replace(',', '.').toBigDecimalOrNull()
+        val expectedNumber = expected.replace(',', '.').toBigDecimalOrNull()
+        if (
+            !(if (numeric && currentNumber != null && expectedNumber != null)
+                currentNumber.compareTo(expectedNumber) == 0
+            else currentValue == expected)
+        )
+            throw PixelMcpWriteTools.Rejected(
+                "WRITE_CONFLICT",
+                "Der Wert wurde inzwischen geändert.",
+            )
+        val updates = JSONObject()
+        if (path.startsWith("positions:")) {
+            val parts = path.split(':')
+            val positions = JSONArray()
+            for ((index, line) in
+                financeRows(JSONObject().put("items", current.getJSONArray("positions")))
+                    .withIndex()) {
+                val changed =
+                    financeFields(
+                        line,
+                        arrayOf(
+                            "title",
+                            "description",
+                            "unit",
+                            "catalog_entry_id",
+                            "catalog_hash",
+                            "price_source",
+                            "price_basis",
+                            "price_note",
+                            "calculation",
+                            "quantity",
+                            "price",
+                            "tax_rate",
+                        ),
+                    )
+                if (index == parts[1].toInt())
+                    changed.put(
+                        parts[2],
+                        if (parts[2] in listOf("quantity", "price"))
+                            BigDecimal(value.replace(',', '.'))
+                        else value,
+                    )
+                positions.put(changed)
+            }
+            updates.put("positions", positions)
+        } else
+            updates.put(
+                path,
+                if (path in listOf("default_price", "default_quantity"))
+                    BigDecimal(value.replace(',', '.'))
+                else value,
+            )
+        controller.settlementAction(
+            operationKey,
+            tool,
+            JSONObject()
+                .put(if (section == "offers") "offer_id" else "entry_id", id)
+                .put("expected_record_hash", latest.getString("record_hash"))
+                .put("updates", updates),
+        )
+        return readDetail().also { detail = it }
+    }
+    fun saveDetailValue(
+        field: Pair<String, String>,
+        entered: String,
+        before: String,
+        expectedHash: String,
+        showUndo: Boolean = true,
+    ) {
+        scope.launch {
+            detailFieldBusy = true
+            detailFieldError = ""
+            try {
+                val saved = writeDetailValue(field.first, entered, before, expectedHash)
+                detailField = null
+                detailFieldBusy = false
+                if (showUndo) {
+                    detailUndo.currentSnackbarData?.dismiss()
+                    val result =
+                        kotlinx.coroutines.withTimeoutOrNull(5000) {
+                            detailUndo.showSnackbar(
+                                "Gespeichert",
+                                "Rückgängig",
+                                duration = SnackbarDuration.Indefinite,
+                            )
+                        }
+                    if (result == SnackbarResult.ActionPerformed)
+                        saveDetailValue(
+                            field,
+                            before,
+                            entered,
+                            saved.getString("record_hash"),
+                            false,
+                        )
+                    else detailUndo.currentSnackbarData?.dismiss()
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                if (
+                    (failure is NativeCallFailure &&
+                        failure.detail.optString("code") == "WRITE_CONFLICT") ||
+                        (failure is PixelMcpWriteTools.Rejected && failure.code == "WRITE_CONFLICT")
+                ) {
+                    try {
+                        detailConflict =
+                            JSONObject()
+                                .put("field", field.first)
+                                .put("label", field.second)
+                                .put("mine", entered)
+                                .put("latest", readDetail())
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (readFailure: Exception) {
+                        detailFieldError = readFailure.message ?: "Aktuellen Stand erneut laden."
+                    }
+                } else detailFieldError = failure.message ?: "Wert nicht gespeichert."
+            } finally {
+                detailFieldBusy = false
+            }
+        }
+    }
     LaunchedEffect(section, id, refresh) {
         if (id.isEmpty()) return@LaunchedEffect
         error = ""
@@ -389,10 +575,9 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             error = failure.message ?: "Datensatz konnte nicht gelesen werden."
         }
     }
-    val row =
-        detail?.let {
-            if (section == "offers") it.optJSONObject("offer") else it.optJSONObject("entry")
-        }
+    val row = detail?.let {
+        if (section == "offers") it.optJSONObject("offer") else it.optJSONObject("entry")
+    }
     when {
         pendingAction != null -> {
             val action = pendingAction!!
@@ -400,7 +585,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 controller,
                 action.first,
                 when (action.first) {
-                    "record_offer_acceptance" -> "Annahme mit Nachweis erfassen"
+                    "record_offer_acceptance" -> "Annehmen"
                     "decline_offer" -> "Ablehnung erfassen"
                     "finalize_offer" -> "Geprüftes Angebots-PDF erstellen"
                     "convert_offer_to_order" -> "Angenommenes Angebot in Auftrag übernehmen"
@@ -429,18 +614,18 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                 val tool = action.first
                 pendingAction = null
                 refresh++
-                if (tool == "archive_entity") controller.navigate(section)
                 val saved = financeData(result)
                 if (tool == "finalize_offer") {
-                    controller.message(
-                        "Angebots-PDF lokal gespeichert. Teilen ist ein eigener Schritt."
-                    )
+                    controller.message("Angebots-PDF gespeichert.")
                     val finalizedId = action.second.optString("offer_id")
                     if (finalizedId != id) controller.navigate("offers", finalizedId)
                 }
                 if (tool == "duplicate_offer" && saved.optString("offer_id").isNotEmpty())
                     controller.navigate("offers", saved.getString("offer_id"))
-                if (tool == "convert_offer_to_order" && saved.optString("order_id").isNotEmpty())
+                if (
+                    tool in listOf("record_offer_acceptance", "convert_offer_to_order") &&
+                        saved.optString("order_id").isNotEmpty()
+                )
                     controller.navigate("orders", saved.getString("order_id"))
                 if (tool in listOf("prepare_offer_delivery", "prepare_offer_share"))
                     scope.launch {
@@ -456,7 +641,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                         }
                     }
             }
-            TextButton(onClick = { pendingAction = null }) { Text("Zurück zum Beleg") }
         }
         offerReview != null ->
             Column(Modifier.fillMaxSize()) {
@@ -529,9 +713,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                         if (validation.optBoolean("valid")) NativeStatusTone.Confirmed
                         else NativeStatusTone.Attention,
                     )
-                    Text(
-                        "PDF erstellen speichert das lokale Originaldokument. Teilen bleibt ein eigener Schritt."
-                    )
                     FinanceIssuerSummary(snapshot.optJSONObject("business_settings"))
                     FinancePartySummary("Rechnungsempfänger", snapshot.optJSONObject("recipient"))
                     FinancePartySummary("Kunde", snapshot.optJSONObject("customer"))
@@ -566,10 +747,16 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                         offerReviewed = it
                     }
                     if (errors.length() > 0)
-                        Button(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
+                        NativeButton(
+                            onClick = {},
+                            enabled = false,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text("PDF erstellen")
                         }
-                    TextButton(onClick = { offerReview = null }) { Text("Zum Angebot zurück") }
+                    NativeTextButton(onClick = { offerReview = null }) {
+                        Text("Zum Angebot zurück")
+                    }
                 }
                 NativeActionBar(
                     primaryLabel = if (errors.length() > 0) "Angaben ergänzen" else "PDF erstellen",
@@ -596,7 +783,8 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                     },
                     secondaryLabel = "Zurück",
                     onSecondary = { offerReview = null },
-                    enabled = errors.length() > 0 || offerReviewed && validation.optBoolean("valid"),
+                    enabled =
+                        errors.length() > 0 || offerReviewed && validation.optBoolean("valid"),
                 )
             }
         editing &&
@@ -662,7 +850,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (error.isEmpty()) CircularProgressIndicator()
                 else Text(error, color = MaterialTheme.colorScheme.error)
-                TextButton(onClick = { refresh++ }) { Text("Erneut lesen") }
+                NativeTextButton(onClick = { refresh++ }) { Text("Erneut lesen") }
             }
         else ->
             Column(Modifier.fillMaxSize()) {
@@ -674,7 +862,11 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(row.optString("title"), style = MaterialTheme.typography.headlineSmall)
+                    NativeDetailHeading(row.optString("title"))
+                    if (editable)
+                        NativeKeyValue("Bezeichnung", row.optString("title")) {
+                            detailField = "title" to "Bezeichnung"
+                        }
                     NativeStatus(
                         if (section == "offers" && !editable) "PDF gespeichert"
                         else
@@ -700,7 +892,37 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                                 }
                                 .joinToString(" · ")
                         if (dateText.isNotEmpty()) Text(dateText)
-                        FinancePositionSummary(row.optJSONArray("positions"))
+                        if (editable)
+                            NativeGroup("Leistungen") {
+                                for ((index, line) in
+                                    financeRows(
+                                            JSONObject()
+                                                .put(
+                                                    "items",
+                                                    row.optJSONArray("positions") ?: JSONArray(),
+                                                )
+                                        )
+                                        .withIndex()) {
+                                    NativeKeyValue("Leistung", line.optString("title")) {
+                                        detailField = "positions:$index:title" to "Leistung"
+                                    }
+                                    NativeKeyValue(
+                                        "Menge · ${line.optString("unit")}",
+                                        nativeNumber(line.opt("quantity")),
+                                    ) {
+                                        detailField = "positions:$index:quantity" to "Menge"
+                                    }
+                                    NativeKeyValue(
+                                        "Preis je Einheit",
+                                        financeMoney(line.opt("price")),
+                                        money = true,
+                                    ) {
+                                        detailField =
+                                            "positions:$index:price" to "Preis je Einheit (€)"
+                                    }
+                                }
+                            }
+                        else FinancePositionSummary(row.optJSONArray("positions"))
                         FinanceOfferTotal(row)
                         for ((key, label) in
                             listOf(
@@ -712,21 +934,32 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                                 "assumptions" to "Annahmen",
                                 "exclusions" to "Ausschlüsse",
                             )) if (row.optString(key).isNotEmpty())
-                            Text("$label: ${row.optString(key)}")
+                            if (editable)
+                                NativeKeyValue(label, row.optString(key)) {
+                                    detailField = key to label
+                                }
+                            else Text("$label: ${row.optString(key)}")
                     } else {
-                        Text(row.optString("description"))
-                        Text(
-                            "Einheit: ${row.optString("unit")} · Preis: ${financeMoney(row.opt("default_price"))}"
-                        )
-                        Text(
-                            if (row.optBoolean("price_confirmed")) "Preis bestätigt"
-                            else "Preis noch nicht bestätigt"
-                        )
-                        Text(if (row.optBoolean("active", true)) "Aktiv" else "Deaktiviert")
+                        NativeGroup("Leistung") {
+                            for ((key, label) in
+                                listOf(
+                                    "description" to "Beschreibung",
+                                    "unit" to "Einheit",
+                                    "default_price" to "Preis je Einheit",
+                                )) NativeKeyValue(
+                                label,
+                                if (key == "default_price") financeMoney(row.opt(key))
+                                else row.optString(key),
+                                money = key == "default_price",
+                            ) {
+                                detailField = key to label
+                            }
+                        }
+                        NativeStatus(if (row.optBoolean("active", true)) "Aktiv" else "Deaktiviert")
                     }
                     if (section == "offers") {
                         if (editable) {
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     scope.launch {
                                         try {
@@ -757,7 +990,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             ) {
                                 Text("Pflichtangaben prüfen")
                             }
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     pendingAction =
                                         "validate_offer_draft" to
@@ -772,7 +1005,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             ) {
                                 Text("Geprüften Entwurfsstand speichern")
                             }
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     scope.launch {
                                         try {
@@ -809,7 +1042,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                                     "recorded_at" to "Erfasst am",
                                 ),
                             )
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     scope.launch {
                                         try {
@@ -825,7 +1058,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             ) {
                                 Text("Original-PDF öffnen")
                             }
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     pendingAction =
                                         "prepare_offer_delivery" to
@@ -840,7 +1073,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             ) {
                                 Text("E-Mail-Übergabe vorbereiten")
                             }
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     pendingAction =
                                         "confirm_offer_delivery" to
@@ -855,7 +1088,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             ) {
                                 Text("Versandbeleg beim Anbieter prüfen")
                             }
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     pendingAction =
                                         "record_offer_acceptance" to
@@ -868,9 +1101,9 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                                 },
                                 Modifier.fillMaxWidth(),
                             ) {
-                                Text("Annahme nachweisen")
+                                Text("Annehmen")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 onClick = {
                                     pendingAction =
                                         "decline_offer" to
@@ -884,33 +1117,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             ) {
                                 Text("Ablehnung erfassen")
                             }
-                            OutlinedButton(
-                                onClick = {
-                                    pendingAction =
-                                        "convert_offer_to_order" to
-                                            JSONObject()
-                                                .put("offer_id", id)
-                                                .put(
-                                                    "expected_record_hash",
-                                                    detail!!.optString("record_hash"),
-                                                )
-                                                .apply {
-                                                    if (row.optString("order_id").isNotEmpty())
-                                                        put(
-                                                                "existing_order_id",
-                                                                row.getString("order_id"),
-                                                            )
-                                                            .put(
-                                                                "expected_order_hash",
-                                                                detail!!.optString("order_hash"),
-                                                            )
-                                                }
-                                },
-                                Modifier.fillMaxWidth(),
-                            ) {
-                                Text("Auftrag / Nachtrag übernehmen")
-                            }
-                            TextButton(
+                            NativeTextButton(
                                 onClick = {
                                     controller.action(
                                         "Entscheidungsverlauf",
@@ -922,7 +1129,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                                 Text("Entscheidungsverlauf lesen")
                             }
                         }
-                        TextButton(
+                        NativeTextButton(
                             onClick = {
                                 pendingAction =
                                     "duplicate_offer" to JSONObject().put("offer_id", id)
@@ -932,7 +1139,7 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                         }
                     }
                     if (section == "catalog")
-                        OutlinedButton(
+                        NativeOutlinedButton(
                             onClick = {
                                 pendingAction =
                                     "update_catalog_entry" to
@@ -960,13 +1167,31 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                             controller.returnToList(section)
                         }
                 }
+                SnackbarHost(detailUndo)
                 NativeActionBar(
-                    primaryLabel = if (editable) "Bearbeiten" else "Über Android teilen",
+                    primaryLabel =
+                        if (editable && section == "offers") "PDF erstellen"
+                        else if (editable) "Zur Liste" else "Teilen",
                     onPrimary = {
-                        if (editable) {
-                            fresh = false
-                            editing = true
-                        } else
+                        if (editable && section == "offers")
+                            scope.launch {
+                                try {
+                                    offerReview =
+                                        controller.query(
+                                            "get_offer",
+                                            JSONObject()
+                                                .put("offer_id", id)
+                                                .put("include_review", true),
+                                        )
+                                    offerReviewed = false
+                                } catch (cancelled: CancellationException) {
+                                    throw cancelled
+                                } catch (failure: Exception) {
+                                    controller.message(failure.message.orEmpty())
+                                }
+                            }
+                        else if (editable) controller.returnToList(section)
+                        else
                             pendingAction =
                                 "prepare_offer_share" to
                                     JSONObject()
@@ -976,10 +1201,76 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                                             detail!!.optString("record_hash"),
                                         )
                     },
-                    secondaryLabel = "Zur Liste",
-                    onSecondary = { controller.returnToList(section) },
+                    secondaryLabel = if (section == "offers") "Zur Liste" else null,
+                    onSecondary =
+                        if (section == "offers") ({ controller.returnToList(section) }) else null,
                 )
             }
+    }
+    detailField
+        ?.takeIf { detailConflict == null }
+        ?.let { field ->
+            val value = row?.let { detailValue(it, field.first) }.orEmpty()
+            NativeValueSheet(
+                field.second,
+                value,
+                keyboardType =
+                    if (field.first.endsWith("price") || field.first.endsWith("quantity"))
+                        androidx.compose.ui.text.input.KeyboardType.Decimal
+                    else androidx.compose.ui.text.input.KeyboardType.Text,
+                error = detailFieldError,
+                enabled = !detailFieldBusy,
+                onClose = { entered ->
+                    if (entered == value) detailField = null
+                    else saveDetailValue(field, entered, value, detailFieldHash)
+                },
+            )
+        }
+    detailConflict?.let { conflict ->
+        val latest = conflict.getJSONObject("latest")
+        val current = latest.getJSONObject(if (section == "offers") "offer" else "entry")
+        val field = conflict.getString("field") to conflict.getString("label")
+        val currentValue = detailValue(current, field.first)
+        AlertDialog(
+            onDismissRequest = {
+                detailConflict = null
+                detailField = null
+            },
+            title = { Text("Angabe geändert") },
+            text = {
+                Column {
+                    Text("Gespeichert: $currentValue")
+                    NativeTextButton(
+                        {
+                            detail = latest
+                            detailConflict = null
+                            detailField = null
+                            detailFieldError = ""
+                        },
+                        Modifier.semantics { contentDescription = "Diesen behalten · gespeichert" },
+                    ) {
+                        Text("Diesen behalten")
+                    }
+                    Text("Meine Angabe: ${conflict.getString("mine")}")
+                }
+            },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        detailConflict = null
+                        saveDetailValue(
+                            field,
+                            conflict.getString("mine"),
+                            currentValue,
+                            latest.getString("record_hash"),
+                        )
+                    },
+                    Modifier.semantics { contentDescription = "Diesen behalten · meine Angabe" },
+                ) {
+                    Text("Diesen behalten")
+                }
+            },
+        )
     }
 }
 
@@ -1076,7 +1367,7 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
                 }
             if (!imeVisible && (customer.isNotEmpty() || status.isNotEmpty() || query.isNotEmpty()))
                 item {
-                    TextButton(
+                    NativeTextButton(
                         onClick = {
                             customer = ""
                             status = ""
@@ -1139,13 +1430,13 @@ private fun FinanceList(section: String, controller: NativeAppController, onCrea
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(
+                    NativeTextButton(
                         enabled = offset > 0,
                         onClick = { offset = (offset - 50).coerceAtLeast(0) },
                     ) {
                         Text("Zurück")
                     }
-                    TextButton(enabled = page.hasMore, onClick = { offset += 50 }) {
+                    NativeTextButton(enabled = page.hasMore, onClick = { offset += 50 }) {
                         Text("Weitere")
                     }
                 }
@@ -1168,7 +1459,7 @@ private fun FinanceChoice(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth()) {
-        OutlinedButton(onClick = { expanded = true }, Modifier.fillMaxWidth()) {
+        NativeOutlinedButton(onClick = { expanded = true }, Modifier.fillMaxWidth()) {
             Text(
                 "$label: ${choices.firstOrNull { it.first==value }?.second ?: value.ifEmpty { "Bitte wählen" }}"
             )
@@ -1322,10 +1613,9 @@ private fun FinanceEditor(
                     throw IllegalArgumentException(
                         "Der ursprüngliche Beleg ist nicht lesbar. Es wird kein Ersatzbeleg angelegt."
                     )
-                val settings =
-                    runCatching { controller.query("get_business_settings") }
-                        .getOrDefault(JSONObject())
-                        .let { it.optJSONObject("settings") ?: it }
+                val settings = runCatching {
+                    controller.query("get_business_settings")
+                }.getOrDefault(JSONObject()).let { it.optJSONObject("settings") ?: it }
                 form = JSONObject().put("issue_date", financeToday()).put("positions", JSONArray())
                 if (settings.optString("tax_mode") in listOf("small_business", "standard"))
                     form.put("tax_mode", settings.getString("tax_mode"))
@@ -1370,18 +1660,15 @@ private fun FinanceEditor(
             error = ""
             var attemptedWrite = false
             try {
-                val tool =
-                    pendingTool.ifEmpty {
-                        when (section) {
-                            "offers" ->
-                                if (id.isEmpty()) {
-                                    if (validate) "create_and_validate_offer"
-                                    else "create_offer_draft"
-                                } else "update_offer_draft"
-                            else ->
-                                if (id.isEmpty()) "create_catalog_entry" else "update_catalog_entry"
-                        }
+                val tool = pendingTool.ifEmpty {
+                    when (section) {
+                        "offers" ->
+                            if (id.isEmpty()) {
+                                if (validate) "create_and_validate_offer" else "create_offer_draft"
+                            } else "update_offer_draft"
+                        else -> if (id.isEmpty()) "create_catalog_entry" else "update_catalog_entry"
                     }
+                }
                 val prior = pending
                 if (prior != null) {
                     val proof = financeInspect(controller, tool, prior)
@@ -1577,12 +1864,10 @@ private fun FinanceEditor(
             }
         }
     var inspectionAttempt by remember { mutableIntStateOf(0) }
-    val originalTool =
-        pendingTool.ifBlank {
-            if (section == "offers")
-                if (id.isBlank()) "create_offer_draft" else "update_offer_draft"
-            else if (id.isBlank()) "create_catalog_entry" else "update_catalog_entry"
-        }
+    val originalTool = pendingTool.ifBlank {
+        if (section == "offers") if (id.isBlank()) "create_offer_draft" else "update_offer_draft"
+        else if (id.isBlank()) "create_catalog_entry" else "update_catalog_entry"
+    }
     val inspection =
         rememberNativePendingInspection(
             controller,
@@ -1617,7 +1902,7 @@ private fun FinanceEditor(
                 if (error.isEmpty()) CircularProgressIndicator()
                 else {
                     Text(error, color = MaterialTheme.colorScheme.error)
-                    TextButton(
+                    NativeTextButton(
                         onClick = {
                             error = ""
                             loadRetry++
@@ -1647,13 +1932,10 @@ private fun FinanceEditor(
                     }
                 }
             }
-            if (restored)
-                Text(
-                    "Dieser Entwurf stammt aus einem früheren Gerätestand. Aktuellen Beleg, Beziehungen und Eingaben vor einer neuen Aktion prüfen."
-                )
+            if (restored) NativeStatus("Wiederhergestellter Entwurf", NativeStatusTone.Attention)
             if (pending == null && (id.isNotEmpty() || restored)) {
                 if (id.isNotEmpty())
-                    TextButton(
+                    NativeTextButton(
                         enabled = !busy,
                         onClick = {
                             scope.launch {
@@ -1713,7 +1995,7 @@ private fun FinanceEditor(
                     ) {
                         reviewed = it
                     }
-                    TextButton(
+                    NativeTextButton(
                         enabled = reviewed && !busy,
                         onClick = {
                             scope.launch {
@@ -1901,10 +2183,6 @@ private fun FinanceEditor(
                                 ) {
                                     field("tax_mode", it)
                                 }
-                                Text(
-                                    "Unternehmens- und Steuerangaben werden vor dem PDF gegen die gespeicherten Ausstellerdaten geprüft.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
                                 FinanceChoice(
                                     "Kundentyp",
                                     form.optString("customer_type"),
@@ -2012,7 +2290,7 @@ private fun FinanceEditor(
                                 }
                             }
                             if (section == "offers") {
-                                OutlinedButton(
+                                NativeOutlinedButton(
                                     enabled = form.optString("customer_id").isNotEmpty(),
                                     onClick = {
                                         scope.launch {
@@ -2064,7 +2342,7 @@ private fun FinanceEditor(
                             FinancePositions(form.optJSONArray("positions") ?: JSONArray()) {
                                 field("positions", it)
                             }
-                            OutlinedButton(
+                            NativeOutlinedButton(
                                 onClick = {
                                     sourceVisible = true
                                     sourceOffset = 0
@@ -2121,7 +2399,7 @@ private fun FinanceEditor(
                                     onDismiss = { sourceVisible = false },
                                 ) { close ->
                                     items(sourceRows, key = { it.getString("id") }) { source ->
-                                        TextButton(
+                                        NativeTextButton(
                                             onClick = {
                                                 scope.launch {
                                                     try {
@@ -2208,7 +2486,7 @@ private fun FinanceEditor(
                                             Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                         ) {
-                                            TextButton(
+                                            NativeTextButton(
                                                 enabled = sourceOffset > 0,
                                                 onClick = {
                                                     sourceOffset =
@@ -2217,7 +2495,7 @@ private fun FinanceEditor(
                                             ) {
                                                 Text("Vorherige Quellen")
                                             }
-                                            TextButton(
+                                            NativeTextButton(
                                                 enabled = sourceRows.size == 40,
                                                 onClick = { sourceOffset += 40 },
                                             ) {
@@ -2249,27 +2527,21 @@ private fun FinanceEditor(
                                 },
                             )
                             if (openItems.isEmpty())
-                                Text(
-                                    "Als Nächstes werden Empfänger, Unternehmensdaten, Preise und Bedingungen vollständig geprüft. Erst danach kann das lokale PDF erstellt werden."
-                                )
                             else {
-                                Button(
+                                NativeButton(
                                     onClick = {},
                                     enabled = false,
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     Text("PDF erstellen")
                                 }
-                                Text(
-                                    "PDF erst nach vollständiger Prüfung. Der unvollständige Entwurf bleibt speicherbar."
-                                )
                             }
                         }
                     }
             } else FinancePositionSummary(form.optJSONArray("positions"))
             if (error.isNotEmpty()) Text(error, color = MaterialTheme.colorScheme.error)
-            TextButton(enabled = !busy, onClick = onClose) { Text("Später weiterbearbeiten") }
-            TextButton(enabled = !busy && pending == null, onClick = { discard = true }) {
+            NativeTextButton(enabled = !busy, onClick = onClose) { Text("Später weiterbearbeiten") }
+            NativeTextButton(enabled = !busy && pending == null, onClick = { discard = true }) {
                 Text("Entwurf verwerfen")
             }
         }
@@ -2423,7 +2695,7 @@ private fun FinancePositions(values: JSONArray, onChange: (JSONArray) -> Unit) {
                             },
                         )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(
+                        NativeTextButton(
                             enabled = index > 0,
                             onClick = {
                                 val next = JSONArray()
@@ -2438,7 +2710,7 @@ private fun FinancePositions(values: JSONArray, onChange: (JSONArray) -> Unit) {
                         ) {
                             Text("Nach oben")
                         }
-                        TextButton(
+                        NativeTextButton(
                             onClick = {
                                 removed = index to financeCopy(row)
                                 val next = JSONArray()
@@ -2454,7 +2726,7 @@ private fun FinancePositions(values: JSONArray, onChange: (JSONArray) -> Unit) {
             }
     }
     removed?.let { (originalIndex, line) ->
-        TextButton(
+        NativeTextButton(
             onClick = {
                 val next = JSONArray()
                 val position = originalIndex.coerceAtMost(values.length())
@@ -2469,7 +2741,7 @@ private fun FinancePositions(values: JSONArray, onChange: (JSONArray) -> Unit) {
             Text("Entfernen rückgängig")
         }
     }
-    OutlinedButton(
+    NativeOutlinedButton(
         onClick = {
             expanded = values.length()
             onChange(
@@ -2495,7 +2767,4 @@ private fun FinancePositions(values: JSONArray, onChange: (JSONArray) -> Unit) {
         }
     )
         Text("Summe noch offen")
-    Text(
-        "Unbekannte Mengen und Preise bleiben offen. Summen werden erst aus den gespeicherten Angaben berechnet."
-    )
 }

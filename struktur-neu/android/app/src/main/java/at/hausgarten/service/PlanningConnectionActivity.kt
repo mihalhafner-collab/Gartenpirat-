@@ -135,9 +135,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                             if (presentation.setupCode.isEmpty()) NativeStatusTone.Neutral
                             else NativeStatusTone.Attention,
                         )
-                        Text(
-                            "Kalender und Wetter sind optional. Die lokale Arbeitserfassung funktioniert ohne diese Verbindungen."
-                        )
+
                         if (status.isNotEmpty()) Text(status)
                         if (loaded)
                             Action("Status prüfen") {
@@ -148,10 +146,9 @@ class PlanningConnectionActivity : ComponentActivity() {
                             if (status.isEmpty()) CircularProgressIndicator()
                         } else {
                             Section("Google Kalender") {
-                                Text(presentation.steps, style = MaterialTheme.typography.bodySmall)
                                 if (presentation.setupCode.isNotEmpty())
                                     Text(
-                                        "! " + CalendarAccessRules.message(presentation.setupCode),
+                                        CalendarAccessRules.message(presentation.setupCode),
                                         color = MaterialTheme.colorScheme.error,
                                     )
                                 if (presentation.setupCode == "CALENDAR_BUSY_PERMISSION_REQUIRED")
@@ -159,12 +156,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                                         busy = false
                                         beginCalendarSetup()
                                     }
-                                Text(
-                                    "Deine Einsätze erscheinen im eigenen Kalender „Haus & Garten – Einsätze“. App-Termine bleiben erhalten. Keine Kundeneinladungen."
-                                )
-                                Text(
-                                    "Einmal Google-Konto auswählen und den Kalenderzugriff bei Google bestätigen. Dein bereits angemeldetes Pixel-Konto kann ohne erneute Passworteingabe verwendet werden. Kontoauswahl allein ist noch keine Kalenderfreigabe."
-                                )
+
                                 Toggle("Google Kalender verwenden", calendar) { enabled ->
                                     if (enabled && !presentation.connected) beginCalendarSetup()
                                     else saveCalendarSwitch(enabled)
@@ -185,9 +177,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                                     }
                                 }
                                 Toggle("Belegtzeiten prüfen", busy) { busy = it }
-                                Text(
-                                    "Für Warnungen vor Überschneidungen mit deinem Google-Hauptkalender einschalten und Freigaben übernehmen. Andere Google-Kalender werden nicht geprüft. Ohne aktuelle Belegtzeiten bleiben externe Überschneidungen unbekannt. Google fragt die zusätzliche Berechtigung ausdrücklich ab."
-                                )
+
                                 Action("Kalenderfreigaben übernehmen / erneuern") {
                                     beginCalendarSetup()
                                 }
@@ -225,9 +215,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                                 Toggle("Pixel-Benachrichtigungen", notifications) {
                                     saveWeatherSwitch("notifications", it)
                                 }
-                                Text(
-                                    "Schalter speichern sofort. Wetterwarnungen und Pixel-Meldungen sind getrennte Freigaben. Wetterdaten können fehlen oder veraltet sein; die Hinweise ersetzen keine Entscheidung vor Ort."
-                                )
+
                                 Action("Kalender abgleichen und Wetter aktualisieren") {
                                     checkPlanning()
                                 }
@@ -342,12 +330,12 @@ class PlanningConnectionActivity : ComponentActivity() {
                             )
                         },
                         dismissButton = {
-                            TextButton(onClick = { disconnectConfirmation = false }) {
+                            NativeTextButton(onClick = { disconnectConfirmation = false }) {
                                 Text("Abbrechen")
                             }
                         },
                         confirmButton = {
-                            TextButton(
+                            NativeTextButton(
                                 onClick = {
                                     disconnectConfirmation = false
                                     disconnect()
@@ -484,7 +472,11 @@ class PlanningConnectionActivity : ComponentActivity() {
 
     @Composable
     private fun Action(label: String, action: () -> Unit) {
-        OutlinedButton(onClick = action, enabled = !working, modifier = Modifier.fillMaxWidth()) {
+        NativeOutlinedButton(
+            onClick = action,
+            enabled = !working,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(label)
         }
     }
@@ -496,9 +488,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         change: () -> Unit,
         content: @Composable ColumnScope.() -> Unit,
     ) {
-        TextButton(onClick = change, modifier = Modifier.fillMaxWidth()) {
-            Text(title + if (expanded) " ▴" else " ▾")
-        }
+        NativeTextButton(onClick = change, modifier = Modifier.fillMaxWidth()) { Text(title) }
         if (expanded) Column(verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
     }
 
@@ -1431,6 +1421,7 @@ class PlanningConnectionActivity : ComponentActivity() {
 }
 
 /** This overview reads only local evidence; foreign ChatGPT accounts are outside the app. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NativeConnections(controller: NativeAppController) {
     val scope = rememberCoroutineScope()
@@ -1438,6 +1429,7 @@ internal fun NativeConnections(controller: NativeAppController) {
     var snapshot by remember(controller) { mutableStateOf<JSONObject?>(null) }
     var checking by remember(controller) { mutableStateOf(false) }
     var error by remember(controller) { mutableStateOf("") }
+    var explanationOpen by remember(controller) { mutableStateOf(false) }
     fun refreshPresentation() {
         if (checking) return
         checking = true
@@ -1483,13 +1475,68 @@ internal fun NativeConnections(controller: NativeAppController) {
         owner.lifecycle.addObserver(observer)
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
+    if (explanationOpen)
+        ModalBottomSheet(
+            onDismissRequest = { explanationOpen = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
+                Text(
+                    "UI und MCP: Funktionsprüfung",
+                    Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text("Dieses Blatt erklärt die vorhandenen Wege. Es führt keine Prüfung aus.")
+                    NativeGroup("Fachdaten lesen und ändern") {
+                        Text(
+                            "Arbeiten, L.C.R., Planung, Kunden und Abrechnung haben native Bedienwege und MCP-Werkzeuge. Lesen öffnet Originale; Änderungen brauchen die jeweilige bewusste Aktion und dieselben fachlichen Prüfungen.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                        Text(
+                            "MCP-Schreibzugriff gibt der Eigentümer in der App frei. Eine gespeicherte Freigabe ist noch kein Nachweis einer erfolgreichen Anfrage.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Android-Bedienung und Freigaben") {
+                        Text(
+                            "Kamera, Spracheingabe, Kontoauswahl und Dateiauswahl benötigen die passenden Android-Apps und Freigaben. MCP ersetzt diese Bedienung nicht.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Sicherung, Wiederherstellung und Speicher") {
+                        Text(
+                            "Eine ausgewählte ZIP-Datei wird fortgeschrieben. Wiederherstellen ist ein eigener bewusst bestätigter Weg. Dateizugriff, Integrität und erhaltene Originale müssen tatsächlich geprüft werden.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Verbindungen und Prüfstand") {
+                        Text(
+                            "Status prüfen liest den lokalen Zustand. Kalenderabgleich und Wetteraktualisierung sind eigene Aktionen. Konten, Tunnel und Freigaben bleiben erhalten; lokale Statusangaben bestätigen keine neue Verbindung oder Zustellung.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                    NativeGroup("Prüfung der Abläufe") {
+                        Text(
+                            "Eine Funktionsabnahme muss Lesen, Schreiben, Fehler, Wiederholung und Konflikte mit synthetischen Daten ausführen und das Ergebnis erneut am Original lesen. Dieses Erklärblatt meldet keine bestandene Abnahme.",
+                            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+                NativeActionBar("Erklärung schließen", { explanationOpen = false })
+            }
+        }
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Optionale Verbindungen", style = MaterialTheme.typography.titleLarge)
-            Text("Die lokale Arbeitserfassung benötigt keine dieser Verbindungen.")
+            NativeTextButton({ explanationOpen = true }) { Text("UI und MCP erklären") }
+
             NativeStatus(
                 if (checking) "Lokalen Status lesen …"
                 else if (error.isNotEmpty()) "Status unbestätigt"
@@ -1512,8 +1559,9 @@ internal fun NativeConnections(controller: NativeAppController) {
                 val calendarTime =
                     if (last.isBlank()) "Noch kein erfolgreicher Abgleich gespeichert."
                     else {
-                        val time =
-                            runCatching { Instant.parse(last).toEpochMilli() }.getOrDefault(0)
+                        val time = runCatching {
+                            Instant.parse(last).toEpochMilli()
+                        }.getOrDefault(0)
                         "Letzter erfolgreicher Abgleich: " +
                             pixelConnectionTime(time, "Zeitpunkt nicht lesbar")
                     }
@@ -1562,10 +1610,6 @@ internal fun NativeConnections(controller: NativeAppController) {
                     { controller.open(PixelTunnelActivity::class.java) },
                 )
             }
-            Text(
-                "Dieser Statusabruf liest gespeicherte lokale Meldungen. Er löst keinen Kalenderabgleich und keine Wetterprüfung aus und bestätigt keine Schreibberechtigung bei fremden Diensten.",
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
         NativeActionBar(
             "Status prüfen",

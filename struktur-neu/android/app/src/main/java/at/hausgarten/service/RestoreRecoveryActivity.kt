@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -34,14 +32,14 @@ class RestoreRecoveryActivity : ComponentActivity() {
         nativeContent("Wiederherstellung prüfen", showBack = false) {
             Text(status)
             if (!cold)
-                Button(
+                NativeButton(
                     enabled = !busy && !cancelled,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = { confirmCancellation = true },
                 ) {
                     Text("Wiederherstellung abbrechen")
                 }
-            Button(
+            NativeButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     finishAffinity()
@@ -60,10 +58,12 @@ class RestoreRecoveryActivity : ComponentActivity() {
                         )
                     },
                     dismissButton = {
-                        TextButton(onClick = { confirmCancellation = false }) { Text("Zurück") }
+                        NativeTextButton(onClick = { confirmCancellation = false }) {
+                            Text("Zurück")
+                        }
                     },
                     confirmButton = {
-                        TextButton(
+                        NativeTextButton(
                             onClick = {
                                 confirmCancellation = false
                                 cancelRestore()

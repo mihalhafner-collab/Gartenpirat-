@@ -4,117 +4,117 @@
   "document_id": "HG-UMB-20261110-001",
   "eisbaer_version": "1.0.1",
   "specification_sha256": "8083402040597a766d6421f66cd751e7d85ddb350a46b3eced6cf4150693850c",
-  "overall_status": "NOT_STARTED",
+  "overall_status": "IN_PROGRESS",
   "candidate": null,
   "created_at_utc": "2026-11-11T04:47:24.708547Z",
-  "status_note": "Nur Autorität und Abschlussbedingungen eingerichtet. Keine native Umsetzung, keine tatsächliche Eisbär-Abnahme.",
+  "status_note": "Nach Nutzerpause fortgesetzter unveröffentlichter Eisbär-Kandidat 1.72.0/159 auf nachgewiesener 158-Basis. Run 43074574257: 44/46 Hauptaufrufe, alle sechs MCP-Proofblöcke und gesamte Provider-/Media-/isolierte Restorekette bestätigt. Annahmeformular korrigiert, Caption-Rohgrund noch offen. M10/M11/M12/M15-Gruppen/Zugänge, vollständiger Sicherungsdateiname und native Refresh-/Datumsbasis-/240-€-Fristfälle integriert. Aktuelle Release-/Test-APK, Lint, Datenschutz und lokale Quellprüfungen bestanden. Eigener voller Folgelauf und reale Pixel-/Verbindungs-/Sicherungsabnahmen offen. Keine vollständige Abnahme behauptet.",
   "items": {
     "REQ-001": {
       "status": "NOT_STARTED",
       "evidence": []
     },
     "REQ-002": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-003": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-004": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-005": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-006": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-007": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-008": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-009": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-010": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-011": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-012": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-013": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-014": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-015": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-016": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-017": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-018": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-019": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-020": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-021": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-022": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-023": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-024": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-025": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-026": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "REQ-027": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "M01_HEUTE": {
@@ -826,55 +826,55 @@
       "evidence": []
     },
     "CODE-01": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-02": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-03": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-04": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-05": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-06": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-07": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-08": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-09": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-10": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-11": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-12": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "CODE-13": {
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "evidence": []
     },
     "DATA-01": {

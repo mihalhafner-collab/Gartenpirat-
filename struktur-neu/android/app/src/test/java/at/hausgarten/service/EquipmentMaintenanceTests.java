@@ -83,7 +83,7 @@ public final class EquipmentMaintenanceTests {
         RevierApplicationService app=new RevierApplicationService(restored,RevierDomainTests.CLOCK);yes(app.validateRelationships().getString("status").equals("PASS"));
         String eventKey=RevierRules.ROOT+"entity:equipment_maintenance:"+f.plan().getString("last_event_id");
         String saved=restored.values.remove(eventKey);denied("REVIER_RELATION_INVALID",app::validateRelationships);restored.values.put(eventKey,saved);
-        JSONObject archive=f.args("qa_maintenance_archive").put("entity","equipment").put("entity_id",f.id).put("archived",true).put("confirmed",true);archive.remove("equipment_id");f.app.execute("set_revier_archived",archive);
+        f.app.execute("save_equipment",f.args("qa_maintenance_inactive").put("active",false));
         denied("EQUIPMENT_INACTIVE",()->f.app.execute("record_equipment_maintenance",f.args("qa_maintenance_after_archive").put("plan_id",plan).put("performed_on","2027-05-18")));
         JSONObject purge=f.args("qa_maintenance_purge").put("entity","equipment").put("entity_id",f.id).put("confirmed",true);purge.remove("equipment_id");denied("DEPENDENCY_EXISTS",()->f.app.execute("purge_revier_entity",purge));
     }
@@ -108,7 +108,6 @@ public final class EquipmentMaintenanceTests {
     static void purgeEmptyPlan()throws Exception {
         Fixture f=new Fixture();JSONObject original=f.args("qa_maintenance_plan").put("operation","configure").put("title","QA Klinge geschärft").put("interval_value",1).put("interval_unit","months").put("starts_on","2027-05-18");
         f.app.execute("save_equipment_maintenance_plan",original);String plan=f.plan().getString("id");
-        JSONObject archive=f.args("qa_maintenance_empty_archive").put("entity","equipment").put("entity_id",f.id).put("archived",true).put("confirmed",true);archive.remove("equipment_id");f.app.execute("set_revier_archived",archive);
         JSONObject purge=f.args("qa_maintenance_empty_purge").put("entity","equipment").put("entity_id",f.id).put("confirmed",true);purge.remove("equipment_id");yes(f.app.execute("purge_revier_entity",purge).getBoolean("purged"));
         denied("ENTITY_DELETED",f::current);
         denied("REQUEST_EXPIRED",()->f.app.execute("save_equipment_maintenance_plan",original));

@@ -3,8 +3,8 @@ package at.hausgarten.service
 import java.util.*
 import org.json.*
 
-/** Bounded selection, one native transaction, ordinary compatible archive events. */
-class WorklogArchiveBatch {
+/** Bounded deletion selection with the same version and original-document protection. */
+class WorklogDeletionBatch {
     private constructor() {}
 
     companion object {
@@ -53,8 +53,8 @@ class WorklogArchiveBatch {
                 .put("allowed", allowed)
                 .put("entries", entries)
                 .put("preview_hash", PixelMcpWriteTools.hash(guards))
-                .put("recoverable", true)
-                .put("physical_delete", false)
+                .put("recoverable", false)
+                .put("physical_delete", true)
         }
 
         @Throws(Exception::class)

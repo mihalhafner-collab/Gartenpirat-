@@ -10,6 +10,8 @@ import org.json.JSONObject
 internal class SettlementApplicationService(private val repository: OwnerRepository) :
     OwnerCommand {
     override fun perform(name: String, args: JSONObject, request: String): JSONObject {
+        if (name == "set_work_record_lcr")
+            return SettlementRules.changeLcr(repository, args, request)
         val ledger = SettlementRules.ledger(repository)
         val operations =
             ledger.optJSONObject("operations") ?: JSONObject().also { ledger.put("operations", it) }
@@ -28,6 +30,11 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
         val result: JSONObject =
             when (name) {
                 "save_settlement_draft" -> {
+                    require(
+                        args.getJSONObject("draft").optString("route") == AccountingRules.BILLED
+                    ) {
+                        "Neue Abschlüsse sind ausschließlich Rechnungen. L.C.R. wird an der Originalarbeit gesetzt."
+                    }
                     val actualId = id.ifBlank { "st_" + PixelMcpWriteTools.hash(request).take(32) }
                     require(
                         actualId !in
@@ -48,6 +55,18 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                         expected(old, args)
                     }
                     val draft = SettlementRules.normalized(args.getJSONObject("draft"), actualId)
+                    val lcr = SettlementRules.lcrIds(repository)
+                    require(
+                        SettlementRules.rows(draft.optJSONArray("sources")).none { source ->
+                            source.optString("collection") == "worklogs" &&
+                                source.optString("id") in lcr ||
+                                source.optString("collection") == "orders" &&
+                                    AccountingRules.works(master, "orders", source.optString("id"))
+                                        .any { it.optString("id") in lcr }
+                        }
+                    ) {
+                        "L.C.R.-Arbeiten aus dem Rechnungsentwurf entfernen."
+                    }
                     if (old != null) replace(records, draft) else records.put(draft)
                     JSONObject()
                         .put("settlement_id", actualId)
@@ -81,6 +100,9 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                     require(old.getString("status") == "draft") {
                         "Vorgang ist bereits reserviert; bestehenden Vorgang fortsetzen."
                     }
+                    require(old.optString("route") == AccountingRules.BILLED) {
+                        "Historischer Labor-Entwurf wird nicht neu abgeschlossen. Originalarbeiten unter Arbeiten öffnen."
+                    }
                     val view = SettlementRules.review(old, master)
                     require(SettlementRules.hash(view) == args.getString("expected_review_hash")) {
                         "Vorschau oder Stammdaten geändert. Erneut prüfen."
@@ -92,7 +114,14 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                     ) {
                         "Vorschau, tatsächliche Angaben und österreichischen Inlandsfall bewusst bestätigen."
                     }
-                    val validation = SettlementRules.validation(view, master, ledger, personal)
+                    val validation =
+                        SettlementRules.validation(
+                            view,
+                            master,
+                            ledger,
+                            personal,
+                            SettlementRules.lcrIds(repository),
+                        )
                     require(validation.getBoolean("valid")) {
                         validation.getJSONArray("errors").join("\n")
                     }
@@ -133,6 +162,9 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                     )
                         result(row)
                     else {
+                        require(row.optString("route") == AccountingRules.BILLED) {
+                            "Neue Labor-Abschlüsse sind nicht mehr verfügbar. Historische Originale bleiben erhalten."
+                        }
                         require(row.getString("status") == "prepared") {
                             "Zuerst die Vorschau bewusst prüfen und reservieren."
                         }
@@ -270,6 +302,7 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                 "add_settlement_payment" -> {
                     val row = SettlementRules.find(ledger, id)
                     expected(row, args)
+                    SettlementRules.requirePaymentVersion(ledger, id, args)
                     require(
                         row.getString("status") in setOf("confirmed", "cancelled") &&
                             row.getString("kind") in setOf("invoice", "internal")
@@ -283,6 +316,17 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                     require(amount != 0L) { "Zahlungsbetrag muss ungleich null sein." }
                     java.time.LocalDate.parse(args.getString("date"))
                     val reversal = args.optString("reversal_of")
+                    val paymentKind =
+                        args.optString("payment_kind").ifBlank {
+                            if (amount > 0) "receipt" else "correction"
+                        }
+                    require(
+                        paymentKind in setOf("receipt", "correction", "refund") &&
+                            ((amount > 0 && paymentKind == "receipt") ||
+                                (amount < 0 && paymentKind != "receipt"))
+                    ) {
+                        "Zahlungseingang positiv, Korrektur oder tatsächliche Rückzahlung negativ erfassen."
+                    }
                     if (amount < 0) {
                         val original =
                             SettlementRules.rows(payments).firstOrNull {
@@ -308,6 +352,18 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                         require(args.optString("note").isNotBlank()) {
                             "Gegenbuchung begründen; eine Stornierung allein belegt keine Rückzahlung."
                         }
+                        if (paymentKind == "refund") {
+                            val paid = SettlementRules.paid(ledger, id)
+                            val due =
+                                if (row.optString("status") == "cancelled") 0L
+                                else row.optLong("total_minor")
+                            require(
+                                Math.negateExact(amount) <=
+                                    Math.subtractExact(paid, due).coerceAtLeast(0L)
+                            ) {
+                                "Rückzahlung überschreitet das vorhandene Guthaben oder den offenen Erstattungsbetrag."
+                            }
+                        }
                     } else
                         require(reversal.isEmpty()) {
                             "Nur negative Gegenbuchungen verweisen auf eine Zahlung."
@@ -320,6 +376,7 @@ internal class SettlementApplicationService(private val repository: OwnerReposit
                             .put("date", args.getString("date"))
                             .put("note", args.optString("note"))
                             .put("reversal_of", reversal)
+                            .put("payment_kind", paymentKind)
                     )
                     JSONObject()
                         .put("settlement_id", id)

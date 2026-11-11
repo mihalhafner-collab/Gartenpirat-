@@ -32,13 +32,16 @@ internal class PixelMcpEntityWriteTools {
             return JSONObject().put("type", "boolean")
         }
 
-        private @JvmStatic @Throws(Exception::class) fun field(key: String): JSONObject {
+        @JvmStatic
+        @Throws(Exception::class)
+        fun field(key: String): JSONObject {
             if (
                 Arrays.asList(
                         "active",
                         "customer_visible",
                         "domestic_service_confirmed",
                         "test_record",
+                        "electronic_invoice_consent",
                     )
                     .contains(key)
             ) {
@@ -86,7 +89,7 @@ internal class PixelMcpEntityWriteTools {
                 props.put(idKey, string(500)).put("expected_record_hash", string(128))
                 val patch = JSONObject()
                 for (key in fields) {
-                    patch.put(key, field(key))
+                    if (key != "electronic_invoice_consent_date") patch.put(key, field(key))
                 }
                 props.put(
                     "updates",
@@ -99,7 +102,7 @@ internal class PixelMcpEntityWriteTools {
                 required.put(idKey).put("expected_record_hash").put("updates")
             } else {
                 for (key in fields) {
-                    props.put(key, field(key))
+                    if (key != "electronic_invoice_consent_date") props.put(key, field(key))
                 }
                 if (entity == "customer") {
                     required.put("name")

@@ -3,16 +3,24 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-07T07:35:31Z",
-    "version_name": "1.61.0",
-    "version_code": 131,
+    "observed_at_utc": "2026-11-11T18:36:00Z",
+    "version_name": "1.71.0",
+    "version_code": 158,
     "package_name": "at.hausgarten.service",
-    "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
-    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
-    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
-    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; Git-Blobs von 7e3b045 ergeben denselben Quellfingerabdruck; APK-Prüfsumme aus bisherigem ADB-Nachweis"
+    "reported_base_git_sha": "8101f3c395c9770005727bc37fc2f2057fca9130",
+    "source_sha256": "7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640",
+    "source_binding": "LIVE_PIXEL_MCP_RUNTIME; source_dirty=false; Paket, Version, Git und Source erneut gelesen, Protokoll 9 und Speichervertrag 3. Nur Metadaten, keine Geräteänderung; 178 Git-Blobs von 8101f3c ergeben denselben Quellfingerabdruck."
   },
   "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-11-11T06:11:23Z",
+      "version_name": "1.71.0",
+      "version_code": 158,
+      "package_name": "at.hausgarten.service",
+      "reported_base_git_sha": "8101f3c395c9770005727bc37fc2f2057fca9130",
+      "source_sha256": "7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; 178 Git-Blobs von 8101f3c ergeben denselben Quellfingerabdruck; keine Geräteänderung"
+    },
     {
       "observed_at_utc": "2026-11-07T07:35:31Z",
       "version_name": "1.61.0",
@@ -46,31 +54,36 @@
     "verification": "PASS; check_release_baseline.py, check_current.py und source_preservation.py; assembleRelease einschließlich lintVital und Datenschutzprüfung. verify_app_candidate.py gegen vollständig zurückgeladene 132: Paket und Originalzertifikat identisch, 133 > 132, leere Startdaten. Commit, source_sha256, release und source_dirty=false direkt aus signierter APK gelesen. Keine Pflanzenbibliothek oder alten App-WebView-Assets/-Komponenten; einzig AndroidX LinkifyCompat.findAddress referenziert WebView. Drive-Datei vollständig zurückgeladen, SHA256 und Bytevergleich identisch. Voller grüner CI-Lauf 42405244554 auf codeidentischem 061b9e0 bestätigt; keine Installation."
   },
   "current_test_candidate": {
-    "version_name": "1.62.0",
-    "version_code": 133,
-    "source_sha256": "72ad38c718a4e3bfadb961443cc6f70aabdd3078bf3ba15ee7fd06e5459122b2",
-    "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
+    "version_name": "1.72.0",
+    "version_code": 159,
+    "source_sha256": "cfe29523ca9237f9e0da157a9a82c900e33dbb26a7bcc3a39936501cc3169b76",
+    "status": "Eisbär 1.0.1 auf nachgewiesener 158-Basis. M10/M11/M12/M15-Detailgruppen und Zugänge, vollständiger Sicherungsdateiname, native Refresh-/Datumsbasis-/240-€-Fristfälle und Annahmeformular korrigiert. Strikte Captionprüfung mit gezielter Rohdiagnostik, Ursache noch offen. Release-/Test-APK, Lint, Datenschutz und lokale Quellprüfungen bestanden. Eigener Vollauf folgt; nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "NOT_STARTED — Eisbär ist als einzige Design- und Funktionsumfangsvorgabe hinterlegt. Keine native Umsetzung und keine Eisbär-Laufzeitabnahme erfolgt.",
+    "status": "IN_PROGRESS — gebündelte Originalanforderungen und Annahmeformular lokal gebaut/geprüft. Caption-Rohgrund bleibt bis eigener Laufzeitdiagnostik offen; nächster Schritt vollständiger Folgelauf bis grün. Kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
-      "native_implementation": "NOT_STARTED",
-      "eisbaer_runtime_tests": "NOT_RUN"
+      "native_implementation": "IN_PROGRESS",
+      "eisbaer_runtime_tests": "Run 43074574257 auf 95e1062/source ec07d782: 44/46 Hauptaufrufe abgeschlossen, 7551 gemeldete Checks. Alle sechs MCP-Blöcke einschließlich echter Kalender-/Gmail-Adapter mit synthetischem Transport und öffentlicher queued-/Replaypfade sowie gesamte Provider-/Media-/isolierte Restorekette bestanden. Rot: zusätzliche rohe Caption-Layoutprüfung und Angebotsannahme-Feldzugriff. Annahmeformular berichtigt, Captiondiagnostik und originale Detailgruppen/Finanz-UI-Schritte kompiliert; eigener Lauf offen.",
+      "source": "PASS aktueller Produktstand cfe29523: check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow unverändert mit 14 Bash-/neun Pythonblöcken und größtem run 20841 unter 21000 Zeichen. Eisbär-Originale unverändert.",
+      "local_jvm": "PASS CI 43074574257 auf 95e1062/source ec07d782: 97 JVM-Tests ohne Fehler/Skip; Host-Suche p95=74.949411 ms unter unverändertem 300-ms-Limit, synthetischer MemoryPort, keine Pixel-Leistungsbehauptung. Aktueller UI-Folgestand erhält eigenen vollen CI.",
+      "local_build": "PASS aktueller Produktstand cfe29523: assembleRelease, assembleReleaseAndroidTest, lintRelease und Datenschutz gemeinsam in 6 min 19 s. Frühere originalsignierte 95e-APK 0943224c…5ee90 ist wegen neuer UI-Anforderungen veraltet, intern und nicht verteilt oder installiert.",
+      "full_ci": "Run 43074574257: Build SUCCESS, Emulator FAILURE, Integrität SUCCESS; 44/46 Hauptaufrufe, vollständige Provider-/Media-/reguläre Restaurationskette. Captionprüfung erhält zusätzliche Rohdiagnostik; Annahmeformular korrigiert. Keine roten CI-Prüfungen als Pixel-only ausgelagert. Aktueller Quellstand cfe29523 benötigt eigenen vollen Lauf."
     },
     "next": [
-      "Eisbär PDF/JSON und UMSETZUNG.json lesen; ausschließlich deren Anforderungen umsetzen.",
-      "Anforderungen, Menüaktionen und Schritte, Finanzabläufe, Code-/Datenbereiche, Migration, Bilder und alle MCP-Verträge einzeln mit echten Nachweisen abnehmen.",
-      "Erst nach vollem CI und echter Pixel-/MCP-/Sicherungsabnahme denselben Kandidaten mit --completion abschließen."
+      "Aktuellen geprüften Stand im bestehenden PR #27 pushen und vollen CI-Lauf bis grün führen; Caption-Rohdiagnostik konkret auswerten und die exakte finale APK originalsignieren.",
+      "Nach erfolgreichem exaktem Kandidatenlauf tatsächliche UI-/MCP-/Daten-/Migrationsnachweise in UMSETZUNG.json registrieren; Bilder und Grenzen konkret prüfen.",
+      "Nach ausdrücklich beauftragter Installation: Originalidentität, Pixel-Bedienung, bestehende Verbindungen sowie tatsächlichen Sicherungsanbieter und bestätigte isolierte Wiederherstellung prüfen.",
+      "Erst bei vollständig bestandenen Eisbär-Abnahmen check_eisbaer.py --completion und Abschluss."
     ],
-    "source_note": "Repository-Code derzeit 1.70.3/157; die Eisbär-Analyse bezieht sich auf 1.71.0/158. Historische Installations-/Verteilungsbelege oben nicht als aktuelle oder neue Installation ausgeben."
+    "source_note": "Installierter Iststand am 11.11.2026 über Pixel-MCP gelesen: 1.71.0/158, 8101f3c, source744273…b9fd640. Main enthielt noch157; Basis158 einschließlich Tests für den Eisbär-Kandidaten übernommen. Keine Installation oder Verteilung."
   },
   "open_checks": [
     "Nach tatsächlicher Eisbär-Implementierung und ausdrücklich beauftragter Installation: Pixel-Paket, Version, Git-/Quellhash desselben Kandidaten lesen.",
-    "Eisbär-Bedienbarkeit mit großer Schrift, Tastatur, Randgesten und Kamera am Pixel nachweisen.",
+    "Eisbär-Bedienbarkeit mit großer Schrift, Tastatur, Randgesten, Kamera und realer Spracheingabe am Pixel nachweisen.",
     "Bestehende Kalender-/Wetter-/Codex-MCP-Verbindungen und Android-Freigaben am Pixel nachweisen.",
     "Fortschreibung derselben Sicherungsdatei, Integrität und bewusst bestätigte Wiederherstellung mit synthetischen Daten am Pixel nachweisen."
   ],

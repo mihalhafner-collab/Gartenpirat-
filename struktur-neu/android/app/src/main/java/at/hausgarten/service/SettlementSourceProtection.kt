@@ -10,6 +10,7 @@ internal object SettlementSourceProtection {
             "customer_id",
             "billing_customer_id",
             "property_id",
+            "billable",
             "order_id",
             "work_date",
             "start_time",

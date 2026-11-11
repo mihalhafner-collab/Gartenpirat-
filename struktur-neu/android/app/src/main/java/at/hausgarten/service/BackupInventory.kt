@@ -3,7 +3,7 @@ package at.hausgarten.service
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Describes existing defects. These observations never decide whether bytes can be backed up. */
+/** Read-only inventory and logical comparison of captured originals; never business authority. */
 object BackupInventory {
     fun interface Originals {
         @Throws(Exception::class) fun problem(kind: String, row: JSONObject): String?
@@ -74,6 +74,193 @@ object BackupInventory {
             .put("warnings", warnings)
             .put("lastIssuedDocumentIds", issued)
     }
+
+    /** Stable original identity is the source collection plus its original ID, never position. */
+    @JvmStatic
+    fun logicalRecords(effective: JSONObject): JSONObject {
+        val index = JSONObject().put("formatVersion", 1).put("collections", JSONObject())
+        for (source in
+            arrayOf(
+                "customers",
+                "orders",
+                "worklogs",
+                "photos",
+                "offers",
+                "invoices",
+                "appointments",
+                "settlements",
+                "service_catalog",
+            )) addLogicalRecords(index, source, effective.optJSONArray(source) ?: JSONArray(), "id")
+        val archived = effective.optJSONObject("owner_archive")
+        if (archived != null) {
+            val records = JSONObject()
+            archived.keys().forEachRemaining { id ->
+                records.put(id, PixelMcpWriteTools.hash(archived.get(id)))
+            }
+            index.getJSONObject("collections").put("owner_archive", records)
+        }
+        return index
+    }
+
+    @JvmStatic
+    fun addLogicalRecords(index: JSONObject, source: String, rows: JSONArray, idField: String) {
+        val records = JSONObject()
+        for (i in 0 until rows.length()) {
+            val row = rows.getJSONObject(i)
+            val id = row.optString(idField)
+            if (id.isEmpty() || records.has(id))
+                throw java.io.IOException("BACKUP_LOGICAL_IDENTITY_INVALID")
+            records.put(id, PixelMcpWriteTools.hash(row))
+        }
+        val collections = index.getJSONObject("collections")
+        if (collections.has(source)) throw java.io.IOException("BACKUP_LOGICAL_IDENTITY_INVALID")
+        collections.put(source, records)
+    }
+
+    /** File hashes come from the bytes actually streamed into the complete, verified ZIP. */
+    @JvmStatic
+    fun logicalIndex(manifest: JSONObject): JSONObject? {
+        val records = manifest.optJSONObject("logical_records") ?: return null
+        if (records.optInt("formatVersion") != 1) return null
+        val files = JSONObject()
+        val entries = manifest.getJSONArray("files")
+        for (i in 0 until entries.length()) {
+            val file = entries.getJSONObject(i)
+            files.put(
+                file.getString("path"),
+                JSONObject()
+                    .put("sha256", file.getString("sha256"))
+                    .put("size", file.getLong("size")),
+            )
+        }
+        return JSONObject()
+            .put("formatVersion", 1)
+            .put("records", JSONObject(records.getJSONObject("collections").toString()))
+            .put("files", files)
+    }
+
+    /** A missing/foreign/old index is a new full basis, never fabricated added/deleted rows. */
+    @JvmStatic
+    fun compareLogical(
+        current: JSONObject?,
+        previous: JSONObject?,
+        destination: String,
+        identity: JSONObject,
+        previousHash: String,
+        previousSize: Long,
+    ): JSONObject {
+        val result = JSONObject().put("formatVersion", 1).put("physical_write", "FULL_SNAPSHOT")
+        if (current == null || !validLogicalIndex(current))
+            return result.put("mode", "UNAVAILABLE").put("reason", "CURRENT_INDEX_UNAVAILABLE")
+        result
+            .put("record_count", recordCount(current))
+            .put("file_count", current.getJSONObject("files").length())
+        val archive = previous?.optJSONObject("archive")
+        val proof = previous?.optJSONObject("provider")
+        val old = previous?.optJSONObject("logical_index")
+        if (
+            previous == null ||
+                old == null ||
+                !validLogicalIndex(old) ||
+                previous.optString("phase") != "PROVIDER_VERIFIED" ||
+                previous.optJSONObject("destination")?.optString("treeUri") != destination ||
+                previous.optString("installationId") != identity.optString("installationId") ||
+                previous.optString("restoreEpoch") != identity.optString("restoreEpoch") ||
+                !previousHash.matches(Regex("[a-f0-9]{64}")) ||
+                previousSize <= 0 ||
+                archive?.optString("sha256") != previousHash ||
+                archive.optLong("size", -1) != previousSize ||
+                proof?.optString("backup_id") != previous.optString("backupId") ||
+                proof?.optString("verification_scope") != "DOCUMENT_PROVIDER_READBACK" ||
+                proof.optString("archive_sha256") != previousHash ||
+                proof.optLong("byte_size", -1) != previousSize ||
+                proof.optString("logical_index_sha256") != PixelMcpWriteTools.hash(old)
+        )
+            return result.put("mode", "FULL_BASELINE").put("reason", "NO_VERIFIED_INDEX_FOR_TARGET")
+        val sources = java.util.TreeSet<String>()
+        val before = old.getJSONObject("records")
+        val after = current.getJSONObject("records")
+        before.keys().forEachRemaining(sources::add)
+        after.keys().forEachRemaining(sources::add)
+        val records = counts()
+        val bySource = JSONObject()
+        for (source in sources) {
+            val changes =
+                compareEntries(
+                    before.optJSONObject(source) ?: JSONObject(),
+                    after.optJSONObject(source) ?: JSONObject(),
+                )
+            bySource.put(source, changes)
+            for (kind in arrayOf("added", "changed", "deleted", "unchanged")) records.put(
+                kind,
+                records.getInt(kind) + changes.getInt(kind),
+            )
+        }
+        return result
+            .put("mode", "INCREMENTAL")
+            .put("basis_backup_id", previous.getString("backupId"))
+            .put("basis_archive_sha256", previousHash)
+            .put("basis_archive_size", previousSize)
+            .put("records", records.put("by_source", bySource))
+            .put(
+                "files",
+                compareEntries(old.getJSONObject("files"), current.getJSONObject("files")),
+            )
+    }
+
+    private fun counts() =
+        JSONObject().put("added", 0).put("changed", 0).put("deleted", 0).put("unchanged", 0)
+
+    private fun compareEntries(before: JSONObject, after: JSONObject): JSONObject {
+        val result = counts()
+        after.keys().forEachRemaining { id ->
+            val kind =
+                if (!before.has(id)) "added"
+                else if (
+                    PixelMcpWriteTools.hash(before.get(id)) ==
+                        PixelMcpWriteTools.hash(after.get(id))
+                )
+                    "unchanged"
+                else "changed"
+            result.put(kind, result.getInt(kind) + 1)
+        }
+        before.keys().forEachRemaining { id ->
+            if (!after.has(id)) result.put("deleted", result.getInt("deleted") + 1)
+        }
+        return result
+    }
+
+    private fun recordCount(index: JSONObject): Int {
+        var total = 0
+        val records = index.getJSONObject("records")
+        records.keys().forEachRemaining { source ->
+            total += records.getJSONObject(source).length()
+        }
+        return total
+    }
+
+    private fun validLogicalIndex(index: JSONObject): Boolean =
+        try {
+            require(index.getInt("formatVersion") == 1)
+            val records = index.getJSONObject("records")
+            records.keys().forEachRemaining { source ->
+                val rows = records.getJSONObject(source)
+                rows.keys().forEachRemaining { id ->
+                    require(id.isNotEmpty() && rows.getString(id).matches(Regex("[a-f0-9]{64}")))
+                }
+            }
+            val files = index.getJSONObject("files")
+            files.keys().forEachRemaining { path ->
+                val file = files.getJSONObject(path)
+                require(
+                    file.getString("sha256").matches(Regex("[a-f0-9]{64}")) &&
+                        file.getLong("size") >= 0
+                )
+            }
+            true
+        } catch (_: Exception) {
+            false
+        }
 
     private fun inspectRow(
         kind: String,

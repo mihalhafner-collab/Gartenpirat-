@@ -81,23 +81,17 @@ public final class AccountingTests {
         public void end() { if(!committed){try{pending=new JSONArray(pendingBefore);}catch(org.json.JSONException e){throw new IllegalStateException(e);}owner.clear();owner.putAll(ownerBefore);} }
     }
     private static void writes() throws Exception {
-        Memory memory=new Memory(); JSONObject change=memory.args("qa_accounting_switch","labor");
-        memory.run(change);
-        JSONObject saved=memory.effective();
-        yes(saved.getJSONArray("drive_journal_errors").length()==0,"Accounting updates carry valid journal version guards");
-        yes(AccountingRules.INSTANCE.orderRoute(saved.getJSONArray("orders").getJSONObject(0)).equals("labor") && saved.getJSONArray("worklogs").getJSONObject(0).getInt("billed")==0 && memory.personal().contains("qa_work_1"),"Whole-order correction is effective, not merely queued");
-        yes(saved.getJSONArray("orders").getJSONObject(0).getString("accounting_amount").equals("900.00"),"Changing route preserves read-only invoice amount");
-        int count=memory.pending.length();
-        yes(memory.run(change).getBoolean("replayed") && memory.pending.length()==count,"Receipt replay never duplicates assignment writes");
-        try { memory.run(new JSONObject(change.toString()).put("request_id","qa_accounting_stale"));throw new AssertionError("Stale accounting hash accepted"); }
-        catch(PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("WRITE_CONFLICT"),"Stale group version is rejected"); }
-        memory.run(memory.args("qa_accounting_remove","open"));
-        yes(project(memory.effective()).isEmpty() && memory.personal().isEmpty(),"Removing assignment really excludes the order while preserving its amount");
-        Memory aborted=new Memory();aborted.ignoreFinalOrder=true;
-        String before=PixelMcpWriteTools.hash(aborted.effective()),marks=aborted.owner.get("personal_paid");
-        try { aborted.run(aborted.args("qa_accounting_unapplied","labor"));throw new AssertionError("Unapplied order update acknowledged"); }
-        catch(PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("WRITE_CONFLICT"),"No success acknowledgement without effective order state"); }
-        yes(PixelMcpWriteTools.hash(aborted.effective()).equals(before) && aborted.owner.get("personal_paid").equals(marks) && aborted.pending.length()==0,"Failed effective-state verification rolls back all marks and journal changes");
+        Memory memory = new Memory();
+        String before = PixelMcpWriteTools.hash(memory.effective()), marks = memory.owner.get("personal_paid");
+        try { memory.run(memory.args("qa_accounting_retired", "labor")); throw new AssertionError("New Labor assignment accepted"); }
+        catch (IllegalArgumentException expected) { checks++; }
+        yes(PixelMcpWriteTools.hash(memory.effective()).equals(before) && memory.owner.get("personal_paid").equals(marks)
+            && memory.pending.length() == 0, "Retired Labor writer preserves original historical marks and work without side effects");
+        try { new WorkApplicationService(memory.repository).perform("set_personal_paid",
+            new JSONObject().put("work_record_id", "qa_work_1").put("paid", false), "qa_legacy_unmark");
+            throw new AssertionError("Historical Labor marker removed"); }
+        catch (PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("LEGACY_LABOR_RETIRED"), "Legacy tool has an explicit compatible retirement response"); }
+        yes(memory.owner.get("personal_paid").equals(marks), "L.C.R. never repurposes historical Labor marks");
     }
     public static void main(String[] args) throws Exception {
         JSONObject a=order("a","Abgerechnet","900.00"), b=order("b","labor clandestinus","200.00"), c=order("c","Offen","400.00");

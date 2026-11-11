@@ -40,6 +40,29 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         Bundle report=new Bundle();File directory=null;long started=System.nanoTime();
         try{
             String suite=arguments==null?"":arguments.getString("suite","");
+            String phase=arguments==null?"run":arguments.getString("phase","run");
+            if(phase.equals("permission_probe")){
+                if(!suite.startsWith("document_provider"))throw new Exception("QA_PROVIDER_PHASE_REQUIRED");
+                yes(getContext().getPackageName().equals("at.hausgarten.service.test"));
+                yes(getTargetContext().getPackageName().equals("at.hausgarten.service"));
+                if(android.os.Build.VERSION.SDK_INT!=35)throw new Exception("QA_PERMISSION_PROBE_REQUIRES_API35");
+                checks++;
+                boolean granted=android.os.Environment.isExternalStorageManager();
+                String expected=arguments.getString("expected_all_files","");
+                if(!expected.isEmpty()){
+                    yes(expected.equals("true")||expected.equals("false"));
+                    yes(granted==Boolean.parseBoolean(expected));
+                }
+                JSONObject result=new JSONObject().put("suite",suite).put("phase",phase).put("phase_complete",false)
+                    .put("checks",checks).put("synthetic_only",true).put("productive_data_read",false)
+                    .put("all_files_access",granted).put("permission_state_matches_expected",!expected.isEmpty())
+                    .put("permission_state_restored",!expected.isEmpty()&&arguments.getString("restoration_probe","false").equals("true"));
+                report.putString("result",result.toString());finish(Activity.RESULT_OK,report);return;
+            }
+            if(suite.equals("upgrade_158_seed")||suite.equals("upgrade_158_verify")){
+                JSONObject result=NativeDataAccessNativeTests.runUpgrade(this,suite.endsWith("_verify"),arguments.getString("expected_source",""),arguments.getString("expected_git",""));
+                report.putString("result",result.put("suite",suite).toString());finish(Activity.RESULT_OK,report);return;
+            }
             if(suite.equals("native_settlement")||suite.equals("native_settlement_reopen")){
                 JSONObject result=NativeSettlementNativeTests.run(this,suite.endsWith("_reopen"));
                 report.putString("result",result.put("suite",suite).toString());finish(Activity.RESULT_OK,report);return;
@@ -58,9 +81,13 @@ public final class PixelMcpInstrumentation extends Instrumentation {
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
                 finish(Activity.RESULT_OK,report);return;
             }
+            if(suite.equals("document_provider_media")||suite.equals("document_provider_media_reopen")){
+                JSONObject result=BackupDocumentProviderNativeTests.runMedia(this,suite.endsWith("_reopen"),phase);
+                report.putString("result",result.put("suite",suite).put("phase",phase).toString());finish(Activity.RESULT_OK,report);return;
+            }
             if(suite.equals("document_provider")||suite.equals("document_provider_reopen")){
-                JSONObject result=BackupDocumentProviderNativeTests.run(this,suite.equals("document_provider_reopen"));
-                checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
+                JSONObject result=BackupDocumentProviderNativeTests.run(this,suite.equals("document_provider_reopen"),phase);
+                checks=result.getInt("checks");report.putString("result",result.put("suite",suite).put("phase",phase).toString());
                 finish(Activity.RESULT_OK,report);return;
             }
             if(suite.equals("local_backup")||suite.equals("local_backup_reopen")){

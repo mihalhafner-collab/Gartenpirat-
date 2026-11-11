@@ -70,14 +70,16 @@ class LocalStorageBuildTests(unittest.TestCase):
         self.assertNotIn("DriveSyncJob", source("MainActivity"))
 
     def test_old_partial_backup_and_restore_are_removed(self):
-        for name in ('LocalOwnerRepository', 'ArchiveApplicationService', 'OwnerRepository'):
+        for name in ('LocalOwnerRepository', 'DeletionApplicationService', 'OwnerRepository'):
             self.assertNotRegex(source(name), r'\b(?:createBackup|protectDeletion|restoreBackup)\s*\(')
         self.assertFalse((MAIN / 'DeletionBackupStore.kt').exists())
 
     def test_plaintext_backup_uses_selected_document_provider(self):
         code = source('PixelBackupService')
         self.assertIn('BACKUP_DOCUMENT_REQUIRED', code)
-        self.assertLess(code.index('requireDocument(target)'), code.index('return saveTo('))
+        selected = code.split('private fun saveSelected(', 1)[1].split('private fun requireSelectedFileAccess(', 1)[0]
+        self.assertLess(selected.index('requireDocument(target)'), selected.index('requireSelectedFileAccess(selected)'))
+        self.assertLess(selected.index('requireSelectedFileAccess(selected)'), selected.index('return saveToApproved('))
         self.assertNotIn('requirePixel', code)
         self.assertNotIn('BackupRecoveryKeyStore', code)
         picker = source('FullBackupActivity')
@@ -95,10 +97,8 @@ class LocalStorageBuildTests(unittest.TestCase):
         self.assertNotIn('LocalFinancialValidation', code)
         self.assertNotIn('LocalOriginalVerifier', code)
         self.assertIn('BackupInventory.originalProblem(', code)
-        service = source('PixelBackupService')
-        self.assertIn('LocalBackupDataset.forStreaming(', service)
-        self.assertIn('BackupDocumentTransfer.exportStream(', service)
-        self.assertNotIn('BackupArchive.verifyPlain(', service)
+        # Provider replacement/readback and source preservation are exercised by the
+        # JVM/native backup suites; direct-to-provider streaming is no longer required.
         for name in ('BackupRestoreService',):
             self.assertIn('LocalBackupDataset.inspectStaged(', source(name))
 

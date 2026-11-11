@@ -372,7 +372,7 @@ class TrashRules {
                             (entity.equals("worklog") && containsWork(r, id)))
                     ) {
                         throw IllegalArgumentException(
-                            "Ein anderer Papierkorbeintrag verweist darauf. Diesen zuerst wiederherstellen und die Zuordnung lösen oder einzeln löschen."
+                            "Ein anderer Datensatz verweist darauf. Zuerst die Zuordnung lösen."
                         )
                     }
                 }
@@ -553,9 +553,7 @@ class TrashRules {
             val archive: JSONObject = OwnerJournalRules.archives(s)
             val saved: JSONObject? = archive.optJSONObject(key)
             if ((saved == null) || saved.optBoolean("purged")) {
-                throw IllegalArgumentException(
-                    "Eintrag nicht im Papierkorb oder bereits endgültig gelöscht."
-                )
+                throw IllegalArgumentException("Der Eintrag fehlt oder wurde bereits gelöscht.")
             }
             OwnerJournalRules.checkHash(saved, p.getString("expected_record_hash"))
             var record: JSONObject = saved.getJSONObject("record")

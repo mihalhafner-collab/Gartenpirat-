@@ -16,6 +16,7 @@ class AppointmentRules {
                 "order_id",
                 "title",
                 "purpose",
+                "date",
                 "starts_at",
                 "ends_at",
                 "timezone",
@@ -47,17 +48,33 @@ class AppointmentRules {
             return !Arrays.asList("cancelled", "completed").contains(row.optString("status"))
         }
 
+        @JvmStatic fun timed(row: JSONObject): Boolean = row.optString("starts_at").isNotBlank()
+
         @JvmStatic
-        fun openEnd(row: JSONObject): Boolean {
-            return ((row.has("ends_at") && !row.isNull("ends_at")) &&
-                row.optString("ends_at").isEmpty())
-        }
+        fun day(row: JSONObject): LocalDate =
+            if (timed(row))
+                instant(row.getString("starts_at"))
+                    .atZone(ZoneId.of(row.optString("timezone").ifBlank { "Europe/Vienna" }))
+                    .toLocalDate()
+            else LocalDate.parse(row.getString("date"))
+
+        @JvmStatic fun title(row: JSONObject): String = row.optString("title").ifBlank { "Termin" }
+
+        @JvmStatic fun openEnd(row: JSONObject): Boolean = row.optString("ends_at").isBlank()
 
         @Throws(Exception::class)
         @JvmStatic
         fun pending(row: JSONObject, now: Instant): Boolean {
-            return (if (openEnd(row)) active(row)
-            else instant(row.getString("ends_at")).isAfter(now))
+            if (!timed(row))
+                return active(row) &&
+                    !day(row)
+                        .isBefore(
+                            now.atZone(
+                                    ZoneId.of(row.optString("timezone").ifBlank { "Europe/Vienna" })
+                                )
+                                .toLocalDate()
+                        )
+            return if (openEnd(row)) active(row) else instant(row.getString("ends_at")).isAfter(now)
         }
 
         @Throws(Exception::class)
@@ -77,6 +94,7 @@ class AppointmentRules {
         @Throws(Exception::class)
         @JvmStatic
         fun overlapKind(left: JSONObject, right: JSONObject): Int {
+            if (!timed(left) || !timed(right)) return 0
             val a: Instant = instant(left.getString("starts_at"))
             val b: Instant = instant(right.getString("starts_at"))
             val x: Boolean = openEnd(left)
@@ -139,7 +157,10 @@ class AppointmentRules {
                     s.getJSONArray("customers"),
                     row.optString("customer_id"),
                 )
-            if ((customer == null) || ((old == null) && (customer.optInt("active", 1) == 0))) {
+            if (
+                row.optString("customer_id").isNotBlank() &&
+                    ((customer == null) || ((old == null) && (customer.optInt("active", 1) == 0)))
+            ) {
                 throw IllegalArgumentException(
                     "Bitte einen vorhandenen aktiven Einsatzkunden wählen."
                 )
@@ -151,23 +172,30 @@ class AppointmentRules {
                     throw IllegalArgumentException("Kunde und Auftrag passen nicht zusammen.")
                 }
             }
-            if (row.optString("title").trim().isEmpty()) {
-                throw IllegalArgumentException("Bitte eine Tätigkeit eintragen.")
-            }
-            val zone: ZoneId = ZoneId.of(row.optString("timezone", "Europe/Vienna"))
+            val zone: ZoneId = ZoneId.of(row.optString("timezone").ifBlank { "Europe/Vienna" })
             row.put("timezone", zone.id)
-            val endValue: String = row.getString("ends_at")
-            val open: Boolean = endValue.isEmpty()
-            val start: Instant = instant(row.getString("starts_at"))
-            val end: Instant? = (if (open) null else instant(endValue))
-            val minutes: Long = (if (open) 0 else Duration.between(start, end).toMinutes())
+            val endValue = row.optString("ends_at")
+            val open = endValue.isEmpty()
+            val timed = timed(row)
+            require(timed || open) { "Für ein Ende zuerst einen Beginn eintragen." }
+            val start = if (timed) instant(row.getString("starts_at")) else null
+            val date =
+                if (start != null) start.atZone(zone).toLocalDate()
+                else LocalDate.parse(row.getString("date"))
+            if (start != null && row.optString("date").isNotBlank())
+                require(LocalDate.parse(row.getString("date")) == date) {
+                    "Datum und Beginn passen nicht zusammen."
+                }
+            val end = if (open) null else instant(endValue)
+            val minutes = if (open) 0 else Duration.between(start, end).toMinutes()
             if (!open && ((minutes < 5) || (minutes > (24 * 60)))) {
                 throw IllegalArgumentException(
                     "Ein Einsatz dauert mindestens5Minuten und höchstens24Stunden. Mehrtägige Arbeit bitte auf Einsätze aufteilen."
                 )
             }
-            row.put("starts_at", start.toString())
-                .put("ends_at", (if (open) "" else end!!.toString()))
+            row.put("date", date.toString())
+                .put("starts_at", start?.toString() ?: "")
+                .put("ends_at", if (open) "" else end!!.toString())
             if (!row.has("status")) {
                 row.put("status", "tentative")
             }
@@ -265,10 +293,7 @@ class AppointmentRules {
             }
             if (
                 (!row.optString("flexible_from").isEmpty() &&
-                    start
-                        .atZone(zone)
-                        .toLocalDate()
-                        .isBefore(LocalDate.parse(row.getString("flexible_from"))))
+                    date.isBefore(LocalDate.parse(row.getString("flexible_from"))))
             ) {
                 throw IllegalArgumentException(
                     "Termin liegt vor dem vereinbarten Ausführungsfenster."
@@ -276,9 +301,7 @@ class AppointmentRules {
             }
             if (
                 (!row.optString("flexible_until").isEmpty() &&
-                    (if (open) start else end!!.minusMillis(1))
-                        .atZone(zone)
-                        .toLocalDate()
+                    (if (end == null) date else end.minusMillis(1).atZone(zone).toLocalDate())
                         .isAfter(LocalDate.parse(row.getString("flexible_until"))))
             ) {
                 throw IllegalArgumentException(
@@ -287,12 +310,33 @@ class AppointmentRules {
             }
             if (
                 ((old != null) &&
-                    (!old.optString("customer_id").equals(row.optString("customer_id")) ||
-                        !old.optString("order_id").equals(orderId)))
+                    ((old.optString("customer_id").isNotBlank() &&
+                        !old.optString("customer_id").equals(row.optString("customer_id"))) ||
+                        (old.optString("order_id").isNotBlank() &&
+                            !old.optString("order_id").equals(orderId))))
             ) {
                 throw IllegalArgumentException(
                     "Die ursprüngliche Kundenzuordnung bleibt erhalten. Bei falschem Kontext Termin absagen und neu planen."
                 )
+            }
+            if (old != null) {
+                for (work in SettlementRules.rows(s.optJSONArray("worklogs"))) {
+                    if (work.optString("appointment_id") != old.optString("id")) continue
+                    require(
+                        row.optString("customer_id").isBlank() ||
+                            work.optString("customer_id").isBlank() ||
+                            row.optString("customer_id") == work.optString("customer_id")
+                    ) {
+                        "Kunde passt nicht zur bereits erfassten Arbeit."
+                    }
+                    require(
+                        row.optString("order_id").isBlank() ||
+                            work.optString("order_id").isBlank() ||
+                            row.optString("order_id") == work.optString("order_id")
+                    ) {
+                        "Auftrag passt nicht zur bereits erfassten Arbeit."
+                    }
+                }
             }
             if (
                 (((old != null) && old.optString("status").equals("cancelled")) &&
@@ -376,6 +420,20 @@ class AppointmentRules {
             if (name.equals("cancel_appointment")) {
                 row.put("status", "cancelled")
             }
+            if (!row.has("customer_id")) row.put("customer_id", "")
+            if (!row.has("title")) row.put("title", "")
+            if (!row.has("ends_at")) row.put("ends_at", "")
+            // Only an explicit save reaches this writer; merely opening/prefilling has no effect.
+            if (row.optString("date").isBlank() && !timed(row))
+                row.put(
+                    "date",
+                    Instant.parse(stamp)
+                        .atZone(ZoneId.of(row.optString("timezone").ifBlank { "Europe/Vienna" }))
+                        .toLocalDate()
+                        .toString(),
+                )
+            if (changes != null && changes.has("starts_at") && !changes.has("date") && timed(row))
+                row.remove("date")
             row.put("updated_at", stamp)
             validate(row, old, s)
             if (old == null) {
@@ -398,7 +456,11 @@ class AppointmentRules {
                     i++
                 }
             }
-            rows.sortWith(Comparator.comparing(lambda0@{ r -> r.optString("starts_at") }))
+            rows.sortWith(
+                compareBy<JSONObject> { day(it) }
+                    .thenBy { it.optString("starts_at") }
+                    .thenBy { it.optString("id") }
+            )
             return JSONArray(rows)
         }
 
@@ -414,7 +476,7 @@ class AppointmentRules {
                 while ((rows != null) && (i < rows.length())) {
                     if (id.equals(rows.getJSONObject(i).optString("" + entity + "_id"))) {
                         throw IllegalArgumentException(
-                            "Zugeordnete Termine zuerst in den Papierkorb verschieben. Terminverlauf und Kundenbeziehungen bleiben geschützt."
+                            "Zugeordnete Einsätze zuerst löschen; laufende Arbeit bleibt geschützt."
                         )
                     }
                     i++
@@ -439,8 +501,10 @@ class AppointmentRules {
             }
             val a: JSONObject = PixelMcpWriteTools.find(snapshot.getJSONArray("appointments"), id)
             if (
-                (!a.getString("customer_id").equals(row.optString("customer_id")) ||
-                    !a.optString("order_id").equals(row.optString("order_id")))
+                ((a.optString("customer_id").isNotBlank() &&
+                    !a.getString("customer_id").equals(row.optString("customer_id"))) ||
+                    (a.optString("order_id").isNotBlank() &&
+                        !a.optString("order_id").equals(row.optString("order_id"))))
             ) {
                 throw IllegalArgumentException(
                     "Arbeit und Termin gehören zu verschiedenen Kunden/Aufträgen."

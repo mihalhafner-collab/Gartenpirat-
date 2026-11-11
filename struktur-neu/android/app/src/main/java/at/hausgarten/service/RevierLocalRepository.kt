@@ -57,7 +57,30 @@ class RevierLocalRepository(
         return inspections!!.plan(JSONObject(args.toString()).put("_operation", operation))
     }
 
-    override fun createDirectOrder(args: JSONObject): String = store.saveEditorRecord("order", args)
+    override fun createDirectOrder(args: JSONObject): String {
+        val id = store.saveEditorRecord("order", args)
+        val original = OwnerJournalRules.findOrNull(effective().optJSONArray("orders"), id)
+        val expected =
+            listOf(
+                "id",
+                "customer_id",
+                "billing_customer_id",
+                "property_id",
+                "inquiry_id",
+                "title",
+                "description",
+                "location",
+            )
+        if (
+            original == null ||
+                expected.any { args.has(it) && original.optString(it) != args.optString(it) }
+        )
+            throw RevierRules.error(
+                "DIRECT_ORDER_NOT_APPLIED",
+                "Der Auftrag konnte nicht unverändert gespeichert werden. Die Anfrage bleibt unverändert.",
+            )
+        return id
+    }
 
     override fun session(id: String): JSONObject? =
         RevierSessionContexts.session(store.readableDatabase, id)
