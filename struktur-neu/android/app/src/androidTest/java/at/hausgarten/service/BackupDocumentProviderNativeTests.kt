@@ -1020,6 +1020,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     org.json.JSONArray(
                         if (reopen)
                             listOf(
+                                "qa-native-backup-restore-selected-filename.png",
                                 "qa-native-backup-restore-confirm.png",
                                 "qa-native-backup-restore-cancelled.png",
                                 "qa-native-backup-restore-pending.png",
@@ -1477,6 +1478,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             waitUntil("MEDIA_UI_REAL_OPEN_PICKER") { pickerVisible() }
             click(filename)
             waitUntil("MEDIA_UI_PICKED_SOURCE") { node("Datei prüfen") != null }
+            waitUntil("MEDIA_UI_PICKED_FULL_FILENAME") { node(filename) != null }
             val picked = Bundle()
             test.runOnMainSync {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), picked)
@@ -1485,6 +1487,12 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 picked.getString("restore_uri") == target.toString(),
                 "MEDIA_UI_REAL_OPEN_EXACT_URI",
             )
+            yes(
+                picked.getString("selected_name") == filename,
+                "MEDIA_UI_SELECTED_FILENAME_MATCHES_REAL_PICKED_SOURCE",
+            )
+            // Exact text proves source binding; the actual PNG is reviewed for full wrapping.
+            mediaScreenshot("selected-filename")
             click("Datei prüfen")
             waitUntil("MEDIA_UI_PREVIEW_VALIDATED", 45000) {
                 find(automation.rootInActiveWindow) {
@@ -2262,6 +2270,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             .put("android_file_picker_tested", !reopened)
             .put("picker_cancellation_tested", !reopened)
             .put("picker_activity_recreation_tested", !reopened)
+            .put("backup_details_toggle_tested", !reopened)
             .put("new_process_readback", reopened)
             .put("provider_process_restart_tested", reopened)
             .put("all_files_access", Environment.isExternalStorageManager())
@@ -2502,6 +2511,65 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             shell("wm dismiss-keyguard")
             activity = startBackupActivity()
             waitUntil("BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
+            waitUntil("BACKUP_DETAILS_READY") {
+                val root = automation.rootInActiveWindow ?: return@waitUntil false
+                node("Einzelheiten") != null &&
+                    node("Jetzt sichern")?.let { actionableAncestor(it, root) } != null
+            }
+            fun detailBusinessProof(): String =
+                PixelLocalStore(context).use { store ->
+                    PixelMcpWriteTools.hash(
+                        JSONObject()
+                            .put("source", PixelMcpReadTools.effective(store.getState()))
+                            .put("time", mediaTimeRows(store.readableDatabase))
+                            .put("ledger", store.ownerValue("settlement:v1", ""))
+                            .put("last", store.ownerValue("pixel_backup_last", ""))
+                            .put("success", store.ownerValue("pixel_backup_success", ""))
+                            .put("pending_restore", BackupRestoreService.pendingStatus(context))
+                    )
+                }
+            fun detailOperationState(): List<String> {
+                val state = Bundle()
+                onMainBounded("backup_details_state") {
+                    test.callActivityOnSaveInstanceState(requireNotNull(activity), state)
+                }
+                return listOf(
+                        "target",
+                        "request",
+                        "restore_request",
+                        "restore_uri",
+                        "restore_id",
+                        "preview_hash",
+                        "selected_name",
+                    )
+                    .map { state.getString(it, "").orEmpty() } +
+                    state.getBoolean("picking_existing_target").toString()
+            }
+            fun detailGrants() =
+                context.contentResolver.persistedUriPermissions
+                    .map { "${it.uri}|${it.isReadPermission}|${it.isWritePermission}" }
+                    .sorted()
+            val detailsBusiness = detailBusinessProof()
+            val detailsOperation = detailOperationState()
+            val detailsGrants = detailGrants()
+            val detailsAccess = Environment.isExternalStorageManager()
+            val detailsProvider = stats().toString()
+            yes(node("Datenstand in der Datei") == null, "BACKUP_DETAILS_INITIALLY_CLOSED")
+            click("Einzelheiten")
+            waitUntil("BACKUP_DETAILS_OPENED") {
+                node("Datenstand in der Datei") != null && node("Bestand in der Datei") != null
+            }
+            mediaScreenshot("details-open")
+            click("Einzelheiten")
+            waitUntil("BACKUP_DETAILS_CLOSED") { node("Datenstand in der Datei") == null }
+            yes(
+                detailBusinessProof() == detailsBusiness &&
+                    detailOperationState() == detailsOperation &&
+                    detailGrants() == detailsGrants &&
+                    Environment.isExternalStorageManager() == detailsAccess &&
+                    stats().toString() == detailsProvider,
+                "BACKUP_DETAILS_TOGGLE_PRESERVES_DATA_TARGET_REQUESTS_GRANTS_AND_PROVIDER",
+            )
             val before = stats().toString()
             val beforeRegrant = Bundle()
             test.runOnMainSync {

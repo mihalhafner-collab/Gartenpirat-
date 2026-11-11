@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import java.io.IOException
 import java.time.Instant
 import java.time.ZoneId
@@ -174,11 +176,17 @@ class FullBackupActivity : ComponentActivity() {
                     }
             } else {
                 if (showCheck || saveFinished || target.isNotEmpty()) {
-                    if (selectedName.isNotEmpty()) NativeInfoRow("Gewählte Datei", selectedName)
-                    if (capturedAt.isNotEmpty())
-                        NativeInfoRow("Datenstand in der Datei", displayTime(capturedAt))
-                    if (backupCounts != null)
-                        NativeInfoRow("Bestand in der Datei", inventory(backupCounts))
+                    if (selectedName.isNotEmpty())
+                        NativeGroup("Gewählte Datei") {
+                            Text(selectedName, Modifier.padding(12.dp))
+                        }
+                    // Restore decisions keep the inspected file's date and counts visible.
+                    if (showCheck) {
+                        if (capturedAt.isNotEmpty())
+                            NativeInfoRow("Datenstand in der Datei", displayTime(capturedAt))
+                        if (backupCounts != null)
+                            NativeInfoRow("Bestand in der Datei", inventory(backupCounts))
+                    }
                     if (showActivate) {
                         NativeInfoRow(
                             "Aktueller Bestand zum Prüfzeitpunkt",
@@ -199,6 +207,19 @@ class FullBackupActivity : ComponentActivity() {
                         "Letzte erfolgreiche Sicherung",
                         "${displayTime(lastVerified)} · Datei vollständig zurückgelesen",
                     )
+                if (!showCheck && !restorePending)
+                    NativeDisclosure("Einzelheiten", "Dateistand und gesicherter Bestand") {
+                        NativeInfoRow(
+                            "Datenstand in der Datei",
+                            if (capturedAt.isNotEmpty()) displayTime(capturedAt)
+                            else "Noch nicht ausgelesen",
+                        )
+                        NativeInfoRow(
+                            "Bestand in der Datei",
+                            if (backupCounts != null) inventory(backupCounts)
+                            else "Noch nicht ausgelesen",
+                        )
+                    }
                 if (!restorePending) {
                     if (
                         Build.VERSION.SDK_INT >= 31 &&

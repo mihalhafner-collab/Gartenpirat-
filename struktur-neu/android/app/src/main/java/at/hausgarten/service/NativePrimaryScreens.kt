@@ -5237,6 +5237,30 @@ private fun NativeStorageSettings(controller: NativeAppController) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Speicher auf diesem Pixel", style = MaterialTheme.typography.titleMedium)
+            Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall)
+            NativeInfoRow(
+                "App prüfen",
+                "Lokale Prüfung unter Einstellungen öffnen",
+                if (busy) null else ({ controller.navigate("settings") }),
+            )
+            NativeInfoRow(
+                "Sicherung öffnen",
+                "Vorhandenen Sicherungsweg öffnen",
+                if (busy) null
+                else
+                    ({
+                        scope.launch {
+                            try {
+                                controller.flushDrafts()
+                                controller.open(FullBackupActivity::class.java)
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (failure: Exception) {
+                                error = failure.message.orEmpty()
+                            }
+                        }
+                    }),
+            )
             if (usage != null)
                 Text(
                     size(usage!!.optLong("total_bytes")),

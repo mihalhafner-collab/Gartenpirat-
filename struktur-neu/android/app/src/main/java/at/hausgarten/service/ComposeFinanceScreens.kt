@@ -332,10 +332,12 @@ private fun financeOpenItems(form: JSONObject): List<Pair<Int, String>> = buildL
         val line = lines.getJSONObject(index)
         if (line.optString("title").isBlank() || line.optString("unit").isBlank())
             add(1 to "Position ${index + 1}: Leistung und Einheit ergänzen")
-        val quantity =
-            runCatching { BigDecimal(line.optString("quantity").replace(',', '.')) }.getOrNull()
-        val price =
-            runCatching { BigDecimal(line.optString("price").replace(',', '.')) }.getOrNull()
+        val quantity = runCatching {
+            BigDecimal(line.optString("quantity").replace(',', '.'))
+        }.getOrNull()
+        val price = runCatching {
+            BigDecimal(line.optString("price").replace(',', '.'))
+        }.getOrNull()
         if (quantity == null || quantity.signum() <= 0 || price == null || price.signum() < 0)
             add(1 to "Position ${index + 1}: Menge und Preis ergänzen")
         if (
@@ -573,10 +575,9 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
             error = failure.message ?: "Datensatz konnte nicht gelesen werden."
         }
     }
-    val row =
-        detail?.let {
-            if (section == "offers") it.optJSONObject("offer") else it.optJSONObject("entry")
-        }
+    val row = detail?.let {
+        if (section == "offers") it.optJSONObject("offer") else it.optJSONObject("entry")
+    }
     when {
         pendingAction != null -> {
             val action = pendingAction!!
@@ -640,7 +641,6 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                         }
                     }
             }
-            NativeTextButton(onClick = { pendingAction = null }) { Text("Zurück zum Beleg") }
         }
         offerReview != null ->
             Column(Modifier.fillMaxSize()) {
@@ -783,7 +783,8 @@ internal fun NativeFinanceScreen(section: String, id: String, controller: Native
                     },
                     secondaryLabel = "Zurück",
                     onSecondary = { offerReview = null },
-                    enabled = errors.length() > 0 || offerReviewed && validation.optBoolean("valid"),
+                    enabled =
+                        errors.length() > 0 || offerReviewed && validation.optBoolean("valid"),
                 )
             }
         editing &&
@@ -1612,10 +1613,9 @@ private fun FinanceEditor(
                     throw IllegalArgumentException(
                         "Der ursprüngliche Beleg ist nicht lesbar. Es wird kein Ersatzbeleg angelegt."
                     )
-                val settings =
-                    runCatching { controller.query("get_business_settings") }
-                        .getOrDefault(JSONObject())
-                        .let { it.optJSONObject("settings") ?: it }
+                val settings = runCatching {
+                    controller.query("get_business_settings")
+                }.getOrDefault(JSONObject()).let { it.optJSONObject("settings") ?: it }
                 form = JSONObject().put("issue_date", financeToday()).put("positions", JSONArray())
                 if (settings.optString("tax_mode") in listOf("small_business", "standard"))
                     form.put("tax_mode", settings.getString("tax_mode"))
@@ -1660,18 +1660,15 @@ private fun FinanceEditor(
             error = ""
             var attemptedWrite = false
             try {
-                val tool =
-                    pendingTool.ifEmpty {
-                        when (section) {
-                            "offers" ->
-                                if (id.isEmpty()) {
-                                    if (validate) "create_and_validate_offer"
-                                    else "create_offer_draft"
-                                } else "update_offer_draft"
-                            else ->
-                                if (id.isEmpty()) "create_catalog_entry" else "update_catalog_entry"
-                        }
+                val tool = pendingTool.ifEmpty {
+                    when (section) {
+                        "offers" ->
+                            if (id.isEmpty()) {
+                                if (validate) "create_and_validate_offer" else "create_offer_draft"
+                            } else "update_offer_draft"
+                        else -> if (id.isEmpty()) "create_catalog_entry" else "update_catalog_entry"
                     }
+                }
                 val prior = pending
                 if (prior != null) {
                     val proof = financeInspect(controller, tool, prior)
@@ -1867,12 +1864,10 @@ private fun FinanceEditor(
             }
         }
     var inspectionAttempt by remember { mutableIntStateOf(0) }
-    val originalTool =
-        pendingTool.ifBlank {
-            if (section == "offers")
-                if (id.isBlank()) "create_offer_draft" else "update_offer_draft"
-            else if (id.isBlank()) "create_catalog_entry" else "update_catalog_entry"
-        }
+    val originalTool = pendingTool.ifBlank {
+        if (section == "offers") if (id.isBlank()) "create_offer_draft" else "update_offer_draft"
+        else if (id.isBlank()) "create_catalog_entry" else "update_catalog_entry"
+    }
     val inspection =
         rememberNativePendingInspection(
             controller,

@@ -1017,8 +1017,9 @@ private fun RevierDetail(
                     "equipment" -> listOf("condition", "maintenance_due", "notes")
                     else -> emptyList()
                 }
-            NativeGroup("Angaben") {
-                for (key in detailKeys) if (row.revierString(key).isNotEmpty())
+            @Composable
+            fun detailFields(keys: List<String>) {
+                for (key in keys) if (row.revierString(key).isNotEmpty())
                     NativeKeyValue(
                         revierDetailLabels[key] ?: nativeLabel(key),
                         when {
@@ -1030,6 +1031,44 @@ private fun RevierDetail(
                     ) {
                         editingField = key to (revierDetailLabels[key] ?: nativeLabel(key))
                     }
+            }
+            when (config.kind) {
+                "equipment" -> NativeDisclosure("Stammdaten") { detailFields(detailKeys) }
+                "material" -> {
+                    NativeDisclosure(
+                        "Produktangaben",
+                        row.optString("unit").takeIf { it.isNotBlank() }?.let { "Einheit: $it" }
+                            ?: "Einheit nicht erfasst",
+                    ) {
+                        detailFields(listOf("unit"))
+                    }
+                    val prices = listOf("purchase_price_minor", "billing_price_minor")
+                    NativeDisclosure(
+                        "Preis",
+                        prices
+                            .filter { row.revierString(it).isNotBlank() }
+                            .joinToString(" · ") {
+                                (revierDetailLabels[it] ?: nativeLabel(it)) +
+                                    ": " +
+                                    OfferMoney.decimal(row.getLong(it)).replace('.', ',') +
+                                    " €"
+                            }
+                            .ifBlank { "Preis nicht erfasst" },
+                    ) {
+                        detailFields(prices)
+                        if (prices.none { row.revierString(it).isNotBlank() })
+                            Text("Noch kein Preis erfasst.")
+                    }
+                    NativeDisclosure(
+                        "Notizen",
+                        if (row.optString("notes").isBlank()) "Keine Notiz erfasst"
+                        else "Notiz vorhanden",
+                    ) {
+                        detailFields(listOf("notes"))
+                        if (row.optString("notes").isBlank()) Text("Noch keine Notiz erfasst.")
+                    }
+                }
+                else -> NativeGroup("Angaben") { detailFields(detailKeys) }
             }
             val missing = detailKeys.filter { row.revierString(it).isBlank() }
             if (missing.isNotEmpty())
@@ -1136,13 +1175,21 @@ private fun RevierDetail(
                         Tab(equipmentTab == 1, { onEquipmentTab(1) }, text = { Text("Zubehör") })
                     }
                     if (equipmentTab == 0) {
-                        RevierProfilePhoto(row.optJSONObject("profile_photo"), controller)
-                        NativeInfoRow(
-                            "Gerätefoto",
-                            onClick = {
-                                onEdit("equipment", row, JSONObject().put("_photo_only", true))
-                            },
-                        )
+                        NativeDisclosure(
+                            "Fotos",
+                            if (row.optJSONObject("profile_photo") == null)
+                                "Kein Gerätefoto hinterlegt"
+                            else "Gerätefoto vorhanden",
+                            initiallyExpanded = row.optJSONObject("profile_photo") != null,
+                        ) {
+                            RevierProfilePhoto(row.optJSONObject("profile_photo"), controller)
+                            NativeInfoRow(
+                                "Gerätefoto",
+                                onClick = {
+                                    onEdit("equipment", row, JSONObject().put("_photo_only", true))
+                                },
+                            )
+                        }
                         if (row.optString("condition") == "defective")
                             Text(
                                 "Dieses Gerät ist als defekt markiert. Vor dem Einsatz prüfen.",
@@ -1158,7 +1205,17 @@ private fun RevierDetail(
                                 ?: "Keine Kette festgelegt",
                             { onEquipmentTab(1) },
                         )
-                        RevierMaintenance(controller, row, refresh, onEdit)
+                        val nextDue = EquipmentMaintenanceRules.nextDue(row)
+                        NativeDisclosure(
+                            "Wartung",
+                            when {
+                                nextDue.isBlank() -> "Pläne und erledigte Wartungen"
+                                nextDue <= revierDay() -> "Fällig: " + nativeDisplayDate(nextDue)
+                                else -> "Nächste Wartung: " + nativeDisplayDate(nextDue)
+                            },
+                        ) {
+                            RevierMaintenance(controller, row, refresh, onEdit)
+                        }
                     } else {
                         Text(
                             "Zubehör für " + row.getString("name"),
@@ -1592,7 +1649,6 @@ private fun RevierMaintenance(
             failure = error.message.orEmpty()
         }
     }
-    Text("Wartung", style = MaterialTheme.typography.titleLarge)
     val active = !row.optBoolean("archived") && row.optBoolean("active", true)
     if (result == null && failure.isEmpty()) LinearProgressIndicator(Modifier.fillMaxWidth())
     val plans = result?.optJSONArray("plans")?.revierObjects().orEmpty()
@@ -1621,26 +1677,20 @@ private fun RevierMaintenance(
                 "Zuletzt erledigt",
                 nativeDisplayDate(plan.optString("last_completed_on")),
             )
-        var detailsOpen by remember(plan.optString("id")) { mutableStateOf(false) }
-        NativeTextButton({ detailsOpen = !detailsOpen }) {
-            Text(if (detailsOpen) "Intervall schließen" else "Intervall ansehen und ändern")
-        }
-        if (detailsOpen) {
-            Text(
-                "Alle ${plan.optInt("interval_value")} ${revierLabel(plan.optString("interval_unit"))}"
+        Text(
+            "Alle ${plan.optInt("interval_value")} ${revierLabel(plan.optString("interval_unit"))}"
+        )
+        if (plan.optString("last_change_reason").isNotBlank())
+            Text(plan.optString("last_change_reason"))
+        if (active) {
+            NativeInfoRow(
+                "Intervall ändern",
+                onClick = { onEdit("maintenance_plan", row, context) },
             )
-            if (plan.optString("last_change_reason").isNotBlank())
-                Text(plan.optString("last_change_reason"))
-            if (active) {
-                NativeInfoRow(
-                    "Intervall ändern",
-                    onClick = { onEdit("maintenance_plan", row, context) },
-                )
-                NativeInfoRow(
-                    "Früher warten",
-                    onClick = { onEdit("maintenance_adjust", row, context) },
-                )
-            }
+            NativeInfoRow(
+                "Früher warten",
+                onClick = { onEdit("maintenance_adjust", row, context) },
+            )
         }
     }
     if (active)

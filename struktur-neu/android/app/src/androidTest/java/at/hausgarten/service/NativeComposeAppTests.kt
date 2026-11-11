@@ -280,6 +280,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("DETAIL_GROUP_OPEN_$label") { state() == "Aufgeklappt" }
     }
 
+    private fun closeDetails(label: String) {
+        reveal(label)
+        fun state() =
+            node(label)?.let { candidate ->
+                generateSequence(candidate) { it.parent }
+                    .mapNotNull { it.stateDescription?.toString() }
+                    .firstOrNull { it in setOf("Aufgeklappt", "Zugeklappt") }
+            }
+        waitUntil("DETAIL_GROUP_STATE_FOR_CLOSE_$label") { state() != null }
+        if (state() == "Aufgeklappt") click(label)
+        waitUntil("DETAIL_GROUP_CLOSED_$label") { state() == "Zugeklappt" }
+    }
+
     private fun revealContaining(fragment: String) {
         scrollTop()
         var lastScroll = 0L
@@ -1589,6 +1602,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             settlementCancellationUi(invoice)
             offerAcceptanceUi()
             settlementPaymentLifecycleUi()
+            financePaid240AndDateBasisUi()
             return JSONObject()
                 .put("checks", checks)
                 .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
@@ -1602,6 +1616,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("draft_recreation", true)
                 .put("native_storno_and_offer_acceptance_readback", true)
                 .put("native_payment_lifecycle_readback", true)
+                .put("native_paid_240_and_financial_filters_readback", true)
                 .put("native_offer_share_chooser", true)
                 .put("physical_pixel_tested", physicalPixelTested())
         } catch (failure: Throwable) {
@@ -1923,12 +1938,31 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         } finally {
             test.removeMonitor(monitor)
         }
+        val beforeAcceptance = read("get_offer", JSONObject().put("offer_id", offer))
         reveal("Annehmen")
         click("Annehmen")
+        shown("Angenommen am *")
+        shown("Nachweis *")
+        click(UiTags.SECONDARY)
+        reveal("Annehmen")
+        yes(
+            read("get_offer", JSONObject().put("offer_id", offer)).getString("record_hash") ==
+                beforeAcceptance.getString("record_hash") &&
+                read("get_offer_decision_history", JSONObject().put("offer_id", offer))
+                    .getInt("total") == decisionsBeforeShare &&
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("orders").length() ==
+                    ordersBefore &&
+                store.ownerValue(SettlementRules.KEY, "{}") == ledgerBefore,
+            "M06_NATIVE_ACCEPTANCE_CANCEL_RETURNS_TO_UNCHANGED_ORIGINAL_WITHOUT_ORDER_OR_PAYMENT",
+        )
+        click("Annehmen")
+        shown("Angenommen am *")
+        shown("Nachweis *")
+        captureSyntheticScreen("offer-acceptance-form")
         val acceptedAt = java.time.Instant.now().minusSeconds(60).toString()
         val evidence = "[TEST] Persönlich ausdrücklich zugesagte unveränderte Angebotsversion"
-        enter(nativeLabel("accepted_at"), acceptedAt)
-        enter(nativeLabel("evidence"), evidence)
+        enter(UiTags.actionField("accepted_at"), acceptedAt)
+        enter(UiTags.actionField("evidence"), evidence)
         if (keyboardVisible()) back()
         val draftKey =
             "native_form_draft:" + PixelMcpWriteTools.hash("action:record_offer_acceptance:$offer")
@@ -2327,6 +2361,292 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
         } finally {
             if (database.isOpen) database.execSQL("DROP TRIGGER IF EXISTS $trigger")
+        }
+    }
+
+    /** Real paid action and native period selectors; all data belongs to this disposable QA app. */
+    private fun financePaid240AndDateBasisUi() {
+        val today = LocalDate.parse(SettlementRules.today())
+        val serviceDay = today.minusMonths(1)
+        val futureDay = today.plusMonths(1)
+        val invoice =
+            read(
+                    "save_settlement_draft",
+                    JSONObject()
+                        .put("request_id", "qa_fin15_period_draft")
+                        .put(
+                            "draft",
+                            NativeSettlementNativeTests.draft("billed", "240")
+                                .put("title", "[TEST] QA Vollzahlung und Datumsbasis 240")
+                                .put("service_from", serviceDay.toString())
+                                .put("service_to", serviceDay.toString()),
+                        ),
+                )
+                .getString("settlement_id")
+        fun current() = read("get_settlement", JSONObject().put("settlement_id", invoice))
+        val draft = current()
+        read(
+            "prepare_settlement",
+            JSONObject()
+                .put("request_id", "qa_fin15_period_prepare")
+                .put("settlement_id", invoice)
+                .put("expected_review_hash", draft.getString("review_hash"))
+                .put("confirmed", true)
+                .put("domestic_eur_confirmed", true)
+                .put("issuer_details_confirmed", true)
+                .put("electronic_delivery_accepted", false),
+        )
+        read(
+            "complete_settlement",
+            JSONObject()
+                .put("request_id", "qa_fin15_period_complete")
+                .put("settlement_id", invoice),
+        )
+        val original = current().getJSONObject("record")
+        val originalHash = current().getString("record_hash")
+        val originalPdf = original.getJSONObject("pdf").getString("pdf_sha256")
+        val number = original.getString("invoice_number")
+        val masterBefore = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        val unrelatedBefore =
+            PixelMcpWriteTools.hash(
+                SettlementRules.rows(read("list_settlements").getJSONArray("records")).filter {
+                    it.getString("id") != invoice
+                }
+            )
+        yes(
+            original.getLong("total_minor") == 24000L &&
+                current().getLong("open_minor") == 24000L &&
+                current().getJSONArray("payments").length() == 0,
+            "FIN15_NATIVE_EXACT_240_ORIGINAL_STARTS_OPEN_WITHOUT_PAYMENT",
+        )
+        openContext("settlement_review", invoice)
+        shown("Bezahlt · 240,00 €")
+        val tapStarted = System.currentTimeMillis()
+        click(UiTags.PRIMARY, onAction = {})
+        var queued: JSONObject? = null
+        waitUntil("FIN15_NATIVE_REAL_PAID_QUEUE_CREATED") {
+            queued =
+                ListActionTools.rows(LocalOwnerRepository(context, store))
+                    .singleOrNull {
+                        it.optString("original_tool") == "add_settlement_payment" &&
+                            ("settlement" to invoice) in ListActionTools.targets(it) &&
+                            it.optString("state") == "queued"
+                    }
+                    ?.let { JSONObject(it.toString()) }
+            queued != null
+        }
+        val actualAction = requireNotNull(queued)
+        val paymentArgs = JSONObject(actualAction.getJSONObject("original_args").toString())
+        val undoUntil = actualAction.getLong("undo_until")
+        yes(
+            undoUntil >= tapStarted + 5000L &&
+                System.currentTimeMillis() < undoUntil &&
+                paymentArgs.getString("settlement_id") == invoice &&
+                paymentArgs.getString("date") == today.toString() &&
+                SettlementRules.minor(paymentArgs.get("amount")) == 24000L &&
+                current().getLong("paid_minor") == 0L &&
+                current().getJSONArray("payments").length() == 0,
+            "FIN15_NATIVE_ACTUAL_240_PAID_ACTION_RETAINS_REAL_FIVE_SECOND_UNDO_WINDOW",
+        )
+        waitUntil("FIN15_NATIVE_240_RECEIPT_COMMITS_AFTER_REAL_DEADLINE") {
+            val state = current()
+            if (
+                System.currentTimeMillis() < undoUntil &&
+                    state.getJSONArray("payments").length() > 0
+            )
+                throw AssertionError("FIN15_PAYMENT_COMMITTED_BEFORE_REAL_UNDO_DEADLINE")
+            System.currentTimeMillis() >= undoUntil && state.getLong("paid_minor") == 24000L
+        }
+        val paid = current()
+        val payment = paid.getJSONArray("payments").getJSONObject(0)
+        yes(
+            paid.getJSONArray("payments").length() == 1 &&
+                payment.getLong("amount_minor") == 24000L &&
+                payment.getString("payment_kind") == "receipt" &&
+                payment.getString("date") == today.toString() &&
+                paid.getLong("open_minor") == 0L &&
+                paid.getString("record_hash") == originalHash &&
+                paid.getJSONObject("record").getJSONObject("pdf").getString("pdf_sha256") ==
+                    originalPdf,
+            "FIN15_NATIVE_REAL_240_FULL_PAYMENT_READS_ONE_DATED_RECEIPT_ZERO_REMAINDER_UNCHANGED_ORIGINAL",
+        )
+        val paidHash = PixelMcpWriteTools.hash(paid)
+        yes(
+            read("add_settlement_payment", paymentArgs).getBoolean("replayed") &&
+                PixelMcpWriteTools.hash(current()) == paidHash,
+            "FIN15_NATIVE_ACTUAL_PAID_REQUEST_REPLAY_ADDS_NO_SECOND_240_PAYMENT",
+        )
+        recreate()
+        revealContaining("Bezahlt:")
+        captureSyntheticScreen("payment-full-240-after-five-seconds")
+        PixelLocalStore(context).use { fresh ->
+            val reopened =
+                PixelMcpReadTools(fresh.readSource(), fresh, PixelOwnerAccess(context, fresh))
+                    .call("get_settlement", JSONObject().put("settlement_id", invoice))
+                    .getJSONObject("data")
+            yes(
+                reopened.getJSONArray("payments").length() == 1 &&
+                    reopened.getLong("paid_minor") == 24000L &&
+                    reopened.getLong("open_minor") == 0L &&
+                    reopened.getString("record_hash") == originalHash &&
+                    reopened.getJSONObject("record").getJSONObject("pdf").getString("pdf_sha256") ==
+                        originalPdf,
+                "FIN15_NATIVE_RECREATE_AND_FRESH_SQLITE_RETAIN_ONE_240_RECEIPT_AND_SAME_PDF",
+            )
+        }
+        // A separate synthetic future receipt distinguishes payment month from document month.
+        // The exact FIN15 one-payment result was verified above, before this F12 setup action.
+        val beforeFuture = current()
+        val future =
+            read(
+                "add_settlement_payment",
+                JSONObject()
+                    .put("request_id", "qa_f12_future_receipt")
+                    .put("settlement_id", invoice)
+                    .put("expected_record_hash", beforeFuture.getString("record_hash"))
+                    .put("expected_payment_hash", beforeFuture.getString("payment_record_hash"))
+                    .put("amount", "1")
+                    .put("date", futureDay.toString())
+                    .put("payment_kind", "receipt")
+                    .put("note", "[TEST] QA separater künftiger Zahlungseingang zur Datumsbasis"),
+            )
+        val filterLedger = store.ownerValue(SettlementRules.KEY, "{}")
+        val movements = current().getJSONArray("payments")
+        val futurePayment =
+            SettlementRules.rows(movements).single {
+                it.getString("date") == futureDay.toString() && it.getLong("amount_minor") == 100L
+            }
+        yes(
+            futurePayment.getString("id").isNotBlank() && future.optBoolean("replayed") == false,
+            "F12_NATIVE_FUTURE_RECEIPT_HAS_ITS_OWN_ORIGINAL_PAYMENT_ID",
+        )
+        fun visibleAmount(label: String, minor: Long) {
+            val amount = financeMoney(OfferMoney.decimal(minor))
+            reveal(label)
+            var nudged = false
+            waitUntil("F12_NATIVE_VISIBLE_${label}_AMOUNT_$minor") {
+                val caption = node(label) ?: return@waitUntil false
+                val captionBounds = Rect().also(caption::getBoundsInScreen)
+                val frame = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                val density = context.resources.displayMetrics.density
+                val matched =
+                    nodes()
+                        .filter { it.isVisibleToUser && it.text?.toString() == amount }
+                        .any { value ->
+                            val bounds = Rect().also(value::getBoundsInScreen)
+                            !bounds.isEmpty &&
+                                frame.contains(bounds) &&
+                                kotlin.math.abs(bounds.left - captionBounds.left) <= 2 &&
+                                bounds.top >= captionBounds.bottom - 1 &&
+                                bounds.top <= captionBounds.bottom + (12 * density).toInt() &&
+                                bounds.bottom <= captionBounds.bottom + (32 * density).toInt()
+                        }
+                val ownViewport =
+                    generateSequence(caption.parent) { it.parent }
+                        .firstOrNull {
+                            it.isScrollable &&
+                                it.actionList.any { action ->
+                                    action.id ==
+                                        AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN
+                                            .id ||
+                                        action.id ==
+                                            AccessibilityNodeInfo.AccessibilityAction
+                                                .ACTION_SCROLL_UP
+                                                .id
+                                }
+                        }
+                        ?.let { Rect().also(it::getBoundsInScreen) }
+                // A pending async result is not a reason to scroll a readable caption away.
+                if (
+                    !matched &&
+                        !nudged &&
+                        ownViewport != null &&
+                        captionBounds.bottom > ownViewport.bottom - (32 * density).toInt()
+                ) {
+                    nudged = scroll()
+                }
+                matched
+            }
+        }
+        openAccountingTotals()
+        reveal("Umsätze und Zahlungen")
+        click("Umsätze und Zahlungen")
+        for ((basis, label, day) in
+            listOf(
+                Triple("service", "Leistung", serviceDay),
+                Triple("document", "Beleg", today),
+                Triple("payment", "Zahlung", futureDay),
+            )) {
+            revealContaining("Datumsbasis: ")
+            click(visibleTexts().first { it.startsWith("Datumsbasis: ") })
+            shown("Datumsbasis")
+            click(label)
+            shown("Datumsbasis: $label")
+            val from = day.withDayOfMonth(1).toString()
+            val to = day.withDayOfMonth(day.lengthOfMonth()).toString()
+            openDetails("Zeitraum")
+            chooseDate("Von", from)
+            chooseDate("Bis", to)
+            reveal("Zeitraum")
+            click("Zeitraum")
+            shown("$from – $to")
+            val selected =
+                read(
+                    "get_finance_overview",
+                    JSONObject().put("date_basis", basis).put("date_from", from).put("date_to", to),
+                )
+            yes(
+                selected.getString("date_basis") == basis &&
+                    SettlementRules.rows(selected.getJSONArray("records")).any {
+                        it.getString("id") == invoice
+                    } &&
+                    (basis != "service" ||
+                        SettlementRules.rows(selected.getJSONArray("service_positions")).any {
+                            it.getString("settlement_id") == invoice &&
+                                it.getString("service_date") == serviceDay.toString()
+                        }) &&
+                    (basis != "payment" ||
+                        SettlementRules.rows(selected.getJSONArray("payments")).any {
+                            it.getString("id") == futurePayment.getString("id") &&
+                                it.getLong("amount_minor") == 100L
+                        }),
+                "F12_NATIVE_${basis}_PERIOD_READS_THE_EXPECTED_ORIGINAL_AND_DATED_POSITION_OR_PAYMENT",
+            )
+            visibleAmount(
+                if (basis == "service") "Leistungen · Rechnungen"
+                else if (basis == "payment") "Zahlungseingänge · Zahlungsdatum" else "Rechnungen",
+                selected.getLong(
+                    if (basis == "payment") "payment_inflow_minor" else "issued_minor"
+                ),
+            )
+            captureSyntheticScreen("finance-date-basis-$basis-selected")
+            reveal(number)
+            captureSyntheticScreen("finance-date-basis-$basis-original")
+            click(number)
+            shown(UiTags.DETAIL_MENU)
+            reveal("Rechnungsnummer: $number")
+            yes(
+                current().getString("record_hash") == originalHash,
+                "F12_NATIVE_${basis}_VISIBLE_PERIOD_ROW_OPENS_THE_SAME_ORIGINAL",
+            )
+            click(UiTags.BACK)
+            reveal("Datumsbasis: $label")
+            shown("$from – $to")
+            yes(
+                store.ownerValue(SettlementRules.KEY, "{}") == filterLedger &&
+                    PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                        masterBefore &&
+                    PixelMcpWriteTools.hash(
+                        SettlementRules.rows(read("list_settlements").getJSONArray("records"))
+                            .filter { it.getString("id") != invoice }
+                    ) == unrelatedBefore &&
+                    current().getString("record_hash") == originalHash &&
+                    current()
+                        .getJSONObject("record")
+                        .getJSONObject("pdf")
+                        .getString("pdf_sha256") == originalPdf,
+                "F12_NATIVE_${basis}_BACK_PRESERVES_VISIBLE_FILTERS_ALL_ORIGINALS_PAYMENTS_AND_PDFS",
+            )
         }
     }
 
@@ -4105,6 +4425,24 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 originalProduct.getLong("billing_price_minor") == 1250L,
             "MATERIAL_UI_PRODUCT_ORIGINAL_AND_EXACT_PRICES",
         )
+        val productHashBeforeGroups = originalProduct.getString("record_hash")
+        openDetails("Produktangaben")
+        shown("Sack")
+        closeDetails("Produktangaben")
+        openDetails("Preis")
+        shown("7,50 €")
+        shown("12,50 €")
+        closeDetails("Preis")
+        openDetails("Notizen")
+        shown("Noch keine Notiz erfasst.")
+        closeDetails("Notizen")
+        yes(
+            product()?.getString("id") == materialId &&
+                product()?.getString("record_hash") == productHashBeforeGroups &&
+                SettlementRules.rows(product()?.optJSONArray("movements")).isEmpty(),
+            "MATERIAL_UI_DETAIL_GROUPS_OPEN_CLOSE_PRESERVE_PRODUCT_PRICES_AND_NO_MOVEMENT",
+        )
+        captureSyntheticScreen("material-groups-collapsed")
         val replayedProduct =
             read(productOperation.getString("tool"), productOperation.getJSONObject("args"))
         yes(
@@ -4395,9 +4733,37 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         checks++
         val name = "[TEST] QA Zubehör Säge"
+        fun machine(): JSONObject {
+            val rows = read("list_equipment", JSONObject().put("limit", 100)).getJSONArray("items")
+            return (0 until rows.length())
+                .map { rows.getJSONObject(it) }
+                .first { it.optString("name") == name }
+        }
         enter("Gerätebezeichnung *", name)
         click("Speichern")
         reveal("Übersicht")
+        val deviceBeforeGroups = machine()
+        openDetails("Stammdaten")
+        shown("Gerätezustand")
+        closeDetails("Stammdaten")
+        openDetails("Fotos")
+        shown("Gerätefoto")
+        closeDetails("Fotos")
+        openDetails("Wartung")
+        shown("Noch kein Wartungsplan eingerichtet.")
+        closeDetails("Wartung")
+        yes(
+            machine().getString("id") == deviceBeforeGroups.getString("id") &&
+                machine().getString("record_hash") == deviceBeforeGroups.getString("record_hash") &&
+                !machine().has("profile_photo") &&
+                read(
+                        "get_equipment_maintenance",
+                        JSONObject().put("equipment_id", machine().getString("id")),
+                    )
+                    .getInt("total") == 0,
+            "UI_EQUIPMENT_DISCLOSURES_PRESERVE_ORIGINAL_PHOTO_AND_MAINTENANCE",
+        )
+        captureSyntheticScreen("equipment-groups-collapsed")
         selectTab("Zubehör")
         click("Zubehör hinzufügen")
         shown("Maschine: " + name)
@@ -4414,12 +4780,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Aktuell verwendet")
         click("Speichern")
         reveal("Aktuell verwendete Kette")
-        fun machine(): JSONObject {
-            val rows = read("list_equipment", JSONObject().put("limit", 100)).getJSONArray("items")
-            return (0 until rows.length())
-                .map { rows.getJSONObject(it) }
-                .first { it.optString("name") == name }
-        }
         val first = machine()
         val a = first.getJSONArray("accessories").getJSONObject(0)
         yes(
@@ -4531,6 +4891,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "ACCESSORY_PHOTO_PREVIEW_AND_EDITOR_DO_NOT_SAVE",
             )
             selectTab("Übersicht")
+            openDetails("Wartung")
             reveal("Wartung einrichten")
             val equipmentId = machine().getString("id")
             val maintenanceArgs = JSONObject().put("equipment_id", equipmentId)
@@ -4559,6 +4920,28 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 maintenance().getInt("total") == beforeEvents,
                 "UI_PLAN_CONFIGURATION_IS_NOT_A_COMPLETED_MAINTENANCE",
             )
+            val configuredPlan =
+                SettlementRules.rows(maintenance().getJSONArray("plans")).single {
+                    it.getString("id") == planId
+                }
+            val configuredDue = configuredPlan.getString("next_due_on")
+            val configuredPlanHash = PixelMcpWriteTools.hash(configuredPlan)
+            closeDetails("Wartung")
+            reveal(
+                (if (configuredDue <= LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
+                    "Fällig: "
+                else "Nächste Wartung: ") + nativeDisplayDate(configuredDue)
+            )
+            yes(
+                maintenance().getInt("total") == beforeEvents &&
+                    PixelMcpWriteTools.hash(
+                        SettlementRules.rows(maintenance().getJSONArray("plans")).single {
+                            it.getString("id") == planId
+                        }
+                    ) == configuredPlanHash,
+                "UI_EQUIPMENT_CLOSED_MAINTENANCE_HEADER_RETAINS_DUE_DATE_WITHOUT_COMPLETION",
+            )
+            openDetails("Wartung")
             reveal(maintenanceTitle)
             click(maintenanceTitle)
             val maintenanceReason = "[TEST] Bewusst durchgeführte Kettenwartung"
@@ -4629,6 +5012,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             click("Zum Gerät")
             recreate()
+            openDetails("Wartung")
             reveal(maintenanceTitle)
             captureSyntheticScreen("equipment-maintenance-saved")
             yes(
@@ -6515,60 +6899,93 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 )
                 textWithinOwnScrollViewport(originalCustomerLabel)
                 var captionLayoutUnclipped = false
+                val captionLayoutProof = JSONObject()
                 test.runOnMainSync {
-                    fun composeRoot(view: View): ViewRootForTest? {
-                        if (view is ViewRootForTest) return view
+                    val roots = mutableListOf<ViewRootForTest>()
+                    fun composeRoots(view: View) {
+                        if (view is ViewRootForTest) roots.add(view)
                         if (view is ViewGroup)
-                            for (child in 0 until view.childCount) composeRoot(
-                                    view.getChildAt(child)
-                                )
-                                ?.let {
-                                    return it
-                                }
-                        return null
+                            for (child in 0 until view.childCount) composeRoots(
+                                view.getChildAt(child)
+                            )
                     }
-                    val root =
-                        composeRoot(requireNotNull(activity).window.decorView)
-                            ?: return@runOnMainSync
-                    val textNode =
-                        root.semanticsOwner
-                            .getAllSemanticsNodes(mergingEnabled = false)
-                            .singleOrNull {
-                                it.config
-                                    .getOrNull(SemanticsProperties.Text)
-                                    ?.singleOrNull()
-                                    ?.text == originalCustomerLabel &&
-                                    it.config.contains(SemanticsActions.GetTextLayoutResult)
-                            } ?: return@runOnMainSync
+                    composeRoots(requireNotNull(activity).window.decorView)
+                    captionLayoutProof.put("root_count", roots.size)
+                    val root = roots.firstOrNull() ?: return@runOnMainSync
+                    val matching =
+                        root.semanticsOwner.getAllSemanticsNodes(mergingEnabled = false).filter {
+                            it.config.getOrNull(SemanticsProperties.Text)?.singleOrNull()?.text ==
+                                originalCustomerLabel &&
+                                it.config.contains(SemanticsActions.GetTextLayoutResult)
+                        }
+                    captionLayoutProof
+                        .put("matching_text_nodes", matching.size)
+                        .put(
+                            "matching_node_ids",
+                            JSONArray(matching.map { it.id }),
+                        )
+                    val textNode = matching.singleOrNull() ?: return@runOnMainSync
                     val layouts = mutableListOf<TextLayoutResult>()
-                    if (
+                    val invoked =
                         textNode.config
                             .getOrNull(SemanticsActions.GetTextLayoutResult)
                             ?.action
-                            ?.invoke(layouts) != true
-                    )
-                        return@runOnMainSync
+                            ?.invoke(layouts) == true
+                    captionLayoutProof
+                        .put("layout_action_succeeded", invoked)
+                        .put("layout_result_count", layouts.size)
+                    if (!invoked) return@runOnMainSync
                     val layout = layouts.singleOrNull() ?: return@runOnMainSync
                     val visible = textNode.boundsInRoot
-                    // Raw layout boxes retain portions clipped by this Text or its parent Button.
+                    val position = textNode.positionInRoot
+                    val inputMatches = layout.layoutInput.text.text == originalCustomerLabel
+                    val rejected = JSONArray()
+                    captionLayoutProof
+                        .put("input_text_matches", inputMatches)
+                        .put("input_text_length", layout.layoutInput.text.length)
+                        .put("expected_text_length", originalCustomerLabel.length)
+                        .put("has_visual_overflow", layout.hasVisualOverflow)
+                        .put("position_in_root", position.toString())
+                        .put("clipped_bounds_in_root", visible.toString())
+                        .put("rejected_characters", rejected)
+                    // Keep the original exact comparison; diagnose every failure before changing
+                    // it.
+                    if (inputMatches)
+                        for (character in originalCustomerLabel.indices) {
+                            val raw = layout.getBoundingBox(character)
+                            val glyph = raw.translate(position)
+                            if (
+                                glyph.isEmpty ||
+                                    glyph.left < visible.left ||
+                                    glyph.top < visible.top ||
+                                    glyph.right > visible.right ||
+                                    glyph.bottom > visible.bottom
+                            )
+                                rejected.put(
+                                    JSONObject()
+                                        .put("index", character)
+                                        .put(
+                                            "utf16_code_unit",
+                                            originalCustomerLabel[character].code,
+                                        )
+                                        .put("raw_layout_rect", raw.toString())
+                                        .put("rect_in_root", glyph.toString())
+                                        .put("empty", glyph.isEmpty)
+                                )
+                        }
                     captionLayoutUnclipped =
-                        layout.layoutInput.text.text == originalCustomerLabel &&
-                            !layout.hasVisualOverflow &&
-                            originalCustomerLabel.indices.all { character ->
-                                val glyph =
-                                    layout
-                                        .getBoundingBox(character)
-                                        .translate(textNode.positionInRoot)
-                                !glyph.isEmpty &&
-                                    glyph.left >= visible.left &&
-                                    glyph.top >= visible.top &&
-                                    glyph.right <= visible.right &&
-                                    glyph.bottom <= visible.bottom
-                            }
+                        inputMatches && !layout.hasVisualOverflow && rejected.length() == 0
                 }
+                test.sendStatus(
+                    0,
+                    Bundle().apply {
+                        putString("customer_caption_layout_proof", captionLayoutProof.toString())
+                    },
+                )
                 yes(
                     captionLayoutUnclipped,
-                    "CUSTOMER_PLUS_FULL_CAPTION_LAYOUT_NOT_CLIPPED_BY_TEXT_OR_BUTTON",
+                    "CUSTOMER_PLUS_FULL_CAPTION_LAYOUT_NOT_CLIPPED_BY_TEXT_OR_BUTTON " +
+                        captionLayoutProof.toString(),
                 )
                 captureSyntheticScreen("customer-plus-work-context")
                 discardWork()
@@ -9819,6 +10236,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Geräte")
             enter("Suchen", "QA Zubehör Säge")
             click("[TEST] QA Zubehör Säge")
+            openDetails("Wartung")
             click("Wartung einrichten")
             click("Tätigkeitstext auswählen")
             keyboardSearchProof(
@@ -10184,6 +10602,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         seedEquipment()
         val failures = ArrayList<Throwable>()
         val connectionProofs = HashMap<String, JSONObject>()
+        val connectionRefreshProofs = HashMap<String, JSONObject>()
         fun connectionState(): String {
             val result = JSONObject()
             val local = JSONObject()
@@ -10284,6 +10703,63 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .put("explanation_own_scroll", true)
                     .put("font_scale_percent", scale)
         }
+        fun explicitConnectionRefresh(key: String) {
+            fun configuration(local: PixelLocalStore): String {
+                val values =
+                    JSONObject()
+                        .put("planning_settings", local.ownerValue("planning:settings", "{}"))
+                for (name in listOf("planning_private", "pixel_tunnel_private")) {
+                    val preferences = JSONObject()
+                    for ((field, value) in
+                        context.getSharedPreferences(name, 0).all.toSortedMap()) preferences.put(
+                        field,
+                        if (value is Set<*>) JSONArray(value.map { it.toString() }.sorted())
+                        else value,
+                    )
+                    values.put(name, preferences)
+                }
+                return PixelMcpWriteTools.hash(values)
+            }
+            yes(
+                !PlanningAccount.connected(context) &&
+                    !AppointmentRuntime.calendarEnabled(context, store) &&
+                    !AppointmentRuntime.flag(context, store, "weather_enabled") &&
+                    !AppointmentRuntime.flag(context, store, "notifications"),
+                "CONNECTIONS_REFRESH_SYNTHETIC_OPTIONAL_INTEGRATIONS_DISABLED",
+            )
+            val businessBefore =
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            val configurationBefore = configuration(store)
+            val statusBefore = store.ownerValue("planning:status", "")
+            reveal("Kalender abgleichen und Wetter aktualisieren")
+            click("Kalender abgleichen und Wetter aktualisieren")
+            val complete =
+                "Aktualisierung beendet. Den gespeicherten Kalenderstand und die Wetterhinweise getrennt beachten."
+            reveal(complete)
+            PixelLocalStore(context).use { fresh ->
+                val status = fresh.ownerValue("planning:status", "")
+                yes(
+                    status != statusBefore &&
+                        JSONObject(status).optBoolean("background_best_effort") &&
+                        runCatching {
+                            java.time.Instant.parse(JSONObject(status).getString("last_check_at"))
+                        }
+                            .isSuccess &&
+                        configuration(fresh) == configurationBefore &&
+                        PixelMcpWriteTools.hash(PixelMcpReadTools.effective(fresh.getState())) ==
+                            businessBefore,
+                    "CONNECTIONS_EXPLICIT_REFRESH_DURABLE_STATUS_PRESERVES_CONFIGURATION_AND_BUSINESS",
+                )
+            }
+            connectionRefreshProofs[key] =
+                JSONObject()
+                    .put("explicit_refresh_click", true)
+                    .put("durable_status_readback", true)
+                    .put("configuration_unchanged", true)
+                    .put("business_state_unchanged", true)
+                    .put("optional_integrations_disabled", true)
+                    .put("external_provider_success_claimed", false)
+        }
         fun case(key: String, ready: String, screenshot: Boolean = false, body: () -> Unit) {
             test.sendStatus(0, Bundle().apply { putString("surface_start", key) })
             try {
@@ -10302,6 +10778,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         .put("ready", ready)
                         .put("no_auto_ime", true)
                         .apply { connectionProofs[key]?.let { put("connection_read_only", it) } }
+                        .apply {
+                            connectionRefreshProofs[key]?.let { put("connection_refresh", it) }
+                        }
                 )
             } catch (failure: Throwable) {
                 test.sendStatus(
@@ -10378,6 +10857,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Geräte")
             enter("Suchen", "QA Zubehör Säge")
             click("[TEST] QA Zubehör Säge")
+            openDetails("Wartung")
         }
         case("materials", "Material anlegen") { openOfficeEntry("Material") }
         case("photos", "Foto hinzufügen") { openOfficeEntry("Fotos") }
@@ -10393,6 +10873,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             settings()
             click("Verbindungen")
             click("Google Kalender")
+            reveal("Verbinden")
+            explicitConnectionRefresh("calendar")
         }
         // FLAG_SECURE remains enabled; do not weaken credential screens for screenshots.
         case("chatgpt", "Einrichtung und Diagnose") {
@@ -10562,6 +11044,43 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     captureSyntheticScreen("settings-invoice-long-payment-200")
                 }
                 click("Speicher")
+                reveal("Version ${BuildConfig.VERSION_NAME}")
+                if (scale == 1.0) {
+                    val appAccessBefore = store.writable()
+                    val appBusinessBefore =
+                        PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+                    val appGrantsBefore =
+                        context.contentResolver.persistedUriPermissions
+                            .map { "${it.uri}|${it.isReadPermission}|${it.isWritePermission}" }
+                            .sorted()
+                    click("App prüfen")
+                    reveal("Lokale App-Funktionen prüfen")
+                    click("Lokale App-Funktionen prüfen")
+                    reveal("Prüfung abgeschlossen")
+                    captureSyntheticScreen("storage-app-check-completed")
+                    // Settings is the existing parent route; reopen its storage entry explicitly.
+                    reveal("Speicher")
+                    click("Speicher")
+                    reveal("Version ${BuildConfig.VERSION_NAME}")
+                    click("Sicherung öffnen")
+                    shown("Jetzt sichern")
+                    back()
+                    reveal("Version ${BuildConfig.VERSION_NAME}")
+                    PixelLocalStore(context).use { fresh ->
+                        yes(
+                            PixelMcpWriteTools.hash(
+                                PixelMcpReadTools.effective(fresh.getState())
+                            ) == appBusinessBefore &&
+                                fresh.writable() == appAccessBefore &&
+                                context.contentResolver.persistedUriPermissions
+                                    .map {
+                                        "${it.uri}|${it.isReadPermission}|${it.isWritePermission}"
+                                    }
+                                    .sorted() == appGrantsBefore,
+                            "STORAGE_APP_CHECK_AND_BACKUP_ENTRY_PRESERVE_BUSINESS_AND_PERMISSIONS",
+                        )
+                    }
+                }
                 reveal("Speicher bereinigen")
                 waitUntil("STORAGE_ACTION_READY_$scale") {
                     node("Speicher bereinigen")?.let(::clickable)?.isEnabled == true
