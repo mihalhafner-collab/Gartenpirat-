@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-11T06:11:23Z",
+    "observed_at_utc": "2026-11-11T10:32:27Z",
     "version_name": "1.71.0",
     "version_code": 158,
     "package_name": "at.hausgarten.service",
@@ -56,7 +56,7 @@
   "current_test_candidate": {
     "version_name": "1.72.0",
     "version_code": 159,
-    "source_sha256": "0d85dd2d6c331b02f03ad13bc321daa37194fad22b8d85f3a3f3b58d4162cf2b",
+    "source_sha256": "f99ebe1a3475f40464cae672090cb5997210a7f55dbc5c198cb2d1e1effe946e",
     "status": "Eisbär 1.0.1 auf nachgewiesener installierter 158-Basis. Alle aktuellen lokalen Quellprüfungen, Lint sowie Release- und Test-APK-Bauten bestanden. 46 native UI-/MCP-/Update-/Dateianbieter-Laufabschnitte einschließlich gezielter Fehler-, Wiederholungs- und Reentry-Fälle vorbereitet. Vollständiger aktueller Lauf und physische Pixel-Abnahme offen; Laufstatus im bestehenden PR #27. Nicht verteilt oder installiert."
   },
   "current_task": {
@@ -67,11 +67,11 @@
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
       "native_implementation": "IN_PROGRESS",
-      "eisbaer_runtime_tests": "NOT_RUN für den aktuellen Quellstand. 46 native Laufabschnitte einschließlich echtem APK-Update, vollständiger bestehender UI-Suiten, ergänzter öffentlicher MCP-Pfade und realem ExternalStorageProvider vorbereitet; keine Laufzeitabnahme durch Kompilierung behauptet.",
+      "eisbaer_runtime_tests": "Aktueller FullCI 43004054724 vor den unabhängigen Fachsuiten am Schreibpfad des synthetischen Update-Prüfmarkers gescheitert. Marker und Anbieter-Folgezustand auf das zugängliche noBackup-Verzeichnis der Ziel-App korrigiert; Test-APK und Lint danach PASS. 46 native Laufabschnitte bleiben bis tatsächlicher Ausführung offen.",
       "source": "PASS check_release_baseline.py und check_current.py; 64 Python-Tests, Workflow-YAML und 12 Shellblöcke syntaktisch geprüft, Eisbär-Originale unverändert.",
-      "local_jvm": "PASS 97 JVM-Tests auf identischen Domänenquellen, keine Fehler; anschließend ausschließlich Navigation/Umbruch angepasst. Der aktuelle vollständige CI-Lauf wiederholt alle JVM-Tests.",
+      "local_jvm": "PASS 97 JVM-Tests im CI 43004054724 auf identischen Domänenquellen; danach Instrumentierungs-/CI-Korrekturen und bedienbare Arbeitsvorgaben erst nach geladenen Einstellungen. Nächster FullCI wiederholt alle Tests.",
       "local_build": "PASS aktueller Quellstand: lintRelease, assembleRelease, assembleReleaseAndroidTest und Artefakt-Datenschutz; generierter Build-Fingerabdruck stimmt exakt mit source_sha256 überein. Lokale Native-Ausführung nicht möglich, KVM fehlt.",
-      "full_ci": "Run 42989322122 auf 59b326f: Build SUCCESS, Emulator-Setup FAILURE vor Laufzeitstart. Ursache Build-Tools-37-Zertifikattext; auf vorhandenen geprüften Parser umgestellt und mit 45 Tests sowie echter temporärer QA-Signierung verifiziert. Neuer vollständiger PR-Lauf für gesamten aktuellen Stand folgt."
+      "full_ci": "Run 43004054724 auf 47bec4d: Build SUCCESS einschließlich 97 JVM-Tests, Emulator FAILURE am privaten Testpaket-Marker. Signierung und echter 158-Seed bis dahin bestanden. Marker korrigiert; nächster vollständiger PR-Lauf erforderlich."
     },
     "next": [
       "Aktuellen Quellstand lokal abschließend prüfen, committen, im bestehenden PR #27 pushen und vollständigen CI-Lauf ohne Teilfilter bis grün ausführen.",

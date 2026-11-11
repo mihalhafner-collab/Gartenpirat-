@@ -5060,18 +5060,22 @@ private fun NativeSettings(controller: NativeAppController) {
             NativeInfoRow(
                 "Arbeitsvorgaben",
                 "Tätigkeit, Einsatzort und Fotoqualität",
-                {
-                    if (settings != null)
+                settings?.let { currentSettings ->
+                    {
                         controller.action(
                             "Arbeitsvorgaben ändern",
                             "update_settings",
                             JSONObject()
-                                .put("expected_record_hash", settings?.optString("record_hash", ""))
+                                .put(
+                                    "expected_record_hash",
+                                    currentSettings.optString("record_hash", ""),
+                                )
                                 .put(
                                     "updates",
-                                    settings?.optJSONObject("settings") ?: JSONObject(),
+                                    currentSettings.optJSONObject("settings") ?: JSONObject(),
                                 ),
                         )
+                    }
                 },
             )
         }

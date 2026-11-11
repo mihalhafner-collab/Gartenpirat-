@@ -9777,7 +9777,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 added().singleOrNull()?.getString("id") == id,
             "DST_UI_RECREATE_KEEPS_SAME_UNAMBIGUOUS_ORIGINAL",
         )
-        if (field(offsetLabel) == null) click("Kalender und Wetter")
+        reveal(offsetLabel)
         enter(offsetLabel, "+02:00")
         if (keyboardVisible()) back()
         waitUntil("DST_UI_AUTUMN_EXPLICIT_SUMMER_OFFSET_CHANGES_INSTANT_SAME_ID") {

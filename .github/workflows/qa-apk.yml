@@ -252,14 +252,19 @@ jobs:
           test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
           test "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1
           mkdir -p outputs
+          upgrade_failures=0
           if [ -f "$RUNNER_TEMP/gp-baseline158.apk" ]; then
-            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-baseline158.apk"
-            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
-            timeout 180 "$ADB" -s emulator-5580 shell am instrument -w -e suite upgrade_158_seed \
-              -e expected_source 7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640 \
-              -e expected_git 8101f3c395c9770005727bc37fc2f2057fca9130 \
-              at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee outputs/upgrade_158_seed.txt
-            python3 - <<'PY'
+            # Run normally: an if/|| function call would disable the child's errexit.
+            set +e
+            (
+              set -euo pipefail
+              "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-baseline158.apk"
+              "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
+              timeout 180 "$ADB" -s emulator-5580 shell am instrument -w -e suite upgrade_158_seed \
+                -e expected_source 7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640 \
+                -e expected_git 8101f3c395c9770005727bc37fc2f2057fca9130 \
+                at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee outputs/upgrade_158_seed.txt
+              python3 - <<'PY'
           import json,pathlib
           text=pathlib.Path('outputs/upgrade_158_seed.txt').read_text()
           assert 'INSTRUMENTATION_CODE: -1' in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
@@ -267,15 +272,15 @@ jobs:
           assert result['suite']=='upgrade_158_seed' and result['checks']>0 and result['installed_version_code']==158, result
           assert result['synthetic_only'] is True and result['productive_data_read'] is False, result
           PY
-            "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
-            "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
-            # No pm clear, uninstall, restore or fixture reseeding between these APKs.
-            "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-app.apk"
-            candidate_source=$(python3 -B tools/check_release_baseline.py | python3 -c 'import json,sys; print(json.load(sys.stdin)["source_sha256"])')
-            timeout 180 "$ADB" -s emulator-5580 shell am instrument -w -e suite upgrade_158_verify \
-              -e expected_source "$candidate_source" -e expected_git "$CANDIDATE_GIT" \
-              at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee outputs/upgrade_158_verify.txt
-            python3 - <<'PY'
+              "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
+              "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+              # No pm clear, uninstall, restore or fixture reseeding between these APKs.
+              "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-app.apk"
+              candidate_source=$(python3 -B tools/check_release_baseline.py | python3 -c 'import json,sys; print(json.load(sys.stdin)["source_sha256"])')
+              timeout 180 "$ADB" -s emulator-5580 shell am instrument -w -e suite upgrade_158_verify \
+                -e expected_source "$candidate_source" -e expected_git "$CANDIDATE_GIT" \
+                at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee outputs/upgrade_158_verify.txt
+              python3 - <<'PY'
           import json,pathlib
           text=pathlib.Path('outputs/upgrade_158_verify.txt').read_text()
           assert 'INSTRUMENTATION_CODE: -1' in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
@@ -285,13 +290,25 @@ jobs:
               assert result[field] is True, result
           assert result['productive_data_read'] is False, result
           PY
-            # The in-place proof is complete. Only now reset the disposable app for the
-            # independent fresh-fixture suites below.
-            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
-          else
-            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
-            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
+            )
+            upgrade_status=$?
+            set -e
+            if [ "$upgrade_status" != 0 ]; then
+              upgrade_failures=$((upgrade_failures+1))
+              echo "::error::158 to 159 upgrade proof failed (status $upgrade_status); independent suites will still run."
+            fi
+          elif [ "$GRAPHICS_ONLY" != true ] && [ "$ACCOUNTING_ONLY" != true ] && [ "$SETTLEMENT_ONLY" != true ] && [ "$SETTLEMENT_UI_ONLY" != true ]; then
+            upgrade_failures=$((upgrade_failures+1))
+            echo "::error::Full run is missing the required signed 158 baseline."
           fi
+          # Even a failed seed/verify may leave 158 installed or a running fixture.
+          # Install the actual candidate before clearing this disposable app; never clear
+          # between successful seeding, install -r and verification of the real update.
+          "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
+          "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+          "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-app.apk"
+          "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-test.apk"
+          test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
           native_suite_failures=0
           if [ "$SETTLEMENT_UI_ONLY" = true ]; then
             suites=(native_settlement_ui)
@@ -452,6 +469,8 @@ jobs:
           done
           "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
           test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
+          printf 'Upgrade failures: %s; independent suite failures: %s\n' "$upgrade_failures" "$native_suite_failures"
+          test "$upgrade_failures" = 0
           test "$native_suite_failures" = 0
       - name: Collect isolated emulator diagnostics
         if: failure()

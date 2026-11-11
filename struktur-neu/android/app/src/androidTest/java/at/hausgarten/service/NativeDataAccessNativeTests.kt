@@ -87,7 +87,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
         val context = test.targetContext
         val info = context.packageManager.getPackageInfo(context.packageName, 0)
         yes(info.longVersionCode == if (verify) 159L else 158L, "UPGRADE_INSTALLED_VERSION")
-        val marker = File(test.context.noBackupFilesDir, "qa-inplace-upgrade-158.json")
+        val marker = File(context.noBackupFilesDir, "qa-inplace-upgrade-158.json")
         if (!verify) {
             yes(!marker.exists(), "UPGRADE_NEW_TEST_MARKER")
             yes(

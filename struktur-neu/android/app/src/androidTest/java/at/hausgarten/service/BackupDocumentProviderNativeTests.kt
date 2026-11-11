@@ -165,7 +165,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 media.canonicalPath.endsWith("/Android/media/${context.packageName}"),
             "MEDIA_OWN_PRIMARY_DIRECTORY",
         )
-        val savedState = File(test.context.noBackupFilesDir, "qa-real-media-backup.json")
+        val savedState = File(context.noBackupFilesDir, "qa-real-media-backup.json")
         val saved = if (reopen) JSONObject(savedState.readText()) else JSONObject()
         val token =
             if (reopen) saved.getString("token")
