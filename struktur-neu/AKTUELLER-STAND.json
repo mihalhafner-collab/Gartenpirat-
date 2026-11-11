@@ -56,26 +56,26 @@
   "current_test_candidate": {
     "version_name": "1.72.0",
     "version_code": 159,
-    "source_sha256": "c5f8677a0977608eb4a0918f90d5b4dcf4da519946fadf7d2b4a21e484709817",
-    "status": "Eisbär-Codekandidat auf der nachgewiesenen installierten 158-Basis. Lokale Quell-/Datenschutzprüfungen, 97 JVM-Tests, Lint, Release- und Test-APK bestanden; abschließende Terminbeschriftung statisch geprüft. Vollständige CI-/UI-/MCP-/Pixel-/Update-/Sicherungsabnahme offen. Nicht verteilt oder installiert."
+    "source_sha256": "45c69e244e0322fbe2e8d083c31d92d8f8074e884bdaa08747bf13749ddf1040",
+    "status": "Eisbär 1.0.1 auf nachgewiesener installierter 158-Basis. Suchschema, stabile Oberflächenidentität/Filter, leere Termindetails und bestätigte Angebotsannahme korrigiert. 64 Python-Prüfungen, 97 JVM-Tests, Lint und beide APK-Bauten bestanden. Echte 158→159-Updateprüfung und breite native UI-/MCP-Matrix sind kompiliert; neuer vollständiger CI-Lauf folgt. Nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "IN_PROGRESS — Eisbär nativ implementiert, lokale Prüfungen grün. Vollständige CI-/UI-/MCP-/Pixel-, Datenbewahrungs- und Sicherungs-/Restore-Abnahme noch offen; kein Eisbär-Abschluss.",
+    "status": "IN_PROGRESS — native Eisbär-Umsetzung mit erweiterten Original-/MCP-/Finanznachweisen. Fehler des ersten vollständigen CI-Laufs korrigiert; erneute Gesamtprüfung und physische Pixel-Abnahme offen. Kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
       "native_implementation": "IN_PROGRESS",
-      "eisbaer_runtime_tests": "NOT_RUN",
-      "source": "PASS check_release_baseline.py und check_current.py; 64 Python-Tests, Eisbär-Originale unverändert.",
-      "local_jvm": "PASS 97 JVM-Tests, keine Fehler.",
-      "local_build": "PASS Release- und Test-APK, lintRelease sowie Artefakt-Datenschutzprüfung. Native Laufzeittests nicht lokal ausgeführt; KVM fehlt.",
-      "full_ci": "Noch nicht für den Eisbär-Kandidaten ausgeführt; bestehender 158-Lauf gilt nicht als neue Abnahme."
+      "eisbaer_runtime_tests": "Erster vollständiger Kandidatenlauf: 23/42 native Abläufe PASS, 19 FAIL; Ursachen behoben, erneute Gesamtprüfung erforderlich.",
+      "source": "PASS check_release_baseline.py und check_current.py; 64 Python-Tests, Workflow-YAML und 12 Shellblöcke syntaktisch geprüft, Eisbär-Originale unverändert.",
+      "local_jvm": "PASS 97 JVM-Tests, keine Fehler; tatsächliche Annahme→Konvertierung→Journal-/Request-Transaktion, Finanzdatumsachsen sowie L.C.R.-Löschschutz und Rollback geprüft.",
+      "local_build": "PASS nach allen integrierten Korrekturen: testReleaseUnitTest, lintRelease, assembleRelease, assembleReleaseAndroidTest und Artefakt-Datenschutzprüfung. Native Laufzeitprüfungen folgen im CI; lokal fehlt KVM.",
+      "full_ci": "Run 42978146746 auf d6ab1cd: Build SUCCESS, Emulator FAILURE. Rote Such-/UI-/Tour-Prüfungen sind behoben; ein neuer voller Lauf desselben bestehenden PR #27 folgt nach lokaler Prüfung. Kein roter Test wird als Pixel-Restpunkt ausgegeben."
     },
     "next": [
-      "Stabilen Kandidaten 1.72.0/159 mit vollständigen lokalen Build-, JVM-, Lint- und Artefaktprüfungen abschließen.",
-      "Vorhandenen PR #27 auf codex/design-08-11 mit dem Eisbär-Kandidaten fortführen und vollständigen CI-Emulatorlauf einschließlich nativer UI-/MCP-Prüfungen durchführen.",
+      "Vollständigen CI-Lauf des korrigierten Kandidaten einschließlich echter 158→159-Inplace-Updateprüfung und erweiterter UI-/MCP-Matrix bis grün ausführen.",
+      "Verbleibende explizite MCP-Abnahmewege und positive Fortschreibung über den tatsächlichen Android-Dateianbieter ergänzen und im vollständigen CI-Lauf nachweisen.",
       "Nach ausdrücklich beauftragter Installation: Pixel-Identität, Verbindungen, Bedienbarkeit, Datenbewahrung sowie sichere Fortschreibung und bestätigte Wiederherstellung mit synthetischen Daten prüfen.",
       "Nachweise in UMSETZUNG.json eintragen; erst bei vollständiger bestandener Abnahme check_eisbaer.py --completion und Abschluss."
     ],

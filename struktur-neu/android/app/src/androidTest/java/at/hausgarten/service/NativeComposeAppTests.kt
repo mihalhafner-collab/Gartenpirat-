@@ -62,6 +62,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private val context = test.targetContext
     private val automation = test.uiAutomation
     private var checks = 0
+    private val executedMcpTools = linkedSetOf<String>()
     @Volatile private var activity: Activity? = null
     @Volatile private var latest: Activity? = null
     private val sharedSearchLabel = "Suchen"
@@ -796,6 +797,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun read(name: String, args: JSONObject = JSONObject()): JSONObject {
         val response = tools.call(name, args)
         yes(!response.has("ok") || response.getBoolean("ok"), "MCP_$name")
+        executedMcpTools.add(name)
         return response.optJSONObject("data") ?: response
     }
 
@@ -976,7 +978,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         store.putOwnerValue("snapshot", NativeSettlementNativeTests.fixture().toString())
         store.putOwnerValue("personal_paid_migrated", "1")
         store.putOwnerValue("personal_paid", JSONArray().put("qa_settlement_labor").toString())
-        val originalMaster = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        var originalMaster = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
         val originalMarks = store.ownerValue("personal_paid", "[]")
         val invoice =
             read(
@@ -998,6 +1000,50 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 NativeSettlementNativeTests.draft("labor", "200", "qa_settlement_labor"),
                 "qa_settlement_ui_historical_labor",
             )
+        val pdfViewIntent = java.util.concurrent.atomic.AtomicReference<Intent>()
+        val pdfShareIntent = java.util.concurrent.atomic.AtomicReference<Intent>()
+        val shareLaunches = java.util.concurrent.atomic.AtomicInteger()
+        val pdfMonitor =
+            object : Instrumentation.ActivityMonitor() {
+                override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? {
+                    val target =
+                        if (intent.action == Intent.ACTION_CHOOSER)
+                            androidx.core.content.IntentCompat.getParcelableExtra(
+                                intent,
+                                Intent.EXTRA_INTENT,
+                                Intent::class.java,
+                            )
+                        else intent
+                    if (target?.type == "application/pdf")
+                        when (target.action) {
+                            Intent.ACTION_VIEW -> pdfViewIntent.set(Intent(target))
+                            Intent.ACTION_SEND -> {
+                                pdfShareIntent.set(Intent(target))
+                                shareLaunches.incrementAndGet()
+                            }
+                        }
+                    return null
+                }
+            }
+        test.addMonitor(pdfMonitor)
+        fun cancelPdfChooser(
+            reference: java.util.concurrent.atomic.AtomicReference<Intent>,
+            code: String,
+        ): Intent {
+            waitUntil("${code}_INTENT") { reference.get() != null }
+            waitUntil("${code}_ANDROID_CHOOSER_VISIBLE") {
+                automation.rootInActiveWindow?.packageName?.toString()?.let {
+                    it != context.packageName
+                } == true
+            }
+            val target = requireNotNull(reference.get())
+            back()
+            waitUntil("${code}_RETURNED_TO_APP") {
+                automation.rootInActiveWindow?.packageName?.toString() == context.packageName
+            }
+            checks++
+            return target
+        }
         val previous = automation.serviceInfo
         val previousFlags = previous.flags
         val oldFont = shell("settings get system font_scale")
@@ -1013,6 +1059,102 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shown("[TEST] Rechnung 900")
             click("[TEST] Rechnung 900")
             shown("Ausstellen")
+            fun editValue(row: String, label: String, value: String) {
+                reveal(row)
+                click(row)
+                enter(label, value)
+                if (keyboardVisible()) back()
+                click("Fertig")
+            }
+            val beforeMissingPrice = store.ownerValue(SettlementRules.KEY, "{}")
+            editValue("Preis je Einheit", "Preis je Einheit (€)", "")
+            reveal("Preis je Einheit (€)")
+            waitUntil("SETTLEMENT_MISSING_PRICE_STAYS_EMPTY") {
+                val values = runCatching {
+                    JSONObject(
+                            store.ownerValue(
+                                "native_form_draft:" +
+                                    PixelMcpWriteTools.hash("settlement-editor:$invoice"),
+                                "{}",
+                            )
+                        )
+                        .optJSONObject("values")
+                }
+                    .getOrNull()
+                values?.optJSONArray("positions")?.optJSONObject(0)?.let {
+                    it.has("price") && it.optString("price").isEmpty()
+                } == true
+            }
+            yes(
+                !actionEnabled(UiTags.PRIMARY) &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == beforeMissingPrice,
+                "SETTLEMENT_MISSING_PRICE_BLOCKS_ISSUE_WITHOUT_INVENTING_ZERO_OR_CHANGING_ORIGINAL",
+            )
+            // Color is an explicit usability signal; only the missing-price control is sampled.
+            val missingBounds = actionBounds("Preis je Einheit (€)")
+            val priceCapture = requireNotNull(automation.takeScreenshot())
+            val priceScreen =
+                try {
+                    requireNotNull(priceCapture.copy(Bitmap.Config.ARGB_8888, false))
+                } finally {
+                    priceCapture.recycle()
+                }
+            try {
+                var red = false
+                for (y in
+                    missingBounds.top.coerceAtLeast(0) until
+                        missingBounds.bottom.coerceAtMost(priceScreen.height) step
+                        2) for (x in
+                    missingBounds.left.coerceAtLeast(0) until
+                        missingBounds.right.coerceAtMost(priceScreen.width) step
+                        2) {
+                    val color = priceScreen.getPixel(x, y)
+                    if (
+                        android.graphics.Color.red(color) >
+                            android.graphics.Color.green(color) + 40 &&
+                            android.graphics.Color.red(color) >
+                                android.graphics.Color.blue(color) + 40
+                    )
+                        red = true
+                }
+                yes(red, "SETTLEMENT_MISSING_PRICE_HAS_VISIBLE_ERROR_COLOR")
+            } finally {
+                priceScreen.recycle()
+            }
+            editValue("Preis je Einheit (€)", "Preis je Einheit (€)", "900")
+            waitUntil("SETTLEMENT_PRICE_RESTORED_ISSUE_ENABLED") { actionEnabled(UiTags.PRIMARY) }
+            val beforePreview = store.ownerValue(SettlementRules.KEY, "{}")
+            reveal("PDF ansehen")
+            click("PDF ansehen")
+            val previewIntent = cancelPdfChooser(pdfViewIntent, "SETTLEMENT_DRAFT_PREVIEW")
+            yes(
+                previewIntent.action == Intent.ACTION_VIEW,
+                "SETTLEMENT_PREVIEW_OPENS_NATIVE_PDF_VIEW",
+            )
+            context.contentResolver
+                .openFileDescriptor(requireNotNull(previewIntent.data), "r")
+                .use { descriptor ->
+                    android.graphics.pdf.PdfRenderer(requireNotNull(descriptor)).use { renderer ->
+                        yes(renderer.pageCount > 0, "SETTLEMENT_PREVIEW_URI_READS_REAL_PDF")
+                        renderer.openPage(0).use { page ->
+                            yes(
+                                page.width > 0 && page.height > 0,
+                                "SETTLEMENT_PREVIEW_FIRST_PAGE_READABLE",
+                            )
+                        }
+                    }
+                }
+            val afterPreview =
+                read("get_settlement", JSONObject().put("settlement_id", invoice))
+                    .getJSONObject("record")
+            yes(
+                store.ownerValue(SettlementRules.KEY, "{}") == beforePreview &&
+                    afterPreview.optString("status") == "draft" &&
+                    !afterPreview.has("invoice_number") &&
+                    !afterPreview.has("pdf") &&
+                    !SettlementRules.active(afterPreview),
+                "SETTLEMENT_UI_PREVIEW_RESERVES_NO_NUMBER_OR_BINDING_AND_ISSUES_NO_ORIGINAL",
+            )
             // Design: one "Ausstellen" after the preview; issuer details are confirmed once in
             // settings.
             click(UiTags.PRIMARY)
@@ -1022,7 +1164,48 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getString("status") == "confirmed"
             }
             shown("E-Rechnung")
+            val beforeShare = read("get_settlement", JSONObject().put("settlement_id", invoice))
+            val shareRecordHash = beforeShare.getString("record_hash")
+            val sharePayments = beforeShare.getJSONArray("payments").toString()
+            val shareDelivery = beforeShare.getJSONArray("delivery_evidence").toString()
+            click("Zustimmung speichern")
+            val sharedIntent = cancelPdfChooser(pdfShareIntent, "SETTLEMENT_CONSENT_SHARE")
+            yes(
+                sharedIntent.action == Intent.ACTION_SEND && sharedIntent.type == "application/pdf",
+                "SETTLEMENT_CONSENT_OPENS_ANDROID_PDF_SHARE",
+            )
+            val consent =
+                read("get_customer", JSONObject().put("customer_id", "qa_settlement_recipient"))
+            yes(
+                consent.getBoolean("electronic_invoice_consent") &&
+                    consent.getString("electronic_invoice_consent_date") == SettlementRules.today(),
+                "SETTLEMENT_NATIVE_CONSENT_AND_ACTUAL_DATE_PERSISTED",
+            )
+            val afterShare = read("get_settlement", JSONObject().put("settlement_id", invoice))
+            yes(
+                afterShare.getString("record_hash") == shareRecordHash &&
+                    afterShare.getJSONArray("payments").toString() == sharePayments &&
+                    afterShare.getJSONArray("delivery_evidence").toString() == shareDelivery &&
+                    afterShare.getLong("paid_minor") == 0L,
+                "SETTLEMENT_CANCELLED_ANDROID_SHARE_NEITHER_CHANGES_ORIGINAL_NOR_BOOKS_PAYMENT_OR_ACCESS",
+            )
+            openContext("customers", "qa_settlement_recipient")
+            selectTab("Geld")
+            reveal("E-Rechnung")
+            click("E-Rechnung")
+            waitUntil("SETTLEMENT_NATIVE_CONSENT_REVOKED") {
+                val current =
+                    read("get_customer", JSONObject().put("customer_id", "qa_settlement_recipient"))
+                !current.optBoolean("electronic_invoice_consent") &&
+                    current.optString("electronic_invoice_consent_date").isBlank()
+            }
+            openContext("settlement_review", invoice)
+            click(UiTags.DETAIL_MENU)
+            click(UiTags.detailAction("settlement-share"))
+            shown("E-Rechnung")
+            yes(shareLaunches.get() == 1, "SETTLEMENT_REVOKED_CONSENT_BLOCKS_SECOND_ANDROID_SHARE")
             click("Später")
+            originalMaster = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
             checks++
             reveal("Bestätigt")
             shown("Bestätigt")
@@ -1072,13 +1255,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "SETTLEMENT_SHARED_FILTER_EXACT_AMOUNT",
             )
             captureSyntheticScreen("settlement-overview")
-            fun editValue(row: String, label: String, value: String) {
-                reveal(row)
-                click(row)
-                enter(label, value)
-                if (keyboardVisible()) back()
-                click("Fertig")
-            }
             val sources =
                 JSONObject()
                     .put("billing_customer_id", "qa_settlement_recipient")
@@ -1087,7 +1263,96 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             editValue("Bezeichnung", "Bezeichnung", "[TEST] Erste Abrechnung")
             recreate()
             shown("[TEST] Erste Abrechnung")
-            click("Entwurf sichern")
+            // The real writer pauses inside SQLite; no alternate save implementation is used.
+            if (Build.VERSION.SDK_INT >= 30) {
+                var liveController: NativeAppController? = null
+                waitUntil("SETTLEMENT_DELAY_CONTROLLER_READY") {
+                    test.runOnMainSync {
+                        val current = activity as? MainActivity ?: return@runOnMainSync
+                        val delegate =
+                            MainActivity::class
+                                .java
+                                .declaredFields
+                                .first { it.name.startsWith("controller") }
+                                .apply { isAccessible = true }
+                                .get(current) as androidx.compose.runtime.State<*>
+                        liveController = delegate.value as? NativeAppController
+                    }
+                    liveController != null
+                }
+                val database = requireNotNull(liveController).store.writableDatabase
+                val entered = java.util.concurrent.CountDownLatch(1)
+                val release = java.util.concurrent.CountDownLatch(1)
+                val paused = java.util.concurrent.atomic.AtomicBoolean()
+                val trigger = "qa_settlement_delayed_save"
+                database.setCustomScalarFunction(
+                    trigger,
+                    java.util.function.UnaryOperator { value ->
+                        if (paused.compareAndSet(false, true)) {
+                            entered.countDown()
+                            check(release.await(10, java.util.concurrent.TimeUnit.SECONDS)) {
+                                "Synthetic settlement delay was not released"
+                            }
+                        }
+                        value
+                    },
+                )
+                database.execSQL(
+                    "CREATE TRIGGER $trigger BEFORE INSERT ON owner_state WHEN NEW.key='settlement:v1' BEGIN SELECT $trigger('hold'); END"
+                )
+                try {
+                    reveal("Entwurf sichern")
+                    val saveBounds = actionBounds("Entwurf sichern")
+                    click("Entwurf sichern", onAction = {})
+                    yes(
+                        entered.await(5, java.util.concurrent.TimeUnit.SECONDS),
+                        "SETTLEMENT_ACTUAL_SQLITE_SAVE_IS_DELAYED",
+                    )
+                    waitUntil("SETTLEMENT_SAVE_DISABLED_WHILE_WRITER_BLOCKED") {
+                        !actionEnabled("Entwurf sichern")
+                    }
+                    yes(
+                        actionEnabled(UiTags.area("customers")),
+                        "SETTLEMENT_DELAY_DISABLES_SAVE_WITHOUT_BLOCKING_MAIN_NAVIGATION",
+                    )
+                    repeat(2) {
+                        val time = SystemClock.uptimeMillis()
+                        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                            val event =
+                                MotionEvent.obtain(
+                                    time,
+                                    SystemClock.uptimeMillis(),
+                                    action,
+                                    saveBounds.exactCenterX(),
+                                    saveBounds.exactCenterY(),
+                                    0,
+                                )
+                            event.source = InputDevice.SOURCE_TOUCHSCREEN
+                            try {
+                                yes(
+                                    automation.injectInputEvent(event, true),
+                                    "SETTLEMENT_SECOND_TAP_WHILE_SAVE_DISABLED",
+                                )
+                            } finally {
+                                event.recycle()
+                            }
+                        }
+                    }
+                    release.countDown()
+                    waitUntil("SETTLEMENT_DELAYED_DRAFT_COMMITTED_ONCE") {
+                        SettlementRules.rows(read("list_settlements").getJSONArray("records"))
+                            .count {
+                                it.optString("title") == "[TEST] Erste Abrechnung"
+                            } == 1
+                    }
+                } finally {
+                    release.countDown()
+                    database.execSQL("DROP TRIGGER IF EXISTS $trigger")
+                }
+            } else
+                throw AssertionError("Synthetic native settlement delay requires API 30 or newer")
+            shown("Abschlüsse")
+            recreate()
             waitUntil("SETTLEMENT_UI_FIRST_NEW_DRAFT_SAVED") {
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).any {
                     it.optString("title") == "[TEST] Erste Abrechnung"
@@ -1102,6 +1367,46 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") ==
                     4000L,
                 "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT",
+            )
+            yes(
+                firstNew.optString("status") == "draft" &&
+                    !firstNew.has("invoice_number") &&
+                    !firstNew.has("pdf") &&
+                    SettlementRules.rows(read("list_settlements").getJSONArray("records")).count {
+                        it.optString("title") == "[TEST] Erste Abrechnung"
+                    } == 1,
+                "SETTLEMENT_DELAY_DOUBLE_TAP_AND_RECREATE_KEEP_EXACTLY_ONE_DRAFT_WITHOUT_ACCIDENTAL_ISSUE",
+            )
+            val beforePlus = store.ownerValue(SettlementRules.KEY, "{}")
+            openAccountingTotals()
+            click(UiTags.CREATE)
+            for (label in
+                listOf(
+                    "Arbeiten",
+                    "L.C.R.",
+                    "Geräte",
+                    "Abrechnung vorbereiten",
+                    "Arbeit nachtragen",
+                    "Entwurf fortsetzen",
+                    "Zahlung erfassen",
+                )) reveal(label)
+            yes(
+                node("Labor clandestino") == null &&
+                    node(UiTags.createChoice("care_plan")) == null &&
+                    node("Pflegeplan anlegen") == null,
+                "SETTLEMENT_ACCOUNTING_PLUS_HAS_ONLY_AUTHORIZED_SHORTCUTS_AND_NO_RETIRED_COMPLETION",
+            )
+            click(UiTags.createChoice("work"))
+            shown("Was wurde erledigt? *")
+            back()
+            openAccountingTotals()
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("Abrechnung vorbereiten"))
+            shown("Bezeichnung")
+            back()
+            yes(
+                store.ownerValue(SettlementRules.KEY, "{}") == beforePlus,
+                "SETTLEMENT_PLUS_WORK_AND_INVOICE_SHORTCUTS_OPEN_FORMS_WITHOUT_BUSINESS_SIDE_EFFECTS",
             )
             openContext("settlement_edit", args = sources)
             shown("Bezeichnung")
@@ -1132,8 +1437,43 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getString("title") == "[TEST] Erste Abrechnung",
                 "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND",
             )
-            openContext("settlement_edit", firstNew.getString("id"))
+            val beforePaymentShortcut = store.ownerValue(SettlementRules.KEY, "{}")
+            openAccountingTotals()
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("Zahlung erfassen"))
+            waitUntil("SETTLEMENT_PAYMENT_SHORTCUT_FILTER_READY") {
+                node("[TEST] Rechnung 900") != null
+            }
+            yes(
+                node("[TEST] Erste Abrechnung") == null &&
+                    node("[TEST] Zweite Abrechnung") == null &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == beforePaymentShortcut,
+                "SETTLEMENT_PAYMENT_SHORTCUT_SHOWS_OPEN_ORIGINALS_WITHOUT_DRAFTS_OR_PAYMENT_BOOKING",
+            )
+            val countBeforeResume = read("list_settlements").getJSONArray("records").length()
+            openAccountingTotals()
+            click(UiTags.CREATE)
+            shown("Entwurf fortsetzen")
+            click(UiTags.createChoice("Entwurf fortsetzen"))
+            waitUntil("SETTLEMENT_DRAFT_SHORTCUT_FILTER_READY") {
+                node("[TEST] Erste Abrechnung") != null
+            }
+            yes(
+                node("[TEST] Rechnung 900") == null && node("[TEST] Labor 200") == null,
+                "SETTLEMENT_DRAFT_SHORTCUT_EXCLUDES_FINAL_ORIGINALS",
+            )
+            click("[TEST] Erste Abrechnung")
             shown("[TEST] Erste Abrechnung")
+            val resumed =
+                read("get_settlement", JSONObject().put("settlement_id", firstNew.getString("id")))
+                    .getJSONObject("record")
+            yes(
+                read("list_settlements").getJSONArray("records").length() == countBeforeResume &&
+                    resumed.getString("id") == firstNew.getString("id") &&
+                    resumed.getJSONArray("positions").toString() ==
+                        firstNew.getJSONArray("positions").toString(),
+                "SETTLEMENT_PLUS_RESUMES_SAME_DRAFT_WITH_SELECTION_AND_WITHOUT_SECOND_OPERATION",
+            )
             editValue("Bezeichnung", "Bezeichnung", "[TEST] Erste Abrechnung geprüft")
             click("Entwurf sichern")
             waitUntil("SETTLEMENT_UI_EXISTING_DRAFT_SAVE_COMPLETED") {
@@ -1182,8 +1522,32 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     "settlement-overview-200-${if (wide) "landscape" else "portrait"}"
                 )
             }
+            activity?.let { current ->
+                test.runOnMainSync { if (!current.isFinishing) current.finish() }
+            }
+            shell("settings put system font_scale 1.0")
+            launch()
+            test.runOnMainSync {
+                activity?.requestedOrientation =
+                    android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+            waitUntil("SETTLEMENT_ACTION_JOURNEYS_NORMAL_LAYOUT") {
+                var applied = false
+                test.runOnMainSync {
+                    val configuration = activity?.resources?.configuration
+                    applied =
+                        configuration != null &&
+                            configuration.fontScale < 1.01f &&
+                            configuration.orientation ==
+                                android.content.res.Configuration.ORIENTATION_PORTRAIT
+                }
+                applied
+            }
+            settlementCancellationUi(invoice)
+            offerAcceptanceUi()
             return JSONObject()
                 .put("checks", checks)
+                .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
                 .put("real_main_activity", true)
@@ -1192,11 +1556,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("filters_and_navigation", true)
                 .put("font_scale_200_percent", true)
                 .put("draft_recreation", true)
+                .put("native_storno_and_offer_acceptance_readback", true)
                 .put("physical_pixel_tested", physicalPixelTested())
         } catch (failure: Throwable) {
             runCatching { captureSyntheticScreen("settlement-failure") }
             throw failure
         } finally {
+            test.removeMonitor(pdfMonitor)
             previous.flags = previousFlags
             automation.serviceInfo = previous
             shell(
@@ -1211,6 +1577,323 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 }
             }
         }
+    }
+
+    private fun settlementCancellationUi(invoice: String) {
+        val withoutDelivery = read("get_settlement", JSONObject().put("settlement_id", invoice))
+        val deliveryArgs =
+            JSONObject()
+                .put("request_id", "qa_native_invoice_delivery_evidence")
+                .put("settlement_id", invoice)
+                .put("expected_record_hash", withoutDelivery.getString("record_hash"))
+                .put("date", SettlementRules.today())
+                .put(
+                    "evidence",
+                    "[TEST] Synthetische persönliche Übergabe; keine Versandnachricht erzeugt",
+                )
+        read("record_settlement_delivery", deliveryArgs)
+        yes(
+            read("record_settlement_delivery", deliveryArgs).getBoolean("replayed"),
+            "SETTLEMENT_MCP_DELIVERY_EXACT_REQUEST_REPLAY",
+        )
+        val before = read("get_settlement", JSONObject().put("settlement_id", invoice))
+        yes(
+            before.getJSONArray("delivery_evidence").length() == 1 &&
+                before.getJSONArray("delivery_evidence").getJSONObject(0).getString("evidence") ==
+                    deliveryArgs.getString("evidence") &&
+                before.getJSONArray("delivery_evidence").getJSONObject(0).getString("date") ==
+                    deliveryArgs.getString("date") &&
+                before.getString("record_hash") == withoutDelivery.getString("record_hash") &&
+                before.getJSONArray("payments").toString() ==
+                    withoutDelivery.getJSONArray("payments").toString(),
+            "SETTLEMENT_MCP_DELIVERY_READBACK_HAS_ONE_EVIDENCE_AND_UNALTERED_ORIGINAL_WITHOUT_PAYMENT",
+        )
+        val original = before.getJSONObject("record")
+        val masterHash = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        val beforeLedger = JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))
+        val reason = "[TEST] Vollständige Aufhebung nach ausdrücklicher Prüfung"
+        val evidence = "[TEST] Kein Zugang behauptet; Berichtigung persönlich vereinbart"
+        openAccountingTotals()
+        click("Umsätze und Zahlungen")
+        click(original.getString("invoice_number"))
+        click(UiTags.DETAIL_MENU)
+        click(UiTags.detailAction("settlement-correction"))
+        enter("Grund der Korrektur", reason)
+        enter("Vorhandene Übermittlung / Zugang / Berichtigung", evidence)
+        if (keyboardVisible()) back()
+        click("Storno bewusst vorbereiten")
+        waitUntil("SETTLEMENT_NATIVE_STORNO_PREPARED") {
+            SettlementRules.records(JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))).any {
+                it.optString("corrects") == invoice && it.optString("status") == "prepared"
+            }
+        }
+        val prepared =
+            SettlementRules.records(JSONObject(store.ownerValue(SettlementRules.KEY, "{}")))
+                .single { it.optString("corrects") == invoice }
+        val correction = prepared.getString("id")
+        yes(
+            read("get_settlement", JSONObject().put("settlement_id", invoice))
+                .getString("record_hash") == before.getString("record_hash") &&
+                !read(
+                        "get_lcr_work_records",
+                        JSONObject().put("work_record_id", "qa_settlement_invoice"),
+                    )
+                    .getJSONArray("records")
+                    .getJSONObject(0)
+                    .getBoolean("lcr_mutable"),
+            "M20_NATIVE_PREPARED_STORNO_KEEPS_ORIGINAL_AND_SOURCE_BINDING",
+        )
+        recreate()
+        shown("Ausstellen fortsetzen")
+        click(UiTags.PRIMARY)
+        waitUntil("SETTLEMENT_NATIVE_STORNO_ISSUED") {
+            read("get_settlement", JSONObject().put("settlement_id", correction))
+                .getJSONObject("record")
+                .optString("status") == "confirmed"
+        }
+        shown("E-Rechnung")
+        click("Später")
+        val completed =
+            read("get_settlement", JSONObject().put("settlement_id", correction))
+                .getJSONObject("record")
+        val cancelled = read("get_settlement", JSONObject().put("settlement_id", invoice))
+        val retained = JSONObject(cancelled.getJSONObject("record").toString())
+        retained.put("status", original.getString("status"))
+        retained.remove("corrected_by")
+        yes(
+            cancelled.getJSONObject("record").getString("status") == "cancelled" &&
+                cancelled.getJSONObject("record").getString("corrected_by") == correction &&
+                completed.getString("kind") == "cancellation" &&
+                completed.getString("corrects") == invoice &&
+                completed.getString("original_number") == original.getString("invoice_number") &&
+                completed.getString("invoice_number") != original.getString("invoice_number") &&
+                completed.getLong("total_minor") == -original.getLong("total_minor") &&
+                completed.getString("reason") == reason &&
+                completed.getString("access_evidence") == evidence &&
+                PixelMcpWriteTools.hash(retained) == PixelMcpWriteTools.hash(original),
+            "M20_NATIVE_STORNO_HAS_OWN_ORIGINAL_PDF_NUMBER_AND_UNALTERED_INVOICE_REFERENCE",
+        )
+        val correctionPdf =
+            read("get_settlement_pdf", JSONObject().put("settlement_id", correction))
+        yes(
+            correctionPdf.getJSONObject("metadata").getString("pdf_sha256") ==
+                completed.getJSONObject("pdf").getString("pdf_sha256") &&
+                read("get_settlement_pdf", JSONObject().put("settlement_id", invoice))
+                    .getJSONObject("metadata")
+                    .getString("pdf_sha256") ==
+                    original.getJSONObject("pdf").getString("pdf_sha256") &&
+                read(
+                        "get_lcr_work_records",
+                        JSONObject().put("work_record_id", "qa_settlement_invoice"),
+                    )
+                    .getJSONArray("records")
+                    .getJSONObject(0)
+                    .getBoolean("lcr_mutable") &&
+                cancelled.getJSONArray("payments").toString() ==
+                    before.getJSONArray("payments").toString() &&
+                cancelled.getJSONArray("delivery_evidence").toString() ==
+                    before.getJSONArray("delivery_evidence").toString() &&
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                    masterHash,
+            "M20_NATIVE_COMPLETED_STORNO_RELEASES_SOURCE_WITHOUT_REWRITING_WORK_PAYMENT_OR_ACCESS",
+        )
+        val issuedLedger = JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))
+        val replayArgs =
+            JSONObject()
+                .put("request_id", "qa_native_storno_complete_replay")
+                .put("settlement_id", correction)
+        read("complete_settlement", replayArgs)
+        yes(
+            read("complete_settlement", replayArgs).getBoolean("replayed"),
+            "M20_NATIVE_STORNO_COMPLETION_REPLAY_CONFIRMED",
+        )
+        recreate()
+        val afterReplay = JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))
+        yes(
+            afterReplay.getJSONArray("records").toString() ==
+                issuedLedger.getJSONArray("records").toString() &&
+                afterReplay.getJSONObject("series_counters").toString() ==
+                    issuedLedger.getJSONObject("series_counters").toString() &&
+                afterReplay.optJSONArray("payments")?.toString().orEmpty() ==
+                    beforeLedger.optJSONArray("payments")?.toString().orEmpty() &&
+                SettlementRules.records(afterReplay).count {
+                    it.optString("corrects") == invoice
+                } == 1,
+            "M20_NATIVE_STORNO_REPLAY_AND_RECREATE_CREATE_NO_SECOND_DOCUMENT_NUMBER_OR_PAYMENT",
+        )
+        val beforeStale = store.ownerValue(SettlementRules.KEY, "{}")
+        val staleDelivery = runCatching {
+            tools.call(
+                "record_settlement_delivery",
+                JSONObject(deliveryArgs.toString())
+                    .put("request_id", "qa_native_invoice_delivery_stale"),
+            )
+        }
+            .exceptionOrNull()
+        yes(
+            staleDelivery is IllegalArgumentException &&
+                staleDelivery.message == "Vorgang geändert. Erneut öffnen." &&
+                store.ownerValue(SettlementRules.KEY, "{}") == beforeStale &&
+                read("get_settlement", JSONObject().put("settlement_id", invoice))
+                    .getJSONArray("delivery_evidence")
+                    .length() == 1,
+            "SETTLEMENT_MCP_DELIVERY_STALE_ORIGINAL_HASH_REJECTS_WITHOUT_DUPLICATE_ACCESS_EVIDENCE",
+        )
+    }
+
+    private fun offerAcceptanceUi() {
+        val day = LocalDate.now(ZoneId.of("Europe/Vienna"))
+        // This entire MainActivity process was created by guardGraphicsFixture from an empty
+        // disposable QA app. Marked test offers intentionally cannot become orders, so this
+        // positive acceptance uses its own unmarked synthetic customer inside that same sandbox.
+        val customer =
+            read(
+                    "create_customer",
+                    JSONObject()
+                        .put("request_id", "qa_native_acceptance_customer")
+                        .put("name", "QA ausschließlich lokaler Angebotskunde")
+                        .put("street", "Fiktiver Annahmeweg 9")
+                        .put("postal_code", "3000")
+                        .put("city", "Fiktivstadt")
+                        .put("country", "AT"),
+                )
+                .getString("entity_id")
+        val offer =
+            read(
+                    "create_and_validate_offer",
+                    JSONObject()
+                        .put("request_id", "qa_native_acceptance_offer")
+                        .put("customer_id", customer)
+                        .put("title", "QA Angebot zur nativen Annahme")
+                        .put("document_type", "fixed_price")
+                        .put("issue_date", day.toString())
+                        .put("valid_until", day.plusDays(14).toString())
+                        .put("execution_window", "Nach ausdrücklicher Vereinbarung")
+                        .put("payment_terms", "Binnen 14 Tagen")
+                        .put("tax_mode", "small_business")
+                        .put("customer_type", "b2b")
+                        .put("scope_confirmed", true)
+                        .put(
+                            "positions",
+                            JSONArray()
+                                .put(
+                                    JSONObject()
+                                        .put("title", "QA Vereinbarte Gartenpflege")
+                                        .put(
+                                            "description",
+                                            "Synthetischer bestätigter Leistungsumfang",
+                                        )
+                                        .put("quantity", 2)
+                                        .put("price", 35)
+                                        .put("tax_rate", 0)
+                                        .put("unit", "h")
+                                        .put("price_source", "user_confirmed")
+                                ),
+                        ),
+                )
+                .getString("offer_id")
+        val validated = read("get_offer", JSONObject().put("offer_id", offer))
+        read(
+            "finalize_offer",
+            JSONObject()
+                .put("request_id", "qa_native_acceptance_final")
+                .put("offer_id", offer)
+                .put("expected_record_hash", validated.getString("record_hash"))
+                .put("expected_context_hash", validated.getString("context_hash"))
+                .put("confirmed", true),
+        )
+        val original = read("get_offer", JSONObject().put("offer_id", offer))
+        val originalPdf = original.getJSONObject("offer").getString("pdf_sha256")
+        val ledgerBefore = store.ownerValue(SettlementRules.KEY, "{}")
+        val ordersBefore =
+            PixelMcpReadTools.effective(store.getState()).getJSONArray("orders").length()
+        openContext("offers", offer)
+        reveal("Annehmen")
+        click("Annehmen")
+        val acceptedAt = java.time.Instant.now().minusSeconds(60).toString()
+        val evidence = "[TEST] Persönlich ausdrücklich zugesagte unveränderte Angebotsversion"
+        enter(nativeLabel("accepted_at"), acceptedAt)
+        enter(nativeLabel("evidence"), evidence)
+        if (keyboardVisible()) back()
+        val draftKey =
+            "native_form_draft:" + PixelMcpWriteTools.hash("action:record_offer_acceptance:$offer")
+        waitUntil("OFFER_NATIVE_ACCEPTANCE_ARGS_PERSISTED") {
+            JSONObject(store.ownerValue(draftKey, "{}")).optJSONObject("values")?.let {
+                it.optString("accepted_at") == acceptedAt &&
+                    it.optString("evidence") == evidence &&
+                    it.optString("request_id").isNotBlank()
+            } == true
+        }
+        val values = JSONObject(store.ownerValue(draftKey, "{}")).getJSONObject("values")
+        val acceptanceArgs = JSONObject()
+        for (key in
+            LocalWorkflowTools.schema("record_offer_acceptance")
+                .getJSONObject("properties")
+                .keys()
+                .asSequence()) if (values.has(key)) acceptanceArgs.put(key, values.get(key))
+        click(UiTags.PRIMARY)
+        waitUntil("OFFER_NATIVE_ACCEPTANCE_WRITES_ORDER") {
+            read("get_offer", JSONObject().put("offer_id", offer))
+                .getJSONObject("offer")
+                .optString("converted_order_id")
+                .isNotBlank()
+        }
+        val accepted = read("get_offer", JSONObject().put("offer_id", offer))
+        val orderId = accepted.getJSONObject("offer").getString("converted_order_id")
+        shown(UiTags.entityDetail("orders", orderId))
+        val order = read("get_order", JSONObject().put("order_id", orderId))
+        val history = read("get_offer_decision_history", JSONObject().put("offer_id", offer))
+        val decision = history.getJSONArray("history").getJSONObject(0)
+        yes(
+            accepted.getJSONObject("offer").getString("status") == "accepted" &&
+                accepted.getJSONObject("offer").getString("pdf_sha256") == originalPdf &&
+                order.getString("id") == orderId &&
+                order.getString("offer_id") == offer &&
+                order.getString("customer_id") == customer &&
+                order.getJSONArray("offer_refs").getJSONObject(0).getString("offer_id") == offer &&
+                history.getInt("total") == 1 &&
+                decision.getString("decision") == "accepted" &&
+                decision.getString("accepted_at") == acceptedAt &&
+                decision.getString("evidence") == evidence &&
+                decision.getString("pdf_sha256") == originalPdf &&
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("orders").length() ==
+                    ordersBefore + 1 &&
+                store.ownerValue(SettlementRules.KEY, "{}") == ledgerBefore,
+            "M06_NATIVE_ACCEPTANCE_CREATES_AND_OPENS_EXACTLY_ONE_ORDER_WITH_ORIGINAL_OFFER_EVIDENCE_WITHOUT_INVOICE",
+        )
+        val replay = read("record_offer_acceptance", acceptanceArgs)
+        yes(
+            replay.getBoolean("replayed") && replay.getString("order_id") == orderId,
+            "M06_NATIVE_ACCEPTANCE_EXACT_REQUEST_REPLAY_RETURNS_SAME_ORDER",
+        )
+        val duplicate = runCatching {
+            tools.call(
+                "record_offer_acceptance",
+                JSONObject(acceptanceArgs.toString())
+                    .put("request_id", "qa_native_acceptance_second_action")
+                    .put("expected_record_hash", accepted.getString("record_hash")),
+            )
+        }
+            .exceptionOrNull()
+        yes(
+            duplicate is PixelMcpWriteTools.Rejected &&
+                duplicate.code == "OFFER_DECISION_ALREADY_RECORDED",
+            "M06_NATIVE_ACCEPTANCE_SECOND_ACTION_EXPLICITLY_REJECTED",
+        )
+        recreate()
+        yes(
+            read("get_offer", JSONObject().put("offer_id", offer))
+                .getJSONObject("offer")
+                .getString("converted_order_id") == orderId &&
+                read("get_order", JSONObject().put("order_id", orderId)).getString("id") ==
+                    orderId &&
+                read("get_offer_decision_history", JSONObject().put("offer_id", offer))
+                    .getInt("total") == 1 &&
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("orders").length() ==
+                    ordersBefore + 1 &&
+                store.ownerValue(SettlementRules.KEY, "{}") == ledgerBefore,
+            "M06_NATIVE_ACCEPTANCE_RECREATE_REPLAY_AND_SECOND_ACTION_KEEP_ONE_ORDER_AND_UNALTERED_FINANCE_LEDGER",
+        )
     }
 
     private fun executeAccounting(reopen: Boolean): JSONObject {
@@ -1250,6 +1933,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             return JSONObject()
                 .put("checks", checks)
+                .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
                 .put("new_process_readback", true)
@@ -1360,8 +2044,82 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .contains("qa_settlement_old_unbound")
             }
             openContext("worklogs", "qa_settlement_invoice")
-            reveal("work-lcr")
-            yes(!actionEnabled("work-lcr"), "ACCOUNTING_DOCUMENT_BOUND_LCR_CONTROL_LOCKED")
+            shown(UiTags.entityDetail("worklogs", "qa_settlement_invoice"))
+            val boundOriginal =
+                read(
+                        "get_lcr_work_records",
+                        JSONObject().put("work_record_id", "qa_settlement_invoice"),
+                    )
+                    .getJSONArray("records")
+                    .getJSONObject(0)
+            yes(
+                !boundOriginal.getBoolean("lcr_mutable") &&
+                    boundOriginal.getString("lcr_block_reason").isNotBlank(),
+                "ACCOUNTING_ORIGINAL_HAS_ACTUAL_RETAINED_DOCUMENT_BINDING",
+            )
+            revealContaining(boundOriginal.getString("lcr_block_reason"))
+            fun boundControlReady(): Boolean {
+                val control = node("work-lcr") ?: return false
+                val bounds = Rect().also { control.getBoundsInScreen(it) }
+                val frame = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+                val top = runCatching { actionBounds(UiTags.BACK).bottom }.getOrDefault(frame.top)
+                val bottom = runCatching {
+                    actionBounds(UiTags.PRIMARY).top
+                }
+                    .getOrDefault(frame.bottom)
+                return control.isVisibleToUser &&
+                    !bounds.isEmpty &&
+                    frame.contains(bounds) &&
+                    bounds.top >= top &&
+                    bounds.bottom <= bottom &&
+                    runCatching { !actionEnabled("work-lcr") }.getOrDefault(false)
+            }
+            var lastBoundScroll = 0L
+            waitUntil("ACCOUNTING_BOUND_CONTROL_VISIBLE_AFTER_DETAIL_AND_BINDING_LOAD") {
+                if (boundControlReady()) true
+                else {
+                    if (SystemClock.uptimeMillis() - lastBoundScroll > 250) {
+                        val bounds =
+                            node("work-lcr")?.let { control ->
+                                Rect().also { control.getBoundsInScreen(it) }
+                            }
+                        val top = runCatching { actionBounds(UiTags.BACK).bottom }.getOrDefault(0)
+                        if (bounds != null && bounds.top < top)
+                            scrollTargets(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD).any {
+                                performVerticalScroll(it, false)
+                            }
+                        else scroll()
+                        lastBoundScroll = SystemClock.uptimeMillis()
+                    }
+                    false
+                }
+            }
+            waitStable("ACCOUNTING_DOCUMENT_BOUND_LCR_CONTROL_LOCKED") { boundControlReady() }
+            val rejectedMark = runCatching {
+                tools.call(
+                    "set_work_record_lcr",
+                    JSONObject()
+                        .put("request_id", "qa_accounting_bound_lcr_rejected")
+                        .put("work_record_id", "qa_settlement_invoice")
+                        .put("lcr", true)
+                        .put("expected_record_hash", boundOriginal.getString("lcr_record_hash")),
+                )
+            }
+            yes(
+                rejectedMark.isFailure || rejectedMark.getOrNull()?.optBoolean("ok") == false,
+                "ACCOUNTING_BOUND_ORIGINAL_REJECTS_MARKER_WRITE_THROUGH_SHARED_MCP_PATH",
+            )
+            yes(
+                !read(
+                        "get_lcr_work_records",
+                        JSONObject().put("work_record_id", "qa_settlement_invoice"),
+                    )
+                    .getJSONArray("records")
+                    .getJSONObject(0)
+                    .getBoolean("lcr") &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == originalLedger,
+                "ACCOUNTING_REJECTED_BOUND_MARKER_PRESERVES_ORIGINAL_AND_LEDGER",
+            )
             yes(
                 PixelMcpWriteTools.hash(
                     read("get_settlement", JSONObject().put("settlement_id", historical))
@@ -1434,6 +2192,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             return JSONObject()
                 .put("checks", checks)
+                .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
                 .put("new_process_readback", false)
@@ -1516,6 +2275,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             yes(ran, "EXPLICIT_KNOWN_GRAPHICS_JOURNEY_REQUIRED")
             return JSONObject()
                 .put("checks", checks)
+                .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
                 .put("independent_fresh_fixture", true)
@@ -1979,6 +2739,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             yes(ran, "EXPLICIT_KNOWN_JOURNEY_REQUIRED")
             return JSONObject()
                 .put("checks", checks)
+                .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
                 .put("journey", selectedJourney)
@@ -2380,6 +3141,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openWorklogs()
         enter("Suchen", ownText)
         click(ownText)
+        openDetails("Arbeit")
         reveal("[TEST] QA sofort sichtbare Notiz")
         click(ownText)
         enter("Tätigkeit", ownText + " ergänzt")
@@ -2426,6 +3188,137 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         it.optString("material").contains("12.50")
                 }
         }
+        // The operational material flow saves its product and consumption through real controls.
+        val productName = "[TEST] QA UI Kompostprodukt"
+        val consumptionNote = "[TEST] QA UI Verbrauch zur Originalarbeit"
+        val workId = row.getString("id")
+        fun product(): JSONObject? =
+            SettlementRules.rows(
+                    read("list_materials", JSONObject().put("query", productName))
+                        .optJSONArray("items")
+                )
+                .singleOrNull { it.optString("name") == productName }
+        fun uiOperation(kind: String, matches: (JSONObject) -> Boolean): JSONObject {
+            var snapshot: JSONObject? = null
+            waitUntil("MATERIAL_UI_RETAINED_$kind") {
+                val drafts = mutableListOf<JSONObject>()
+                store.readableDatabase
+                    .rawQuery(
+                        "SELECT value FROM owner_state WHERE key GLOB ?",
+                        arrayOf("native_form_draft:*"),
+                    )
+                    .use { cursor ->
+                        while (cursor.moveToNext()) {
+                            val draft =
+                                runCatching { JSONObject(cursor.getString(0)) }.getOrNull()
+                                    ?: continue
+                            if (
+                                draft.optString("kind") == kind &&
+                                    matches(draft.optJSONObject("values") ?: JSONObject())
+                            )
+                                drafts.add(draft)
+                        }
+                    }
+                snapshot = drafts.singleOrNull()
+                snapshot != null
+            }
+            // Reuse the production adapter to replay the exact retained UI request, without
+            // reconstructing its generated ID, price conversions or source hash in the test.
+            val edit = RevierEdit.restore("qa_material_ui_readback", requireNotNull(snapshot))
+            return revierArguments(edit, edit.row())
+        }
+        openOffice()
+        click("Material")
+        click("Material anlegen")
+        enter("Materialbezeichnung *", productName)
+        enter("Einheit *", "Sack")
+        enter("Einstandspreis in EUR (optional)", "7,50")
+        enter("Abrechnungspreis in EUR (optional)", "12,50")
+        if (keyboardVisible()) back()
+        val productOperation = uiOperation("material") { it.optString("name") == productName }
+        click("Speichern")
+        waitUntil("MATERIAL_UI_PRODUCT_SAVED") { product() != null }
+        val originalProduct = requireNotNull(product())
+        val materialId = originalProduct.getString("id")
+        yes(
+            originalProduct.getString("unit") == "Sack" &&
+                originalProduct.getLong("purchase_price_minor") == 750L &&
+                originalProduct.getLong("billing_price_minor") == 1250L,
+            "MATERIAL_UI_PRODUCT_ORIGINAL_AND_EXACT_PRICES",
+        )
+        val replayedProduct =
+            read(productOperation.getString("tool"), productOperation.getJSONObject("args"))
+        yes(
+            replayedProduct.optBoolean("replayed") && product()?.getString("id") == materialId,
+            "MATERIAL_UI_PRODUCT_REQUEST_REPLAY_HAS_ONE_ORIGINAL",
+        )
+        reveal("Verbrauch erfassen")
+        click("Verbrauch erfassen")
+        click("Arbeit: Nicht zugeordnet")
+        enter("Suchen", ownText)
+        click(ownText)
+        enter("Verbrauch in Sack *", "0")
+        if (keyboardVisible()) back()
+        click("Verbrauch speichern")
+        revealContaining("Eine positive Verbrauchsmenge eingeben.")
+        yes(
+            SettlementRules.rows(requireNotNull(product()).optJSONArray("movements")).isEmpty(),
+            "MATERIAL_UI_INVALID_CONSUMPTION_LEAVES_NO_MOVEMENT",
+        )
+        enter("Verbrauch in Sack *", "2,5")
+        enter("Notiz", consumptionNote)
+        if (keyboardVisible()) back()
+        val consumptionOperation =
+            uiOperation("movement") {
+                it.optString("material_id") == materialId &&
+                    it.optString("worklog_id") == workId &&
+                    it.optString("quantity_decimal") == "2,5"
+            }
+        val workHashBeforeConsumption =
+            PixelMcpWriteTools.hash(
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+            )
+        click("Verbrauch speichern")
+        shown("Verbrauch gebucht")
+        waitUntil("MATERIAL_UI_CONSUMPTION_SAVED") {
+            SettlementRules.rows(product()?.optJSONArray("movements")).size == 1
+        }
+        val movement =
+            SettlementRules.rows(requireNotNull(product()).optJSONArray("movements")).single()
+        val movementId = movement.getString("id")
+        yes(
+            movement.getString("material_id") == materialId &&
+                movement.getString("worklog_id") == workId &&
+                movement.getString("quantity_decimal") == "2.5" &&
+                movement.getString("unit") == "Sack" &&
+                movement.getString("reason") == consumptionNote,
+            "MATERIAL_UI_CONSUMPTION_REFERENCES_PRODUCT_AND_ORIGINAL_WORK",
+        )
+        yes(
+            PixelMcpWriteTools.hash(
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+            ) == workHashBeforeConsumption,
+            "MATERIAL_UI_CONSUMPTION_NEVER_DUPLICATES_OR_REWRITES_WORK",
+        )
+        val replayedConsumption =
+            read(consumptionOperation.getString("tool"), consumptionOperation.getJSONObject("args"))
+        yes(
+            replayedConsumption.optBoolean("replayed") &&
+                SettlementRules.rows(requireNotNull(product()).optJSONArray("movements"))
+                    .single()
+                    .getString("id") == movementId,
+            "MATERIAL_UI_CONSUMPTION_REQUEST_REPLAY_HAS_ONE_MOVEMENT",
+        )
+        click("Zum Material")
+        recreate()
+        revealContaining(consumptionNote)
+        yes(
+            product()?.getString("id") == materialId &&
+                SettlementRules.rows(requireNotNull(product()).optJSONArray("movements"))
+                    .single()
+                    .getString("id") == movementId,
+            "MATERIAL_UI_PRODUCT_AND_SINGLE_CONSUMPTION_SURVIVE_RECREATION",
+        )
         checks++
     }
 
@@ -2779,6 +3672,129 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             selectTab("Übersicht")
             reveal("Wartung einrichten")
+            val equipmentId = machine().getString("id")
+            val maintenanceArgs = JSONObject().put("equipment_id", equipmentId)
+            fun maintenance() = read("get_equipment_maintenance", maintenanceArgs)
+            val beforeEvents = maintenance().getInt("total")
+            val maintenanceTitle = "[TEST] QA UI Kettenwartung"
+            val maintenanceDay = LocalDate.now(ZoneId.of("Europe/Vienna"))
+            click("Wartung einrichten")
+            enter("Wartungstätigkeit *", maintenanceTitle)
+            enter("Alle *", "7")
+            chooseDate("Intervall beginnt am *", maintenanceDay.toString())
+            click(UiTags.PRIMARY)
+            waitUntil("UI_EQUIPMENT_MAINTENANCE_PLAN_PERSISTED") {
+                SettlementRules.rows(maintenance().getJSONArray("plans")).any {
+                    it.optString("title") == maintenanceTitle &&
+                        it.optInt("interval_value") == 7 &&
+                        it.optString("interval_unit") == "days"
+                }
+            }
+            val plan =
+                SettlementRules.rows(maintenance().getJSONArray("plans")).single {
+                    it.optString("title") == maintenanceTitle
+                }
+            val planId = plan.getString("id")
+            yes(
+                maintenance().getInt("total") == beforeEvents,
+                "UI_PLAN_CONFIGURATION_IS_NOT_A_COMPLETED_MAINTENANCE",
+            )
+            reveal(maintenanceTitle)
+            click(maintenanceTitle)
+            val maintenanceReason = "[TEST] Bewusst durchgeführte Kettenwartung"
+            val maintenanceNote = "[TEST] Kette gereinigt und geprüft"
+            chooseDate("Erledigt am *", maintenanceDay.toString())
+            enter("Grund / Anlass", maintenanceReason)
+            enter("Notiz", maintenanceNote)
+            if (keyboardVisible()) back()
+            // Replay exactly the operation prepared by the real form, with its original request
+            // and version. The assertions below read persisted events independently of the form.
+            val editKey =
+                "revier:maintenance_done:$equipmentId:" +
+                    listOf(equipmentId, planId, "", "", "", "").joinToString(":")
+            var maintenanceOperation: JSONObject? = null
+            waitUntil("UI_MAINTENANCE_OPERATION_DURABLE") {
+                val saved = runBlocking { controller.draft(editKey) }
+                if (saved?.optJSONObject("values")?.optString("notes") != maintenanceNote) false
+                else {
+                    val edit = RevierEdit.restore(editKey, requireNotNull(saved))
+                    maintenanceOperation = revierArguments(edit, edit.row())
+                    true
+                }
+            }
+            val save = requireNotNull(node(UiTags.PRIMARY)?.let(::clickable))
+            yes(
+                save.performAction(AccessibilityNodeInfo.ACTION_CLICK),
+                "UI_MAINTENANCE_SAVE_BUTTON_ACTIVATED",
+            )
+            // A second tap may be rejected by the disabled button or replay the same operation.
+            // Either way there must be exactly one new persisted maintenance event.
+            save.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            waitUntil("UI_MAINTENANCE_EVENT_PERSISTED_ONCE") {
+                maintenance().getInt("total") == beforeEvents + 1
+            }
+            shown("Wartung gespeichert")
+            val event =
+                SettlementRules.rows(maintenance().getJSONArray("items")).single {
+                    it.optString("title") == maintenanceTitle
+                }
+            val eventId = event.getString("id")
+            yes(
+                event.getString("equipment_id") == equipmentId &&
+                    event.getString("plan_id") == planId &&
+                    event.getString("performed_on") == maintenanceDay.toString() &&
+                    event.getString("reason") == maintenanceReason &&
+                    event.getString("notes") == maintenanceNote,
+                "UI_MAINTENANCE_PRESERVES_ORIGINAL_DEVICE_PLAN_DATE_AND_CONTENT",
+            )
+            val savedPlan =
+                SettlementRules.rows(maintenance().getJSONArray("plans")).single {
+                    it.getString("id") == planId
+                }
+            yes(
+                savedPlan.getString("last_event_id") == eventId &&
+                    savedPlan.getString("last_completed_on") == maintenanceDay.toString() &&
+                    savedPlan.getString("next_due_on") == maintenanceDay.plusDays(7).toString(),
+                "UI_MAINTENANCE_ADVANCES_EXISTING_PLAN_FROM_PERFORMED_DATE",
+            )
+            val originalOperation = requireNotNull(maintenanceOperation)
+            yes(
+                read(originalOperation.getString("tool"), originalOperation.getJSONObject("args"))
+                    .getBoolean("replayed"),
+                "UI_MAINTENANCE_EXACT_REQUEST_REPLAY",
+            )
+            yes(
+                maintenance().getInt("total") == beforeEvents + 1,
+                "UI_MAINTENANCE_REPLAY_ADDS_NO_SECOND_EVENT",
+            )
+            click("Zum Gerät")
+            recreate()
+            reveal(maintenanceTitle)
+            yes(
+                maintenance().getInt("total") == beforeEvents + 1 &&
+                    SettlementRules.rows(maintenance().getJSONArray("items"))
+                        .single { it.optString("title") == maintenanceTitle }
+                        .getString("id") == eventId &&
+                    machine().getString("id") == equipmentId,
+                "UI_MAINTENANCE_EVENT_AND_DEVICE_ID_SURVIVE_RECREATION",
+            )
+            PixelLocalStore(context).use { fresh ->
+                val reader =
+                    PixelMcpReadTools(fresh.readSource(), fresh, PixelOwnerAccess(context, fresh))
+                val response = reader.call("get_equipment_maintenance", maintenanceArgs)
+                yes(
+                    !response.has("ok") || response.getBoolean("ok"),
+                    "UI_MAINTENANCE_REOPENED_MCP_READ",
+                )
+                val persisted = response.optJSONObject("data") ?: response
+                yes(
+                    persisted.getInt("total") == beforeEvents + 1 &&
+                        SettlementRules.rows(persisted.getJSONArray("items"))
+                            .single { it.optString("title") == maintenanceTitle }
+                            .getString("id") == eventId,
+                    "UI_MAINTENANCE_EVENT_READ_FROM_NEW_STORE_ADAPTER",
+                )
+            }
         } finally {
             source.delete()
         }
@@ -3617,6 +4633,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 " · jetzt abrechnen"
         }
         click(UiTags.area("today"))
+        openDetails("Zu erledigen")
         reveal(openHoursText())
         val fourth = runBlocking {
             data.list("worklogs", dateFrom = day, dateTo = day, limit = 4)
@@ -3926,6 +4943,53 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun customerContextJourney() {
+        val planningContext = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        planningContext.navigate("planning", args = JSONObject().put("date", "2027-05-18"))
+        val planningStateKey = planningContext.savedRoute()
+        planningContext.route.args.put("date", "2027-05-19").put("customer_id", "qa-context")
+        yes(
+            planningContext.savedRoute() == planningStateKey,
+            "PLANNING_CURRENT_CONTEXT_DOES_NOT_RESET_SEARCH_OR_FOCUS_STATE_KEY",
+        )
+        val planningRecreated = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        planningRecreated.restoreRoute(planningContext.savedNavigation())
+        yes(
+            planningRecreated.savedRoute() == planningStateKey &&
+                planningRecreated.route.args.optString("date") == "2027-05-19" &&
+                planningRecreated.route.args.optString("customer_id") == "qa-context",
+            "RECREATED_PLANNING_RETAINS_STABLE_STATE_KEY_AND_CURRENT_CONTEXT",
+        )
+        planningRecreated.navigate("planning", args = JSONObject().put("date", "2027-05-20"))
+        yes(
+            planningRecreated.savedRoute() != planningStateKey &&
+                planningRecreated.route.args.optString("date") == "2027-05-20",
+            "EXPLICIT_NEW_CONTEXT_CHANGES_PLANNING_STATE_KEY",
+        )
+        val filtered = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        filtered.navigate("settlements", args = JSONObject().put("status", "draft"))
+        filtered.navigate("settlements", args = JSONObject().put("payment_open", true))
+        yes(
+            filtered.route.args.optBoolean("payment_open") && !filtered.route.args.has("status"),
+            "SAME_OVERVIEW_EXPLICIT_SHORTCUT_REPLACES_FILTER",
+        )
+        filtered.navigate("settlement_review", "qa-filter-history")
+        filtered.navigate("settlements", args = JSONObject().put("status", "draft"))
+        yes(
+            filtered.route.args.optString("status") == "draft" &&
+                !filtered.route.args.has("payment_open"),
+            "HISTORY_OVERVIEW_EXPLICIT_SHORTCUT_REPLACES_FILTER",
+        )
+        filtered.navigate("settlement_review", "qa-filter-history")
+        filtered.navigate("settlements")
+        yes(filtered.route.args.optString("status") == "draft", "OVERVIEW_RETAINS_SAVED_FILTER")
+        val filteredRecreated = NativeAppController(requireNotNull(activity) as MainActivity, store)
+        filteredRecreated.restoreRoute(filtered.savedNavigation())
+        yes(
+            filteredRecreated.route.args.optString("status") == "draft",
+            "EXPLICIT_SHORTCUT_FILTER_SURVIVES_RECREATE",
+        )
+        filteredRecreated.back()
+        yes(filteredRecreated.route.section == "today", "SHORTCUT_REUSES_OVERVIEW_STACK_POSITION")
         val navigation = NativeAppController(requireNotNull(activity) as MainActivity, store)
         for (area in listOf("today", "planning", "customers", "accounting")) {
             navigation.openSection(area)
@@ -5008,7 +6072,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .put("request_id", "qa_board_initial_tour")
                     .put("date", day.toString())
                     .put("expected_record_hash", tour.getString("record_hash"))
-                    .put("visit_ids", JSONArray().put(firstVisit).put(secondVisit)),
+                    .put(
+                        "visit_ids",
+                        JSONArray()
+                            .put(firstVisit)
+                            .put(secondVisit)
+                            .put("appointments:" + appointmentId),
+                    ),
             )
 
             // Synthetic hourly data; no weather request or network dependency.
@@ -5372,6 +6442,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .optString("window_start") == "09:30",
                 "BOARD_DRAG_DURABLE_AFTER_RECREATION",
             )
+            val masterBeforeOrder =
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            val expectedTourIds = listOf(secondVisit, firstVisit, "appointments:" + appointmentId)
+            fun exactTourOrder(result: JSONObject): Boolean {
+                val persisted = result.getJSONObject("tour").getJSONArray("visit_ids")
+                val stops = result.getJSONArray("stops")
+                return (0 until persisted.length()).map(persisted::getString) == expectedTourIds &&
+                    stops.length() == 3 &&
+                    SettlementRules.rows(stops).map { it.getString("id") } == expectedTourIds &&
+                    SettlementRules.rows(stops).map { it.getString("source_id") }.toSet() ==
+                        setOf(firstVisit, secondVisit, appointmentId) &&
+                    stops.getJSONObject(2).getString("source_collection") == "appointments"
+            }
             click(UiTags.PLANNING_TOUR)
             reveal(UiTags.TOUR_ORDER)
             fun tourOrderingSelected() =
@@ -5385,15 +6468,38 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.tourMove(secondVisit, "up"))
             click(UiTags.TOUR_SAVE)
             waitUntil("BOARD_TOUR_ORDER_COMMITTED") {
-                val current =
-                    read("get_day_tour", JSONObject().put("date", day.toString()))
-                        .getJSONObject("tour")
-                        .getJSONArray("visit_ids")
-                current.length() == 2 &&
-                    current.optString(0) == secondVisit &&
-                    current.optString(1) == firstVisit
+                exactTourOrder(read("get_day_tour", JSONObject().put("date", day.toString())))
             }
+            yes(
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                    masterBeforeOrder,
+                "BOARD_TOUR_ORDER_KEEPS_MASTER_ORIGINALS",
+            )
+            yes(
+                read("get_visit", JSONObject().put("visit_id", firstVisit))
+                    .getString("record_hash") == movedVisit.getString("record_hash") &&
+                    read("get_visit", JSONObject().put("visit_id", secondVisit))
+                        .getJSONObject("record")
+                        .getString("window_start") == "15:00",
+                "BOARD_TOUR_ORDER_KEEPS_VISIT_TIMES_AND_IDENTITIES",
+            )
+            PixelLocalStore(context).use { reopened ->
+                val reopenedTools =
+                    PixelMcpReadTools(
+                        reopened.readSource(),
+                        reopened,
+                        PixelOwnerAccess(context, reopened),
+                    )
+                val persisted =
+                    reopenedTools
+                        .call("get_day_tour", JSONObject().put("date", day.toString()))
+                        .getJSONObject("data")
+                yes(exactTourOrder(persisted), "BOARD_TOUR_ORDER_DURABLE_IN_REOPENED_STORE")
+            }
+            recreate()
+            reveal(UiTags.TOUR_NAVIGATE)
             val saved = read("get_day_tour", JSONObject().put("date", day.toString()))
+            yes(exactTourOrder(saved), "BOARD_TOUR_ORDER_DURABLE_AFTER_RECREATION")
             val navigation =
                 read(
                     "get_tour_navigation",
@@ -5414,11 +6520,130 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
             yes(
                 monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg b")) &&
-                    monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg a")),
+                    monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg a")) &&
+                    monitorResult.get().contains(Uri.encode("[TEST] QA Terminort")),
                 "BOARD_NAVIGATION_HANDOFF_HAS_ALL_SAVED_ADDRESSES",
             )
             yes(stateHash() == beforeNavigation, "BOARD_NAVIGATION_DOES_NOT_WRITE_BUSINESS_DATA")
             captureSyntheticScreen("planning-board-tour")
+
+            // Opening and automatic date prefill are read-only; only the explicit save may
+            // create this empty original. Keep this after the three-source tour proof above.
+            val blankDay = day.plusDays(2).toString()
+            fun appointmentRows(): List<JSONObject> =
+                SettlementRules.rows(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments")
+                )
+            val idsBeforeEmpty = appointmentRows().map { it.getString("id") }.toSet()
+            val workBeforeEmpty =
+                PixelMcpWriteTools.hash(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                )
+            openContext("planning", args = JSONObject().put("date", blankDay))
+            reveal(UiTags.PRIMARY)
+            click(UiTags.PRIMARY)
+            reveal("Titel / Tätigkeit")
+            waitUntil("BOARD_UNTOUCHED_PLAN_EDITOR_READY") {
+                field("Titel / Tätigkeit")?.text?.toString()?.isBlank() == true &&
+                    node("Termin speichern") != null
+            }
+            back()
+            reveal(UiTags.PLANNING_TOUR)
+            waitStable("BOARD_UNTOUCHED_PREFILL_CANCEL_CREATES_NOTHING", stableMs = 1200) {
+                appointmentRows().map { it.getString("id") }.toSet() == idsBeforeEmpty
+            }
+            reveal(UiTags.PRIMARY)
+            click(UiTags.PRIMARY)
+            reveal("Titel / Tätigkeit")
+            waitUntil("BOARD_EMPTY_PLAN_EDITOR_READY") {
+                field("Titel / Tätigkeit")?.text?.toString()?.isBlank() == true &&
+                    node("Termin speichern") != null
+            }
+            click(UiTags.PRIMARY)
+            waitUntil("BOARD_EXPLICIT_EMPTY_SAVE_ONE_ORIGINAL") {
+                appointmentRows().count { it.getString("id") !in idsBeforeEmpty } == 1
+            }
+            waitUntil("BOARD_EMPTY_SAVE_ACKNOWLEDGED_IN_UI") {
+                node("Termin speichern") == null && node(UiTags.PLANNING_TOUR) != null
+            }
+            val emptyId =
+                appointmentRows().single { it.getString("id") !in idsBeforeEmpty }.getString("id")
+            val emptyProof = read("get_appointment", JSONObject().put("appointment_id", emptyId))
+            val emptyOriginal = emptyProof.getJSONObject("appointment")
+            yes(
+                emptyOriginal.getString("title").isBlank() &&
+                    emptyOriginal.getString("customer_id").isBlank() &&
+                    emptyOriginal.optString("order_id").isBlank(),
+                "BOARD_EMPTY_SAVE_DOES_NOT_INVENT_CONTEXT",
+            )
+            yes(
+                emptyOriginal.getString("date") == blankDay &&
+                    emptyOriginal.getString("starts_at").isBlank() &&
+                    emptyOriginal.getString("ends_at").isBlank(),
+                "BOARD_EMPTY_SAVE_PREFILLED_DAY_WITHOUT_INVENTED_TIME",
+            )
+            yes(
+                appointmentRows().size == idsBeforeEmpty.size + 1,
+                "BOARD_EMPTY_SAVE_EXACTLY_ONE_NEW_ID",
+            )
+            recreate()
+            yes(
+                read("get_appointment", JSONObject().put("appointment_id", emptyId))
+                    .getString("record_hash") == emptyProof.getString("record_hash"),
+                "BOARD_EMPTY_ORIGINAL_DURABLE_AFTER_RECREATION",
+            )
+            openContext("appointments", emptyId, "detail")
+            shown("Termin")
+            yes(
+                read("get_appointment", JSONObject().put("appointment_id", emptyId))
+                    .getJSONObject("appointment")
+                    .getString("title")
+                    .isBlank(),
+                "BOARD_EMPTY_DETAIL_DISPLAY_FALLBACK_PRESERVES_EMPTY_ORIGINAL",
+            )
+            // Establish only the existing original's edit context; the field edit and its save
+            // still go through the actual native controls, writer and reread.
+            openContext("appointments", emptyId, "edit")
+            reveal("Titel / Tätigkeit")
+            waitUntil("BOARD_EMPTY_ORIGINAL_EDITOR_READY") {
+                field("Titel / Tätigkeit")?.text?.toString()?.isBlank() == true
+            }
+            recreate()
+            reveal("Titel / Tätigkeit")
+            waitUntil("BOARD_EMPTY_ORIGINAL_EDITOR_RECREATED") {
+                field("Titel / Tätigkeit")?.text?.toString()?.isBlank() == true
+            }
+            val editedTitle = "[TEST] QA bewusst leer gespeicherter Termin ergänzt"
+            enter("Titel / Tätigkeit", editedTitle)
+            waitUntil("BOARD_EMPTY_ORIGINAL_REAL_EDIT_UPDATES_SAME_ID") {
+                read("get_appointment", JSONObject().put("appointment_id", emptyId))
+                    .getJSONObject("appointment")
+                    .optString("title") == editedTitle &&
+                    appointmentRows().size == idsBeforeEmpty.size + 1 &&
+                    appointmentRows().count { it.getString("id") !in idsBeforeEmpty } == 1
+            }
+            reveal("Gespeichert")
+            waitUntil("BOARD_EMPTY_ORIGINAL_EDIT_ACKNOWLEDGED_IN_UI") {
+                actionEnabled(UiTags.PRIMARY) && node("Gespeichert") != null
+            }
+            val edited =
+                read("get_appointment", JSONObject().put("appointment_id", emptyId))
+                    .getJSONObject("appointment")
+            yes(
+                edited.getString("id") == emptyId &&
+                    edited.getString("date") == blankDay &&
+                    edited.getString("customer_id").isBlank() &&
+                    edited.getString("starts_at").isBlank() &&
+                    edited.getString("ends_at").isBlank(),
+                "BOARD_EMPTY_ORIGINAL_EDIT_PRESERVES_ID_DAY_AND_OPTIONAL_FIELDS",
+            )
+            yes(
+                PixelMcpWriteTools.hash(
+                    PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
+                ) == workBeforeEmpty,
+                "BOARD_EMPTY_PLAN_FLOW_CREATES_NO_ACTUAL_WORK",
+            )
+            captureSyntheticScreen("planning-explicit-empty-save-and-edit")
         } finally {
             if (monitorInstalled) test.removeMonitor(monitor)
             activity?.let { current -> test.runOnMainSync { current.finish() } }
@@ -6844,6 +8069,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("today", "Arbeit starten", true) {}
         case("work", "Arbeit nachtragen") { openWorklogs() }
+        case("lcr", "L.C.R. suchen") {
+            openOffice()
+            click("L.C.R.")
+        }
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
         case("customers", "Neu anlegen") { click(UiTags.area("customers")) }
         case("menu", "Vorgänge", true) {
@@ -7103,7 +8332,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             } == true
         }
         yes(appointments().size == beforeIds.size + 1, "PLANNING_RECREATED_EDIT_HAS_NO_DUPLICATE")
+        // Data commit can precede draft flush/readback. Leave only after the real editor has
+        // finished the save, so Back closes this editor and the next action belongs to the board.
+        reveal("Gespeichert")
+        waitUntil("PLANNING_RECREATED_SAVE_FINISHED_IN_UI") {
+            actionEnabled(UiTags.PRIMARY) && node("Termin speichern") != null
+        }
         back()
+        reveal(UiTags.PLANNING_TOUR)
+        shown(UiTags.planningView("day"))
         click(UiTags.PRIMARY)
         shown("Termin planen")
         click("Ungespeicherten Entwurf verwerfen")

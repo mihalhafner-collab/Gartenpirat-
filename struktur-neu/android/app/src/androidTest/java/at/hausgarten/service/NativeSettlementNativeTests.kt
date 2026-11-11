@@ -387,6 +387,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             }
             return result(true).put("native_backup_roundtrip", true).put("restore_guard", true)
         }
+        manualWorkAndSharedRecipient(context)
         val backup = File(context.noBackupFilesDir, "qa-settlement.zip")
         val marker = JSONObject().put("token", token)
         PixelLocalStore(context).use { store ->
@@ -402,6 +403,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                     draft("billed", "900,00", "qa_settlement_invoice", true),
                     "qa_native_settlement_invoice_draft",
                 )
+            previewDraftWithoutIssuing(context, repository, invoice)
             prepare(repository, invoice, "qa_native_settlement_invoice_prepare")
             val beforeComplete = get(repository, invoice).getJSONObject("record")
             yes(
@@ -637,6 +639,231 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             .put("parallel_reservations", true)
             .put("pdf_failure_resume", true)
             .put("payment_correction", true)
+    }
+
+    private fun manualWorkAndSharedRecipient(parent: Context) {
+        val root = File(parent.noBackupFilesDir, "qa-finance-source-workflows")
+        yes(!root.exists() && root.mkdir(), "NEW_ISOLATED_SOURCE_WORKFLOW_ROOT")
+        val context = FixtureContext(parent, root, "qa_finance_source_workflows")
+        try {
+            PixelLocalStore(context).use { store ->
+                val source = fixture().put("worklogs", JSONArray())
+                val recipient = "qa_settlement_recipient"
+                val siteA = "qa_finance_site_a"
+                val siteB = "qa_finance_site_b"
+                val foreign = "qa_finance_foreign_recipient"
+                val recipientRow = source.getJSONArray("customers").getJSONObject(0)
+                fun customer(id: String, name: String, via: String = "") =
+                    JSONObject(recipientRow.toString())
+                        .put("id", id)
+                        .put("name", "[TEST] $name")
+                        .put("billing_mode", if (via.isEmpty()) "direct" else "via_customer")
+                        .put("default_billing_customer_id", via)
+                source
+                    .getJSONArray("customers")
+                    .put(customer(siteA, "Erster Einsatzkunde", recipient))
+                    .put(customer(siteB, "Zweiter Einsatzkunde", recipient))
+                    .put(customer(foreign, "Anderer Rechnungsempfänger"))
+                store.putOwnerValue("snapshot", source.toString())
+                store.putOwnerValue("personal_paid_migrated", "1")
+                store.putOwnerValue("personal_paid", "[]")
+                val repository = LocalOwnerRepository(context, store)
+                fun property(customer: String, request: String) =
+                    repository
+                        .revierAction(
+                            "create_property",
+                            JSONObject()
+                                .put("request_id", request)
+                                .put("customer_id", customer)
+                                .put("name", "[TEST] Eigenständiges Kundenobjekt"),
+                        )
+                        .getString("property_id")
+                val propertyA = property(siteA, "qa_finance_property_a")
+                val propertyB = property(siteB, "qa_finance_property_b")
+                fun workArgs(request: String, customer: String, property: String, hours: Double) =
+                    JSONObject()
+                        .put("request_id", request)
+                        .put("customer_id", customer)
+                        .put("property_id", property)
+                        .put("work_date", "2026-11-02")
+                        .put("activity", "[TEST] Tatsächlich nachgetragene Arbeit $customer")
+                        .put("hours", hours)
+                fun original(id: String) =
+                    kotlinx.coroutines.runBlocking {
+                        requireNotNull(store.nativeData().detail("worklogs", id))
+                    }
+                val ledgerBeforeWork = repository.ownerValue(SettlementRules.KEY, "{}")
+                val documents = File(context.filesDir, "business-documents")
+                val documentNames = documents.list()?.sorted().orEmpty()
+                val firstArgs = workArgs("qa_finance_manual_work", siteA, propertyA, 1.5)
+                val first =
+                    store.execute("create_customer_work_record", firstArgs).getJSONObject("data")
+                val workA = first.getString("work_record_id")
+                val replay =
+                    store.execute("create_customer_work_record", firstArgs).getJSONObject("data")
+                val savedA = original(workA)
+                yes(
+                    replay.getBoolean("replayed") &&
+                        replay.getString("work_record_id") == workA &&
+                        repository.effective().getJSONArray("worklogs").length() == 1,
+                    "MANUAL_WORK_REPLAY_RETAINS_EXACTLY_ONE_ORIGINAL_ID",
+                )
+                yes(
+                    savedA.getString("id") == workA &&
+                        savedA.getString("customer_id") == siteA &&
+                        savedA.getString("property_id") == propertyA &&
+                        savedA.optString("order_id").isEmpty() &&
+                        savedA.getString("billing_customer_id") == recipient &&
+                        savedA.getDouble("hours") == 1.5,
+                    "MANUAL_WORK_WITH_CUSTOMER_AND_OBJECT_NEEDS_NO_ORDER_AND_READS_BACK_FROM_SQLITE",
+                )
+                yes(
+                    repository.ownerValue(SettlementRules.KEY, "{}") == ledgerBeforeWork &&
+                        repository.effective().getJSONArray("invoices").length() == 0 &&
+                        documents.list()?.sorted().orEmpty() == documentNames,
+                    "MANUAL_WORK_CREATES_NO_SETTLEMENT_PAYMENT_INVOICE_OR_ORIGINAL_DOCUMENT",
+                )
+                val workB =
+                    store
+                        .execute(
+                            "create_customer_work_record",
+                            workArgs("qa_finance_second_site_work", siteB, propertyB, 2.0),
+                        )
+                        .getJSONObject("data")
+                        .getString("work_record_id")
+                val otherWork =
+                    store
+                        .execute(
+                            "create_customer_work_record",
+                            workArgs("qa_finance_foreign_work", foreign, "", 0.75),
+                        )
+                        .getJSONObject("data")
+                        .getString("work_record_id")
+                val master = repository.effective()
+                val originalWorks = hash(master.getJSONArray("worklogs"))
+                val input =
+                    JSONObject()
+                        .put("billing_customer_id", recipient)
+                        .put("work_record_ids", JSONArray().put(workA).put(workB).put(otherWork))
+                val candidate =
+                    SettlementRules.prefill(
+                            input,
+                            master.getJSONArray("worklogs"),
+                            SettlementRules.records(SettlementRules.ledger(repository)),
+                            "40",
+                        )
+                        .put("title", "[TEST] Zwei Einsatzkunden mit gemeinsamem Empfänger")
+                        .put("payment_terms", "Binnen 14 Tagen")
+                        .put("payment_details", "Synthetisch vereinbarte Überweisung")
+                val settlement = save(repository, candidate, "qa_finance_shared_recipient_draft")
+                val saved = get(repository, settlement)
+                val record = saved.getJSONObject("record")
+                val positions = SettlementRules.rows(record.getJSONArray("positions"))
+                yes(
+                    positions.size == 2 &&
+                        positions.map { it.getString("source_id") }.toSet() ==
+                            setOf(workA, workB) &&
+                        positions.all { it.getString("source_collection") == "worklogs" } &&
+                        record.getJSONArray("sources").length() == 2 &&
+                        record.getString("billing_customer_id") == recipient &&
+                        record.optString("customer_id").isEmpty() &&
+                        saved.getJSONObject("validation").getBoolean("valid") &&
+                        record.getLong("total_minor") == 14000L,
+                    "SHARED_RECIPIENT_DRAFT_SELECTS_TWO_ORIGINAL_SITE_WORKS_AND_EXCLUDES_FOREIGN_RECIPIENT",
+                )
+                val retainedA = original(workA)
+                val retainedB = original(workB)
+                val retainedForeign = original(otherWork)
+                yes(
+                    retainedA.getString("customer_id") == siteA &&
+                        retainedB.getString("customer_id") == siteB &&
+                        retainedA.getString("billing_customer_id") == recipient &&
+                        retainedB.getString("billing_customer_id") == recipient &&
+                        retainedForeign.getString("customer_id") == foreign &&
+                        retainedForeign.getString("billing_customer_id") == foreign &&
+                        hash(repository.effective().getJSONArray("worklogs")) == originalWorks,
+                    "SHARED_RECIPIENT_DRAFT_PRESERVES_DISTINCT_SITE_CUSTOMERS_AND_ALL_ORIGINAL_WORKS",
+                )
+                yes(
+                    SettlementRules.records(SettlementRules.ledger(repository)).size == 1 &&
+                        record.getString("status") == "draft" &&
+                        !record.has("invoice_number") &&
+                        !record.has("pdf") &&
+                        SettlementRules.rows(
+                                SettlementRules.ledger(repository).optJSONArray("payments")
+                            )
+                            .isEmpty() &&
+                        documents.list()?.sorted().orEmpty() == documentNames,
+                    "SHARED_RECIPIENT_PREPARATION_REMAINS_ONE_DRAFT_WITHOUT_ISSUING_OR_PAYMENT",
+                )
+            }
+        } finally {
+            yes(root.deleteRecursively(), "ISOLATED_SOURCE_WORKFLOW_DATA_REMOVED")
+        }
+    }
+
+    private fun previewDraftWithoutIssuing(
+        context: Context,
+        repository: LocalOwnerRepository,
+        id: String,
+    ) {
+        val before = repository.ownerValue(SettlementRules.KEY, "{}")
+        val originals = File(context.filesDir, "business-documents")
+        val originalNames = originals.list()?.sorted().orEmpty()
+        val metadata =
+            SettlementTools.query(
+                    "get_settlement_pdf",
+                    JSONObject().put("settlement_id", id).put("preview", true),
+                    repository,
+                )
+                .getJSONObject("metadata")
+        yes(metadata.getBoolean("preview_only"), "DRAFT_PDF_IS_EXPLICITLY_PREVIEW_ONLY")
+        val cache = File(context.cacheDir, "offer-share").canonicalFile
+        val file = File(cache, metadata.getString("pdf_filename")).canonicalFile
+        try {
+            yes(file.parentFile == cache && file.isFile, "DRAFT_PDF_EXISTS_ONLY_IN_OWNED_CACHE")
+            val bytes = file.readBytes()
+            yes(
+                bytes.size > 100 &&
+                    String(bytes, 0, 5, Charsets.US_ASCII) == "%PDF-" &&
+                    bytes.size.toLong() == metadata.getLong("pdf_byte_size") &&
+                    PhotoAttachmentStore.sha256(bytes) == metadata.getString("pdf_sha256"),
+                "DRAFT_PDF_BYTES_SIZE_AND_HASH_READ_BACK",
+            )
+            yes(
+                metadata.getString("content_uri") ==
+                    "content://${context.packageName}.offerfiles/${file.name}",
+                "DRAFT_PDF_METADATA_REFERENCES_GENERATED_CACHE_FILE",
+            )
+            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+                PdfRenderer(descriptor).use { renderer ->
+                    yes(renderer.pageCount > 1, "MULTIPAGE_DRAFT_PDF_OPENED_BY_ANDROID_RENDERER")
+                    renderer.openPage(0).use { page ->
+                        yes(page.width > 0 && page.height > 0, "DRAFT_PDF_FIRST_PAGE_IS_READABLE")
+                    }
+                }
+            }
+            yes(
+                repository.ownerValue(SettlementRules.KEY, "{}") == before,
+                "DRAFT_PREVIEW_DOES_NOT_CHANGE_ANY_LEDGER_BYTES",
+            )
+            val ledger = SettlementRules.ledger(repository)
+            val draft = SettlementRules.find(ledger, id)
+            yes(
+                draft.getString("status") == "draft" &&
+                    !draft.has("invoice_number") &&
+                    !draft.has("pdf") &&
+                    SettlementRules.records(ledger).none(SettlementRules::active) &&
+                    (ledger.optJSONObject("series_counters")?.length() ?: 0) == 0,
+                "DRAFT_PREVIEW_RESERVES_NO_NUMBER_BINDS_NO_SOURCE_AND_ISSUES_NO_ORIGINAL",
+            )
+            yes(
+                originals.list()?.sorted().orEmpty() == originalNames,
+                "DRAFT_PREVIEW_CREATES_NO_FILE_IN_ORIGINAL_DOCUMENT_STORAGE",
+            )
+        } finally {
+            if (file.isFile) yes(file.delete(), "OWNED_DRAFT_PREVIEW_CACHE_FILE_REMOVED")
+        }
     }
 
     private fun paymentAndCorrection(

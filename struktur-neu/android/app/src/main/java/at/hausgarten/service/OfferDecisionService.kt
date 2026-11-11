@@ -194,7 +194,8 @@ internal class OfferDecisionService {
                         "convert_offer_to_order",
                         JSONObject()
                             .put("offer_id", id)
-                            .put("expected_record_hash", args.getString("expected_record_hash")),
+                            .put("expected_record_hash", args.getString("expected_record_hash"))
+                            .put("confirmed", true),
                         request + "_order",
                     )
             result.put("order_id", converted.getString("order_id"))

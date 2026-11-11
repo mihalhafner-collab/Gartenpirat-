@@ -184,6 +184,21 @@ class DeletionApplicationService : OwnerCommand {
                 true,
             )
         verifyRemoval(dependents, true, removed)
+        val deletedWorkIds =
+            SettlementRules.rows(dependents)
+                .filter { it.optString("entity") == "worklog" }
+                .map { it.getString("entity_id") }
+                .toMutableSet()
+        if (a.getString("entity") == "worklog") deletedWorkIds.add(a.getString("entity_id"))
+        if (deletedWorkIds.isNotEmpty()) {
+            val marked = SettlementRules.lcrIds(repository)
+            val retained = marked - deletedWorkIds
+            if (retained != marked)
+                repository.putOwnerValue(
+                    SettlementRules.LCR_KEY,
+                    JSONArray(retained.sorted()).toString(),
+                )
+        }
         return result.put("recoverable", false).put("media_cleanup", "local_after_commit") to
             removed
     }

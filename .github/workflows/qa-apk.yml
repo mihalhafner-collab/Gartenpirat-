@@ -137,6 +137,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
       - uses: actions/download-artifact@v4
         with:
           name: Gartenpirat-unsigned-packages
@@ -150,11 +157,33 @@ jobs:
           df -h "$RUNNER_TEMP"
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses > /dev/null || true
-          "$SDKMANAGER" 'build-tools;37.0.0' 'platform-tools'
+          "$SDKMANAGER" 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools'
           if [ ! -x "$ANDROID_HOME/emulator/emulator" ]; then
             "$SDKMANAGER" 'emulator'
           fi
           "$SDKMANAGER" 'system-images;android-35;google_apis;x86_64'
+      - name: Build pinned 158 baseline for an actual APK update
+        if: github.event_name != 'workflow_dispatch' || (!inputs.graphics_only && !inputs.settlement_only && !inputs.settlement_ui_only && !inputs.accounting_only)
+        run: |
+          set -euo pipefail
+          # The original one-day APK artifact has expired. Rebuild the exact previously
+          # green source without altering it; do not substitute a freshly seeded 159 app.
+          baseline_commit=8101f3c395c9770005727bc37fc2f2057fca9130
+          git fetch --no-tags --depth=1 origin "$baseline_commit"
+          git worktree add --detach "$RUNNER_TEMP/baseline158" "$baseline_commit"
+          test "$(git -C "$RUNNER_TEMP/baseline158" rev-parse HEAD)" = "$baseline_commit"
+          mkdir -p outputs
+          python3 -B "$RUNNER_TEMP/baseline158/struktur-neu/tools/check_release_baseline.py" > outputs/qa-upgrade-baseline-source.json
+          python3 - <<'PY'
+          import json,pathlib
+          value=json.loads(pathlib.Path('outputs/qa-upgrade-baseline-source.json').read_text())
+          assert value['version_code']==158 and value['source_dirty'] is False, value
+          assert value['git_sha']=='8101f3c395c9770005727bc37fc2f2057fca9130', value
+          assert value['source_sha256']=='7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640', value
+          PY
+          # Sequential build, same JDK/SDK/Gradle as the current candidate. No original key.
+          gradle -p "$RUNNER_TEMP/baseline158/struktur-neu/android" --no-daemon --no-configuration-cache --build-cache --max-workers=2 :app:assembleRelease
+          cp "$RUNNER_TEMP/baseline158/struktur-neu/android/app/build/outputs/apk/release/app-release-unsigned.apk" "$RUNNER_TEMP/baseline158-unsigned.apk"
       - name: Sign disposable emulator test packages only
         run: |
           set -euo pipefail
@@ -166,6 +195,20 @@ jobs:
           "$ALIGN" -f 4 "$RUNNER_TEMP/unsigned/app-release-androidTest.apk" "$RUNNER_TEMP/gp-test.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-app.apk"
           "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-test.apk"
+          if [ -f "$RUNNER_TEMP/baseline158-unsigned.apk" ]; then
+            "$ALIGN" -f 4 "$RUNNER_TEMP/baseline158-unsigned.apk" "$RUNNER_TEMP/gp-baseline158.apk"
+            "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-baseline158.apk"
+            "$SIGNER" verify --print-certs "$RUNNER_TEMP/gp-baseline158.apk" > outputs/qa-upgrade-baseline-certificate.txt
+            "$SIGNER" verify --print-certs "$RUNNER_TEMP/gp-app.apk" > outputs/qa-upgrade-candidate-certificate.txt
+            python3 - <<'PY'
+          import pathlib,re
+          certificates=[]
+          for kind in ('baseline','candidate'):
+              value=pathlib.Path(f'outputs/qa-upgrade-{kind}-certificate.txt').read_text()
+              certificates.append(re.search(r'Signer #1 certificate SHA-256 digest: (\S+)',value).group(1))
+          assert certificates[0]==certificates[1], 'Synthetic update must retain the same QA signer'
+          PY
+          fi
           mkdir -p outputs
           (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
       - name: Run native SQLite, Compose, document picker, provider and new-process checks
@@ -175,6 +218,7 @@ jobs:
           ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
           SETTLEMENT_ONLY: ${{ inputs.settlement_only }}
           SETTLEMENT_UI_ONLY: ${{ inputs.settlement_ui_only }}
+          CANDIDATE_GIT: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           sudo chmod 666 /dev/kvm
@@ -205,9 +249,47 @@ jobs:
           done
           test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
           test "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1
-          "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
-          "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
           mkdir -p outputs
+          if [ -f "$RUNNER_TEMP/gp-baseline158.apk" ]; then
+            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-baseline158.apk"
+            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
+            timeout 180 "$ADB" -s emulator-5580 shell am instrument -w -e suite upgrade_158_seed \
+              -e expected_source 7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640 \
+              -e expected_git 8101f3c395c9770005727bc37fc2f2057fca9130 \
+              at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee outputs/upgrade_158_seed.txt
+            python3 - <<'PY'
+          import json,pathlib
+          text=pathlib.Path('outputs/upgrade_158_seed.txt').read_text()
+          assert 'INSTRUMENTATION_CODE: -1' in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
+          result=json.loads(next(line.split('=',1)[1] for line in text.splitlines() if line.startswith('INSTRUMENTATION_RESULT: result=')))
+          assert result['suite']=='upgrade_158_seed' and result['checks']>0 and result['installed_version_code']==158, result
+          assert result['synthetic_only'] is True and result['productive_data_read'] is False, result
+          PY
+            "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service
+            "$ADB" -s emulator-5580 shell am force-stop at.hausgarten.service.test
+            # No pm clear, uninstall, restore or fixture reseeding between these APKs.
+            "$ADB" -s emulator-5580 install -r "$RUNNER_TEMP/gp-app.apk"
+            candidate_source=$(python3 -B tools/check_release_baseline.py | python3 -c 'import json,sys; print(json.load(sys.stdin)["source_sha256"])')
+            timeout 180 "$ADB" -s emulator-5580 shell am instrument -w -e suite upgrade_158_verify \
+              -e expected_source "$candidate_source" -e expected_git "$CANDIDATE_GIT" \
+              at.hausgarten.service.test/at.hausgarten.service.PixelMcpInstrumentation | tee outputs/upgrade_158_verify.txt
+            python3 - <<'PY'
+          import json,pathlib
+          text=pathlib.Path('outputs/upgrade_158_verify.txt').read_text()
+          assert 'INSTRUMENTATION_CODE: -1' in text and 'INSTRUMENTATION_RESULT: failure=' not in text, text
+          result=json.loads(next(line.split('=',1)[1] for line in text.splitlines() if line.startswith('INSTRUMENTATION_RESULT: result=')))
+          assert result['suite']=='upgrade_158_verify' and result['checks']>0 and result['installed_version_code']==159, result
+          for field in ('synthetic_only','in_place_update','data_preserved','running_session_preserved','drafts_preserved','original_photo_bytes_preserved'):
+              assert result[field] is True, result
+          assert result['productive_data_read'] is False, result
+          PY
+            # The in-place proof is complete. Only now reset the disposable app for the
+            # independent fresh-fixture suites below.
+            test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
+          else
+            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-app.apk"
+            "$ADB" -s emulator-5580 install "$RUNNER_TEMP/gp-test.apk"
+          fi
           native_suite_failures=0
           if [ "$SETTLEMENT_UI_ONLY" = true ]; then
             suites=(native_settlement_ui)
@@ -280,6 +362,28 @@ jobs:
               assert result['real_sqlite_transactions'] is True and result['wal_concurrent_reader'] is True, result
               assert result['local_storage_cleanup'] is True and result['local_delete_without_cloud_guards'] is True, result
               assert result['actual_coroutine_flow'] is True and result['main_thread_disk_violations']==0, result
+              mcp=result['eisbaer_mcp']
+              for proof in ('empty_appointment_roundtrip','canonical_update_roundtrip','legacy_adoption_roundtrip','search_filters_original_readback','lcr_delete_references','synthetic_only','real_pixel_mcp_adapter'):
+                  assert mcp[proof] is True, result
+              assert set(mcp['removed_care_tools']) == {'list_care_plans','create_care_plan','update_care_plan','generate_care_visits'}, result
+              catalog=result['eisbaer_catalog_mcp']
+              assert catalog['catalog_baseline_tools']==155 and catalog['catalog_runtime_tools']==158, result
+              for proof in ('exact_runtime_schemas','real_pixel_mcp_adapter','real_rpc_tools_call','durable_business_readback','write_replay_and_stale_conflict','synthetic_only'):
+                  assert catalog[proof] is True, result
+              planning=result['eisbaer_planning_time_mcp']
+              for proof in ('public_adapter_and_real_sqlite','planning_settings_series_and_conflicts','timer_originals_and_replay_readback','synthetic_clock','synthetic_weather_cache_only'):
+                  assert planning[proof] is True, result
+              assert planning['external_provider_success_claimed'] is False and planning['physical_calendar_weather_verification']=='NOT_RUN', result
+              offers=result['eisbaer_offers_mcp']
+              for proof in ('fresh_store_readback','catalog_aliases_share_original','invalid_create_atomic','draft_validation_and_finalization','acceptance_creates_exactly_one_order','replay_and_stale_conflicts','marked_delivery_blocked_before_provider','synthetic_only'):
+                  assert offers[proof] is True, result
+              assert offers['external_messages_sent'] is False and offers['external_provider_readback_tested'] is False, result
+              media=result['eisbaer_media_backup_mcp']
+              for proof in ('real_pixel_mcp_adapter','original_photo_bytes','write_replay_and_stale_conflict','backup_device_handoff_only','synthetic_only'):
+                  assert media[proof] is True, result
+              assert media['physical_backup_acceptance'] is False, result
+              for proof in (mcp,catalog,planning,offers,media):
+                  assert proof['executed_tools'] and len(proof['executed_tools'])==len(set(proof['executed_tools'])), result
               assert result['performance_claim'] is False and result['plans'], result
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
@@ -352,12 +456,15 @@ jobs:
             struktur-neu/outputs/native_settlement*.txt
             struktur-neu/outputs/qa-native-*.png
             struktur-neu/outputs/qa-test-package-identity.txt
+            struktur-neu/outputs/upgrade_158*.txt
+            struktur-neu/outputs/qa-upgrade-*.json
+            struktur-neu/outputs/qa-upgrade-*.txt
             struktur-neu/outputs/emulator*.txt
           if-no-files-found: ignore
           retention-days: 7
       - name: Remove disposable test signing material
         if: always()
-        run: rm -f "$RUNNER_TEMP/gp-test.jks" "$RUNNER_TEMP/gp-app.apk" "$RUNNER_TEMP/gp-test.apk"
+        run: rm -f "$RUNNER_TEMP/gp-test.jks" "$RUNNER_TEMP/gp-app.apk" "$RUNNER_TEMP/gp-test.apk" "$RUNNER_TEMP/gp-baseline158.apk" "$RUNNER_TEMP/baseline158-unsigned.apk"
 
   eisbaer:
     name: Eisbär authority and completion

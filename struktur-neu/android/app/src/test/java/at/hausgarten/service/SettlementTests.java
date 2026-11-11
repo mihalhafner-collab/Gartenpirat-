@@ -589,7 +589,191 @@ public final class SettlementTests {
         yes(december.getLong("refund_due_minor") == 0 && december.getLong("paid_minor") == 0 && december.getLong("payment_refunds_minor") == -24000,
             "Real December refund settles the retained November receipt and remains a December money movement");
     }
+    private static JSONObject monthFilter(java.time.LocalDate date, String basis) throws Exception {
+        return new JSONObject().put("date_from", date.withDayOfMonth(1).toString())
+            .put("date_to", date.withDayOfMonth(date.lengthOfMonth()).toString()).put("date_basis", basis);
+    }
+    private static JSONObject currentSettlement(Memory memory, String id) throws Exception {
+        return SettlementTools.INSTANCE.query("get_settlement", new JSONObject().put("settlement_id", id), memory.repository);
+    }
+    private static Set<String> openBillingIds(Memory memory) throws Exception {
+        JSONObject state = new JSONObject().put("master", memory.master).put("settlement_ledger", memory.ledger())
+            .put("lcr_work_ids", new JSONArray(RULES.lcrIds(memory.repository)));
+        JSONObject summary = (JSONObject) BusinessQueries.query("get_work_record_summary", new JSONObject().put("group_by_billing_customer", true), state, memory.master, null);
+        Set<String> ids = new LinkedHashSet<>();
+        for (JSONObject group : RULES.rows(summary.getJSONArray("billing_groups")))
+            for (JSONObject work : RULES.rows(group.getJSONArray("work_records"))) ids.add(work.getString("id"));
+        return ids;
+    }
+    private static void unpaidCancellationReleasesOnlyItsSourcesAndKeepsExclusions() throws Exception {
+        Memory memory = new Memory();
+        RULES.source(memory.master, "worklogs", "work-b").put("billable", false);
+        memory.master.getJSONArray("worklogs").put(work("unrelated-bound", "", "recipient"));
+        JSONObject markedWork = RULES.source(memory.master, "worklogs", "standalone");
+        memory.run("set_work_record_lcr", new JSONObject().put("work_record_id", "standalone").put("lcr", true)
+            .put("expected_record_hash", RULES.lcrView(memory.repository, markedWork).getString("lcr_record_hash")), "synthetic-unpaid-existing-lcr");
+        String originalWork = memory.master.toString();
+        String invoice = memory.save(draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "240"))), "synthetic-unpaid-original");
+        memory.prepare(invoice, "synthetic-unpaid-prepare"); memory.complete(invoice, "synthetic-unpaid-complete");
+        String unrelated = memory.save(draft("billed", new JSONArray().put(line("worklogs", "unrelated-bound", "1", "50"))), "synthetic-unpaid-unrelated");
+        memory.prepare(unrelated, "synthetic-unpaid-unrelated-prepare"); memory.complete(unrelated, "synthetic-unpaid-unrelated-complete");
+        JSONObject work = RULES.source(memory.master, "worklogs", "work-a");
+        yes(!RULES.lcrView(memory.repository, work).getBoolean("lcr_mutable"), "FIN18 original remains bound before actual cancellation completes");
+        String originalNumber = memory.record(invoice).getString("invoice_number");
+        String originalPdf = memory.record(invoice).getJSONObject("pdf").toString();
+        JSONObject correction = memory.run("correct_settlement", memory.proof(invoice).put("confirmed", true)
+            .put("reason", "Synthetischer unbezahlter vollständiger Storno"), "synthetic-unpaid-storno");
+        String correctionId = correction.getString("settlement_id");
+        yes(!RULES.lcrView(memory.repository, work).getBoolean("lcr_mutable"), "FIN18 prepared Storno alone never releases the original source binding");
+        memory.complete(correctionId, "synthetic-unpaid-storno-complete");
+        JSONObject after = currentSettlement(memory, invoice);
+        yes(after.getJSONObject("record").getString("status").equals("cancelled") && after.getLong("paid_minor") == 0
+            && after.getLong("refund_due_minor") == 0 && memory.record(correctionId).getString("original_number").equals(originalNumber)
+            && !memory.record(correctionId).getString("invoice_number").equals(originalNumber),
+            "FIN18 actual unpaid cancellation has own number, original reference and no invented payment or refund");
+        Set<String> bound = RULES.boundWorkIds(RULES.records(memory.ledger()), memory.master.getJSONArray("worklogs"));
+        yes(!bound.contains("work-a") && bound.contains("unrelated-bound") && memory.record(invoice).getJSONObject("pdf").toString().equals(originalPdf),
+            "FIN18 only the completed cancellation's actual source is released; unrelated original and retained PDF remain protected");
+        yes(memory.master.toString().equals(originalWork) && RULES.lcrIds(memory.repository).equals(Set.of("standalone"))
+            && !RULES.source(memory.master, "worklogs", "work-b").getBoolean("billable"),
+            "FIN18 source data, existing L.C.R. and pre-existing non-billable exclusion survive actual cancellation unchanged");
+        yes(openBillingIds(memory).equals(Set.of("work-a", "foreign-recipient")),
+            "FIN18 only otherwise eligible work returns to open billing; L.C.R., non-billable and unrelated bound work stay excluded");
+        JSONObject eligible = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient")
+            .put("work_record_ids", new JSONArray().put("work-a").put("work-b").put("standalone").put("unrelated-bound")),
+            memory.master.getJSONArray("worklogs"), RULES.records(memory.ledger()), "40", RULES.lcrIds(memory.repository));
+        yes(eligible.getJSONArray("positions").length() == 1 && eligible.getJSONArray("positions").getJSONObject(0).getString("source_id").equals("work-a"),
+            "FIN18 invoice prefill uses the released original exactly once and respects all remaining exclusions");
+        memory.run("set_work_record_lcr", new JSONObject().put("work_record_id", "work-a").put("lcr", true)
+            .put("expected_record_hash", RULES.lcrView(memory.repository, work).getString("lcr_record_hash")), "synthetic-unpaid-after-storno-lcr");
+        yes(!openBillingIds(memory).contains("work-a") && RULES.lcrIds(memory.repository).contains("standalone"),
+            "FIN18 original may be explicitly marked after completed Storno without clearing any earlier L.C.R. exclusion");
+        memory.run("set_work_record_lcr", new JSONObject().put("work_record_id", "work-a").put("lcr", false)
+            .put("expected_record_hash", RULES.lcrView(memory.repository, work).getString("lcr_record_hash")), "synthetic-unpaid-after-storno-unmark");
+        yes(openBillingIds(memory).contains("work-a") && memory.master.toString().equals(originalWork),
+            "FIN18 deliberate unmarking restores that original's eligibility without rewriting the recorded work");
+    }
+    private static void paidCancellationAndFullRefundUseActualWriters() throws Exception {
+        Memory memory = new Memory();
+        String invoice = memory.save(draft("billed", new JSONArray().put(line("worklogs", "standalone", "1", "240"))), "synthetic-full-refund-original");
+        memory.prepare(invoice, "synthetic-full-refund-prepare"); memory.complete(invoice, "synthetic-full-refund-complete");
+        String invoicePdf = memory.record(invoice).getJSONObject("pdf").toString();
+        String invoiceNumber = memory.record(invoice).getString("invoice_number");
+        memory.run("add_settlement_payment", memory.proof(invoice).put("expected_payment_hash", RULES.paymentHash(memory.ledger(), invoice))
+            .put("amount", "240").put("date", RULES.today()).put("payment_kind", "receipt"), "synthetic-full-refund-receipt");
+        JSONObject receipt = copy(currentSettlement(memory, invoice).getJSONArray("payments").getJSONObject(0));
+        JSONObject correction = memory.run("correct_settlement", memory.proof(invoice).put("confirmed", true)
+            .put("reason", "Synthetischer bezahlter vollständiger Storno"), "synthetic-full-refund-storno");
+        String correctionId = correction.getString("settlement_id");
+        memory.complete(correctionId, "synthetic-full-refund-storno-complete");
+        JSONObject cancelled = currentSettlement(memory, invoice);
+        yes(cancelled.getLong("refund_due_minor") == 24000 && cancelled.getLong("paid_minor") == 24000
+            && cancelled.getJSONArray("payments").length() == 1 && cancelled.getJSONArray("payments").getJSONObject(0).toString().equals(receipt.toString()),
+            "FIN20 actual completed paid Storno preserves the real original receipt and exposes the full outstanding refund");
+        String correctionBefore = memory.record(correctionId).toString();
+        JSONObject refund = memory.proof(invoice).put("expected_payment_hash", cancelled.getString("payment_record_hash"))
+            .put("amount", "-240").put("date", RULES.today()).put("payment_kind", "refund")
+            .put("reversal_of", receipt.getString("id")).put("note", "Synthetisch tatsächlich vollständig erstattet");
+        invalid(() -> memory.run("add_settlement_payment", copy(refund).put("reversal_of", "synthetic-wrong-original-payment"), "synthetic-full-refund-wrong-reference"),
+            "FIN20 full refund requires the concrete positive original payment of the same settlement");
+        invalid(() -> memory.run("add_settlement_payment", copy(refund).put("amount", "-240.01"), "synthetic-full-refund-over-limit"),
+            "FIN20 full refund cannot exceed original receipt or outstanding refund");
+        memory.run("add_settlement_payment", refund, "synthetic-full-refund-write");
+        yes(memory.run("add_settlement_payment", refund, "synthetic-full-refund-write").getBoolean("replayed"), "FIN20 identical refund request replays rather than creating another negative payment");
+        Memory reopened = new Memory(memory.master, memory.owner);
+        JSONObject readback = currentSettlement(reopened, invoice);
+        JSONArray payments = readback.getJSONArray("payments");
+        yes(payments.length() == 2 && payments.getJSONObject(0).toString().equals(receipt.toString())
+            && payments.getJSONObject(1).getString("reversal_of").equals(receipt.getString("id"))
+            && payments.getJSONObject(1).getString("payment_kind").equals("refund")
+            && payments.getJSONObject(1).getLong("amount_minor") == -24000 && readback.getLong("paid_minor") == 0
+            && readback.getLong("refund_due_minor") == 0 && readback.getLong("open_minor") == 0,
+            "FIN20 fresh read after actual full refund retains +240/-240 linked originals with zero net and no refund obligation");
+        yes(reopened.record(invoice).getString("invoice_number").equals(invoiceNumber)
+            && reopened.record(invoice).getJSONObject("pdf").toString().equals(invoicePdf)
+            && reopened.record(correctionId).toString().equals(correctionBefore) && reopened.documentWrites == 0,
+            "FIN20 full refund neither rewrites nor republishes the issued original or completed Storno");
+        JSONObject exhausted = reopened.proof(invoice).put("expected_payment_hash", readback.getString("payment_record_hash"))
+            .put("amount", "-0.01").put("date", RULES.today()).put("payment_kind", "refund")
+            .put("reversal_of", receipt.getString("id")).put("note", "Synthetisch unzulässige weitere Erstattung");
+        invalid(() -> reopened.run("add_settlement_payment", exhausted, "synthetic-full-refund-exhausted"), "FIN20 exhausted original payment cannot be refunded a second time");
+        yes(RULES.financeOverview(reopened.master, reopened.ledger(), new JSONObject()).getLong("invoice_net_minor") == 0
+            && RULES.financeOverview(reopened.master, reopened.ledger(), new JSONObject()).getLong("payment_net_minor") == 0,
+            "FIN20 actual original, Storno, receipt and refund balance without a seeded result document");
+    }
+    private static void serviceDocumentAndPaymentMonthsUseDirectFinancialReports() throws Exception {
+        Memory memory = new Memory();
+        java.time.LocalDate documentDay = java.time.LocalDate.parse(RULES.today());
+        java.time.LocalDate serviceDay = documentDay.minusMonths(1), paymentDay = documentDay.plusMonths(1);
+        RULES.source(memory.master, "worklogs", "work-a").put("work_date", serviceDay.toString());
+        JSONObject actualDraft = draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "240")))
+            .put("service_from", serviceDay.toString()).put("service_to", serviceDay.toString());
+        String id = memory.save(actualDraft, "synthetic-three-month-draft");
+        memory.prepare(id, "synthetic-three-month-prepare"); memory.complete(id, "synthetic-three-month-complete");
+        memory.run("add_settlement_payment", memory.proof(id).put("expected_payment_hash", RULES.paymentHash(memory.ledger(), id))
+            .put("amount", "240").put("date", paymentDay.toString()).put("payment_kind", "receipt"), "synthetic-three-month-receipt");
+        String original = memory.ledger().toString(), originalWork = memory.master.toString();
+        JSONObject service = RULES.financeOverview(memory.master, memory.ledger(), monthFilter(serviceDay, "service"));
+        JSONObject documents = RULES.financeOverview(memory.master, memory.ledger(), monthFilter(documentDay, "document"));
+        JSONObject payments = RULES.financeOverview(memory.master, memory.ledger(), monthFilter(paymentDay, "payment"));
+        yes(memory.record(id).getString("issue_date").equals(documentDay.toString()), "FIN26 actual issuing uses the real invoice calendar day instead of a seeded result date");
+        yes(service.getLong("issued_minor") == 24000 && service.getJSONArray("records").length() == 1
+            && service.getJSONArray("service_positions").length() == 1
+            && service.getJSONArray("service_positions").getJSONObject(0).getString("service_date").equals(serviceDay.toString())
+            && service.getLong("payment_inflow_minor") == 0,
+            "FIN26 direct service-basis financial report assigns actual work to the prior month without inventing a payment then");
+        yes(documents.getLong("issued_minor") == 24000 && documents.getLong("paid_minor") == 24000
+            && documents.getLong("payment_inflow_minor") == 0 && documents.getJSONArray("cohort_payments").length() == 1
+            && documents.getJSONArray("cohort_payments").getJSONObject(0).getString("date").equals(paymentDay.toString())
+            && !documents.getString("paid_basis").equals(documents.getString("payment_basis")),
+            "FIN26 invoice-month cohort-paid value includes the later actual payment but clearly separates zero invoice-month cash inflow");
+        yes(payments.getLong("payment_inflow_minor") == 24000 && payments.getLong("payment_net_minor") == 24000
+            && payments.getJSONArray("payments").length() == 1 && payments.getJSONArray("records").getJSONObject(0).getString("id").equals(id),
+            "FIN26 payment-basis financial report places the cash receipt only in the following month and retains its original invoice identity");
+        yes(RULES.financeOverview(memory.master, memory.ledger(), monthFilter(documentDay, "service")).getLong("issued_minor") == 0
+            && RULES.financeOverview(memory.master, memory.ledger(), monthFilter(serviceDay, "document")).getLong("issued_minor") == 0
+            && RULES.financeOverview(memory.master, memory.ledger(), monthFilter(documentDay, "payment")).getLong("payment_inflow_minor") == 0
+            && memory.ledger().toString().equals(original) && memory.master.toString().equals(originalWork),
+            "FIN26 changing financial date basis changes period selection, not any work, original, receipt or total");
+        Memory collective = new Memory();
+        RULES.source(collective.master, "worklogs", "work-a").put("work_date", serviceDay.toString());
+        RULES.source(collective.master, "worklogs", "work-b").put("work_date", documentDay.toString());
+        JSONObject collectiveDraft = draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "100"))
+            .put(line("worklogs", "work-b", "1", "200")))
+            .put("service_from", serviceDay.toString()).put("service_to", documentDay.toString());
+        String collectiveId = collective.save(collectiveDraft, "synthetic-split-month-draft");
+        collective.prepare(collectiveId, "synthetic-split-month-prepare");
+        collective.complete(collectiveId, "synthetic-split-month-complete");
+        collective.run("add_settlement_payment", collective.proof(collectiveId)
+            .put("expected_payment_hash", RULES.paymentHash(collective.ledger(), collectiveId))
+            .put("amount", "300").put("date", paymentDay.toString()).put("payment_kind", "receipt"), "synthetic-split-month-receipt");
+        String collectiveLedger = collective.ledger().toString(), collectiveWorks = collective.master.toString();
+        JSONObject priorService = RULES.financeOverview(collective.master, collective.ledger(), monthFilter(serviceDay, "service"));
+        JSONObject currentService = RULES.financeOverview(collective.master, collective.ledger(), monthFilter(documentDay, "service"));
+        JSONObject fullDocument = RULES.financeOverview(collective.master, collective.ledger(), monthFilter(documentDay, "document"));
+        yes(collective.record(collectiveId).getLong("total_minor") == 30000
+            && priorService.getLong("issued_minor") == 10000 && priorService.getJSONArray("service_positions").length() == 1
+            && priorService.getJSONArray("service_positions").getJSONObject(0).getLong("amount_minor") == 10000
+            && priorService.getJSONArray("service_positions").getJSONObject(0).getString("source_id").equals("work-a"),
+            "FIN26 a real collective invoice assigns only its 100-EUR source position to the prior service month, not the entire 300-EUR original");
+        yes(currentService.getLong("issued_minor") == 20000 && currentService.getJSONArray("service_positions").length() == 1
+            && currentService.getJSONArray("service_positions").getJSONObject(0).getLong("amount_minor") == 20000
+            && currentService.getJSONArray("service_positions").getJSONObject(0).getString("source_id").equals("work-b"),
+            "FIN26 the same collective original assigns only its second 200-EUR position to the current service month");
+        yes(fullDocument.getLong("issued_minor") == 30000 && fullDocument.getJSONArray("records").length() == 1
+            && priorService.getLong("issued_minor") + currentService.getLong("issued_minor") == fullDocument.getLong("issued_minor")
+            && priorService.getJSONArray("records").getJSONObject(0).getString("id").equals(collectiveId)
+            && currentService.getJSONArray("records").getJSONObject(0).getString("id").equals(collectiveId),
+            "FIN26 service-month allocations add to the one actual 300-EUR invoice without duplicating or changing its identity");
+        yes(collective.ledger().toString().equals(collectiveLedger) && collective.master.toString().equals(collectiveWorks)
+            && currentSettlement(collective, collectiveId).getJSONArray("payments").length() == 1
+            && currentSettlement(collective, collectiveId).getLong("paid_minor") == 30000,
+            "FIN26 split-month reporting leaves both original works, the issued original and its actual 300-EUR receipt unchanged");
+    }
     public static void main(String[] ignored) throws Exception {
+        unpaidCancellationReleasesOnlyItsSourcesAndKeepsExclusions();
+        paidCancellationAndFullRefundUseActualWriters();
+        serviceDocumentAndPaymentMonthsUseDirectFinancialReports();
         paymentVersionAndCrossPeriodCancellation();
         eisbaerLcrAndMoney();
         openWorkPrefill();

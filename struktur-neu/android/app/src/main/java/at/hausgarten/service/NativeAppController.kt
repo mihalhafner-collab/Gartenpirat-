@@ -54,6 +54,7 @@ internal data class NativeRoute(
     val mode: String = "list",
     val args: JSONObject = JSONObject(),
     val area: String = nativeMainSection(section),
+    val stateArgs: String = JSONObject(args.toString()).apply { remove("action") }.toString(),
 )
 
 internal class NativeCallFailure(val detail: JSONObject) :
@@ -130,12 +131,26 @@ internal class NativeAppController(private val activity: MainActivity, val store
         }
         messages.value = ""
         val next = NativeRoute(section, id, mode, JSONObject(args.toString()), route.area)
-        if (sameScreen(route, next)) return
+        if (sameScreen(route, next)) {
+            if (
+                section != "action" &&
+                    args.length() > 0 &&
+                    PixelMcpWriteTools.canonical(route.args) !=
+                        PixelMcpWriteTools.canonical(next.args)
+            )
+                route = next
+            return
+        }
         val previous = history.indexOfLast { sameScreen(it, next) }
         if (previous >= 0) {
-            // Reuse the original route and its saveable-state key, including list filters.
+            // An overview without context restores its filters; an explicit shortcut supplies new
+            // filters. Keep the original stack position in both cases.
             while (history.size > previous + 1) history.removeLast()
-            route = history.removeLast()
+            val remembered = history.removeLast()
+            route =
+                if (section != "action" && args.length() > 0)
+                    remembered.copy(args = next.args, stateArgs = next.stateArgs)
+                else remembered
         } else {
             history.addLast(route)
             route = next
@@ -248,16 +263,20 @@ internal class NativeAppController(private val activity: MainActivity, val store
             .put("mode", entry.mode)
             .put("args", entry.args)
             .put("area", entry.area)
+            .put("state_args", JSONObject(entry.stateArgs))
 
     private fun readRoute(value: JSONObject): NativeRoute {
         val section = value.optString("section", "today")
-        return NativeRoute(
-            section,
-            value.optString("id"),
-            value.optString("mode", "list"),
-            value.optJSONObject("args") ?: JSONObject(),
-            value.optString("area", nativeMainSection(section)),
-        )
+        val restored =
+            NativeRoute(
+                section,
+                value.optString("id"),
+                value.optString("mode", "list"),
+                value.optJSONObject("args") ?: JSONObject(),
+                value.optString("area", nativeMainSection(section)),
+            )
+        return value.optJSONObject("state_args")?.let { restored.copy(stateArgs = it.toString()) }
+            ?: restored
     }
 
     fun restoreRoute(saved: String?) {
@@ -292,12 +311,9 @@ internal class NativeAppController(private val activity: MainActivity, val store
             }
     }
 
-    // Screen state key; a one-time "action" (e.g. open suggested slots) must not change it when
-    // consumed.
-    fun savedRoute(): String =
-        routeValue(route)
-            .put("args", JSONObject(route.args.toString()).apply { remove("action") })
-            .toString()
+    // Route context may track the current planning date/customer. Freeze the original state key so
+    // an IME recomposition cannot discard the search, focus or editor state.
+    fun savedRoute(): String = routeValue(route).put("args", JSONObject(route.stateArgs)).toString()
 
     fun savedNavigation(): String =
         routeValue(route)

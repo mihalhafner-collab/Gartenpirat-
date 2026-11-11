@@ -40,6 +40,10 @@ public final class PixelMcpInstrumentation extends Instrumentation {
         Bundle report=new Bundle();File directory=null;long started=System.nanoTime();
         try{
             String suite=arguments==null?"":arguments.getString("suite","");
+            if(suite.equals("upgrade_158_seed")||suite.equals("upgrade_158_verify")){
+                JSONObject result=NativeDataAccessNativeTests.runUpgrade(this,suite.endsWith("_verify"),arguments.getString("expected_source",""),arguments.getString("expected_git",""));
+                report.putString("result",result.put("suite",suite).toString());finish(Activity.RESULT_OK,report);return;
+            }
             if(suite.equals("native_settlement")||suite.equals("native_settlement_reopen")){
                 JSONObject result=NativeSettlementNativeTests.run(this,suite.endsWith("_reopen"));
                 report.putString("result",result.put("suite",suite).toString());finish(Activity.RESULT_OK,report);return;

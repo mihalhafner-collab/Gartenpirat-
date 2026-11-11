@@ -765,6 +765,7 @@ internal class LocalWorkflowTools {
                         ),
                     )
                     p.put("billing_customer_id", McpFields.id())
+                        .put("include_archived", McpFields.bool())
                         .put("work_record_id", McpFields.id())
                         .put("city", McpFields.text(500))
                         .put("category", McpFields.text(500))

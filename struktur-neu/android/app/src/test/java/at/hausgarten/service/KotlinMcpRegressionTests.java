@@ -135,6 +135,19 @@ public final class KotlinMcpRegressionTests {
         JSONObject material = LocalWorkflowTools.schema("save_material").getJSONObject("properties");
         yes(material.getJSONObject("purchase_price_minor").getLong("minimum") == 0, "Material purchase price uses nonnegative cents");
         yes(material.getJSONObject("billing_price_minor").getLong("maximum") == 9000000000000000L, "Material billing price retains exact integer bound");
+        JSONObject searchSchema = LocalWorkflowTools.schema("search_local");
+        JSONObject uiSearch = new JSONObject().put("query", "QA Kunde")
+                .put("types", new JSONArray().put("customer"))
+                .put("date_basis", "default").put("include_archived", false)
+                .put("offset", 0).put("limit", 50);
+        McpSchema.validate(uiSearch, searchSchema);
+        checks++;
+        McpSchema.validate(new JSONObject(uiSearch.toString()).put("include_archived", true), searchSchema);
+        checks++;
+        rejected("INVALID_INPUT", () -> McpSchema.validate(
+                new JSONObject(uiSearch.toString()).put("include_archived", "false"), searchSchema));
+        rejected("INVALID_INPUT", () -> McpSchema.validate(
+                new JSONObject(uiSearch.toString()).put("unknown_search_field", true), searchSchema));
         for (int i = 0; i < writable.length(); i++) {
             JSONObject tool = writable.getJSONObject(i);
             if (tool.getString("name").equals("update_business_settings")) {
@@ -225,6 +238,15 @@ public final class KotlinMcpRegressionTests {
             OwnerRepository repository = (OwnerRepository) java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, (proxy, method, args) -> {
                 switch (method.getName()) {
                     case "state": return state;
+                    case "ownerValue": {
+                        JSONObject values = state.optJSONObject("test_owner_values");
+                        return values == null ? args[1] : values.optString((String)args[0], (String)args[1]);
+                    }
+                    case "putOwnerValue": {
+                        if (!state.has("test_owner_values")) state.put("test_owner_values", new JSONObject());
+                        state.getJSONObject("test_owner_values").put((String)args[0], (String)args[1]);
+                        return null;
+                    }
                     case "effective": return SnapshotProjection.effective(state);
                     case "enqueue":
                         if (enqueueWorks) state.getJSONArray("pending").put(new JSONObject().put("kind", args[0]).put("payload", args[1]).put("client_id", args[2]).put("created_at", "2026-11-03T20:00:00Z"));
@@ -287,6 +309,15 @@ public final class KotlinMcpRegressionTests {
         return (OwnerRepository) java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, (proxy, method, args) -> {
             switch (method.getName()) {
                 case "state": return state;
+                    case "ownerValue": {
+                        JSONObject values = state.optJSONObject("test_owner_values");
+                        return values == null ? args[1] : values.optString((String)args[0], (String)args[1]);
+                    }
+                    case "putOwnerValue": {
+                        if (!state.has("test_owner_values")) state.put("test_owner_values", new JSONObject());
+                        state.getJSONObject("test_owner_values").put((String)args[0], (String)args[1]);
+                        return null;
+                    }
                 case "effective": return SnapshotProjection.effective(state);
                 case "enqueue":
                     JSONObject payload = (JSONObject) args[1];
@@ -316,6 +347,9 @@ public final class KotlinMcpRegressionTests {
             JSONObject master = trashFixture();
             master.getJSONArray("worklogs").put(new JSONObject(master.getJSONArray("worklogs").getJSONObject(0).toString()).put("id", "qa_second_work"));
             JSONObject state = new JSONObject().put("master", master).put("pending", new JSONArray()).put("work_session", new JSONObject().put("state", "IDLE"));
+            JSONObject retained = new JSONObject(master.getJSONArray("worklogs").getJSONObject(0).toString()).put("id", "qa_unselected_work");
+            master.getJSONArray("worklogs").put(retained);
+            state.put("test_owner_values", new JSONObject().put("lcr_work_ids:v1", new JSONArray().put("qa_trash_work").put("qa_second_work").put("qa_unselected_work").toString()));
             OwnerRepository repository = deletionPort(state, failSecond ? "qa_second_work" : "");
             JSONArray ids = new JSONArray().put("qa_trash_work").put("qa_second_work");
             JSONObject args = new JSONObject().put("work_record_ids", ids).put("expected_preview_hash", WorklogDeletionBatch.preview(repository.effective(), ids).getString("preview_hash")).put("confirmed", true);
@@ -342,7 +376,8 @@ public final class KotlinMcpRegressionTests {
                 OwnerRequestTransactions.runRequest(transaction, "qa_delete_selection", "qa_fingerprint", () -> new DeletionApplicationService(repository).perform("delete_work_records", args, "qa_delete_selection"), "2026-11-03T20:00:00Z");
                 if (failSecond) throw new AssertionError("Expected second purge failure");
                 JSONObject actual = repository.effective();
-                yes(actual.getJSONArray("worklogs").length() == 0 && !OwnerJournalRules.archives(actual).has("worklog:qa_trash_work") && !OwnerJournalRules.archives(actual).has("worklog:qa_second_work"), "Batch deletion leaves no work copies in trash");
+                yes(actual.getJSONArray("worklogs").length() == 1 && actual.getJSONArray("worklogs").getJSONObject(0).getString("id").equals("qa_unselected_work") && !OwnerJournalRules.archives(actual).has("worklog:qa_trash_work") && !OwnerJournalRules.archives(actual).has("worklog:qa_second_work"), "Batch deletion removes only selected work originals and leaves no trash copies");
+                yes(state.getJSONObject("test_owner_values").getString("lcr_work_ids:v1").equals(new JSONArray().put("qa_unselected_work").toString()), "Only deleted L.C.R. references are cleared; unselected original and marking remain");
                 yes(receipts.containsKey("receipt:qa_delete_selection"), "Success receipt exists only for the completed selection");
             } catch (java.io.IOException expected) {
                 if (!failSecond) throw expected;
@@ -359,6 +394,15 @@ public final class KotlinMcpRegressionTests {
             OwnerRepository repository = (OwnerRepository) java.lang.reflect.Proxy.newProxyInstance(OwnerRepository.class.getClassLoader(), new Class<?>[]{OwnerRepository.class}, (proxy, method, args) -> {
                 switch (method.getName()) {
                     case "state": return state;
+                    case "ownerValue": {
+                        JSONObject values = state.optJSONObject("test_owner_values");
+                        return values == null ? args[1] : values.optString((String)args[0], (String)args[1]);
+                    }
+                    case "putOwnerValue": {
+                        if (!state.has("test_owner_values")) state.put("test_owner_values", new JSONObject());
+                        state.getJSONObject("test_owner_values").put((String)args[0], (String)args[1]);
+                        return null;
+                    }
                     case "effective":
                         JSONObject projected = SnapshotProjection.effective(state);
                         if (ignored.equals("dependent") && projected.getJSONArray("worklogs").length() == 0 && projected.getJSONArray("photos").length() == 0)

@@ -265,9 +265,12 @@ internal fun NativeAccountingHistory(controller: NativeAppController) {
                 NativeDisclosure("Summen", initiallyExpanded = true) {
                     for ((label, key) in
                         listOf(
-                            "Rechnungen" to "issued_minor",
-                            "Stornos" to "cancellations_minor",
-                            "Rechnungsnetto" to "invoice_net_minor",
+                            (if (basis == "service") "Leistungen · Rechnungen" else "Rechnungen") to
+                                "issued_minor",
+                            (if (basis == "service") "Leistungen · Stornos" else "Stornos") to
+                                "cancellations_minor",
+                            (if (basis == "service") "Leistungsnetto" else "Rechnungsnetto") to
+                                "invoice_net_minor",
                             "Bezahlt · Belegkohorte" to "paid_minor",
                             "Forderung offen" to "open_minor",
                             "Guthaben" to "credit_minor",
@@ -281,6 +284,38 @@ internal fun NativeAccountingHistory(controller: NativeAppController) {
                         NativeInfoRow(label, accountingMoney(data.optLong(key)))
                     }
                 }
+            }
+            if (basis == "service") {
+                item {
+                    Text(
+                        "Leistungspositionen im Zeitraum",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                items(
+                    data.optJSONArray("service_positions").objects(),
+                    key = { "service:" + it.getString("id") },
+                ) { line ->
+                    NativeInfoRow(
+                        line.optString("title").ifBlank { "Leistung" },
+                        nativeDisplayDate(line.optString("service_date")) +
+                            " · " +
+                            accountingMoney(line.optLong("amount_minor")),
+                        {
+                            controller.navigate(
+                                "settlement_review",
+                                line.getString("settlement_id"),
+                            )
+                        },
+                    )
+                }
+            }
+            item {
+                Text(
+                    if (basis == "service") "Zugehörige Originalbelege · Gesamtbetrag"
+                    else "Originalbelege · Gesamtbetrag",
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
             val records = data.optJSONArray("records").objects()
             items(records, key = { "record:" + it.getString("id") }) { row ->

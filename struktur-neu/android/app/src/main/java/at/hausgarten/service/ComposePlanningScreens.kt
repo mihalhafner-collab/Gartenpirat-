@@ -372,7 +372,7 @@ private fun PlanningDetail(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             NativeDetailHeading(
-                row.optString("title", "Termin"),
+                AppointmentRules.title(row),
                 buildList {
                     add(
                         NativeDetailAction(
