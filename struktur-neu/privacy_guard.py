@@ -125,7 +125,11 @@ def inspect_bytes(name, raw, *, artifact=False, depth=0):
     if raw.startswith(b'\xfe\xed\xfe\xed'):failures.append(finding(name,'SECRET_KEYSTORE'))
     if any(pattern.search(raw) for pattern in SECRET): failures.append(finding(name,'SECRET'))
     if suffix in TEXT | {'.dex','.class','.arsc'} and retired_literal(raw):failures.append(finding(name,'RETIRED_PRIVATE_LITERAL'))
-    if p.name.startswith('.env') or suffix in PRIVATE_SUFFIX or p.name.endswith(('-wal','-shm','-journal')):
+    # The owner's synthetic Eisbär design original is source documentation,
+    # never a general PDF allowance or an allowed packaged business document.
+    public_design = (not artifact and suffix == '.pdf' and
+                     POLICY.get('public_design_documents', {}).get(p.as_posix()) == hashlib.sha256(raw).hexdigest())
+    if p.name.startswith('.env') or (suffix in PRIVATE_SUFFIX and not public_design) or p.name.endswith(('-wal','-shm','-journal')):
         failures.append(finding(name,'PRIVATE_RUNTIME_OR_SECRET'))
     if suffix=='.json' or raw.lstrip().startswith((b'{',b'[')):
         try:

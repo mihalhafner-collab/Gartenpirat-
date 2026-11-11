@@ -1,0 +1,3 @@
+# Keep the authoritative design originals byte-identical on every checkout.
+struktur-neu/docs/fachregeln/eisbaer/*.pdf binary
+struktur-neu/docs/fachregeln/eisbaer/Eisbaer-*.json -text

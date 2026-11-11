@@ -52,23 +52,37 @@
     "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
   },
   "current_task": {
-    "name": "APP.md an das Designkonzept vom 08.11.2026 angleichen (nur Dokumentation)",
-    "status": "Abschnitt Oberfläche und Rechnung folgen dem Designkonzept vom 08.11.2026: sechs Farbrollen, kompakte Bausteine, ⋮-Menü statt „Mehr“, Abrechnung als eine Seite, Entwurf zugleich Vorschau, Rechnungsdaten, „Nicht abrechnen“, keine Karte, kein Papierkorb und kein Archivieren. Labor clandestino bleibt unverändert. Entschieden: Objekt an der Arbeit (vorhanden), kein Materialbestand, keine Gerätenutzung. App-Code unverändert 1.70.3/157.",
-    "owner_instruction": "Eigentümer 09.11.2026: Funktionen logisch und sinnvoll umsetzen, sonst löschen; KISS. Labor bleibt erhalten. Code je eigenem PR nach main mit vollem grünem CI-Lauf.",
+    "name": "Vollständiger Umbau nach Eisbär",
+    "status": "NOT_STARTED — Eisbär ist als einzige Design- und Funktionsumfangsvorgabe hinterlegt. Keine native Umsetzung und keine Eisbär-Laufzeitabnahme erfolgt.",
+    "completed": false,
+    "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
-      "source": "check_release_baseline.py und check_current.py; reine Dokumentationsänderung."
+      "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
+      "native_implementation": "NOT_STARTED",
+      "eisbaer_runtime_tests": "NOT_RUN"
     },
     "next": [
-      "Farbkonzept und kompakte Bausteine in NativeCompose.kt.",
-      "Abrechnung als eine Seite, Entwurf als Vorschau, Rechnungsdaten, E-Rechnung je Kunde, „Nicht abrechnen“.",
-      "Funktionen löschen: Papierkorb, Archivieren, „Mehr“, Karte, Materialbestand, Gerätenutzung; mit MCP-Werkzeugen und Tests im selben Schritt."
-    ]
+      "Eisbär PDF/JSON und UMSETZUNG.json lesen; ausschließlich deren Anforderungen umsetzen.",
+      "Anforderungen, Menüaktionen und Schritte, Finanzabläufe, Code-/Datenbereiche, Migration, Bilder und alle MCP-Verträge einzeln mit echten Nachweisen abnehmen.",
+      "Erst nach vollem CI und echter Pixel-/MCP-/Sicherungsabnahme denselben Kandidaten mit --completion abschließen."
+    ],
+    "source_note": "Repository-Code derzeit 1.70.3/157; die Eisbär-Analyse bezieht sich auf 1.71.0/158. Historische Installations-/Verteilungsbelege oben nicht als aktuelle oder neue Installation ausgeben."
   },
   "open_checks": [
-    "Installierte Version über get_capabilities bestätigen (gemeldet 1.61.1/132, verteilt 1.62.0/133); last_observed_installed_build erst danach setzen.",
-    "Pixel-Kurztest nach Installation: Arbeit starten → Benachrichtigung Pause/Stopp; Offene Stunden → Abrechnen; Abschluss → Bezahlt; Lupe und ⋮ oben rechts, + unten rechts; Sicherung wiederherstellen. Eigene Testdaten anschließend löschen.",
-    "Nachtest aus Teilabnahme 131: QA06 (Hinweise bei Gerätefoto-Übernahme), C04 (nach Löschen zurück zur Kundenliste), Kamera QA11, Randgeste.",
-    "Kamera, Kalender/Wetter, Pixel-Tunnel und Speicherfreigabe am Pixel produktiv prüfen.",
-    "Native Sicherung und Speicherbereinigung am Pixel abnehmen."
-  ]
+    "Nach tatsächlicher Eisbär-Implementierung und ausdrücklich beauftragter Installation: Pixel-Paket, Version, Git-/Quellhash desselben Kandidaten lesen.",
+    "Eisbär-Bedienbarkeit mit großer Schrift, Tastatur, Randgesten und Kamera am Pixel nachweisen.",
+    "Bestehende Kalender-/Wetter-/Codex-MCP-Verbindungen und Android-Freigaben am Pixel nachweisen.",
+    "Fortschreibung derselben Sicherungsdatei, Integrität und bewusst bestätigte Wiederherstellung mit synthetischen Daten am Pixel nachweisen."
+  ],
+  "design_authority": {
+    "name": "Eisbär",
+    "version": "1.0.1",
+    "document_id": "HG-UMB-20261110-001",
+    "register": "docs/fachregeln/eisbaer/EISBAER.json",
+    "implementation": "docs/fachregeln/eisbaer/UMSETZUNG.json",
+    "sole_authority": true,
+    "completion_required": "Vollständige Umsetzung und sämtliche Eisbär-Abnahmen PASS mit Nachweisen; check_eisbaer.py --completion muss bestehen.",
+    "concept_baseline": "Pixel-Metadaten vom 10.11.2026: 1.71.0/158; keine Aussage über eine neue Installation oder den gegenwärtigen Gerätestand."
+  },
+  "eisbaer_completed": false
 }

@@ -18,7 +18,11 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 - Vor jeder Aufgabe `main`, diese Datei und `struktur-neu/AKTUELLER-STAND.json`
   lesen. Das Repository ist die einzige verbindliche Quelle; frühere Chats sind
   nur Material.
-- Fachregeln und Oberflächenkonzept: `struktur-neu/docs/fachregeln/APP.md`.
+- Einzige gültige Design- und Funktionsumfangsvorgabe: **Eisbär 1.0.1**,
+  `struktur-neu/docs/fachregeln/eisbaer/EISBAER.json` mit unveränderter PDF/JSON.
+  Einstieg: `struktur-neu/docs/fachregeln/APP.md`. Frühere Konzepte sind ersetzt.
+  Neue Eigentümerentscheidungen als versionierte Eisbär-Änderung eintragen;
+  keine zweite Vorgabe und kein eigenmächtiges Kürzen des Umfangs.
   Bauen und CI: `struktur-neu/docs/entwicklung/BAU.md`. Signieren und
   Verteilen: `struktur-neu/docs/entwicklung/SIGNIERUNG.md`.
 - Einzige Codebasis: Kotlin/Compose unter
@@ -64,6 +68,13 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
   die Cloud oder CI.
 
 ## Abschluss
+
+- Der Eisbär-Umbau ist erst abgeschlossen, wenn **Eisbär vollständig umgesetzt**
+  und sämtliche Abnahmen mit realen Nachweisen bestanden sind. Status steht nur
+  in `struktur-neu/docs/fachregeln/eisbaer/UMSETZUNG.json`; Checkboxen, Mockups,
+  Teil-PRs oder ein grüner Alt-Testlauf reichen nicht. Keine offenen Punkte als
+  erledigt melden. `python3 -B struktur-neu/tools/check_eisbaer.py --completion`
+  muss bestehen; bei `COMPLETE` wird diese Prüfung automatisch strikt.
 
 - `python3 -B struktur-neu/tools/check_current.py` und die für die Änderung
   nötigen Laufzeitprüfungen ausführen. Geräteidentität ist kein Funktionstest.

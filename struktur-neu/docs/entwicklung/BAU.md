@@ -23,7 +23,15 @@ Android-SDK 37 mit Build-Tools 37.0.0. `ANDROID_HOME` (und für die JVM-Tests
 python3 -B tools/check_current.py
 ```
 
-Prüft Originalidentität, Datenschutz und die Python-Tests; baut nichts.
+Prüft Eisbär-Originale, vollständige offene Abnahmen, Originalidentität,
+Datenschutz und die Python-Tests; baut nichts. Eine grüne Zwischenprüfung
+bescheinigt keine vollständige Umsetzung. Eisbär ist die einzige Design- und
+Funktionsvorgabe; siehe [APP.md](../fachregeln/APP.md).
+
+Ein Abschluss erfordert zusätzlich
+`python3 -B tools/check_eisbaer.py --completion` und sämtliche dort verlangten
+realen Kandidaten-, CI-, Pixel- und MCP-Nachweise. Bei `COMPLETE` erzwingt auch
+die normale Quellprüfung diesen Abschlussnachweis.
 Verträge, Testdaten, Wartungstexte und die Zuordnung jeder App-Aktion
 zu ihrem MCP-Werkzeug prüft jeder Gradle-Build vorab.
 

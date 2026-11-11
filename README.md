@@ -4,6 +4,10 @@ Einziger funktionaler Android-Quellstand: `struktur-neu/android/app/src/main/`
 (Kotlin, Jetpack Compose, lokale SQLite-Datenbank). Es gibt genau ein Paket,
 `at.hausgarten.service`; Tests laufen im Emulator oder direkt auf dem Pixel.
 
+**Alleinige Design- und Funktionsvorgabe: [Eisbär](struktur-neu/docs/fachregeln/APP.md).**
+Der Umbau gilt erst bei vollständiger Umsetzung und bestandener Eisbär-Abnahme
+als abgeschlossen. Frühere widersprechende Konzepte sind ersetzt.
+
 Maßgebliche Projektregeln: [AGENTS.md](AGENTS.md).
 Aktueller Stand: [AKTUELLER-STAND.json](struktur-neu/AKTUELLER-STAND.json).
 Vor jeder Entwicklung die installierte Pixel-App und ihren Quellfingerabdruck

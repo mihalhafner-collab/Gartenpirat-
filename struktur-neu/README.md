@@ -8,6 +8,10 @@ Diese Struktur ist die verbindliche Quelle der Kotlin-App mit Compose-Oberfläch
 Der aktuelle Prüfworkflow baut diese Quellen; Installation und Veröffentlichung
 benötigen weiterhin einen eigenen Auftrag.
 
+Einzige Design- und Funktionsumfangsvorgabe: **[Eisbär](docs/fachregeln/APP.md)**.
+Die vollständige PDF und maschinenlesbare Spezifikation liegen unverändert im
+Repository. Der Umbau bleibt bis zur vollständigen nachgewiesenen Umsetzung offen.
+
 ## Einstieg
 
 1. [Arbeitsregeln](../AGENTS.md)
