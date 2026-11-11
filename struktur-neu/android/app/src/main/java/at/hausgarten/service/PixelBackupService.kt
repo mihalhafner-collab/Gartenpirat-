@@ -2,7 +2,10 @@ package at.hausgarten.service
 
 import android.app.job.JobScheduler
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
 import android.system.Os
 import java.io.File
@@ -11,7 +14,9 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
+import java.security.MessageDigest
 import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import org.json.JSONArray
@@ -82,14 +87,35 @@ internal constructor(private val context: Context, private val store: PixelLocal
                 )
             }
         }
-        return BackupStatusRules.project(records, args, HashSet(RUNNING), Instant.now())
+        val selected = targetSelection().optString("uri")
+        val accessError =
+            if (selected.isEmpty()) ""
+            else
+                try {
+                    requireSelectedFileAccess(Uri.parse(selected))
+                    ""
+                } catch (failure: IOException) {
+                    BackupScheduleRules.errorCode(failure)
+                }
+        val result = BackupStatusRules.project(records, args, HashSet(RUNNING), Instant.now())
+        if (accessError.isNotEmpty() && !args.has("backup_id")) result.put("state", "FAILED")
+        return result
             .put("format_version", 3)
             .put("mode", "PIXEL_PLAINTEXT_ZIP")
             .put("encrypted", false)
             .put("settings_hash", PixelMcpWriteTools.hash(identity))
             .put("requires_google_account", false)
             .put("requires_recovery_key", false)
-            .put("target_selected", targetSelection().optString("uri").isNotEmpty())
+            .put("target_selected", selected.isNotEmpty())
+            .put("current_access_error", if (args.has("backup_id")) "" else accessError)
+            .put(
+                "all_files_access_required",
+                Build.VERSION.SDK_INT >= 31 && !Environment.isExternalStorageManager(),
+            )
+            .put(
+                "document_permission_required",
+                accessError == "BACKUP_DOCUMENT_PERMISSION_REQUIRED",
+            )
             .put("cloud_confirmed", false)
     }
 
@@ -138,10 +164,94 @@ internal constructor(private val context: Context, private val store: PixelLocal
     }
 
     @Throws(Exception::class)
-    fun save(request: String?, target: Uri?, progress: Consumer<String>): JSONObject {
+    fun save(request: String?, target: Uri?, progress: Consumer<String>): JSONObject =
+        saveSelected(request, target, null, progress)
+
+    @Throws(Exception::class)
+    fun saveWithApproval(
+        request: String?,
+        target: Uri?,
+        approval: JSONObject,
+        progress: Consumer<String>,
+    ): JSONObject = saveSelected(request, target, approval, progress)
+
+    fun hasVerifiedTarget(target: Uri): Boolean {
+        val raw = store.ownerValue("pixel_backup_success", "")
+        if (raw.isEmpty()) return false
+        val previous = JSONObject(raw)
+        val identity = BackupDeviceGuard(context).current()
+        return previous.optJSONObject("destination")?.optString("treeUri") == target.toString() &&
+            previous.optString("installationId") == identity.getString("installationId") &&
+            previous.optString("restoreEpoch") == identity.getString("restoreEpoch")
+    }
+
+    /** Verify an existing file without importing its business or installation identity. */
+    @Throws(Exception::class)
+    fun inspectExistingTarget(target: Uri): JSONObject =
+        synchronized(SAVE_LOCK) {
+            requireDocument(target)
+            requireSelectedFileAccess(target)
+            if (Build.VERSION.SDK_INT < 31) throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+            if (RUNNING.isNotEmpty()) throw IOException("BACKUP_RUNNER_BUSY")
+            val digest = MessageDigest.getInstance("SHA-256")
+            var size = 0L
+            val restore = BackupRestoreService(context)
+            var previewId = ""
+            try {
+                val preview =
+                    restore.previewFrom("backup_target_" + UUID.randomUUID(), target.toString()) {
+                        val input =
+                            context.contentResolver.openInputStream(target)
+                                ?: throw IOException("BACKUP_LOCAL_READBACK_FAILED")
+                        object : InputStream() {
+                            override fun read(): Int {
+                                val value = input.read()
+                                if (value >= 0) {
+                                    digest.update(value.toByte())
+                                    size++
+                                }
+                                return value
+                            }
+
+                            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                                val count = input.read(buffer, offset, length)
+                                if (count > 0) {
+                                    digest.update(buffer, offset, count)
+                                    size += count
+                                }
+                                return count
+                            }
+
+                            override fun close() = input.close()
+                        }
+                    }
+                previewId = preview.getString("restore_id")
+                val summary = preview.getJSONObject("summary")
+                val identity = BackupDeviceGuard(context).current()
+                JSONObject()
+                    .put("destination", target.toString())
+                    .put("archive_sha256", BackupArchive.hex(digest.digest()))
+                    .put("archive_size", size)
+                    .put("installation_id", identity.getString("installationId"))
+                    .put("restore_epoch", identity.getString("restoreEpoch"))
+                    .put("captured_at", summary.getString("captured_at"))
+                    .put("counts", summary.getJSONObject("counts"))
+                    .put("current_counts", preview.getJSONObject("current_counts"))
+            } finally {
+                if (previewId.isNotEmpty()) BackupRestoreService.discardPreview(context, previewId)
+            }
+        }
+
+    private fun saveSelected(
+        request: String?,
+        target: Uri?,
+        approval: JSONObject?,
+        progress: Consumer<String>,
+    ): JSONObject {
         requireDocument(target)
         val selected = target!!
-        return saveTo(
+        requireSelectedFileAccess(selected)
+        return saveToApproved(
             request,
             selected.toString(),
             object : BackupDocumentTransfer.LocalFile {
@@ -160,6 +270,9 @@ internal constructor(private val context: Context, private val store: PixelLocal
                             !DocumentsContract.isDocumentUri(context, selected)
                     )
                         throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+                    if (Build.VERSION.SDK_INT < 31)
+                        throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+                    requireSelectedFileAccess(selected)
                     try {
                         context.contentResolver.openFileDescriptor(selected, "r").use { descriptor
                             ->
@@ -180,6 +293,19 @@ internal constructor(private val context: Context, private val store: PixelLocal
                                 previousHash,
                                 previousSize,
                             )
+                            // Raw access bypasses MediaStore bookkeeping. Scan only this chosen
+                            // file after the exchange, never a directory or another user file.
+                            try {
+                                MediaScannerConnection.scanFile(
+                                    context,
+                                    arrayOf(file.path),
+                                    arrayOf("application/zip"),
+                                    null,
+                                )
+                            } catch (_: RuntimeException) {
+                                // Index maintenance cannot undo or reclassify a committed move.
+                                // The subsequent complete archive readback confirms this save.
+                            }
                         }
                     } catch (failure: IOException) {
                         throw failure
@@ -188,8 +314,23 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     }
                 }
             },
-            progress,
+            Consumer { message ->
+                progress.accept(message)
+                requireSelectedFileAccess(selected)
+            },
+            approval,
         )
+    }
+
+    private fun requireSelectedFileAccess(selected: Uri) {
+        if (selected.authority != "com.android.externalstorage.documents") return
+        val granted =
+            context.contentResolver.persistedUriPermissions.any {
+                it.uri == selected && it.isReadPermission && it.isWritePermission
+            }
+        if (!granted) throw IOException("BACKUP_DOCUMENT_PERMISSION_REQUIRED")
+        if (Build.VERSION.SDK_INT >= 31 && !Environment.isExternalStorageManager())
+            throw IOException("BACKUP_ALL_FILES_ACCESS_REQUIRED")
     }
 
     // Shared by the Android provider and an isolated native test destination.
@@ -199,6 +340,14 @@ internal constructor(private val context: Context, private val store: PixelLocal
         destination: String,
         selectedFile: BackupDocumentTransfer.LocalFile,
         progress: Consumer<String>,
+    ): JSONObject = saveToApproved(request, destination, selectedFile, progress, null)
+
+    private fun saveToApproved(
+        request: String?,
+        destination: String,
+        selectedFile: BackupDocumentTransfer.LocalFile,
+        progress: Consumer<String>,
+        suppliedApproval: JSONObject?,
     ): JSONObject {
         if (request == null || !request.matches(Regex("[A-Za-z0-9_-]{8,200}"))) {
             throw IOException("BACKUP_REQUEST_ID_REQUIRED")
@@ -221,6 +370,52 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     saved.optString("restoreEpoch") == identity.optString("restoreEpoch")
             if (saved != null && request == saved.optString("requestId") && !sameTarget)
                 throw IOException("BACKUP_REQUEST_ID_CONFLICT")
+            val lastRaw = store.ownerValue("pixel_backup_last", "")
+            val pending = if (lastRaw.isEmpty()) null else JSONObject(lastRaw)
+            val pendingMatches =
+                pending != null &&
+                    request == pending.optString("requestId") &&
+                    pending.optString("installationId") == identity.optString("installationId") &&
+                    pending.optString("restoreEpoch") == identity.optString("restoreEpoch")
+            if (
+                pending != null &&
+                    pendingMatches &&
+                    pending.optJSONObject("destination")?.optString("treeUri") != destination
+            )
+                throw IOException("BACKUP_REQUEST_ID_CONFLICT")
+            val recordedApproval =
+                when {
+                    saved != null && sameTarget && request == saved.optString("requestId") ->
+                        saved.optJSONObject("approved_existing_target")
+                    pendingMatches ->
+                        checkNotNull(pending).optJSONObject("approved_existing_target")
+                    else -> null
+                }
+            val approval = suppliedApproval ?: recordedApproval
+            if (
+                suppliedApproval != null &&
+                    recordedApproval == null &&
+                    (pendingMatches || saved != null && request == saved.optString("requestId"))
+            )
+                throw IOException("BACKUP_REQUEST_ID_CONFLICT")
+            if (approval != null) {
+                if (
+                    approval.optString("destination") != destination ||
+                        approval.optString("installation_id") !=
+                            identity.getString("installationId") ||
+                        approval.optString("restore_epoch") != identity.getString("restoreEpoch") ||
+                        !approval.optString("archive_sha256").matches(Regex("[0-9a-f]{64}")) ||
+                        approval.optLong("archive_size") <= 0
+                )
+                    throw IOException("BACKUP_TARGET_CHANGED")
+                if (
+                    suppliedApproval != null &&
+                        recordedApproval != null &&
+                        PixelMcpWriteTools.hash(suppliedApproval) !=
+                            PixelMcpWriteTools.hash(recordedApproval)
+                )
+                    throw IOException("BACKUP_REQUEST_ID_CONFLICT")
+            }
             if (saved != null) {
                 if (sameTarget && request == saved.optString("requestId")) {
                     val repeated = JSONObject(saved.toString())
@@ -240,14 +435,7 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     return result(repeated)
                 }
             }
-            val lastRaw = store.ownerValue("pixel_backup_last", "")
-            val pending = if (lastRaw.isEmpty()) null else JSONObject(lastRaw)
-            if (
-                pending != null &&
-                    request == pending.optString("requestId") &&
-                    pending.optString("installationId") == identity.optString("installationId") &&
-                    pending.optString("restoreEpoch") == identity.optString("restoreEpoch")
-            ) {
+            if (pending != null && pendingMatches) {
                 if (pending.optJSONObject("destination")?.optString("treeUri") != destination)
                     throw IOException("BACKUP_REQUEST_ID_CONFLICT")
                 val prepared = pending.optJSONObject("archive")
@@ -270,7 +458,12 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     // If the atomic replacement never happened, only the previously verified
                     // old target (or a still empty first target) may be retried.
                     try {
-                        val old = if (sameTarget) saved?.optJSONObject("archive") else null
+                        val old =
+                            if (approval != null)
+                                JSONObject()
+                                    .put("sha256", approval.getString("archive_sha256"))
+                                    .put("size", approval.getLong("archive_size"))
+                            else if (sameTarget) saved?.optJSONObject("archive") else null
                         selectedFile.read().use { input ->
                             if (old != null)
                                 BackupDocumentTransfer.verifyReadback(
@@ -302,6 +495,8 @@ internal constructor(private val context: Context, private val store: PixelLocal
                             .put("treeUri", destination),
                     )
                     .put("phase", "CAPTURING")
+            if (approval != null)
+                current.put("approved_existing_target", JSONObject(approval.toString()))
             record = current
             store.putOwnerValue("pixel_backup_last", current.toString())
             val parent = File(context.noBackupFilesDir, "pixel-backup")
@@ -354,8 +549,13 @@ internal constructor(private val context: Context, private val store: PixelLocal
                 // replacement after a crash/readback error under the same request_id.
                 store.putOwnerValue("pixel_backup_last", current.toString())
                 progress.accept("Gewählte Sicherungsdatei aktualisieren und zurücklesen …")
-                if (sameTarget) {
-                    val oldArchive = saved.getJSONObject("archive")
+                if (sameTarget || approval != null) {
+                    val oldArchive =
+                        if (approval != null)
+                            JSONObject()
+                                .put("sha256", approval.getString("archive_sha256"))
+                                .put("size", approval.getLong("archive_size"))
+                        else checkNotNull(saved).getJSONObject("archive")
                     BackupDocumentTransfer.updateLocal(
                         staged,
                         sha,

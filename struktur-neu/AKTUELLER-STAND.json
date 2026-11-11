@@ -3,7 +3,7 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-11T10:32:27Z",
+    "observed_at_utc": "2026-11-11T12:11:43Z",
     "version_name": "1.71.0",
     "version_code": 158,
     "package_name": "at.hausgarten.service",
@@ -56,22 +56,22 @@
   "current_test_candidate": {
     "version_name": "1.72.0",
     "version_code": 159,
-    "source_sha256": "f99ebe1a3475f40464cae672090cb5997210a7f55dbc5c198cb2d1e1effe946e",
-    "status": "Eisbär 1.0.1 auf nachgewiesener installierter 158-Basis. Alle aktuellen lokalen Quellprüfungen, Lint sowie Release- und Test-APK-Bauten bestanden. 46 native UI-/MCP-/Update-/Dateianbieter-Laufabschnitte einschließlich gezielter Fehler-, Wiederholungs- und Reentry-Fälle vorbereitet. Vollständiger aktueller Lauf und physische Pixel-Abnahme offen; Laufstatus im bestehenden PR #27. Nicht verteilt oder installiert."
+    "source_sha256": "2f1ff0171df20685c32840a8be63e9561d092fe3df0a4de35ed69af160bf58d5",
+    "status": "Eisbär 1.0.1 auf exakt nachgewiesener 158-Basis. Alle aktuellen lokalen Quell-, JVM-, Lint- und APK-Prüfungen bestanden. Neun fehlgeschlagene Aufrufe des vorherigen Volltests gezielt korrigiert; öffentliche Dokumente-Sicherung mit bewusster Android-Freigabe und geprüfter ZIP-Neubindung integriert. Nächster vollständiger Kandidatenlauf erforderlich. Nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "IN_PROGRESS — native Eisbär-Umsetzung und Abnahmewege implementiert, lokale Prüfungen bestanden. Vollständiger aktueller Emulatorlauf und reale Pixel-/Verbindungs-/Provider-Abnahme bleiben offen. Kein Eisbär-Abschluss.",
+    "status": "IN_PROGRESS — native Eisbär-Umsetzung und gezielte Korrekturen lokal vollständig geprüft. Neuer vollständiger grüner Emulatorlauf und reale Pixel-Abnahme offen. Kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
       "native_implementation": "IN_PROGRESS",
-      "eisbaer_runtime_tests": "Aktueller FullCI 43004054724 vor den unabhängigen Fachsuiten am Schreibpfad des synthetischen Update-Prüfmarkers gescheitert. Marker und Anbieter-Folgezustand auf das zugängliche noBackup-Verzeichnis der Ziel-App korrigiert; Test-APK und Lint danach PASS. 46 native Laufabschnitte bleiben bis tatsächlicher Ausführung offen.",
-      "source": "PASS check_release_baseline.py und check_current.py; 64 Python-Tests, Workflow-YAML und 12 Shellblöcke syntaktisch geprüft, Eisbär-Originale unverändert.",
-      "local_jvm": "PASS 97 JVM-Tests im CI 43004054724 auf identischen Domänenquellen; danach Instrumentierungs-/CI-Korrekturen und bedienbare Arbeitsvorgaben erst nach geladenen Einstellungen. Nächster FullCI wiederholt alle Tests.",
-      "local_build": "PASS aktueller Quellstand: lintRelease, assembleRelease, assembleReleaseAndroidTest und Artefakt-Datenschutz; generierter Build-Fingerabdruck stimmt exakt mit source_sha256 überein. Lokale Native-Ausführung nicht möglich, KVM fehlt.",
-      "full_ci": "Run 43004054724 auf 47bec4d: Build SUCCESS einschließlich 97 JVM-Tests, Emulator FAILURE am privaten Testpaket-Marker. Signierung und echter 158-Seed bis dahin bestanden. Marker korrigiert; nächster vollständiger PR-Lauf erforderlich."
+      "eisbaer_runtime_tests": "FullCI 43008548556 auf 8a9dc5b: 46 Aufrufe, 37 erfolgreich und neun fehlgeschlagen; 4431 Checks in erfolgreichen Aufrufen. Echtes Update 158→159 PASS: Originale, laufende Sitzung, Entwürfe, Fotobytes und Identität erhalten. Neue MCP-Prooflisten nach frühem Lösch-Wiederholungstest unvollständig. Aktuelle gezielte Korrekturen noch NICHT ausgeführt.",
+      "source": "PASS check_release_baseline.py und check_current.py: 64 Python-Prüfungen; Workflow-YAML und alle zwölf Shellblöcke gültig. Eisbär-Originale unverändert.",
+      "local_jvm": "PASS 97 JVM-Tests auf aktuellem Stand, keine Fehler. Suchmessung ohne parallele Compilerarbeit p95=274.087055 ms unter unverändertem 300-ms-Limit; Host-JVM mit synthetischen Daten, keine Pixel-Leistungsbehauptung.",
+      "local_build": "PASS aktueller Stand: lintRelease, assembleRelease, assembleReleaseAndroidTest und Artefakt-Datenschutz. Test-APK einschließlich öffentlicher SAF-/Android-Freigabe-/ZIP-Neubindungs- und vollständiger Glyph-Nachweise kompiliert. Native Ausführung folgt in vollem CI; lokal fehlt KVM.",
+      "full_ci": "Run 43008548556: Build SUCCESS, Emulator FAILURE, Eisbär-Integrität SUCCESS. Ursachen: Sicherungsfähigkeit, Lösch-Wiederholung, Übersichtsnavigation und UI-Test-Sichtbarkeit/Bereitschaft; neun rote Aufrufe einschließlich zwei Folgeprüfungen. Neuer vollständiger Lauf nach integrierten Korrekturen erforderlich."
     },
     "next": [
       "Aktuellen Quellstand lokal abschließend prüfen, committen, im bestehenden PR #27 pushen und vollständigen CI-Lauf ohne Teilfilter bis grün ausführen.",

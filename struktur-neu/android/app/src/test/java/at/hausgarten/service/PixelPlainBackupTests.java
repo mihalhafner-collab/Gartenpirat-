@@ -46,6 +46,38 @@ public final class PixelPlainBackupTests {
         for(String bad:new String[]{"not a date","2026-11-30T10:00:00Z","2026-10-28T09:00:00Z","2026-10-28T10:00:30Z"}){JSONObject invalid=new JSONObject(success.toString());invalid.getJSONObject("job").getJSONObject("provider").put("verified_at",bad);JSONObject result=status(new JSONArray().put(invalid),new JSONObject());yes(result.getBoolean("clock_review_required")&&result.getString("state").equals("FAILED"));}
         JSONObject corrupt=new JSONObject(success.toString());corrupt.getJSONObject("job").getJSONObject("provider").put("archive_sha256","c".repeat(64));yes(status(new JSONArray().put(corrupt),new JSONObject()).getString("state").equals("FAILED"));
         JSONObject retry=new JSONObject(success.toString());retry.getJSONObject("job").put("lastErrorCode","BACKUP_LOCAL_READBACK_FAILED").put("lastAttemptAt","2026-10-29T11:00:00Z");JSONObject retryStatus=status(new JSONArray().put(retry),new JSONObject());yes(retryStatus.getString("state").equals("FAILED")&&!retryStatus.getString("last_local_verified_at").isEmpty());yes(retry.getJSONObject("job").getString("phase").equals("PROVIDER_VERIFIED"));
+        byte[] originalVerifiedJob=success.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        JSONObject verifiedStatus=status(new JSONArray().put(success),new JSONObject());
+        String verifiedStatusBefore=verifiedStatus.toString();
+        String verifiedAt=success.getJSONObject("job").getJSONObject("provider").getString("verified_at");
+        String capturedAt=success.getJSONObject("job").getJSONObject("archive").getString("capturedAt");
+        yes(verifiedStatus.getString("state").equals("VERIFIED")&&BackupStatusRules.selfTest(verifiedStatus).getString("status").equals("PASS"));
+        for(String accessError:new String[]{"BACKUP_ALL_FILES_ACCESS_REQUIRED","BACKUP_DOCUMENT_PERMISSION_REQUIRED"}){
+            // PixelBackupService projects a current denied grant as FAILED without rewriting
+            // the retained PROVIDER_VERIFIED job. Exercise its pure read consumers here.
+            JSONObject inaccessible=new JSONObject(verifiedStatusBefore).put("state","FAILED").put("current_access_error",accessError);
+            String inaccessibleBefore=inaccessible.toString();
+            JSONObject selfTest=BackupStatusRules.selfTest(inaccessible);
+            yes(selfTest.getString("status").equals("FAIL")&&selfTest.getString("state").equals("FAILED"));
+            yes(selfTest.getString("last_error_code").equals(accessError));
+            yes(!selfTest.getBoolean("file_rechecked_now")&&!selfTest.getBoolean("restore_tested")&&!selfTest.getBoolean("cloud_confirmed"));
+            String message=BackupStatusRules.message(inaccessible);
+            yes(message.startsWith(BackupStatusRules.failureMessage(accessError))&&message.contains("Früherer bestätigter Sicherungszeitpunkt:"));
+            yes(!message.startsWith("Sicherung gespeichert und vollständig zurückgelesen:"));
+            if(accessError.equals("BACKUP_ALL_FILES_ACCESS_REQUIRED"))yes(message.contains("Zugriff auf alle Dateien")&&message.contains("Android-Einstellungen"));
+            else yes(message.contains("dauerhafte Android-Lese- und Schreibfreigabe")&&message.contains("Android-Dateiauswahl"));
+            yes(inaccessible.getString("last_local_verified_at").equals(verifiedAt)&&inaccessible.getString("last_local_captured_at").equals(capturedAt));
+            yes(inaccessible.getJSONObject("latest_job").getString("recorded_phase").equals("PROVIDER_VERIFIED")
+                &&inaccessible.getJSONObject("latest_job").getBoolean("saved_proof_valid")
+                &&inaccessible.getJSONObject("latest_job").getString("last_error_code").isEmpty());
+            yes(inaccessible.toString().equals(inaccessibleBefore)&&verifiedStatus.toString().equals(verifiedStatusBefore));
+            JSONObject historical=status(all,new JSONObject().put("backup_id","qa_z_old"));
+            yes(historical.optString("current_access_error").isEmpty()&&historical.getString("state").equals("VERIFIED"));
+            yes(BackupStatusRules.selfTest(historical).getString("status").equals("PASS")&&BackupStatusRules.selfTest(historical).getString("last_error_code").isEmpty());
+            yes(BackupStatusRules.message(historical).startsWith("Sicherung gespeichert und vollständig zurückgelesen:"));
+            yes(historical.getString("last_local_verified_at").equals(verifiedAt)&&historical.getString("last_local_captured_at").equals(capturedAt));
+            yes(Arrays.equals(originalVerifiedJob,success.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8))&&all.toString().equals(unchanged));
+        }
         JSONObject utc=backup("qa_z_utc","2026-10-29T09:00:00Z","CAPTURE_PENDING"),offset=backup("qa_a_offset","2026-10-29T10:00:00+02:00","CAPTURE_PENDING");yes(status(new JSONArray().put(offset).put(utc),new JSONObject()).getJSONObject("latest_job").getString("backup_id").equals("qa_z_utc"));
     }
     static void warningStatusChecks()throws Exception {

@@ -1065,6 +1065,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 enter(label, value)
                 if (keyboardVisible()) back()
                 click("Fertig")
+                waitUntil("SETTLEMENT_VALUE_EDITOR_CLOSED_$label") {
+                    field(label) == null && node("Fertig") == null
+                }
             }
             val beforeMissingPrice = store.ownerValue(SettlementRules.KEY, "{}")
             editValue("Preis je Einheit", "Preis je Einheit (€)", "")
@@ -1122,7 +1125,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 priceScreen.recycle()
             }
             editValue("Preis je Einheit (€)", "Preis je Einheit (€)", "900")
-            waitUntil("SETTLEMENT_PRICE_RESTORED_ISSUE_ENABLED") { actionEnabled(UiTags.PRIMARY) }
+            waitUntil("SETTLEMENT_PRICE_RESTORED_ISSUE_ENABLED") {
+                val entered = runCatching {
+                    JSONObject(
+                            store.ownerValue(
+                                "native_form_draft:" +
+                                    PixelMcpWriteTools.hash("settlement-editor:$invoice"),
+                                "{}",
+                            )
+                        )
+                        .getJSONObject("values")
+                        .getJSONArray("positions")
+                        .getJSONObject(0)
+                        .getString("price")
+                }
+                    .getOrNull()
+                entered == "900" &&
+                    runCatching { actionEnabled(UiTags.PRIMARY) }.getOrDefault(false) &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == beforeMissingPrice
+            }
             val beforePreview = store.ownerValue(SettlementRules.KEY, "{}")
             reveal("PDF ansehen")
             click("PDF ansehen")
@@ -2331,6 +2352,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
         openOffice()
         click("Anfragen")
+        val inquiryFilter = "QA"
+        enter("Suchen", inquiryFilter)
         click("Anfrage anlegen")
         chooseCustomer()
         enter("Bezeichnung *", inquiryTitle)
@@ -2352,6 +2375,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         openOffice()
         click("Anfragen")
+        waitUntil("M05_NATIVE_MENU_RETURNS_TO_OVERVIEW_WITH_RETAINED_LIST_FILTER") {
+            field("Suchen")?.text?.toString() == inquiryFilter
+        }
+        enter("Suchen", inquiryTitle)
         click(inquiryTitle)
         shown(inquiryTitle)
         captureSyntheticScreen("inquiry-created-readback")
@@ -2376,6 +2403,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         fun openOrder() {
             openOffice()
             click("Aufträge")
+            enter("Suchen", orderTitle)
             click(orderTitle)
             shown(UiTags.entityDetail("orders", orderId))
         }
@@ -2733,18 +2761,42 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 shell("settings put system font_scale $font")
                 launch()
                 openAccountingTotals()
+                val expectedOrientation =
+                    if (wide) android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                    else android.content.res.Configuration.ORIENTATION_PORTRAIT
                 test.runOnMainSync {
                     activity?.requestedOrientation =
                         if (wide) android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                         else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
+                waitUntil("ACCOUNTING_FONT_${font}_AND_ORIENTATION_${wide}_APPLIED") {
+                    var applied = false
+                    test.runOnMainSync {
+                        val configuration = activity?.resources?.configuration
+                        applied =
+                            configuration != null &&
+                                kotlin.math.abs(configuration.fontScale - font.toFloat()) < 0.01f &&
+                                configuration.orientation == expectedOrientation
+                    }
+                    applied
+                }
                 settleUi()
                 reveal("900,00 €")
+                reveal("ausgestellt")
                 shown("ausgestellt")
                 reveal("bezahlt · diese Belege")
                 shown("bezahlt · diese Belege")
                 reveal("offen · diese Belege")
                 shown("offen · diese Belege")
+                if (font == "2.0" && wide) {
+                    val railLabel =
+                        textWithinOwnScrollViewport("Abrechnung", UiTags.area("accounting"))
+                    yes(
+                        railLabel.second.contains(railLabel.first) && railLabel.first.height() > 0,
+                        "ACCOUNTING_200_LANDSCAPE_LAST_NAV_LABEL_REACHABLE_IN_OWN_RAIL",
+                    )
+                    captureSyntheticScreen("eisbaer-accounting-200-landscape-rail-visible")
+                }
                 captureSyntheticScreen(
                     "eisbaer-accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}"
                 )
@@ -5069,13 +5121,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     (activity?.resources?.configuration?.fontScale ?: 0f) >= 1.99f
                 }
                 reveal("Pausiert")
-                reveal(frozenClock)
+                val mainClock = textWithinOwnScrollViewport(frozenClock)
                 primaryPosition("Fortsetzen", "Zeit stoppen")
                 val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
-                val clockBounds =
-                    Rect().also { requireNotNull(node(frozenClock)).getBoundsInScreen(it) }
+                val clockBounds = mainClock.first
                 yes(
-                    screen.contains(clockBounds) &&
+                    mainClock.second.contains(clockBounds) &&
+                        screen.contains(clockBounds) &&
                         clockBounds.height() > 0 &&
                         screen.contains(actionBounds("Fortsetzen")) &&
                         screen.contains(actionBounds("Zeit stoppen")),
@@ -5552,6 +5604,126 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     "$stage ${texts(item)} $bounds id=${item.viewIdResourceName} editable=${item.isEditable} enabled=${item.isEnabled} clickable=${clickable(item) != null} actions=${item.actionList.map { it.id }}",
                 )
             }
+    }
+
+    /** Every actual character must be visible; Compose clips ordinary A11y node rectangles. */
+    private fun textWithinOwnScrollViewport(
+        label: String,
+        requiredAncestorTag: String = "",
+    ): Pair<Rect, Rect> {
+        val extraKey = AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
+        val up = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.id
+        val down = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.id
+        var proof: Pair<Rect, Rect>? = null
+        var nudges = 0
+        var diagnostic = "No exact text with character locations and its own vertical scroller"
+        waitUntil("OWN_SCROLL_CHARACTERS_$label") {
+            val target =
+                nodes().firstNotNullOfOrNull { candidate ->
+                    if (
+                        candidate.text?.toString() != label ||
+                            candidate.isEditable ||
+                            extraKey !in candidate.availableExtraData
+                    )
+                        return@firstNotNullOfOrNull null
+                    val parents = generateSequence(candidate.parent) { it.parent }.toList()
+                    if (
+                        requiredAncestorTag.isNotBlank() &&
+                            !matches(candidate, requiredAncestorTag) &&
+                            parents.none { matches(it, requiredAncestorTag) }
+                    )
+                        return@firstNotNullOfOrNull null
+                    val scroller =
+                        parents.firstOrNull { parent ->
+                            parent.isScrollable &&
+                                parent.actionList.any { it.id == up || it.id == down }
+                        } ?: return@firstNotNullOfOrNull null
+                    candidate to scroller
+                } ?: return@waitUntil false
+            // Compose handles this action from its UNCLIPPED positionInRoot+size and scrolls
+            // precisely the nearest ScrollBy ancestor, unlike its clipped node/character bounds.
+            val requested =
+                target.first.performAction(
+                    AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
+                )
+            settleUi()
+            val args =
+                Bundle().apply {
+                    putInt(
+                        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX,
+                        0,
+                    )
+                    putInt(
+                        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
+                        label.length,
+                    )
+                }
+            if (!target.first.refreshWithExtraData(extraKey, args) || !target.second.refresh())
+                return@waitUntil false
+            @Suppress("DEPRECATION")
+            val characters =
+                target.first.extras.getParcelableArray(extraKey)?.map {
+                    it as? android.graphics.RectF
+                } ?: return@waitUntil false
+            val viewport = Rect().also { target.second.getBoundsInScreen(it) }
+            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+            if (!viewport.intersect(screen)) return@waitUntil false
+            diagnostic =
+                "showOnScreen=$requested chars=${characters.size}/${label.length} glyphs=$characters ownViewport=$viewport nudges=$nudges"
+            // Character locations are clipped too. A clipped glyph meets a clipping edge;
+            // require one physical pixel inside, also covering node floor/ceil rounding.
+            val complete =
+                characters.size == label.length &&
+                    characters.all { box ->
+                        box != null &&
+                            !box.isEmpty &&
+                            box.left >= viewport.left + 1f &&
+                            box.right <= viewport.right - 1f &&
+                            box.top >= viewport.top + 1f &&
+                            box.bottom <= viewport.bottom - 1f
+                    }
+            if (!complete) {
+                val boxes = characters.filterNotNull()
+                if (
+                    nudges < 4 &&
+                        boxes.size == label.length &&
+                        boxes.all {
+                            !it.isEmpty &&
+                                it.left >= viewport.left + 1f &&
+                                it.right <= viewport.right - 1f
+                        }
+                ) {
+                    val topEdge = boxes.any { it.top < viewport.top + 1f }
+                    val bottomEdge = boxes.any { it.bottom > viewport.bottom - 1f }
+                    val distance = android.view.ViewConfiguration.get(context).scaledTouchSlop + 4
+                    if (topEdge != bottomEdge && distance < viewport.height() / 2) {
+                        val x = viewport.centerX()
+                        val start = viewport.centerY()
+                        val end = start + if (bottomEdge) -distance else distance
+                        // Slow real touch exceeds touch slop by only four pixels, without a fling.
+                        shell("input touchscreen swipe $x $start $x $end 600")
+                        nudges++
+                        settleUi()
+                    }
+                }
+                return@waitUntil false
+            }
+            val glyphs = android.graphics.RectF(requireNotNull(characters.first()))
+            characters.drop(1).forEach { glyphs.union(requireNotNull(it)) }
+            val bounds = Rect().also { glyphs.roundOut(it) }
+            proof = bounds to Rect(viewport)
+            true
+        }
+        val result = requireNotNull(proof) { "QA_NATIVE_COMPOSE_OWN_SCROLL_$label:$diagnostic" }
+        yes(
+            result.second.contains(result.first),
+            "OWN_SCROLL_ALL_CHARACTERS_INSIDE_VIEWPORT_$label",
+        )
+        test.sendStatus(
+            0,
+            Bundle().apply { putString("own_scroll_viewport", "$label: $diagnostic") },
+        )
+        return result
     }
 
     private fun captureSyntheticScreen(name: String, requireKeyboard: Boolean = false) {
@@ -8262,22 +8434,34 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("TIMELINE_PHOTO_SECOND_ENTRY_OPENS_FRESH_IMPORT") {
                 cameraRequests.get() == 2 &&
                     node("Noch nicht gespeichert") != null &&
-                    field("Bildunterschrift")?.text?.toString()?.isBlank() == true
+                    node("Foto auswählen") != null
             }
             shown(UiTags.context("properties", property))
+            val secondEntryHasNoPreviousImage =
+                node("Ausgewähltes Foto") == null && node("Gespeichertes Foto öffnen") == null
+            // Header and caption occupy separate scroll positions on the small CI viewport.
+            // Inspect both through the real visible controls instead of requiring them together.
+            reveal("Bildunterschrift")
             yes(
-                node("Ausgewähltes Foto") == null &&
-                    node("Gespeichertes Foto öffnen") == null &&
+                secondEntryHasNoPreviousImage &&
+                    field("Bildunterschrift")?.text?.toString()?.isBlank() == true &&
                     !actionEnabled(UiTags.PRIMARY) &&
                     photos().map { it.getString("id") }.toSet() == savedPhotoIds,
                 "TIMELINE_PHOTO_SECOND_ENTRY_HAS_NO_OLD_SELECTION_CAPTION_OR_SAVED_ID",
             )
             recreate()
+            reveal("Noch nicht gespeichert")
+            yes(
+                cameraRequests.get() == 2 &&
+                    node("Ausgewähltes Foto") == null &&
+                    node("Gespeichertes Foto öffnen") == null,
+                "TIMELINE_PHOTO_RECREATED_ENTRY_RETAINS_FRESH_HEADER_WITHOUT_RETAKING_PHOTO",
+            )
+            reveal("Bildunterschrift")
             waitUntil("TIMELINE_PHOTO_FRESH_ENTRY_SURVIVES_RECREATION") {
                 cameraRequests.get() == 2 &&
-                    node("Noch nicht gespeichert") != null &&
                     field("Bildunterschrift")?.text?.toString()?.isBlank() == true &&
-                    node("Ausgewähltes Foto") == null
+                    !actionEnabled(UiTags.PRIMARY)
             }
             click("Verwerfen")
             selectTab(UiTags.objectTab("photos"))
@@ -9201,6 +9385,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                                 landscape
                     }
                     target.open()
+                    val expectedCustomer =
+                        if (target.key in setOf("customers", "local"))
+                            JSONObject(customers(target.result).single().toString())
+                        else null
                     enter(target.label, target.query)
                     if (target.key == "offers") {
                         // Unscoped viewport setup uses the real reset action. Separate
@@ -9219,7 +9407,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         )
                     }
                     showKeyboard(target.label)
-                    visibleResult(target.result, requireKeyboard = true, allowClippedCard = true)
+                    // Objects precede customers in the shared search. Reach the same
+                    // customer by scrolling the actual result list, retaining query and groups.
+                    visibleResult(
+                        target.result,
+                        requireKeyboard = true,
+                        scrollIntoView = true,
+                        allowClippedCard = true,
+                    )
                     waitUntil("LIST_FIELD_AND_COUNT_$key") {
                         val screen =
                             Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
@@ -9259,10 +9454,24 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         target.result,
                         tap = true,
                         requireKeyboard = true,
+                        scrollIntoView = true,
                         allowClippedCard = true,
                     )
                     waitUntil("LIST_TOUCH_OPENED_$key") {
                         !keyboardVisible() && field(target.label) == null
+                    }
+                    expectedCustomer?.let { original ->
+                        val id = original.getString("id")
+                        shown(UiTags.entityDetail("customers", id))
+                        val publicCustomer =
+                            read("get_customer", JSONObject().put("customer_id", id))
+                        yes(
+                            publicCustomer.getString("id") == id &&
+                                publicCustomer.getString("name") == target.result &&
+                                PixelMcpWriteTools.hash(customers(target.result).single()) ==
+                                    PixelMcpWriteTools.hash(original),
+                            "LIST_TOUCH_OPENS_UNCHANGED_ORIGINAL_CUSTOMER_$key",
+                        )
                     }
                     listViewportCases.put(
                         JSONObject()
@@ -9273,6 +9482,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                             .put("keyboard_bounds", true)
                             .put("real_touch", true)
                             .put("ime_preserves_query", true)
+                            .apply {
+                                expectedCustomer?.let {
+                                    put("selected_original_id", it.getString("id"))
+                                    put("original_customer_readback", true)
+                                }
+                            }
                     )
                 } catch (failure: Throwable) {
                     test.sendStatus(

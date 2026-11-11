@@ -439,8 +439,13 @@ jobs:
               assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
           elif sys.argv[1].startswith('document_provider_media'):
-              for proof in ('real_external_storage_provider','actual_saf_grant','same_target_atomic_replace'):
+              for proof in ('real_external_storage_provider','actual_saf_grant','same_target_atomic_replace','public_documents_target','all_files_access','permission_ui_tested'):
                   assert result[proof] is True, result
+              for proof in ('unselected_target_denied','permission_revocation_preserves_zip','permission_denial_preserves_target_session_and_draft','persisted_grant_reselection','existing_target_rebinding','existing_target_cancel_preserves_state','stale_existing_target_approval_rejected','approved_request_replay_readback','long_zip_comment_fully_hashed','pending_approved_request_regrant_same_id'):
+                  assert result[proof] is (not sys.argv[1].endswith('_reopen')), result
+              assert result['existing_target_ui_screenshot']==('' if sys.argv[1].endswith('_reopen') else 'qa-native-backup-restore-existing-target.png'), result
+              assert result['permission_state_restored'] is sys.argv[1].endswith('_reopen'), result
+              assert result['uninstall_tested'] is False, result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
               assert result['isolated_restore'] is sys.argv[1].endswith('_reopen'), result
               assert result['restore_cold_start_guard_retained'] is sys.argv[1].endswith('_reopen'), result

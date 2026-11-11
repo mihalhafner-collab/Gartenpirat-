@@ -713,18 +713,44 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 chunkedUploadStorageProof(context)
                 phase = "immutable_publication"
                 immutablePublishedFileProof(context, store)
-                phase = "eisbaer_mcp"
-                val eisbaerMcp = eisbaerMcpProof(owner)
-                phase = "eisbaer_catalog_mcp"
-                val catalogMcp = eisbaerCatalogProof(owner)
-                phase = "eisbaer_planning_time_mcp"
-                val planningTimeMcp = eisbaerPlanningTimeMcpProof(owner)
-                phase = "eisbaer_offers_mcp"
-                val offersMcp = eisbaerOffersMcpProof(owner)
-                phase = "eisbaer_media_backup_mcp"
-                val mediaBackupMcp = eisbaerMediaBackupMcpProof(owner)
-                phase = "eisbaer_revier_mcp"
-                val revierMcp = eisbaerRevierMcpProof(owner)
+                val proofFailures = JSONArray()
+                val completedProofs = JSONObject()
+                fun proof(name: String, execute: () -> JSONObject): JSONObject {
+                    phase = name
+                    return try {
+                        execute().also { completedProofs.put(name, it) }
+                    } catch (failure: Throwable) {
+                        if (
+                            failure is java.util.concurrent.CancellationException ||
+                                failure !is Exception && failure !is AssertionError
+                        )
+                            throw failure
+                        proofFailures.put(
+                            JSONObject()
+                                .put("proof", name)
+                                .put("phase", phase)
+                                .put("trace", failure.stackTraceToString())
+                        )
+                        JSONObject()
+                    }
+                }
+                // Each proof owns a separate disposable store and restores its runtime ports.
+                // Collect independent failures; any failure still rejects this entire suite.
+                val eisbaerMcp = proof("eisbaer_mcp") { eisbaerMcpProof(owner) }
+                val catalogMcp = proof("eisbaer_catalog_mcp") { eisbaerCatalogProof(owner) }
+                val planningTimeMcp =
+                    proof("eisbaer_planning_time_mcp") { eisbaerPlanningTimeMcpProof(owner) }
+                val offersMcp = proof("eisbaer_offers_mcp") { eisbaerOffersMcpProof(owner) }
+                val mediaBackupMcp =
+                    proof("eisbaer_media_backup_mcp") { eisbaerMediaBackupMcpProof(owner) }
+                val revierMcp = proof("eisbaer_revier_mcp") { eisbaerRevierMcpProof(owner) }
+                if (proofFailures.length() > 0)
+                    throw IllegalStateException(
+                        "QA_NATIVE_DATA_INDEPENDENT_PROOFS_FAILED " +
+                            JSONObject()
+                                .put("failures", proofFailures)
+                                .put("completed_proofs", completedProofs)
+                    )
                 phase = "office_baseline"
                 val office = officeReadMeasurements(context, store, data)
                 phase = "local_storage_cleanup"
@@ -1973,9 +1999,13 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                             preview.getString("expected_photo_links_hash"),
                         )
                 call("delete_entity", deleteArgs)
+                val afterDelete = ownerFingerprint()
+                // Permanent deletion intentionally redacts receipts that refer to the removed
+                // original. The retained fingerprint rejects repeats instead of recreating it.
+                rejected("delete_entity", deleteArgs, "REQUEST_EXPIRED")
                 yes(
-                    call("delete_entity", deleteArgs).getBoolean("replayed"),
-                    "EISBAER_LCR_DELETE_REPLAY",
+                    ownerFingerprint() == afterDelete,
+                    "EISBAER_LCR_DELETE_REPEAT_PRESERVES_REMOVAL_AND_OTHER_ORIGINALS",
                 )
                 val remaining = call("get_lcr_work_records").getJSONArray("records")
                 yes(
@@ -4537,7 +4567,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
 
                     JSONObject()
                         .put("executed_tools", JSONArray(executed.sorted()))
-                        .put("positive_tools", JSONArray(positive.sorted()))
+                        .put("successful_tools", JSONArray(positive.sorted()))
                         .put("transition_tools", JSONArray(transitions.sorted()))
                         .put("public_adapter_and_real_sqlite", true)
                         .put("synthetic_only", true)

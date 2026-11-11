@@ -164,7 +164,7 @@ private fun revierCollection(kind: String) = revierSections.first { it.kind == k
  */
 @Composable
 internal fun NativeRevierScreen(section: String, id: String, controller: NativeAppController) {
-    key(section, id, controller.route.mode, controller.route.args.toString()) {
+    key(section, id, controller.route.mode, controller.route.stateArgs) {
         RevierPage(section, id, controller)
     }
 }
@@ -218,6 +218,14 @@ private fun RevierPage(section: String, id: String, controller: NativeAppControl
     val listStates = rememberSaveableStateHolder()
     var selected by
         rememberSaveable(section, id) { mutableStateOf(id.takeUnless { it == "new" }.orEmpty()) }
+    val overviewEntry = controller.route.args.optString("_overview_entry")
+    var selectedOverviewEntry by rememberSaveable(section, id) { mutableStateOf(overviewEntry) }
+    LaunchedEffect(overviewEntry) {
+        if (overviewEntry.isNotEmpty() && selectedOverviewEntry != overviewEntry) {
+            selected = id.takeUnless { it == "new" }.orEmpty()
+            selectedOverviewEntry = overviewEntry
+        }
+    }
     // The detail leaves composition while its editor is open. Keep the tab with
     // the selected machine so saving or cancelling returns to the same context.
     var equipmentTab by rememberSaveable(selected) { mutableIntStateOf(0) }

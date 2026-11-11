@@ -7,9 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.os.SystemClock
+import android.provider.Settings
 import android.util.Base64
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -101,6 +103,16 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         throw AssertionError("QA_PROVIDER_EXPECTED_REJECTION_$code")
     }
 
+    private fun rejectsCode(code: String, action: () -> Unit) {
+        try {
+            action()
+        } catch (failure: Exception) {
+            yes(failure.message == code, "EXACT_REJECTION_$code")
+            return
+        }
+        throw AssertionError("QA_PROVIDER_EXPECTED_REJECTION_$code")
+    }
+
     private fun shell(command: String): String =
         automation.executeShellCommand(command).use {
             ParcelFileDescriptor.AutoCloseInputStream(it).use { input ->
@@ -149,8 +161,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun uri(id: String): Uri = SyntheticBackupDocumentsProvider.document(id)
 
-    /** Positive real ExternalStorageProvider proof in this app's own scoped media directory. */
-    @Suppress("DEPRECATION") // This fixture deliberately tests the existing Android/media path.
+    /** Real user-selected ZIP in public Documents, with actual special-access Settings UI. */
+    @Suppress("DEPRECATION") // The deliberate public Documents fixture is outside app directories.
     private fun mediaProviderProof(reopen: Boolean): JSONObject {
         yes(test.context.packageName == "at.hausgarten.service.test", "MEDIA_TEST_PACKAGE")
         yes(context.packageName == "at.hausgarten.service", "MEDIA_TARGET_PACKAGE")
@@ -158,22 +170,20 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             shell("getprop ro.kernel.qemu") == "1" && android.os.Build.VERSION.SDK_INT == 35,
             "MEDIA_DISPOSABLE_EMULATOR_ONLY",
         )
-        val media =
-            context.externalMediaDirs.firstOrNull() ?: throw IOException("QA_MEDIA_VOLUME_REQUIRED")
-        yes(
-            media.isDirectory &&
-                media.canonicalPath.endsWith("/Android/media/${context.packageName}"),
-            "MEDIA_OWN_PRIMARY_DIRECTORY",
-        )
+        val documents =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         val savedState = File(context.noBackupFilesDir, "qa-real-media-backup.json")
         val saved = if (reopen) JSONObject(savedState.readText()) else JSONObject()
+        val originalAllFilesAccess =
+            if (reopen) saved.getBoolean("original_all_files_access")
+            else Environment.isExternalStorageManager()
         val token =
             if (reopen) saved.getString("token")
             else java.util.UUID.randomUUID().toString().replace("-", "")
         yes(token.matches(Regex("[a-f0-9]{32}")), "MEDIA_OWN_TOKEN")
         if (reopen)
             yes(
-                saved.getString("fixture") == "synthetic-real-media-backup-v1",
+                saved.getString("fixture") == "synthetic-public-documents-backup-v1",
                 "MEDIA_REOPEN_MARKER",
             )
         else {
@@ -183,17 +193,27 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 "MEDIA_FRESH_CREDENTIAL_FIXTURE",
             )
         }
-        val directory = File(media, "qa-backup-$token")
-        if (!reopen) yes(!directory.exists() && directory.mkdir(), "MEDIA_NEW_OWNED_FOLDER")
-        yes(
-            directory.isDirectory && directory.canonicalFile.parentFile == media.canonicalFile,
-            "MEDIA_EXACT_OWNED_FOLDER",
-        )
+        val directory = File(documents, "qa-backup-$token")
         val filename = "QA-Eisbaer-$token.zip"
         val archive = File(directory, filename)
         var completed = false
+        var ownsDirectory = false
         var target: Uri? = if (reopen) Uri.parse(saved.getString("uri")) else null
         try {
+            if (reopen) setAllFilesAccess(true) else backupPermissionSetup()
+            yes(Environment.isExternalStorageManager(), "MEDIA_EFFECTIVE_ALL_FILES_ACCESS")
+            yes(
+                documents.isDirectory && documents.canonicalPath.endsWith("/Documents"),
+                "MEDIA_PUBLIC_DOCUMENTS_DIRECTORY",
+            )
+            if (!reopen) yes(!directory.exists() && directory.mkdir(), "MEDIA_NEW_OWNED_FOLDER")
+            ownsDirectory = true
+            yes(
+                directory.isDirectory &&
+                    directory.canonicalFile.parentFile == documents.canonicalFile &&
+                    !directory.canonicalPath.contains("/Android/"),
+                "MEDIA_EXACT_PUBLIC_OWNED_FOLDER",
+            )
             PixelLocalStore(context).use { store ->
                 val tools =
                     PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
@@ -270,6 +290,33 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         )
                         .getString("photo_id")
                 }
+                val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new")
+                fun protectedState(includeBackupRecords: Boolean = true): String {
+                    val state = JSONObject()
+                    for (table in listOf("work_sessions", "work_session_events")) {
+                        val rows = org.json.JSONArray()
+                        store.readableDatabase
+                            .rawQuery("SELECT * FROM $table ORDER BY id", null)
+                            .use { cursor ->
+                                while (cursor.moveToNext()) {
+                                    val row = JSONObject()
+                                    for (column in 0 until cursor.columnCount) row.put(
+                                        cursor.getColumnName(column),
+                                        if (cursor.isNull(column)) JSONObject.NULL
+                                        else cursor.getString(column),
+                                    )
+                                    rows.put(row)
+                                }
+                            }
+                        state.put(table, rows)
+                    }
+                    val keys =
+                        if (includeBackupRecords)
+                            listOf(draftKey, "pixel_backup_last", "pixel_backup_success")
+                        else listOf(draftKey)
+                    for (key in keys) state.put(key, store.ownerValue(key, ""))
+                    return PixelMcpWriteTools.hash(state)
+                }
                 fun photoMetadata(id: String) =
                     data(
                         "get_file_metadata",
@@ -290,6 +337,31 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                                     .put("test_record", true),
                             )
                             .getString("entity_id")
+                    val session =
+                        call(
+                                "start_work",
+                                request("timer")
+                                    .put("customer_id", customer)
+                                    .put("activity", "[TEST] QA laufende Sicherungsarbeit"),
+                            )
+                            .getJSONObject("session")
+                    yes(
+                        session.getString("state") == "RUNNING" &&
+                            session.getString("id").isNotEmpty(),
+                        "MEDIA_SYNTHETIC_SESSION_RUNNING",
+                    )
+                    store.putOwnerValue(
+                        draftKey,
+                        JSONObject()
+                            .put(
+                                "values",
+                                JSONObject()
+                                    .put("customer_id", customer)
+                                    .put("activity", "[TEST] QA offener Arbeitsentwurf")
+                                    .put("hours", "0.75"),
+                            )
+                            .toString(),
+                    )
                     fun work(name: String) =
                         data(
                                 "create_customer_work_record",
@@ -308,7 +380,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     val folderUri =
                         android.provider.DocumentsContract.buildDocumentUri(
                             "com.android.externalstorage.documents",
-                            "primary:Android/media/${context.packageName}/${directory.name}",
+                            "primary:Documents/${directory.name}",
                         )
                     mediaPickerSave(folderUri, filename)
                     val first = JSONObject(store.ownerValue("pixel_backup_success", ""))
@@ -318,7 +390,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     yes(
                         selected.authority == "com.android.externalstorage.documents" &&
                             android.provider.DocumentsContract.getDocumentId(selected) ==
-                                "primary:Android/media/${context.packageName}/${directory.name}/$filename",
+                                "primary:Documents/${directory.name}/$filename",
                         "MEDIA_REAL_PICKER_SELECTED_EXACT_FILE",
                     )
                     yes(
@@ -328,10 +400,117 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         "MEDIA_REAL_PERSISTED_READ_WRITE_GRANT",
                     )
                     yes(archive.isFile, "MEDIA_ACTUAL_SCOPED_STORAGE_FILE")
-                    val oldHash = BackupArchive.sha256(archive)
+                    var oldHash = BackupArchive.sha256(archive)
                     yes(
                         oldHash == first.getJSONObject("archive").getString("sha256"),
                         "MEDIA_INITIAL_PROVIDER_READBACK_MATCH",
+                    )
+                    val protectedBeforeDenial = protectedState()
+                    val unselected = File(directory, "QA-unselected-$token.zip")
+                    val unselectedBytes =
+                        "[TEST] QA unselected ZIP must remain untouched".toByteArray()
+                    unselected.writeBytes(unselectedBytes)
+                    val unselectedUri =
+                        android.provider.DocumentsContract.buildDocumentUri(
+                            "com.android.externalstorage.documents",
+                            "primary:Documents/${directory.name}/${unselected.name}",
+                        )
+                    yes(
+                        context.contentResolver.persistedUriPermissions.none {
+                            it.uri == unselectedUri
+                        },
+                        "MEDIA_UNSELECTED_TARGET_HAS_NO_GRANT",
+                    )
+                    rejectsCode("BACKUP_DOCUMENT_PERMISSION_REQUIRED") {
+                        PixelBackupService(context, store).save(
+                            "qa_media_${token}_unselected",
+                            unselectedUri,
+                        ) {}
+                    }
+                    yes(
+                        Environment.isExternalStorageManager() &&
+                            unselected.readBytes().contentEquals(unselectedBytes),
+                        "MEDIA_ALL_FILES_DOES_NOT_AUTHORIZE_UNSELECTED_TARGET",
+                    )
+                    yes(unselected.delete(), "MEDIA_OWN_UNSELECTED_FILE_REMOVED")
+                    yes(
+                        protectedState() == protectedBeforeDenial,
+                        "MEDIA_UNSELECTED_DENIAL_PRESERVES_TARGET_SESSION_AND_DRAFT",
+                    )
+                    val oldSize = archive.length()
+                    setAllFilesAccess(false)
+                    yes(!Environment.isExternalStorageManager(), "MEDIA_ALL_FILES_ACCESS_REVOKED")
+                    rejectsCode("BACKUP_ALL_FILES_ACCESS_REQUIRED") {
+                        PixelBackupService(context, store).save(
+                            "qa_media_${token}_revoked",
+                            selected,
+                        ) {}
+                    }
+                    val allFilesDenied = PixelBackupService(context, store).status(JSONObject())
+                    yes(
+                        allFilesDenied.getString("state") == "FAILED" &&
+                            allFilesDenied.getString("current_access_error") ==
+                                "BACKUP_ALL_FILES_ACCESS_REQUIRED" &&
+                            allFilesDenied.getBoolean("all_files_access_required") &&
+                            !allFilesDenied.getBoolean("document_permission_required"),
+                        "MEDIA_LIVE_STATUS_REPORTS_ALL_FILES_REVOCATION",
+                    )
+                    context.contentResolver.openInputStream(selected).use {
+                        BackupDocumentTransfer.verifyReadback(it, oldHash, oldSize)
+                    }
+                    yes(
+                        context.contentResolver.persistedUriPermissions.any {
+                            it.uri == selected && it.isReadPermission && it.isWritePermission
+                        },
+                        "MEDIA_REVOKED_ALL_FILES_PRESERVES_ZIP_AND_SAF_GRANT",
+                    )
+                    yes(
+                        protectedState() == protectedBeforeDenial,
+                        "MEDIA_PERMISSION_DENIAL_PRESERVES_TARGET_SESSION_AND_DRAFT",
+                    )
+                    setAllFilesAccess(true)
+                    mediaAtomicPathDiagnostics(selected)
+                    context.contentResolver.releasePersistableUriPermission(
+                        selected,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                    )
+                    yes(
+                        context.contentResolver.persistedUriPermissions.none {
+                            it.uri == selected && it.isReadPermission && it.isWritePermission
+                        },
+                        "MEDIA_SELECTED_PERSISTED_GRANT_RELEASED",
+                    )
+                    rejectsCode("BACKUP_DOCUMENT_PERMISSION_REQUIRED") {
+                        PixelBackupService(context, store).save(
+                            "qa_media_${token}_document_grant_revoked",
+                            selected,
+                        ) {}
+                    }
+                    val documentDenied = PixelBackupService(context, store).status(JSONObject())
+                    yes(
+                        documentDenied.getString("state") == "FAILED" &&
+                            documentDenied.getString("current_access_error") ==
+                                "BACKUP_DOCUMENT_PERMISSION_REQUIRED" &&
+                            documentDenied.getBoolean("document_permission_required") &&
+                            !documentDenied.getBoolean("all_files_access_required"),
+                        "MEDIA_LIVE_STATUS_REPORTS_DOCUMENT_GRANT_REVOCATION",
+                    )
+                    yes(
+                        BackupArchive.sha256(archive) == oldHash &&
+                            archive.length() == oldSize &&
+                            protectedState() == protectedBeforeDenial,
+                        "MEDIA_DOCUMENT_DENIAL_PRESERVES_ZIP_TARGET_SESSION_AND_DRAFT",
+                    )
+                    mediaRegrantPicker(selected, filename)
+                    val reauthorized = JSONObject(store.ownerValue("pixel_backup_success", ""))
+                    oldHash = BackupArchive.sha256(archive)
+                    yes(
+                        reauthorized.getJSONObject("destination").getString("treeUri") ==
+                            selected.toString() &&
+                            reauthorized.getJSONObject("archive").getString("sha256") == oldHash &&
+                            directory.listFiles().orEmpty().map { it.name } == listOf(filename),
+                        "MEDIA_REGRANT_SAVES_SAME_EXISTING_ZIP_WITHOUT_DUPLICATE",
                     )
                     val original =
                         call("get_work_record", JSONObject().put("work_record_id", retainedWork))
@@ -372,12 +551,192 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         photoMetadata(retainedPhoto).getString("sha256") == retainedPhotoSha,
                         "MEDIA_UNCHANGED_PHOTO_IDENTITY",
                     )
+                    val service = PixelBackupService(context, store)
+                    val withoutComment = archive.readBytes()
+                    val end = withoutComment.size - 22
+                    yes(
+                        end >= 0 &&
+                            withoutComment[end] == 0x50.toByte() &&
+                            withoutComment[end + 1] == 0x4b.toByte() &&
+                            withoutComment[end + 2] == 0x05.toByte() &&
+                            withoutComment[end + 3] == 0x06.toByte() &&
+                            withoutComment[end + 20] == 0.toByte() &&
+                            withoutComment[end + 21] == 0.toByte(),
+                        "MEDIA_GENERATED_ZIP_HAS_EMPTY_EOCD_COMMENT",
+                    )
+                    val comment = "[TEST] QA complete ZIP comment ".repeat(2048).take(48 * 1024)
+                    val commentBytes = comment.toByteArray(Charsets.US_ASCII)
+                    val withComment = withoutComment.copyOf(withoutComment.size + commentBytes.size)
+                    withComment[end + 20] = (commentBytes.size and 255).toByte()
+                    withComment[end + 21] = (commentBytes.size ushr 8).toByte()
+                    commentBytes.copyInto(withComment, withoutComment.size)
+                    archive.writeBytes(withComment)
+                    java.util.zip.ZipFile(archive).use {
+                        yes(it.comment == comment, "MEDIA_LONG_ZIP_COMMENT_IS_STANDARD_VALID_ZIP")
+                    }
+                    val approval = service.inspectExistingTarget(selected)
+                    yes(
+                        approval.getString("destination") == selected.toString() &&
+                            approval.getString("archive_sha256") == BackupArchive.sha256(archive) &&
+                            approval.getLong("archive_size") == archive.length() &&
+                            approval.getJSONObject("counts").getInt("customers") == 1 &&
+                            approval.getJSONObject("counts").getInt("worklogs") == 1 &&
+                            approval.getJSONObject("counts").getInt("photos") == 2 &&
+                            approval.getJSONObject("current_counts").getInt("worklogs") == 1 &&
+                            approval.getJSONObject("current_counts").getInt("photos") == 2,
+                        "MEDIA_EXISTING_TARGET_INSPECTION_COVERS_LONG_ZIP_COMMENT",
+                    )
+                    val validArchive = archive.readBytes()
+                    try {
+                        val changed = validArchive.clone()
+                        changed[changed.size / 2] =
+                            (changed[changed.size / 2].toInt() xor 1).toByte()
+                        archive.writeBytes(changed)
+                        rejectsCode("BACKUP_TARGET_CHANGED") {
+                            service.saveWithApproval(
+                                "qa_media_${token}_stale_approval",
+                                selected,
+                                approval,
+                            ) {}
+                        }
+                        yes(
+                            archive.readBytes().contentEquals(changed),
+                            "MEDIA_STALE_SAME_SIZE_APPROVAL_DOES_NOT_OVERWRITE",
+                        )
+                    } finally {
+                        archive.writeBytes(validArchive)
+                    }
+                    val guard = BackupDeviceGuard(context)
+                    val oldIdentity = guard.current()
+                    val newIdentity =
+                        guard.advanceForRestore(
+                            "qa_media_${token}_binding_epoch",
+                            oldIdentity.getString("restoreEpoch"),
+                        )
+                    yes(
+                        newIdentity.getString("installationId") ==
+                            oldIdentity.getString("installationId") &&
+                            newIdentity.getString("restoreEpoch") !=
+                                oldIdentity.getString("restoreEpoch"),
+                        "MEDIA_SYNTHETIC_EPOCH_CHANGED_WITHOUT_RESTORE",
+                    )
+                    val unboundStatus = service.status(JSONObject())
+                    yes(
+                        service.targetSelection().optString("uri").isEmpty() &&
+                            unboundStatus.getInt("total") == 0 &&
+                            unboundStatus.getString("last_local_verified_at").isEmpty(),
+                        "MEDIA_NEW_EPOCH_DOES_NOT_INHERIT_OLD_TARGET_OR_PROOF",
+                    )
+                    mediaAtomicPathDiagnostics(selected)
+                    mediaExistingTargetRebind(selected, filename, archive) { protectedState() }
+                    val firstRebound = JSONObject(store.ownerValue("pixel_backup_success", ""))
+                    yes(
+                        firstRebound.getString("installationId") ==
+                            newIdentity.getString("installationId") &&
+                            firstRebound.getString("restoreEpoch") ==
+                                newIdentity.getString("restoreEpoch") &&
+                            firstRebound.getJSONObject("destination").getString("treeUri") ==
+                                selected.toString() &&
+                            directory.listFiles().orEmpty().map { it.name } == listOf(filename),
+                        "MEDIA_CONFIRMED_EXISTING_ZIP_BINDS_CURRENT_IDENTITY",
+                    )
+                    val pendingIdentity =
+                        guard.advanceForRestore(
+                            "qa_media_${token}_pending_epoch",
+                            newIdentity.getString("restoreEpoch"),
+                        )
+                    val pendingRequest = "qa_media_${token}_pending_approved"
+                    val pendingApproval = service.inspectExistingTarget(selected)
+                    val beforePendingHash = BackupArchive.sha256(archive)
+                    val beforePendingSize = archive.length()
+                    val beforePendingBusiness = protectedState(false)
+                    var pendingGrantReleased = false
+                    rejectsCode("BACKUP_DOCUMENT_PERMISSION_REQUIRED") {
+                        service.saveWithApproval(pendingRequest, selected, pendingApproval) {
+                            message ->
+                            if (
+                                !pendingGrantReleased &&
+                                    message.startsWith("Gewählte Sicherungsdatei aktualisieren")
+                            ) {
+                                context.contentResolver.releasePersistableUriPermission(
+                                    selected,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                                )
+                                pendingGrantReleased = true
+                            }
+                        }
+                    }
+                    val prepared = JSONObject(store.ownerValue("pixel_backup_last", ""))
+                    val pendingSelection = service.targetSelection()
+                    yes(
+                        pendingGrantReleased &&
+                            prepared.getString("requestId") == pendingRequest &&
+                            prepared.getString("restoreEpoch") ==
+                                pendingIdentity.getString("restoreEpoch") &&
+                            prepared
+                                .getJSONObject("approved_existing_target")
+                                .getString("archive_sha256") == beforePendingHash &&
+                            prepared.getJSONObject("archive").getLong("size") > 0 &&
+                            pendingSelection.getString("uri") == selected.toString() &&
+                            pendingSelection.getString("request_id") == pendingRequest &&
+                            JSONObject(store.ownerValue("pixel_backup_success", ""))
+                                .getString("restoreEpoch") == newIdentity.getString("restoreEpoch"),
+                        "MEDIA_PENDING_APPROVAL_AND_PREPARED_ARCHIVE_KEEP_REQUEST_WITHOUT_SUCCESS",
+                    )
+                    yes(
+                        BackupArchive.sha256(archive) == beforePendingHash &&
+                            archive.length() == beforePendingSize &&
+                            protectedState(false) == beforePendingBusiness,
+                        "MEDIA_PENDING_GRANT_LOSS_PRESERVES_ZIP_SESSION_AND_DRAFT",
+                    )
+                    mediaRegrantPicker(selected, filename, pendingRequest)
+                    val rebound = JSONObject(store.ownerValue("pixel_backup_success", ""))
+                    yes(
+                        rebound.getString("requestId") == pendingRequest &&
+                            rebound.getString("restoreEpoch") ==
+                                pendingIdentity.getString("restoreEpoch") &&
+                            rebound.has("approved_existing_target"),
+                        "MEDIA_PENDING_APPROVED_REGRANT_CONTINUES_SAME_REQUEST",
+                    )
+                    val reboundHash = BackupArchive.sha256(archive)
+                    val reboundStat = android.system.Os.stat(archive.path)
+                    val reboundModified = archive.lastModified()
+                    yes(
+                        service
+                            .save(rebound.getString("requestId"), selected) {}
+                            .getBoolean("verified") &&
+                            BackupArchive.sha256(archive) == reboundHash &&
+                            android.system.Os.stat(archive.path).st_ino == reboundStat.st_ino &&
+                            archive.lastModified() == reboundModified,
+                        "MEDIA_APPROVED_SAME_REQUEST_REPLAYS_READBACK_WITHOUT_REWRITE",
+                    )
+                    val changedApproval =
+                        JSONObject(rebound.getJSONObject("approved_existing_target").toString())
+                            .put(
+                                "archive_size",
+                                rebound
+                                    .getJSONObject("approved_existing_target")
+                                    .getLong("archive_size") + 1,
+                            )
+                    rejectsCode("BACKUP_REQUEST_ID_CONFLICT") {
+                        service.saveWithApproval(
+                            rebound.getString("requestId"),
+                            selected,
+                            changedApproval,
+                        ) {}
+                    }
+                    yes(
+                        BackupArchive.sha256(archive) == reboundHash,
+                        "MEDIA_CHANGED_APPROVAL_REPLAY_PRESERVES_ARCHIVE",
+                    )
                     savedState.writeText(
                         JSONObject()
-                            .put("fixture", "synthetic-real-media-backup-v1")
+                            .put("fixture", "synthetic-public-documents-backup-v1")
+                            .put("original_all_files_access", originalAllFilesAccess)
                             .put("token", token)
                             .put("uri", target.toString())
-                            .put("request_id", secondRequest)
+                            .put("request_id", rebound.getString("requestId"))
                             .put("pid", android.os.Process.myPid())
                             .put("archive_sha256", BackupArchive.sha256(archive))
                             .put("source_hash", expected)
@@ -441,6 +800,25 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 .put("real_external_storage_provider", true)
                 .put("actual_saf_grant", true)
                 .put("same_target_atomic_replace", true)
+                .put("public_documents_target", true)
+                .put("all_files_access", true)
+                .put("permission_ui_tested", true)
+                .put("unselected_target_denied", !reopen)
+                .put("permission_revocation_preserves_zip", !reopen)
+                .put("permission_denial_preserves_target_session_and_draft", !reopen)
+                .put("persisted_grant_reselection", !reopen)
+                .put("existing_target_rebinding", !reopen)
+                .put("existing_target_cancel_preserves_state", !reopen)
+                .put("stale_existing_target_approval_rejected", !reopen)
+                .put("long_zip_comment_fully_hashed", !reopen)
+                .put("approved_request_replay_readback", !reopen)
+                .put("pending_approved_request_regrant_same_id", !reopen)
+                .put(
+                    "existing_target_ui_screenshot",
+                    if (reopen) "" else "qa-native-backup-restore-existing-target.png",
+                )
+                .put("permission_state_restored", reopen)
+                .put("uninstall_tested", false)
                 .put("new_process_readback", reopen)
                 .put("isolated_restore", reopen)
                 .put("restore_cold_start_guard_retained", reopen)
@@ -463,34 +841,365 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         } finally {
             // Phase one keeps only its own fixture until the following new-process test.
             if (reopen || !completed) {
-                target?.let { selected ->
-                    if (
-                        !completed &&
+                try {
+                    setAllFilesAccess(true)
+                    target?.let { selected ->
+                        if (
                             selected.authority == "com.android.externalstorage.documents" &&
-                            android.provider.DocumentsContract.getDocumentId(selected)
-                                .substringAfterLast('/') == filename
+                                android.provider.DocumentsContract.getDocumentId(selected)
+                                    .substringAfterLast('/') == filename &&
+                                context.contentResolver.persistedUriPermissions.any {
+                                    it.uri == selected &&
+                                        it.isReadPermission &&
+                                        it.isWritePermission
+                                }
+                        )
+                            yes(
+                                android.provider.DocumentsContract.deleteDocument(
+                                    context.contentResolver,
+                                    selected,
+                                ),
+                                "MEDIA_OWN_DOCUMENT_REMOVED",
+                            )
+                        try {
+                            context.contentResolver.releasePersistableUriPermission(
+                                selected,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                            )
+                        } catch (_: SecurityException) {
+                            /* A failed picker may not have persisted a grant. */
+                        }
+                    }
+                    if (
+                        ownsDirectory &&
+                            directory.canonicalFile.parentFile == documents.canonicalFile &&
+                            directory.name == "qa-backup-$token"
                     )
-                        android.provider.DocumentsContract.deleteDocument(
-                            context.contentResolver,
-                            selected,
-                        )
-                    try {
-                        context.contentResolver.releasePersistableUriPermission(
-                            selected,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                        )
-                    } catch (_: SecurityException) {
-                        /* A failed picker may not have persisted a grant. */
+                        yes(directory.deleteRecursively(), "MEDIA_OWN_TEST_FOLDER_REMOVED")
+                    if (savedState.isFile) yes(savedState.delete(), "MEDIA_OWN_TEST_MARKER_REMOVED")
+                } finally {
+                    setAllFilesAccess(originalAllFilesAccess)
+                }
+            }
+        }
+    }
+
+    /** Exercise the product handoff, including refusal and no automatic save on return. */
+    private fun backupPermissionSetup() {
+        setAllFilesAccess(false)
+        var activity: Activity? = null
+        try {
+            activity =
+                test.startActivitySync(
+                    Intent(context, FullBackupActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            waitUntil("ACCESS_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
+            val before =
+                PixelLocalStore(context).use { store ->
+                    listOf("pixel_backup_last", "pixel_backup_success").map {
+                        store.ownerValue(it, "")
                     }
                 }
-                if (
-                    directory.canonicalFile.parentFile == media.canonicalFile &&
-                        directory.name == "qa-backup-$token"
-                )
-                    yes(directory.deleteRecursively(), "MEDIA_OWN_TEST_FOLDER_REMOVED")
-                if (savedState.isFile) yes(savedState.delete(), "MEDIA_OWN_TEST_MARKER_REMOVED")
+            click("Jetzt sichern")
+            waitUntil("ACCESS_REQUIRED_BEFORE_PICKER") {
+                node("Dateizugriff erforderlich") != null && !pickerVisible()
             }
+            setAllFilesAccess(false) { click("Dateizugriff einrichten") }
+            waitUntil("ACCESS_SETTINGS_REFUSED") {
+                node("Dateizugriff nicht freigegeben") != null && !pickerVisible()
+            }
+            yes(!Environment.isExternalStorageManager(), "MEDIA_SETTINGS_REFUSAL_ENFORCED")
+            setAllFilesAccess(true) { click("Dateizugriff einrichten") }
+            waitUntil("ACCESS_SETTINGS_GRANTED_WITHOUT_SAVE") {
+                node("Dateizugriff eingerichtet") != null &&
+                    node("Jetzt sichern") != null &&
+                    !pickerVisible()
+            }
+            val state = Bundle()
+            test.runOnMainSync {
+                test.callActivityOnSaveInstanceState(requireNotNull(activity), state)
+            }
+            yes(
+                state.getString("target", "").isEmpty() && state.getString("request", "").isEmpty(),
+                "MEDIA_PERMISSION_RETURN_DOES_NOT_CHOOSE_OR_SAVE",
+            )
+            PixelLocalStore(context).use { store ->
+                yes(
+                    listOf("pixel_backup_last", "pixel_backup_success").map {
+                        store.ownerValue(it, "")
+                    } == before,
+                    "MEDIA_PERMISSION_HANDOFF_PRESERVES_BACKUP_STATE",
+                )
+            }
+        } finally {
+            activity?.let { value -> test.runOnMainSync { value.finish() } }
+        }
+    }
+
+    /** Change only this disposable app's real Android special-access switch, never an app-op. */
+    private fun setAllFilesAccess(enabled: Boolean, launch: (() -> Unit)? = null) {
+        yes(
+            test.context.packageName == "at.hausgarten.service.test" &&
+                context.packageName == "at.hausgarten.service" &&
+                android.os.Build.VERSION.SDK_INT == 35 &&
+                shell("getprop ro.kernel.qemu") == "1",
+            "ALL_FILES_SETTINGS_DISPOSABLE_EMULATOR_ONLY",
+        )
+        automation.serviceInfo =
+            automation.serviceInfo.apply {
+                flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            }
+        shell("wm dismiss-keyguard")
+        if (launch != null) launch()
+        else
+            test.runOnMainSync {
+                context.startActivity(
+                    Intent(
+                            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                            Uri.parse("package:${context.packageName}"),
+                        )
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        try {
+            waitUntil("ALL_FILES_SETTINGS_PAGE") {
+                automation.rootInActiveWindow?.packageName?.toString() == "com.android.settings"
+            }
+            val root = requireNotNull(automation.rootInActiveWindow)
+            var toggle: AccessibilityNodeInfo? = null
+            waitUntil("ALL_FILES_SETTINGS_SWITCH") {
+                toggle =
+                    find(automation.rootInActiveWindow) {
+                        it.isVisibleToUser && it.isEnabled && it.isCheckable
+                    }
+                toggle != null
+            }
+            if (Environment.isExternalStorageManager() != enabled) {
+                val switch = requireNotNull(toggle)
+                val action = if (switch.isClickable) switch else actionableAncestor(switch, root)
+                yes(
+                    action?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true,
+                    "ALL_FILES_REAL_SETTINGS_TOGGLE",
+                )
+                waitUntil("ALL_FILES_EFFECTIVE_PERMISSION") {
+                    Environment.isExternalStorageManager() == enabled
+                }
+            }
+        } finally {
+            if (automation.rootInActiveWindow?.packageName?.toString() == "com.android.settings")
+                back()
+        }
+        yes(
+            Environment.isExternalStorageManager() == enabled,
+            "ALL_FILES_SETTINGS_RESULT_$enabled",
+        )
+        waitUntil("ALL_FILES_SETTINGS_RETURNED") {
+            automation.rootInActiveWindow?.packageName?.toString() != "com.android.settings"
+        }
+    }
+
+    /**
+     * Synthetic diagnostics survive a later assertion or adapter failure without exposing a URI.
+     */
+    private fun mediaAtomicPathDiagnostics(target: Uri) {
+        val report = JSONObject().put("all_files_access", Environment.isExternalStorageManager())
+        try {
+            context.assets.openXmlResourceParser("AndroidManifest.xml").use { parser ->
+                var found = false
+                while (parser.eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                    if (
+                        parser.eventType == org.xmlpull.v1.XmlPullParser.START_TAG &&
+                            parser.name == "application"
+                    ) {
+                        report.put(
+                            "raw_optin",
+                            parser.getAttributeBooleanValue(
+                                "http://schemas.android.com/apk/res/android",
+                                "requestRawExternalStorageAccess",
+                                false,
+                            ),
+                        )
+                        found = true
+                        break
+                    }
+                    parser.next()
+                }
+                if (!found) report.put("raw_optin", JSONObject.NULL)
+            }
+        } catch (failure: Exception) {
+            report.put("raw_optin", JSONObject.NULL)
+            report.put("raw_optin_read_error", failure.javaClass.simpleName)
+        }
+        try {
+            context.contentResolver.openFileDescriptor(target, "r").use { descriptor ->
+                val fd = requireNotNull(descriptor)
+                val provider = android.system.Os.fstat(fd.fileDescriptor)
+                report.put(
+                    "provider_fstat",
+                    JSONObject().put("st_dev", provider.st_dev).put("st_ino", provider.st_ino),
+                )
+                val path = android.system.Os.readlink("/proc/self/fd/${fd.fd}")
+                val file = File(path)
+                val local = android.system.Os.stat(path)
+                report.put(
+                    "rawpath_stat",
+                    JSONObject().put("st_dev", local.st_dev).put("st_ino", local.st_ino),
+                )
+                report.put(
+                    "path_class",
+                    if (
+                        Regex("/Documents/qa-backup-[a-f0-9]{32}/QA-Eisbaer-[a-f0-9]{32}\\.zip$")
+                            .containsMatchIn(path)
+                    )
+                        "public_documents_qa"
+                    else "unexpected",
+                )
+                report.put("canonical_equals_absolute", file.canonicalFile == file.absoluteFile)
+                report.put(
+                    "same_device_and_inode",
+                    provider.st_dev == local.st_dev && provider.st_ino == local.st_ino,
+                )
+            }
+        } catch (failure: Exception) {
+            report.put("stat_read_error", failure.javaClass.simpleName)
+        } finally {
+            test.sendStatus(
+                0,
+                Bundle().apply { putString("qa_backup_atomic_path", report.toString()) },
+            )
+        }
+    }
+
+    /** A new epoch has no old binding: selecting an existing ZIP needs explicit replacement. */
+    private fun mediaExistingTargetRebind(
+        target: Uri,
+        filename: String,
+        archive: File,
+        protectedState: () -> String,
+    ) {
+        var activity: Activity? = null
+        val originalHash = BackupArchive.sha256(archive)
+        val originalProtected = protectedState()
+        try {
+            activity =
+                test.startActivitySync(
+                    Intent(context, FullBackupActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            waitUntil("MEDIA_BINDING_BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
+            click("Vorhandene Sicherungsdatei wählen")
+            waitUntil("MEDIA_BINDING_REAL_OPEN_PICKER") { pickerVisible() }
+            if (node(filename) == null) click(requireNotNull(archive.parentFile).name)
+            click(filename)
+            waitUntil("MEDIA_BINDING_CONFIRMATION", 45000) {
+                node("Vorhandene Sicherung ersetzen?") != null
+            }
+            yes(
+                find(automation.rootInActiveWindow) {
+                    it.isVisibleToUser &&
+                        it.text?.toString()?.contains("Bestand in der Datei:") == true &&
+                        it.text?.toString()?.contains("Aktueller Bestand:") == true
+                } != null,
+                "MEDIA_BINDING_DIALOG_SHOWS_FILE_AND_CURRENT_COUNTS",
+            )
+            mediaScreenshot("existing-target")
+            click("Abbrechen")
+            waitUntil("MEDIA_BINDING_CANCELLED") {
+                node("Vorhandene Sicherung ersetzen?") == null &&
+                    node("Sicherung fortsetzen") != null
+            }
+            yes(
+                protectedState() == originalProtected &&
+                    BackupArchive.sha256(archive) == originalHash,
+                "MEDIA_EXISTING_TARGET_CANCEL_PRESERVES_ZIP_SESSION_DRAFT_AND_OWNER",
+            )
+            PixelLocalStore(context).use { store ->
+                yes(
+                    PixelBackupService(context, store).targetSelection().optString("uri").isEmpty(),
+                    "MEDIA_CANCEL_DOES_NOT_BIND_EXISTING_TARGET",
+                )
+            }
+            click("Sicherung fortsetzen")
+            waitUntil("MEDIA_BINDING_SECOND_CONFIRMATION") {
+                node("Vorhandene Sicherung ersetzen?") != null
+            }
+            click("Diese Datei aktualisieren")
+            waitUntil("MEDIA_BINDING_VERIFIED", 45000) {
+                node("Gespeichert und geprüft") != null && node("ZIP geprüft.") != null
+            }
+            yes(
+                context.contentResolver.persistedUriPermissions.any {
+                    it.uri == target && it.isReadPermission && it.isWritePermission
+                },
+                "MEDIA_CONFIRMED_BINDING_RETAINS_EXACT_RW_GRANT",
+            )
+        } finally {
+            activity?.let { value -> test.runOnMainSync { value.finish() } }
+        }
+    }
+
+    /** Reauthorize the same existing document through the product's actual open-file action. */
+    private fun mediaRegrantPicker(
+        target: Uri,
+        filename: String,
+        expectedRequestId: String? = null,
+    ) {
+        var activity: Activity? = null
+        try {
+            activity =
+                test.startActivitySync(
+                    Intent(context, FullBackupActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            waitUntil("MEDIA_REGRANT_BACKUP_ACTIVITY") {
+                node(if (expectedRequestId == null) "Jetzt sichern" else "Sicherung fortsetzen") !=
+                    null
+            }
+            if (expectedRequestId != null) {
+                val pending = Bundle()
+                test.runOnMainSync {
+                    test.callActivityOnSaveInstanceState(requireNotNull(activity), pending)
+                }
+                yes(
+                    pending.getString("request") == expectedRequestId &&
+                        pending.getString("target") == target.toString(),
+                    "MEDIA_PENDING_REQUEST_REACHES_REAL_REGRANT_ACTIVITY",
+                )
+            }
+            click("Sicherungsdatei erneut wählen")
+            waitUntil("MEDIA_REGRANT_REAL_OPEN_PICKER") { pickerVisible() }
+            click(filename)
+            waitUntil("MEDIA_REGRANT_VERIFIED", 45000) {
+                if (expectedRequestId != null && node("Vorhandene Sicherung ersetzen?") != null)
+                    throw AssertionError("QA_PENDING_APPROVAL_MUST_NOT_PROMPT_AGAIN")
+                node("Gespeichert und geprüft") != null && node("ZIP geprüft.") != null
+            }
+            yes(
+                context.contentResolver.persistedUriPermissions.any {
+                    it.uri == target && it.isReadPermission && it.isWritePermission
+                },
+                "MEDIA_EXISTING_DOCUMENT_RW_PERMISSION_REGRANTED_BY_PICKER",
+            )
+            PixelLocalStore(context).use { store ->
+                val status = PixelBackupService(context, store).status(JSONObject())
+                yes(
+                    status.getString("state") == "VERIFIED" &&
+                        status.getString("current_access_error").isEmpty() &&
+                        !status.getBoolean("all_files_access_required") &&
+                        !status.getBoolean("document_permission_required"),
+                    "MEDIA_REGRANT_CLEARS_LIVE_ACCESS_ERROR_AFTER_VERIFIED_SAVE",
+                )
+                if (expectedRequestId != null)
+                    yes(
+                        JSONObject(store.ownerValue("pixel_backup_success", ""))
+                            .getString("requestId") == expectedRequestId,
+                        "MEDIA_REAL_REGRANT_PRESERVES_PENDING_REQUEST_ID",
+                    )
+            }
+        } finally {
+            activity?.let { value -> test.runOnMainSync { value.finish() } }
         }
     }
 
@@ -1358,7 +2067,9 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
 
     private fun pickerChecks(): String {
         var activity: Activity? = null
+        val originalAllFilesAccess = Environment.isExternalStorageManager()
         try {
+            setAllFilesAccess(true)
             automation.serviceInfo =
                 automation.serviceInfo.apply {
                     flags = flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
@@ -1371,6 +2082,26 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 )
             waitUntil("BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             val before = stats().toString()
+            val beforeRegrant = Bundle()
+            test.runOnMainSync {
+                test.callActivityOnSaveInstanceState(requireNotNull(activity), beforeRegrant)
+            }
+            click("Sicherungsdatei erneut wählen")
+            waitUntil("EXISTING_BACKUP_PICKER_CANCEL") { pickerVisible() }
+            back()
+            waitUntil("EXISTING_BACKUP_CANCEL_RETURNED") {
+                !pickerVisible() && node("Jetzt sichern") != null
+            }
+            val afterRegrant = Bundle()
+            test.runOnMainSync {
+                test.callActivityOnSaveInstanceState(requireNotNull(activity), afterRegrant)
+            }
+            yes(
+                afterRegrant.getString("target") == beforeRegrant.getString("target") &&
+                    afterRegrant.getString("request") == beforeRegrant.getString("request") &&
+                    stats().toString() == before,
+                "EXISTING_BACKUP_PICKER_CANCEL_PRESERVES_TARGET_AND_REQUEST",
+            )
             click("Anderen Speicherort wählen")
             waitUntil("CREATE_PICKER_CANCEL") { pickerVisible() }
             back()
@@ -1466,6 +2197,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             return id
         } finally {
             activity?.let { value -> test.runOnMainSync { value.finish() } }
+            setAllFilesAccess(originalAllFilesAccess)
         }
     }
 }

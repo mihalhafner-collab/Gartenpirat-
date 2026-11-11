@@ -77,7 +77,9 @@ class LocalStorageBuildTests(unittest.TestCase):
     def test_plaintext_backup_uses_selected_document_provider(self):
         code = source('PixelBackupService')
         self.assertIn('BACKUP_DOCUMENT_REQUIRED', code)
-        self.assertLess(code.index('requireDocument(target)'), code.index('return saveTo('))
+        selected = code.split('private fun saveSelected(', 1)[1].split('private fun requireSelectedFileAccess(', 1)[0]
+        self.assertLess(selected.index('requireDocument(target)'), selected.index('requireSelectedFileAccess(selected)'))
+        self.assertLess(selected.index('requireSelectedFileAccess(selected)'), selected.index('return saveToApproved('))
         self.assertNotIn('requirePixel', code)
         self.assertNotIn('BackupRecoveryKeyStore', code)
         picker = source('FullBackupActivity')

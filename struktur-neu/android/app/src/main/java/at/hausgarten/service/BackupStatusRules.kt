@@ -216,7 +216,9 @@ object BackupStatusRules {
             .put("state", state)
             .put(
                 "last_error_code",
-                if (status.optJSONObject("latest_job") == null) ""
+                if (status.optString("current_access_error").isNotEmpty())
+                    status.getString("current_access_error")
+                else if (status.optJSONObject("latest_job") == null) ""
                 else status.getJSONObject("latest_job").optString("last_error_code"),
             )
             .put("required_for_business", false)
@@ -239,6 +241,10 @@ object BackupStatusRules {
             return "Die Sicherungsdatei ist bereits geprüft."
         if (code == "BACKUP_SAFE_REPLACE_UNAVAILABLE")
             return "Dieser Speicherort erlaubt keinen nachweisbar sicheren Austausch. Die vorhandene Datei bleibt unberührt; bitte einen geeigneten lokalen Speicherort wählen."
+        if (code == "BACKUP_ALL_FILES_ACCESS_REQUIRED")
+            return "Für den sicheren Austausch derselben lokalen ZIP verlangt Android Zugriff auf alle Dateien. Bitte den Dateizugriff bewusst in den Android-Einstellungen freigeben. Die vorhandene ZIP wurde nicht überschrieben."
+        if (code == "BACKUP_DOCUMENT_PERMISSION_REQUIRED")
+            return "Für diese Sicherungsdatei fehlt die dauerhafte Android-Lese- und Schreibfreigabe. Bitte die Zieldatei über die Android-Dateiauswahl wählen. Die Datei wurde nicht überschrieben."
         if (code == "BACKUP_TARGET_CHANGED")
             return "Die Sicherungsdatei wurde außerhalb der App verändert. Sie wurde nicht überschrieben; bitte die Datei prüfen oder einen anderen Speicherort wählen."
         if (code == "BACKUP_REQUEST_ID_CONFLICT")
@@ -278,6 +284,10 @@ object BackupStatusRules {
         val state = status.optString("state")
         if (state == "RUNNING") return "Eine Sicherung läuft. Bitte auf das Ergebnis warten."
         val earlier = status.optString("last_local_verified_at")
+        if (status.optString("current_access_error").isNotEmpty())
+            return failureMessage(status.getString("current_access_error")) +
+                if (earlier.isEmpty()) ""
+                else " Früherer bestätigter Sicherungszeitpunkt: ${displayTime(earlier)}."
         if (state == "FAILED")
             return failureMessage(
                 latest?.optString("last_error_code", "BACKUP_OPERATION_FAILED")

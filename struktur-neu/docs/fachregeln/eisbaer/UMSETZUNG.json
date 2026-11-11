@@ -7,7 +7,7 @@
   "overall_status": "IN_PROGRESS",
   "candidate": null,
   "created_at_utc": "2026-11-11T04:47:24.708547Z",
-  "status_note": "Native Eisbär-Umsetzung auf exakt nachgewiesener installierter 158-Quellbasis; Kandidat 1.72.0/159. UI-/MCP-, Identitäts-, Finanz-, Foto-, echte APK-Update- und SAF-/Restore-Dialogprüfungen implementiert. Aktuelle lokale Quell-/Lint-/APK-Prüfungen und 97 JVM-Tests bestanden. Aktueller FullCI am Instrumentierungs-Prüfmarker vor Fachsuiten gescheitert; Zugriffsfehler korrigiert. Vollständiger grüner Kandidatenlauf und physische Pixel-/Verbindungs-/Provider-Abnahme offen. Keine vollständige Abnahme behauptet.",
+  "status_note": "Native Eisbär-Umsetzung auf exakt nachgewiesener installierter 158-Quellbasis; Kandidat 1.72.0/159. Vorheriger FullCI bestätigte 97 JVM-Tests und 37 von 46 nativen Aufrufen einschließlich Datenerhalt beim Update 158→159. Neun rote Aufrufe gezielt bearbeitet; öffentliche Dokumente-Sicherung mit bewusster Android-Freigabe, genauer Dateibindung und bestätigter ZIP-Neubindung integriert. Aktuelle 64 Python-/97 JVM-/Lint-/APK-Prüfungen bestanden. Neuer vollständiger grüner Kandidatenlauf und physische Pixel-/Verbindungs-/Provider-Abnahme offen. Keine vollständige Abnahme behauptet.",
   "items": {
     "REQ-001": {
       "status": "NOT_STARTED",

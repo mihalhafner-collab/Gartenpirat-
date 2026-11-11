@@ -173,6 +173,14 @@ internal class NativeAppController(private val activity: MainActivity, val store
     fun openOverview(section: String) {
         navigate(section)
         if (section in mainAreas) openSection(section)
+        // Refresh only the local detail selection. Keep the frozen screen key so its list
+        // filters, scroll position and back-stack context still restore normally.
+        route =
+            route.copy(
+                args =
+                    JSONObject(route.args.toString())
+                        .put("_overview_entry", UUID.randomUUID().toString())
+            )
     }
 
     fun openSection(section: String) {
