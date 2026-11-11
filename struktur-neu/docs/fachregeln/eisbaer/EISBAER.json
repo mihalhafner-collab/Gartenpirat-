@@ -1,0 +1,31 @@
+{
+  "schema": "eisbaer.authority.v1",
+  "concept_name": "Eisbär",
+  "version": "1.0.1",
+  "document_id": "HG-UMB-20261110-001",
+  "status": "AUTHORITATIVE",
+  "sole_authority": true,
+  "authority_since_utc": "2026-11-11T04:44:25.322145Z",
+  "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
+  "scope": "Gesamte Oberfläche, Funktionen, Abläufe, Datenverträge und Änderungen am Appcode der Haus-und-Garten-App. Technische Schutz-, Datenschutz-, Signatur- und lokale Datenhaltungsregeln gelten weiter.",
+  "progress_file": "UMSETZUNG.json",
+  "supersedes": [
+    "Gartenpirat Optik-Entwürfe / Claude / 08.11.2026",
+    "Frühere widersprechende Fach- und Oberflächenregeln in APP.md und AKTUELLER-STAND.json",
+    "Vorläufige Chatentwürfe, Screenshots und Konzeptvorgänger"
+  ],
+  "amendment_policy": "Nur ausdrückliche Eigentümerentscheidung; Änderungen zuerst als versionierte Eisbär-Revision mit aktualisierten Dokumenten, Hashes und Abnahmen eintragen. Keine parallele Design- oder Funktionsvorgabe.",
+  "closure_policy": "Alle aus Eisbär abgeleiteten Abnahmen PASS mit wirklichen, an denselben Appkandidaten gebundenen Nachweisen; vollständiges CI, native UI, MCP, Datenbewahrung sowie echte Pixel-Sicherung/Wiederherstellung. Kein N/A, SKIPPED oder stilles Entfernen von Anforderungen. Ein grüner Teil-PR ist kein abgeschlossener Umbau.",
+  "document": {
+    "file": "Eisbaer-Konzept-v1.0.1.pdf",
+    "sha256": "53726cedc448fe9e30a94ce57277e6318bedacfa8f649f020eed0879ea715034"
+  },
+  "specification": {
+    "file": "Eisbaer-Metadaten-v1.0.1.json",
+    "sha256": "8083402040597a766d6421f66cd751e7d85ddb350a46b3eced6cf4150693850c"
+  },
+  "checksums": {
+    "file": "Eisbaer-Pruefsummen-v1.0.1.json",
+    "sha256": "9944ac03054203a73508868b466c3fbd5931ac6a21db3f6e3088d736831addb2"
+  }
+}

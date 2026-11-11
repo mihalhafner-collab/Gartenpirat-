@@ -31,6 +31,13 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'struktur-neu/README.md'
+      - 'struktur-neu/AKTUELLER-STAND.json'
+      - 'struktur-neu/privacy_guard.py'
+      - 'struktur-neu/privacy_policy.json'
+      - 'struktur-neu/docs/**'
       - 'struktur-neu/android/**'
       - 'struktur-neu/tests/**'
       - 'struktur-neu/tools/**'
@@ -346,3 +353,24 @@ jobs:
       - name: Remove disposable test signing material
         if: always()
         run: rm -f "$RUNNER_TEMP/gp-test.jks" "$RUNNER_TEMP/gp-app.apk" "$RUNNER_TEMP/gp-test.apk"
+
+  eisbaer:
+    name: Eisbär authority and completion
+    needs: [build, emulator]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify sole specification and block incomplete completion
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          EMULATOR_RESULT: ${{ needs.emulator.result }}
+          FULL_RUN: ${{ github.event_name == 'pull_request' || (inputs.emulator && !inputs.graphics_only && !inputs.settlement_only && !inputs.settlement_ui_only && !inputs.accounting_only) }}
+        run: >-
+          python3 -B struktur-neu/tools/check_eisbaer.py
+          --ci-build-result "$BUILD_RESULT"
+          --ci-emulator-result "$EMULATOR_RESULT"
+          --ci-full-run "$FULL_RUN"

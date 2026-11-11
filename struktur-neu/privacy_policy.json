@@ -28,5 +28,8 @@
   "public_brand_image_sha256": [
     "72aa2179f101046d64112ba57a95255d2541477c0862e42f6cd95ae3a3551b7e",
     "ffd61870a463b38f0220c2e94403cd7a217a838804cf1e1f3e05c0a8584809d4"
-  ]
+  ],
+  "public_design_documents": {
+    "docs/fachregeln/eisbaer/Eisbaer-Konzept-v1.0.1.pdf": "53726cedc448fe9e30a94ce57277e6318bedacfa8f649f020eed0879ea715034"
+  }
 }

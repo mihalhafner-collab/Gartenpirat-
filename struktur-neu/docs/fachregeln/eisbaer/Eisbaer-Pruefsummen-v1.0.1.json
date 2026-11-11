@@ -1,0 +1,19 @@
+{
+  "concept_name": "Eisbär",
+  "document_id": "HG-UMB-20261110-001",
+  "concept_version": "1.0.1",
+  "created_at_utc": "2026-11-11T04:35:48.685992Z",
+  "algorithm": "SHA-256",
+  "pdf": {
+    "file": "Eisbaer-Konzept-v1.0.1.pdf",
+    "sha256": "53726cedc448fe9e30a94ce57277e6318bedacfa8f649f020eed0879ea715034",
+    "size_bytes": 36542025
+  },
+  "manifest": {
+    "file": "Eisbaer-Metadaten-v1.0.1.json",
+    "sha256": "8083402040597a766d6421f66cd751e7d85ddb350a46b3eced6cf4150693850c",
+    "size_bytes": 647142
+  },
+  "pdf_pages": 115,
+  "source_note": "Prüfsummen der endgültigen Artefakte stehen separat; kein zirkulärer Eigenhash in der PDF-Anlage."
+}
