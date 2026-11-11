@@ -4,14 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
@@ -60,10 +58,10 @@ private fun settlementDraftInput(value: JSONObject): JSONObject {
 private fun settlementStatus(value: JSONObject) =
     when (value.optString("status")) {
         "draft" -> "Entwurf"
-        "prepared" -> "Abschluss vorbereitet – fortsetzen"
+        "prepared" -> "Vorbereitet"
         "confirmed" -> "Bestätigt"
-        "cancelled" -> "Korrigiert / aufgehoben"
-        "abandoned" -> "Vorbereitung aufgehoben – nicht ausgestellt"
+        "cancelled" -> "Aufgehoben"
+        "abandoned" -> "Vorbereitung aufgehoben"
         else -> "Status prüfen"
     }
 
@@ -80,44 +78,30 @@ private fun settlementOpen(record: JSONObject): Long =
  * One tap: records the current remainder with today's date through the review screen's durable
  * operation.
  */
-private suspend fun settlementPaid(controller: NativeAppController, id: String): Long {
-    if (controller.draft("settlement-review:$id")?.optJSONObject("pending") != null)
-        throw IllegalStateException(
-            "Ein Vorgang dieses Abschlusses ist noch offen. Bitte im Abschluss prüfen."
-        )
+internal suspend fun settlementPaid(controller: NativeAppController, id: String): Long {
     val current = controller.query("get_settlement", JSONObject().put("settlement_id", id))
     val open = current.optLong("balance_minor")
     require(open > 0) { "Kein offener Betrag." }
-    val operation =
+    controller.query(
+        "queue_list_action",
         JSONObject()
-            .put("tool", "add_settlement_payment")
-            .put("operation_id", UUID.randomUUID().toString())
+            .put("request_id", UUID.randomUUID().toString())
+            .put("source", "action")
+            .put("original_tool", "add_settlement_payment")
             .put(
-                "args",
+                "original_args",
                 JSONObject()
                     .put("settlement_id", id)
                     .put("expected_record_hash", current.getString("record_hash"))
+                    .put("expected_payment_hash", current.getString("payment_record_hash"))
                     .put("amount", OfferMoney.decimal(open))
                     .put("date", settlementDay())
                     .put("note", "Vollständig bezahlt"),
-            )
-    controller.saveDraft("settlement-review:$id", JSONObject().put("pending", operation))
-    controller.flushDrafts()
-    try {
-        controller.settlementAction(
-            "review:$id:${operation.getString("operation_id")}",
-            "add_settlement_payment",
-            operation.getJSONObject("args"),
-        )
-    } catch (failure: Exception) {
-        if (
-            failure is NativeCallFailure &&
-                failure.detail.optString("commit_state") == "not_committed"
-        )
-            controller.removeDraft("settlement-review:$id")
-        throw failure
-    }
-    controller.removeDraft("settlement-review:$id")
+            ),
+    )
+    controller.listActions =
+        SettlementRules.rows(controller.query("get_list_actions").optJSONArray("actions"))
+    controller.haptic()
     return open
 }
 
@@ -147,14 +131,20 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
         }
     }
     val records =
-        settlementObjects(result?.optJSONArray("records")).filter {
-            listOf(
-                    it.optString("title"),
-                    it.optString("invoice_number"),
-                    it.optString("issue_date"),
-                )
-                .any { text -> text.contains(search, true) }
-        }
+        settlementObjects(result?.optJSONArray("records"))
+            .filter {
+                listOf(
+                        it.optString("title"),
+                        it.optString("invoice_number"),
+                        it.optString("issue_date"),
+                    )
+                    .any { text -> text.contains(search, true) }
+            }
+            .filter {
+                (controller.route.args.optString("status").isBlank() ||
+                    it.optString("status") == controller.route.args.optString("status")) &&
+                    (!controller.route.args.optBoolean("payment_open") || settlementOpen(it) > 0)
+            }
     NativeSearchList(
         "Abschluss oder Rechnungsnummer",
         search,
@@ -168,7 +158,7 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
         ) {
             item {
                 NativeActions {
-                    Button(
+                    NativeButton(
                         { controller.navigate("settlement_edit") },
                         Modifier.semantics { testTag = UiTags.EMPTY_ACTION },
                     ) {
@@ -179,7 +169,7 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
             if (error.isNotEmpty())
                 item {
                     NativeStatus(error, NativeStatusTone.Failed)
-                    TextButton({ attempt++ }) { Text("Erneut laden") }
+                    NativeTextButton({ attempt++ }) { Text("Erneut laden") }
                 }
             if (result == null && error.isEmpty())
                 item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
@@ -224,16 +214,13 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
                                 "Offen " + settlementMoney(open),
                                 NativeStatusTone.Attention,
                             )
-                            Button(
+                            NativeButton(
                                 {
                                     val id = record.getString("id")
                                     paying = id
                                     scope.launch {
                                         try {
-                                            controller.message(
-                                                "Bezahlt erfasst: " +
-                                                    settlementMoney(settlementPaid(controller, id))
-                                            )
+                                            settlementPaid(controller, id)
                                         } catch (cancelled: CancellationException) {
                                             throw cancelled
                                         } catch (failure: Exception) {
@@ -281,62 +268,100 @@ internal fun NativeSettlements(controller: NativeAppController, selectedId: Stri
     }
 }
 
-/** Native working copy is durable, including exact pending save arguments. */
+/** The editable draft is the preview; issuing keeps the two existing durable commits. */
 @Composable
-internal fun NativeSettlementEditor(controller: NativeAppController, id: String) {
+internal fun NativeSettlementEditor(
+    controller: NativeAppController,
+    id: String,
+    onFinished: ((Boolean) -> Unit)? = null,
+) {
     val recipient = if (id.isEmpty()) controller.route.args.optString("billing_customer_id") else ""
     val key = "settlement-editor:$id" + if (recipient.isNotEmpty()) ":$recipient" else ""
-    var raw by rememberSaveable(id) { mutableStateOf<String?>(null) }
-    var savedHash by rememberSaveable(id) { mutableStateOf("") }
-    var pending by rememberSaveable(id) { mutableStateOf<String?>(null) }
-    var operationId by rememberSaveable(id) { mutableStateOf(UUID.randomUUID().toString()) }
+    var raw by rememberSaveable(key) { mutableStateOf<String?>(null) }
+    var savedHash by rememberSaveable(key) { mutableStateOf("") }
+    var pending by rememberSaveable(key) { mutableStateOf<String?>(null) }
+    var operationId by rememberSaveable(key) { mutableStateOf(UUID.randomUUID().toString()) }
     var context by remember { mutableStateOf<JSONObject?>(null) }
     var priorRecords by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
     var error by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var ready by remember { mutableStateOf(false) }
+    var field by remember { mutableStateOf<Triple<Int, String, String>?>(null) }
+    var fieldError by remember { mutableStateOf("") }
+    LaunchedEffect(field) { fieldError = "" }
+    var loadAttempt by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(id) {
+    val undo = remember { SnackbarHostState() }
+    LaunchedEffect(key, loadAttempt) {
         try {
             context = controller.query("get_settlement_context")
             priorRecords =
                 settlementObjects(controller.query("list_settlements").optJSONArray("records"))
             val local = controller.draft(key)
-            if (local != null) {
-                raw = local.optJSONObject("values")?.toString()
-                savedHash = local.optString("record_hash")
-                pending = local.optJSONObject("pending_save")?.toString()
-                operationId = local.optString("operation_id", operationId)
-            } else {
-                // A completed editor may still have saveable route state. Only a
-                // durable working copy keeps pending arguments across visits.
-                raw = null
-                savedHash = ""
-                pending = null
-                operationId = UUID.randomUUID().toString()
-            }
+            raw = local?.optJSONObject("values")?.toString()
+            savedHash = local?.optString("record_hash").orEmpty()
+            pending = local?.optJSONObject("pending_save")?.toString()
+            operationId =
+                local?.optString("operation_id")?.takeIf { it.isNotBlank() }
+                    ?: UUID.randomUUID().toString()
             if (raw == null && id.isNotEmpty()) {
                 val data = controller.query("get_settlement", JSONObject().put("settlement_id", id))
                 val row = data.getJSONObject("record")
                 require(row.optString("status") == "draft") {
-                    "Dieser Abschluss ist bereits eingefroren. Bitte die Vorschau öffnen."
+                    "Dieser Abschluss ist bereits ausgestellt."
                 }
                 raw = row.toString()
                 savedHash = data.getString("record_hash")
             }
-            if (raw == null)
+            if (raw == null) {
+                val business = context!!.optJSONObject("business_settings") ?: JSONObject()
+                val prefillArgs =
+                    JSONObject(controller.route.args.toString()).apply {
+                        put(
+                            "billing_interval",
+                            optString("billing_interval").ifBlank {
+                                business.optString("billing_interval").ifBlank { "minute" }
+                            },
+                        )
+                        put(
+                            "work_record_ids",
+                            JSONArray(
+                                settlementObjects(context!!.optJSONArray("worklogs"))
+                                    .filter {
+                                        BillingRules.recipient(it) == recipient &&
+                                            it.optInt("billed", 0) == 0
+                                    }
+                                    .map { it.getString("id") }
+                            ),
+                        )
+                    }
                 raw =
                     SettlementRules.prefill(
-                            controller.route.args,
+                            prefillArgs,
                             context!!.optJSONArray("worklogs"),
                             priorRecords,
-                            context!!
-                                .optJSONObject("business_settings")
-                                ?.optString("hourly_rate")
-                                .orEmpty(),
+                            business.optString("hourly_rate"),
+                            AccountingRules.ids(
+                                context!!.optJSONArray("lcr_work_ids") ?: JSONArray()
+                            ),
                         )
+                        .apply {
+                            if (optString("payment_terms").isBlank())
+                                put("payment_terms", business.optString("default_payment_terms"))
+                            if (optString("payment_details").isBlank())
+                                put(
+                                    "payment_details",
+                                    business.optString("payment_details").ifBlank {
+                                        listOf(
+                                                business.optString("business_iban"),
+                                                business.optString("business_bic"),
+                                            )
+                                            .filter(String::isNotBlank)
+                                            .joinToString(" · ")
+                                    },
+                                )
+                        }
                         .toString()
-            ready = true
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
@@ -354,40 +379,87 @@ internal fun NativeSettlementEditor(controller: NativeAppController, id: String)
                 .apply { pending?.let { put("pending_save", JSONObject(it)) } },
         )
     }
-    fun update(field: String, value: String) {
-        persist(JSONObject(raw!!).put(field, value))
+    fun changed(value: JSONObject, before: String) {
+        persist(value)
+        scope.launch {
+            undo.currentSnackbarData?.dismiss()
+            val result =
+                kotlinx.coroutines.withTimeoutOrNull(5000) {
+                    undo.showSnackbar(
+                        "Gespeichert",
+                        "Rückgängig",
+                        duration = SnackbarDuration.Indefinite,
+                    )
+                }
+            if (result == SnackbarResult.ActionPerformed) persist(JSONObject(before))
+            else undo.currentSnackbarData?.dismiss()
+        }
     }
-    fun save() {
+    fun save(issue: Boolean) {
         scope.launch {
             busy = true
             error = ""
+            var savedId = id
+            var savedSuccessfully = false
             try {
                 val args =
                     pending?.let(::JSONObject)
                         ?: JSONObject()
                             .put("draft", settlementDraftInput(JSONObject(raw!!)))
                             .apply {
-                                if (id.isNotEmpty()) {
-                                    put("settlement_id", id)
-                                    put("expected_record_hash", savedHash)
-                                }
+                                if (id.isNotEmpty())
+                                    put("settlement_id", id).put("expected_record_hash", savedHash)
                             }
                 pending = args.toString()
                 persist(JSONObject(raw!!))
                 controller.flushDrafts()
-                val result =
+                val saved =
                     controller.settlementAction(
                         "save:$id:$operationId",
                         "save_settlement_draft",
                         args,
                     )
+                savedId = saved.getString("settlement_id")
+                savedSuccessfully = true
+                if (issue) {
+                    val reviewed =
+                        controller.query(
+                            "get_settlement",
+                            JSONObject().put("settlement_id", savedId),
+                        )
+                    controller.settlementAction(
+                        "issue:$savedId:$operationId:prepare",
+                        "prepare_settlement",
+                        JSONObject()
+                            .put("settlement_id", savedId)
+                            .put("expected_review_hash", reviewed.getString("review_hash"))
+                            .put("confirmed", true)
+                            .put("domestic_eur_confirmed", true)
+                            .put("issuer_details_confirmed", true)
+                            .put("electronic_delivery_accepted", false),
+                    )
+                    controller.settlementAction(
+                        "issue:$savedId:$operationId:complete",
+                        "complete_settlement",
+                        JSONObject().put("settlement_id", savedId),
+                    )
+                    controller.haptic()
+                }
                 controller.removeDraft(key)
                 raw = null
-                savedHash = ""
                 pending = null
-                operationId = UUID.randomUUID().toString()
-                ready = false
-                controller.navigate("settlement_review", result.getString("settlement_id"))
+                if (issue) {
+                    if (onFinished != null) onFinished(true)
+                    else
+                        controller.navigate(
+                            "settlement_review",
+                            savedId,
+                            args = JSONObject().put("_share_after_issue", true),
+                        )
+                } else {
+                    onFinished?.invoke(false)
+                    controller.navigate("settlements")
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -396,262 +468,362 @@ internal fun NativeSettlementEditor(controller: NativeAppController, id: String)
                         failure.detail.optString("commit_state") == "not_committed"
                 ) {
                     pending = null
-                    persist(JSONObject(raw!!))
+                    raw?.let { persist(JSONObject(it)) }
                     controller.flushDrafts()
                 }
-                error =
-                    failure.message
-                        ?: "Entwurf nicht gespeichert. Ursprünglichen Vorgang erneut prüfen."
+                error = failure.message ?: "Abrechnung nicht ausgestellt."
+                if (savedSuccessfully) {
+                    controller.removeDraft(key)
+                    raw = null
+                    pending = null
+                    loadAttempt++
+                    onFinished?.invoke(false)
+                    controller.navigate("settlement_review", savedId)
+                    controller.message(error)
+                }
             } finally {
                 busy = false
             }
         }
     }
-    Column(Modifier.fillMaxSize()) {
+    val draft = raw?.let(::JSONObject)
+    Column(Modifier.fillMaxSize().semantics { testTag = UiTags.settlementState("draft") }) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (error.isNotEmpty()) NativeStatus(error, NativeStatusTone.Failed)
-            if (!ready) {
+            if (error.isNotBlank()) NativeStatus(error, NativeStatusTone.Failed)
+            if (draft == null) {
                 if (error.isEmpty()) LinearProgressIndicator(Modifier.fillMaxWidth())
             } else {
-                val draft = JSONObject(raw!!)
                 val editable = !busy && pending == null
-                Text(
-                    "Leistungen, Mengen und Preise bewusst prüfen. Ein Angebot belegt keine ausgeführte Leistung. Unvollständige Entwürfe dürfen gespeichert werden.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                if (pending != null)
+                Text("Rechnung", style = MaterialTheme.typography.titleMedium)
+                if (draft.optString("route") != AccountingRules.BILLED)
                     NativeStatus(
-                        "Speichervorgang noch zu prüfen. Die ursprünglichen Angaben bleiben erhalten.",
+                        "Historischer Labor-Entwurf: keine neue Ausstellung möglich.",
                         NativeStatusTone.Attention,
                     )
-                if (editable)
-                    NativeChoice(
-                        "Abrechnungsart",
-                        draft.optString("route"),
-                        listOf(
-                            AccountingRules.BILLED to "Rechnung",
-                            AccountingRules.LABOR to "Labor clandestino",
-                        ),
-                    ) {
-                        update("route", it)
-                    }
-                else Text(AccountingRules.label(draft.optString("route")))
-                val replacements =
-                    priorRecords.filter {
-                        it.optString("status") == "cancelled" &&
-                            it.optString("route") == "billed" &&
-                            it.optString("kind") == "invoice"
-                    }
-                if (editable && replacements.isNotEmpty() && draft.optString("route") == "billed")
-                    NativeChoice(
-                        "Ersatzrechnung zu (optional)",
-                        draft.optString("replacement_for"),
-                        listOf("" to "Kein Ersatz") +
-                            replacements.map {
-                                it.getString("id") to
-                                    it.optString("invoice_number").ifBlank { it.optString("title") }
-                            },
-                    ) {
-                        update("replacement_for", it)
-                    }
-                SettlementText("Bezeichnung", draft.optString("title"), editable) {
-                    update("title", it)
-                }
-                if (editable) {
+                NativeGroup("Rechnungsempfänger") {
                     NativeRecordPicker(
                         controller,
                         "customers",
-                        "Einsatzkunde (optional)",
-                        draft.optString("customer_id"),
-                        onValueChange = { update("customer_id", it) },
-                    )
-                    NativeRecordPicker(
-                        controller,
-                        "customers",
-                        "Rechtlicher Rechnungsempfänger",
+                        "Empfänger",
                         draft.optString("billing_customer_id"),
-                        onValueChange = { update("billing_customer_id", it) },
-                    )
-                    NativeRecordPicker(
-                        controller,
-                        "properties",
-                        "Einsatzobjekt (optional)",
-                        draft.optString("property_id"),
-                        onValueChange = { update("property_id", it) },
+                        onValueChange = { selected ->
+                            val next = JSONObject(raw!!).put("billing_customer_id", selected)
+                            val works =
+                                settlementObjects(context?.optJSONArray("worklogs")).filter {
+                                    it.optString("billing_customer_id").ifBlank {
+                                        it.optString("customer_id")
+                                    } == selected &&
+                                        it.optBoolean("billable", true) &&
+                                        it.optString("id") !in
+                                            AccountingRules.ids(
+                                                context?.optJSONArray("lcr_work_ids") ?: JSONArray()
+                                            )
+                                }
+                            val fresh =
+                                SettlementRules.prefill(
+                                    JSONObject()
+                                        .put("billing_customer_id", selected)
+                                        .put(
+                                            "work_record_ids",
+                                            JSONArray(works.map { it.getString("id") }),
+                                        ),
+                                    context?.optJSONArray("worklogs"),
+                                    priorRecords,
+                                    context
+                                        ?.optJSONObject("business_settings")
+                                        ?.optString("hourly_rate")
+                                        .orEmpty(),
+                                    AccountingRules.ids(
+                                        context?.optJSONArray("lcr_work_ids") ?: JSONArray()
+                                    ),
+                                )
+                            for (name in
+                                listOf(
+                                    "positions",
+                                    "service_from",
+                                    "service_to",
+                                    "customer_id",
+                                    "title",
+                                )) if (fresh.has(name)) next.put(name, fresh.get(name))
+                            persist(next)
+                        },
                     )
                 }
-                NativeDateField(
-                    "Leistungsbeginn",
-                    draft.optString("service_from"),
-                    { update("service_from", it) },
-                    enabled = editable,
-                )
-                NativeDateField(
-                    "Leistungsende",
-                    draft.optString("service_to"),
-                    { update("service_to", it) },
-                    enabled = editable,
-                )
-                Text("Positionen", style = MaterialTheme.typography.titleLarge)
-                val positions = draft.optJSONArray("positions") ?: JSONArray()
-                for (index in 0 until positions.length()) {
-                    val position = positions.getJSONObject(index)
-                    fun change(field: String, value: String) {
-                        val next = JSONObject(raw!!)
-                        next.getJSONArray("positions").getJSONObject(index).put(field, value)
-                        persist(next)
+                NativeGroup("Leistungen") {
+                    NativeKeyValue("Bezeichnung", draft.optString("title")) {
+                        if (editable) field = Triple(-1, "title", "Bezeichnung")
                     }
-                    OutlinedCard(Modifier.fillMaxWidth()) {
-                        Column(
-                            Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Text(
-                                "Position ${index + 1}",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            if (editable)
-                                NativeChoice(
-                                    "Leistungsquelle",
-                                    position.optString("source_collection"),
-                                    listOf(
-                                        "" to "Manuelle Leistung",
-                                        "worklogs" to "Tatsächliche Arbeit",
-                                        "orders" to "Auftrag ohne Arbeitsaufzeichnung",
-                                    ),
-                                ) {
-                                    change("source_collection", it)
-                                    change("source_id", "")
-                                }
-                            val collection = position.optString("source_collection")
-                            if (editable && collection.isNotEmpty())
-                                NativeRecordPicker(
-                                    controller,
-                                    collection,
-                                    if (collection == "worklogs") "Arbeit auswählen"
-                                    else "Auftrag auswählen",
-                                    position.optString("source_id"),
-                                    onValueChange = { selected -> change("source_id", selected) },
-                                )
-                            if (collection == "orders")
-                                Text(
-                                    "Nur tatsächlich ausgeführte Leistungen erfassen. Zugehörige Arbeiten nicht zusätzlich abrechnen.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                            val source =
-                                settlementObjects(context?.optJSONArray(collection)).firstOrNull {
+                    NativeKeyValue("Von", nativeDisplayDate(draft.optString("service_from"))) {
+                        if (editable) field = Triple(-1, "service_from", "Leistungsbeginn")
+                    }
+                    NativeKeyValue("Bis", nativeDisplayDate(draft.optString("service_to"))) {
+                        if (editable) field = Triple(-1, "service_to", "Leistungsende")
+                    }
+                }
+                NativeChoice(
+                    "Takt",
+                    draft.optString("billing_interval", "minute"),
+                    listOf(
+                        "minute" to "Minutengenau",
+                        "tenth_hour" to "0,1 Std.",
+                        "quarter_hour" to "15 Min.",
+                    ),
+                ) { tick ->
+                    val next = JSONObject(raw!!).put("billing_interval", tick)
+                    for (position in settlementObjects(next.optJSONArray("positions"))) {
+                        val work =
+                            settlementObjects(context?.optJSONArray("worklogs")).firstOrNull {
+                                position.optString("source_collection") == "worklogs" &&
                                     it.optString("id") == position.optString("source_id")
-                                }
-                            if (editable && source != null)
-                                TextButton({
-                                    change(
-                                        "title",
-                                        source.optString(
-                                            if (collection == "worklogs") "activity" else "title"
-                                        ),
-                                    )
-                                    if (
-                                        collection == "worklogs" &&
-                                            source.has("hours") &&
-                                            !source.isNull("hours")
-                                    ) {
-                                        change("quantity", source.get("hours").toString())
-                                        change("unit", "Stunden")
-                                    }
-                                }) {
-                                    Text(
-                                        if (collection == "worklogs")
-                                            "Tätigkeit und Ist-Stunden übernehmen"
-                                        else "Auftragsbezeichnung übernehmen"
-                                    )
-                                }
-                            SettlementText("Leistung", position.optString("title"), editable) {
-                                change("title", it)
                             }
-                            SettlementText(
-                                "Beschreibung / Material / Fahrt / Entsorgung",
-                                position.optString("description"),
-                                editable,
-                                multiline = true,
+                        if (work != null)
+                            position.put(
+                                "quantity",
+                                SettlementRules.billableQuantity(work.optString("hours"), tick),
+                            )
+                    }
+                    persist(next)
+                }
+                val positions = settlementObjects(draft.optJSONArray("positions"))
+                var total = java.math.BigDecimal.ZERO
+                var completePrices = positions.isNotEmpty()
+                for ((index, position) in positions.withIndex()) {
+                    val amount = runCatching {
+                        java.math
+                            .BigDecimal(position.optString("quantity").replace(',', '.'))
+                            .multiply(
+                                java.math.BigDecimal(position.optString("price").replace(',', '.'))
+                            )
+                            .setScale(2, java.math.RoundingMode.HALF_UP)
+                    }
+                        .getOrNull()
+                    if (amount == null) completePrices = false else total = total.add(amount)
+                    NativeGroup(
+                        position.optString("description").ifBlank { "Position ${index + 1}" }
+                    ) {
+                        NativeKeyValue("Leistung", position.optString("title")) {
+                            if (editable) field = Triple(index, "title", "Leistung")
+                        }
+                        NativeKeyValue(
+                            "Menge · ${position.optString("unit")}",
+                            nativeNumber(position.opt("quantity")),
+                        ) {
+                            if (editable) field = Triple(index, "quantity", "Menge")
+                        }
+                        if (position.optString("price").isBlank()) {
+                            NativeTextButton(
+                                {
+                                    if (editable)
+                                        field = Triple(index, "price", "Preis je Einheit (€)")
+                                },
+                                colors =
+                                    ButtonDefaults.textButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.error
+                                    ),
                             ) {
-                                change("description", it)
+                                Text("Preis je Einheit (€)")
                             }
-                            SettlementText(
-                                "Tatsächlich geleistete Menge",
-                                position.optString("quantity"),
-                                editable,
+                        } else
+                            NativeKeyValue(
+                                "Preis je Einheit",
+                                financeMoney(position.opt("price")),
+                                money = true,
                             ) {
-                                change("quantity", it)
+                                if (editable) field = Triple(index, "price", "Preis je Einheit (€)")
                             }
-                            SettlementText("Einheit", position.optString("unit"), editable) {
-                                change("unit", it)
-                            }
-                            SettlementText(
-                                "Preis je Einheit (€)",
-                                position.optString("price"),
-                                editable,
-                            ) {
-                                change("price", it)
-                            }
-                            if (editable)
-                                TextButton({
-                                    val next = JSONObject(raw!!)
-                                    val entries = next.getJSONArray("positions")
-                                    next.put(
-                                        "positions",
-                                        JSONArray(
-                                            (0 until entries.length())
-                                                .filter { it != index }
-                                                .map { entries.getJSONObject(it) }
-                                        ),
-                                    )
-                                    persist(next)
-                                }) {
-                                    Text("Position entfernen")
-                                }
+                        if (amount != null)
+                            Text(
+                                financeMoney(amount),
+                                Modifier.padding(horizontal = 16.dp),
+                                color = NativeMoney,
+                            )
+                        NativeTextButton(
+                            {
+                                val next = JSONObject(raw!!)
+                                next.put(
+                                    "positions",
+                                    JSONArray(positions.filterIndexed { i, _ -> i != index }),
+                                )
+                                changed(next, raw!!)
+                            },
+                            enabled = editable,
+                        ) {
+                            Text("Abwählen")
                         }
                     }
                 }
-                if (editable)
-                    TextButton({
-                        val next = JSONObject(raw!!)
-                        next
-                            .getJSONArray("positions")
-                            .put(JSONObject().put("source_collection", "").put("source_id", ""))
-                        persist(next)
-                    }) {
-                        Text("Position hinzufügen")
+                val selected = positions.map { it.optString("source_id") }.toSet()
+                val recipientId = draft.optString("billing_customer_id")
+                val available =
+                    settlementObjects(context?.optJSONArray("worklogs")).filter {
+                        it.optString("billing_customer_id").ifBlank {
+                            it.optString("customer_id")
+                        } == recipientId &&
+                            it.optString("id") !in selected &&
+                            it.optString("id") !in
+                                AccountingRules.ids(
+                                    context?.optJSONArray("lcr_work_ids") ?: JSONArray()
+                                ) &&
+                            it.optBoolean("billable", true)
                     }
-                SettlementText(
-                    "Zahlungsbedingungen",
-                    draft.optString("payment_terms"),
-                    editable,
-                    multiline = true,
+                for (work in available) NativeTextButton(
+                    {
+                        val next = JSONObject(raw!!)
+                        val added =
+                            SettlementRules.prefill(
+                                JSONObject()
+                                    .put("billing_customer_id", recipientId)
+                                    .put("work_record_ids", JSONArray().put(work.getString("id"))),
+                                context?.optJSONArray("worklogs"),
+                                priorRecords,
+                                context
+                                    ?.optJSONObject("business_settings")
+                                    ?.optString("hourly_rate")
+                                    .orEmpty(),
+                                AccountingRules.ids(
+                                    context?.optJSONArray("lcr_work_ids") ?: JSONArray()
+                                ),
+                            )
+                        for (line in settlementObjects(added.optJSONArray("positions"))) next
+                            .getJSONArray("positions")
+                            .put(line)
+                        persist(next)
+                    },
+                    enabled = editable,
                 ) {
-                    update("payment_terms", it)
+                    Text(
+                        work.optString("activity") +
+                            " · " +
+                            nativeDisplayDate(work.optString("work_date"))
+                    )
                 }
-                SettlementText(
-                    "Zahlungsangaben / Bankverbindung",
-                    draft.optString("payment_details"),
-                    editable,
-                    multiline = true,
-                ) {
-                    update("payment_details", it)
-                }
+                if (positions.isEmpty()) Text("Wähle die erbrachten Arbeiten für diese Abrechnung.")
                 Text(
-                    "Gewöhnliche österreichische Inlandsabrechnung in Euro mit Kleinunternehmerbefreiung. Ausland, Reverse Charge, anderer Steuerstatus und strukturierte Bundesrechnungen werden hier nicht unterstützt.",
-                    style = MaterialTheme.typography.bodySmall,
+                    "Gesamtbetrag: ${if (completePrices) financeMoney(total) else ""}",
+                    color = if (completePrices) NativeMoney else MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.titleLarge,
                 )
+                Text("Umsatzsteuerbefreit gemäß § 6 Abs. 1 Z 27 UStG")
+                NativeGroup("Zahlung") {
+                    NativeKeyValue("Zahlungsziel", draft.optString("payment_terms")) {
+                        if (editable) field = Triple(-1, "payment_terms", "Zahlungsziel")
+                    }
+                    NativeKeyValue("Bankverbindung", draft.optString("payment_details")) {
+                        if (editable) field = Triple(-1, "payment_details", "Bankverbindung")
+                    }
+                }
+                if (draft.optString("route") == AccountingRules.BILLED)
+                    for (missing in
+                        settlementObjects(
+                            context?.optJSONArray("invoice_missing_fields")
+                        )) NativeTextButton(
+                        {
+                            controller.navigate(
+                                "settings",
+                                args = JSONObject().put("_field", missing.getString("field")),
+                            )
+                        },
+                        colors =
+                            ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                    ) {
+                        Text(missing.getString("label"))
+                    }
+                NativeActions {
+                    if (draft.optString("route") == AccountingRules.BILLED)
+                        NativeTextButton(
+                            {
+                                scope.launch {
+                                    try {
+                                        controller.settlementPreview(
+                                            settlementDraftInput(JSONObject(raw!!))
+                                        )
+                                    } catch (cancelled: CancellationException) {
+                                        throw cancelled
+                                    } catch (failure: Exception) {
+                                        error = failure.message ?: "Vorschau nicht geöffnet."
+                                    }
+                                }
+                            },
+                            enabled = editable && completePrices,
+                        ) {
+                            Text("PDF ansehen")
+                        }
+                    NativeTextButton({ save(false) }, enabled = editable) {
+                        Text("Entwurf sichern")
+                    }
+                }
             }
         }
+        SnackbarHost(undo)
+        val prices = settlementObjects(draft?.optJSONArray("positions"))
+        val ready =
+            draft != null &&
+                prices.isNotEmpty() &&
+                prices.all {
+                    it.optString("price").isNotBlank() && it.optString("quantity").isNotBlank()
+                } &&
+                (draft.optString("route") != AccountingRules.BILLED ||
+                    context?.optJSONArray("invoice_missing_fields")?.length() == 0)
         NativeActionBar(
-            if (pending == null) "Entwurf speichern und prüfen"
-            else "Speichervorgang erneut prüfen",
-            ::save,
-            enabled = ready && !busy,
+            "Ausstellen",
+            { save(true) },
+            enabled =
+                ready &&
+                    !busy &&
+                    pending == null &&
+                    draft?.optString("route") == AccountingRules.BILLED,
+        )
+    }
+    field?.let { current ->
+        val value =
+            if (current.first < 0) draft?.optString(current.second).orEmpty()
+            else
+                draft
+                    ?.optJSONArray("positions")
+                    ?.getJSONObject(current.first)
+                    ?.optString(current.second)
+                    .orEmpty()
+        NativeValueSheet(
+            current.third,
+            value,
+            keyboardType =
+                if (current.second in setOf("price", "quantity"))
+                    androidx.compose.ui.text.input.KeyboardType.Decimal
+                else androidx.compose.ui.text.input.KeyboardType.Text,
+            error = fieldError,
+            onClose = { entered ->
+                val valid = runCatching {
+                    if (entered.isNotBlank() && current.second in setOf("price", "quantity"))
+                        require(entered.replace(',', '.').toBigDecimal().signum() >= 0) {
+                            "Bitte einen positiven Betrag eingeben."
+                        }
+                    if (
+                        entered.isNotBlank() &&
+                            current.second in setOf("service_from", "service_to")
+                    )
+                        LocalDate.parse(entered)
+                }
+                if (valid.isFailure) fieldError = "Bitte einen gültigen Wert eingeben."
+                else {
+                    field = null
+                    if (entered != value && raw != null) {
+                        val before = raw!!
+                        val next = JSONObject(before)
+                        if (current.first < 0) next.put(current.second, entered)
+                        else
+                            next
+                                .getJSONArray("positions")
+                                .getJSONObject(current.first)
+                                .put(current.second, entered)
+                        changed(next, before)
+                    }
+                }
+            },
         )
     }
 }
@@ -697,9 +869,16 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
     var attempt by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf(false) }
     var reviewedHash by rememberSaveable(id) { mutableStateOf("") }
-    var electronic by rememberSaveable(id) { mutableStateOf(false) }
-    // Design: consent to electronic invoices is asked once per recipient, then only shown.
+    var editorOpen by rememberSaveable(id) { mutableStateOf(false) }
+    val committed by
+        remember(controller) { controller.store.nativeData().watchCommittedChanges() }
+            .collectAsStateWithLifecycle(-1L)
     var consentStored by remember { mutableStateOf(false) }
+    var consentDialog by remember { mutableStateOf(false) }
+    var shareRequested by
+        rememberSaveable(id) {
+            mutableStateOf(controller.route.args.optBoolean("_share_after_issue"))
+        }
     var abandoning by rememberSaveable(id) { mutableStateOf(false) }
     var correction by rememberSaveable(id) { mutableStateOf(false) }
     var reason by rememberSaveable(id) { mutableStateOf("") }
@@ -710,6 +889,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
     var day by rememberSaveable(id) { mutableStateOf(settlementDay()) }
     var note by rememberSaveable(id) { mutableStateOf("") }
     var reversal by rememberSaveable(id) { mutableStateOf("") }
+    var paymentKind by rememberSaveable(id) { mutableStateOf("receipt") }
     var restoreEvidence by rememberSaveable(id) { mutableStateOf("") }
     var delivery by rememberSaveable(id) { mutableStateOf(false) }
     var deliveryDay by rememberSaveable(id) { mutableStateOf(settlementDay()) }
@@ -717,24 +897,21 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
     var context by remember { mutableStateOf<JSONObject?>(null) }
     var original by rememberSaveable(id) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(id, attempt) {
+    LaunchedEffect(id, attempt, committed) {
         try {
             val loaded = controller.query("get_settlement", JSONObject().put("settlement_id", id))
             if (reviewedHash != loaded.optString("review_hash")) {
-                electronic = false
                 reviewedHash = loaded.optString("review_hash")
             }
-            data = loaded
+            if (loaded.optJSONObject("record")?.optString("status") == "draft") editorOpen = true
             context = controller.query("get_settlement_context")
             val recipient =
                 loaded.optJSONObject("record")?.optString("billing_customer_id").orEmpty()
             consentStored =
-                recipient.isNotEmpty() &&
-                    settlementObjects(controller.query("list_settlements").optJSONArray("records"))
-                        .any {
-                            it.optString("billing_customer_id") == recipient &&
-                                it.optBoolean("electronic_delivery_accepted")
-                        }
+                settlementObjects(context?.optJSONArray("customers"))
+                    .firstOrNull { it.optString("id") == recipient }
+                    ?.optBoolean("electronic_invoice_consent") == true
+            data = loaded
             val operation = controller.draft("settlement-review:$id")
             original = operation?.optJSONObject("pending")?.toString()
             error = ""
@@ -824,15 +1001,93 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
             )
         }
     fun document(share: Boolean) {
+        if (share && !consentStored) {
+            consentDialog = true
+            return
+        }
         scope.launch {
             try {
                 controller.settlementDocument(id, share)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
-                error = nativeActionError(failure, "Das Original-PDF konnte nicht geöffnet werden.")
+                error = nativeActionError(failure, "PDF nicht geöffnet.")
             }
         }
+    }
+    LaunchedEffect(controller.route.args.toString()) {
+        if (controller.route.args.optBoolean("_share_after_issue")) shareRequested = true
+    }
+    LaunchedEffect(data, shareRequested) {
+        val record = data?.optJSONObject("record")
+        if (shareRequested && record?.optString("status") == "confirmed") {
+            shareRequested = false
+            if (record.optString("route") == AccountingRules.BILLED) document(true)
+        }
+    }
+    if (consentDialog)
+        AlertDialog(
+            onDismissRequest = { consentDialog = false },
+            title = { Text("E-Rechnung") },
+            text = { Text("Stimmt der Kunde der elektronischen Rechnung zu?") },
+            confirmButton = {
+                NativeTextButton(
+                    {
+                        scope.launch {
+                            busy = true
+                            try {
+                                val recipient =
+                                    data!!.getJSONObject("record").getString("billing_customer_id")
+                                val customer =
+                                    controller.query(
+                                        "get_customer",
+                                        JSONObject().put("customer_id", recipient),
+                                    )
+                                controller.query(
+                                    "update_customer",
+                                    JSONObject()
+                                        .put("request_id", UUID.randomUUID().toString())
+                                        .put("customer_id", recipient)
+                                        .put(
+                                            "expected_record_hash",
+                                            PixelMcpWriteTools.hash(
+                                                PixelMcpEntityWriteTools.recordForHash(
+                                                    "customer",
+                                                    customer,
+                                                )
+                                            ),
+                                        )
+                                        .put(
+                                            "updates",
+                                            JSONObject().put("electronic_invoice_consent", true),
+                                        ),
+                                )
+                                consentStored = true
+                                consentDialog = false
+                                document(true)
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (failure: Exception) {
+                                error = failure.message ?: "Zustimmung nicht gespeichert."
+                            } finally {
+                                busy = false
+                            }
+                        }
+                    },
+                    enabled = !busy,
+                ) {
+                    Text("Zustimmung speichern")
+                }
+            },
+            dismissButton = { NativeTextButton({ consentDialog = false }) { Text("Später") } },
+        )
+    if (editorOpen && original == null) {
+        NativeSettlementEditor(controller, id) { issued ->
+            editorOpen = false
+            if (issued) shareRequested = true
+            attempt++
+        }
+        return
     }
     Column(Modifier.fillMaxSize()) {
         Column(
@@ -842,7 +1097,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
             if (original != null) NativeInspectionBanner(inspection) { inspectionAttempt++ }
             if (error.isNotEmpty() && original == null) {
                 NativeStatus(error, NativeStatusTone.Failed)
-                TextButton({ attempt++ }) { Text("Aktuellen Stand laden") }
+                NativeTextButton({ attempt++ }) { Text("Aktuellen Stand laden") }
             }
             val current = data
             if (current == null) {
@@ -855,15 +1110,6 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     record.optString("title"),
                     buildList {
                         val enabled = !busy && original == null
-                        if (status == "draft")
-                            add(
-                                NativeDetailAction(
-                                    "settlement-edit",
-                                    "Entwurf bearbeiten",
-                                    enabled,
-                                    { controller.navigate("settlement_edit", id) },
-                                )
-                            )
                         if (status == "prepared")
                             add(
                                 NativeDetailAction(
@@ -878,7 +1124,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                 add(
                                     NativeDetailAction(
                                         "settlement-pdf",
-                                        "Original-PDF öffnen",
+                                        "PDF ansehen",
                                         enabled,
                                         { document(false) },
                                     )
@@ -886,9 +1132,8 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                 add(
                                     NativeDetailAction(
                                         "settlement-share",
-                                        "Original-PDF teilen",
-                                        enabled &&
-                                            record.optBoolean("electronic_delivery_accepted"),
+                                        "Teilen",
+                                        enabled,
                                         { document(true) },
                                     )
                                 )
@@ -907,7 +1152,13 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                         "settlement-payment",
                                         "Teilzahlung oder anderes Datum",
                                         enabled,
-                                        { payment = !payment },
+                                        {
+                                            payment = !payment
+                                            reversal = ""
+                                            paymentKind = "receipt"
+                                            amount = ""
+                                            note = ""
+                                        },
                                     )
                                 )
                                 for (entry in
@@ -923,6 +1174,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                             {
                                                 payment = true
                                                 reversal = entry.getString("id")
+                                                paymentKind = "correction"
                                                 amount =
                                                     OfferMoney.decimal(
                                                         -entry.getLong("amount_minor")
@@ -931,6 +1183,47 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                             },
                                         )
                                     )
+                                val refunds =
+                                    current.optLong("refund_due_minor") +
+                                        current.optLong("credit_minor")
+                                if (refunds > 0) {
+                                    val payments =
+                                        settlementObjects(current.optJSONArray("payments"))
+                                    for (entry in
+                                        payments.filter { it.optLong("amount_minor") > 0 }) {
+                                        val remaining =
+                                            payments
+                                                .filter {
+                                                    it.optString("reversal_of") ==
+                                                        entry.getString("id")
+                                                }
+                                                .fold(entry.getLong("amount_minor")) { sum, movement
+                                                    ->
+                                                    Math.addExact(
+                                                        sum,
+                                                        movement.getLong("amount_minor"),
+                                                    )
+                                                }
+                                        if (remaining > 0)
+                                            add(
+                                                NativeDetailAction(
+                                                    "settlement-refund:${entry.getString("id")}",
+                                                    "Rückzahlung zu ${nativeDisplayDate(entry.optString("date"))}",
+                                                    enabled,
+                                                    {
+                                                        payment = true
+                                                        paymentKind = "refund"
+                                                        reversal = entry.getString("id")
+                                                        amount =
+                                                            OfferMoney.decimal(
+                                                                -minOf(remaining, refunds)
+                                                            )
+                                                        note = "Tatsächlich erstattet"
+                                                    },
+                                                )
+                                            )
+                                    }
+                                }
                             }
                             if (
                                 status == "confirmed" &&
@@ -968,15 +1261,6 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                         .filter { it.length() > 0 }
                         .distinctBy { it.toString() }
                 for (related in relatedContexts) NativeContext(controller, related)
-                if (status == "draft")
-                    NativeAddDetails(
-                        listOf("title", "service_from", "service_to", "notes").filter {
-                            record.optString(it).isBlank()
-                        },
-                        !busy && original == null,
-                    ) {
-                        controller.navigate("settlement_edit", id)
-                    }
                 Box(Modifier.semantics { testTag = UiTags.settlementState(status) }) {
                     NativeStatus(settlementStatus(record))
                 }
@@ -998,31 +1282,6 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                         ?: context?.optJSONObject("business_settings"),
                     true,
                 )
-                if (status == "draft")
-                    TextButton(
-                        {
-                            scope.launch {
-                                try {
-                                    val business = controller.query("get_business_settings")
-                                    controller.action(
-                                        "Unternehmensdaten bearbeiten",
-                                        "update_business_settings",
-                                        JSONObject()
-                                            .put(
-                                                "expected_record_hash",
-                                                business.getString("record_hash"),
-                                            )
-                                            .put("updates", business.getJSONObject("settings")),
-                                    )
-                                } catch (failure: Exception) {
-                                    error = failure.message ?: "Unternehmensdaten nicht lesbar."
-                                }
-                            }
-                        },
-                        enabled = !busy && original == null,
-                    ) {
-                        Text("Ausstellerangaben bearbeiten")
-                    }
                 SettlementAddress(
                     "Rechtlicher Empfänger",
                     record.optJSONObject("recipient") ?: current.optJSONObject("recipient"),
@@ -1037,12 +1296,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     if (line.optString("description").isNotBlank())
                         Text(line.getString("description"))
                     val sourceCollection = line.optString("source_collection")
-                    if (sourceCollection.isEmpty())
-                        Text(
-                            "Bewusst angelegte manuelle Leistung",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    else {
+                    if (sourceCollection.isNotEmpty()) {
                         val source =
                             settlementObjects(record.optJSONArray("source_snapshots"))
                                 .firstOrNull {
@@ -1050,7 +1304,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                         it.optString("id") == line.optString("source_id")
                                 }
                                 ?.optJSONObject("record")
-                        TextButton({
+                        NativeTextButton({
                             controller.navigate(sourceCollection, line.getString("source_id"))
                         }) {
                             Text(
@@ -1123,7 +1377,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                         (affected.isNotEmpty() || current.optBoolean("requires_restore_review"))
                 ) {
                     NativeStatus(
-                        "Frühere oder wiederhergestellte Zuordnung: aktuellen Belegstand einschließlich Originalen, Nummern, Leistungsbindungen und Zahlungen prüfen. Nur fortsetzen, wenn diese Leistungen nicht bereits anderweitig abgerechnet wurden. Eine neue Serie stellt fehlende Vorgänge nicht wieder her.",
+                        "Wiederhergestellte Quellen: Belegstand prüfen und Nachweis ergänzen.",
                         NativeStatusTone.Attention,
                     )
                     SettlementText(
@@ -1134,7 +1388,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     ) {
                         restoreEvidence = it
                     }
-                    TextButton(
+                    NativeTextButton(
                         {
                             act(
                                 "review_restored_sources",
@@ -1150,53 +1404,6 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                         Text("Aktuellen Belegabgleich bestätigen")
                     }
                 }
-                if (status == "draft") {
-                    val validation = current.optJSONObject("validation")
-                    val errors = validation?.optJSONArray("errors") ?: JSONArray()
-                    for (index in 0 until errors.length()) NativeStatus(
-                        errors.get(index).toString(),
-                        NativeStatusTone.Attention,
-                    )
-                    TextButton(
-                        { controller.navigate("settlement_edit", id) },
-                        enabled = !busy && original == null,
-                    ) {
-                        Text("Entwurf bearbeiten")
-                    }
-                    Text(
-                        "Österreichische Inlandsrechnung in Euro mit Kleinunternehmerbefreiung.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    if (!issuerConfirmed(context))
-                        Column {
-                            NativeStatus(
-                                "Ausstellerangaben einmal in den Einstellungen bestätigen",
-                                NativeStatusTone.Attention,
-                            )
-                            TextButton({ controller.navigate("settings") }) {
-                                Text("Einstellungen öffnen")
-                            }
-                        }
-                    if (invoice) {
-                        if (consentStored)
-                            Text(
-                                "Elektronische Rechnung mit diesem Empfänger vereinbart",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        else
-                            SettlementCheck(
-                                "Elektronische Übermittlung ist mit dem Empfänger vereinbart",
-                                electronic,
-                                !busy && original == null,
-                            ) {
-                                electronic = it
-                            }
-                    }
-                    Text(
-                        "Beim bewussten Abschluss werden Inhalt und Quellen eingefroren. Die Rechnung erhält eine lokale, von sevDesk getrennte Nummer. Interne Labor-Abrechnungen erhalten keine Rechnungsnummer und kein Rechnungs-PDF.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
                 if (status == "prepared" && abandoning) {
                     SettlementText(
                         "Grund für das Aufheben der Vorbereitung",
@@ -1206,14 +1413,8 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     ) {
                         abandonmentReason = it
                     }
-                    Text(
-                        if (invoice)
-                            "Die reservierte Rechnungsnummer bleibt dauerhaft belegt. Originalvorgänge und Zahlungen bleiben erhalten."
-                        else
-                            "Die Vorbereitung und ihre Historie bleiben nachvollziehbar. Andere Abrechnungen und Zahlungen bleiben erhalten.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    TextButton(
+
+                    NativeTextButton(
                         {
                             act(
                                 "abandon_prepared_settlement",
@@ -1234,19 +1435,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     }
                 }
                 if (status in setOf("confirmed", "cancelled")) {
-                    if (invoice && !record.optBoolean("electronic_delivery_accepted"))
-                        Text(
-                            "Elektronische Übermittlung wurde beim Abschluss nicht als vereinbart bestätigt. Das Original kann lokal geöffnet werden; Teilen bleibt gesperrt.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    Text(
-                        "Teilen bestätigt weder Versand noch Zugang. Original und Historie bleiben erhalten. Zahlungen sind davon getrennt.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Text(
-                        "Originale und wesentliche Historie aufbewahren: grundsätzlich sieben Jahre ab Jahresende, gegebenenfalls länger. Die App löscht Belege nicht nach Alter.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+
                     if (invoice) {
                         for (proof in
                             settlementObjects(current.optJSONArray("delivery_evidence"))) Text(
@@ -1268,7 +1457,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                             ) {
                                 deliveryEvidence = it
                             }
-                            TextButton(
+                            NativeTextButton(
                                 {
                                     act(
                                         "record_settlement_delivery",
@@ -1286,7 +1475,8 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                                         attempt++
                                     }
                                 },
-                                enabled = !busy && original == null && deliveryEvidence.isNotBlank(),
+                                enabled =
+                                    !busy && original == null && deliveryEvidence.isNotBlank(),
                             ) {
                                 Text("Zugangsnachweis speichern")
                             }
@@ -1294,21 +1484,36 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     }
                     if (record.optString("kind") in setOf("invoice", "internal")) {
                         Text(
-                            "Erfasst bezahlt: ${settlementMoney(current.optLong("paid_minor"))} · Rest: ${settlementMoney(current.optLong("balance_minor"))}"
+                            "Bezahlt: ${settlementMoney(current.optLong("paid_minor"))} · Offen: ${settlementMoney(current.optLong("open_minor"))}"
                         )
+                        if (current.optLong("credit_minor") > 0)
+                            NativeStatus(
+                                "Guthaben: " + settlementMoney(current.getLong("credit_minor")),
+                                NativeStatusTone.Attention,
+                            )
+                        if (current.optLong("refund_due_minor") > 0)
+                            NativeStatus(
+                                "Rückzahlung offen: " +
+                                    settlementMoney(current.getLong("refund_due_minor")),
+                                NativeStatusTone.Attention,
+                            )
                         val payments =
                             settlementObjects(
                                 current.optJSONArray("payments") ?: record.optJSONArray("payments")
                             )
                         for (entry in payments) {
                             Text(
-                                "${entry.optString("date")} · ${settlementMoney(entry.optLong("amount_minor"))} · ${entry.optString("note")}"
+                                "${nativeDisplayDate(entry.optString("date"))} · ${settlementMoney(entry.optLong("amount_minor"))} · ${when(entry.optString("payment_kind")) { "refund" -> "Rückzahlung"
+ "correction" -> "Korrektur"
+ else -> entry.optString("note") }}"
                             )
                         }
                         if (payment) {
                             if (reversal.isNotEmpty())
                                 NativeStatus(
-                                    "Gegenbuchung zur gewählten Zahlung",
+                                    if (paymentKind == "refund")
+                                        "Tatsächliche Rückzahlung zur gewählten Zahlung"
+                                    else "Korrektur zur gewählten Zahlung",
                                     NativeStatusTone.Attention,
                                 )
                             SettlementText("Betrag (€)", amount, !busy && original == null) {
@@ -1324,16 +1529,8 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                             SettlementText("Zahlungsnotiz", note, !busy && original == null, true) {
                                 note = it
                             }
-                            Text(
-                                "Manuelle Zahlungserfassung ersetzt keine Registrierkasse. Eine Stornierung behauptet keine Rückzahlung.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
                         }
-                    } else
-                        Text(
-                            "Zahlungen und Gegenbuchungen bleiben beim Originalvorgang.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
+                    }
                     if (
                         status == "confirmed" &&
                             record.optString("kind") !in setOf("cancellation", "void")
@@ -1355,11 +1552,8 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                             ) {
                                 evidence = it
                             }
-                            Text(
-                                "Nur dieser Abschluss und seine aktiven Bindungen werden neutralisiert. Zahlungen werden nicht gelöscht. Ausgestellte Originale bleiben unverändert. Ersatzleistungen erst nach bewusstem Artenwechsel neu abrechnen.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            TextButton(
+
+                            NativeTextButton(
                                 {
                                     act(
                                         "correct_settlement",
@@ -1414,50 +1608,37 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
         val record = current?.optJSONObject("record")
         if (original != null) {
             NativeActionBar("Schließen", { controller.back() }, enabled = !busy)
-        } else if (current != null && record?.optString("status") == "draft") {
-            // Design: one "Ausstellen" after the preview. Preparing (number, frozen content)
-            // and completing (original PDF) still run as the two durable steps.
-            NativeActionBar(
-                if (record.optString("route") == AccountingRules.BILLED) "Ausstellen"
-                else "Bestätigen",
-                {
-                    act(
-                        "prepare_settlement",
-                        JSONObject()
-                            .put("settlement_id", id)
-                            .put("expected_review_hash", current.getString("review_hash"))
-                            .put("confirmed", true)
-                            .put("domestic_eur_confirmed", true)
-                            .put("issuer_details_confirmed", true)
-                            .put("electronic_delivery_accepted", consentStored || electronic),
-                    ) {
-                        act("complete_settlement", JSONObject().put("settlement_id", id))
-                    }
-                },
-                enabled =
-                    !busy &&
-                        issuerConfirmed(context) &&
-                        current.optJSONObject("validation")?.optBoolean("valid") == true,
-            )
-        } else if (record?.optString("status") == "prepared") {
+        } else if (
+            record?.optString("status") == "prepared" &&
+                record.optString("route") == AccountingRules.BILLED
+        ) {
             NativeActionBar(
                 if (record.optString("route") == AccountingRules.BILLED) "Ausstellen fortsetzen"
                 else "Bestätigen fortsetzen",
-                { act("complete_settlement", JSONObject().put("settlement_id", id)) },
+                {
+                    act("complete_settlement", JSONObject().put("settlement_id", id)) {
+                        shareRequested = true
+                        attempt++
+                    }
+                },
                 enabled = !busy && current?.optBoolean("requires_restore_review") != true,
             )
         } else if (current != null && record != null && payment) {
             NativeActionBar(
-                if (reversal.isEmpty()) "Zahlung speichern" else "Gegenbuchung speichern",
+                if (reversal.isEmpty()) "Zahlung speichern"
+                else if (paymentKind == "refund") "Rückzahlung speichern"
+                else "Korrektur speichern",
                 {
                     act(
                         "add_settlement_payment",
                         JSONObject()
                             .put("settlement_id", id)
                             .put("expected_record_hash", current.getString("record_hash"))
+                            .put("expected_payment_hash", current.getString("payment_record_hash"))
                             .put("amount", amount)
                             .put("date", day)
                             .put("note", note)
+                            .put("payment_kind", paymentKind)
                             .apply { if (reversal.isNotEmpty()) put("reversal_of", reversal) },
                     ) {
                         payment = false
@@ -1481,17 +1662,25 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
             NativeActionBar(
                 "Bezahlt · " + settlementMoney(current.getLong("balance_minor")),
                 {
-                    act(
-                        "add_settlement_payment",
-                        JSONObject()
-                            .put("settlement_id", id)
-                            .put("expected_record_hash", current.getString("record_hash"))
-                            .put("amount", OfferMoney.decimal(current.getLong("balance_minor")))
-                            .put("date", settlementDay())
-                            .put("note", "Vollständig bezahlt"),
-                    )
+                    scope.launch {
+                        busy = true
+                        try {
+                            settlementPaid(controller, id)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (failure: Exception) {
+                            error = failure.message ?: "Zahlung nicht vorgemerkt."
+                        } finally {
+                            busy = false
+                        }
+                    }
                 },
-                enabled = !busy,
+                enabled =
+                    !busy &&
+                        controller.listActions.none {
+                            ("settlement" to id) in ListActionTools.targets(it) &&
+                                it.optString("state") in setOf("queued", "applying", "uncertain")
+                        },
             )
         } else if (record != null) {
             NativeActionBar(
@@ -1499,7 +1688,7 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                     record.optString("route") == AccountingRules.BILLED &&
                         record.optString("status") in setOf("confirmed", "cancelled")
                 )
-                    "Original-PDF öffnen"
+                    "PDF ansehen"
                 else "Zur Abrechnung",
                 {
                     if (
@@ -1512,27 +1701,5 @@ internal fun NativeSettlementReview(controller: NativeAppController, id: String)
                 enabled = !busy,
             )
         }
-    }
-}
-
-private fun issuerConfirmed(context: JSONObject?) =
-    context?.optJSONObject("business_settings")?.optString("invoice_issuer_confirmed") in
-        setOf("1", "true")
-
-@Composable
-private fun SettlementCheck(
-    label: String,
-    value: Boolean,
-    enabled: Boolean,
-    change: (Boolean) -> Unit,
-) {
-    Row(
-        Modifier.fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(value, enabled = enabled, role = Role.Checkbox, onValueChange = change),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Checkbox(value, onCheckedChange = null, enabled = enabled)
-        Text(label, Modifier.weight(1f).padding(vertical = 12.dp))
     }
 }

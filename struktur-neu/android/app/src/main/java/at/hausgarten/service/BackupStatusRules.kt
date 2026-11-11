@@ -236,7 +236,13 @@ object BackupStatusRules {
         if (code == "BACKUP_RUNNER_BUSY")
             return "Eine Sicherung läuft bereits. Bitte auf deren Ergebnis warten."
         if (code == "BACKUP_TARGET_ALREADY_VERIFIED")
-            return "Diese Datei enthält bereits eine bestätigte Sicherung. Bitte einen neuen Dateinamen wählen."
+            return "Die Sicherungsdatei ist bereits geprüft."
+        if (code == "BACKUP_SAFE_REPLACE_UNAVAILABLE")
+            return "Dieser Speicherort erlaubt keinen nachweisbar sicheren Austausch. Die vorhandene Datei bleibt unberührt; bitte einen geeigneten lokalen Speicherort wählen."
+        if (code == "BACKUP_TARGET_CHANGED")
+            return "Die Sicherungsdatei wurde außerhalb der App verändert. Sie wurde nicht überschrieben; bitte die Datei prüfen oder einen anderen Speicherort wählen."
+        if (code == "BACKUP_REQUEST_ID_CONFLICT")
+            return "Dieser Sicherungsvorgang gehört zu einer anderen Datei. Bitte die Sicherungsansicht neu öffnen."
         if (code == "BACKUP_LOCAL_WRITE_FAILED")
             return "Die ZIP-Datei konnte nicht vollständig gespeichert werden. Bitte freien Speicher und Schreibzugriff prüfen und erneut speichern."
         if (code == "BACKUP_LOCAL_READBACK_FAILED")

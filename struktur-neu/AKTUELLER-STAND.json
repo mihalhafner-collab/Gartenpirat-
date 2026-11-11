@@ -3,16 +3,24 @@
   "repository": "mihalhafner-collab/Gartenpirat-",
   "source_directory": "struktur-neu",
   "last_observed_installed_build": {
-    "observed_at_utc": "2026-11-07T07:35:31Z",
-    "version_name": "1.61.0",
-    "version_code": 131,
+    "observed_at_utc": "2026-11-11T06:11:23Z",
+    "version_name": "1.71.0",
+    "version_code": 158,
     "package_name": "at.hausgarten.service",
-    "reported_base_git_sha": "7e3b045d1975c407885a85bb9da1edb167c395e9",
-    "source_sha256": "67afb8663297c6d3b5cfa0825514d06b76a775e52e5e848c11fae50676820a38",
-    "apk_sha256": "684186fb0fb827f457281992785ef3b9d822d6ddfa9840b54c2ca478c938b502",
-    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; Git-Blobs von 7e3b045 ergeben denselben Quellfingerabdruck; APK-Prüfsumme aus bisherigem ADB-Nachweis"
+    "reported_base_git_sha": "8101f3c395c9770005727bc37fc2f2057fca9130",
+    "source_sha256": "7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640",
+    "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; 178 Git-Blobs von 8101f3c ergeben denselben Quellfingerabdruck; keine Geräteänderung"
   },
   "observed_installation_history": [
+    {
+      "observed_at_utc": "2026-11-11T06:11:23Z",
+      "version_name": "1.71.0",
+      "version_code": 158,
+      "package_name": "at.hausgarten.service",
+      "reported_base_git_sha": "8101f3c395c9770005727bc37fc2f2057fca9130",
+      "source_sha256": "7442733c07dee2e28fe62ad8b50b34819b90f22e68cedeab59ae1dd4eb9fd640",
+      "source_binding": "LIVE_PIXEL_MCP_RUNTIME;release;source_dirty=false; 178 Git-Blobs von 8101f3c ergeben denselben Quellfingerabdruck; keine Geräteänderung"
+    },
     {
       "observed_at_utc": "2026-11-07T07:35:31Z",
       "version_name": "1.61.0",
@@ -46,27 +54,32 @@
     "verification": "PASS; check_release_baseline.py, check_current.py und source_preservation.py; assembleRelease einschließlich lintVital und Datenschutzprüfung. verify_app_candidate.py gegen vollständig zurückgeladene 132: Paket und Originalzertifikat identisch, 133 > 132, leere Startdaten. Commit, source_sha256, release und source_dirty=false direkt aus signierter APK gelesen. Keine Pflanzenbibliothek oder alten App-WebView-Assets/-Komponenten; einzig AndroidX LinkifyCompat.findAddress referenziert WebView. Drive-Datei vollständig zurückgeladen, SHA256 und Bytevergleich identisch. Voller grüner CI-Lauf 42405244554 auf codeidentischem 061b9e0 bestätigt; keine Installation."
   },
   "current_test_candidate": {
-    "version_name": "1.62.0",
-    "version_code": 133,
-    "source_sha256": "72ad38c718a4e3bfadb961443cc6f70aabdd3078bf3ba15ee7fd06e5459122b2",
-    "status": "Originalsigniert aus sauberem main b1e0841 gebaut, geprüft und über Drive verteilt. Eigentümer installiert selbst; danach Identität und Pixel-open_checks prüfen."
+    "version_name": "1.72.0",
+    "version_code": 159,
+    "source_sha256": "c5f8677a0977608eb4a0918f90d5b4dcf4da519946fadf7d2b4a21e484709817",
+    "status": "Eisbär-Codekandidat auf der nachgewiesenen installierten 158-Basis. Lokale Quell-/Datenschutzprüfungen, 97 JVM-Tests, Lint, Release- und Test-APK bestanden; abschließende Terminbeschriftung statisch geprüft. Vollständige CI-/UI-/MCP-/Pixel-/Update-/Sicherungsabnahme offen. Nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "NOT_STARTED — Eisbär ist als einzige Design- und Funktionsumfangsvorgabe hinterlegt. Keine native Umsetzung und keine Eisbär-Laufzeitabnahme erfolgt.",
+    "status": "IN_PROGRESS — Eisbär nativ implementiert, lokale Prüfungen grün. Vollständige CI-/UI-/MCP-/Pixel-, Datenbewahrungs- und Sicherungs-/Restore-Abnahme noch offen; kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
-      "native_implementation": "NOT_STARTED",
-      "eisbaer_runtime_tests": "NOT_RUN"
+      "native_implementation": "IN_PROGRESS",
+      "eisbaer_runtime_tests": "NOT_RUN",
+      "source": "PASS check_release_baseline.py und check_current.py; 64 Python-Tests, Eisbär-Originale unverändert.",
+      "local_jvm": "PASS 97 JVM-Tests, keine Fehler.",
+      "local_build": "PASS Release- und Test-APK, lintRelease sowie Artefakt-Datenschutzprüfung. Native Laufzeittests nicht lokal ausgeführt; KVM fehlt.",
+      "full_ci": "Noch nicht für den Eisbär-Kandidaten ausgeführt; bestehender 158-Lauf gilt nicht als neue Abnahme."
     },
     "next": [
-      "Eisbär PDF/JSON und UMSETZUNG.json lesen; ausschließlich deren Anforderungen umsetzen.",
-      "Anforderungen, Menüaktionen und Schritte, Finanzabläufe, Code-/Datenbereiche, Migration, Bilder und alle MCP-Verträge einzeln mit echten Nachweisen abnehmen.",
-      "Erst nach vollem CI und echter Pixel-/MCP-/Sicherungsabnahme denselben Kandidaten mit --completion abschließen."
+      "Stabilen Kandidaten 1.72.0/159 mit vollständigen lokalen Build-, JVM-, Lint- und Artefaktprüfungen abschließen.",
+      "Vorhandenen PR #27 auf codex/design-08-11 mit dem Eisbär-Kandidaten fortführen und vollständigen CI-Emulatorlauf einschließlich nativer UI-/MCP-Prüfungen durchführen.",
+      "Nach ausdrücklich beauftragter Installation: Pixel-Identität, Verbindungen, Bedienbarkeit, Datenbewahrung sowie sichere Fortschreibung und bestätigte Wiederherstellung mit synthetischen Daten prüfen.",
+      "Nachweise in UMSETZUNG.json eintragen; erst bei vollständiger bestandener Abnahme check_eisbaer.py --completion und Abschluss."
     ],
-    "source_note": "Repository-Code derzeit 1.70.3/157; die Eisbär-Analyse bezieht sich auf 1.71.0/158. Historische Installations-/Verteilungsbelege oben nicht als aktuelle oder neue Installation ausgeben."
+    "source_note": "Installierter Iststand am 11.11.2026 über Pixel-MCP gelesen: 1.71.0/158, 8101f3c, source744273…b9fd640. Main enthielt noch157; Basis158 einschließlich Tests für den Eisbär-Kandidaten übernommen. Keine Installation oder Verteilung."
   },
   "open_checks": [
     "Nach tatsächlicher Eisbär-Implementierung und ausdrücklich beauftragter Installation: Pixel-Paket, Version, Git-/Quellhash desselben Kandidaten lesen.",

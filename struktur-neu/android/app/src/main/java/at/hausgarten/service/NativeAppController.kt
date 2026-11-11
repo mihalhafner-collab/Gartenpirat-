@@ -28,6 +28,7 @@ internal fun nativeMainSection(section: String): String =
     when (section) {
         "today" -> "today"
         "worklogs",
+        "lcr",
         "timer",
         "work" -> "worklogs"
         "customers" -> "customers"
@@ -39,6 +40,7 @@ internal fun nativeMainSection(section: String): String =
         "care_plans" -> "planning"
         "billing",
         "accounting",
+        "accounting_history",
         "accounting_edit",
         "settlements",
         "settlement_edit",
@@ -76,6 +78,9 @@ internal class NativeAppController(private val activity: MainActivity, val store
     /** The single "Neu anlegen" sheet, opened from the "+" button of each main area. */
     var createOpen by mutableStateOf(false)
     var createArgs = JSONObject()
+    var moreMenuOpen by mutableStateOf(false)
+    var workSaveOpen by mutableStateOf(false)
+    var valueUndo by mutableStateOf<(suspend () -> Unit)?>(null)
     private val history = ArrayDeque<NativeRoute>()
     private val draftMutex
         get() = NativeDraftPersistence.mutex
@@ -137,13 +142,11 @@ internal class NativeAppController(private val activity: MainActivity, val store
         }
     }
 
-    /** ⋮ "Mehr" always opens its overview, never a sub screen remembered from an earlier visit. */
     fun openMore() {
-        areaNavigation.remove("office")
-        navigate("office")
+        moreMenuOpen = true
     }
 
-    /** An entry in More opens its overview while retaining that list's filters and position. */
+    /** Open the selected overview from the shared menu. */
     fun openOverview(section: String) {
         navigate(section)
         if (section in mainAreas) openSection(section)
@@ -153,10 +156,9 @@ internal class NativeAppController(private val activity: MainActivity, val store
         require(section in mainAreas)
         messages.value = ""
         if (route.area == section) {
-            val root =
-                history.indexOfFirst {
-                    it.section == section && it.id.isEmpty() && it.mode == "list"
-                }
+            val root = history.indexOfFirst {
+                it.section == section && it.id.isEmpty() && it.mode == "list"
+            }
             if (root >= 0) {
                 while (history.size > root + 1) history.removeLast()
                 route = history.removeLast()
@@ -169,21 +171,10 @@ internal class NativeAppController(private val activity: MainActivity, val store
         areaNavigation[route.area] = history.toList() + route
         val saved = areaNavigation[section].orEmpty()
         history.clear()
-        if (section == "today") {
-            // Today always means the day overview, including when its previous visit opened a
-            // timer.
-            route =
-                saved.firstOrNull { it.section == "today" && it.id.isEmpty() && it.mode == "list" }
-                    ?: NativeRoute("today")
-        } else {
-            // A timer is reached through the running-work bar; an area tab returns to the area's
-            // own screens.
-            val kept = saved.filter { it.section !in setOf("timer", "work") }
-            if (kept.isEmpty()) route = NativeRoute(section, area = section)
-            else {
-                kept.dropLast(1).forEach(history::addLast)
-                route = kept.last()
-            }
+        if (saved.isEmpty()) route = NativeRoute(section, area = section)
+        else {
+            saved.dropLast(1).forEach(history::addLast)
+            route = saved.last()
         }
     }
 
@@ -227,8 +218,9 @@ internal class NativeAppController(private val activity: MainActivity, val store
     }
 
     fun returnToList(section: String) {
-        val previous =
-            history.indexOfLast { it.section == section && it.id.isEmpty() && it.mode == "list" }
+        val previous = history.indexOfLast {
+            it.section == section && it.id.isEmpty() && it.mode == "list"
+        }
         if (previous >= 0) {
             while (history.size > previous + 1) history.removeLast()
             back()
@@ -321,8 +313,21 @@ internal class NativeAppController(private val activity: MainActivity, val store
             .toString()
 
     fun message(value: String, target: NativeRoute? = null) {
+        valueUndo = null
         messageTarget = target
         messages.value = value
+    }
+
+    fun messageUndo(value: String, undo: suspend () -> Unit) {
+        valueUndo = undo
+        messageTarget = null
+        messages.value = value
+    }
+
+    fun haptic() {
+        activity.window.decorView.performHapticFeedback(
+            android.view.HapticFeedbackConstants.VIRTUAL_KEY
+        )
     }
 
     fun open(type: Class<*>) {
@@ -445,6 +450,23 @@ internal class NativeAppController(private val activity: MainActivity, val store
         val entered =
             saved?.optJSONObject("values")?.let { JSONObject(it.toString()) }
                 ?: JSONObject(args.toString())
+        if (entered.optString("property_id").isBlank()) {
+            val properties =
+                store
+                    .nativeData()
+                    .list("properties", customerId = entered.getString("customer_id"), limit = 2)
+            if (properties.total == 1) entered.put("property_id", properties.rows.single().id)
+        }
+        if (entered.optString("activity").isBlank()) {
+            store.nativeData().list("worklogs", limit = 1).rows.firstOrNull()?.let {
+                store
+                    .nativeData()
+                    .detail("worklogs", it.id)
+                    ?.optString("activity")
+                    ?.takeIf(String::isNotBlank)
+                    ?.let { entered.put("activity", it) }
+            }
+        }
         require(entered.optString("customer_id") == args.optString("customer_id")) {
             "Der erhaltene Startentwurf gehört zu einem anderen Kunden. Bitte zuerst den Entwurf prüfen."
         }
@@ -485,6 +507,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
             throw failure
         }
         removeDraft(key)
+        haptic()
         return query("get_active_work_session")
     }
 
@@ -563,7 +586,12 @@ internal class NativeAppController(private val activity: MainActivity, val store
                 removeDraft("timer_action")
             throw failure
         }
-        return confirmed()
+        val current = confirmed()
+        if (tool == "stop_work") {
+            haptic()
+            workSaveOpen = true
+        }
+        return current
     }
 
     suspend fun storageUsage(): JSONObject =
@@ -799,42 +827,41 @@ internal class NativeAppController(private val activity: MainActivity, val store
         synchronized(NativeDraftPersistence) {
             NativeDraftPersistence.unsaved[key] = frozen
             val previous = draftTail
-            draftTail =
-                draftScope.async {
-                    previous?.join()
-                    try {
-                        draftMutex.withLock {
-                            val saved = JSONObject(frozen).put("_draft_key", key)
-                            val prior =
-                                store.ownerValue(
-                                    "native_form_draft:" + PixelMcpWriteTools.hash(key),
-                                    "",
-                                )
-                            val earlier = if (prior.isNotEmpty()) JSONObject(prior) else null
-                            for (metadata in
-                                listOf("_creation_identity", "_inbox_route", "_legacy_source")) {
-                                if (!saved.has(metadata) && earlier?.has(metadata) == true)
-                                    saved.put(metadata, earlier.get(metadata))
-                            }
-                            if (!saved.has("_creation_identity"))
-                                saved.put(
-                                    "_creation_identity",
-                                    BackupDeviceGuard(context).current(),
-                                )
-                            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
-                                store.putOwnerValue(
-                                    "native_form_draft:" + PixelMcpWriteTools.hash(key),
-                                    saved.toString(),
-                                )
-                            }
-                            draftFailures.remove(key)
-                            NativeDraftPersistence.unsaved.remove(key, frozen)
+            draftTail = draftScope.async {
+                previous?.join()
+                try {
+                    draftMutex.withLock {
+                        val saved = JSONObject(frozen).put("_draft_key", key)
+                        val prior =
+                            store.ownerValue(
+                                "native_form_draft:" + PixelMcpWriteTools.hash(key),
+                                "",
+                            )
+                        val earlier = if (prior.isNotEmpty()) JSONObject(prior) else null
+                        for (metadata in
+                            listOf("_creation_identity", "_inbox_route", "_legacy_source")) {
+                            if (!saved.has(metadata) && earlier?.has(metadata) == true)
+                                saved.put(metadata, earlier.get(metadata))
                         }
-                    } catch (failure: Throwable) {
-                        draftFailures[key] = failure
-                        throw failure
+                        if (!saved.has("_creation_identity"))
+                            saved.put(
+                                "_creation_identity",
+                                BackupDeviceGuard(context).current(),
+                            )
+                        synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
+                            store.putOwnerValue(
+                                "native_form_draft:" + PixelMcpWriteTools.hash(key),
+                                saved.toString(),
+                            )
+                        }
+                        draftFailures.remove(key)
+                        NativeDraftPersistence.unsaved.remove(key, frozen)
                     }
+                } catch (failure: Throwable) {
+                    draftFailures[key] = failure
+                    throw failure
                 }
+            }
         }
     }
 
@@ -932,6 +959,29 @@ internal class NativeAppController(private val activity: MainActivity, val store
         return result
     }
 
+    suspend fun settlementPreview(draft: JSONObject) {
+        val file =
+            withContext(Dispatchers.IO) {
+                val context = query("get_settlement_context")
+                val review =
+                    SettlementRules.review(SettlementRules.normalized(draft, "preview"), context)
+                BusinessDocumentStore(this@NativeAppController.context)
+                    .createSettlementPreview(review)
+            }
+        val uri = Uri.parse("content://${context.packageName}.offerfiles/${file.name}")
+        withContext(Dispatchers.Main) {
+            activity.startActivity(
+                Intent.createChooser(
+                    Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(uri, "application/pdf")
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        .apply { clipData = ClipData.newRawUri("Entwurf", uri) },
+                    "PDF ansehen",
+                )
+            )
+        }
+    }
+
     suspend fun settlementDocument(id: String, share: Boolean) {
         val intent =
             withContext(Dispatchers.IO) {
@@ -943,8 +993,19 @@ internal class NativeAppController(private val activity: MainActivity, val store
                 ) {
                     "Ein ausgestelltes Original auswählen."
                 }
-                require(!share || record.optBoolean("electronic_delivery_accepted")) {
-                    "Elektronische Übermittlung wurde für diesen Abschluss nicht als vereinbart bestätigt. Original lokal öffnen; Teilen bleibt gesperrt."
+                if (share) {
+                    val customer =
+                        query(
+                            "get_customer",
+                            JSONObject()
+                                .put("customer_id", record.getString("billing_customer_id")),
+                        )
+                    require(
+                        customer.optBoolean("electronic_invoice_consent") &&
+                            customer.optString("electronic_invoice_consent_date").isNotBlank()
+                    ) {
+                        "Zustimmung zur E-Rechnung fehlt am Kunden."
+                    }
                 }
                 val bytes = BusinessDocumentStore(context).read(record.getJSONObject("pdf"))
                 val directory = File(context.cacheDir, "offer-share")
@@ -974,7 +1035,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
                 )
             )
         }
-        if (share) message("Original-PDF übergeben. Teilen bestätigt weder Versand noch Zugang.")
+        if (share) message("PDF geteilt.")
     }
 
     suspend fun shareSettlementExport(filters: JSONObject) {
@@ -1184,15 +1245,9 @@ internal suspend fun NativeAppController.actionObservation(
                 "preview_delete",
                 JSONObject().put("entity", id("entity")).put("entity_id", id("entity_id")),
             )
-        tool == "purge_entity" ->
-            call(
-                "preview_purge",
-                JSONObject().put("entity", id("entity")).put("entity_id", id("entity_id")),
-            )
-        tool == "empty_trash" -> call("preview_empty_trash")
         tool == "delete_work_records" ->
             call(
-                "preview_archive_work_records",
+                "preview_delete_work_records",
                 JSONObject().put("work_record_ids", arguments.getJSONArray("work_record_ids")),
             )
         tool == "review_work_session" && id("session_id").isNotEmpty() ->

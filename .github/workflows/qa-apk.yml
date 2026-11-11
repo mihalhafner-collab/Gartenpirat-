@@ -14,12 +14,12 @@ on:
         default: false
         required: false
       settlement_only:
-        description: 'Lokale Rechnungen und Laborabschlüsse mit SQLite, PDF, ZIP/Restore, Prozessneustart und Compose prüfen'
+        description: 'Rechnungen und historische Laborbelege mit SQLite, PDF, ZIP/Restore, Prozessneustart und Compose prüfen'
         type: boolean
         default: false
         required: false
       settlement_ui_only:
-        description: 'Nur unabhängige Compose-Abnahme der lokalen Rechnungs- und Laborabschlüsse auf frischem synthetischen Bestand'
+        description: 'Nur unabhängige Compose-Abnahme der Rechnungen und historischen Laborbelege auf frischem synthetischen Bestand'
         type: boolean
         default: false
         required: false
@@ -62,6 +62,8 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -130,6 +132,8 @@ jobs:
     timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -280,7 +284,7 @@ jobs:
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
           elif sys.argv[1]=='native_settlement_ui':
-              for proof in ('real_main_activity','both_completion_routes','exact_amounts','filters_and_navigation','font_scale_200_percent','draft_recreation'):
+              for proof in ('real_main_activity','invoice_completion_and_historical_labor_readback','exact_amounts','filters_and_navigation','font_scale_200_percent','draft_recreation'):
                   assert result[proof] is True, result
               assert result['physical_pixel_tested'] is False, result
           elif sys.argv[1].startswith('native_settlement'):
@@ -295,7 +299,7 @@ jobs:
           elif sys.argv[1].startswith('native_accounting'):
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
               if not result['new_process_readback']:
-                  for proof in ('real_main_activity','exact_amounts','filters_and_navigation','conflict_correction','viewport_and_large_text'):
+                  for proof in ('real_main_activity','lcr_original_reference','historical_original_preservation','viewport_and_large_text'):
                       assert result[proof] is True, result
           elif sys.argv[1]=='native_graphics':
               for proof in ('independent_fresh_fixture','real_main_activity','native_compose_ui'):
@@ -362,6 +366,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

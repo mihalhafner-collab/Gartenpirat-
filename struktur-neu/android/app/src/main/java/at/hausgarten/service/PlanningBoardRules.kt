@@ -44,7 +44,89 @@ internal object PlanningBoardRules {
             get() = values + listOf(limit.toString(), offset.toString())
     }
 
-    fun query(args: JSONObject): Query {
+    /**
+     * Only explicit persisted relationships identify aliases. Similar names/times are independent.
+     */
+    fun aliases(appointments: JSONArray, visits: JSONArray): Map<String, String> {
+        val appointmentRows = (0 until appointments.length()).map { appointments.getJSONObject(it) }
+        val visitRows = (0 until visits.length()).map { visits.getJSONObject(it) }
+        val appointmentIds = appointmentRows.map { it.getString("id") }.toSet()
+        val visitIds = visitRows.map { it.getString("id") }.toSet()
+        val candidates = linkedMapOf<String, MutableSet<String>>()
+        fun add(visit: String, appointment: String) {
+            if (visit in visitIds && appointment in appointmentIds)
+                candidates.getOrPut(visit) { linkedSetOf() }.add(appointment)
+        }
+        for (row in visitRows) {
+            add(row.getString("id"), row.optString("appointment_id"))
+            if (row.optString("source_collection") == "appointments")
+                add(row.getString("id"), row.optString("source_id"))
+        }
+        for (row in appointmentRows) {
+            add(row.optString("visit_id"), row.getString("id"))
+            if (row.optString("source_collection") == "visits")
+                add(row.optString("source_id"), row.getString("id"))
+        }
+        // Contradictory links stay separate and visible for review.
+        return candidates.filterValues { it.size == 1 }.mapValues { it.value.single() }
+    }
+
+    fun independentVisit(row: JSONObject): Boolean =
+        row.optString("care_plan_id").isBlank() || row.optBoolean("planning_adopted")
+
+    /** A view of originals, never a copied visit or an implicit work record. */
+    fun tourEntries(appointments: JSONArray, visits: JSONArray, day: String): List<JSONObject> {
+        LocalDate.parse(day)
+        val hidden = aliases(appointments, visits).keys
+        val result = mutableListOf<JSONObject>()
+        for (i in 0 until appointments.length()) {
+            val source = appointments.getJSONObject(i)
+            if (
+                !AppointmentRules.active(source) ||
+                    source.optString("status") == "draft" ||
+                    AppointmentRules.day(source).toString() != day
+            )
+                continue
+            val local = start("appointment", source)
+            val end =
+                source
+                    .optString("ends_at")
+                    .takeIf(String::isNotBlank)
+                    ?.let { Instant.parse(it).atZone(zone).toLocalTime().toString() }
+                    .orEmpty()
+            result.add(
+                JSONObject(source.toString())
+                    .put("id", "appointments:" + source.getString("id"))
+                    .put("source_collection", "appointments")
+                    .put("source_id", source.getString("id"))
+                    .put("date", day)
+                    .put("title", AppointmentRules.title(source))
+                    .put("window_start", local?.toLocalTime()?.toString() ?: "")
+                    .put("window_end", end)
+            )
+        }
+        for (i in 0 until visits.length()) {
+            val source = visits.getJSONObject(i)
+            if (
+                source.getString("id") in hidden ||
+                    !independentVisit(source) ||
+                    !RevierRules.activeVisit(source) ||
+                    source.optString("date") != day
+            )
+                continue
+            result.add(
+                JSONObject(source.toString())
+                    .put("source_collection", "visits")
+                    .put("source_id", source.getString("id"))
+            )
+        }
+        return result.sortedWith(
+            compareBy<JSONObject> { it.optString("window_start").ifBlank { "99:99" } }
+                .thenBy { it.getString("id") }
+        )
+    }
+
+    fun query(args: JSONObject, hiddenVisits: Set<String> = emptySet()): Query {
         McpSchema.validate(args, boardSchema())
         val from = LocalDate.parse(args.getString("date_from"))
         val to = LocalDate.parse(args.getString("date_to"))
@@ -54,6 +136,13 @@ internal object PlanningBoardRules {
                 "collection IN ('appointments','visits') AND active=1 AND work_date>=? AND work_date<=?"
             )
         val values = mutableListOf(from.toString(), to.toString() + '\uffff')
+        if (hiddenVisits.isNotEmpty()) {
+            where
+                .append(" AND NOT (collection='visits' AND id IN (")
+                .append(hiddenVisits.joinToString(",") { "?" })
+                .append("))")
+            values.addAll(hiddenVisits)
+        }
         for (key in listOf("customer_id", "order_id")) if (args.optString(key).isNotBlank()) {
             where.append(" AND $key=?")
             values.add(args.getString(key))
@@ -78,7 +167,8 @@ internal object PlanningBoardRules {
     }
 
     fun weatherAppointment(kind: String, record: JSONObject, property: JSONObject): JSONObject? {
-        if (kind == "appointment") return JSONObject(record.toString())
+        if (kind == "appointment")
+            return if (AppointmentRules.timed(record)) JSONObject(record.toString()) else null
         val local = start(kind, record) ?: return null
         val duration = duration(kind, record) ?: return null
         val point = coordinates(property)
@@ -97,7 +187,9 @@ internal object PlanningBoardRules {
     fun start(kind: String, record: JSONObject): LocalDateTime? =
         when (kind) {
             "appointment" ->
-                Instant.parse(record.getString("starts_at")).atZone(zone).toLocalDateTime()
+                record.optString("starts_at").takeIf(String::isNotBlank)?.let {
+                    Instant.parse(it).atZone(zone).toLocalDateTime()
+                }
             "visit" ->
                 record.optString("window_start").takeIf(String::isNotBlank)?.let {
                     LocalDate.parse(record.getString("date")).atTime(LocalTime.parse(it))
@@ -107,7 +199,7 @@ internal object PlanningBoardRules {
 
     fun day(kind: String, record: JSONObject): LocalDate =
         if (kind == "visit") LocalDate.parse(record.getString("date"))
-        else requireNotNull(start(kind, record)).toLocalDate()
+        else AppointmentRules.day(record)
 
     fun duration(kind: String, record: JSONObject): Long? {
         if (kind == "visit") {
@@ -197,24 +289,47 @@ internal object PlanningBoardRules {
         }
         val stops = SettlementRules.rows(tour.getJSONArray("stops"))
         require(stops.isNotEmpty()) { "Zuerst Stopps in die Tour aufnehmen." }
-        require(stops.all { it.optBoolean("tour_date_matches") && RevierRules.activeVisit(it) }) {
+        require(
+            stops.all {
+                it.optBoolean("tour_date_matches") &&
+                    (if (it.optString("source_collection") == "appointments")
+                        AppointmentRules.active(it)
+                    else RevierRules.activeVisit(it))
+            }
+        ) {
             "Die geänderten Stopps zuerst in der Tour prüfen."
         }
-        val first = stops.first()
-        val target = property(first.getString("property_id"))
-        val address = target.optString("address").trim()
-        val point = coordinates(target)
-        val destination = point?.let { "${it.first},${it.second}" } ?: address
-        require(destination.isNotBlank()) {
-            "Beim ersten Stopp fehlt die Adresse. Sie lässt sich am Objekt ergänzen."
+        val routed = stops.mapNotNull { stop ->
+            val direct = stop.optString("location").trim()
+            val address =
+                if (direct.isNotBlank()) direct
+                else
+                    stop
+                        .optString("property_id")
+                        .takeIf(String::isNotBlank)
+                        ?.let { property(it).optString("address").trim() }
+                        .orEmpty()
+            if (address.isBlank()) null else stop to address
         }
+        require(routed.isNotEmpty()) { "Für die Navigation fehlt eine Adresse." }
+        val first = routed.first().first
+        val addresses = routed.map { it.second }
+        val navigation =
+            "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" +
+                encoded(addresses.last()) +
+                if (addresses.size > 1)
+                    "&waypoints=" + encoded(addresses.dropLast(1).joinToString("|"))
+                else ""
         return JSONObject()
             .put("tour_hash", tour.getString("record_hash"))
             .put("target_visit_id", first.getString("id"))
             .put("target_title", first.optString("title", "Erster Stopp"))
-            .put("address", address)
-            .put("navigation_uri", "google.navigation:q=" + encoded(destination) + "&mode=d")
-            .put("fallback_uri", "geo:0,0?q=" + encoded(destination))
+            .put("address", addresses.first())
+            .put("addresses", JSONArray(addresses))
+            .put("navigation_uri", navigation)
+            .put("fallback_uri", navigation)
             .put("visit_ids", JSONArray(stops.map { it.getString("id") }))
+            .put("navigation_stop_ids", JSONArray(routed.map { it.first.getString("id") }))
+            .put("without_address", stops.size - routed.size)
     }
 }

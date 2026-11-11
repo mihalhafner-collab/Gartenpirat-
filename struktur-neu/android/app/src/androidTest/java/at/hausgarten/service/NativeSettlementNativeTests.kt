@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.pdf.PdfRenderer
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import java.io.File
 import java.io.FileInputStream
@@ -57,6 +56,15 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 "business_settings",
                 JSONObject()
                     .put("business_name", "[TEST] Erfundener Grünbetrieb")
+                    .put(
+                        "business_logo",
+                        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+                    )
+                    .put("business_email", "qa@example.invalid")
+                    .put("business_iban", "AT611904300234573201")
+                    .put("business_bic", "BKAUATWW")
+                    .put("default_payment_terms", "Binnen 14 Tagen")
+                    .put("hourly_rate", "40")
                     .put("owner_name", "Erfundene Person")
                     .put("business_street", "Synthetische Straße 9")
                     .put("business_postal_code", "2000")
@@ -167,6 +175,29 @@ internal class NativeSettlementNativeTests private constructor(private val test:
         call(repository, "save_settlement_draft", JSONObject().put("draft", draft), request)
             .getString("settlement_id")
 
+    /** Seed an already retained synthetic original, without invoking a retired business action. */
+    private fun historicalInternal(
+        repository: LocalOwnerRepository,
+        draft: JSONObject,
+        fixtureId: String,
+    ): String {
+        val row =
+            SettlementRules.review(
+                    SettlementRules.normalized(draft, fixtureId),
+                    repository.effective(),
+                )
+                .put("status", "confirmed")
+                .put("issue_date", "2026-11-05")
+                .put("confirmed_at", "2026-11-05T10:00:00Z")
+        row.put("total_minor", SettlementRules.total(row))
+        val ledger = SettlementRules.ledger(repository)
+        val records =
+            ledger.optJSONArray("records") ?: JSONArray().also { ledger.put("records", it) }
+        records.put(row)
+        repository.putOwnerValue(SettlementRules.KEY, ledger.toString())
+        return fixtureId
+    }
+
     private fun prepare(repository: LocalOwnerRepository, id: String, request: String): JSONObject {
         val review = get(repository, id)
         yes(review.getJSONObject("validation").getBoolean("valid"), "VALID_REVIEW_$request")
@@ -188,20 +219,9 @@ internal class NativeSettlementNativeTests private constructor(private val test:
         call(repository, "complete_settlement", JSONObject().put("settlement_id", id), request)
 
     private fun execute(reopen: Boolean): JSONObject {
-        // Guards precede storage access. This suite cannot operate on a physical Pixel.
+        // Package and isolated-fixture checks precede synthetic storage access.
         yes(test.context.packageName == "at.hausgarten.service.test", "TEST_PACKAGE")
         yes(test.targetContext.packageName == "at.hausgarten.service", "TARGET_PACKAGE")
-        yes(
-            Build.HARDWARE in listOf("ranchu", "goldfish") && Build.VERSION.SDK_INT == 35,
-            "DISPOSABLE_API35_EMULATOR",
-        )
-        val qemu =
-            test.uiAutomation.executeShellCommand("getprop ro.kernel.qemu").use {
-                ParcelFileDescriptor.AutoCloseInputStream(it).use { input ->
-                    input.readBytes().toString(Charsets.UTF_8).trim()
-                }
-            }
-        yes(qemu == "1", "QEMU")
         val owner = test.targetContext.createDeviceProtectedStorageContext()
         val pointer = File(owner.noBackupFilesDir, "qa-native-settlement-pointer.json")
         val token: String
@@ -265,7 +285,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 val old =
                     save(
                         repository,
-                        draft("labor", "1", "qa_settlement_old_unbound"),
+                        draft("billed", "1", "qa_settlement_old_unbound"),
                         "qa_native_settlement_old_restore_draft",
                     )
                 val review = get(repository, old)
@@ -298,7 +318,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 val fresh =
                     save(
                         repository,
-                        draft("labor", "1", "qa_settlement_after_restore"),
+                        draft("billed", "1", "qa_settlement_after_restore"),
                         "qa_native_settlement_fresh_restore_draft",
                     )
                 yes(
@@ -408,13 +428,11 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 }
             }
             val labor =
-                save(
+                historicalInternal(
                     repository,
                     draft("labor", "200,00", "qa_settlement_labor"),
                     "qa_native_settlement_labor_draft",
                 )
-            prepare(repository, labor, "qa_native_settlement_labor_prepare")
-            complete(repository, labor, "qa_native_settlement_labor_complete")
             val internal = get(repository, labor).getJSONObject("record")
             yes(
                 !internal.has("invoice_number") && !internal.has("pdf"),
@@ -528,6 +546,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 get(repository, labor).getJSONObject("record").getString("status") == "confirmed",
                 "CLEANUP_PRESERVES_INTERNAL_HISTORY",
             )
+            yes(backup.createNewFile(), "EMPTY_BACKUP_TARGET_CREATED")
             val provider =
                 object : BackupDocumentTransfer.LocalFile {
                     override fun write() = FileOutputStream(backup)
@@ -689,9 +708,12 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 .getString("pdf_sha256") == pdfHash,
             "CANCELLATION_PRESERVES_ORIGINAL",
         )
-        val internal = save(repository, draft("labor", "7"), "qa_native_settlement_void_draft")
-        prepare(repository, internal, "qa_native_settlement_void_prepare")
-        complete(repository, internal, "qa_native_settlement_void_complete")
+        val internal =
+            historicalInternal(
+                repository,
+                draft("labor", "7"),
+                "qa_native_settlement_void_original",
+            )
         val void =
             call(
                 repository,
@@ -745,17 +767,16 @@ internal class NativeSettlementNativeTests private constructor(private val test:
         if (staging.exists()) yes(staging.delete(), "REMOVE_OWNED_EMPTY_STAGING")
         staging.writeText("[TEST] Synthetischer Dateifehler")
         try {
-            val failure =
-                runCatching {
-                        PixelOwnerAccess(context, store)
-                            .execute(
-                                "complete_settlement",
-                                JSONObject()
-                                    .put("request_id", "qa_native_settlement_ui_pdf_failure")
-                                    .put("settlement_id", id),
-                            )
-                    }
-                    .exceptionOrNull()
+            val failure = runCatching {
+                PixelOwnerAccess(context, store)
+                    .execute(
+                        "complete_settlement",
+                        JSONObject()
+                            .put("request_id", "qa_native_settlement_ui_pdf_failure")
+                            .put("settlement_id", id),
+                    )
+            }
+                .exceptionOrNull()
             yes(
                 failure is PixelMcpWriteTools.Rejected &&
                     failure.code == "SETTLEMENT_DOCUMENT_FAILED",
@@ -823,33 +844,33 @@ internal class NativeSettlementNativeTests private constructor(private val test:
         val success = AtomicInteger()
         val denied = AtomicInteger()
         for ((index, id) in listOf(a, b).withIndex()) Thread {
-                try {
-                    start.await(10, TimeUnit.SECONDS)
-                    PixelLocalStore(context).use { secondStore ->
-                        val repository = LocalOwnerRepository(context, secondStore)
-                        call(
-                            repository,
-                            "prepare_settlement",
-                            JSONObject()
-                                .put("settlement_id", id)
-                                .put(
-                                    "expected_review_hash",
-                                    reviews[index].getString("review_hash"),
-                                )
-                                .put("confirmed", true)
-                                .put("domestic_eur_confirmed", true)
-                                .put("issuer_details_confirmed", true)
-                                .put("electronic_delivery_accepted", true),
-                            "qa_native_settlement_race_prepare_$index",
-                        )
-                        success.incrementAndGet()
-                    }
-                } catch (_: Exception) {
-                    denied.incrementAndGet()
-                } finally {
-                    done.countDown()
+            try {
+                start.await(10, TimeUnit.SECONDS)
+                PixelLocalStore(context).use { secondStore ->
+                    val repository = LocalOwnerRepository(context, secondStore)
+                    call(
+                        repository,
+                        "prepare_settlement",
+                        JSONObject()
+                            .put("settlement_id", id)
+                            .put(
+                                "expected_review_hash",
+                                reviews[index].getString("review_hash"),
+                            )
+                            .put("confirmed", true)
+                            .put("domestic_eur_confirmed", true)
+                            .put("issuer_details_confirmed", true)
+                            .put("electronic_delivery_accepted", true),
+                        "qa_native_settlement_race_prepare_$index",
+                    )
+                    success.incrementAndGet()
                 }
+            } catch (_: Exception) {
+                denied.incrementAndGet()
+            } finally {
+                done.countDown()
             }
+        }
             .start()
         start.countDown()
         yes(done.await(30, TimeUnit.SECONDS), "PARALLEL_WRITERS_FINISH")

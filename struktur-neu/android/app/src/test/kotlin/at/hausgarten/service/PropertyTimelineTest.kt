@@ -61,7 +61,9 @@ class PropertyTimelineTest {
         )
         assertNotEquals(
             key,
-            PropertyTimelineRules.contextIdentity(JSONObject(before).put("date_from", "2026-11-09")),
+            PropertyTimelineRules.contextIdentity(
+                JSONObject(before).put("date_from", "2026-11-09")
+            ),
         )
         assertEquals(before, args.toString())
     }
@@ -284,13 +286,18 @@ class PropertyTimelineTest {
     }
 
     @Test
-    fun readsPreserveInputsAndCareResultsAreIndependent() {
+    fun retiredCareViewIsExplicitAndPreservesHistoricalData() {
         val f = Fixture()
-        f.row(f.revier, "care_plans", "qa_care").put("notes", "[TEST] Eigene Notiz")
+        f.row(f.revier, "care_plans", "qa_care").put("notes", "[TEST] Historischer Pflegeplan")
         val before = f.master.toString() + f.revier.toString() + f.ledger.toString()
-        val row = f.items("care").single().getJSONObject("record")
-        row.put("notes", "[TEST] Nur Ergebnis ändern")
+        try {
+            f.items("care")
+            fail("Expected removed care view")
+        } catch (removed: PixelMcpWriteTools.Rejected) {
+            assertEquals("FUNCTION_REMOVED", removed.code)
+        }
         assertEquals(before, f.master.toString() + f.revier.toString() + f.ledger.toString())
+        assertFalse(f.view().getJSONObject("counts").has("care"))
     }
 
     @Test

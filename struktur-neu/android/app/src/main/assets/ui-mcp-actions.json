@@ -1,15 +1,20 @@
 {
   "format": "hausgarten.ui_mcp_actions.v1",
-  "protocol_version": 9,
-  "scope": "Reviewed native Compose operator actions and shared MCP business tools; platform consent, local drafts, and retired business synchronization remain explicit. Catalog coverage does not itself prove executed workflows.",
+  "protocol_version": 10,
+  "scope": "Native Compose actions and their shared MCP business writers. Android permissions and external handoff remain explicit.",
   "actions": [
     {
-      "id": "kunden.1",
+      "id": "kunden.akte",
       "area": "kunden",
-      "action": "Suchen / Liste",
+      "action": "Kundenakte, Objekte, Vorgänge und Geld",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
-        "search_customers"
+        "search_customers",
+        "get_customer",
+        "get_customer_work_records",
+        "list_photos",
+        "list_offers",
+        "search_orders"
       ],
       "kind": "business",
       "rights": "owner_read",
@@ -19,24 +24,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "kunden.2",
+      "id": "kunden.anlegen",
       "area": "kunden",
-      "action": "Kundenakte lesen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_customer"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.3",
-      "area": "kunden",
-      "action": "Anlegen",
+      "action": "Kunde anlegen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "create_customer"
@@ -49,9 +39,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "kunden.4",
+      "id": "kunden.aendern",
       "area": "kunden",
-      "action": "Stammdaten bearbeiten",
+      "action": "Kundendaten und E-Rechnung-Zustimmung ändern",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_customer",
@@ -65,117 +55,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "kunden.5",
+      "id": "kunden.loeschen",
       "area": "kunden",
-      "action": "Gartenfläche und Gartenhinweise",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_customer",
-        "update_customer"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.6",
-      "area": "kunden",
-      "action": "Rechnungsempfänger konfigurieren",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_customer",
-        "update_customer"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.7",
-      "area": "kunden",
-      "action": "Aktivstatus",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_customer",
-        "update_customer"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.8",
-      "area": "kunden",
-      "action": "Historie / Tätigkeiten",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_customer_work_records"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.9",
-      "area": "kunden",
-      "action": "Fotoübersicht",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_photos"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.10",
-      "area": "kunden",
-      "action": "Angebote zum Kunden",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_offers"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.11",
-      "area": "kunden",
-      "action": "Aufträge zum Kunden",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "search_orders"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "kunden.12",
-      "area": "kunden",
-      "action": "Archivieren mit Fotoablösung",
+      "action": "Kunde löschen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
@@ -189,27 +71,13 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "auftraege.14",
+      "id": "auftraege.lesen",
       "area": "auftraege",
-      "action": "Suchen / offene Aufträge",
+      "action": "Aufträge und Auftrag lesen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "search_orders",
-        "get_open_orders"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "auftraege.15",
-      "area": "auftraege",
-      "action": "Lesen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
+        "get_open_orders",
         "get_order"
       ],
       "kind": "business",
@@ -220,9 +88,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "auftraege.16",
+      "id": "auftraege.anlegen",
       "area": "auftraege",
-      "action": "Anlegen",
+      "action": "Auftrag anlegen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "create_order"
@@ -235,9 +103,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "auftraege.17",
+      "id": "auftraege.aendern",
       "area": "auftraege",
-      "action": "Bearbeiten / Status / Einsatzort",
+      "action": "Auftrag, Einsatzort und Rechnungsempfänger ändern",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_order",
@@ -251,55 +119,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "auftraege.18",
+      "id": "auftraege.loeschen",
       "area": "auftraege",
-      "action": "Rechnungsempfänger",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_order",
-        "update_order"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "auftraege.22",
-      "area": "auftraege",
-      "action": "Aus Angebot übernehmen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "convert_offer_to_order"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "auftraege.23",
-      "area": "auftraege",
-      "action": "Nachtrag mit Auftrag verbinden",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "convert_offer_to_order"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "auftraege.24",
-      "area": "auftraege",
-      "action": "Archivieren",
+      "action": "Auftrag löschen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "preview_delete",
@@ -313,13 +135,15 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "arbeiten.26",
+      "id": "arbeiten.lesen",
       "area": "arbeiten",
-      "action": "Liste / Datum / Suche",
+      "action": "Arbeiten lesen und zusammenfassen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "list_work_records",
-        "search_business_data"
+        "search_business_data",
+        "get_work_record",
+        "get_work_record_summary"
       ],
       "kind": "business",
       "rights": "owner_read",
@@ -329,27 +153,13 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "arbeiten.27",
+      "id": "arbeiten.anlegen",
       "area": "arbeiten",
-      "action": "Details lesen",
+      "action": "Arbeit nachtragen oder Vorlage übernehmen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
+        "create_customer_work_record",
         "get_work_record"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.28",
-      "area": "arbeiten",
-      "action": "Manuell erfassen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "create_customer_work_record"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -359,9 +169,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "arbeiten.29",
+      "id": "arbeiten.aendern",
       "area": "arbeiten",
-      "action": "Bestehende bearbeiten / Nachtrag",
+      "action": "Arbeit ändern oder nicht abrechnen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
@@ -375,25 +185,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "arbeiten.30",
+      "id": "arbeiten.zuordnen",
       "area": "arbeiten",
-      "action": "Vorlage duplizieren und gezielt speichern",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_work_record",
-        "create_customer_work_record"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.31",
-      "area": "arbeiten",
-      "action": "Kunde / Rechnungsempfänger zuordnen",
+      "action": "Kunde und Empfänger der Arbeit ändern",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
@@ -407,92 +201,15 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "arbeiten.32",
+      "id": "arbeiten.markierungen",
       "area": "arbeiten",
-      "action": "Abrechnungsmarkierung",
+      "action": "Historische Abrechnungsmarkierungen lesen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_work_record",
-        "set_work_record_billed"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.33",
-      "area": "arbeiten",
-      "action": "Labor clandestino setzen und entfernen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "set_personal_paid"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.34",
-      "area": "arbeiten",
-      "action": "Persönliche Markierungen lesen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
         "get_settings"
       ],
       "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.35",
-      "area": "arbeiten",
-      "action": "Wochen / Kalenderjahr / Zusammenfassung",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_work_record_summary",
-        "list_work_records"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.36",
-      "area": "arbeiten",
-      "action": "Qualitätsübersicht / Überschneidungen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_work_record_summary"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "arbeiten.37",
-      "area": "arbeiten",
-      "action": "Einzeln in Papierkorb",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "preview_delete",
-        "delete_entity"
-      ],
-      "kind": "business",
       "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
@@ -500,12 +217,14 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "arbeiten.38",
+      "id": "arbeiten.loeschen",
       "area": "arbeiten",
-      "action": "Auswahl in Papierkorb",
+      "action": "Arbeit oder Auswahl löschen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
-        "preview_archive_work_records",
+        "preview_delete",
+        "delete_entity",
+        "preview_delete_work_records",
         "delete_work_records"
       ],
       "kind": "business",
@@ -516,24 +235,25 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.40",
+      "id": "zeiterfassung.lesen",
       "area": "zeiterfassung",
-      "action": "Aktuelle Sitzung / Pausen lesen",
+      "action": "Laufende Zeit lesen und prüfen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
-        "get_active_work_session"
+        "get_active_work_session",
+        "review_work_session"
       ],
       "kind": "business",
-      "rights": "owner_read",
+      "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.41",
+      "id": "zeiterfassung.start",
       "area": "zeiterfassung",
-      "action": "Bei Kunde / Auftrag / Termin starten",
+      "action": "Arbeit starten",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "start_work"
@@ -546,26 +266,12 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.42",
+      "id": "zeiterfassung.pause",
       "area": "zeiterfassung",
-      "action": "Pause starten",
+      "action": "Pause starten oder beenden",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
-        "start_break"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "zeiterfassung.43",
-      "area": "zeiterfassung",
-      "action": "Pause beenden",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
+        "start_break",
         "end_break"
       ],
       "kind": "business",
@@ -576,9 +282,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.44",
+      "id": "zeiterfassung.stopp",
       "area": "zeiterfassung",
-      "action": "Stoppen ohne Arbeitsnachweis",
+      "action": "Arbeit stoppen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "stop_work"
@@ -591,7 +297,7 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.45",
+      "id": "zeiterfassung.fortsetzen",
       "area": "zeiterfassung",
       "action": "Gestoppte Arbeit fortsetzen",
       "source": "NativePrimaryScreens.kt",
@@ -606,26 +312,12 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.46",
+      "id": "zeiterfassung.speichern",
       "area": "zeiterfassung",
-      "action": "Geprüfte Zeit speichern",
+      "action": "Arbeit speichern",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
-        "complete_work_session"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "zeiterfassung.47",
-      "area": "zeiterfassung",
-      "action": "Stoppen und Tätigkeit speichern",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
+        "complete_work_session",
         "finish_work"
       ],
       "kind": "business",
@@ -636,26 +328,12 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "zeiterfassung.48",
+      "id": "zeiterfassung.verwerfen",
       "area": "zeiterfassung",
-      "action": "Verwerfen",
+      "action": "Arbeit verwerfen oder zurücknehmen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
-        "discard_work_session"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "zeiterfassung.49",
-      "area": "zeiterfassung",
-      "action": "Verworfene Sitzung zurückholen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
+        "discard_work_session",
         "restore_work_session"
       ],
       "kind": "business",
@@ -666,12 +344,15 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.63",
+      "id": "angebote.lesen",
       "area": "angebote",
-      "action": "Liste / Suche",
+      "action": "Angebote und Annahmeverlauf lesen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
-        "list_offers"
+        "list_offers",
+        "get_offer",
+        "get_offer_context",
+        "get_offer_decision_history"
       ],
       "kind": "business",
       "rights": "owner_read",
@@ -681,44 +362,15 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.64",
+      "id": "angebote.entwurf",
       "area": "angebote",
-      "action": "Details lesen",
-      "source": "ComposeFinanceScreens.kt",
-      "mcp": [
-        "get_offer"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "angebote.65",
-      "area": "angebote",
-      "action": "Kontext Kunde / Garten / freigegebene Preise",
-      "source": "ComposeFinanceScreens.kt",
-      "mcp": [
-        "get_offer_context"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "angebote.66",
-      "area": "angebote",
-      "action": "Entwurf erstellen / Bausteine übernehmen",
+      "action": "Angebotsentwurf anlegen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "search_offer_templates",
         "create_offer_draft",
-        "create_and_validate_offer"
+        "create_and_validate_offer",
+        "update_offer_draft"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -728,26 +380,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.67",
+      "id": "angebote.aendern",
       "area": "angebote",
-      "action": "Fixpreis / Regie / verbindlicher und unverbindlicher KV",
-      "source": "ComposeFinanceScreens.kt",
-      "mcp": [
-        "create_offer_draft",
-        "update_offer_draft",
-        "create_and_validate_offer"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "angebote.68",
-      "area": "angebote",
-      "action": "Positionen / Texte / Preis bearbeiten",
+      "action": "Angebotspositionen, Texte und Preise ändern",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer",
@@ -761,25 +396,25 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.69",
+      "id": "angebote.pruefen",
       "area": "angebote",
-      "action": "Pflichtangaben prüfen",
+      "action": "Angebotsangaben prüfen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "validate_offer",
         "validate_offer_draft"
       ],
       "kind": "business",
-      "rights": "owner_read",
+      "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.70",
+      "id": "angebote.finalisieren",
       "area": "angebote",
-      "action": "Bewusst finalisieren",
+      "action": "Angebot finalisieren",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer",
@@ -793,9 +428,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.71",
+      "id": "angebote.duplizieren",
       "area": "angebote",
-      "action": "Duplizieren",
+      "action": "Angebot duplizieren",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "duplicate_offer"
@@ -808,9 +443,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.72",
+      "id": "angebote.pdf",
       "area": "angebote",
-      "action": "PDF lesen",
+      "action": "Angebots-PDF ansehen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_file_metadata",
@@ -824,9 +459,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.73",
+      "id": "angebote.teilen",
       "area": "angebote",
-      "action": "Teilen vorbereiten",
+      "action": "Angebot teilen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "prepare_offer_share",
@@ -841,13 +476,13 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.74",
+      "id": "angebote.annehmen",
       "area": "angebote",
-      "action": "Annahme und Auftrag / Nachtrag",
+      "action": "Annehmen und Auftrag anlegen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer",
-        "convert_offer_to_order"
+        "record_offer_acceptance"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -857,9 +492,24 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "angebote.75",
+      "id": "angebote.ablehnen",
+      "area": "buero",
+      "action": "Angebot ablehnen",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "decline_offer"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "angebote.loeschen",
       "area": "angebote",
-      "action": "Entwurf in Papierkorb",
+      "action": "Angebotsentwurf löschen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "preview_delete",
@@ -873,27 +523,13 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "leistungskatalog.76",
+      "id": "leistungskatalog.lesen",
       "area": "leistungskatalog",
-      "action": "Bausteine suchen",
+      "action": "Leistungskatalog lesen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "search_offer_templates",
-        "search_catalog"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "leistungskatalog.77",
-      "area": "leistungskatalog",
-      "action": "Baustein lesen",
-      "source": "ComposeFinanceScreens.kt",
-      "mcp": [
+        "search_catalog",
         "get_offer_template",
         "get_catalog_entry"
       ],
@@ -905,9 +541,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "leistungskatalog.78",
+      "id": "leistungskatalog.anlegen",
       "area": "leistungskatalog",
-      "action": "Baustein erstellen",
+      "action": "Leistung anlegen",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "create_catalog_entry"
@@ -920,9 +556,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "leistungskatalog.79",
+      "id": "leistungskatalog.aendern",
       "area": "leistungskatalog",
-      "action": "Baustein bearbeiten / Preis / Standardtexte",
+      "action": "Leistung und Preis ändern",
       "source": "ComposeFinanceScreens.kt",
       "mcp": [
         "get_offer_template",
@@ -936,57 +572,12 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "leistungskatalog.80",
-      "area": "leistungskatalog",
-      "action": "Baustein deaktivieren / reaktivieren",
-      "source": "ComposeFinanceScreens.kt",
-      "mcp": [
-        "get_offer_template",
-        "update_catalog_entry"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "fotos.81",
+      "id": "fotos.lesen",
       "area": "fotos",
-      "action": "Kundenfotobibliothek / weitere laden",
+      "action": "Fotos lesen und filtern",
       "source": "ComposeMediaScreens.kt",
       "mcp": [
-        "list_photos"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "fotos.82",
-      "area": "fotos",
-      "action": "Rollen / Zeitraum / Arbeit / Auftrag filtern",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "list_photos"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "fotos.83",
-      "area": "fotos",
-      "action": "Metadaten lesen",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
+        "list_photos",
         "get_photo"
       ],
       "kind": "business",
@@ -997,9 +588,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "fotos.84",
+      "id": "fotos.original",
       "area": "fotos",
-      "action": "Original authentifiziert lesen / Vollbild",
+      "action": "Foto ansehen",
       "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_file_metadata",
@@ -1013,9 +604,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "fotos.85",
+      "id": "fotos.import",
       "area": "fotos",
-      "action": "Bilder importieren / fortsetzen",
+      "action": "Fotos aufnehmen oder importieren",
       "source": "ComposeMediaScreens.kt",
       "mcp": [
         "begin_file_upload",
@@ -1030,9 +621,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "fotos.86",
+      "id": "fotos.aendern",
       "area": "fotos",
-      "action": "Profilfoto / Dokumentation",
+      "action": "Fotoangaben und Zuordnungen ändern",
       "source": "ComposeMediaScreens.kt",
       "mcp": [
         "get_photo",
@@ -1046,58 +637,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "fotos.87",
+      "id": "fotos.loeschen",
       "area": "fotos",
-      "action": "Bildunterschrift / Aufnahmedatum",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "get_photo",
-        "update_photo"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "fotos.88",
-      "area": "fotos",
-      "action": "Auftrag / Sitzung / Arbeit zuordnen",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "get_photo",
-        "update_photo"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "fotos.89",
-      "area": "fotos",
-      "action": "Mehrere Bilder einer Sitzung",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "begin_file_upload",
-        "write_file_chunk",
-        "create_photo"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "fotos.90",
-      "area": "fotos",
-      "action": "Papierkorb und Kundenverknüpfung lösen",
+      "action": "Foto löschen",
       "source": "ComposeMediaScreens.kt",
       "mcp": [
         "preview_delete",
@@ -1111,117 +653,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "fotos.92",
-      "area": "fotos",
-      "action": "Speicherverbrauch / Fotoqualität",
-      "source": "ComposeMediaScreens.kt",
-      "mcp": [
-        "get_settings",
-        "update_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "papierkorb.99",
-      "area": "papierkorb",
-      "action": "Alle Einträge / weitere laden",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "list_archive"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "papierkorb.101",
-      "area": "papierkorb",
-      "action": "Endgültige Einzellöschung prüfen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "preview_purge"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "papierkorb.102",
-      "area": "papierkorb",
-      "action": "Endgültig löschen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "preview_purge",
-        "purge_entity"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "papierkorb.103",
-      "area": "papierkorb",
-      "action": "Papierkorb leeren prüfen / geschützte Fälle",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "preview_empty_trash"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "papierkorb.104",
-      "area": "papierkorb",
-      "action": "Freigegebenen Papierkorb endgültig leeren",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "preview_empty_trash",
-        "empty_trash"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "einstellungen.115",
+      "id": "einstellungen.standard",
       "area": "einstellungen",
-      "action": "Gerätestandards lesen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "einstellungen.116",
-      "area": "einstellungen",
-      "action": "Tätigkeit und Einsatzort vorbelegen",
+      "action": "Standards und Fotoqualität ändern",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_settings",
@@ -1235,25 +669,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "einstellungen.117",
+      "id": "einstellungen.rechnungsdaten",
       "area": "einstellungen",
-      "action": "Fotoqualität wählen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_settings",
-        "update_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "einstellungen.118",
-      "area": "einstellungen",
-      "action": "Unternehmensdaten lesen / bearbeiten",
+      "action": "Rechnungsdaten ändern",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_business_settings",
@@ -1267,43 +685,25 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "einstellungen.119",
+      "id": "einstellungen.identitaet",
       "area": "einstellungen",
-      "action": "Gespeicherte Nummernangaben lesen und geschützte Umstellung öffnen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_business_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "availability": "read_only",
-      "replacement_action_id": "platform.vollbackup_saf",
-      "transition": "Keine Nummernautorität durch Checkboxen. Geschützter lokaler Autoritätsabgleich im vorhandenen Umstellungsdialog.",
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "einstellungen.120",
-      "area": "einstellungen",
-      "action": "App-/DB-/Protokollversion und Rechte",
+      "action": "App, Version und Rechte lesen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_capabilities",
         "integration_health"
       ],
       "kind": "business",
-      "rights": "owner_write",
+      "rights": "owner_read",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "einstellungen.121",
+      "id": "einstellungen.pruefen",
       "area": "einstellungen",
-      "action": "UI-MCP-Zuordnung / Grenzen lesen",
+      "action": "Funktionen und lokale Integrität prüfen",
       "source": "NativePrimaryScreens.kt",
       "mcp": [
         "get_ui_action_catalog",
@@ -1318,41 +718,30 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.122",
-      "area": "termine",
-      "action": "Tag / Woche / Kunde / Auftrag / weitere laden",
+      "id": "einstellungen.planung",
+      "area": "einstellungen",
+      "action": "Kalender und Wetter einstellen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
-        "list_appointments"
+        "get_planning_settings",
+        "update_planning_settings"
       ],
       "kind": "business",
-      "rights": "owner_read",
+      "rights": "owner_write",
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.123",
-      "area": "termine",
-      "action": "Termin und Ist-Zeit lesen",
+      "id": "planung.einsaetze",
+      "area": "planung",
+      "action": "Termine und Quellbezüge lesen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
-        "get_appointment"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.124",
-      "area": "termine",
-      "action": "Kunden-/Auftragskontext",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
+        "get_planning_board",
+        "get_visit",
+        "get_appointment",
         "get_planning_context"
       ],
       "kind": "business",
@@ -1363,12 +752,14 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.125",
-      "area": "termine",
-      "action": "Termin erstellen",
+      "id": "planung.anlegen",
+      "area": "planung",
+      "action": "Termin planen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
-        "create_appointment"
+        "create_appointment",
+        "create_appointment_series",
+        "plan_visit"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -1378,28 +769,14 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.126",
-      "area": "termine",
-      "action": "Serie bewusst erstellen",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
-        "create_appointment_series"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.127",
-      "area": "termine",
-      "action": "Termin verschieben / bearbeiten",
+      "id": "planung.aendern",
+      "area": "planung",
+      "action": "Termin ändern oder abschließen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "get_appointment",
-        "update_appointment"
+        "update_appointment",
+        "update_visit"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -1409,8 +786,8 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.128",
-      "area": "termine",
+      "id": "planung.absagen",
+      "area": "planung",
       "action": "Termin absagen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
@@ -1425,25 +802,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.129",
-      "area": "termine",
-      "action": "Abgeschlossen markieren",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
-        "get_appointment",
-        "update_appointment"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.130",
-      "area": "termine",
-      "action": "Alternativen vorschlagen",
+      "id": "planung.vorschlaege",
+      "area": "planung",
+      "action": "Freie Terminzeiten finden",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "suggest_appointment_slots"
@@ -1456,26 +817,12 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.131",
-      "area": "termine",
-      "action": "Wetter nächste Arbeitswoche",
+      "id": "planung.wetter",
+      "area": "planung",
+      "action": "Wetter und Risiken lesen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
-        "get_workweek_weather"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.132",
-      "area": "termine",
-      "action": "Risiken / unbekannte Wetterlage lesen",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
+        "get_workweek_weather",
         "get_weather_risks"
       ],
       "kind": "business",
@@ -1486,9 +833,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.133",
-      "area": "termine",
-      "action": "Wetterhinweis zur Kenntnis nehmen",
+      "id": "planung.wetter_bestaetigen",
+      "area": "planung",
+      "action": "Wetterwarnung bestätigen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "acknowledge_weather_alert"
@@ -1501,8 +848,8 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.134",
-      "area": "termine",
+      "id": "planung.wetter_laden",
+      "area": "planung",
       "action": "Wetter aktualisieren",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
@@ -1516,9 +863,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.135",
-      "area": "termine",
-      "action": "Kalenderabgleich anstoßen",
+      "id": "planung.kalender_laden",
+      "area": "planung",
+      "action": "Kalender abgleichen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "request_calendar_sync"
@@ -1531,24 +878,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.136",
-      "area": "termine",
-      "action": "Google-Konfliktvarianten lesen",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
-        "get_appointment"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.137",
-      "area": "termine",
-      "action": "Google-Konflikt bewusst lösen",
+      "id": "planung.kalender_konflikt",
+      "area": "planung",
+      "action": "Kalenderkonflikt lösen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "resolve_calendar_conflict"
@@ -1561,57 +893,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "termine.138",
-      "area": "termine",
-      "action": "App-Kalenderverbindung pausieren / wieder aktivieren",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
-        "get_planning_settings",
-        "update_planning_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.139",
-      "area": "termine",
-      "action": "Arbeitstage / Tageszeiten / Anfahrtpuffer",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
-        "get_planning_settings",
-        "update_planning_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.140",
-      "area": "termine",
-      "action": "Wetterschwellen / Benachrichtigungen / Wetter aktivieren",
-      "source": "ComposePlanningScreens.kt",
-      "mcp": [
-        "get_planning_settings",
-        "update_planning_settings"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "termine.141",
-      "area": "termine",
-      "action": "Archivieren und wiederherstellen",
+      "id": "planung.loeschen",
+      "area": "planung",
+      "action": "Termin löschen",
       "source": "ComposePlanningScreens.kt",
       "mcp": [
         "preview_delete",
@@ -1625,143 +909,33 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "platform.147",
-      "area": "plattform",
-      "action": "Google-Kalender erstmalig verbinden / App-Kalender anlegen",
-      "source": "PlanningConnectionActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Google OAuth und bewusste Kontoauswahl am Gerät; bestehende Verbindung per MCP bedienbar.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "PlanningConnectionActivity.kt"
-    },
-    {
-      "id": "platform.148",
-      "area": "plattform",
-      "action": "Wetter-API-Schlüssel erstmalig hinterlegen / ersetzen",
-      "source": "PlanningConnectionActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Privates Geheimnis ausschließlich im nativen Geräteeingabefeld; nie ChatGPT anfordern.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "PlanningConnectionActivity.kt"
-    },
-    {
-      "id": "platform.149",
-      "area": "plattform",
-      "action": "Tunnel-Runtime-Schlüssel, Organisation, Schreibschalter / Verbindung stoppen",
-      "source": "PixelTunnelActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Vertrauensanker und Freigabe müssen außerhalb der von ihnen geschützten Verbindung bleiben.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "PixelTunnelActivity.kt"
-    },
-    {
-      "id": "platform.150",
-      "area": "plattform",
-      "action": "Android-Benachrichtigungs-, Standort-, Kamera-, Akku-Freigaben",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Android-Systemdialoge lassen sich über fachliches MCP nicht erteilen.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "platform.151",
-      "area": "plattform",
-      "action": "Kamera / Galerie am Gerät aufnehmen oder auswählen",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Physische Quelle / Systempicker; vorhandene Datei über MCP-Upload gleichwertig speicherbar.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "platform.152",
-      "area": "plattform",
-      "action": "Aktuellen GPS-Standort messen",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Gerätesensor und Android-Einwilligung; bestätigte Koordinaten per update_appointment speicherbar.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "platform.153",
-      "area": "plattform",
-      "action": "Versand-App / Telefon / Karten-App tatsächlich bedienen",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "OS-Handoff; MCP bereitet Dokument vor, kein fingierter Versand oder Telefonanruf.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "platform.154",
-      "area": "plattform",
-      "action": "Vollständige Android-Gerätesicherung / App installieren",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Außerhalb der App-Betriebsfunktionen; Geschäftsbackup ersetzt keine Gerätesicherung.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "platform.155",
-      "area": "plattform",
-      "action": "Ansicht / Filter / Zurück / Zoom / Wischen / Piratenknopf positionieren",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Flüchtige Darstellung; fachliche Inhalte durch Such-/Lese-/Dateiwerkzeuge erreichbar.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "platform.156",
-      "area": "plattform",
-      "action": "Formularentwurf / Auswahl / Spracheingabe / Abbrechen / lokale Vorschau",
-      "source": "MainActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Noch keine gespeicherte Geschäftsaktion; MCP übernimmt Entwurf erst als fachliches Create/Update. Fremde offene UI-Entwürfe werden nie überschrieben.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "MainActivity.kt"
-    },
-    {
-      "id": "zeiterfassung.pruefen",
-      "area": "zeiterfassung",
-      "action": "Sitzung nach Neustart/Uhränderung ausdrücklich prüfen",
-      "source": "NativePrimaryScreens.kt",
+      "id": "planung.verschieben",
+      "area": "planung",
+      "action": "Termin verschieben",
+      "source": "NativePlanningBoard.kt",
       "mcp": [
-        "get_active_work_session",
-        "review_work_session"
+        "get_planning_board",
+        "update_visit",
+        "update_appointment",
+        "inspect_edit_action"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "PlanningBoardTest and native planning_board journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativePlanningBoard.kt"
+    },
+    {
+      "id": "planung.tour",
+      "area": "planung",
+      "action": "Tourreihenfolge und Navigation starten",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "get_day_tour",
+        "set_day_tour",
+        "move_tour_stop",
+        "get_tour_navigation"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -1771,56 +945,12 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "backup.voll.get_full_backup_status",
-      "area": "sicherung",
-      "action": "Liest den lokalen Status unverschlüsselter ZIP-Sicherungen auf dem Pixel. Kein Drive, Konto, Schlüssel oder Hintergrundupload. Vollständige Dateiwahl und Wiederherstellung erfolgen bewusst am Gerät.",
-      "source": "FullBackupActivity.kt",
-      "mcp": [
-        "get_full_backup_status"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.get_revier_overview",
+      "id": "objekte.lesen",
       "area": "revier",
-      "action": "Heute mit Arbeit, fälligen Besuchen und Tour lesen",
+      "action": "Objekte und Objektakte lesen",
       "source": "ComposeRevierScreens.kt",
       "mcp": [
-        "get_revier_overview"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.list_properties",
-      "area": "revier",
-      "action": "Objekte suchen und vollständig auflisten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "list_properties"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.get_property",
-      "area": "revier",
-      "action": "Objektakte lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
+        "list_properties",
         "get_property"
       ],
       "kind": "business",
@@ -1831,174 +961,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "revier.list_inquiries",
+      "id": "objekte.anlegen",
       "area": "revier",
-      "action": "Anfragen suchen und auflisten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "list_inquiries"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.get_inquiry",
-      "area": "revier",
-      "action": "Anfrage lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "get_inquiry"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.list_care_plans",
-      "area": "revier",
-      "action": "Pflegepläne auflisten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "list_care_plans"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.list_visits",
-      "area": "revier",
-      "action": "Besuche und fällige Arbeiten auflisten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "list_visits"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.get_visit",
-      "area": "revier",
-      "action": "Einsatzdetails lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "get_visit"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.get_day_tour",
-      "area": "revier",
-      "action": "Geplante Tagestour lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "get_day_tour"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.list_materials",
-      "area": "revier",
-      "action": "Material und Bestand lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "list_materials"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.list_equipment",
-      "area": "revier",
-      "action": "Geräte und Zustand lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "list_equipment"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.search_local",
-      "area": "revier",
-      "action": "Vollständigen lokalen Bestand mit Filtern durchsuchen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "search_local"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "backup.voll.request_full_backup",
-      "area": "sicherung",
-      "action": "Liefert den Hinweis, die lokale Sicherungsansicht und Android-Dateiwahl auf dem Pixel zu öffnen. Startet keinen Upload und erzeugt ohne Dateiwahl keine Sicherung. Zuerst get_full_backup_status lesen; request_id bei Wiederholung erhalten.",
-      "source": "FullBackupActivity.kt",
-      "mcp": [
-        "request_full_backup"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "backup.voll.retry_full_backup",
-      "area": "sicherung",
-      "action": "Liefert den Hinweis, einen bestehenden lokalen Speicherversuch in der Sicherungsansicht am Pixel fortzusetzen. Keine neue Sicherung oder Dateifreigabe durch MCP; kein Drive-Zugriff.",
-      "source": "FullBackupActivity.kt",
-      "mcp": [
-        "retry_full_backup"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.create_property",
-      "area": "revier",
-      "action": "Objekt zu bestehendem Kunden anlegen",
+      "action": "Objekt anlegen",
       "source": "ComposeRevierScreens.kt",
       "mcp": [
         "create_property"
@@ -2011,9 +976,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "revier.update_property",
+      "id": "objekte.aendern",
       "area": "revier",
-      "action": "Objekt bewusst bearbeiten",
+      "action": "Objekt ändern",
       "source": "ComposeRevierScreens.kt",
       "mcp": [
         "update_property"
@@ -2026,9 +991,40 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "revier.create_inquiry",
+      "id": "objekte.verlauf",
+      "area": "kunden",
+      "action": "Objektverlauf, Fotos und Geld lesen",
+      "source": "NativePropertyTimeline.kt",
+      "mcp": [
+        "get_property_timeline"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "PropertyTimelineTest and native property_timeline journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativePropertyTimeline.kt"
+    },
+    {
+      "id": "anfragen.lesen",
       "area": "revier",
-      "action": "Neue Anfrage lokal speichern",
+      "action": "Anfragen lesen",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "list_inquiries",
+        "get_inquiry"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "anfragen.anlegen",
+      "area": "revier",
+      "action": "Anfrage anlegen",
       "source": "ComposeRevierScreens.kt",
       "mcp": [
         "create_inquiry"
@@ -2041,9 +1037,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "revier.update_inquiry",
+      "id": "anfragen.aendern",
       "area": "revier",
-      "action": "Anfrage mit Historie bearbeiten",
+      "action": "Anfrage ändern",
       "source": "ComposeRevierScreens.kt",
       "mcp": [
         "update_inquiry"
@@ -2056,9 +1052,9 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "revier.plan_inquiry_inspection",
+      "id": "anfragen.besichtigung",
       "area": "revier",
-      "action": "Besichtigung aus bestätigter Anfrage planen",
+      "action": "Besichtigung planen",
       "source": "ComposeRevierScreens.kt",
       "mcp": [
         "plan_inquiry_inspection"
@@ -2071,273 +1067,7 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "revier.create_care_plan",
-      "area": "revier",
-      "action": "Pflegeplan am Objekt anlegen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "create_care_plan"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.update_care_plan",
-      "area": "revier",
-      "action": "Pflegeregel für zukünftige Termine ändern",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "update_care_plan"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.generate_care_visits",
-      "area": "revier",
-      "action": "Fällige Pflegebesuche im begrenzten Horizont erzeugen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "generate_care_visits"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.plan_visit",
-      "area": "revier",
-      "action": "Einzelnen Einsatz planen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "plan_visit"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.update_visit",
-      "area": "revier",
-      "action": "Termin verschieben, absagen oder Teilerledigung festhalten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "update_visit"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.set_day_tour",
-      "area": "revier",
-      "action": "Besuche ausdrücklich in Tagestour aufnehmen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "set_day_tour"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.move_tour_stop",
-      "area": "revier",
-      "action": "Tourstopp nach oben oder unten verschieben",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "move_tour_stop"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.save_material",
-      "area": "revier",
-      "action": "Materialkatalog bewusst pflegen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "save_material"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.record_material_movement",
-      "area": "revier",
-      "action": "Materialzugang, Verbrauch oder Gegenbuchung erfassen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "record_material_movement"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.save_equipment",
-      "area": "revier",
-      "action": "Gerät, Wartung und Defekt pflegen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "save_equipment"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "revier.record_equipment_usage",
-      "area": "revier",
-      "action": "Gerätenutzung am Einsatz erfassen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "record_equipment_usage"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "buero.get_offer_decision_history",
-      "area": "buero",
-      "action": "Annahme- und Ablehnungshistorie einer Angebotsversion lesen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "get_offer_decision_history"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "buero.record_offer_acceptance",
-      "area": "buero",
-      "action": "Annahme genau dieser finalen Angebotsversion mit Nachweis festhalten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "record_offer_acceptance"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "buero.decline_offer",
-      "area": "buero",
-      "action": "Angebot mit erhaltener Historie ablehnen",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "decline_offer"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "backup.voll.get_restore_status",
-      "area": "sicherung",
-      "action": "Nicht geheimen Status des bestätigten Wiederherstellungsjobs lesen",
-      "source": "FullBackupActivity.kt",
-      "mcp": [
-        "get_restore_status"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "platform.vollbackup_saf",
-      "area": "plattform",
-      "action": "Unverschlüsselte ZIP-Datei auf dem Pixel speichern und zurücklesen",
-      "source": "FullBackupActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Android-Dateiwahl und lokale Dateirechte bleiben am Gerät. Kein Konto, Schlüssel oder Cloudanbieter.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "FullBackupActivity.kt"
-    },
-    {
-      "id": "platform.vollrestore_bestaetigen",
-      "area": "plattform",
-      "action": "Lokale Sicherungsdatei prüfen und Wiederherstellung bewusst bestätigen",
-      "source": "FullBackupActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Dateiwahl und bestätigter Bestandsaustausch am Gerät; geprüfte Rückfallkopie bleibt erhalten. Unterstützt werden lokale unverschlüsselte ZIP-Dateien.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "FullBackupActivity.kt"
-    },
-    {
-      "id": "platform.portabilitaet_ziel",
-      "area": "plattform",
-      "action": "Sensiblen Klartextexport bewusst an gewähltes Geräte-/Dateiziel übergeben",
-      "source": "FullBackupActivity.kt",
-      "mcp": [],
-      "kind": "platform_or_presentation",
-      "barrier": "Klartextweitergabe erfordert ausdrückliche Wahl und Bestätigung des SAF-/Sharesheet-Ziels am Gerät. Datenformat und Prüfung verwenden den gemeinsamen Exportdienst; MCP wählt keine fremden Freigaben oder Konten.",
-      "platform_only": true,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "availability": "retired",
-      "retirement_reason": "Direct user request: one plaintext local ZIP; no key setup or separate portable export",
-      "retired": false,
-      "native_dispatch": "FullBackupActivity.kt"
-    },
-    {
-      "id": "revier.accept_inquiry_direct",
+      "id": "anfragen.annehmen",
       "area": "revier",
       "source": "ComposeRevierScreens.kt",
       "kind": "business",
@@ -2348,26 +1078,138 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
       "native_dispatch": "NativeForms.kt",
-      "action": "Direkte Auftragsannahme mit Zeitpunkt und Nachweis",
+      "action": "Anfrage annehmen und Auftrag anlegen",
       "rights": "owner_write"
     },
     {
-      "id": "revier.list_revier_archive",
+      "id": "material.katalog",
+      "area": "revier",
+      "action": "Materialkatalog lesen und ändern",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "list_materials",
+        "save_material"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "material.verbrauch",
+      "area": "revier",
+      "action": "Materialverbrauch an Arbeit erfassen",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "record_material_consumption"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "geraete.katalog",
+      "area": "revier",
+      "action": "Geräte lesen und ändern",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "list_equipment",
+        "save_equipment"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "geraete.wartung",
       "area": "revier",
       "source": "ComposeRevierScreens.kt",
       "kind": "business",
       "mcp": [
-        "list_revier_archive"
+        "get_equipment_maintenance",
+        "save_equipment_maintenance_plan",
+        "record_equipment_maintenance"
       ],
       "platform_only": false,
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
       "native_dispatch": "NativeForms.kt",
-      "action": "Archivierte Revier-Einträge lesen",
-      "rights": "owner_read"
+      "action": "Wartung lesen, planen und erfassen",
+      "rights": "owner_write"
     },
     {
-      "id": "revier.purge_revier_entity",
+      "id": "backup.status",
+      "area": "sicherung",
+      "action": "Sicherung und Wiederherstellung lesen",
+      "source": "FullBackupActivity.kt",
+      "mcp": [
+        "get_full_backup_status",
+        "get_restore_status"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "backup.sichern",
+      "area": "sicherung",
+      "action": "Sicherung öffnen oder fortsetzen",
+      "source": "FullBackupActivity.kt",
+      "mcp": [
+        "request_full_backup",
+        "retry_full_backup"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "suche.lokal",
+      "area": "revier",
+      "action": "Alles durchsuchen",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "search_local"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "heute.uebersicht",
+      "area": "revier",
+      "action": "Heutige Einsätze und Aufgaben lesen",
+      "source": "ComposeRevierScreens.kt",
+      "mcp": [
+        "get_revier_overview",
+        "get_planning_board"
+      ],
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeForms.kt"
+    },
+    {
+      "id": "revier.loeschen",
       "area": "revier",
       "source": "ComposeRevierScreens.kt",
       "kind": "business",
@@ -2378,11 +1220,35 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
       "native_dispatch": "NativeForms.kt",
-      "action": "Archivierten Revier-Eintrag nach Abhängigkeitsprüfung endgültig entfernen",
+      "action": "Objekt, Anfrage, Einsatz, Material oder Gerät löschen",
       "rights": "owner_write"
     },
     {
-      "id": "revier.inspect_edit_action",
+      "id": "details.zusammenhang",
+      "area": "kunden",
+      "action": "Zusammenhang und nächste Aktion lesen",
+      "source": "NativeDetailLayout.kt",
+      "mcp": [
+        "get_linked_context",
+        "get_property",
+        "get_visit",
+        "get_appointment",
+        "get_photo",
+        "get_settlement",
+        "update_photo",
+        "get_customer",
+        "get_order",
+        "get_work_record"
+      ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "PropertyTimelineTest and native property_timeline journey.",
+      "platform_only": false,
+      "retired": false,
+      "native_dispatch": "NativeDetailLayout.kt"
+    },
+    {
+      "id": "rueckmeldung.pruefen",
       "area": "revier",
       "source": "ComposeRevierScreens.kt",
       "kind": "business",
@@ -2393,61 +1259,38 @@
       "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
       "native_dispatch": "NativeForms.kt",
-      "action": "Restaurierte Speicheraktion ausschließlich anhand ihres vorhandenen Belegs prüfen",
+      "action": "Speicherergebnis automatisch prüfen",
       "rights": "owner_read"
     },
     {
-      "id": "revier.get_equipment_maintenance",
-      "area": "revier",
-      "source": "ComposeRevierScreens.kt",
-      "kind": "business",
+      "id": "listen.rueckgaengig",
+      "area": "listen",
+      "action": "Listenaktion ausführen oder zurücknehmen",
+      "source": "NativeListActions.kt",
       "mcp": [
-        "get_equipment_maintenance"
+        "queue_list_action",
+        "get_list_actions",
+        "undo_list_action"
       ],
+      "kind": "business",
+      "rights": "owner_write",
+      "test_scope": "JVM queue/deletion tests and native list_actions gesture journey.",
       "platform_only": false,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
-      "native_dispatch": "NativeForms.kt",
-      "action": "Wartungspläne und erledigte Wartungen eines Geräts lesen",
-      "rights": "owner_read"
+      "native_dispatch": "NativeListActions.kt"
     },
     {
-      "id": "revier.save_equipment_maintenance_plan",
-      "area": "revier",
-      "source": "ComposeRevierScreens.kt",
-      "kind": "business",
-      "mcp": [
-        "save_equipment_maintenance_plan"
-      ],
-      "platform_only": false,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "NativeForms.kt",
-      "action": "Eigene Wartungsintervalle einrichten oder bewusst früher planen",
-      "rights": "owner_write"
-    },
-    {
-      "id": "revier.record_equipment_maintenance",
-      "area": "revier",
-      "source": "ComposeRevierScreens.kt",
-      "kind": "business",
-      "mcp": [
-        "record_equipment_maintenance"
-      ],
-      "platform_only": false,
-      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
-      "retired": false,
-      "native_dispatch": "NativeForms.kt",
-      "action": "Tatsächlich erledigte Wartung mit Datum dokumentieren",
-      "rights": "owner_write"
-    },
-    {
-      "id": "abrechnung.overview",
+      "id": "abrechnung.uebersicht",
       "area": "abrechnung",
-      "action": "Abrechnung / Summen / Filter",
+      "action": "Abrechnung lesen",
       "source": "NativeAccountingScreen.kt",
       "mcp": [
-        "get_accounting_overview"
+        "get_accounting_overview",
+        "get_accounting_record",
+        "list_settlements",
+        "get_settlement",
+        "get_settlement_context",
+        "get_finance_overview"
       ],
       "kind": "business",
       "rights": "owner_read",
@@ -2457,22 +1300,7 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "abrechnung.detail",
-      "area": "abrechnung",
-      "action": "Abrechnungszuordnung lesen",
-      "source": "NativeAccountingScreen.kt",
-      "mcp": [
-        "get_accounting_record"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Synthetic accounting rules, persistence, CAS and native navigation; runtime execution recorded separately.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeForms.kt"
-    },
-    {
-      "id": "abrechnung.edit",
+      "id": "abrechnung.zuordnung",
       "area": "abrechnung",
       "action": "Abrechnungsweg ändern",
       "source": "NativeAccountingScreen.kt",
@@ -2488,59 +1316,14 @@
       "native_dispatch": "NativeForms.kt"
     },
     {
-      "id": "abrechnung.closures",
+      "id": "abrechnung.entwurf",
       "area": "abrechnung",
-      "action": "Abschlüsse lesen",
+      "action": "Abrechnungsentwurf speichern und ausstellen",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
-        "list_settlements",
+        "save_settlement_draft",
         "get_settlement",
-        "get_settlement_context"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "Synthetic local settlement rules, SQLite, PDF and native workflows; executed results recorded separately.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeAppController.kt"
-    },
-    {
-      "id": "abrechnung.draft",
-      "area": "abrechnung",
-      "action": "Leistungen erfassen",
-      "source": "NativeSettlementScreen.kt",
-      "mcp": [
-        "save_settlement_draft"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Synthetic local settlement rules, SQLite, PDF and native workflows; executed results recorded separately.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeAppController.kt"
-    },
-    {
-      "id": "abrechnung.prepare",
-      "area": "abrechnung",
-      "action": "Vorschau prüfen und reservieren",
-      "source": "NativeSettlementScreen.kt",
-      "mcp": [
-        "get_settlement",
-        "prepare_settlement"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Synthetic local settlement rules, SQLite, PDF and native workflows; executed results recorded separately.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeAppController.kt"
-    },
-    {
-      "id": "abrechnung.complete",
-      "area": "abrechnung",
-      "action": "Rechnung oder Labor abschließen",
-      "source": "NativeSettlementScreen.kt",
-      "mcp": [
+        "prepare_settlement",
         "complete_settlement"
       ],
       "kind": "business",
@@ -2551,13 +1334,14 @@
       "native_dispatch": "NativeAppController.kt"
     },
     {
-      "id": "abrechnung.correction",
+      "id": "abrechnung.korrektur",
       "area": "abrechnung",
       "action": "Storno oder interne Aufhebung",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
         "correct_settlement",
-        "complete_settlement"
+        "complete_settlement",
+        "abandon_prepared_settlement"
       ],
       "kind": "business",
       "rights": "owner_write",
@@ -2567,11 +1351,13 @@
       "native_dispatch": "NativeAppController.kt"
     },
     {
-      "id": "abrechnung.payment",
+      "id": "abrechnung.bezahlt",
       "area": "abrechnung",
-      "action": "Zahlung und Gegenbuchung",
+      "action": "Zahlung erfassen oder innerhalb fünf Sekunden zurücknehmen",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
+        "queue_list_action",
+        "undo_list_action",
         "add_settlement_payment"
       ],
       "kind": "business",
@@ -2582,9 +1368,9 @@
       "native_dispatch": "NativeAppController.kt"
     },
     {
-      "id": "abrechnung.delivery",
+      "id": "abrechnung.zugang",
       "area": "abrechnung",
-      "action": "Zugangsnachweis erfassen",
+      "action": "Rechnungszugang erfassen",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
         "record_settlement_delivery"
@@ -2597,9 +1383,9 @@
       "native_dispatch": "NativeAppController.kt"
     },
     {
-      "id": "abrechnung.restore_review",
+      "id": "abrechnung.restore",
       "area": "abrechnung",
-      "action": "Restaurierten Belegstand prüfen",
+      "action": "Restaurierte Abrechnung prüfen",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
         "review_restored_sources"
@@ -2614,7 +1400,7 @@
     {
       "id": "abrechnung.original",
       "area": "abrechnung",
-      "action": "Original öffnen und teilen",
+      "action": "Rechnungs-PDF ansehen und teilen",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
         "get_settlement_pdf"
@@ -2629,7 +1415,7 @@
     {
       "id": "abrechnung.export",
       "area": "abrechnung",
-      "action": "Beide Arten lokal exportieren",
+      "action": "Abrechnung exportieren",
       "source": "NativeSettlementScreen.kt",
       "mcp": [
         "export_settlements"
@@ -2640,38 +1426,6 @@
       "platform_only": false,
       "retired": false,
       "native_dispatch": "NativeAppController.kt"
-    },
-    {
-      "id": "abrechnung.abandon",
-      "area": "abrechnung",
-      "action": "Vorbereitung bewusst aufheben",
-      "source": "NativeSettlementScreen.kt",
-      "mcp": [
-        "abandon_prepared_settlement"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "Prepared operation abandonment retains reservation and history; confirmed invoices require cancellation.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeAppController.kt"
-    },
-    {
-      "id": "listen.1",
-      "area": "listen",
-      "action": "Wischen und Rückgängig",
-      "source": "NativeListActions.kt",
-      "mcp": [
-        "queue_list_action",
-        "get_list_actions",
-        "undo_list_action"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "JVM queue/deletion tests and native list_actions gesture journey.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeListActions.kt"
     },
     {
       "id": "abrechnung.entwurf_loeschen",
@@ -2689,141 +1443,110 @@
       "native_dispatch": "NativeListActions.kt"
     },
     {
-      "id": "planung.ansichten",
-      "area": "planung",
-      "action": "Planung Tag, Woche und Karte",
-      "source": "NativePlanningBoard.kt",
-      "mcp": [
-        "get_planning_board"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "PlanningBoardTest and native planning_board journey.",
-      "platform_only": false,
+      "id": "platform.verbindungen",
+      "area": "plattform",
+      "action": "Kalender, Wetter und ChatGPT verbinden",
+      "source": "PlanningConnectionActivity.kt",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Google OAuth und bewusste Kontoauswahl am Gerät; bestehende Verbindung per MCP bedienbar.",
+      "platform_only": true,
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "retired": false,
-      "native_dispatch": "NativePlanningBoard.kt"
+      "native_dispatch": "PlanningConnectionActivity.kt"
     },
     {
-      "id": "planung.verschieben",
-      "area": "planung",
-      "action": "Einsatz mit langem Drücken verschieben",
-      "source": "NativePlanningBoard.kt",
+      "id": "platform.freigaben",
+      "area": "plattform",
+      "action": "Android-Freigaben und Kamera",
+      "source": "MainActivity.kt",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Android-Systemdialoge lassen sich über fachliches MCP nicht erteilen.",
+      "platform_only": true,
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
+    },
+    {
+      "id": "platform.uebergabe",
+      "area": "plattform",
+      "action": "Teilen, Anrufen und Navigation öffnen",
+      "source": "MainActivity.kt",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "OS-Handoff; MCP bereitet Dokument vor, kein fingierter Versand oder Telefonanruf.",
+      "platform_only": true,
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "MainActivity.kt"
+    },
+    {
+      "id": "platform.sicherung",
+      "area": "plattform",
+      "action": "Lokale Sicherungsdatei speichern oder wiederherstellen",
+      "source": "FullBackupActivity.kt",
+      "mcp": [],
+      "kind": "platform_or_presentation",
+      "barrier": "Android-Dateiwahl und lokale Dateirechte bleiben am Gerät. Kein Konto, Schlüssel oder Cloudanbieter.",
+      "platform_only": true,
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "retired": false,
+      "native_dispatch": "FullBackupActivity.kt"
+    },
+    {
+      "source": "NativeAccountingScreen.kt",
+      "native_dispatch": "NativeAccountingScreen.kt",
+      "kind": "business",
+      "rights": "owner_read",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
+      "platform_only": false,
+      "retired": false,
+      "id": "lcr.lesen",
+      "area": "lcr",
+      "action": "L.C.R.-Originalarbeiten lesen",
       "mcp": [
-        "get_planning_board",
-        "update_visit",
-        "update_appointment",
-        "inspect_edit_action"
-      ],
+        "get_lcr_work_records"
+      ]
+    },
+    {
+      "source": "NativeAccountingScreen.kt",
+      "native_dispatch": "NativeAccountingScreen.kt",
       "kind": "business",
       "rights": "owner_write",
-      "test_scope": "PlanningBoardTest and native planning_board journey.",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativePlanningBoard.kt"
+      "id": "lcr.kennzeichnen",
+      "area": "lcr",
+      "action": "L.C.R. an der Originalarbeit ändern",
+      "mcp": [
+        "get_lcr_work_records",
+        "set_work_record_lcr"
+      ]
     },
     {
-      "id": "planung.navigation",
-      "area": "planung",
-      "action": "Tour-Reihenfolge und Navigation starten",
-      "source": "ComposeRevierScreens.kt",
-      "mcp": [
-        "get_day_tour",
-        "set_day_tour",
-        "move_tour_stop",
-        "get_tour_navigation"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "PlanningBoardTest and native planning_board journey.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "ComposeRevierScreens.kt"
-    },
-    {
-      "id": "objekte.zeitleiste",
-      "area": "kunden",
-      "action": "Objektverlauf, Pflege, Fotos und Geld",
-      "source": "NativePropertyTimeline.kt",
-      "mcp": [
-        "get_property_timeline"
-      ],
+      "source": "NativeAccountingScreen.kt",
+      "native_dispatch": "NativeAccountingScreen.kt",
       "kind": "business",
       "rights": "owner_read",
-      "test_scope": "PropertyTimelineTest and native property_timeline journey.",
+      "test_scope": "Native action/catalog/schema mapping; workflow execution is verified separately on current source.",
       "platform_only": false,
       "retired": false,
-      "native_dispatch": "NativePropertyTimeline.kt"
-    },
-    {
-      "id": "details.zusammenhang",
-      "area": "kunden",
-      "action": "Zusammenhang und nächste Aktion auf Detailseiten",
-      "source": "NativeDetailLayout.kt",
+      "id": "abrechnung.verlauf",
+      "area": "abrechnung",
+      "action": "Leistung, Belege und Geldbewegungen getrennt lesen",
       "mcp": [
-        "get_linked_context",
-        "get_property",
-        "get_visit",
-        "get_appointment",
-        "get_photo",
-        "get_settlement",
-        "update_photo"
-      ],
-      "kind": "business",
-      "rights": "owner_write",
-      "test_scope": "PropertyTimelineTest and native property_timeline journey.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeDetailLayout.kt"
-    },
-    {
-      "id": "rueckmeldung.automatisch_pruefen",
-      "area": "rueckmeldung",
-      "action": "Offene Speicherergebnisse automatisch prüfen",
-      "source": "NativeFeedback.kt",
-      "mcp": [
-        "inspect_edit_action"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "PendingInspectionTest and native background_feedback journey.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeFeedback.kt"
-    },
-    {
-      "id": "rueckmeldung.wiederherstellung",
-      "area": "rueckmeldung",
-      "action": "Wiederherstellung als Hinweisbalken",
-      "source": "NativeFeedback.kt",
-      "mcp": [
-        "get_restore_status"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "PendingInspectionTest and native background_feedback journey.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativeFeedback.kt"
-    },
-    {
-      "id": "rueckmeldung.ansehen",
-      "area": "rueckmeldung",
-      "action": "Gespeicherten Eintrag aus der Snackbar ansehen",
-      "source": "NativePrimaryScreens.kt",
-      "mcp": [
-        "get_customer",
-        "get_order",
-        "get_work_record",
-        "get_photo",
-        "get_settlement",
-        "get_appointment"
-      ],
-      "kind": "business",
-      "rights": "owner_read",
-      "test_scope": "PendingInspectionTest and native background_feedback journey.",
-      "platform_only": false,
-      "retired": false,
-      "native_dispatch": "NativePrimaryScreens.kt"
+        "get_finance_overview"
+      ]
     }
-  ]
+  ],
+  "compatibility_aliases": {
+    "valid_for_version": "1.71.0",
+    "tools": {
+      "record_material_movement": "record_material_consumption",
+      "preview_archive_work_records": "preview_delete_work_records",
+      "convert_offer_to_order": "record_offer_acceptance"
+    }
+  }
 }

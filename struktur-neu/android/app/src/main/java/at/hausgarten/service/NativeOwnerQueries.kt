@@ -244,11 +244,9 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         .put("scope", catalog.getString("scope"))
                 }
             }
-            "preview_empty_trash" -> {
-                return TrashPurgeBatch.preview(repository.effective())
-            }
-            "preview_archive_work_records" -> {
-                return WorklogArchiveBatch.preview(
+            "preview_archive_work_records",
+            "preview_delete_work_records" -> {
+                return WorklogDeletionBatch.preview(
                     repository.effective(),
                     args.getJSONArray("work_record_ids"),
                 )
@@ -289,6 +287,14 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                         (if (caps == null) JSONObject() else JSONObject(caps.toString()))
                             .put("local_settlements_v1", true)
                             .put("local_payment_ledger_v1", true)
+                            .put("lcr_original_work_marker_v1", true)
+                            .put("finance_date_basis_v1", true)
+                            .put("optional_appointments_v1", true)
+                            .put("shared_planning_source_v1", true)
+                            .put("recoverable_delete_v1", false)
+                            .put("trash_purge_v1", false)
+                            .put("trash_empty_v1", false)
+                            .put("object_care_removed", true)
                             .put("native_editor_storage_v1", true)
                             .put("business_drive_sync", false)
                             .put("encrypted_drive_backup", false)
@@ -326,56 +332,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                     return data
                 }
             }
-            "preview_purge" -> {
-                run {
-                    var all = repository.effective()
-                    var entry =
-                        OwnerJournalRules.archives(all)
-                            .optJSONObject(
-                                args.getString("entity") + ":" + args.getString("entity_id")
-                            )
-                    if (entry == null || entry.optBoolean("purged")) {
-                        throw IllegalArgumentException("Eintrag nicht im Papierkorb.")
-                    }
-                    var out =
-                        JSONObject()
-                            .put("expected_record_hash", OwnerJournalRules.version(entry))
-                            .put("allowed", true)
-                    try {
-                        TrashRules.purge(
-                            JSONObject(all.toString()),
-                            JSONObject()
-                                .put("kind", "purge_v1")
-                                .put("client_id", "read-only-preview")
-                                .put("created_at", java.time.Instant.now().toString())
-                                .put(
-                                    "payload",
-                                    JSONObject()
-                                        .put("entity", args.getString("entity"))
-                                        .put("id", args.getString("entity_id"))
-                                        .put("confirmed", true)
-                                        .put(
-                                            "expected_record_hash",
-                                            OwnerJournalRules.version(entry),
-                                        )
-                                        .put(
-                                            "expected_test_dependencies_hash",
-                                            PixelMcpWriteTools.hash(
-                                                TrashRules.testTargets(
-                                                    all,
-                                                    args.getString("entity"),
-                                                    args.getString("entity_id"),
-                                                )
-                                            ),
-                                        ),
-                                ),
-                        )
-                    } catch (e: IllegalArgumentException) {
-                        out.put("allowed", false).put("message", e.message)
-                    }
-                    return out
-                }
-            }
             "preview_delete" -> {
                 return DeletionRules.preview(
                     repository.effective(),
@@ -395,7 +351,10 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                             .put("initialization_required", s.length() == 0)
                             .put(
                                 "settings_origin",
-                                effective.optString("business_settings_origin", "existing_snapshot"),
+                                effective.optString(
+                                    "business_settings_origin",
+                                    "existing_snapshot",
+                                ),
                             )
                             .put(
                                 "settings",
@@ -431,67 +390,6 @@ class NativeOwnerQueries : PixelMcpOwnerTools.Access {
                     JSONObject(args.toString()).apply { remove("catalog_type") },
                     repository.state(),
                 )
-            }
-            "list_archive" -> {
-                run {
-                    val archive = OwnerJournalRules.archives(repository.effective())
-                    val keys = ArrayList<String>()
-                    run {
-                        val it = archive.keys()
-                        while (it.hasNext()) {
-                            val key = it.next()
-                            if (archive.getJSONObject(key).optBoolean("purged")) {
-                                continue
-                            }
-                            val split: Int = key.indexOf(':')
-                            if (
-                                args.has("entity") &&
-                                    !(key.substring(0, split) == args.getString("entity"))
-                            ) {
-                                continue
-                            }
-                            if (
-                                args.has("entity_id") &&
-                                    !(key.substring(split + 1) == args.getString("entity_id"))
-                            ) {
-                                continue
-                            }
-                            keys.add(key)
-                        }
-                    }
-                    keys.sortWith(
-                        Comparator(
-                            LAM@{ x, y ->
-                                var date: Int =
-                                    archive
-                                        .getJSONObject(y)
-                                        .optString("archived_at")
-                                        .compareTo(
-                                            archive.getJSONObject(x).optString("archived_at")
-                                        )
-                                return@LAM (if (date == 0) x.compareTo(y) else date)
-                            }
-                        )
-                    )
-                    var out = JSONArray()
-                    val skip: Int = args.optInt("offset")
-                    val limit: Int = args.optInt("limit", 20)
-                    run {
-                        var i: Int = skip
-                        while (i < keys.size && out.length() < limit) {
-                            val key = keys.get(i)
-                            val saved = archive.getJSONObject(key)
-                            out.put(
-                                JSONObject()
-                                    .put("archive_key", key)
-                                    .put("entry", saved)
-                                    .put("record_hash", OwnerJournalRules.version(saved))
-                            )
-                            i++
-                        }
-                    }
-                    return JSONObject().put("archive", out).put("total", keys.size)
-                }
             }
             "get_catalog_entry" -> {
                 var e =

@@ -110,149 +110,215 @@ object BackupArchive {
 
     @JvmStatic
     @Throws(Exception::class)
+    fun verifyWritten(file: File, supportedSchema: Int): JSONObject =
+        ZipFile(file).use { archive ->
+            val entry =
+                archive.getEntry("manifest.json") ?: throw IOException("BACKUP_MANIFEST_INVALID")
+            if (entry.isDirectory || entry.size < 1 || entry.size > MAX_MANIFEST_BYTES)
+                throw IOException("BACKUP_MANIFEST_INVALID")
+            val manifest =
+                archive.getInputStream(entry).use { input ->
+                    ByteArrayOutputStream().use { bytes ->
+                        copy(input, bytes, null, MAX_MANIFEST_BYTES.toLong())
+                        JSONObject(String(bytes.toByteArray(), StandardCharsets.UTF_8))
+                    }
+                }
+            requireMetadata(manifest, supportedSchema)
+            if (manifest.optString("completion") != "COMPLETE")
+                throw IOException("BACKUP_COMMIT_MISSING")
+            val expected = LinkedHashMap<String, JSONObject>()
+            val files = manifest.getJSONArray("files")
+            var total = 0L
+            for (i in 0 until files.length()) {
+                val item = files.getJSONObject(i)
+                val path = item.getString("path")
+                requirePath(path)
+                if (
+                    expected.put("data/$path", item) != null ||
+                        item.getLong("size") < 0 ||
+                        !item.getString("sha256").matches(Regex("[0-9a-f]{64}"))
+                )
+                    throw IOException("BACKUP_MANIFEST_INVALID")
+                total = Math.addExact(total, item.getLong("size"))
+            }
+            if (total != manifest.getLong("totalBytes"))
+                throw IOException("BACKUP_MANIFEST_INVALID")
+            val seen = HashSet<String>()
+            val entries = archive.entries()
+            val discard =
+                object : OutputStream() {
+                    override fun write(value: Int) = Unit
+
+                    override fun write(bytes: ByteArray, offset: Int, length: Int) = Unit
+                }
+            while (entries.hasMoreElements()) {
+                val next = entries.nextElement()
+                if (next.isDirectory || !seen.add(next.name))
+                    throw IOException("BACKUP_DUPLICATE_FILE")
+                if (next.name == "manifest.json") continue
+                val wanted = expected[next.name] ?: throw IOException("BACKUP_FILE_SET_INVALID")
+                if (next.size != wanted.getLong("size"))
+                    throw IOException("BACKUP_FILE_SET_INVALID")
+                val digest = MessageDigest.getInstance("SHA-256")
+                val count =
+                    archive.getInputStream(next).use {
+                        copy(it, discard, digest, wanted.getLong("size"))
+                    }
+                if (
+                    count != wanted.getLong("size") ||
+                        hex(digest.digest()) != wanted.getString("sha256")
+                )
+                    throw IOException("BACKUP_FILE_HASH_MISMATCH")
+            }
+            if (seen.size != expected.size + 1 || !seen.containsAll(expected.keys))
+                throw IOException("BACKUP_FILE_SET_INVALID")
+            manifest
+        }
+
+    @JvmStatic
+    @Throws(Exception::class)
     fun verifyPlain(
         input: InputStream,
         newDirectory: File,
         availableBytes: Long,
         supportedSchema: Int,
-    ): Verified =
-        input.use { owned ->
-            if (availableBytes <= 0 || newDirectory.exists() || !newDirectory.mkdirs()) {
-                throw IOException("RESTORE_STAGING_UNAVAILABLE")
-            }
-            var verified = false
-            val plain = File(newDirectory, "archive.zip")
-            try {
-                BufferedInputStream(owned).use { source ->
-                    source.mark(4)
-                    val signature = ByteArray(4)
-                    var count = 0
-                    while (count < signature.size) {
-                        val read = source.read(signature, count, signature.size - count)
-                        if (read == -1) break
-                        if (read == 0) continue
-                        count += read
-                    }
-                    if (
-                        count != 4 ||
-                            signature[0] != 80.toByte() ||
-                            signature[1] != 75.toByte() ||
-                            signature[2] != 3.toByte() ||
-                            signature[3] != 4.toByte()
-                    ) {
-                        throw IOException("BACKUP_FORMAT_UNSUPPORTED")
-                    }
-                    source.reset()
-                    FileOutputStream(plain).use { output ->
-                        copy(
-                            source,
-                            BackupStorageBudget.guard(output, newDirectory),
-                            null,
-                            availableBytes,
-                        )
-                        output.fd.sync()
-                    }
+    ): Verified = input.use { owned ->
+        if (availableBytes <= 0 || newDirectory.exists() || !newDirectory.mkdirs()) {
+            throw IOException("RESTORE_STAGING_UNAVAILABLE")
+        }
+        var verified = false
+        val plain = File(newDirectory, "archive.zip")
+        try {
+            BufferedInputStream(owned).use { source ->
+                source.mark(4)
+                val signature = ByteArray(4)
+                var count = 0
+                while (count < signature.size) {
+                    val read = source.read(signature, count, signature.size - count)
+                    if (read == -1) break
+                    if (read == 0) continue
+                    count += read
                 }
-                val manifest =
-                    ZipFile(plain).use { archive ->
-                        val record = archive.getEntry("manifest.json")
+                if (
+                    count != 4 ||
+                        signature[0] != 80.toByte() ||
+                        signature[1] != 75.toByte() ||
+                        signature[2] != 3.toByte() ||
+                        signature[3] != 4.toByte()
+                ) {
+                    throw IOException("BACKUP_FORMAT_UNSUPPORTED")
+                }
+                source.reset()
+                FileOutputStream(plain).use { output ->
+                    copy(
+                        source,
+                        BackupStorageBudget.guard(output, newDirectory),
+                        null,
+                        availableBytes,
+                    )
+                    output.fd.sync()
+                }
+            }
+            val manifest =
+                ZipFile(plain).use { archive ->
+                    val record = archive.getEntry("manifest.json")
+                    if (
+                        record == null ||
+                            record.isDirectory ||
+                            record.size < 1 ||
+                            record.size > MAX_MANIFEST_BYTES
+                    ) {
+                        throw IOException("BACKUP_MANIFEST_INVALID")
+                    }
+                    val value =
+                        archive.getInputStream(record).use { input ->
+                            ByteArrayOutputStream().use { json ->
+                                copy(input, json, null, MAX_MANIFEST_BYTES.toLong())
+                                JSONObject(String(json.toByteArray(), StandardCharsets.UTF_8))
+                            }
+                        }
+                    requireMetadata(value, supportedSchema)
+                    if (value.optString("completion") != "COMPLETE")
+                        throw IOException("BACKUP_COMMIT_MISSING")
+                    val files = value.getJSONArray("files")
+                    val expected = LinkedHashMap<String, JSONObject>()
+                    var declaredTotal = 0L
+                    for (i in 0 until files.length()) {
+                        val file = files.getJSONObject(i)
+                        val path = file.getString("path")
+                        requirePath(path)
                         if (
-                            record == null ||
-                                record.isDirectory ||
-                                record.size < 1 ||
-                                record.size > MAX_MANIFEST_BYTES
+                            expected.put("data/$path", file) != null ||
+                                file.getLong("size") < 0 ||
+                                !file.getString("sha256").matches(Regex("[0-9a-f]{64}"))
                         ) {
                             throw IOException("BACKUP_MANIFEST_INVALID")
                         }
-                        val value =
-                            archive.getInputStream(record).use { input ->
-                                ByteArrayOutputStream().use { json ->
-                                    copy(input, json, null, MAX_MANIFEST_BYTES.toLong())
-                                    JSONObject(String(json.toByteArray(), StandardCharsets.UTF_8))
-                                }
-                            }
-                        requireMetadata(value, supportedSchema)
-                        if (value.optString("completion") != "COMPLETE")
-                            throw IOException("BACKUP_COMMIT_MISSING")
-                        val files = value.getJSONArray("files")
-                        val expected = LinkedHashMap<String, JSONObject>()
-                        var declaredTotal = 0L
-                        for (i in 0 until files.length()) {
-                            val file = files.getJSONObject(i)
-                            val path = file.getString("path")
-                            requirePath(path)
-                            if (
-                                expected.put("data/$path", file) != null ||
-                                    file.getLong("size") < 0 ||
-                                    !file.getString("sha256").matches(Regex("[0-9a-f]{64}"))
-                            ) {
-                                throw IOException("BACKUP_MANIFEST_INVALID")
-                            }
-                            declaredTotal = Math.addExact(declaredTotal, file.getLong("size"))
-                        }
-                        if (
-                            declaredTotal != value.getLong("totalBytes") ||
-                                declaredTotal > availableBytes - plain.length()
-                        ) {
-                            throw IOException("RESTORE_SPACE_REQUIRED")
-                        }
-                        val seen = HashSet<String>()
-                        val entries = archive.entries()
-                        while (entries.hasMoreElements()) {
-                            val entry = entries.nextElement()
-                            val name = entry.name
-                            if (!seen.add(name) || entry.isDirectory)
-                                throw IOException("BACKUP_DUPLICATE_FILE")
-                            if (name == "manifest.json") continue
-                            val wanted = expected[name]
-                            if (wanted == null || entry.size != wanted.getLong("size")) {
-                                throw IOException("BACKUP_FILE_SET_INVALID")
-                            }
-                            val file = File(newDirectory, name)
-                            if (
-                                !file.canonicalPath.startsWith(
-                                    newDirectory.canonicalPath + File.separator
-                                )
-                            ) {
-                                throw IOException("BACKUP_PATH_INVALID")
-                            }
-                            val parent = file.parentFile!!
-                            if (!parent.isDirectory && !parent.mkdirs())
-                                throw IOException("RESTORE_SPACE_REQUIRED")
-                            val digest = MessageDigest.getInstance("SHA-256")
-                            val size =
-                                archive.getInputStream(entry).use { input ->
-                                    FileOutputStream(file).use { output ->
-                                        val copied =
-                                            copy(
-                                                input,
-                                                BackupStorageBudget.guard(output, newDirectory),
-                                                digest,
-                                                wanted.getLong("size"),
-                                            )
-                                        output.fd.sync()
-                                        copied
-                                    }
-                                }
-                            if (
-                                size != wanted.getLong("size") ||
-                                    wanted.getString("sha256") != hex(digest.digest())
-                            ) {
-                                throw IOException("BACKUP_FILE_HASH_MISMATCH")
-                            }
-                        }
-                        if (seen.size != expected.size + 1 || !seen.containsAll(expected.keys)) {
+                        declaredTotal = Math.addExact(declaredTotal, file.getLong("size"))
+                    }
+                    if (
+                        declaredTotal != value.getLong("totalBytes") ||
+                            declaredTotal > availableBytes - plain.length()
+                    ) {
+                        throw IOException("RESTORE_SPACE_REQUIRED")
+                    }
+                    val seen = HashSet<String>()
+                    val entries = archive.entries()
+                    while (entries.hasMoreElements()) {
+                        val entry = entries.nextElement()
+                        val name = entry.name
+                        if (!seen.add(name) || entry.isDirectory)
+                            throw IOException("BACKUP_DUPLICATE_FILE")
+                        if (name == "manifest.json") continue
+                        val wanted = expected[name]
+                        if (wanted == null || entry.size != wanted.getLong("size")) {
                             throw IOException("BACKUP_FILE_SET_INVALID")
                         }
-                        value
+                        val file = File(newDirectory, name)
+                        if (
+                            !file.canonicalPath.startsWith(
+                                newDirectory.canonicalPath + File.separator
+                            )
+                        ) {
+                            throw IOException("BACKUP_PATH_INVALID")
+                        }
+                        val parent = file.parentFile!!
+                        if (!parent.isDirectory && !parent.mkdirs())
+                            throw IOException("RESTORE_SPACE_REQUIRED")
+                        val digest = MessageDigest.getInstance("SHA-256")
+                        val size =
+                            archive.getInputStream(entry).use { input ->
+                                FileOutputStream(file).use { output ->
+                                    val copied =
+                                        copy(
+                                            input,
+                                            BackupStorageBudget.guard(output, newDirectory),
+                                            digest,
+                                            wanted.getLong("size"),
+                                        )
+                                    output.fd.sync()
+                                    copied
+                                }
+                            }
+                        if (
+                            size != wanted.getLong("size") ||
+                                wanted.getString("sha256") != hex(digest.digest())
+                        ) {
+                            throw IOException("BACKUP_FILE_HASH_MISMATCH")
+                        }
                     }
-                if (!plain.delete()) throw IOException("RESTORE_STAGING_CLEANUP_REQUIRED")
-                verified = true
-                Verified(newDirectory, manifest)
-            } finally {
-                if (!verified) removeOwned(newDirectory)
-            }
+                    if (seen.size != expected.size + 1 || !seen.containsAll(expected.keys)) {
+                        throw IOException("BACKUP_FILE_SET_INVALID")
+                    }
+                    value
+                }
+            if (!plain.delete()) throw IOException("RESTORE_STAGING_CLEANUP_REQUIRED")
+            verified = true
+            Verified(newDirectory, manifest)
+        } finally {
+            if (!verified) removeOwned(newDirectory)
         }
+    }
 
     @Throws(Exception::class)
     private fun requireMetadata(manifest: JSONObject, supportedSchema: Int) {

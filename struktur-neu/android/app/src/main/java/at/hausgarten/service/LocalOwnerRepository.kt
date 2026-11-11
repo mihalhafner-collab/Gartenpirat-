@@ -73,6 +73,16 @@ class LocalOwnerRepository : OwnerRepository {
     override fun createSettlementDocument(record: JSONObject): JSONObject =
         BusinessDocumentStore(context!!).createSettlement(record)
 
+    override fun previewSettlementDocument(record: JSONObject): JSONObject {
+        val file = BusinessDocumentStore(context!!).createSettlementPreview(record)
+        return JSONObject()
+            .put("preview_only", true)
+            .put("pdf_filename", file.name)
+            .put("pdf_sha256", PhotoAttachmentStore.sha256(file.readBytes()))
+            .put("pdf_byte_size", file.length())
+            .put("content_uri", "content://${context!!.packageName}.offerfiles/${file.name}")
+    }
+
     @Throws(Exception::class)
     override fun fileMeta(id: String): JSONObject {
         store!!

@@ -40,7 +40,10 @@ public final class SettlementTests {
             .put("invoices", new JSONArray()).put("photos", new JSONArray()).put("offers", new JSONArray())
             .put("business_settings", new JSONObject().put("business_name", "Synthetischer Gartenbetrieb").put("owner_name", "Erfundene Person")
                 .put("business_street", "Erfundene Straße 20").put("business_postal_code", "2000").put("business_city", "Testort")
-                .put("business_country", "AT").put("tax_mode", "small_business"));
+                .put("business_country", "AT").put("tax_mode", "small_business")
+                .put("business_logo", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j4S8AAAAASUVORK5CYII=")
+                .put("business_email", "synthetic@example.invalid").put("business_iban", "AT000000000000000000")
+                .put("business_bic", "QATEST00").put("default_payment_terms", "Binnen 14 Tagen"));
     }
     private static JSONObject draft(String route, JSONArray positions) throws Exception {
         return new JSONObject().put("route", route).put("title", "Synthetische Abrechnung").put("customer_id", "site")
@@ -158,6 +161,17 @@ public final class SettlementTests {
         String save(JSONObject draft, String request) throws Exception {
             return run("save_settlement_draft", new JSONObject().put("draft", draft), request).getString("settlement_id");
         }
+        // Pre-existing synthetic original, deliberately seeded without invoking the retired writer.
+        String historicalInternal(JSONObject draft, String fixtureId) throws Exception {
+            JSONObject row = RULES.review(RULES.normalized(draft, fixtureId), master)
+                .put("status", "confirmed").put("issue_date", "2026-11-05").put("confirmed_at", "2026-11-05T10:00:00Z");
+            row.put("total_minor", RULES.total(row));
+            JSONObject saved = ledger();
+            JSONArray originals = saved.optJSONArray("records");
+            if (originals == null) { originals = new JSONArray(); saved.put("records", originals); }
+            originals.put(row); owner.put(SettlementRules.KEY, saved.toString());
+            return fixtureId;
+        }
         JSONObject prepareArgs(String id) throws Exception {
             return new JSONObject().put("settlement_id", id).put("expected_review_hash", RULES.hash(RULES.review(record(id), master)))
                 .put("confirmed", true).put("domestic_eur_confirmed", true).put("issuer_details_confirmed", true)
@@ -227,9 +241,8 @@ public final class SettlementTests {
         reopened.master.getJSONArray("customers").getJSONObject(0).put("name", "Später geänderter synthetischer Empfänger");
         yes(reopened.record(invoice).getJSONObject("recipient").getString("name").equals(beforeInvoice.getJSONObject("recipient").getString("name")), "Later master-data changes never rewrite issued recipient snapshot");
         reopened.master.getJSONArray("customers").getJSONObject(0).put("name", memory.master.getJSONArray("customers").getJSONObject(0).getString("name"));
-        String internal = reopened.save(draft("labor", new JSONArray().put(line("worklogs", "standalone", "1", "200"))), "synthetic-save-internal");
-        reopened.prepare(internal, "synthetic-prepare-internal"); reopened.complete(internal, "synthetic-complete-internal");
-        yes(!reopened.record(internal).has("invoice_number") && !reopened.record(internal).has("pdf") && reopened.documentWrites == 1, "Labor creates a confirmed internal operation without invoice number, PDF or artificial invoice");
+        String internal = reopened.historicalInternal(draft("labor", new JSONArray().put(line("worklogs", "standalone", "1", "200"))), "synthetic-save-internal");
+        yes(!reopened.record(internal).has("invoice_number") && !reopened.record(internal).has("pdf") && reopened.documentWrites == 1, "Historical Labor original remains confirmed without invoice number, PDF or artificial invoice");
         yes(reopened.record(invoice).getLong("total_minor") == 90000L && reopened.record(internal).getLong("total_minor") == 20000L
             && Math.addExact(reopened.record(invoice).getLong("total_minor"), reopened.record(internal).getLong("total_minor")) == 110000L,
             "900 EUR invoice plus 200 EUR internal remain exactly 1100 EUR after process reopening");
@@ -260,12 +273,11 @@ public final class SettlementTests {
             && !voided.getJSONObject("record").has("invoice_number") && !voided.getJSONObject("record").has("pdf"), "Internal void remains internal and creates no invented credit invoice");
         yes(reopened.record(internal).getString("status").equals("cancelled") && reopened.documentWrites == 2
             && reopened.ledger().getJSONArray("payments").length() == paymentCount, "Internal correction preserves other original PDFs and all payments");
-        String manual = reopened.save(draft("labor", new JSONArray().put(line("", "", "1", "15,55"))), "synthetic-manual");
-        reopened.prepare(manual, "synthetic-manual-prepare"); reopened.complete(manual, "synthetic-manual-close");
+        String manual = reopened.historicalInternal(draft("labor", new JSONArray().put(line("", "", "1", "15,55"))), "synthetic-manual");
         yes(reopened.record(manual).getJSONArray("sources").length() == 0 && RULES.hash(reopened.master).equals(originalMaster), "Manual settlement is its own unit without manufactured order or worklog");
     }
     private static void restoredReservations() throws Exception {
-        for (String route : new String[]{"billed", "labor"}) for (boolean manual : new boolean[]{false, true}) {
+        for (String route : new String[]{"billed"}) for (boolean manual : new boolean[]{false, true}) {
             Memory original = new Memory();
             String suffix = route + (manual ? "-manual" : "-source");
             String id = original.save(draft(route, new JSONArray().put(line(manual ? "" : "worklogs", manual ? "" : "work-a", "1", "75"))), "restore-save-" + suffix);
@@ -307,8 +319,7 @@ public final class SettlementTests {
         String collection = memory.save(draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "300"))
             .put(line("worklogs", "work-two", "1", "600"))), "overview-collection");
         memory.prepare(collection, "overview-collection-prepare"); memory.complete(collection, "overview-collection-close");
-        String internal = memory.save(draft("labor", new JSONArray().put(line("worklogs", "standalone", "1", "200"))), "overview-labor");
-        memory.prepare(internal, "overview-labor-prepare"); memory.complete(internal, "overview-labor-close");
+        String internal = memory.historicalInternal(draft("labor", new JSONArray().put(line("worklogs", "standalone", "1", "200"))), "overview-labor");
         Memory reopened = new Memory(memory.master, memory.owner);
         List<JSONObject> rows = AccountingRules.INSTANCE.project(reopened.master, Collections.emptySet(), new JSONArray(), reopened.ledger());
         JSONObject first = rows.stream().filter(row -> row.optString("key").equals("orders:order")).findFirst().orElseThrow();
@@ -323,6 +334,11 @@ public final class SettlementTests {
         String orderInvoice = orderScope.save(draft("billed", new JSONArray().put(line("orders", "order", "1", "100"))), "scope-order");
         orderScope.prepare(orderInvoice, "scope-order-prepare");
         orderScope.master.getJSONArray("worklogs").put(work("new-later-work", "order", "recipient"));
+        List<JSONObject> openWorks = RULES.rows(BillingRules.groups(orderScope.master.getJSONArray("worklogs"), orderScope.master, orderScope.ledger())).stream()
+            .flatMap(group -> RULES.rows(group.optJSONArray("work_records")).stream()).toList();
+        yes(openWorks.stream().anyMatch(work -> work.optString("id").equals("new-later-work"))
+            && openWorks.stream().noneMatch(work -> Set.of("work-a", "work-b").contains(work.optString("id"))),
+            "Open billing reads active frozen source bindings; later work remains open without reoffering included work");
         JSONObject later = review(draft("billed", new JSONArray().put(line("worklogs", "new-later-work", "1", "25"))), orderScope.master, "later");
         JSONObject old = review(draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "25"))), orderScope.master, "old");
         yes(validation(later, orderScope.master, orderScope.ledger()).getBoolean("valid") && !validation(old, orderScope.master, orderScope.ledger()).getBoolean("valid"),
@@ -371,7 +387,7 @@ public final class SettlementTests {
         yes(!missingValidation.getBoolean("valid") && error(missingValidation, "Leistungsquelle fehlt"), "Readable missing-source draft is blocked from final closure");
     }
     private static void abandonPreparedRecovery() throws Exception {
-        for (String route : new String[]{"billed", "labor"}) {
+        for (String route : new String[]{"billed"}) {
             Memory memory = new Memory();
             String id = memory.save(draft(route, new JSONArray().put(line("worklogs", "work-a", "1", "90"))), "abandon-draft-" + route);
             memory.prepare(id, "abandon-prepare-" + route);
@@ -451,25 +467,131 @@ public final class SettlementTests {
         JSONObject draft = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", ids), works, List.of(bound, later));
         JSONArray lines = draft.getJSONArray("positions");
         yes(lines.length() == 2, "Work bound by an active closure is not offered again");
-        yes(lines.getJSONObject(0).getString("price").equals("45") && lines.getJSONObject(1).getString("price").equals("45"), "Recipient's own last hourly rate wins");
+        yes(lines.getJSONObject(0).getString("price").isEmpty() && lines.getJSONObject(1).getString("price").isEmpty(), "Without a configured rate old invoice prices are not silently reused");
         yes(lines.getJSONObject(0).getString("unit").equals("Stunden") && lines.getJSONObject(0).getString("quantity").equals("2"), "Hours become the quantity");
         yes(lines.getJSONObject(0).getString("source_collection").equals("worklogs") && !lines.getJSONObject(0).getString("source_id").equals("work-a"), "Positions keep their work source");
         yes(lines.getJSONObject(0).getString("description").equals("01.11.2026"), "Work date is shown as Austrian date");
         yes(draft.getString("route").equals("billed") && draft.getString("billing_customer_id").equals("recipient") && draft.getString("customer_id").equals("site"), "Recipient and single work customer are set");
         yes(draft.getString("service_from").equals("2026-11-01") && draft.getString("service_to").equals("2026-11-01"), "Service period follows the work dates");
-        JSONObject fallback = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later));
-        yes(fallback.getJSONArray("positions").getJSONObject(0).getString("price").equals("50"), "Without an own rate the last used rate is offered");
-        JSONObject unknown = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of());
+        JSONObject fallback = RULES.prefill(new JSONObject().put("billing_customer_id", "other").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later));
+        yes(fallback.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "A different recipient's historical rate is not offered as an agreed price");
+        yes(RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of()).getJSONArray("positions").length() == 0,
+            "A work record with a different legal recipient cannot enter the draft preselection");
+        JSONObject unknown = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", new JSONArray().put("work-b")), works, List.of());
         yes(unknown.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "Without any rate the price stays open");
         yes(RULES.prefill(new JSONObject(), works, List.of(bound)).getJSONArray("positions").length() == 0, "Without a selection the draft stays empty");
-        JSONObject configured = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later), "48,50");
-        yes(configured.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The configured hourly rate comes before the last rate of another recipient");
+        JSONObject configured = RULES.prefill(new JSONObject().put("billing_customer_id", "other").put("work_record_ids", new JSONArray().put("foreign-recipient")), works, List.of(bound, later), "48,50");
+        yes(configured.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The configured hourly rate is used explicitly");
         JSONObject own = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", ids), works, List.of(bound, later), "48,50");
-        yes(own.getJSONArray("positions").getJSONObject(0).getString("price").equals("45"), "A rate agreed with the recipient still wins over the configured rate");
-        JSONObject invalid = RULES.prefill(new JSONObject().put("billing_customer_id", "third").put("work_record_ids", new JSONArray().put("work-b")), works, List.of(), "viel");
+        yes(own.getJSONArray("positions").getJSONObject(0).getString("price").equals("48.50"), "The settings rate takes precedence over historical invoice prices");
+        JSONObject invalid = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", new JSONArray().put("work-b")), works, List.of(), "viel");
         yes(invalid.getJSONArray("positions").getJSONObject(0).getString("price").isEmpty(), "An invalid configured rate is not used");
     }
+    private static void eisbaerLcrAndMoney() throws Exception {
+        Memory memory = new Memory();
+        String original = memory.master.toString(), oldLedger = memory.owner.getOrDefault(SettlementRules.KEY, "{}"), oldMarks = memory.owner.get("personal_paid");
+        JSONObject work = RULES.source(memory.master, "worklogs", "standalone");
+        JSONObject state = RULES.lcrView(memory.repository, work);
+        yes(!state.getBoolean("lcr") && state.getBoolean("lcr_mutable"), "New original work starts without L.C.R.");
+        JSONObject mark = new JSONObject().put("work_record_id", "standalone").put("lcr", true)
+            .put("expected_record_hash", state.getString("lcr_record_hash"));
+        memory.run("set_work_record_lcr", mark, "synthetic-lcr-set");
+        yes(memory.run("set_work_record_lcr", mark, "synthetic-lcr-set").getBoolean("replayed"), "Same marker request replays exactly once");
+        yes(RULES.lcrIds(memory.repository).equals(Set.of("standalone")) && memory.master.toString().equals(original)
+            && memory.owner.getOrDefault(SettlementRules.KEY, "{}").equals(oldLedger) && memory.owner.get("personal_paid").equals(oldMarks),
+            "L.C.R. is an original reference; it changes no work, settlement, historical Labor marker or payment");
+        JSONObject page = SettlementTools.INSTANCE.query("get_lcr_work_records", new JSONObject().put("limit", 1), memory.repository);
+        yes(page.getInt("total") == 1 && page.getJSONArray("records").length() == 1 && !page.getBoolean("has_more") && page.isNull("next_offset"),
+            "L.C.R. list exposes bounded rows and explicit pagination metadata");
+        yes(SettlementTools.INSTANCE.query("get_lcr_work_records", new JSONObject().put("query", "no synthetic match"), memory.repository).getInt("total") == 0,
+            "L.C.R. search applies before paging without changing markers");
+        invalid(() -> McpSchema.validate(new JSONObject().put("limit", 0), SettlementTools.INSTANCE.schema("get_lcr_work_records")), "invalid L.C.R. page size");
+        invalid(() -> memory.run("set_work_record_lcr", copy(mark).put("lcr", false), "synthetic-lcr-set"), "same marker request with different arguments");
+        try { memory.run("set_work_record_lcr", copy(mark).put("lcr", false), "synthetic-lcr-stale"); throw new AssertionError("Stale L.C.R. hash accepted"); }
+        catch (PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("WRITE_CONFLICT"), "L.C.R. marker has optimistic locking"); }
+        JSONObject prefill = RULES.prefill(new JSONObject().put("billing_customer_id", "recipient").put("work_record_ids", new JSONArray().put("standalone")),
+            memory.master.getJSONArray("worklogs"), List.of(), "40", RULES.lcrIds(memory.repository));
+        yes(prefill.getJSONArray("positions").length() == 0, "L.C.R. original cannot enter invoice preselection");
+        invalid(() -> memory.save(draft("billed", new JSONArray().put(line("worklogs", "standalone", "1", "40"))), "synthetic-lcr-invoice"), "manual invoice draft cannot admit L.C.R. work");
+        invalid(() -> memory.save(draft("labor", new JSONArray().put(line("", "", "1", "40"))), "synthetic-retired-labor"), "new Labor closures are retired rather than renamed");
+        memory.run("set_work_record_lcr", new JSONObject().put("work_record_id", "standalone").put("lcr", false)
+            .put("expected_record_hash", RULES.lcrView(memory.repository, work).getString("lcr_record_hash")), "synthetic-lcr-remove");
+        yes(RULES.lcrIds(memory.repository).isEmpty(), "Unmarking restores ordinary invoice eligibility without a money booking");
+        String invoice = memory.save(draft("billed", new JSONArray().put(line("worklogs", "standalone", "1", "240"))), "synthetic-lcr-bound-invoice");
+        memory.prepare(invoice, "synthetic-lcr-bound-prepare"); memory.complete(invoice, "synthetic-lcr-bound-complete");
+        JSONObject boundState = RULES.lcrView(memory.repository, work);
+        yes(!boundState.getBoolean("lcr_mutable"), "Bound original L.C.R. control is locked");
+        invalid(() -> memory.run("set_work_record_lcr", new JSONObject().put("work_record_id", "standalone").put("lcr", true)
+            .put("expected_record_hash", boundState.getString("lcr_record_hash")), "synthetic-lcr-bound"), "bound work must follow cancellation first");
+        memory.pay(invoice, "260", "synthetic-credit-receipt");
+        JSONObject payment = memory.ledger().getJSONArray("payments").getJSONObject(0);
+        JSONObject report = RULES.financeOverview(memory.master, memory.ledger(), new JSONObject());
+        yes(report.getLong("credit_minor") == 2000 && report.getLong("open_minor") == 0, "Overpayment is an explicit credit without a negative open demand");
+        invalid(() -> memory.run("add_settlement_payment", memory.proof(invoice).put("amount", "-21").put("date", "2026-11-06")
+            .put("payment_kind", "refund").put("reversal_of", payment.getString("id")).put("note", "Synthetische Rückzahlung"), "synthetic-refund-too-large"), "real refund cannot exceed credit");
+        memory.run("add_settlement_payment", memory.proof(invoice).put("amount", "-20").put("date", "2026-12-01")
+            .put("payment_kind", "refund").put("reversal_of", payment.getString("id")).put("note", "Synthetisch tatsächlich erstattet"), "synthetic-refund");
+        report = RULES.financeOverview(memory.master, memory.ledger(), new JSONObject().put("date_from", "2026-12-01").put("date_to", "2026-12-31"));
+        yes(report.getLong("issued_minor") == 0 && report.getLong("payment_refunds_minor") == -2000 && report.getLong("payment_inflow_minor") == 0,
+            "Refund date and document period stay separate, with original payment reference retained");
+        yes(RULES.paid(memory.ledger(), invoice) == 24000 && memory.ledger().getJSONArray("payments").length() == 2,
+            "Real refund preserves original receipt and yields exact net payment");
+        Memory history = new Memory();
+        String historical = history.historicalInternal(draft("labor", new JSONArray().put(line("worklogs", "standalone", "1", "30"))), "synthetic-historical-original");
+        String historicalBytes = history.record(historical).toString();
+        yes(!RULES.lcrView(history.repository, RULES.source(history.master, "worklogs", "standalone")).getBoolean("lcr_mutable")
+            && history.record(historical).toString().equals(historicalBytes), "Historical Labor original remains unchanged and bound; it is not converted to L.C.R.");
+    }
+    private static void paymentVersionAndCrossPeriodCancellation() throws Exception {
+        Memory memory = new Memory();
+        String id = memory.save(draft("billed", new JSONArray().put(line("worklogs", "work-a", "1", "240"))), "synthetic-payment-version-draft");
+        memory.prepare(id, "synthetic-payment-version-prepare"); memory.complete(id, "synthetic-payment-version-complete");
+        JSONObject displayed = SettlementTools.INSTANCE.query("get_settlement", new JSONObject().put("settlement_id", id), memory.repository);
+        JSONObject stale = memory.proof(id).put("expected_payment_hash", displayed.getString("payment_record_hash"))
+            .put("amount", "240").put("date", "2026-11-06");
+        memory.pay(id, "100", "synthetic-payment-version-concurrent");
+        try { memory.run("add_settlement_payment", stale, "synthetic-payment-version-stale"); throw new AssertionError("Stale displayed remainder accepted"); }
+        catch (PixelMcpWriteTools.Rejected expected) { yes(expected.code.equals("WRITE_CONFLICT"), "Concurrent payment invalidates the displayed remainder even when original invoice is unchanged"); }
+        yes(RULES.paid(memory.ledger(), id) == 10000L && memory.ledger().getJSONArray("payments").length() == 1,
+            "Stale automatic full payment creates neither a second receipt nor unintended credit");
+        JSONObject refreshed = memory.proof(id).put("expected_payment_hash", RULES.paymentHash(memory.ledger(), id))
+            .put("amount", "140").put("date", "2026-11-06");
+        memory.run("add_settlement_payment", refreshed, "synthetic-payment-version-fresh");
+        yes(memory.run("add_settlement_payment", refreshed, "synthetic-payment-version-fresh").getBoolean("replayed") && RULES.paid(memory.ledger(), id) == 24000L,
+            "Fresh payment version succeeds once and its replay remains valid after the payment hash changes");
+        JSONObject original = RULES.review(RULES.normalized(draft("billed", new JSONArray().put(line("worklogs", "standalone", "1", "240"))), "synthetic-cross-period-original"), master())
+            .put("status", "cancelled").put("issue_date", "2026-11-01").put("total_minor", 24000).put("corrected_by", "synthetic-cross-period-storno");
+        JSONObject cancellation = copy(original).put("id", "synthetic-cross-period-storno").put("kind", "cancellation")
+            .put("status", "confirmed").put("issue_date", "2026-12-01").put("corrects", original.getString("id")).put("total_minor", -24000);
+        cancellation.getJSONArray("positions").getJSONObject(0).put("amount_minor", -24000).put("quantity", "-1");
+        JSONObject receipt = new JSONObject().put("id", "synthetic-cross-period-receipt").put("settlement_id", original.getString("id"))
+            .put("amount_minor", 24000).put("date", "2026-11-02").put("payment_kind", "receipt");
+        JSONObject crossPeriod = ledger().put("records", new JSONArray().put(original).put(cancellation)).put("payments", new JSONArray().put(receipt));
+        String retained = crossPeriod.toString();
+        JSONObject december = RULES.financeOverview(master(), crossPeriod, new JSONObject().put("date_from", "2026-12-01").put("date_to", "2026-12-31").put("date_basis", "document"));
+        yes(december.getLong("issued_minor") == 0 && december.getLong("cancellations_minor") == -24000 && december.getLong("invoice_net_minor") == -24000,
+            "December cancellation does not invent a second November-issued invoice in the selected period");
+        yes(december.getLong("refund_due_minor") == 24000 && december.getLong("paid_minor") == 24000 && december.getLong("payment_inflow_minor") == 0,
+            "Cancellation cohort follows its prior-period original and payments while actual inflow remains in November");
+        yes(crossPeriod.toString().equals(retained), "Cross-period report retains immutable original and payment history");
+        JSONObject legacy = new JSONObject(retained);
+        legacy.getJSONArray("payments").put(new JSONObject().put("id", "synthetic-untyped-legacy-movement").put("settlement_id", original.getString("id"))
+            .put("amount_minor", -4000).put("date", "2026-11-05").put("reversal_of", receipt.getString("id")).put("note", "Historischer ursprünglicher Text"));
+        String legacyOriginal = legacy.toString();
+        JSONObject legacyReport = RULES.financeOverview(master(), legacy, new JSONObject().put("date_from", "2026-11-01").put("date_to", "2026-11-30"));
+        yes(legacyReport.getLong("payment_legacy_adjustments_minor") == -4000 && legacyReport.getLong("payment_reversals_minor") == 0
+            && legacyReport.getLong("payment_refunds_minor") == 0 && legacyReport.getLong("payment_net_minor") == 20000,
+            "Untyped historical negative movement remains separately identified without inventing a correction or real refund");
+        yes(legacy.toString().equals(legacyOriginal), "Reading a historical negative movement neither adds a payment kind nor changes its original note or amount");
+        crossPeriod.getJSONArray("payments").put(new JSONObject().put("id", "synthetic-cross-period-refund").put("settlement_id", original.getString("id"))
+            .put("amount_minor", -24000).put("date", "2026-12-05").put("payment_kind", "refund").put("reversal_of", receipt.getString("id")));
+        december = RULES.financeOverview(master(), crossPeriod, new JSONObject().put("date_from", "2026-12-01").put("date_to", "2026-12-31"));
+        yes(december.getLong("refund_due_minor") == 0 && december.getLong("paid_minor") == 0 && december.getLong("payment_refunds_minor") == -24000,
+            "Real December refund settles the retained November receipt and remains a December money movement");
+    }
     public static void main(String[] ignored) throws Exception {
+        paymentVersionAndCrossPeriodCancellation();
+        eisbaerLcrAndMoney();
         openWorkPrefill();
         decimalsAndDrafts();
         sourceBindingsAndReview();

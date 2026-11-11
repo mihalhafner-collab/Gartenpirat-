@@ -3,7 +3,10 @@ package at.hausgarten.service
 import android.app.job.JobScheduler
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
+import android.system.Os
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -14,7 +17,7 @@ import java.util.function.Consumer
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Direct snapshot -> plaintext ZIP -> selected document provider -> byte readback. */
+/** Complete staged snapshot -> safe target replacement -> document-provider byte readback. */
 class PixelBackupService
 internal constructor(private val context: Context, private val store: PixelLocalStore) {
     companion object {
@@ -86,11 +89,16 @@ internal constructor(private val context: Context, private val store: PixelLocal
             .put("settings_hash", PixelMcpWriteTools.hash(identity))
             .put("requires_google_account", false)
             .put("requires_recovery_key", false)
+            .put("target_selected", targetSelection().optString("uri").isNotEmpty())
             .put("cloud_confirmed", false)
     }
 
     @Throws(Exception::class)
-    fun request(args: JSONObject): JSONObject = filePicker("open_backup_screen_and_choose_file")
+    fun request(args: JSONObject): JSONObject =
+        filePicker(
+            if (targetSelection().optString("uri").isEmpty()) "open_backup_screen_and_choose_file"
+            else "open_backup_screen_and_update_selected_file"
+        )
 
     @Throws(Exception::class)
     fun retry(args: JSONObject): JSONObject = filePicker("resume_existing_save_in_backup_screen")
@@ -100,7 +108,34 @@ internal constructor(private val context: Context, private val store: PixelLocal
             .put("accepted_locally", false)
             .put("code", "BACKUP_OPEN_DOCUMENT_PICKER")
             .put("next_action", action)
+            .put("target_selected", targetSelection().optString("uri").isNotEmpty())
+            .put("safe_replacement_required", true)
             .put("cloud_confirmed", false)
+
+    /** A restored URI or a different installation never silently inherits the old grant. */
+    fun targetSelection(): JSONObject {
+        val identity = BackupDeviceGuard(context).current()
+        for (key in listOf("pixel_backup_last", "pixel_backup_success")) {
+            val raw = store.ownerValue(key, "")
+            if (raw.isEmpty()) continue
+            val previous = JSONObject(raw)
+            if (
+                previous.optString("installationId") != identity.optString("installationId") ||
+                    previous.optString("restoreEpoch") != identity.optString("restoreEpoch")
+            )
+                continue
+            val uri = previous.optJSONObject("destination")?.optString("treeUri").orEmpty()
+            if (uri.isNotEmpty())
+                return JSONObject()
+                    .put("uri", uri)
+                    .put(
+                        "request_id",
+                        if (previous.optString("phase") == "PROVIDER_VERIFIED") ""
+                        else previous.optString("requestId"),
+                    )
+        }
+        return JSONObject()
+    }
 
     @Throws(Exception::class)
     fun save(request: String?, target: Uri?, progress: Consumer<String>): JSONObject {
@@ -115,6 +150,43 @@ internal constructor(private val context: Context, private val store: PixelLocal
 
                 override fun read(): InputStream? =
                     context.contentResolver.openInputStream(selected)
+
+                override fun replaceFrom(archive: File, previousHash: String, previousSize: Long) {
+                    // SAF has no general atomic-replace contract. A path-stable local provider
+                    // may be used only when its granted descriptor names the same local inode
+                    // and the parent permits a same-filesystem atomic rename. No wt fallback.
+                    if (
+                        selected.authority != "com.android.externalstorage.documents" ||
+                            !DocumentsContract.isDocumentUri(context, selected)
+                    )
+                        throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+                    try {
+                        context.contentResolver.openFileDescriptor(selected, "r").use { descriptor
+                            ->
+                            if (descriptor == null)
+                                throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+                            val file = File(Os.readlink("/proc/self/fd/${descriptor.fd}"))
+                            val relative =
+                                DocumentsContract.getDocumentId(selected).substringAfter(':', "")
+                            if (relative.isEmpty() || !file.path.endsWith("/$relative"))
+                                throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+                            val granted = Os.fstat(descriptor.fileDescriptor)
+                            val local = Os.stat(file.path)
+                            if (granted.st_dev != local.st_dev || granted.st_ino != local.st_ino)
+                                throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE")
+                            BackupDocumentTransfer.atomicReplace(
+                                file,
+                                archive,
+                                previousHash,
+                                previousSize,
+                            )
+                        }
+                    } catch (failure: IOException) {
+                        throw failure
+                    } catch (failure: Exception) {
+                        throw IOException("BACKUP_SAFE_REPLACE_UNAVAILABLE", failure)
+                    }
+                }
             },
             progress,
         )
@@ -141,12 +213,16 @@ internal constructor(private val context: Context, private val store: PixelLocal
         try {
             val identity = BackupDeviceGuard(context).current()
             val previous = store.ownerValue("pixel_backup_success", "")
-            if (previous.isNotEmpty()) {
-                val saved = JSONObject(previous)
-                if (
+            val saved = if (previous.isEmpty()) null else JSONObject(previous)
+            val sameTarget =
+                saved != null &&
                     destination == saved.getJSONObject("destination").optString("treeUri") &&
-                        request == saved.optString("requestId")
-                ) {
+                    saved.optString("installationId") == identity.optString("installationId") &&
+                    saved.optString("restoreEpoch") == identity.optString("restoreEpoch")
+            if (saved != null && request == saved.optString("requestId") && !sameTarget)
+                throw IOException("BACKUP_REQUEST_ID_CONFLICT")
+            if (saved != null) {
+                if (sameTarget && request == saved.optString("requestId")) {
                     val repeated = JSONObject(saved.toString())
                     record = repeated
                     repeated.put("lastLocalAttemptAt", Instant.now().toString())
@@ -162,6 +238,52 @@ internal constructor(private val context: Context, private val store: PixelLocal
                     repeated.put("phase", "PROVIDER_VERIFIED")
                     store.putOwnerValue("pixel_backup_last", repeated.toString())
                     return result(repeated)
+                }
+            }
+            val lastRaw = store.ownerValue("pixel_backup_last", "")
+            val pending = if (lastRaw.isEmpty()) null else JSONObject(lastRaw)
+            if (
+                pending != null &&
+                    request == pending.optString("requestId") &&
+                    pending.optString("installationId") == identity.optString("installationId") &&
+                    pending.optString("restoreEpoch") == identity.optString("restoreEpoch")
+            ) {
+                if (pending.optJSONObject("destination")?.optString("treeUri") != destination)
+                    throw IOException("BACKUP_REQUEST_ID_CONFLICT")
+                val prepared = pending.optJSONObject("archive")
+                if (prepared != null) {
+                    record = pending
+                    val completed =
+                        try {
+                            selectedFile.read().use {
+                                BackupDocumentTransfer.verifyReadback(
+                                    it,
+                                    prepared.getString("sha256"),
+                                    prepared.getLong("size"),
+                                )
+                            }
+                            true
+                        } catch (_: IOException) {
+                            false
+                        }
+                    if (completed) return confirm(pending)
+                    // If the atomic replacement never happened, only the previously verified
+                    // old target (or a still empty first target) may be retried.
+                    try {
+                        val old = if (sameTarget) saved?.optJSONObject("archive") else null
+                        selectedFile.read().use { input ->
+                            if (old != null)
+                                BackupDocumentTransfer.verifyReadback(
+                                    input,
+                                    old.getString("sha256"),
+                                    old.getLong("size"),
+                                )
+                            else if (input == null || input.read() != -1)
+                                throw IOException("BACKUP_TARGET_CHANGED")
+                        }
+                    } catch (failure: Exception) {
+                        throw IOException("BACKUP_TARGET_CHANGED", failure)
+                    }
                 }
             }
             val now = Instant.now().toString()
@@ -191,55 +313,61 @@ internal constructor(private val context: Context, private val store: PixelLocal
                 JSONObject(identity.toString())
                     .put("backupId", id)
                     .put("businessId", context.packageName)
-            val (captured, archive) =
-                synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
-                    progress.accept("Datenbank und Einstellungen aufnehmen …")
-                    val captured =
-                        LocalBackupDataset.forStreaming(
-                            context,
-                            store,
-                            File(attempt, "snapshot"),
-                            captureIdentity,
-                        )
-                    progress.accept("Originaldateien sichern und ZIP vollständig zurücklesen …")
-                    val archive =
-                        BackupDocumentTransfer.exportStream(selectedFile) { output ->
-                            BackupArchive.writePlain(output, captured.metadata, captured.sources())
-                        }
-                    captured to archive
+            synchronized(PixelLocalStore.FILE_CAPTURE_LOCK) {
+                progress.accept("Datenbank und Einstellungen aufnehmen …")
+                val captured =
+                    LocalBackupDataset.forStreaming(
+                        context,
+                        store,
+                        File(attempt, "snapshot"),
+                        captureIdentity,
+                    )
+                progress.accept("Originaldateien sichern und ZIP vollständig prüfen …")
+                val staged = File(attempt, "backup.zip")
+                FileOutputStream(staged).use { output ->
+                    // writePlain closes the ZIP stream. fsync uses a separate descriptor.
+                    BackupArchive.writePlain(
+                        BackupStorageBudget.guard(output, attempt),
+                        captured.metadata,
+                        captured.sources(),
+                    )
                 }
-            val sha = archive.getString("sha256")
-            val size = archive.getLong("size")
-            val verifiedAt = Instant.now().toString()
-            current
-                .put("phase", "PROVIDER_VERIFIED")
-                .put("warning_count", captured.metadata.optInt("warning_count"))
-                .put("counts", captured.metadata.getJSONObject("counts"))
-                .put("warnings", captured.notes.getJSONArray("warnings"))
-                .put(
-                    "archive",
-                    JSONObject()
-                        .put("archiveFormat", "PLAIN_ZIP")
-                        .put("sha256", sha)
-                        .put("size", size)
-                        .put("capturedAt", captured.metadata.getString("capturedAt"))
-                        .put("localVerifiedAt", verifiedAt)
-                        .put("mediaCoverage", "AVAILABLE_FILES_WITH_NOTES"),
-                )
-                .put(
-                    "provider",
-                    JSONObject()
-                        .put("backup_id", id)
-                        .put("archive_sha256", sha)
-                        .put("byte_size", size)
-                        .put("verified_at", verifiedAt)
-                        .put("verification_scope", "DOCUMENT_PROVIDER_READBACK")
-                        .put("destination_location", "DOCUMENT_PROVIDER")
-                        .put("external_storage_verified", false),
-                )
-            store.putOwnerValue("pixel_backup_success", current.toString())
-            store.putOwnerValue("pixel_backup_last", current.toString())
-            return result(current)
+                FileOutputStream(staged, true).use { it.fd.sync() }
+                BackupArchive.verifyWritten(staged, PixelLocalStore.SCHEMA_VERSION)
+                val sha = BackupArchive.sha256(staged)
+                current
+                    .put("phase", "PROVIDER_WRITING")
+                    .put("warning_count", captured.metadata.optInt("warning_count"))
+                    .put("counts", captured.metadata.getJSONObject("counts"))
+                    .put("warnings", captured.notes.getJSONArray("warnings"))
+                    .put(
+                        "archive",
+                        JSONObject()
+                            .put("archiveFormat", "PLAIN_ZIP")
+                            .put("sha256", sha)
+                            .put("size", staged.length())
+                            .put("capturedAt", captured.metadata.getString("capturedAt"))
+                            .put("localVerifiedAt", Instant.now().toString())
+                            .put("mediaCoverage", "AVAILABLE_FILES_WITH_NOTES"),
+                    )
+                // Keep enough evidence before changing the target to recognize a completed
+                // replacement after a crash/readback error under the same request_id.
+                store.putOwnerValue("pixel_backup_last", current.toString())
+                progress.accept("Gewählte Sicherungsdatei aktualisieren und zurücklesen …")
+                if (sameTarget) {
+                    val oldArchive = saved.getJSONObject("archive")
+                    BackupDocumentTransfer.updateLocal(
+                        staged,
+                        sha,
+                        oldArchive.getString("sha256"),
+                        oldArchive.getLong("size"),
+                        selectedFile,
+                    )
+                } else {
+                    BackupDocumentTransfer.exportLocal(staged, sha, false, selectedFile)
+                }
+            }
+            return confirm(current)
         } catch (failure: Exception) {
             record?.let { current ->
                 try {
@@ -264,6 +392,28 @@ internal constructor(private val context: Context, private val store: PixelLocal
                 }
             }
         }
+    }
+
+    private fun confirm(record: JSONObject): JSONObject {
+        val archive = record.getJSONObject("archive")
+        record.remove("lastErrorCode")
+        record
+            .put("phase", "PROVIDER_VERIFIED")
+            .put("lastLocalAttemptAt", Instant.now().toString())
+            .put(
+                "provider",
+                JSONObject()
+                    .put("backup_id", record.getString("backupId"))
+                    .put("archive_sha256", archive.getString("sha256"))
+                    .put("byte_size", archive.getLong("size"))
+                    .put("verified_at", Instant.now().toString())
+                    .put("verification_scope", "DOCUMENT_PROVIDER_READBACK")
+                    .put("destination_location", "DOCUMENT_PROVIDER")
+                    .put("external_storage_verified", false),
+            )
+        store.putOwnerValue("pixel_backup_success", record.toString())
+        store.putOwnerValue("pixel_backup_last", record.toString())
+        return result(record)
     }
 
     private fun result(record: JSONObject): JSONObject =

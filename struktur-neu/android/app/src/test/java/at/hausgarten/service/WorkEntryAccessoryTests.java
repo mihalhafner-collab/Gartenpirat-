@@ -12,6 +12,21 @@ public final class WorkEntryAccessoryTests {
     static void rejects(Check action) throws Exception { try { action.run(); throw new AssertionError("Expected invalid input"); } catch (IllegalArgumentException expected) { checks++; } }
     static JSONObject work() throws Exception { return new JSONObject().put("work_date", "2026-10-30").put("activity", "QA synthetic garden").put("start_time", "08:00").put("end_time", "12:00"); }
     static JSONObject item(String id) throws Exception { return new JSONObject().put("id", id).put("type", "chain").put("name", "QA chain " + id); }
+    static JSONObject changeAmount(JSONObject master, String field, Object value, String request) throws Exception {
+        JSONObject previous = PixelMcpWriteTools.find(master.getJSONArray("worklogs"), "qa_work_1");
+        JSONObject args = new JSONObject().put("request_id", request).put("work_record_id", "qa_work_1")
+            .put("expected_record_hash", PixelMcpWriteTools.hash(PixelMcpWriteTools.base(previous)))
+            .put("updates", new JSONObject().put(field, value));
+        JSONObject schema = PixelMcpWriteTools.schema("update_work_record");
+        McpSchema.validate(args, schema);
+        JSONObject payload = PixelMcpWriteTools.prepare("update_work_record", args,
+            new JSONObject().put("master", master).put("pending", new JSONArray()), request);
+        JSONArray errors = LocalJournalRules.apply(master, new JSONArray().put(new JSONObject()
+            .put("kind", "worklog").put("client_id", request).put("created_at", "2026-11-09T10:00:00Z")
+            .put("payload", payload.put("updated_at", "2026-11-09T10:00:00Z"))));
+        yes(errors.length() == 0);
+        return PixelMcpWriteTools.find(new JSONObject(master.toString()).getJSONArray("worklogs"), "qa_work_1");
+    }
     public static void main(String[] ignored) throws Exception {
         for (int pause : new int[]{15,30,45,60,23,0}) {
             JSONObject row = work().put("break_minutes", pause);
@@ -29,22 +44,28 @@ public final class WorkEntryAccessoryTests {
         }
         JSONObject none = work(); WorklogRules.validate(none,true); yes(!none.has("disposal_cost"));
         JSONObject cleared = work().put("disposal_cost", ""); WorklogRules.validate(cleared,true); yes(!cleared.has("disposal_cost"));
+        for (String field : new String[]{"material_cost", "disposal_cost"}) {
+            JSONObject amountMaster = SyntheticBusinessData.profile("minimal"); LocalBusinessState.prepare(amountMaster);
+            JSONObject entered = changeAmount(amountMaster, field, 5, "qa_enter_optional_" + field);
+            yes(field.equals("material_cost") ? entered.optString("material").contains("Materialkosten [EUR]: 5.00") : entered.getDouble(field) == 5);
+            JSONObject undone = changeAmount(amountMaster, field, JSONObject.NULL, "qa_undo_optional_" + field);
+            yes(undone.isNull(field));
+            yes(!field.equals("material_cost") || !undone.optString("material").contains("Materialkosten [EUR]:"));
+        }
         JSONObject net = work().put("start_time", "").put("end_time", "").put("hours", 3.5).put("break_minutes",30); WorklogRules.validate(net,true); yes(net.getDouble("hours")==3.5);
         JSONObject decimal = work().put("start_time", "").put("end_time", "")
-            .put("hours", "3,5").put("kilometers", "7,25").put("break_minutes", "0")
+            .put("hours", "3,5").put("break_minutes", "0")
             .put("material", "QA Material").put("material_cost", "12,50");
         PixelMcpWriteTools.applyMaterialCost(decimal);
         WorklogRules.validate(decimal, true);
         JSONObject decimalReopened = new JSONObject(decimal.toString());
         WorklogRules.validate(decimalReopened, false);
-        yes(decimalReopened.getDouble("hours") == 3.5 && decimalReopened.getDouble("kilometers") == 7.25);
-        yes(decimalReopened.get("hours") instanceof Number && decimalReopened.get("kilometers") instanceof Number);
+        yes(decimalReopened.getDouble("hours") == 3.5);
+        yes(decimalReopened.get("hours") instanceof Number);
         yes(decimalReopened.getString("material").equals("QA Material\nMaterialkosten [EUR]: 12.50") && !decimalReopened.has("material_cost"));
         rejects(() -> PixelMcpWriteTools.applyMaterialCost(work().put("material_cost", "-1,50")));
         rejects(() -> PixelMcpWriteTools.applyMaterialCost(work().put("material_cost", "1,234")));
         rejects(() -> WorklogRules.validate(work().put("break_minutes", "1,5"), true));
-        rejects(() -> WorklogRules.validate(work().put("kilometers", "-7,25"), true));
-        rejects(() -> WorklogRules.validate(work().put("kilometers", "NaN"), true));
         rejects(() -> WorklogRules.validate(work().put("break_minutes","nonsense"),true));
         rejects(() -> WorklogRules.validate(work().put("break_minutes",240),true));
         rejects(() -> WorklogRules.validate(work().put("disposal_cost","x"),true));

@@ -32,6 +32,8 @@ class PixelMcpWriteTools {
         val EDITABLE: Array<String> =
             arrayOf(
                 "billing_customer_id",
+                "property_id",
+                "billable",
                 "order_id",
                 "work_date",
                 "activity",
@@ -42,7 +44,6 @@ class PixelMcpWriteTools {
                 "material",
                 "material_cost",
                 "disposal_cost",
-                "kilometers",
                 "notes",
                 "location",
                 "customer_visible",
@@ -54,6 +55,8 @@ class PixelMcpWriteTools {
                 "id",
                 "customer_id",
                 "billing_customer_id",
+                "property_id",
+                "billable",
                 "order_id",
                 "work_date",
                 "activity",
@@ -83,17 +86,18 @@ class PixelMcpWriteTools {
         @Throws(Exception::class)
         fun field(key: String): JSONObject {
             var type =
-                (if (
-                    (((key == "hours") || (key == "kilometers")) ||
-                        (key in listOf("material_cost", "disposal_cost")))
-                )
+                (if (((key == "hours") || (key in listOf("material_cost", "disposal_cost"))))
                     "number"
                 else
                     (if (key == "break_minutes") "integer"
                     else
-                        (if ((key == "customer_visible") || (key == "allow_overnight")) "boolean"
+                        (if (key in setOf("customer_visible", "allow_overnight", "billable"))
+                            "boolean"
                         else "string")))
             val spec = JSONObject().put("type", type)
+            if (key in setOf("material_cost", "disposal_cost")) {
+                spec.put("type", JSONArray().put(type).put("null"))
+            }
             if (type == "string") {
                 spec.put(
                     "maxLength",
@@ -193,7 +197,14 @@ class PixelMcpWriteTools {
                     }
                     var value = args.get(key)
                     val spec = props.getJSONObject(key)
-                    val type = spec.getString("type")
+                    val declared = spec.get("type")
+                    val types = if (declared is JSONArray) declared else JSONArray().put(declared)
+                    if (
+                        value === JSONObject.NULL &&
+                            (0 until types.length()).any { types.optString(it) == "null" }
+                    )
+                        continue
+                    val type = types.getString(0)
                     var valid: Boolean =
                         (if (type == "string") value is String
                         else
@@ -316,6 +327,15 @@ class PixelMcpWriteTools {
             if (!(payload.has("material_cost"))) {
                 return
             }
+            val material =
+                payload
+                    .optString("material")
+                    .replace(Regex("(?m)^Materialkosten \\[EUR\\]: [0-9]+(?:\\.[0-9]{1,2})?\$"), "")
+                    .trim()
+            if (payload.isNull("material_cost") || payload.optString("material_cost").isBlank()) {
+                payload.put("material", material).put("material_cost", JSONObject.NULL)
+                return
+            }
             var cost =
                 java.math.BigDecimal(
                     payload.get("material_cost").toString().trim().replace(',', '.')
@@ -326,11 +346,6 @@ class PixelMcpWriteTools {
                     "Materialkosten müssen nicht negativ sein und höchstens zwei Nachkommastellen haben.",
                 )
             }
-            var material =
-                payload
-                    .optString("material")
-                    .replace(Regex("(?m)^Materialkosten \\[EUR\\]: [0-9]+(?:\\.[0-9]{1,2})?\$"), "")
-                    .trim()
             payload.put(
                 "material",
                 ((java.lang.String.valueOf(if (material.isEmpty()) "" else (material + "\n")) +

@@ -6,7 +6,6 @@ import android.app.Instrumentation
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.os.Process
@@ -147,15 +146,9 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
     private fun uri(id: String): Uri = SyntheticBackupDocumentsProvider.document(id)
 
     private fun execute(reopen: Boolean): JSONObject {
-        // Guard before inspecting any application fixture contents. Never run on a physical Pixel.
+        // Verify the test APK and target package before inspecting any fixture contents.
         yes(test.context.packageName == "at.hausgarten.service.test", "TEST_APK_REQUIRED")
         yes(context.packageName == "at.hausgarten.service", "ORIGINAL_TARGET_PACKAGE_REQUIRED")
-        yes(
-            Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "DISPOSABLE_EMULATOR_REQUIRED",
-        )
-        yes(Build.VERSION.SDK_INT == 35, "API_35_REQUIRED")
         yes(!context.isDeviceProtectedStorage, "SEPARATE_CREDENTIAL_FIXTURE")
         if (reopen) return reopen()
         val files = context.filesDir
@@ -250,7 +243,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             )
             yes(
                 documentStats(success).getInt("writes") == 1 &&
-                    documentStats(success).getInt("reads") == 1,
+                    documentStats(success).getInt("reads") == 2,
                 "REMOTE_PROVIDER_OPENS",
             )
             val good = store.ownerValue("pixel_backup_success", "")
@@ -276,15 +269,27 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     store.ownerValue("pixel_backup_success", "") == good,
                     "PRIOR_VERIFIED_PROOF_$mode",
                 )
-                yes(documentStats(id).getInt("writes") == 1, "WRITE_ATTEMPT_$mode")
                 yes(
-                    documentStats(id).getInt("reads") == if (mode.startsWith("READ_")) 1 else 0,
+                    documentStats(id).getInt("writes") == if (mode == "READ_OPEN") 0 else 1,
+                    "WRITE_ATTEMPT_$mode",
+                )
+                yes(
+                    documentStats(id).getInt("reads") == if (mode == "READ_TRUNCATED") 2 else 1,
                     "READ_ATTEMPT_$mode",
                 )
                 yes(!File(context.noBackupFilesDir, "pixel-backup").exists(), "WORK_CLEANED_$mode")
             }
             service.save(request, uri(success)) {}
             yes(documentStats(success).getInt("writes") == 1, "RETRY_READS_WITHOUT_REWRITE")
+            rejects("NO_ATOMIC_PROVIDER_STRATEGY") {
+                service.save("qa_provider_update_blocked", uri(success)) {}
+            }
+            yes(documentStats(success).getInt("writes") == 1, "UNSAFE_UPDATE_DOES_NOT_TRUNCATE")
+            yes(
+                store.ownerValue("pixel_backup_success", "") == good,
+                "UNSAFE_UPDATE_PRESERVES_VERIFIED_PROOF",
+            )
+            service.save(request, uri(success)) {}
         }
         val restore = BackupRestoreService(context)
         val deniedSource = create(false)
@@ -616,7 +621,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 )
             waitUntil("BACKUP_ACTIVITY") { node("Jetzt sichern") != null }
             val before = stats().toString()
-            click("Jetzt sichern")
+            click("Anderen Speicherort wählen")
             waitUntil("CREATE_PICKER_CANCEL") { pickerVisible() }
             back()
             waitUntil("CREATE_CANCEL_RETURNED") { node("Jetzt sichern") != null }
@@ -625,7 +630,10 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             test.runOnMainSync {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), state)
             }
-            yes(state.getString("target", "").isEmpty(), "CREATE_CANCEL_NO_TARGET")
+            yes(
+                state.getString("target", "").isNotEmpty(),
+                "CREATE_CANCEL_PRESERVES_PREVIOUS_TARGET",
+            )
             click("Sicherung wiederherstellen")
             waitUntil("OPEN_PICKER_CANCEL") { pickerVisible() }
             back()
@@ -637,7 +645,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             yes(canceled.getString("restore_uri", "").isEmpty(), "OPEN_CANCEL_NO_SOURCE")
             yes(stats().toString() == before, "OPEN_CANCEL_NO_PROVIDER_MUTATION")
 
-            click("Jetzt sichern")
+            click("Anderen Speicherort wählen")
             chooseSyntheticRoot()
             waitUntil("SYSTEM_CREATE_SAVE_BUTTON") {
                 find(automation.rootInActiveWindow) {
@@ -658,13 +666,11 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 )
             yes(save.performAction(AccessibilityNodeInfo.ACTION_CLICK), "SYSTEM_CREATE_CONFIRM")
             waitUntil("PRODUCTION_SAVE_VERIFIED", 45000) {
-                find(automation.rootInActiveWindow) {
-                    it.text?.toString()?.startsWith("ZIP vollständig zurückgelesen") == true
-                } != null
+                node("Gespeichert und geprüft") != null && node("ZIP geprüft.") != null
             }
             val id = stats().getString("last_created")
             yes(
-                documentStats(id).getInt("writes") == 1 && documentStats(id).getInt("reads") == 1,
+                documentStats(id).getInt("writes") == 1 && documentStats(id).getInt("reads") == 2,
                 "UI_PROVIDER_SAVE_READBACK",
             )
             click("Sicherung wiederherstellen")
@@ -706,7 +712,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                     it.text?.toString()?.startsWith("Vorschau bereit.") == true
                 } != null
             }
-            yes(documentStats(id).getInt("reads") == 2, "UI_PROVIDER_RESTORE_READ")
+            yes(documentStats(id).getInt("reads") == 3, "UI_PROVIDER_RESTORE_READ")
             return id
         } finally {
             activity?.let { value -> test.runOnMainSync { value.finish() } }

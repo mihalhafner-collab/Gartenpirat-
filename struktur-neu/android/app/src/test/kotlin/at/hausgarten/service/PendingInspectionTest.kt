@@ -236,14 +236,7 @@ class PendingInspectionTest {
     @Test
     fun removedReceiptAcknowledgesOnlyAnExplicitDeletion() = runBlocking {
         for (tool in
-            listOf(
-                "delete_entity",
-                "purge_entity",
-                "empty_trash",
-                "delete_work_records",
-                "saveWorklog",
-                "update_photo",
-            )) {
+            listOf("delete_entity", "delete_work_records", "saveWorklog", "update_photo")) {
             var calls = 0
             val result =
                 PendingInspectionRules.inspect(
@@ -259,12 +252,7 @@ class PendingInspectionTest {
                     },
                     { fail("A terminal deletion receipt must not repeat") },
                 )
-            assertEquals(
-                if (tool.startsWith("delete_") || tool in setOf("purge_entity", "empty_trash"))
-                    "confirmed"
-                else "removed",
-                result.state,
-            )
+            assertEquals(if (tool.startsWith("delete_")) "confirmed" else "removed", result.state)
             assertEquals(1, calls)
         }
     }
@@ -294,7 +282,7 @@ class PendingInspectionTest {
             )
         )
         val entity = JSONObject().put("entity", "appointment").put("entity_id", "qa_entity_one")
-        for (tool in listOf("delete_entity", "purge_entity")) {
+        for (tool in listOf("delete_entity")) {
             assertTrue(
                 PendingInspectionRules.sameDeletionTarget(
                     tool,

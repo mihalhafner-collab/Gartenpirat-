@@ -66,6 +66,10 @@ class AppointmentAvailability {
             if (!AppointmentRules.active(row) || row.optString("status").equals("draft")) {
                 return out.put("inactive", true)
             }
+            if (!AppointmentRules.timed(row))
+                return out.put("time_unknown", true)
+                    .put("duration_unknown", true)
+                    .put("app_checked", false)
             val open: Boolean = AppointmentRules.openEnd(row)
             val work: Instant = AppointmentRules.instant(row.getString("starts_at"))
             val start: Instant = work.minusSeconds(row.optInt("travel_minutes") * 60L)

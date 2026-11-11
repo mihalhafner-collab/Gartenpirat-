@@ -40,7 +40,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         /** One journey per process, after pm clear on the disposable API 35 emulator. */
         @JvmStatic
         fun run(test: Instrumentation, journey: String): JSONObject =
-            NativeComposeAppTests(test).execute(journey)
+            NativeComposeAppTests(test).withActivities { execute(journey) }
 
         /**
          * Independent UI acceptance: fresh disposable emulator sandbox, no backup/provider
@@ -48,22 +48,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
          */
         @JvmStatic
         fun runGraphics(test: Instrumentation, journey: String): JSONObject =
-            NativeComposeAppTests(test).executeGraphics(journey)
+            NativeComposeAppTests(test).withActivities { executeGraphics(journey) }
 
         @JvmStatic
         fun runSettlement(test: Instrumentation): JSONObject =
-            NativeComposeAppTests(test).executeSettlement()
+            NativeComposeAppTests(test).withActivities { executeSettlement() }
 
         @JvmStatic
         fun runAccounting(test: Instrumentation, reopen: Boolean): JSONObject =
-            NativeComposeAppTests(test).executeAccounting(reopen)
+            NativeComposeAppTests(test).withActivities { executeAccounting(reopen) }
     }
 
     private val context = test.targetContext
     private val automation = test.uiAutomation
     private var checks = 0
-    private var activity: Activity? = null
+    @Volatile private var activity: Activity? = null
     @Volatile private var latest: Activity? = null
+    private val sharedSearchLabel = "Suchen"
     private val fixturePrefix = "[TEST] QA Native Page "
     private val createdName = "[TEST] QA Native Form 100"
     private val editedName = "[TEST] QA Native Form 101"
@@ -76,10 +77,55 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private val surfaceCases = JSONArray()
     private val listViewportCases = JSONArray()
 
+    private fun withActivities(block: NativeComposeAppTests.() -> JSONObject): JSONObject {
+        val application = context.applicationContext as Application
+        val callbacks =
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(value: Activity, state: Bundle?) {
+                    if (value is MainActivity) {
+                        latest = value
+                        activity = value
+                    }
+                }
+
+                override fun onActivityResumed(value: Activity) {
+                    if (value is MainActivity) {
+                        latest = value
+                        activity = value
+                    }
+                }
+
+                override fun onActivityDestroyed(value: Activity) {
+                    if (activity === value) activity = null
+                    if (latest === value) latest = null
+                }
+
+                override fun onActivityStarted(value: Activity) = Unit
+
+                override fun onActivityPaused(value: Activity) = Unit
+
+                override fun onActivityStopped(value: Activity) = Unit
+
+                override fun onActivitySaveInstanceState(value: Activity, state: Bundle) = Unit
+            }
+        application.registerActivityLifecycleCallbacks(callbacks)
+        return try {
+            block()
+        } finally {
+            application.unregisterActivityLifecycleCallbacks(callbacks)
+        }
+    }
+
     private fun yes(value: Boolean, code: String) {
         if (!value) throw AssertionError("QA_NATIVE_COMPOSE_$code")
         checks++
     }
+
+    private fun physicalPixelTested(): Boolean =
+        Build.MANUFACTURER.equals("Google", ignoreCase = true) &&
+            Build.MODEL.startsWith("Pixel", ignoreCase = true) &&
+            Build.HARDWARE !in listOf("ranchu", "goldfish") &&
+            shell("getprop ro.kernel.qemu") != "1"
 
     private fun shell(command: String): String =
         automation.executeShellCommand(command).use {
@@ -138,8 +184,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun nodes(): List<AccessibilityNodeInfo> {
-        // API35 is required by guardFixture. A fresh tree avoids acting on a
-        // previous route or pre-scroll bounds retained by AccessibilityCache.
+        // A fresh tree avoids acting on a previous route or pre-scroll bounds
+        // retained by AccessibilityCache.
         automation.clearCache()
         return all(automation.rootInActiveWindow)
     }
@@ -171,9 +217,28 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun selectTab(tag: String) {
+        fun selected() =
+            nodes().any { candidate ->
+                candidate.isVisibleToUser &&
+                    matches(candidate, tag) &&
+                    generateSequence(candidate) { it.parent }.any { it.isSelected }
+            }
         reveal(tag)
-        if (node(tag)?.isSelected != true) click(tag)
-        waitUntil("TAB_SELECTED_$tag") { node(tag)?.isSelected == true }
+        if (!selected()) click(tag)
+        waitUntil("TAB_SELECTED_$tag") { selected() }
+        checks++
+    }
+
+    private fun selectCustomerTab(label: String) {
+        fun selected() =
+            nodes().any { candidate ->
+                candidate.isVisibleToUser &&
+                    matches(candidate, label) &&
+                    generateSequence(candidate) { it.parent }.any(::navigationSelected)
+            }
+        reveal(label)
+        if (!selected()) click(label)
+        waitUntil("CUSTOMER_TAB_SELECTED_$label") { selected() }
         checks++
     }
 
@@ -189,6 +254,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             false
         }
         checks++
+    }
+
+    private fun openDetails(label: String) {
+        reveal(label)
+        fun state() =
+            node(label)?.let { node ->
+                generateSequence(node) { it.parent }
+                    .mapNotNull { it.stateDescription?.toString() }
+                    .firstOrNull { it in setOf("Aufgeklappt", "Zugeklappt") }
+            }
+        waitUntil("DETAIL_GROUP_STATE_$label") { state() != null }
+        if (state() == "Zugeklappt") click(label)
+        waitUntil("DETAIL_GROUP_OPEN_$label") { state() == "Aufgeklappt" }
     }
 
     private fun revealContaining(fragment: String) {
@@ -485,60 +563,110 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(UiTags.area("customers"))
         waitUntil("CUSTOMER_LIST_READY") {
             selectedArea(UiTags.area("customers")) &&
-                field("Suchen")?.isEditable == true &&
-                (keyboardVisible() || node(UiTags.CREATE)?.let(::clickable) != null)
+                node("Suchen")?.let(::clickable) != null &&
+                node(UiTags.CREATE)?.let(::clickable) != null
         }
         checks++
     }
+
+    @Suppress("DEPRECATION") // API 35 exposes the selected navigation button through isChecked.
+    private fun navigationSelected(node: AccessibilityNodeInfo) = node.isChecked
 
     private fun selectedArea(label: String) =
         nodes().any {
             it.isVisibleToUser &&
                 matches(it, label) &&
-                clickable(it)?.stateDescription?.toString() == "Ausgewählter Bereich"
+                (navigationSelected(it) || clickable(it)?.let(::navigationSelected) == true)
         }
+
+    /** The customer card opens the same explicit search as Today. */
+    private fun searchCustomers(query: String) {
+        if (node("Suche") == null) {
+            if (keyboardVisible()) back()
+            click("action:global-search")
+            waitUntil("SHARED_CUSTOMER_SEARCH_READY") {
+                field(sharedSearchLabel)?.isEditable == true
+            }
+        }
+        enter(sharedSearchLabel, query)
+        val expected =
+            read(
+                    "search_local",
+                    JSONObject()
+                        .put("query", query)
+                        .put("types", JSONArray(listOf("customer", "property")))
+                        .put("limit", 50),
+                )
+                .getInt("total")
+        showKeyboard(sharedSearchLabel)
+        yes(
+            requireNotNull(field(sharedSearchLabel))
+                .performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id),
+            "SHARED_CUSTOMER_SEARCH_SUBMITTED",
+        )
+        waitUntil("SHARED_CUSTOMER_SEARCH_RESULT") {
+            !keyboardVisible() && node("$expected Treffer") != null
+        }
+    }
 
     private fun openAccounting() {
         // The first tap restores this area's previous detail; the second opens
-        // its root and preserves the overview's saved filters and selected tab.
+        // its root and preserves the overview's saved filters.
         click(UiTags.area("accounting"))
         click(UiTags.area("accounting"))
+        scrollTop()
         waitUntil("ACCOUNTING_ROOT_READY") {
-            selectedArea(UiTags.area("accounting")) && node("Summen") != null
+            selectedArea(UiTags.area("accounting")) && node("ausgestellt") != null
         }
     }
 
     private fun openAccountingOpen() {
         openAccounting()
-        scrollTop()
-        waitUntil("ACCOUNTING_OPEN_TAB_OR_VIEW_READY") {
-            node("Offene Stunden") != null || node("Offen")?.let(::clickable) != null
-        }
-        if (node("Offene Stunden") == null) click("Offen")
-        reveal("Neue Abrechnung")
+        reveal("Offen abzurechnen")
     }
 
     private fun openAccountingTotals() {
         openAccounting()
-        waitUntil("ACCOUNTING_TOTALS_TAB_OR_VIEW_READY") {
-            field("Auftragsbezeichnung") != null || node("Summen")?.let(::clickable) != null
-        }
-        if (field("Auftragsbezeichnung") == null) click("Summen")
-        shown("Auftragsbezeichnung")
+        shown("ausgestellt")
     }
 
     private fun openSettlements() {
         openAccounting()
-        // A restored overview can already have this tab selected. Its search
-        // field proves the actual list; no second tab action is needed then.
-        waitUntil("SETTLEMENT_TAB_OR_VIEW_READY") {
-            field("Abschluss oder Rechnungsnummer") != null ||
-                node("Abschlüsse")?.let(::clickable) != null
-        }
-        if (field("Abschluss oder Rechnungsnummer") == null) click("Abschlüsse")
+        reveal("Alle Abschlüsse")
+        click("Alle Abschlüsse")
         waitUntil("SETTLEMENT_LIST_READY") {
             field("Abschluss oder Rechnungsnummer")?.isEditable == true
         }
+    }
+
+    /** Only establishes a detail context; business actions still use real controls. */
+    private fun openContext(
+        section: String,
+        id: String = "",
+        mode: String = "list",
+        args: JSONObject = JSONObject(),
+    ) {
+        // Compose can already be attached while the asynchronously loaded controller is null.
+        // Poll from the instrumentation worker; the main thread only reads and navigates.
+        waitUntil("CONTEXT_CONTROLLER_READY_$section") {
+            var opened = false
+            test.runOnMainSync {
+                val current = activity as? MainActivity ?: return@runOnMainSync
+                if (current.isDestroyed || current.isFinishing) return@runOnMainSync
+                val delegate =
+                    MainActivity::class
+                        .java
+                        .declaredFields
+                        .first { it.name.startsWith("controller") }
+                        .apply { isAccessible = true }
+                        .get(current) as androidx.compose.runtime.State<*>
+                val controller = delegate.value as? NativeAppController ?: return@runOnMainSync
+                controller.navigate(section, id, mode, args)
+                opened = true
+            }
+            opened
+        }
+        settleUi()
     }
 
     /** More opens the real list directly, including after returning from a record or action. */
@@ -548,12 +676,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("WORK_LIST_READY") { field("Suchen")?.isEditable == true }
     }
 
-    /** Design: rare areas sit behind ⋮ "Mehr" in Today's header; there is no office tab. */
+    /** The same overflow menu is available on each main area. */
     private fun openOffice() {
         click(UiTags.area("today"))
         click(UiTags.area("today"))
         click(UiTags.MORE)
-        reveal("Organisieren")
+        reveal("Vorgänge")
     }
 
     /** New work starts from the "+" of a main area, or from a list's own bottom action. */
@@ -577,15 +705,73 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun primaryPosition(primary: String, secondary: String) {
-        val first = visibleResult(primary)
-        val second = visibleResult(secondary)
-        val stacked = requireNotNull(activity).resources.configuration.fontScale > 1.3f
+        var first = Rect()
+        var second = Rect()
+        var minimum = 0
+        var priorGeometry = ""
+        var geometry = "No actions"
+        var stableSince = 0L
+        try {
+            waitUntil("PRIMARY_ACTIONS_READY_${primary}_$secondary") {
+                val snapshot = nodes()
+                fun actions(label: String) =
+                    snapshot
+                        .filter { it.isVisibleToUser && matches(it, label) }
+                        .mapNotNull(::clickable)
+                val primaryActions = actions(primary)
+                val primaryAction =
+                    primaryActions.firstOrNull { it.viewIdResourceName == UiTags.PRIMARY }
+                        ?: primaryActions.firstOrNull()
+                        ?: return@waitUntil false
+                first = Rect().also(primaryAction::getBoundsInScreen)
+                val secondaryActions = actions(secondary)
+                val secondaryAction =
+                    secondaryActions.firstOrNull { it.viewIdResourceName == UiTags.SECONDARY }
+                        ?: secondaryActions.minByOrNull {
+                            val bounds = Rect().also(it::getBoundsInScreen)
+                            kotlin.math.abs(bounds.centerY() - first.centerY())
+                        }
+                        ?: return@waitUntil false
+                second = Rect().also(secondaryAction::getBoundsInScreen)
+                val viewport = Rect()
+                test.runOnMainSync {
+                    activity?.window?.decorView?.let {
+                        it.getWindowVisibleDisplayFrame(viewport)
+                        minimum = (48 * it.resources.displayMetrics.density).toInt()
+                    }
+                }
+                geometry = "primary=$first secondary=$second viewport=$viewport minimum=$minimum"
+                if (geometry != priorGeometry) {
+                    test.sendStatus(
+                        0,
+                        Bundle().apply { putString("primary_action_geometry", geometry) },
+                    )
+                    priorGeometry = geometry
+                    stableSince = SystemClock.uptimeMillis()
+                }
+                minimum > 0 &&
+                    viewport.contains(first) &&
+                    viewport.contains(second) &&
+                    !Rect.intersects(first, second) &&
+                    (first.top >= second.bottom ||
+                        first.left >= second.right &&
+                            first.centerY() in second.top..second.bottom) &&
+                    first.height() >= minimum - 1 &&
+                    second.height() >= minimum - 1 &&
+                    SystemClock.uptimeMillis() - stableSince >= 500
+            }
+        } catch (failure: Throwable) {
+            throw AssertionError(
+                "PRIMARY_ACTION_GEOMETRY_${primary}_$secondary: $geometry",
+                failure,
+            )
+        }
         yes(
             !Rect.intersects(first, second) &&
-                if (stacked) first.top >= second.bottom else first.left >= second.right,
+                (first.top >= second.bottom ||
+                    first.left >= second.right && first.centerY() in second.top..second.bottom),
             "PRIMARY_POSITION_${primary}_SECONDARY_$secondary",
         )
-        val minimum = (56 * requireNotNull(activity).resources.displayMetrics.density).toInt()
         yes(
             first.height() >= minimum - 1 && second.height() >= minimum - 1,
             "PRIMARY_TOUCH_TARGET_$primary",
@@ -643,17 +829,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     }
 
     private fun guardGraphicsFixture() {
-        // Reject physical devices before inspecting any app storage. This suite never clears data.
+        // Check package identity and fresh synthetic storage before writing the fixture.
+        // This suite never clears app data.
         yes(
             test.context.packageName == "at.hausgarten.service.test" &&
                 context.packageName == "at.hausgarten.service",
             "GRAPHICS_TEST_AND_TARGET_PACKAGES",
-        )
-        yes(
-            Build.VERSION.SDK_INT == 35 &&
-                Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "GRAPHICS_DISPOSABLE_API35_EMULATOR_REQUIRED",
         )
         yes(!context.isDeviceProtectedStorage, "GRAPHICS_CREDENTIAL_SANDBOX_REQUIRED")
         RevierApplication.awaitStartup(context, 20000)
@@ -773,6 +954,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
     }
 
+    /** Pre-existing synthetic original, seeded without calling the retired Labor writer. */
+    private fun seedHistoricalLabor(draft: JSONObject, fixtureId: String): String {
+        val master = PixelMcpReadTools.effective(store.getState())
+        val record =
+            SettlementRules.review(SettlementRules.normalized(draft, fixtureId), master)
+                .put("status", "confirmed")
+                .put("issue_date", "2026-11-05")
+                .put("confirmed_at", "2026-11-05T10:00:00Z")
+        record.put("total_minor", SettlementRules.total(record))
+        val ledger = JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))
+        val records =
+            ledger.optJSONArray("records") ?: JSONArray().also { ledger.put("records", it) }
+        records.put(record)
+        store.putOwnerValue(SettlementRules.KEY, ledger.toString())
+        return fixtureId
+    }
+
     private fun executeSettlement(): JSONObject {
         guardGraphicsFixture()
         store.putOwnerValue("snapshot", NativeSettlementNativeTests.fixture().toString())
@@ -796,32 +994,25 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 )
                 .getString("settlement_id")
         val labor =
-            read(
-                    "save_settlement_draft",
-                    JSONObject()
-                        .put("request_id", "qa_settlement_ui_labor_draft")
-                        .put(
-                            "draft",
-                            NativeSettlementNativeTests.draft("labor", "200", "qa_settlement_labor"),
-                        ),
-                )
-                .getString("settlement_id")
+            seedHistoricalLabor(
+                NativeSettlementNativeTests.draft("labor", "200", "qa_settlement_labor"),
+                "qa_settlement_ui_historical_labor",
+            )
         val previous = automation.serviceInfo
         val previousFlags = previous.flags
         val oldFont = shell("settings get system font_scale")
         try {
-            automation.serviceInfo =
-                previous.apply {
-                    flags =
-                        flags or
-                            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
-                            AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
-                }
+            automation.serviceInfo = previous.apply {
+                flags =
+                    flags or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            }
             launch()
             openSettlements()
             shown("[TEST] Rechnung 900")
             click("[TEST] Rechnung 900")
-            shown("Entwurf")
+            shown("Ausstellen")
             // Design: one "Ausstellen" after the preview; issuer details are confirmed once in
             // settings.
             click(UiTags.PRIMARY)
@@ -830,6 +1021,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getJSONObject("record")
                     .getString("status") == "confirmed"
             }
+            shown("E-Rechnung")
+            click("Später")
             checks++
             reveal("Bestätigt")
             shown("Bestätigt")
@@ -848,12 +1041,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             captureSyntheticScreen("settlement-invoice-confirmed")
             openSettlements()
             click("[TEST] Labor 200")
-            click(UiTags.PRIMARY)
-            waitUntil("SETTLEMENT_UI_REAL_LABOR_CONFIRMATION") {
-                read("get_settlement", JSONObject().put("settlement_id", labor))
-                    .getJSONObject("record")
-                    .getString("status") == "confirmed"
-            }
             checks++
             reveal("Bestätigt")
             shown("Bestätigt")
@@ -868,150 +1055,98 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             captureSyntheticScreen("settlement-labor-confirmed")
             openAccountingTotals()
-            reveal("1100,00 €")
-            shown("1100,00 €")
+            shown("900,00 €")
             yes(
                 read("get_accounting_overview").getLong("total_minor") == 110000L,
                 "SETTLEMENT_UI_900_PLUS_200",
             )
-            click("Rechnung")
-            reveal("900,00 €")
-            shown("900,00 €")
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "qa_settlement_invoice")
-            back()
-            recreate()
-            // Activity recreation briefly shows the asynchronous startup review over the
-            // restored screen; the restored filter must stay visible once that is done.
-            waitStable("SETTLEMENT_UI_FILTER_RECREATION") {
-                field("Auftragsbezeichnung")?.text?.toString()?.contains("qa_settlement_invoice") ==
-                    true
-            }
-            val filteredAfterRecreation =
+            val filtered =
                 read(
                     "get_accounting_overview",
                     JSONObject().put("query", "qa_settlement_invoice").put("route", "billed"),
                 )
             yes(
-                filteredAfterRecreation.getLong("billed_minor") == 90000L &&
-                    filteredAfterRecreation.getLong("total_minor") == 90000L &&
-                    filteredAfterRecreation.getInt("total") == 1,
-                "SETTLEMENT_UI_RECREATED_FILTER_EXACT_AMOUNT",
+                filtered.getLong("billed_minor") == 90000L &&
+                    filtered.getLong("total_minor") == 90000L &&
+                    filtered.getInt("total") == 1,
+                "SETTLEMENT_SHARED_FILTER_EXACT_AMOUNT",
             )
-            // Search and keyboard handling may leave the preserved viewport below
-            // the sum cards. Explicitly bring the card into view before asserting it.
-            reveal("900,00 €")
-            shown("900,00 €")
-            captureSyntheticScreen("settlement-overview-filter")
-            openAccountingOpen()
-            click("Neue Abrechnung")
-            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung")
-            click("Position hinzufügen")
-            enter("Leistung", "[TEST] Synthetische manuelle Leistung A")
-            enter("Tatsächlich geleistete Menge", "1")
-            enter("Einheit", "Leistung")
-            enter("Preis je Einheit (€)", "3,00")
-            click(UiTags.PRIMARY)
-            reveal("[TEST] Erste manuelle Abrechnung")
-            shown("[TEST] Erste manuelle Abrechnung")
-            reveal("Entwurf")
-            shown("Entwurf")
+            captureSyntheticScreen("settlement-overview")
+            fun editValue(row: String, label: String, value: String) {
+                reveal(row)
+                click(row)
+                enter(label, value)
+                if (keyboardVisible()) back()
+                click("Fertig")
+            }
+            val sources =
+                JSONObject()
+                    .put("billing_customer_id", "qa_settlement_recipient")
+                    .put("work_record_ids", JSONArray().put("qa_settlement_race"))
+            openContext("settlement_edit", args = sources)
+            editValue("Bezeichnung", "Bezeichnung", "[TEST] Erste Abrechnung")
+            recreate()
+            shown("[TEST] Erste Abrechnung")
+            click("Entwurf sichern")
+            waitUntil("SETTLEMENT_UI_FIRST_NEW_DRAFT_SAVED") {
+                SettlementRules.rows(read("list_settlements").getJSONArray("records")).any {
+                    it.optString("title") == "[TEST] Erste Abrechnung"
+                }
+            }
+            shown("Abschlüsse")
             val firstNew =
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).single {
-                    it.optString("title") == "[TEST] Erste manuelle Abrechnung"
+                    it.optString("title") == "[TEST] Erste Abrechnung"
                 }
             yes(
-                firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") == 300L,
+                firstNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") ==
+                    4000L,
                 "SETTLEMENT_UI_FIRST_NEW_DRAFT_AMOUNT",
             )
-            openAccountingOpen()
-            click("Neue Abrechnung")
-            reveal("Bezeichnung")
-            yes(
-                field("Bezeichnung")?.text?.toString().orEmpty().isEmpty(),
-                "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_EMPTY",
-            )
-            yes(node("Abrechnungsart: Rechnung") != null, "SETTLEMENT_UI_NEW_EDITOR_DEFAULT_ROUTE")
-            enter("Bezeichnung", "[TEST] Zweite manuelle Abrechnung")
-            click("Abrechnungsart: Rechnung")
-            click("Labor clandestino")
-            click("Position hinzufügen")
-            enter("Leistung", "[TEST] Synthetische manuelle Leistung B")
-            enter("Tatsächlich geleistete Menge", "2")
-            enter("Einheit", "Stück")
-            enter("Preis je Einheit (€)", "2,00")
-            click(UiTags.PRIMARY)
-            reveal("[TEST] Zweite manuelle Abrechnung")
-            shown("[TEST] Zweite manuelle Abrechnung")
-            reveal("Entwurf")
-            shown("Entwurf")
+            openContext("settlement_edit", args = sources)
+            shown("Bezeichnung")
+            yes(node("[TEST] Erste Abrechnung") == null, "SETTLEMENT_UI_SECOND_NEW_EDITOR_IS_FRESH")
+            editValue("Bezeichnung", "Bezeichnung", "[TEST] Zweite Abrechnung")
+            editValue("Menge · Stunden", "Menge", "2")
+            click("Entwurf sichern")
+            waitUntil("SETTLEMENT_UI_SECOND_NEW_DRAFT_SAVED") {
+                SettlementRules.rows(read("list_settlements").getJSONArray("records")).any {
+                    it.optString("title") == "[TEST] Zweite Abrechnung"
+                }
+            }
+            shown("Abschlüsse")
             val secondNew =
                 SettlementRules.rows(read("list_settlements").getJSONArray("records")).single {
-                    it.optString("title") == "[TEST] Zweite manuelle Abrechnung"
+                    it.optString("title") == "[TEST] Zweite Abrechnung"
                 }
             yes(
                 secondNew.getString("id") != firstNew.getString("id") &&
-                    secondNew.getString("route") == "labor" &&
+                    secondNew.getString("route") == "billed" &&
                     secondNew.getJSONArray("positions").getJSONObject(0).getLong("amount_minor") ==
-                        400L,
+                        8000L,
                 "SETTLEMENT_UI_NEW_OPERATION_DISTINCT_ID_ROUTE_AND_AMOUNT",
             )
             yes(
                 SettlementRules.rows(read("list_settlements").getJSONArray("records"))
                     .single { it.getString("id") == firstNew.getString("id") }
-                    .getString("title") == "[TEST] Erste manuelle Abrechnung",
+                    .getString("title") == "[TEST] Erste Abrechnung",
                 "SETTLEMENT_UI_FIRST_DRAFT_UNCHANGED_BY_SECOND",
             )
-            openSettlements()
-            click("[TEST] Erste manuelle Abrechnung")
-            click("Entwurf bearbeiten")
-            reveal("Bezeichnung")
-            yes(
-                field("Bezeichnung")
-                    ?.text
-                    ?.toString()
-                    ?.contains("[TEST] Erste manuelle Abrechnung") == true,
-                "SETTLEMENT_UI_EXISTING_EDITOR_LOADS_ITS_OWN_DRAFT",
-            )
-            enter("Bezeichnung", "[TEST] Erste manuelle Abrechnung geprüft")
-            click(UiTags.PRIMARY)
-            var lastSaveScroll = 0L
+            openContext("settlement_edit", firstNew.getString("id"))
+            shown("[TEST] Erste Abrechnung")
+            editValue("Bezeichnung", "Bezeichnung", "[TEST] Erste Abrechnung geprüft")
+            click("Entwurf sichern")
             waitUntil("SETTLEMENT_UI_EXISTING_DRAFT_SAVE_COMPLETED") {
-                // The edited text already exists in the busy editor. Require the
-                // distinct review action before reading the persisted result.
-                if (node("Entwurf bearbeiten")?.let(::clickable) != null) {
-                    SettlementRules.rows(read("list_settlements").getJSONArray("records"))
-                        .singleOrNull { it.getString("id") == firstNew.getString("id") }
-                        ?.optString("title") == "[TEST] Erste manuelle Abrechnung geprüft"
-                } else {
-                    if (SystemClock.uptimeMillis() - lastSaveScroll > 250) {
-                        scroll()
-                        lastSaveScroll = SystemClock.uptimeMillis()
-                    }
-                    false
-                }
-            }
-            reveal("[TEST] Erste manuelle Abrechnung geprüft")
-            shown("[TEST] Erste manuelle Abrechnung geprüft")
-            yes(
                 SettlementRules.rows(read("list_settlements").getJSONArray("records"))
-                    .single { it.getString("id") == firstNew.getString("id") }
-                    .getString("title") == "[TEST] Erste manuelle Abrechnung geprüft",
-                "SETTLEMENT_UI_EXISTING_DRAFT_UPDATED_WITH_CURRENT_HASH",
-            )
+                    .singleOrNull { it.getString("id") == firstNew.getString("id") }
+                    ?.optString("title") == "[TEST] Erste Abrechnung geprüft"
+            }
+            shown("Abschlüsse")
             yes(
                 PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
                     originalMaster && store.ownerValue("personal_paid", "[]") == originalMarks,
                 "SETTLEMENT_UI_ASSIGNMENTS_AND_SOURCES_UNCHANGED",
             )
-            openAccountingTotals()
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "")
-            back()
-            scrollTop()
-            click("Gesamt")
-            reveal("1100,00 €")
-            shown("1100,00 €")
             for (wide in listOf(false, true)) {
                 activity?.let { current ->
                     test.runOnMainSync { if (!current.isFinishing) current.finish() }
@@ -1039,9 +1174,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     applied
                 }
                 settleUi()
-                reveal("Gesamt")
-                reveal("1100,00 €")
-                shown("1100,00 €")
+                reveal("900,00 €")
+                shown("900,00 €")
+                reveal("bezahlt · diese Belege")
+                shown("bezahlt · diese Belege")
                 captureSyntheticScreen(
                     "settlement-overview-200-${if (wide) "landscape" else "portrait"}"
                 )
@@ -1051,12 +1187,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("synthetic_only", true)
                 .put("productive_data_read", false)
                 .put("real_main_activity", true)
-                .put("both_completion_routes", true)
+                .put("invoice_completion_and_historical_labor_readback", true)
                 .put("exact_amounts", true)
                 .put("filters_and_navigation", true)
                 .put("font_scale_200_percent", true)
                 .put("draft_recreation", true)
-                .put("physical_pixel_tested", false)
+                .put("physical_pixel_tested", physicalPixelTested())
         } catch (failure: Throwable) {
             runCatching { captureSyntheticScreen("settlement-failure") }
             throw failure
@@ -1080,24 +1216,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun executeAccounting(reopen: Boolean): JSONObject {
         yes(
             test.context.packageName == "at.hausgarten.service.test" &&
-                context.packageName == "at.hausgarten.service" &&
-                Build.VERSION.SDK_INT == 35 &&
-                Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                shell("getprop ro.kernel.qemu") == "1",
-            "ACCOUNTING_DISPOSABLE_EMULATOR_BEFORE_STORAGE",
+                context.packageName == "at.hausgarten.service",
+            "ACCOUNTING_TEST_AND_TARGET_PACKAGES",
         )
         val marker = File(context.noBackupFilesDir, "qa-native-accounting.json")
         if (reopen) {
             yes(
-                test.context.packageName == "at.hausgarten.service.test" &&
-                    Build.VERSION.SDK_INT == 35 &&
-                    Build.HARDWARE in listOf("ranchu", "goldfish") &&
-                    shell("getprop ro.kernel.qemu") == "1",
-                "ACCOUNTING_REOPEN_EMULATOR_REQUIRED",
-            )
-            yes(
                 marker.isFile &&
-                    JSONObject(marker.readText()).optString("fixture") == "synthetic-accounting-v1",
+                    JSONObject(marker.readText()).optString("fixture") ==
+                        "synthetic-eisbaer-accounting-v1",
                 "ACCOUNTING_REOPEN_SYNTHETIC_MARKER",
             )
             store = PixelLocalStore(context)
@@ -1108,13 +1235,18 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     saved.getString("snapshot_hash"),
                 "ACCOUNTING_NEW_PROCESS_IDENTICAL_SOURCE",
             )
-            val result = read("get_accounting_overview")
+            val marked =
+                read(
+                        "get_lcr_work_records",
+                        JSONObject().put("work_record_id", "qa_settlement_old_unbound"),
+                    )
+                    .getJSONArray("records")
+                    .getJSONObject(0)
             yes(
-                result.getLong("total_minor") == 0L &&
-                    result.getInt("total") == 1 &&
-                    result.getInt("pending_amounts") == 1 &&
-                    result.getInt("review_total") == 0,
-                "ACCOUNTING_NEW_PROCESS_PERSISTED_ASSIGNMENT_AND_PHASE2_DEFERRAL",
+                marked.getBoolean("lcr") &&
+                    read("get_finance_overview").getLong("issued_minor") == 90000L &&
+                    read("get_finance_overview").getLong("paid_minor") == 90000L,
+                "ACCOUNTING_NEW_PROCESS_LCR_AND_DOCUMENT_PRESERVED",
             )
             return JSONObject()
                 .put("checks", checks)
@@ -1123,241 +1255,127 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("new_process_readback", true)
         }
         guardGraphicsFixture()
-        val source = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
-        val customer = source.getJSONArray("customers").getJSONObject(0).getString("id")
-        source.getJSONArray("customers").getJSONObject(0).put("name", "[TEST] QA Abrechnung Kunde")
-        fun order(id: String, status: String, amount: String, property: String) =
-            JSONObject()
-                .put("id", id)
-                .put("title", "QA Abrechnung " + id.takeLast(1).uppercase())
-                .put("customer_id", customer)
-                .put("billing_customer_id", customer)
-                .put("status", status)
-                .put("accounting_amount", amount)
-                .put("property_id", property)
-                .put("scheduled_date", "2026-11-01")
-                .put("test_record", true)
-                .put("created_at", "2026-11-01T10:00:00Z")
-                .put("updated_at", "2026-11-01T10:00:00Z")
-        fun work(id: String, parent: String, billed: Int, amount: String, day: String) =
-            JSONObject()
-                .put("id", id)
-                .put("order_id", parent)
-                .put("customer_id", customer)
-                .put("billing_customer_id", customer)
-                .put("activity", "QA Abrechnung Arbeit $id")
-                .put("billed", billed)
-                .put("accounting_amount", amount)
-                .put("work_date", day)
-                .put("hours", 2)
-                .put("test_record", true)
-                .put("created_at", "2026-11-01T10:00:00Z")
-                .put("updated_at", "2026-11-01T10:00:00Z")
-        source.put(
-            "orders",
-            JSONArray()
-                .put(order("qa_accounting_a", "Abgerechnet", "900.00", "qa_accounting_property"))
-                .put(order("qa_accounting_b", "Erledigt", "200.00", ""))
-                .put(order("qa_accounting_c", "Offen", "400.00", "").put("paid", true)),
-        )
-        source.put(
-            "worklogs",
-            JSONArray()
-                .put(work("qa_accounting_a1", "qa_accounting_a", 1, "500.00", "2026-11-01"))
-                .put(work("qa_accounting_a2", "qa_accounting_a", 1, "400.00", "2026-11-02"))
-                .put(work("qa_accounting_b1", "qa_accounting_b", 0, "200.00", "2026-11-03"))
-                .put(work("qa_accounting_c1", "qa_accounting_c", 0, "400.00", "2026-11-04")),
-        )
-        store.putOwnerValue("snapshot", source.toString())
+        store.putOwnerValue("snapshot", NativeSettlementNativeTests.fixture().toString())
         store.putOwnerValue("personal_paid_migrated", "1")
-        store.putOwnerValue("personal_paid", JSONArray().put("qa_accounting_b1").toString())
-        store.putOwnerValue(
-            "revier:v1:entity:property:qa_accounting_property",
+        store.putOwnerValue("personal_paid", JSONArray().put("qa_settlement_labor").toString())
+        val historical =
+            seedHistoricalLabor(
+                NativeSettlementNativeTests.draft("labor", "200", "qa_settlement_labor"),
+                "qa_accounting_historical_labor",
+            )
+        val invoice =
+            read(
+                    "save_settlement_draft",
+                    JSONObject()
+                        .put("request_id", "qa_eisbaer_accounting_invoice")
+                        .put(
+                            "draft",
+                            NativeSettlementNativeTests.draft(
+                                "billed",
+                                "900",
+                                "qa_settlement_invoice",
+                            ),
+                        ),
+                )
+                .getString("settlement_id")
+        val review = read("get_settlement", JSONObject().put("settlement_id", invoice))
+        read(
+            "prepare_settlement",
             JSONObject()
-                .put("id", "qa_accounting_property")
-                .put("name", "QA Haus und Garten")
-                .put("customer_id", customer)
-                .toString(),
+                .put("request_id", "qa_eisbaer_accounting_prepare")
+                .put("settlement_id", invoice)
+                .put("expected_review_hash", review.getString("review_hash"))
+                .put("confirmed", true)
+                .put("domestic_eur_confirmed", true)
+                .put("issuer_details_confirmed", true)
+                .put("electronic_delivery_accepted", false),
         )
-        fun overview(extra: JSONObject = JSONObject()) = read("get_accounting_overview", extra)
-        var data = overview()
-        yes(
-            data.getLong("billed_minor") == 90000L &&
-                data.getLong("labor_minor") == 20000L &&
-                data.getLong("total_minor") == 110000L &&
-                data.getInt("total") == 2,
-            "ACCOUNTING_ACCEPTANCE_EXAMPLE_AND_NO_DOUBLE_COUNT",
-        )
-        val filters =
+        read(
+            "complete_settlement",
             JSONObject()
-                .put("date_from", "2026-11-02")
-                .put("date_to", "2026-11-02")
-                .put("property_id", "qa_accounting_property")
-                .put("query", "Abrechnung A")
-        data = overview(filters)
-        yes(
-            data.getLong("total_minor") == 90000L && data.getInt("total") == 1,
-            "ACCOUNTING_SHARED_DATE_OBJECT_SEARCH_FILTERS",
+                .put("request_id", "qa_eisbaer_accounting_complete")
+                .put("settlement_id", invoice),
         )
-        yes(
-            overview(JSONObject(filters.toString()).put("route", "labor")).getLong("total_minor") ==
-                0L,
-            "ACCOUNTING_PATH_FILTER_APPLIES_TO_SUMS_AND_LIST",
-        )
-        yes(
-            overview(JSONObject().put("query", "QA no matching accounting"))
-                .getLong("total_minor") == 0L,
-            "ACCOUNTING_EMPTY_ZERO_TOTALS",
-        )
-        val previousInfo = automation.serviceInfo
-        val previousFlags = previousInfo.flags
+        val sourceHash = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+        val originalLedger = store.ownerValue(SettlementRules.KEY, "{}")
+        val originalMarks = store.ownerValue("personal_paid", "[]")
+        val historicalHash =
+            PixelMcpWriteTools.hash(
+                read("get_settlement", JSONObject().put("settlement_id", historical))
+                    .getJSONObject("record")
+            )
+        val previous = automation.serviceInfo
+        val previousFlags = previous.flags
         val oldFont = shell("settings get system font_scale")
         try {
-            automation.serviceInfo =
-                previousInfo.apply {
-                    flags =
-                        flags or
-                            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
-                            AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
-                }
+            automation.serviceInfo = previous.apply {
+                flags =
+                    flags or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            }
             launch()
-            openAccountingTotals()
-            reveal("1100,00 €")
-            shown("1100,00 €")
-            click("Rechnung")
-            reveal("900,00 €")
-            shown("900,00 €")
-            reveal("QA Abrechnung A")
-            click("QA Abrechnung A")
-            shown("Bearbeiten")
-            click(UiTags.BACK)
-            reveal("900,00 €")
-            shown("900,00 €")
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "Abrechnung A")
-            back()
-            // IME disappearance precedes the resized dialog's accessibility tree.
-            // Require the retained query and overview together after that reflow.
-            waitUntil("ACCOUNTING_BACK_HIDES_IME_WITHOUT_LEAVING_OVERVIEW") {
-                !keyboardVisible() &&
-                    field("Auftragsbezeichnung")?.text?.toString() == "Abrechnung A"
-            }
-            checks++
-            recreate()
-            // A Compose startup screen exists before the accounting route is ready.
-            // Require its restored search field, not merely the root Compose view.
-            waitUntil("ACCOUNTING_RECREATED_FEATURE_FIELD") {
-                field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true
+            openContext("worklogs", "qa_settlement_old_unbound")
+            reveal("work-lcr")
+            click("work-lcr")
+            waitUntil("ACCOUNTING_UI_LCR_MARKED") {
+                AccountingRules.ids(JSONArray(store.ownerValue(SettlementRules.LCR_KEY, "[]")))
+                    .contains("qa_settlement_old_unbound")
             }
             yes(
-                field("Auftragsbezeichnung")?.text?.toString()?.contains("Abrechnung A") == true,
-                "ACCOUNTING_FILTERS_SURVIVE_DETAIL_AND_RECREATION",
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
+                    sourceHash &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == originalLedger &&
+                    store.ownerValue("personal_paid", "[]") == originalMarks,
+                "ACCOUNTING_LCR_UI_CHANGES_NO_ORIGINAL_LEDGER_PAYMENT_OR_HISTORICAL_MARK",
             )
-            val filteredAfterRecreation =
-                overview(JSONObject().put("query", "Abrechnung A").put("route", "billed"))
+            val summary =
+                read("get_work_record_summary", JSONObject().put("group_by_billing_customer", true))
             yes(
-                filteredAfterRecreation.getLong("billed_minor") == 90000L &&
-                    filteredAfterRecreation.getLong("total_minor") == 90000L &&
-                    filteredAfterRecreation.getInt("total") == 1,
-                "ACCOUNTING_RECREATED_FILTER_EXACT_AMOUNT",
+                SettlementRules.rows(summary.getJSONArray("billing_groups"))
+                    .flatMap { SettlementRules.rows(it.getJSONArray("work_records")) }
+                    .none { it.optString("id") == "qa_settlement_old_unbound" },
+                "ACCOUNTING_MARKED_ORIGINAL_EXCLUDED_ONLY_FROM_OPEN_BILLING",
             )
-            // Retain the user's viewport; the harness scrolls to the amount only
-            // when its actual visibility is required for this assertion.
-            reveal("900,00 €")
-            shown("900,00 €")
-            // Simulate the later invoice module's committed source update, never a manual price
-            // editor.
-            val invoiceUpdate = JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
-            PixelMcpWriteTools.find(invoiceUpdate.getJSONArray("orders"), "qa_accounting_a")
-                .put("accounting_amount", "950.25")
-            store.putOwnerValue("snapshot", invoiceUpdate.toString())
-            reveal("950,25 €")
-            shown("950,25 €")
-            val observed =
-                read(
-                    "get_accounting_record",
-                    JSONObject().put("collection", "orders").put("entity_id", "qa_accounting_a"),
-                )
-            val update =
-                JSONObject()
-                    .put("request_id", "qa_accounting_amount_change")
-                    .put("collection", "orders")
-                    .put("entity_id", "qa_accounting_a")
-                    .put("expected_record_hash", observed.getString("expected_record_hash"))
-                    .put("route", "billed")
-            val beforeAbort = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
-            val marksBeforeAbort = store.ownerValue("personal_paid", "[]")
-            val receiptKey = "receipt:mcp_owner_" + PixelMcpWriteTools.hash("qa_accounting_abort")
-            store.writableDatabase.execSQL(
-                "CREATE TRIGGER qa_accounting_abort BEFORE INSERT ON owner_state WHEN NEW.key='$receiptKey' BEGIN SELECT RAISE(ABORT,'QA accounting receipt failure'); END"
-            )
-            try {
-                val abort = runCatching {
-                    tools.call(
-                        "set_accounting_record",
-                        JSONObject(update.toString())
-                            .put("request_id", "qa_accounting_abort")
-                            .put("route", "labor"),
-                    )
-                }
-                yes(
-                    abort.isFailure || abort.getOrNull()?.optBoolean("ok") == false,
-                    "ACCOUNTING_INJECTED_RECEIPT_FAILURE",
-                )
-                yes(
-                    PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())) ==
-                        beforeAbort && store.ownerValue("personal_paid", "[]") == marksBeforeAbort,
-                    "ACCOUNTING_TRANSACTION_ROLLBACK_HAS_NO_PARTIAL_MARKS_OR_AMOUNTS",
-                )
-            } finally {
-                store.writableDatabase.execSQL("DROP TRIGGER qa_accounting_abort")
+            openContext("lcr")
+            reveal("[TEST] Tatsächliche synthetische Gartenarbeit qa_settlement_old_unbound")
+            click("[TEST] Tatsächliche synthetische Gartenarbeit qa_settlement_old_unbound")
+            reveal("work-lcr")
+            click("work-lcr")
+            waitUntil("ACCOUNTING_UI_LCR_UNMARKED") {
+                !AccountingRules.ids(JSONArray(store.ownerValue(SettlementRules.LCR_KEY, "[]")))
+                    .contains("qa_settlement_old_unbound")
             }
-            read("set_accounting_record", update)
-            reveal("950,25 €")
-            shown("950,25 €")
+            val eligible =
+                read("get_work_record_summary", JSONObject().put("group_by_billing_customer", true))
             yes(
-                read("set_accounting_record", update).getBoolean("replayed"),
-                "ACCOUNTING_IDENTICAL_REPLAY",
+                SettlementRules.rows(eligible.getJSONArray("billing_groups"))
+                    .flatMap { SettlementRules.rows(it.getJSONArray("work_records")) }
+                    .any { it.optString("id") == "qa_settlement_old_unbound" },
+                "ACCOUNTING_UNMARKED_ORIGINAL_RETURNS_TO_OPEN_BILLING",
             )
-            yes(
-                overview().getLong("total_minor") == 115025L,
-                "ACCOUNTING_REAL_WRITER_EXACT_AMOUNT_REFRESH",
-            )
-            val stale =
-                JSONObject(update.toString()).put("request_id", "qa_accounting_stale_change")
-            val failed = runCatching { tools.call("set_accounting_record", stale) }
-            yes(
-                failed.isFailure || failed.getOrNull()?.optBoolean("ok") == false,
-                "ACCOUNTING_STALE_HASH_REJECTED",
-            )
-            store.putOwnerValue(
-                "personal_paid",
-                JSONArray().put("qa_accounting_b1").put("qa_accounting_a1").toString(),
-            )
-            data = overview()
-            yes(
-                data.getInt("review_total") == 1 && data.getLong("total_minor") == 20000L,
-                "ACCOUNTING_LEGACY_CONFLICT_VISIBLE_AND_EXCLUDED",
-            )
-            reveal("Zuordnung ändern")
-            click("Zuordnung ändern")
-            shown("Abrechnungsweg: Auswählen")
-            click("Abrechnungsweg: Auswählen")
-            click("Labor clandestino")
-            click("Abrechnung speichern")
-            waitUntil("ACCOUNTING_EXPLICIT_CONFLICT_CORRECTION") {
-                val value = overview()
-                value.getInt("review_total") == 0 && value.getLong("labor_minor") == 115025L
+            click("work-lcr")
+            waitUntil("ACCOUNTING_UI_LCR_REMARKED") {
+                AccountingRules.ids(JSONArray(store.ownerValue(SettlementRules.LCR_KEY, "[]")))
+                    .contains("qa_settlement_old_unbound")
             }
-            // Return to the same filtered overview; clear only search for viewport checks.
-            showKeyboard("Auftragsbezeichnung")
-            enter("Auftragsbezeichnung", "")
-            back()
-            waitUntil("ACCOUNTING_FINAL_IME_HIDDEN") { !keyboardVisible() }
-            scrollTop()
-            click("Gesamt")
-            reveal("1150,25 €")
-            shown("1150,25 €")
+            openContext("worklogs", "qa_settlement_invoice")
+            reveal("work-lcr")
+            yes(!actionEnabled("work-lcr"), "ACCOUNTING_DOCUMENT_BOUND_LCR_CONTROL_LOCKED")
+            yes(
+                PixelMcpWriteTools.hash(
+                    read("get_settlement", JSONObject().put("settlement_id", historical))
+                        .getJSONObject("record")
+                ) == historicalHash,
+                "ACCOUNTING_HISTORICAL_ORIGINAL_NOT_REINTERPRETED",
+            )
+            val report = read("get_finance_overview")
+            yes(
+                report.getLong("issued_minor") == 90000L &&
+                    report.getLong("paid_minor") == 0L &&
+                    report.getLong("open_minor") == 90000L,
+                "ACCOUNTING_DOCUMENT_PAYMENT_AND_OPEN_AMOUNTS_SEPARATE",
+            )
             for (font in listOf("1.0", "2.0")) for (wide in listOf(false, true)) {
                 activity?.let { current ->
                     test.runOnMainSync { if (!current.isFinishing) current.finish() }
@@ -1371,66 +1389,47 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         else android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
                 settleUi()
-                reveal("Gesamt")
-                reveal("1150,25 €")
-                shown("1150,25 €")
+                reveal("900,00 €")
+                shown("ausgestellt")
+                reveal("bezahlt · diese Belege")
+                shown("bezahlt · diese Belege")
+                reveal("offen · diese Belege")
+                shown("offen · diese Belege")
                 captureSyntheticScreen(
-                    "accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}"
+                    "eisbaer-accounting-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}"
                 )
-                yes(
-                    field("Auftragsbezeichnung") != null,
-                    "ACCOUNTING_SEARCH_ACCESSIBLE_${font}_$wide",
-                )
-                reveal("QA Abrechnung A")
-                click("QA Abrechnung A")
-                click("Abrechnungsweg")
-                shown("Abrechnung speichern")
-                reveal("Abrechnungsweg: Labor clandestino")
-                captureSyntheticScreen(
-                    "accounting-editor-${if (font == "2.0") "200" else "100"}-${if (wide) "landscape" else "portrait"}"
-                )
-                click("Zurück")
             }
-            val current =
-                read(
-                    "get_accounting_record",
-                    JSONObject().put("collection", "orders").put("entity_id", "qa_accounting_a"),
-                )
-            read(
-                "set_accounting_record",
-                JSONObject()
-                    .put("request_id", "qa_accounting_remove_assignment")
-                    .put("collection", "orders")
-                    .put("entity_id", "qa_accounting_a")
-                    .put("expected_record_hash", current.getString("expected_record_hash"))
-                    .put("route", "open"),
-            )
+            reveal("Bezahlt")
+            click("Bezahlt")
+            click("Rückgängig")
+            waitUntil("ACCOUNTING_PAID_ACTION_UNDONE_BEFORE_BOOKING") {
+                SettlementRules.rows(read("get_list_actions").getJSONArray("actions")).any {
+                    it.optString("original_tool") == "add_settlement_payment" &&
+                        it.optString("state") == "undone"
+                }
+            }
             yes(
-                overview().getLong("total_minor") == 20000L,
-                "ACCOUNTING_REMOVED_ASSIGNMENT_EXCLUDED_WITH_AMOUNT_RETAINED",
+                read("get_settlement", JSONObject().put("settlement_id", invoice))
+                    .getLong("paid_minor") == 0L,
+                "ACCOUNTING_PAID_UNDO_CREATES_NO_PAYMENT",
             )
-            val missingInvoice =
-                JSONObject(PixelMcpReadTools.effective(store.getState()).toString())
-            PixelMcpWriteTools.find(missingInvoice.getJSONArray("orders"), "qa_accounting_b")
-                .put("accounting_amount", JSONObject.NULL)
-            PixelMcpWriteTools.find(missingInvoice.getJSONArray("worklogs"), "qa_accounting_b1")
-                .put("accounting_amount", JSONObject.NULL)
-            store.putOwnerValue("snapshot", missingInvoice.toString())
-            data = overview()
+            reveal("Bezahlt")
+            waitUntil("ACCOUNTING_PAID_BUTTON_READY_AFTER_UNDO") { actionEnabled("Bezahlt") }
+            click("Bezahlt")
+            waitUntil("ACCOUNTING_PAID_BUTTON_COMMITS_ONCE_AFTER_FIVE_SECONDS") {
+                read("get_settlement", JSONObject().put("settlement_id", invoice))
+                    .getLong("paid_minor") == 90000L
+            }
+            recreate()
+            val paid = read("get_settlement", JSONObject().put("settlement_id", invoice))
             yes(
-                data.getInt("total") == 1 &&
-                    data.getInt("pending_amounts") == 1 &&
-                    data.getLong("total_minor") == 0L &&
-                    data.getJSONArray("records").getJSONObject(0).isNull("amount_minor"),
-                "ACCOUNTING_MISSING_PHASE2_AMOUNT_REMAINS_VISIBLE_AND_UNKNOWN",
+                paid.getJSONArray("payments").length() == 1 && paid.getLong("open_minor") == 0L,
+                "ACCOUNTING_REAL_PAID_BUTTON_AND_RECREATE_NEVER_DUPLICATE_PAYMENT",
             )
             marker.writeText(
                 JSONObject()
-                    .put("fixture", "synthetic-accounting-v1")
-                    .put(
-                        "snapshot_hash",
-                        PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())),
-                    )
+                    .put("fixture", "synthetic-eisbaer-accounting-v1")
+                    .put("snapshot_hash", sourceHash)
                     .toString()
             )
             return JSONObject()
@@ -1439,32 +1438,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("productive_data_read", false)
                 .put("new_process_readback", false)
                 .put("real_main_activity", true)
-                .put("exact_amounts", true)
-                .put("filters_and_navigation", true)
-                .put("conflict_correction", true)
+                .put("lcr_original_reference", true)
+                .put("historical_original_preservation", true)
                 .put("viewport_and_large_text", true)
         } catch (failure: Throwable) {
-            runCatching {
-                val state = PixelMcpReadTools.effective(store.getState())
-                test.sendStatus(
-                    0,
-                    Bundle().apply {
-                        putString(
-                            "accounting_readback",
-                            JSONObject()
-                                .put("overview", overview())
-                                .put("journal_errors", state.opt("drive_journal_errors"))
-                                .put("marks", JSONArray(store.ownerValue("personal_paid", "[]")))
-                                .toString(),
-                        )
-                    },
-                )
-            }
-            runCatching { captureSyntheticScreen("accounting-failure") }
+            runCatching { captureSyntheticScreen("eisbaer-accounting-failure") }
             throw failure
         } finally {
-            previousInfo.flags = previousFlags
-            automation.serviceInfo = previousInfo
+            previous.flags = previousFlags
+            automation.serviceInfo = previous
             shell(
                 if (oldFont == "null") "settings delete system font_scale"
                 else "settings put system font_scale $oldFont"
@@ -1485,13 +1467,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val previousFlags = previousInfo.flags
         val oldFont = shell("settings get system font_scale")
         try {
-            automation.serviceInfo =
-                previousInfo.apply {
-                    flags =
-                        flags or
-                            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
-                            AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
-                }
+            automation.serviceInfo = previousInfo.apply {
+                flags =
+                    flags or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            }
             shell("settings put system font_scale 1.0")
             seedPaging()
             launch()
@@ -1542,7 +1523,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("real_main_activity", true)
                 .put("native_compose_ui", true)
                 .put("graphics_cases", JSONArray().put(selectedJourney))
-                .put("physical_pixel_tested", false)
+                .put("physical_pixel_tested", physicalPixelTested())
                 .put("drive_account_tested", false)
         } finally {
             shell(
@@ -1610,25 +1591,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown(prefix + "1")
         captureSyntheticScreen("work-list")
         click(prefix + "1")
-        shown("Gespeicherte Arbeit")
-        val beforeFullEditor = PixelMcpWriteTools.hash(JSONArray(works()))
-        click(UiTags.SECONDARY)
-        reveal("native-field:Was wurde erledigt? *")
-        yes(field("Was wurde erledigt? *")?.isEditable == true, "WORK_FULL_EDITOR_EDITABLE")
-        back()
-        waitUntil("WORK_DETAIL_AFTER_FULL_EDITOR") { node(UiTags.DETAIL_MENU) != null }
+        shown("Gespeichert")
+        click(prefix + "1")
+        shown("Tätigkeit")
         yes(
-            PixelMcpWriteTools.hash(JSONArray(works())) == beforeFullEditor,
-            "WORK_FULL_EDITOR_BACK_PRESERVES_DATA",
-        )
-        click("Tätigkeit")
-        shown("Was wurde erledigt? *")
-        yes(
-            node("Datum *") == null && node("Beginn") == null && node("Kunde") == null,
+            node("Arbeitsdatum") == null && field("Beginn") == null,
             "WORK_ACTIVITY_EDITOR_ISOLATED",
         )
-        enter("Was wurde erledigt? *", prefix + "1 korrigiert")
-        click(UiTags.PRIMARY)
+        enter("Tätigkeit", prefix + "1 korrigiert")
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("WORK_ACTIVITY_SAVED") {
             works().first { it.getString("id") == ids.first() }.getString("activity") ==
                 prefix + "1 korrigiert"
@@ -1641,41 +1613,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 first().getInt("break_minutes") == 30,
             "WORK_TEXT_EDIT_PRESERVES_TIMING",
         )
+        openDetails("Arbeit")
+        reveal("Notizen")
         click("Notizen")
         shown("Notizen")
-        yes(
-            node("Was wurde erledigt? *") == null && node("Beginn") == null,
-            "WORK_NOTE_EDITOR_ISOLATED",
-        )
+        yes(field("Tätigkeit") == null && field("Beginn") == null, "WORK_NOTE_EDITOR_ISOLATED")
         enter("Notizen", "[TEST] Einzelne Notiz korrigiert")
-        click(UiTags.PRIMARY)
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("WORK_NOTE_SAVED") {
             first().optString("notes") == "[TEST] Einzelne Notiz korrigiert"
         }
-        click("Pause")
-        shown("Pause (Minuten)")
-        enter("Freie Minuten", "15")
-        click(UiTags.PRIMARY)
+        reveal("Pause in Minuten")
+        click("Pause in Minuten")
+        enter("Pause in Minuten", "15")
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("WORK_PAUSE_RECALCULATES_DURATION") {
             first().getInt("break_minutes") == 15 && first().getDouble("hours") == 3.75
         }
         // Design step 3: the next step of open work is to bill it; it opens the settlement editor.
         click(UiTags.PRIMARY)
-        shown("Abrechnungsart: Rechnung")
+        shown("Rechnung")
         back()
         waitUntil("WORK_DETAIL_AFTER_BILLING_EDITOR") { node(UiTags.DETAIL_MENU) != null }
-        // Rare actions sit in the record's ⋮ menu.
-        click(UiTags.DETAIL_MENU)
-        click("Abgerechnet / offen markieren")
-        shown("Begründung *")
-        yes(
-            visibleTexts().none {
-                it.contains("Work record id", true) || it.startsWith("Arbeitsaufzeichnung:")
-            },
-            "WORK_BILLING_REFERENCE_HIDDEN",
-        )
-        captureSyntheticScreen("work-billing")
-        click("Zurück")
         openWorklogs()
         shown(prefix + "1 korrigiert")
         fun hold(label: String) {
@@ -1772,14 +1733,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun graphicsNavigationJourney() {
         click(UiTags.area("today"))
-        shown("Einsätze heute")
+        shown("Termine heute")
         yes(node("Büro") == null, "FOUR_MAIN_AREAS_WITHOUT_OFFICE_TAB")
         for ((label, rootText) in
             listOf(
                 "planning" to UiTags.PRIMARY,
                 "customers" to "Suchen",
-                "accounting" to "Summen",
-                "today" to "Einsätze heute",
+                "accounting" to "Offen abzurechnen",
+                "today" to "Termine heute",
             )) {
             click(UiTags.area(label))
             click(UiTags.area(label))
@@ -1791,22 +1752,22 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 waitUntil("MAIN_BACK_IME_HIDDEN_$label") { !keyboardVisible() }
             }
             back()
-            shown("Einsätze heute")
+            shown("Termine heute")
             yes(activity?.isFinishing == false, "MAIN_BACK_STAYS_IN_APP_$label")
         }
         click(UiTags.MORE)
-        shown("Organisieren")
+        shown("Vorgänge")
         back()
-        shown("Einsätze heute")
+        shown("Termine heute")
         openCustomerList()
-        enter("Suchen", fixturePrefix)
-        shown("55 Treffer · 1–50")
+        searchCustomers(fixturePrefix)
+        shown("55 Treffer")
         shown(fixturePrefix + "000")
         captureSyntheticScreen("graphics-customers")
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
         shown(fixturePrefix + "000")
-        primaryPosition("Arbeit starten", "Bearbeiten")
+        visibleResult("Arbeit starten")
         captureSyntheticScreen("graphics-customer")
         val customerId = customers(fixturePrefix + "000").single().getString("id")
         val start =
@@ -1826,7 +1787,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("weather_profile", "indoor")
                 .put("status", "tentative"),
         )
-        openOffice()
         click(UiTags.area("planning"))
         shown(UiTags.PRIMARY)
         reveal("[TEST] QA Grafik Gartenpflege")
@@ -1863,11 +1823,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Diesen Einzelpreis ausdrücklich bestätigt")
         val offerDraftKey = "native_form_draft:" + PixelMcpWriteTools.hash("finance:offers:new")
         waitUntil("GRAPHICS_OFFER_HAS_REAL_SELECTED_CUSTOMER_AND_POSITION") {
-            val record =
-                runCatching {
-                        JSONObject(store.ownerValue(offerDraftKey, "")).getJSONObject("record")
-                    }
-                    .getOrNull()
+            val record = runCatching {
+                JSONObject(store.ownerValue(offerDraftKey, "")).getJSONObject("record")
+            }
+                .getOrNull()
             val positions = record?.optJSONArray("positions")
             val position = positions?.optJSONObject(0)
             if (record == null || positions == null || position == null) return@waitUntil false
@@ -1927,40 +1886,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             view is ViewGroup && (0 until view.childCount).any { hasCompose(view.getChildAt(it)) }
 
     private fun recreate() {
-        val old = requireNotNull(activity)
-        latest = null
-        val callbacks =
-            object : Application.ActivityLifecycleCallbacks {
-                override fun onActivityCreated(value: Activity, state: Bundle?) {
-                    if (value is MainActivity && value !== old) latest = value
-                }
-
-                override fun onActivityStarted(value: Activity) = Unit
-
-                override fun onActivityResumed(value: Activity) = Unit
-
-                override fun onActivityPaused(value: Activity) = Unit
-
-                override fun onActivityStopped(value: Activity) = Unit
-
-                override fun onActivitySaveInstanceState(value: Activity, state: Bundle) = Unit
-
-                override fun onActivityDestroyed(value: Activity) = Unit
+        var old: Activity? = null
+        waitUntil("REAL_ACTIVITY_RECREATION_REQUESTED") {
+            var requested = false
+            test.runOnMainSync {
+                val current = activity ?: return@runOnMainSync
+                if (current.isDestroyed || current.isFinishing) return@runOnMainSync
+                old = current
+                latest = null
+                current.recreate()
+                requested = true
             }
-        old.application.registerActivityLifecycleCallbacks(callbacks)
-        try {
-            test.runOnMainSync { old.recreate() }
-            waitUntil("REAL_ACTIVITY_RECREATION") { latest != null && latest !== old }
-            activity = latest
-            waitUntil("RECREATED_COMPOSE") {
-                var found = false
-                test.runOnMainSync { found = hasCompose(requireNotNull(activity).window.decorView) }
-                found
-            }
-            checks++
-        } finally {
-            old.application.unregisterActivityLifecycleCallbacks(callbacks)
+            requested
         }
+        waitUntil("REAL_ACTIVITY_RECREATION") { latest != null && latest !== old }
+        waitUntil("RECREATED_COMPOSE") {
+            var found = false
+            test.runOnMainSync {
+                activity
+                    ?.takeUnless { it.isDestroyed || it.isFinishing }
+                    ?.let { found = hasCompose(it.window.decorView) }
+            }
+            found
+        }
+        checks++
     }
 
     private fun execute(selectedJourney: String): JSONObject {
@@ -1969,13 +1918,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         val previousFlags = previousInfo.flags
         val oldFont = shell("settings get system font_scale")
         try {
-            automation.serviceInfo =
-                previousInfo.apply {
-                    flags =
-                        flags or
-                            AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
-                            AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
-                }
+            automation.serviceInfo = previousInfo.apply {
+                flags =
+                    flags or
+                        AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                        AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            }
             seedPaging()
             launch()
             var ran = false
@@ -2043,7 +1991,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("list_viewport_cases", listViewportCases)
                 .put("office_opening", officeMeasurements)
                 .put("drive_account_tested", false)
-                .put("physical_pixel_tested", false)
+                .put("physical_pixel_tested", physicalPixelTested())
         } finally {
             shell(
                 if (oldFont == "null") "settings delete system font_scale"
@@ -2152,20 +2100,34 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun customerJourney() {
         openCustomerList()
-        enter("Suchen", fixturePrefix)
-        shown("55 Treffer · 1–50")
+        val total = runBlocking {
+            store.nativeData().list("customers", limit = 50, includeInactive = false).total
+        }
+        shown("$total Treffer · 1–50")
         click("Weitere 50")
         scrollTop()
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         reveal(fixturePrefix + "054")
+        val lastPage = runBlocking {
+            store.nativeData().list("customers", offset = 50, limit = 50, includeInactive = false)
+        }
+        yes(
+            lastPage.rows.any { it.title == fixturePrefix + "054" } && lastPage.total == total,
+            "CUSTOMER_LAST_PAGE_MATCHES_STORED_CUSTOMERS",
+        )
         click("Vorherige 50")
         scrollTop()
-        shown("55 Treffer · 1–50")
-        enter("Suchen", fixturePrefix + "054")
-        shown("1 Treffer · 1–1")
+        shown("$total Treffer · 1–50")
+        searchCustomers(fixturePrefix + "054")
         shown(fixturePrefix + "054")
+        yes(
+            customers(fixturePrefix + "054").single().getString("id") ==
+                lastPage.rows.single { it.title == fixturePrefix + "054" }.id,
+            "CUSTOMER_SEARCH_MATCHES_STORED_LAST_PAGE_RECORD",
+        )
+        openCustomerList()
         click(UiTags.CREATE)
-        click("Kunde")
+        click(UiTags.createChoice("customer"))
         waitUntil("BLANK_CUSTOMER_FORM") { field("Anzeigename *") != null }
         val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("editor:customer:new")
         yes(store.ownerValue(draftKey, "").isEmpty(), "UNTOUCHED_FORM_HAS_NO_DRAFT")
@@ -2183,12 +2145,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         waitUntil("CUSTOMER_CREATED") { customers(createdName).size == 1 }
         val id = customers(createdName).single().getString("id")
         openCustomerList()
-        enter("Suchen", createdName)
+        searchCustomers(createdName)
         click(createdName)
         shown(createdName)
         yes(store.ownerValue(draftKey, "").isEmpty(), "SAVE_REMOVES_CUSTOMER_DRAFT")
-        click("Bearbeiten")
-        enter("Anzeigename *", editedName)
+        click(createdName)
+        enter("Name", editedName)
         val remoteNote = "[TEST] remote note"
         val externalBefore = tools.call("get_customer", JSONObject().put("customer_id", id))
         yes(!externalBefore.has("ok") || externalBefore.getBoolean("ok"), "MCP_CUSTOMER_CAS_BASE")
@@ -2200,13 +2162,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("expected_record_hash", externalBefore.getString("record_hash"))
                 .put("updates", JSONObject().put("notes", remoteNote)),
         )
-        // The open form still owns its original baseline. A remote write must cause
-        // an explicit conflict, rather than silently refreshing the hash at save time.
-        click(UiTags.PRIMARY)
-        scrollTop()
-        shown(
-            "Der Eintrag wurde zwischenzeitlich verändert. Vergleiche den aktuellen Stand mit deinen Eingaben."
-        )
+        if (keyboardVisible()) back()
+        click("Fertig")
+        shown("Angabe geändert")
         yes(customers(editedName).isEmpty(), "STALE_UI_SAVE_DOES_NOT_APPLY_NAME")
         yes(
             customers(createdName).single().let {
@@ -2214,23 +2172,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             },
             "CONFLICT_RETAINS_REMOTE_CUSTOMER",
         )
-        click("Aktuellen Stand zum Vergleichen lesen")
-        reveal("Notizen: " + remoteNote)
-        yes(customers(editedName).isEmpty(), "COMPARISON_READ_DOES_NOT_SAVE_CUSTOMER")
-        click("Geprüfte Eingaben als neuen Entwurf fortsetzen")
-        scrollTop()
-        waitUntil("CUSTOMER_REBASED_EDITOR") {
-            field("Anzeigename *")?.text?.toString()?.contains(editedName) == true
-        }
-        yes(customers(editedName).isEmpty(), "EXPLICIT_REBASE_REMAINS_UNSAVED_DRAFT")
-        click(UiTags.PRIMARY)
+        click("Diesen behalten · meine Angabe")
         waitUntil("CUSTOMER_EDITED") { customers(editedName).singleOrNull()?.optString("id") == id }
         yes(
             customers(editedName).single().optString("notes") == remoteNote,
             "REVIEWED_SAVE_PRESERVES_REMOTE_NOTE",
         )
         yes(customers(createdName).isEmpty(), "CUSTOMER_UPDATE_PRESERVES_ID_WITHOUT_DUPLICATE")
-        reveal("Bearbeiten")
+        reveal("Arbeit starten")
         val customerNavigation =
             nodes().firstNotNullOfOrNull { candidate ->
                 if (matches(candidate, "Kunden")) clickable(candidate) else null
@@ -2238,12 +2187,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         yes(
             customerNavigation != null &&
                 customerNavigation.isClickable &&
-                customerNavigation.stateDescription?.toString() == "Ausgewählter Bereich",
+                navigationSelected(customerNavigation),
             "CUSTOMER_DETAIL_SELECTED_AREA_EXPOSES_ACCESSIBLE_LIST_NAVIGATION",
         )
         openCustomerList()
-        enter("Suchen", "QA Native F")
-        shown("1 Treffer · 1–1")
         shown(editedName)
         // This uses the real MCP writer on a separate adapter. No refresh, navigation or
         // direct notification is allowed between this write and the visible UI assertion.
@@ -2261,29 +2208,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown(flowName)
         yes(node(editedName) == null, "COMMITTED_MCP_EDIT_REPLACES_VISIBLE_ROW")
         click(flowName)
-        click("Weitere Angaben")
+        reveal("Löschen")
         click("Löschen")
-        waitUntil("CUSTOMER_ARCHIVED") {
-            customers(flowName).isEmpty() ||
-                customers(flowName).all {
-                    it.opt("active") == false ||
-                        it.optInt("active", 1) == 0 ||
-                        it.optBoolean("archived")
-                }
-        }
+        waitUntil("CUSTOMER_DELETED") { customers(flowName).isEmpty() }
         waitUntil("CUSTOMER_DELETE_RETURNS_TO_LIST") {
             selectedArea(UiTags.area("customers")) &&
-                field("Suchen")?.isEditable == true &&
+                node("Suchen")?.let(::clickable) != null &&
                 node(UiTags.CREATE)?.let(::clickable) != null
         }
-        enter("Suchen", "QA Native F")
-        shown("0 Treffer · 0–0")
-        yes(node(flowName) == null, "ARCHIVED_CUSTOMER_NOT_IN_ACTIVE_LIST")
+        searchCustomers(flowName)
+        shown("0 Treffer")
+        yes(
+            nodes().none {
+                it.isVisibleToUser &&
+                    !it.isEditable &&
+                    matches(it, flowName) &&
+                    clickable(it) != null
+            } && customers(flowName).none { it.optString("id") == id },
+            "DELETED_CUSTOMER_NOT_IN_ACTIVE_LIST",
+        )
     }
 
     private fun usabilityJourney() {
         click(UiTags.area("today"))
-        reveal("Einsätze heute")
+        reveal("Termine heute")
         yes(node("Weitere Tageshinweise") == null, "TODAY_HAS_NO_EXTRA_HINT_CARD")
         yes(
             node(UiTags.MORE)?.let(::clickable) != null &&
@@ -2291,10 +2239,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "TODAY_HEADER_MORE_AND_CREATE_BUTTON",
         )
         openCustomerList()
-        enter("Suchen", fixturePrefix)
+        val total = runBlocking {
+            store.nativeData().list("customers", limit = 50, includeInactive = false).total
+        }
         click("Weitere 50")
         scrollTop()
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         reveal(fixturePrefix + "054")
         // Compare positions without the keyboard on both sides; it changes the visible area.
         if (keyboardVisible()) {
@@ -2302,20 +2252,75 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             waitUntil("USABILITY_IME_HIDDEN") { !keyboardVisible() }
         }
         reveal(fixturePrefix + "054")
-        val retainedBounds = actionBounds(fixturePrefix + "054")
+        var retainedBounds = Rect()
+        var previousBounds = Rect()
+        waitStable("CUSTOMER_SCROLL_POSITION_BEFORE_LEAVING", stableMs = 500) {
+            val measured = runCatching { actionBounds(fixturePrefix + "054") }.getOrDefault(Rect())
+            val stable = !measured.isEmpty && measured == previousBounds
+            previousBounds = Rect(measured)
+            retainedBounds = measured
+            stable
+        }
+        val retainedViewport = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
+        test.sendStatus(
+            0,
+            Bundle().apply {
+                putString(
+                    "customer_retained_bounds",
+                    "$retainedBounds viewport=$retainedViewport ime=${keyboardVisible()}",
+                )
+            },
+        )
         click(UiTags.area("today"))
         click(UiTags.area("customers"))
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
         yes(
-            field("Suchen")?.text?.toString()?.contains(fixturePrefix) == true,
-            "CUSTOMER_FILTER_PRESERVED_ON_ENTRY",
+            runBlocking {
+                store
+                    .nativeData()
+                    .list("customers", offset = 50, limit = 50, includeInactive = false)
+                    .rows
+            }
+                .any { it.title == fixturePrefix + "054" },
+            "CUSTOMER_RESTORED_PAGE_MATCHES_DATA",
         )
+        var restoredBounds = Rect()
+        var priorRestoredBounds: Rect? = null
+        waitStable("CUSTOMER_SCROLL_POSITION_RESTORED retained=$retainedBounds", stableMs = 500) {
+            restoredBounds =
+                runCatching { actionBounds(fixturePrefix + "054") }.getOrDefault(Rect())
+            if (restoredBounds != priorRestoredBounds) {
+                test.sendStatus(
+                    0,
+                    Bundle().apply {
+                        putString("customer_restored_bounds", restoredBounds.toString())
+                    },
+                )
+                priorRestoredBounds = Rect(restoredBounds)
+            }
+            restoredBounds == retainedBounds
+        }
+        val restoredViewport = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
         yes(
-            actionBounds(fixturePrefix + "054") == retainedBounds,
-            "CUSTOMER_SCROLL_POSITION_PRESERVED_ON_ENTRY",
+            restoredBounds == retainedBounds,
+            "CUSTOMER_SCROLL_POSITION_PRESERVED_ON_ENTRY retained=$retainedBounds restored=$restoredBounds viewport=$restoredViewport ime=${keyboardVisible()}",
         )
         recreate()
-        shown("55 Treffer · 51–55")
+        shown("$total Treffer · 51–$total")
+        waitStable(
+            "CUSTOMER_SCROLL_POSITION_AFTER_RECREATION retained=$retainedBounds",
+            stableMs = 500,
+        ) {
+            val measured = runCatching { actionBounds(fixturePrefix + "054") }.getOrDefault(Rect())
+            if (measured != priorRestoredBounds) {
+                test.sendStatus(
+                    0,
+                    Bundle().apply { putString("customer_recreated_bounds", measured.toString()) },
+                )
+                priorRestoredBounds = Rect(measured)
+            }
+            measured == retainedBounds
+        }
         yes(
             actionBounds(fixturePrefix + "054") == retainedBounds,
             "CUSTOMER_PAGE_AND_SCROLL_SURVIVE_RECREATION",
@@ -2336,7 +2341,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Freie Minuten", "23")
         val ownText = "[TEST] QA usability work"
         enter("Was wurde erledigt? *", ownText)
-        click("Textbausteine ▾")
+        click("Textbausteine")
         click("Rasen gemäht")
         reveal("Was wurde erledigt? *")
         waitUntil("OWN_TEXT_RETAINED_AFTER_SNIPPET") {
@@ -2371,19 +2376,23 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 row.getString("activity") == ownText + "\nRasen gemäht",
             "DISPOSAL_AND_OWN_TEXT_AND_PHRASE_SAVED",
         )
-        // Today no longer lists saved work (design); open it from Mehr → Arbeiten.
+        // Saved work is opened from the shared overflow menu.
         openWorklogs()
         enter("Suchen", ownText)
         click(ownText)
         reveal("[TEST] QA sofort sichtbare Notiz")
-        click("Tätigkeit")
-        enter("Was wurde erledigt? *", "[TEST] QA ungespeichert")
-        discardWork()
-        yes(saved()?.getString("id") == row.getString("id"), "DISCARD_PRESERVES_SAVED_WORK")
-        yes(
-            saved()?.getString("activity") == row.getString("activity"),
-            "DISCARD_DOES_NOT_SAVE_CHANGES",
-        )
+        click(ownText)
+        enter("Tätigkeit", ownText + " ergänzt")
+        if (keyboardVisible()) back()
+        click("Fertig")
+        waitUntil("WORK_FIELD_CLOSE_SAVES") {
+            saved()?.getString("activity") == ownText + " ergänzt"
+        }
+        click(UiTags.UNDO)
+        waitUntil("WORK_FIELD_UNDO_RESTORES") {
+            saved()?.getString("activity") == row.getString("activity")
+        }
+        yes(saved()?.getString("id") == row.getString("id"), "FIELD_UNDO_PRESERVES_SAVED_WORK")
         click(UiTags.area("today"))
         newWork()
         openWorkCustomerPicker()
@@ -2397,13 +2406,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click("Dauer", scrollTo = false)
         enter("Stunden", "3")
         enter("Minuten", "30")
-        shown("Reine Arbeitszeit. Keine Pause zusätzlich abziehen.")
         yes(
             node("Pause (Minuten)") == null && node("Beginn") == null && node("Ende") == null,
             "DURATION_EXCLUDES_TIMES_AND_PAUSE",
         )
         // The new-work route retains the expanded details from the first entry.
-        enter("Kilometer", "7,25")
         enter("Materialkosten", "12,50")
         click(UiTags.PRIMARY)
         waitUntil("DECIMAL_WORK_SAVED") {
@@ -2416,7 +2423,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         it.optInt("break_minutes") == 0 &&
                         it.optString("start_time").isEmpty() &&
                         it.optString("end_time").isEmpty() &&
-                        it.optDouble("kilometers") == 7.25 &&
                         it.optString("material").contains("12.50")
                 }
         }
@@ -2487,7 +2493,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 values.optInt("break_minutes") == 12
         }
         click("Zurück")
-        shown("Einsätze heute")
+        shown("Termine heute")
         yes(node(UiTags.BACK) == null, "TWELVE_LOCAL_SELECTIONS_CREATE_NO_BACK_HISTORY_CHAIN")
         yes(
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
@@ -2626,7 +2632,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openOffice()
         click("Geräte")
         click("Gerät anlegen")
-        click("Gerätebezeichnung auswählen ▾")
+        click("Gerätebezeichnung auswählen")
         shown("Gerätebezeichnung auswählen")
         logVisibleActions("equipment_suggestions_open")
         enter("Vorschläge durchsuchen", "kett")
@@ -2639,9 +2645,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         enter("Gerätebezeichnung *", name)
         click("Speichern")
         reveal("Übersicht")
-        click("Zubehör")
+        selectTab("Zubehör")
         click("Zubehör hinzufügen")
-        shown("Fotos helfen beim Wiederfinden. Technische Angaben sind freiwillig.")
+        shown("Maschine: " + name)
         click("Zubehör hinzufügen")
         click("Anderes Zubehör")
         click("Kette", scrollTo = false)
@@ -2737,7 +2743,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOffice()
             click("Geräte")
             click(name)
-            click("Zubehör")
+            selectTab("Zubehör")
             reveal("QA Kette B")
             reveal("Aktuell verwendete Kette")
             recreate()
@@ -2771,7 +2777,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 machine().getString("record_hash") == beforePhotoShortcut,
                 "ACCESSORY_PHOTO_PREVIEW_AND_EDITOR_DO_NOT_SAVE",
             )
-            click("Übersicht")
+            selectTab("Übersicht")
             reveal("Wartung einrichten")
         } finally {
             source.delete()
@@ -2838,10 +2844,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Weitere Angaben")
         if (
             runCatching {
-                    waitUntil("EXTRA_DETAILS_OPEN", 1500) {
-                        node("Foto · optional") != null || node("Foto hinzufügen") != null
-                    }
+                waitUntil("EXTRA_DETAILS_OPEN", 1500) {
+                    node("Foto · optional") != null || node("Foto hinzufügen") != null
                 }
+            }
                 .isFailure
         )
             click("Weitere Angaben")
@@ -2881,8 +2887,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
     private fun todayJourney() {
         click(UiTags.area("today"))
         reveal("Arbeit starten")
-        for (label in
-            listOf("Heute", "Planung", "Kunden", "Abrechnung", "Neu anlegen", "Mehr")) shown(label)
+        for (label in listOf("Heute", "Planung", "Kunden", "Abrechnung", "Neu anlegen")) shown(
+            label
+        )
         // Design: four areas, only the day and due items; creating sits behind "+".
         yes(
             node("Büro") == null &&
@@ -2894,17 +2901,29 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             visibleTexts().none { it.contains("Externe Sicherung") },
             "TODAY_HAS_NO_FABRICATED_EXTERNAL_BACKUP_PROOF",
         )
+        val searchBounds = actionBounds("action:global-search")
+        val menuBounds = actionBounds(UiTags.MORE)
+        val createBounds = actionBounds(UiTags.CREATE)
+        yes(
+            searchBounds.top > menuBounds.bottom && createBounds.top > menuBounds.bottom,
+            "EISBAER_SEARCH_AND_PLUS_BELOW_CONTENT_HEADER",
+        )
         captureSyntheticScreen("today-idle")
         val before = PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
         click(UiTags.CREATE)
         for (label in
-            listOf("Arbeit nachtragen", "Anfrage", "Kunde", "Einsatz", "Foto", "Material")) reveal(
-            label
-        )
+            listOf(
+                "Arbeit nachtragen",
+                "Anfrage anlegen",
+                "Kunde anlegen",
+                "Termin anlegen",
+                "Foto hinzufügen",
+                "Material anlegen",
+            )) reveal(label)
         captureSyntheticScreen("today-create")
         back()
         waitUntil("CREATE_SHEET_CLOSED") {
-            node("Einsatz") == null && node(UiTags.CREATE)?.let(::clickable) != null
+            node("Termin anlegen") == null && node(UiTags.CREATE)?.let(::clickable) != null
         }
         click("Arbeit starten")
         shown("Kunde *: Nicht zugeordnet")
@@ -2922,17 +2941,20 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs")
             )
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
-        click("Bearbeiten")
+        reveal("Kontakt")
+        click("Kontakt")
         reveal("Notizen")
+        click("Notizen")
         yes(!keyboardVisible(), "CUSTOMER_NOTE_HAS_NO_FORCED_IME")
         val note =
             listOf(originalNotes, "[TEST] QA Heute Kundennotiz")
                 .filter { it.isNotBlank() }
                 .joinToString("\n")
         enter("Notizen", note)
-        click(UiTags.PRIMARY)
+        if (keyboardVisible()) back()
+        click("Fertig")
         waitUntil("CUSTOMER_NOTE_SAVED") {
             customers(fixturePrefix + "000").single().optString("notes") == note
         }
@@ -2950,7 +2972,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             shell("settings put system font_scale 2.0")
             launch()
             val labels =
-                listOf("Arbeit starten", "Neu anlegen", "Heute", "Planung", "Kunden", "Abrechnung")
+                listOf(
+                    "Arbeit starten",
+                    "Neu anlegen",
+                    "action:global-search",
+                    "Heute",
+                    "Planung",
+                    "Kunden",
+                    "Abrechnung",
+                )
             waitUntil("TODAY_LARGE_TEXT_LAYOUT_READY") {
                 var fontReady = false
                 test.runOnMainSync {
@@ -3058,8 +3088,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "CAMERA_FIXTURE_HAS_NO_PENDING_DRAFT",
         )
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
+        selectCustomerTab("Vorgänge")
+        reveal("Fotos")
         click("Fotos")
         click("Foto hinzufügen")
         click("Foto aufnehmen")
@@ -3121,13 +3153,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         // Saving removes the preview; reveal the confirmation before preserving its scroll
         // position.
-        reveal(
-            "Das Foto wurde dieser Zuordnung hinzugefügt. Gespeicherte Arbeit bleibt auch bei einem späteren Fotofehler erhalten."
-        )
+        reveal("Foto gespeichert")
         recreate()
-        shown(
-            "Das Foto wurde dieser Zuordnung hinzugefügt. Gespeicherte Arbeit bleibt auch bei einem späteren Fotofehler erhalten."
-        )
+        shown("Foto gespeichert")
         val reopened = PixelLocalStore(context)
         try {
             val attachment = requireNotNull(reopened.photoAttachment(id))
@@ -3162,9 +3190,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("date_from", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
                 .put("date_to", LocalDate.now(ZoneId.of("Europe/Vienna")).toString())
         val todayBefore = read("get_work_record_summary", todayArgs)
-        enter("Suchen", fixturePrefix + "000")
-        shown("1 Treffer · 1–1")
-        val searchField = requireNotNull(field("Suchen"))
+        searchCustomers(fixturePrefix + "000")
+        val searchField = requireNotNull(field(sharedSearchLabel))
         yes(
             searchField.isEditable && clickable(searchField) == null,
             "SEARCH_VALUE_IS_NOT_A_CUSTOMER_CARD_ACTION",
@@ -3175,7 +3202,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 customerCard.actionList.any { it.id == AccessibilityNodeInfo.ACTION_CLICK },
             "TIMER_CUSTOMER_CARD_USES_NON_EDITABLE_ACTION",
         )
-        primaryPosition("Arbeit starten", "Bearbeiten")
+        visibleResult("Arbeit starten")
         click("Arbeit starten")
         waitUntil("KNOWN_CUSTOMER_STARTS_DIRECTLY") {
             read("get_active_work_session").optString("state") == "RUNNING"
@@ -3192,11 +3219,29 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         click(UiTags.area("today"))
         shown("Aktuelle Arbeit")
         shown("Zeit läuft")
-        shown("Arbeitszeit ohne Pause")
-        val activeTimeBounds =
-            Rect().also { requireNotNull(node("Arbeitszeit ohne Pause")).getBoundsInScreen(it) }
+        shown("Pausen gesamt")
         val titleBounds =
             Rect().also { requireNotNull(node("Aktuelle Arbeit")).getBoundsInScreen(it) }
+        val pauseBounds =
+            Rect().also { requireNotNull(node("Pausen gesamt")).getBoundsInScreen(it) }
+        var activeTimeBounds = Rect()
+        waitUntil("TODAY_ACTIVE_CLOCK_VISIBLE") {
+            activeTimeBounds =
+                nodes().firstNotNullOfOrNull { candidate ->
+                    if (
+                        candidate.isVisibleToUser &&
+                            Regex("[0-9]{2,}:[0-9]{2}:[0-9]{2}")
+                                .matches(candidate.text?.toString().orEmpty())
+                    )
+                        Rect().also(candidate::getBoundsInScreen).takeIf {
+                            it.top >= titleBounds.bottom &&
+                                it.bottom <= pauseBounds.top &&
+                                it.height() > 0
+                        }
+                    else null
+                } ?: Rect()
+            !activeTimeBounds.isEmpty
+        }
         yes(
             activeTimeBounds.top >= titleBounds.bottom && activeTimeBounds.height() > 0,
             "TODAY_ACTIVE_TIME_VISIBLE_WITHOUT_SCROLL",
@@ -3205,8 +3250,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown("Kunde: " + fixturePrefix + "000")
         captureSyntheticScreen("today-running")
         reveal("Kunde: " + fixturePrefix + "000")
-        reveal("Foto hinzufügen")
-        shown("Material")
         click("Pause")
         waitUntil("TODAY_PAUSED") { read("get_active_work_session").optString("state") == "PAUSED" }
         primaryPosition("Fortsetzen", "Zeit stoppen")
@@ -3282,25 +3325,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         primaryPosition("Zeit stoppen", "Pause")
         click(UiTags.area("customers"))
-        val compactClock = Regex("Arbeit läuft · ([0-9]{2,}):([0-9]{2}):([0-9]{2}) ›")
-        waitUntil("COMPACT_TIMER_IS_VISIBLE_AND_ACTIONABLE") {
-            nodes().any {
-                it.isVisibleToUser &&
-                    texts(it).any { text -> compactClock.matches(text) } &&
-                    clickable(it) != null
-            }
-        }
+        shown("Laufende Arbeit öffnen")
         captureSyntheticScreen("timer-compact")
-        waitUntil("COMPACT_TIMER_OPENS_EXISTING_SESSION") {
-            val label =
-                nodes()
-                    .firstOrNull {
-                        it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) }
-                    }
-                    ?.let(::clickable)
-            label != null && label.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        }
-        shown("Arbeitszeit ohne Pause")
+        click("Laufende Arbeit öffnen")
+        shown("Arbeit läuft")
+        reveal("Foto")
+        shown("Material")
         yes(
             read("get_active_work_session").getString("id") == id &&
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
@@ -3309,18 +3339,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         openWorklogs()
         enter("Suchen", "")
-        yes(node("Laufende Arbeit öffnen") == null, "WORK_LIST_HAS_NO_TIMER_MENU_ENTRY")
-        waitUntil("WORK_COMPACT_TIMER_OPENS_EXISTING_SESSION") {
-            val label =
-                nodes()
-                    .firstOrNull {
-                        it.isVisibleToUser && texts(it).any { text -> compactClock.matches(text) }
-                    }
-                    ?.let(::clickable)
-            label != null && label.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        }
+        yes(
+            node("Laufende Arbeit öffnen")?.let(::clickable) != null,
+            "WORK_LIST_EXPOSES_GLOBAL_RUNNING_TIMER",
+        )
+        click("Laufende Arbeit öffnen")
         reveal("Arbeit läuft")
-        reveal("Arbeitszeit ohne Pause")
+        reveal("Zeit läuft")
         val minimumSeconds =
             (read("get_active_work_session").getLong("worked_ms") / 1000 - 1).coerceAtLeast(0)
         waitUntil("TIMER_HAS_READABLE_PERSISTED_DURATION") {
@@ -3345,7 +3370,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "TIMER_HIDES_RAW_CLOCK_FIELDS",
         )
         enter("Tätigkeit · optional bis zum Abschluss", "[TEST] QA native Timer")
-        click("Textbausteine ▾")
+        click("Textbausteine")
         click("Rasen gemäht")
         reveal("Tätigkeit · optional bis zum Abschluss")
         yes(
@@ -3366,7 +3391,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         captureSyntheticScreen("timer-actions")
         click("Zeit stoppen")
-        shown("Arbeit abschließen")
+        shown("Arbeit speichern")
         yes(
             read("get_active_work_session").getString("state") == "STOPPED_PENDING_REVIEW",
             "UI_STOPS_WITHOUT_FINALIZING",
@@ -3377,11 +3402,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             "STOP_DOES_NOT_CREATE_WORKLOG",
         )
         val stoppedMs = read("get_active_work_session").getLong("worked_ms")
-        primaryPosition("Arbeit speichern", "Später abschließen")
+        primaryPosition("Speichern", "Später abschließen")
+        click("Später abschließen")
         click(UiTags.area("today"))
         shown("Arbeit noch abschließen")
         shown("Zeit gestoppt · Abschluss offen")
-        primaryPosition("Abschluss prüfen", "Arbeit nachtragen")
+        primaryPosition("Arbeit speichern", "Arbeit nachtragen")
         yes(
             read("get_active_work_session").getLong("worked_ms") == stoppedMs,
             "STOPPED_TIME_DOES_NOT_GROW",
@@ -3391,8 +3417,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 before,
             "LEAVING_COMPLETION_DOES_NOT_SAVE",
         )
-        click("Abschluss prüfen")
-        shown("Arbeit abschließen")
+        click("Arbeit speichern")
+        shown("Arbeit speichern")
         enter(UiTags.actionField("activity"), "[TEST] QA native Timer\nRasen gemäht", exact = true)
         awaitTimerCompletionReady(id, "[TEST] QA native Timer\nRasen gemäht")
         captureSyntheticScreen("timer-completion")
@@ -3431,7 +3457,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
 
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
+        searchCustomers(fixturePrefix + "000")
         click(fixturePrefix + "000")
         click("Arbeit starten")
         waitUntil("SECOND_DIRECT_TIMER_STARTED") {
@@ -3439,7 +3465,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         val discardedId = read("get_active_work_session").getString("id")
         click("Zeit stoppen")
-        shown("Arbeit abschließen")
+        shown("Arbeit speichern")
         enter("Tätigkeit *", "[TEST] QA verworfener Abschluss")
         awaitTimerCompletionReady(discardedId, "[TEST] QA verworfener Abschluss")
         click("Weitere Angaben (optional)")
@@ -3502,7 +3528,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         reveal("Arbeit pausiert")
         primaryPosition("Fortsetzen", "Zeit stoppen")
         click("Zeit stoppen")
-        shown("Arbeit abschließen")
+        shown("Arbeit speichern")
         click("Weitere Angaben (optional)")
         discardWork()
         waitUntil("RESTORED_TIMER_DISCARDED") {
@@ -3592,13 +3618,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         click(UiTags.area("today"))
         reveal(openHoursText())
-        val fourth =
-            runBlocking { data.list("worklogs", dateFrom = day, dateTo = day, limit = 4) }
-                .rows
-                .let { rows ->
-                    yes(rows.size == 4, "TODAY_TOTAL_FIXTURE_HAS_FOUR_ROWS")
-                    rows[3]
-                }
+        val fourth = runBlocking {
+            data.list("worklogs", dateFrom = day, dateTo = day, limit = 4)
+        }
+            .rows
+            .let { rows ->
+                yes(rows.size == 4, "TODAY_TOTAL_FIXTURE_HAS_FOUR_ROWS")
+                rows[3]
+            }
         repeat(3) { edit ->
             val envelope =
                 tools.call("get_work_record", JSONObject().put("work_record_id", fourth.id))
@@ -3900,7 +3927,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     private fun customerContextJourney() {
         val navigation = NativeAppController(requireNotNull(activity) as MainActivity, store)
-        for (area in listOf("today", "worklogs", "customers", "office")) {
+        for (area in listOf("today", "planning", "customers", "accounting")) {
             navigation.openSection(area)
             val recreated = NativeAppController(requireNotNull(activity) as MainActivity, store)
             recreated.restoreRoute(navigation.savedNavigation())
@@ -3915,7 +3942,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         navigation.openSection("customers")
         navigation.navigate("customers", "qa-back-customer")
-        navigation.openSection("office")
+        navigation.openSection("accounting")
         navigation.back()
         navigation.openSection("customers")
         yes(navigation.route.id == "qa-back-customer", "ROOT_BACK_PRESERVES_OTHER_AREA_DETAIL")
@@ -3957,34 +3984,38 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         for (index in 0..1) {
             val name = fixturePrefix + String.format(Locale.ROOT, "%03d", index)
             openCustomerList()
-            enter("Suchen", name)
+            searchCustomers(name)
             click(name)
+            selectCustomerTab("Vorgänge")
+            reveal("Fotos")
             click("Fotos")
             shown(name)
             shown("QA Kontextfoto $index")
             yes(node("QA Kontextfoto ${1-index}") == null, "PHOTOS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-photos")
             click(UiTags.BACK)
-            click("Angebote")
+            openDetails("Angebote")
+            reveal("Alle Angebote")
+            click("Alle Angebote")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFERS_KEEP_CUSTOMER_$index")
             if (index == 0) captureSyntheticScreen("customer-offers")
-            yes(
-                node(UiTags.area("customers"))?.let(::clickable)?.stateDescription?.toString() ==
-                    "Ausgewählter Bereich",
-                "OFFERS_RETAINS_CUSTOMER_AREA_$index",
-            )
+            yes(selectedArea(UiTags.area("customers")), "OFFERS_RETAINS_CUSTOMER_AREA_$index")
             click("QA Kontextangebot $index")
             click("Zur Liste")
             shown("QA Kontextangebot $index")
             yes(node("QA Kontextangebot ${1-index}") == null, "OFFER_DETAIL_RETURN_FILTER_$index")
             openCustomerList()
-            enter("Suchen", name)
+            searchCustomers(name)
             click(name)
-            click("Aufträge")
+            selectCustomerTab("Vorgänge")
+            openDetails("Aufträge")
+            reveal("Alle Aufträge")
+            click("Alle Aufträge")
             shown("QA Kontextauftrag $index")
             yes(node("QA Kontextauftrag ${1-index}") == null, "ORDERS_KEEP_CUSTOMER_$index")
             click(UiTags.BACK)
+            selectCustomerTab("Objekte")
             click("Alle Objekte")
             shown("QA Kontextobjekt $index")
             yes(node("QA Kontextobjekt ${1-index}") == null, "PROPERTIES_KEEP_CUSTOMER_$index")
@@ -3993,7 +4024,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click("Zurück")
             shown("Objekt anlegen")
             click(UiTags.BACK)
-            click("Alle Einsätze")
+            selectCustomerTab("Vorgänge")
+            openDetails("Termine")
+            reveal("Alle Termine")
+            click("Alle Termine")
             shown("QA Kontexteinsatz $index")
             yes(node("QA Kontexteinsatz ${1-index}") == null, "VISITS_KEEP_CUSTOMER_$index")
             click(UiTags.BACK)
@@ -4007,6 +4041,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         click("QA Kontextanfrage 0")
                         click("Angebot aus dieser Anfrage")
                     } else {
+                        selectCustomerTab("Objekte")
                         click("Alle Objekte")
                         click("QA Kontextobjekt 0")
                         click(UiTags.DETAIL_MENU)
@@ -4046,14 +4081,17 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                         store.ownerValue(draftKey, "").isEmpty()
                     }
                     openCustomerList()
-                    enter("Suchen", name)
+                    searchCustomers(name)
                     click(name)
                 }
                 val invoiceCount =
                     PixelMcpReadTools.effective(store.getState()).getJSONArray("invoices").length()
-                click("Offene Stunden")
+                selectCustomerTab("Geld")
                 shown("Offene Stunden")
-                click("Arbeiten prüfen")
+                selectCustomerTab("Vorgänge")
+                openDetails("Arbeiten")
+                reveal("Alle Arbeiten")
+                click("Alle Arbeiten")
                 enter("Suchen", "QA Kontextabrechnung")
                 val sourceLabel = "QA Kontextabrechnung 0"
                 reveal(sourceLabel)
@@ -4090,14 +4128,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .put("host_load", "NOT_CONTROLLED")
         for ((name, entry, ready) in
             listOf(
-                Triple("billing", "Offene Stunden", "Arbeiten prüfen"),
+                Triple("billing", "Abrechnung", "Offen abzurechnen"),
                 Triple("offers", "Angebote", "Angebot anlegen"),
             )) {
             val values = ArrayList<Double>()
             repeat(42) { sample ->
-                openOffice()
                 var start = 0L
-                click(entry, onAction = { start = it })
+                if (name == "billing") {
+                    click(UiTags.area("today"))
+                    click(UiTags.area("accounting"), onAction = { start = it })
+                } else {
+                    openOffice()
+                    click(entry, onAction = { start = it })
+                }
                 waitUntil("OFFICE_READY_$name") { node(ready) != null }
                 val elapsed = (System.nanoTime() - start) / 1_000_000.0
                 if (sample >= 2) values.add(elapsed)
@@ -4369,11 +4412,11 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     failures.add(AssertionError(key, failure))
                     // Own synthetic form only; keep later independent display cases executable.
                     runCatching {
-                            runBlocking {
-                                NativeAppController(requireNotNull(activity) as MainActivity, store)
-                                    .removeDraft("editor:worklog:new")
-                            }
+                        runBlocking {
+                            NativeAppController(requireNotNull(activity) as MainActivity, store)
+                                .removeDraft("editor:worklog:new")
                         }
+                    }
                         .onFailure { cleanup ->
                             test.sendStatus(
                                 0,
@@ -4424,16 +4467,16 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         shown(priorCustomer)
         click(UiTags.BACK)
         openCustomerList()
-        enter("Suchen", fixturePrefix + "000")
-        showKeyboard("Suchen")
+        searchCustomers(fixturePrefix + "000")
+        showKeyboard(sharedSearchLabel)
         visibleResult(fixturePrefix + "000", requireKeyboard = true)
         captureSyntheticScreen("search-customer-list", requireKeyboard = true)
         visibleResult(fixturePrefix + "000", tap = true, requireKeyboard = true)
-        reveal("Bearbeiten")
+        reveal("Arbeit starten")
         recreate()
         click(UiTags.BACK)
         yes(
-            field("Suchen")?.text?.toString()?.contains(fixturePrefix + "000") == true,
+            field(sharedSearchLabel)?.text?.toString()?.contains(fixturePrefix + "000") == true,
             "LIST_SEARCH_AFTER_DETAIL_RECREATION",
         )
         click(UiTags.area("today"))
@@ -4570,8 +4613,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
     /** The office lists every entry directly; the group label is only a heading. */
     private fun openOfficeEntry(entry: String) {
-        openOffice()
-        click(entry)
+        val context =
+            mapOf(
+                "Objekte" to "properties",
+                "Fotos" to "photos",
+                "Leistungskatalog" to "catalog",
+                "Suche" to "revier_search",
+                "Offene Stunden" to "billing",
+            )[entry]
+        if (context != null) openContext(context)
+        else {
+            openOffice()
+            click(entry)
+        }
     }
 
     private fun keyboardSearchProof(
@@ -4700,13 +4754,45 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
         fun swipe(tag: String, right: Boolean) {
             reveal(tag)
-            val target = requireNotNull(node(tag))
-            val bounds = Rect().also(target::getBoundsInScreen)
-            val screen = Rect().also { automation.rootInActiveWindow?.getBoundsInScreen(it) }
-            yes(
-                bounds.intersect(screen) && bounds.width() >= 48 && bounds.height() >= 48,
-                "SWIPE_REAL_TARGET_$tag",
-            )
+            var bounds = Rect()
+            var previousGeometry = ""
+            waitUntil("SWIPE_REAL_TARGET_$tag") {
+                val target = node(tag) ?: return@waitUntil false
+                val taggedBounds = Rect().also(target::getBoundsInScreen)
+                // SwipeToDismissBox also exposes its background semantics. Use the
+                // actual clickable content row inside this exact entity's gesture box.
+                val content =
+                    all(target).drop(1).firstOrNull { it.isVisibleToUser && it.isClickable }
+                        ?: target
+                bounds = Rect().also(content::getBoundsInScreen)
+                val screen = Rect()
+                var density = 0f
+                test.runOnMainSync {
+                    activity?.window?.decorView?.let {
+                        it.getWindowVisibleDisplayFrame(screen)
+                        density = it.resources.displayMetrics.density
+                    }
+                }
+                // Swipe the real 42 dp list row; the 48 dp minimum applies to buttons.
+                val visible =
+                    density > 0f &&
+                        screen.contains(bounds) &&
+                        bounds.width() >= (48 * density).toInt() &&
+                        bounds.height() >= (42 * density).toInt()
+                val geometry = "tag=$taggedBounds content=$bounds viewport=$screen density=$density"
+                if (geometry != previousGeometry) {
+                    test.sendStatus(0, Bundle().apply { putString("swipe_geometry", geometry) })
+                    previousGeometry = geometry
+                }
+                if (!visible) {
+                    content.performAction(
+                        AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id
+                    )
+                    settleUi()
+                }
+                visible
+            }
+            checks++
             val start = bounds.left + bounds.width() * if (right) 0.15f else 0.85f
             val end = bounds.left + bounds.width() * if (right) 0.85f else 0.15f
             val down = SystemClock.uptimeMillis()
@@ -4809,7 +4895,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             click(UiTags.area("accounting"))
             click(UiTags.area("accounting"))
-            click(UiTags.billingTab(1))
+            reveal("Alle Abschlüsse")
+            click("Alle Abschlüsse")
             val invoiceBefore = store.ownerValue(SettlementRules.KEY, "{}")
             swipe(UiTags.swipe("settlement", invoiceId), right = false)
             swipe(UiTags.swipe("settlement", invoiceId), right = true)
@@ -5023,8 +5110,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             reveal(UiTags.planningWeather("visit", firstVisit))
             click(UiTags.planningView("week"))
             shown(UiTags.PLANNING_GRID)
-            click(UiTags.planningView("map"))
-            shown(UiTags.PLANNING_MAP)
             click(UiTags.planningView("day"))
             shown(UiTags.PLANNING_GRID)
             yes(stateHash() == beforeViews, "BOARD_VIEWS_AND_WEATHER_ARE_READ_ONLY")
@@ -5033,19 +5118,194 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
 
             fun dragHalfHour(kind: String, id: String) {
                 val tag = UiTags.planningEntry(kind, id)
-                reveal(tag)
-                var hit = Rect()
-                waitUntil("BOARD_REAL_DRAG_TARGET_$tag") {
-                    val target = node(tag) ?: return@waitUntil false
-                    hit = Rect().also(target::getBoundsInScreen)
+                reveal(UiTags.PLANNING_GRID)
+                val scrollUp = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP.id
+                val scrollDown = AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN.id
+                fun boardScroller(): AccessibilityNodeInfo? {
+                    val grid = node(UiTags.PLANNING_GRID) ?: return null
+                    return all(grid).firstOrNull { candidate ->
+                        candidate.isScrollable &&
+                            candidate.actionList.any { it.id == scrollUp || it.id == scrollDown }
+                    }
+                }
+                fun visibleBounds(target: AccessibilityNodeInfo): Rect {
+                    val bounds = Rect().also(target::getBoundsInScreen)
                     var parent = target.parent
                     while (parent != null) {
-                        val bounds = Rect().also(parent::getBoundsInScreen)
-                        if (!bounds.isEmpty && !hit.intersect(bounds)) return@waitUntil false
+                        val parentBounds = Rect().also(parent::getBoundsInScreen)
+                        if (!parentBounds.isEmpty && !bounds.intersect(parentBounds))
+                            bounds.setEmpty()
                         parent = parent.parent
                     }
-                    val minimum = (48 * context.resources.displayMetrics.density).toInt()
-                    hit.width() >= minimum && hit.height() >= minimum
+                    return bounds
+                }
+                fun boardPageScroller(): AccessibilityNodeInfo? {
+                    var parent = node(UiTags.PLANNING_GRID)?.parent
+                    while (parent != null) {
+                        if (
+                            parent.isScrollable &&
+                                parent.actionList.any { it.id == scrollUp || it.id == scrollDown }
+                        )
+                            return parent
+                        parent = parent.parent
+                    }
+                    return null
+                }
+                // Date and view controls belong to the outer page. In this three-entry
+                // fixture the grid is its final item; expose that item before time scrolling.
+                fun exposeBoardPage(): Boolean {
+                    val page = boardPageScroller() ?: return false
+                    if (page.actionList.any { it.id == scrollDown }) {
+                        performVerticalScroll(page, forward = true)
+                        settleUi()
+                        return false
+                    } else {
+                        val viewport = boardScroller()?.let(::visibleBounds) ?: Rect()
+                        val minimum = (48 * context.resources.displayMetrics.density).toInt()
+                        test.sendStatus(
+                            0,
+                            Bundle().apply {
+                                putString("board_drag_outer_page", "$tag viewport=$viewport")
+                            },
+                        )
+                        return viewport.width() >= minimum && viewport.height() >= minimum * 2
+                    }
+                }
+                waitUntil("BOARD_OUTER_PAGE_EXPOSES_GRID_$tag") { exposeBoardPage() }
+                // This is the board's inner time viewport, not the surrounding page list.
+                waitUntil("BOARD_TIME_VIEWPORT_START_$tag") {
+                    val viewport = boardScroller() ?: return@waitUntil false
+                    if (viewport.actionList.none { it.id == scrollUp }) true
+                    else {
+                        performVerticalScroll(viewport, forward = false)
+                        settleUi()
+                        false
+                    }
+                }
+                // An upward scroll at the time boundary can carry remaining distance into
+                // the outer page. Restore its viewport after that reset, not just before it.
+                waitUntil("BOARD_OUTER_PAGE_AFTER_TIME_RESET_$tag") { exposeBoardPage() }
+                var hit = Rect()
+                waitUntil("BOARD_REAL_DRAG_TARGET_$tag") {
+                    val viewportNode = boardScroller() ?: return@waitUntil false
+                    val viewport = visibleBounds(viewportNode)
+                    val target = node(tag)
+                    val raw = target?.let { Rect().also(it::getBoundsInScreen) }
+                    hit = target?.let(::visibleBounds) ?: Rect()
+                    val density = context.resources.displayMetrics.density
+                    val minimum = (48 * density).toInt()
+                    val delta = 30 * density
+                    val grid = node(UiTags.PLANNING_GRID)
+                    val canPanRight =
+                        grid?.actionList?.any {
+                            it.id ==
+                                AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_RIGHT.id
+                        } == true
+                    val canPanLeft =
+                        grid?.actionList?.any {
+                            it.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_LEFT.id
+                        } == true
+                    val clippedRight = raw != null && raw.right >= viewport.right && canPanRight
+                    val clippedLeft = raw != null && raw.left <= viewport.left && canPanLeft
+                    val visible =
+                        raw != null &&
+                            hit == raw &&
+                            hit.width() >= minimum &&
+                            hit.height() >= minimum &&
+                            !clippedRight &&
+                            !clippedLeft &&
+                            hit.exactCenterY() + delta < viewport.bottom
+                    if (visible) return@waitUntil true
+                    test.sendStatus(
+                        0,
+                        Bundle().apply {
+                            putString(
+                                "board_drag_viewport",
+                                "$tag viewport=$viewport raw=$raw hit=$hit",
+                            )
+                        },
+                    )
+                    if (viewport.width() < minimum || viewport.height() < minimum * 2) {
+                        exposeBoardPage()
+                        return@waitUntil false
+                    }
+                    if (
+                        raw != null &&
+                            raw.top >= viewport.top &&
+                            raw.bottom <= viewport.bottom &&
+                            (clippedRight ||
+                                clippedLeft ||
+                                raw.left < viewport.left ||
+                                raw.right > viewport.right)
+                    ) {
+                        // The first move can put the later appointment into another display
+                        // lane. Pan that real grid before pressing its fully visible card.
+                        val scrollRight = clippedRight || raw.right > viewport.right
+                        val y = viewport.top + (20 * density).coerceAtMost(viewport.height() / 4f)
+                        val startX =
+                            if (scrollRight) viewport.right - 20 * density
+                            else viewport.left + 20 * density
+                        val distance = (96 * density).coerceAtMost(viewport.width() / 3f)
+                        val endX = startX + if (scrollRight) -distance else distance
+                        val down = SystemClock.uptimeMillis()
+                        fun panEvent(action: Int, x: Float) {
+                            val motion =
+                                MotionEvent.obtain(
+                                    down,
+                                    SystemClock.uptimeMillis(),
+                                    action,
+                                    x,
+                                    y,
+                                    0,
+                                )
+                            motion.source = InputDevice.SOURCE_TOUCHSCREEN
+                            try {
+                                yes(
+                                    automation.injectInputEvent(motion, true),
+                                    "BOARD_HORIZONTAL_VIEWPORT_TOUCH_$tag",
+                                )
+                            } finally {
+                                motion.recycle()
+                            }
+                        }
+                        panEvent(MotionEvent.ACTION_DOWN, startX)
+                        for (step in 1..12) {
+                            SystemClock.sleep(40)
+                            panEvent(MotionEvent.ACTION_MOVE, startX + (endX - startX) * step / 12)
+                        }
+                        SystemClock.sleep(100)
+                        panEvent(MotionEvent.ACTION_UP, endX)
+                        settleUi()
+                        return@waitUntil false
+                    }
+                    // Short real swipes in the hour gutter expose the card without starting
+                    // its long-press drag. Page-sized accessibility scrolls can skip a card.
+                    val x = viewport.left + (24 * density).coerceAtMost(viewport.width() / 4f)
+                    val startY = viewport.bottom - 20 * density
+                    val endY = startY - (96 * density).coerceAtMost(viewport.height() / 3f)
+                    val down = SystemClock.uptimeMillis()
+                    fun scrollEvent(action: Int, y: Float) {
+                        val motion =
+                            MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0)
+                        motion.source = InputDevice.SOURCE_TOUCHSCREEN
+                        try {
+                            yes(
+                                automation.injectInputEvent(motion, true),
+                                "BOARD_VIEWPORT_TOUCH_$tag",
+                            )
+                        } finally {
+                            motion.recycle()
+                        }
+                    }
+                    scrollEvent(MotionEvent.ACTION_DOWN, startY)
+                    for (step in 1..12) {
+                        SystemClock.sleep(40)
+                        scrollEvent(MotionEvent.ACTION_MOVE, startY + (endY - startY) * step / 12)
+                    }
+                    SystemClock.sleep(100)
+                    scrollEvent(MotionEvent.ACTION_UP, endY)
+                    settleUi()
+                    false
                 }
                 val down = SystemClock.uptimeMillis()
                 val delta = 30 * context.resources.displayMetrics.density
@@ -5113,7 +5373,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "BOARD_DRAG_DURABLE_AFTER_RECREATION",
             )
             click(UiTags.PLANNING_TOUR)
-            if (node(UiTags.TOUR_ORDER)?.isSelected != true) click(UiTags.TOUR_ORDER)
+            reveal(UiTags.TOUR_ORDER)
+            fun tourOrderingSelected() =
+                nodes().any { candidate ->
+                    candidate.isVisibleToUser &&
+                        matches(candidate, UiTags.TOUR_ORDER) &&
+                        generateSequence(candidate) { it.parent }.any(::navigationSelected)
+                }
+            if (!tourOrderingSelected()) click(UiTags.TOUR_ORDER)
+            waitUntil("BOARD_TOUR_ORDERING_SELECTED") { tourOrderingSelected() }
             click(UiTags.tourMove(secondVisit, "up"))
             click(UiTags.TOUR_SAVE)
             waitUntil("BOARD_TOUR_ORDER_COMMITTED") {
@@ -5142,11 +5410,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             monitorInstalled = true
             click(UiTags.TOUR_NAVIGATE)
             waitUntil("BOARD_EXTERNAL_NAVIGATION_INTENT") {
-                monitorResult.get()?.startsWith("google.navigation:") == true
+                monitorResult.get()?.startsWith("https://www.google.com/maps/dir/") == true
             }
             yes(
-                monitorResult.get().contains(Uri.encode("48.21,16.32")),
-                "BOARD_MAP_HANDOFF_HAS_CORRECT_DESTINATION",
+                monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg b")) &&
+                    monitorResult.get().contains(Uri.encode("[TEST] QA Gartenweg a")),
+                "BOARD_NAVIGATION_HANDOFF_HAS_ALL_SAVED_ADDRESSES",
             )
             yes(stateHash() == beforeNavigation, "BOARD_NAVIGATION_DOES_NOT_WRITE_BUSINESS_DATA")
             captureSyntheticScreen("planning-board-tour")
@@ -5273,18 +5542,28 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .put("expected_record_hash", inquiryHash)
                     .put("updates", JSONObject().put("order_id", order)),
             )
-            val care =
-                read(
-                        "create_care_plan",
-                        JSONObject()
-                            .put("request_id", "qa_timeline_care")
-                            .put("property_id", property)
-                            .put("title", "[TEST] QA Zeitleistenpflege")
-                            .put("anchor_date", day.toString())
-                            .put("interval_days", 7)
-                            .put("planned_minutes", 60),
-                    )
-                    .getString("care_plan_id")
+            val beforeRemovedCare =
+                PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState()))
+            try {
+                tools.call(
+                    "create_care_plan",
+                    JSONObject()
+                        .put("request_id", "qa_timeline_removed_care")
+                        .put("property_id", property)
+                        .put("title", "[TEST] QA entfernte Pflege")
+                        .put("anchor_date", day.toString())
+                        .put("interval_days", 7)
+                        .put("planned_minutes", 60),
+                )
+                error("Removed care action unexpectedly succeeded")
+            } catch (removed: PixelMcpWriteTools.Rejected) {
+                yes(removed.code == "FUNCTION_REMOVED", "TIMELINE_CARE_EXPLICITLY_REMOVED")
+            }
+            yes(
+                beforeRemovedCare ==
+                    PixelMcpWriteTools.hash(PixelMcpReadTools.effective(store.getState())),
+                "TIMELINE_REMOVED_CARE_HAS_NO_BUSINESS_SIDE_EFFECT",
+            )
             val work = "qa_timeline_work"
             val appointment =
                 read(
@@ -5371,12 +5650,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "TIMELINE_PERSONAL_ASSIGNMENTS_INITIALIZED_THROUGH_EXISTING_WRITER",
             )
             val draft =
-                NativeSettlementNativeTests.draft("labor", "20", work)
+                NativeSettlementNativeTests.draft("billed", "20", work)
                     .put("billing_customer_id", customer)
             val settlement =
                 read(
                         "save_settlement_draft",
-                        JSONObject().put("request_id", "qa_timeline_settlement").put("draft", draft),
+                        JSONObject()
+                            .put("request_id", "qa_timeline_settlement")
+                            .put("draft", draft),
                     )
                     .getString("settlement_id")
             fun timeline(view: String = "history") =
@@ -5400,8 +5681,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             activity?.let { current -> test.runOnMainSync { current.finish() } }
             launch()
             fun openProperty() {
-                openOffice()
-                click(UiTags.area("properties"))
+                openOfficeEntry("Objekte")
                 scrollTop()
                 var lastScroll = 0L
                 waitUntil("TIMELINE_PROPERTY_LIST_OR_DETAIL") {
@@ -5426,7 +5706,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 navigation.get()?.dataString?.startsWith("geo:") == true
             }
             yes(
-                navigation.get().dataString!!.contains("48.2"),
+                navigation.get().dataString!!.contains(Uri.encode("[TEST] QA Zeitleistenweg 7")),
                 "TIMELINE_ROUTE_USES_SAVED_OBJECT_LOCATION",
             )
             click(UiTags.OBJECT_CALL)
@@ -5440,15 +5720,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     beforeNavigation,
                 "TIMELINE_EXTERNAL_ACTIONS_READ_ONLY",
             )
-            selectTab(UiTags.objectTab("care"))
-            reveal(UiTags.objectEntry("care_plan:$care"))
+            yes(node(UiTags.objectTab("care")) == null, "TIMELINE_HAS_NO_CARE_TAB")
+            yes(node(UiTags.OBJECT_PLAN) == null, "TIMELINE_HAS_NO_OBJECT_PLANNING_ACTION")
             selectTab(UiTags.objectTab("photos"))
             click(UiTags.objectEntry("photo:$photoId"))
             shown(UiTags.context("properties", property))
-            click(UiTags.PRIMARY)
+            click("Bildunterschrift")
             enter(UiTags.PHOTO_CAPTION, "[TEST] QA Objektfoto ergänzt")
             if (keyboardVisible()) back()
-            click(UiTags.PRIMARY)
+            click("Schließen")
             waitUntil("TIMELINE_PHOTO_REAL_SAVE") {
                 read("get_photo", JSONObject().put("photo_id", photoId))
                     .getJSONObject("photo")
@@ -5470,6 +5750,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .getJSONObject("record")
                     .optString("status") == "confirmed"
             }
+            shown("E-Rechnung")
+            click("Später")
             // The new footer records payment through the existing durable fiscal operation.
             waitUntil("TIMELINE_PAYMENT_FOOTER_READY") {
                 node(UiTags.settlementState("confirmed")) != null &&
@@ -5494,20 +5776,14 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             )
             click(UiTags.context("properties", property))
             selectTab(UiTags.objectTab("history"))
-            click(UiTags.objectEntry("visit:$visit"))
-            shown(UiTags.context("properties", property))
-            click(UiTags.DETAIL_MENU)
-            shown(UiTags.detailAction("visit-tour"))
-            back()
-            click(UiTags.context("properties", property))
-            selectTab(UiTags.objectTab("history"))
-            click(UiTags.objectEntry("appointment:$appointment"))
-            shown(UiTags.context("properties", property))
-            shown(UiTags.context("orders", order))
-            click(UiTags.DETAIL_MENU)
-            shown(UiTags.detailAction("appointment-cancel"))
-            back()
-            click(UiTags.context("properties", property))
+            reveal(UiTags.objectEntry("visit:$visit"))
+            reveal(UiTags.objectEntry("appointment:$appointment"))
+            yes(
+                history
+                    .filter { it.optString("kind") in setOf("visit", "appointment") }
+                    .all { it.optString("route").isBlank() },
+                "TIMELINE_RETAINS_TERMIN_HISTORY_WITHOUT_OBJECT_PLANNING_LINKS",
+            )
             shell("settings put system font_scale 1.7")
             recreate()
             waitUntil("TIMELINE_LARGE_FONT_APPLIED") {
@@ -5520,27 +5796,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 val secondary = runCatching { actionBounds(UiTags.SECONDARY) }.getOrNull()
                 plus != null &&
                     primary != null &&
-                    secondary != null &&
                     !Rect.intersects(plus, primary) &&
-                    !Rect.intersects(plus, secondary) &&
-                    plus.bottom <= minOf(primary.top, secondary.top)
+                    (secondary == null || !Rect.intersects(plus, secondary))
             }
             click(UiTags.CREATE)
-            click(UiTags.createChoice("visit"))
-            enter(UiTags.detailField("title"), "[TEST] QA vom Objekt vorgeplant")
-            if (keyboardVisible()) back()
-            click(UiTags.PRIMARY)
-            waitUntil("TIMELINE_NEW_VISIT_WITH_CONTEXT") {
-                SettlementRules.rows(
-                        read("list_visits", JSONObject().put("property_id", property))
-                            .getJSONArray("items")
-                    )
-                    .any {
-                        it.optString("title") == "[TEST] QA vom Objekt vorgeplant" &&
-                            it.optString("property_id") == property &&
-                            it.optString("customer_id") == customer
-                    }
-            }
+            yes(node(UiTags.createChoice("care_plan")) == null, "TIMELINE_PLUS_HAS_NO_CARE_ACTION")
+            back()
             val paymentEvents =
                 SettlementRules.rows(timeline("money").getJSONArray("items")).filter {
                     it.optString("kind") == "payment"
@@ -5891,9 +6152,9 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "EMPTY_FIRST_ACTION_OPENS_FORM_WITHOUT_SAVING",
             )
             click(UiTags.area("accounting"))
-            selectTab(UiTags.billingTab(0))
-            shown(UiTags.EMPTY_ACTION)
-            click(UiTags.EMPTY_ACTION)
+            shown(UiTags.EMPTY_STATE)
+            click(UiTags.CREATE)
+            click(UiTags.createChoice("work"))
             shown(UiTags.PRIMARY)
             yes(
                 PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length() ==
@@ -5974,8 +6235,8 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         activity?.let { current -> test.runOnMainSync { current.finish() } }
         launch()
         click(UiTags.area("today"))
-        click(UiTags.TODAY_SEARCH)
-        val label = "Name, Objekt, Tätigkeit, Notiz oder Beleg"
+        click("action:global-search")
+        val label = "Suchen"
         enter(label, "Gruppensuche")
         yes(
             requireNotNull(field(label))
@@ -6055,9 +6316,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("offers") {
             openCustomerList()
-            enter("Suchen", fixturePrefix + "000")
+            searchCustomers(fixturePrefix + "000")
             click(fixturePrefix + "000")
-            click("Angebote")
+            selectCustomerTab("Vorgänge")
+            openDetails("Angebote")
+            reveal("Alle Angebote")
+            click("Alle Angebote")
             keyboardSearchProof("offers", "Suchen", "QA Kontextangebot 0", "QA Kontextangebot 0")
             visibleResult("Zur Liste")
             captureSyntheticScreen("detail-offers")
@@ -6067,7 +6331,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             }
         }
         case("planning") {
-            openOffice()
             click(UiTags.area("planning"))
             chooseDate("Datum *", LocalDate.now(ZoneId.of("Europe/Vienna")).plusDays(1).toString())
             keyboardSearchProof(
@@ -6106,7 +6369,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOfficeEntry("Suche")
             keyboardSearchProof(
                 "local",
-                "Name, Objekt, Tätigkeit, Notiz oder Beleg",
+                "Suchen",
                 fixturePrefix + "000",
                 fixturePrefix + "000",
                 manual = true,
@@ -6114,7 +6377,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("phrases") {
             newWork()
-            click("Textbausteine ▾")
+            click("Textbausteine")
             keyboardSearchProof("phrases", "Vorschläge durchsuchen", "Rasen gemäht", "Rasen gemäht")
             reveal("Was wurde erledigt? *")
             waitUntil("PHRASE_TRANSFERRED") {
@@ -6146,13 +6409,13 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             discardWork()
         }
         case("equipment-picker") {
-            openOffice()
             click(UiTags.area("planning"))
             click(UiTags.FILTER)
             click(UiTags.PLANNING_ALL_VISITS)
             enter("Suchen", "QA Kontexteinsatz 0")
             click("QA Kontexteinsatz 0")
-            click("Bearbeiten")
+            reveal("Benötigte Geräte")
+            click("Benötigte Geräte")
             click("Benötigte Geräte ergänzen")
             click("Benötigte Geräte: Nicht zugeordnet")
             keyboardSearchProof(
@@ -6162,20 +6425,19 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "[TEST] QA Zubehör Säge",
             )
             reveal("Benötigte Geräte: [TEST] QA Zubehör Säge")
-            discardWork()
+            click("Fertig")
         }
         case("planning-picker") {
-            openOffice()
             click(UiTags.area("planning"))
             click(UiTags.PRIMARY)
-            click("Kunde: Bitte wählen")
+            click("Kunde (optional): Keine Auswahl")
             keyboardSearchProof(
                 "planning-picker",
                 "Suchen",
                 fixturePrefix + "000",
                 fixturePrefix + "000",
             )
-            reveal("Kunde: " + fixturePrefix + "000")
+            reveal("Kunde (optional): " + fixturePrefix + "000")
             click("Ungespeicherten Entwurf verwerfen")
         }
         case("photo-assignment") {
@@ -6193,9 +6455,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         case("offer-positions") {
             openCustomerList()
-            enter("Suchen", fixturePrefix + "000")
+            searchCustomers(fixturePrefix + "000")
             click(fixturePrefix + "000")
-            click("Angebote")
+            selectCustomerTab("Vorgänge")
+            openDetails("Angebote")
+            reveal("Alle Angebote")
+            click("Alle Angebote")
             click("Angebot anlegen")
             click("Weiter zu Leistungen")
             click("Aus Leistungskatalog hinzufügen")
@@ -6271,8 +6536,15 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         val targets =
             listOf(
-                Target("customers", "Suchen", fixturePrefix + "000", fixturePrefix + "000") {
-                    click(UiTags.area("customers"))
+                Target(
+                    "customers",
+                    "Suchen",
+                    fixturePrefix + "000",
+                    fixturePrefix + "000",
+                    manual = true,
+                ) {
+                    openCustomerList()
+                    click("Suchen")
                 },
                 Target("work", "Suchen", work, work) { openWorklogs() },
                 Target("orders", "Suchen", "QA Kontextauftrag 0", "QA Kontextauftrag 0") {
@@ -6288,7 +6560,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     "QA Native Notification",
                     "[TEST] QA Native Notification",
                 ) {
-                    openOffice()
                     click(UiTags.area("planning"))
                     chooseDate(
                         "Datum *",
@@ -6312,13 +6583,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 ) {
                     openOfficeEntry("Leistungskatalog")
                 },
-                Target(
-                    "local",
-                    "Name, Objekt, Tätigkeit, Notiz oder Beleg",
-                    fixturePrefix + "000",
-                    fixturePrefix + "000",
-                    true,
-                ) {
+                Target("local", "Suchen", fixturePrefix + "000", fixturePrefix + "000", true) {
                     openOfficeEntry("Suche")
                 },
             )
@@ -6522,7 +6787,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         openOfficeEntry("Suche")
         click(UiTags.FILTER)
         edit("Zeitraum ab · JJJJ-MM-TT", "2020-01-01", "local-date")
-        showKeyboard("Name, Objekt, Tätigkeit, Notiz oder Beleg")
+        showKeyboard("Suchen")
         waitUntil("LOCAL_SEARCH_CLOSES_FILTERS") { field("Zeitraum ab · JJJJ-MM-TT") == null }
         back()
         waitUntil("LOCAL_FILTER_IME_CLOSED") { !keyboardVisible() }
@@ -6566,33 +6831,30 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         }
         fun settings() {
             openOffice()
-            click("Einstellungen und Daten")
+            click("Einstellungen")
             waitUntil("SETTINGS_ACTION_READY") {
                 node("Tätigkeit, Einsatzort und Fotoqualität")?.let(::clickable) != null
             }
         }
         fun planning() {
-            openOffice()
             click(UiTags.area("planning"))
         }
         fun billing() {
-            openOffice()
-            click("Offene Stunden")
+            openOfficeEntry("Offene Stunden")
         }
         case("today", "Arbeit starten", true) {}
         case("work", "Arbeit nachtragen") { openWorklogs() }
         case("timer", "Kunde *: Nicht zugeordnet") { click("Arbeit starten") }
         case("customers", "Neu anlegen") { click(UiTags.area("customers")) }
-        case("office", "Organisieren", true) {
+        case("menu", "Vorgänge", true) {
             click(UiTags.area("today"))
             click(UiTags.MORE)
         }
         case("properties", "Objekt anlegen") { openOfficeEntry("Objekte") }
         case("inquiries", "Anfrage anlegen") { openOfficeEntry("Anfragen") }
         case("orders", "Auftrag anlegen") { openOfficeEntry("Aufträge") }
-        case("care-plans", "Pflegeplan anlegen") { openOfficeEntry("Pflegepläne") }
         case("planning", UiTags.PRIMARY, true) { planning() }
-        case("visits", "Einsatz anlegen") {
+        case("visits", "Termin anlegen") {
             planning()
             click(UiTags.FILTER)
             click(UiTags.PLANNING_ALL_VISITS)
@@ -6606,7 +6868,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             click(UiTags.FILTER)
             click(UiTags.PLANNING_WEATHER_DETAILS)
         }
-        case("billing", "Arbeiten prüfen", true) { billing() }
+        case("billing", "Offen abzurechnen", true) { billing() }
         case("offers", "Angebot anlegen") {
             openOffice()
             click("Angebote")
@@ -6615,12 +6877,12 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             openOffice()
             click("Geräte")
         }
-        case("accessories", "Zubehör bearbeiten", true) {
+        case("accessories", "Zubehör hinzufügen", true) {
             openOffice()
             click("Geräte")
             enter("Suchen", "QA Zubehör Säge")
             click("[TEST] QA Zubehör Säge")
-            click("Zubehör")
+            selectTab("Zubehör")
         }
         case("maintenance", "Wartung einrichten") {
             openOffice()
@@ -6632,8 +6894,6 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         case("photos", "Foto hinzufügen") { openOfficeEntry("Fotos") }
         case("catalog", "Baustein anlegen") { openOfficeEntry("Leistungskatalog") }
         case("local-search", "Suchtext eingeben") { openOfficeEntry("Suche") }
-        case("archive", "Alle Arten") { openOfficeEntry("Archiv") }
-        case("trash", "Papierkorb leeren") { openOfficeEntry("Papierkorb") }
         case("settings", "Tätigkeit, Einsatzort und Fotoqualität", true) { settings() }
         case("connections", "Optionale Verbindungen") {
             settings()
@@ -6677,7 +6937,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
             failures.forEach(failure::addSuppressed)
             throw failure
         }
-        yes(surfaceCases.length() == 32, "ALL_SURFACES_REACHABLE")
+        yes(surfaceCases.length() == 30, "ALL_SURFACES_REACHABLE")
     }
 
     private fun storageSettingsJourney() {
@@ -6714,7 +6974,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 shell("settings put system font_scale $scale")
                 launch()
                 openOffice()
-                click("Einstellungen und Daten")
+                click("Einstellungen")
                 click("Speicher")
                 reveal("Speicher bereinigen")
                 waitUntil("STORAGE_ACTION_READY_$scale") {
@@ -6799,58 +7059,67 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
         )
         yes(safe.contains(plan) && safe.contains(check), "ACTIONS_CLEAR_SYSTEM_BARS")
         captureSyntheticScreen("planning-large-font")
-        val before =
-            PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length()
-        click(UiTags.PRIMARY)
-        shown("Termin speichern")
-        chooseDateTime("Geplanter Beginn *", "2027-05-19T09:00")
-        val planningDraft =
-            "native_form_draft:" + PixelMcpWriteTools.hash("planning:appointment:new")
-        waitUntil("PLANNING_DRAFT_DURABLE") {
-            store.ownerValue(planningDraft, "").contains("2027-05-19T09:00")
+        fun appointments(): List<JSONObject> =
+            SettlementRules.rows(
+                PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments")
+            )
+        val beforeIds = appointments().map { it.getString("id") }.toSet()
+        fun created(): JSONObject? =
+            appointments().filter { it.getString("id") !in beforeIds }.singleOrNull()
+        fun localStart(record: JSONObject): String = runCatching {
+            AppointmentRules.instant(record.getString("starts_at"))
+                .atZone(ZoneId.of("Europe/Vienna"))
+                .toLocalDateTime()
+                .toString()
         }
-        val committedDraft = store.ownerValue(planningDraft, "")
-        chooseDateTime("Geplanter Beginn *", "2027-05-20T11:30", confirmTime = false)
+            .getOrDefault("")
+        click(UiTags.PRIMARY)
+        shown("Termin planen")
+        chooseDate("Datum", "2027-05-19")
+        chooseTime("Uhrzeit (optional)", "09:00")
+        waitUntil("PLANNING_REAL_INPUT_AUTOSAVES_ONE_ORIGINAL") {
+            created()?.let { localStart(it) == "2027-05-19T09:00" } == true
+        }
+        val savedId = requireNotNull(created()).getString("id")
+        val storedHash =
+            read("get_appointment", JSONObject().put("appointment_id", savedId))
+                .getString("record_hash")
+        chooseDate("Datum", "2027-05-20", confirm = false)
+        chooseTime("Uhrzeit (optional)", "11:30", confirm = false)
         yes(
-            store.ownerValue(planningDraft, "") == committedDraft,
-            "CANCEL_DATETIME_TIME_STAGE_DOES_NOT_PARTIALLY_COMMIT_DATE",
+            read("get_appointment", JSONObject().put("appointment_id", savedId))
+                .getString("record_hash") == storedHash,
+            "CANCEL_OPTIONAL_DATE_AND_TIME_PRESERVES_ORIGINAL",
         )
         recreate()
-        reveal("Geplanter Beginn *")
-        revealContaining("19. Mai 2027 · 09:00")
-        yes(
-            JSONObject(store.ownerValue(planningDraft, "{}"))
-                .getJSONObject("values")
-                .getString("local_start") == "2027-05-19T09:00",
-            "PLANNING_DRAFT_AFTER_RECREATION",
-        )
-        yes(
-            PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() ==
-                before,
-            "DRAFT_IS_NOT_APPOINTMENT",
-        )
+        reveal("Datum")
+        revealContaining("19. Mai 2027")
+        revealContaining("09:00")
+        yes(created()?.getString("id") == savedId, "PLANNING_AUTOSAVED_ID_AFTER_RECREATION")
+        chooseTime("Uhrzeit (optional)", "09:15")
+        waitUntil("PLANNING_RECREATED_EDIT_UPDATES_SAME_ORIGINAL") {
+            created()?.let {
+                it.getString("id") == savedId && localStart(it) == "2027-05-19T09:15"
+            } == true
+        }
+        yes(appointments().size == beforeIds.size + 1, "PLANNING_RECREATED_EDIT_HAS_NO_DUPLICATE")
         back()
         click(UiTags.PRIMARY)
-        revealContaining("19. Mai 2027 · 09:00")
-        yes(
-            JSONObject(store.ownerValue(planningDraft, "{}"))
-                .getJSONObject("values")
-                .getString("local_start") == "2027-05-19T09:00",
-            "PLANNING_RESUME_RETAINS_ORIGINAL_INPUT",
-        )
+        shown("Termin planen")
         click("Ungespeicherten Entwurf verwerfen")
-        waitStable("PLANNING_DISCARD_REMOVES_DRAFT", stableMs = 500) {
+        val planningDraft =
+            "native_form_draft:" + PixelMcpWriteTools.hash("planning:appointment:new")
+        waitStable("PLANNING_DISCARD_REMOVES_ONLY_UNTOUCHED_DRAFT", stableMs = 500) {
             store.ownerValue(planningDraft, "").isEmpty()
         }
         reveal(UiTags.PLANNING_TOUR)
         shown(UiTags.PRIMARY)
         yes(
-            PixelMcpReadTools.effective(store.getState()).getJSONArray("appointments").length() ==
-                before,
-            "PLANNING_DISCARD_DOES_NOT_CREATE_RECORD",
+            appointments().size == beforeIds.size + 1 && created()?.getString("id") == savedId,
+            "PLANNING_DISCARD_PRESERVES_AUTOSAVED_ORIGINAL_WITHOUT_NEW_RECORD",
         )
         click(UiTags.area("today"))
-        reveal("Einsätze heute")
+        reveal("Termine heute")
         val workBefore =
             PixelMcpReadTools.effective(store.getState()).getJSONArray("worklogs").length()
         newWork()

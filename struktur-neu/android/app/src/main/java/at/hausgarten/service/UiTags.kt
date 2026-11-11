@@ -84,8 +84,6 @@ internal object UiTags {
 
     fun swipe(entity: String, id: String) = "swipe:$entity:$id"
 
-    fun billingTab(index: Int) = "billing-tab:$index"
-
     const val BACK = "action:back"
     const val CREATE = "action:create"
     const val MORE = "action:more"

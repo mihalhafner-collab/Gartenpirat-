@@ -30,6 +30,9 @@ internal class McpFields private constructor() {
                 "business_vat_id",
                 "default_payment_terms",
                 "hourly_rate",
+                "business_logo",
+                "business_tax_number",
+                "billing_interval",
             )
 
         @JvmStatic

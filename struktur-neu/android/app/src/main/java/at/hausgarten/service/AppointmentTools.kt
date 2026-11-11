@@ -58,7 +58,10 @@ internal object AppointmentTools {
             .put("weather_profile", McpFields.enumeration(*AppointmentRules.PROFILES))
         return properties.put(
             "scope_refs",
-            JSONObject().put("type", "array").put("maxItems", 200).put("items", McpFields.text(200)),
+            JSONObject()
+                .put("type", "array")
+                .put("maxItems", 200)
+                .put("items", McpFields.text(200)),
         )
     }
 
@@ -120,16 +123,8 @@ internal object AppointmentTools {
         if (name == "create_appointment" || name == "create_appointment_series") {
             val fields = fields()
             for (key in fields.keys()) properties.put(key, fields.get(key))
-            required.addAll(
-                listOf(
-                    "customer_id",
-                    "title",
-                    "starts_at",
-                    "ends_at",
-                    "timezone",
-                    "weather_profile",
-                )
-            )
+            if (name == "create_appointment_series")
+                required.addAll(listOf("starts_at", "ends_at", "timezone"))
         }
         if (name == "create_appointment_series") {
             properties
@@ -278,11 +273,7 @@ internal object AppointmentTools {
                     args.getString("order_id") != row.optString("order_id")
             )
                 continue
-            val day =
-                AppointmentRules.instant(row.getString("starts_at"))
-                    .atZone(ZoneId.of(row.optString("timezone", "Europe/Vienna")))
-                    .toLocalDate()
-                    .toString()
+            val day = AppointmentRules.day(row).toString()
             if (args.optString("date_from").isNotEmpty() && day < args.getString("date_from"))
                 continue
             if (args.optString("date_to").isNotEmpty() && day > args.getString("date_to")) continue

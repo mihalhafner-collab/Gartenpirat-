@@ -135,9 +135,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                             if (presentation.setupCode.isEmpty()) NativeStatusTone.Neutral
                             else NativeStatusTone.Attention,
                         )
-                        Text(
-                            "Kalender und Wetter sind optional. Die lokale Arbeitserfassung funktioniert ohne diese Verbindungen."
-                        )
+
                         if (status.isNotEmpty()) Text(status)
                         if (loaded)
                             Action("Status prüfen") {
@@ -148,10 +146,9 @@ class PlanningConnectionActivity : ComponentActivity() {
                             if (status.isEmpty()) CircularProgressIndicator()
                         } else {
                             Section("Google Kalender") {
-                                Text(presentation.steps, style = MaterialTheme.typography.bodySmall)
                                 if (presentation.setupCode.isNotEmpty())
                                     Text(
-                                        "! " + CalendarAccessRules.message(presentation.setupCode),
+                                        CalendarAccessRules.message(presentation.setupCode),
                                         color = MaterialTheme.colorScheme.error,
                                     )
                                 if (presentation.setupCode == "CALENDAR_BUSY_PERMISSION_REQUIRED")
@@ -159,12 +156,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                                         busy = false
                                         beginCalendarSetup()
                                     }
-                                Text(
-                                    "Deine Einsätze erscheinen im eigenen Kalender „Haus & Garten – Einsätze“. App-Termine bleiben erhalten. Keine Kundeneinladungen."
-                                )
-                                Text(
-                                    "Einmal Google-Konto auswählen und den Kalenderzugriff bei Google bestätigen. Dein bereits angemeldetes Pixel-Konto kann ohne erneute Passworteingabe verwendet werden. Kontoauswahl allein ist noch keine Kalenderfreigabe."
-                                )
+
                                 Toggle("Google Kalender verwenden", calendar) { enabled ->
                                     if (enabled && !presentation.connected) beginCalendarSetup()
                                     else saveCalendarSwitch(enabled)
@@ -185,9 +177,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                                     }
                                 }
                                 Toggle("Belegtzeiten prüfen", busy) { busy = it }
-                                Text(
-                                    "Für Warnungen vor Überschneidungen mit deinem Google-Hauptkalender einschalten und Freigaben übernehmen. Andere Google-Kalender werden nicht geprüft. Ohne aktuelle Belegtzeiten bleiben externe Überschneidungen unbekannt. Google fragt die zusätzliche Berechtigung ausdrücklich ab."
-                                )
+
                                 Action("Kalenderfreigaben übernehmen / erneuern") {
                                     beginCalendarSetup()
                                 }
@@ -225,9 +215,7 @@ class PlanningConnectionActivity : ComponentActivity() {
                                 Toggle("Pixel-Benachrichtigungen", notifications) {
                                     saveWeatherSwitch("notifications", it)
                                 }
-                                Text(
-                                    "Schalter speichern sofort. Wetterwarnungen und Pixel-Meldungen sind getrennte Freigaben. Wetterdaten können fehlen oder veraltet sein; die Hinweise ersetzen keine Entscheidung vor Ort."
-                                )
+
                                 Action("Kalender abgleichen und Wetter aktualisieren") {
                                     checkPlanning()
                                 }
@@ -342,12 +330,12 @@ class PlanningConnectionActivity : ComponentActivity() {
                             )
                         },
                         dismissButton = {
-                            TextButton(onClick = { disconnectConfirmation = false }) {
+                            NativeTextButton(onClick = { disconnectConfirmation = false }) {
                                 Text("Abbrechen")
                             }
                         },
                         confirmButton = {
-                            TextButton(
+                            NativeTextButton(
                                 onClick = {
                                     disconnectConfirmation = false
                                     disconnect()
@@ -484,7 +472,11 @@ class PlanningConnectionActivity : ComponentActivity() {
 
     @Composable
     private fun Action(label: String, action: () -> Unit) {
-        OutlinedButton(onClick = action, enabled = !working, modifier = Modifier.fillMaxWidth()) {
+        NativeOutlinedButton(
+            onClick = action,
+            enabled = !working,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(label)
         }
     }
@@ -496,9 +488,7 @@ class PlanningConnectionActivity : ComponentActivity() {
         change: () -> Unit,
         content: @Composable ColumnScope.() -> Unit,
     ) {
-        TextButton(onClick = change, modifier = Modifier.fillMaxWidth()) {
-            Text(title + if (expanded) " ▴" else " ▾")
-        }
+        NativeTextButton(onClick = change, modifier = Modifier.fillMaxWidth()) { Text(title) }
         if (expanded) Column(verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
     }
 
@@ -1489,7 +1479,7 @@ internal fun NativeConnections(controller: NativeAppController) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text("Optionale Verbindungen", style = MaterialTheme.typography.titleLarge)
-            Text("Die lokale Arbeitserfassung benötigt keine dieser Verbindungen.")
+
             NativeStatus(
                 if (checking) "Lokalen Status lesen …"
                 else if (error.isNotEmpty()) "Status unbestätigt"
@@ -1562,10 +1552,6 @@ internal fun NativeConnections(controller: NativeAppController) {
                     { controller.open(PixelTunnelActivity::class.java) },
                 )
             }
-            Text(
-                "Dieser Statusabruf liest gespeicherte lokale Meldungen. Er löst keinen Kalenderabgleich und keine Wetterprüfung aus und bestätigt keine Schreibberechtigung bei fremden Diensten.",
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
         NativeActionBar(
             "Status prüfen",

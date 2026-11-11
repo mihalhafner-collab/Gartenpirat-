@@ -83,22 +83,21 @@ internal object PropertyTimelineRules {
             listOf(offer.optString("order_id"), offer.optString("converted_order_id"))
                 .filter(String::isNotBlank)
                 .distinct()) offerByOrder.getOrPut(order) { mutableListOf() }.add(offer)
-        val offerProperties =
-            offers.associate { offer ->
-                val direct = directProperty(offer)
-                val related =
-                    inquiryByOffer[offer.optString("id")].orEmpty() +
-                        listOf("inquiry_id", "source_inquiry_id").mapNotNull {
-                            inquiryById[offer.optString(it)]
-                        }
-                offer.optString("id") to
-                    if (direct.isNotEmpty()) direct
-                    else
-                        related
-                            .filter { sameCustomer(offer, it) }
-                            .flatMap { directProperty(it) }
-                            .toSet()
-            }
+        val offerProperties = offers.associate { offer ->
+            val direct = directProperty(offer)
+            val related =
+                inquiryByOffer[offer.optString("id")].orEmpty() +
+                    listOf("inquiry_id", "source_inquiry_id").mapNotNull {
+                        inquiryById[offer.optString(it)]
+                    }
+            offer.optString("id") to
+                if (direct.isNotEmpty()) direct
+                else
+                    related
+                        .filter { sameCustomer(offer, it) }
+                        .flatMap { directProperty(it) }
+                        .toSet()
+        }
         val orderProperties =
             rows(master, "orders").associate { order ->
                 val direct = directProperty(order)
@@ -261,8 +260,9 @@ internal object PropertyTimelineRules {
     private fun ids(rows: List<JSONObject>) =
         rows.map { it.optString("id") }.filter(String::isNotBlank).toSet()
 
-    private fun references(row: JSONObject, keys: List<String>, known: Set<String>) =
-        keys.any { row.optString(it).isNotBlank() && row.optString(it) in known }
+    private fun references(row: JSONObject, keys: List<String>, known: Set<String>) = keys.any {
+        row.optString(it).isNotBlank() && row.optString(it) in known
+    }
 
     private fun explicit(row: JSONObject, propertyId: String): Boolean? {
         row.optString("property_id").takeIf(String::isNotBlank)?.let {
@@ -322,10 +322,13 @@ internal object PropertyTimelineRules {
         offset: Int = 0,
         limit: Int = 50,
     ): JSONObject {
+        if (view == "care")
+            throw RevierRules.error(
+                "FUNCTION_REMOVED",
+                "Objektpflege ist entfernt. Verlauf, Fotos und Geld bleiben erhalten.",
+            )
         require(
-            view in setOf("history", "care", "photos", "money") &&
-                offset in 0..1000000 &&
-                limit in 1..50
+            view in setOf("history", "photos", "money") && offset in 0..1000000 && limit in 1..50
         )
         val parents = parentProperties(master, revier)
         val inquiryOwned = rows(revier, "inquiries").filter { belongs(it, propertyId) }
@@ -422,7 +425,6 @@ internal object PropertyTimelineRules {
                         references(it, listOf("order_id"), exclusiveOrderIds)
                 }
             }
-        val care = rows(revier, "care_plans").filter { belongs(it, propertyId) }
         val legacyInvoices =
             rows(master, "invoices").filter {
                 belongs(it, propertyId) {
@@ -523,7 +525,7 @@ internal object PropertyTimelineRules {
                 "visit",
                 row,
                 row.optString("title", "Einsatz"),
-                "visits",
+                "",
                 date(row, "date"),
                 row.optString("status") == "completed",
             )
@@ -532,7 +534,7 @@ internal object PropertyTimelineRules {
                 "appointment",
                 row,
                 row.optString("title", "Einsatz"),
-                "planning",
+                "",
                 date(row, "starts_at"),
                 row.optString("status") == "completed",
             )
@@ -545,18 +547,17 @@ internal object PropertyTimelineRules {
                 date(row, "work_date"),
                 true,
             )
-        val photoItems =
-            photos.map { row ->
-                event(
-                        "photo",
-                        row,
-                        row.optString("caption").ifBlank { row.optString("original_name", "Foto") },
-                        "photos",
-                        date(row, "capture_time", "created_at"),
-                        true,
-                    )
-                    .put("record", SnapshotReadSupport.withoutBinary(row))
-            }
+        val photoItems = photos.map { row ->
+            event(
+                    "photo",
+                    row,
+                    row.optString("caption").ifBlank { row.optString("original_name", "Foto") },
+                    "photos",
+                    date(row, "capture_time", "created_at"),
+                    true,
+                )
+                .put("record", SnapshotReadSupport.withoutBinary(row))
+        }
         history += photoItems
         val documents =
             settlements.map { row ->
@@ -593,39 +594,25 @@ internal object PropertyTimelineRules {
                         amountScope = "document",
                     )
                 }
-        val paymentItems =
-            payments.mapIndexed { index, row ->
-                event(
-                    "payment",
-                    row,
-                    "Zahlung zum Beleg",
-                    "settlements",
-                    date(row, "date", "paid_at", "created_at"),
-                    true,
-                    target = row.getString("settlement_id"),
-                    key =
-                        "payment:${row.optString("id").ifBlank { row.getString("settlement_id") + ":" + index }}",
-                    amountMinor = amount(row, "amount_minor"),
-                    amountScope = "payment",
-                )
-            }
+        val paymentItems = payments.mapIndexed { index, row ->
+            event(
+                "payment",
+                row,
+                "Zahlung zum Beleg",
+                "settlements",
+                date(row, "date", "paid_at", "created_at"),
+                true,
+                target = row.getString("settlement_id"),
+                key =
+                    "payment:${row.optString("id").ifBlank { row.getString("settlement_id") + ":" + index }}",
+                amountMinor = amount(row, "amount_minor"),
+                amountScope = "payment",
+            )
+        }
         history += documents + paymentItems
-        val careItems =
-            care.map { row ->
-                event(
-                        "care_plan",
-                        row,
-                        row.optString("title", "Pflegeplan"),
-                        "care_plans",
-                        date(row, "anchor_date", "created_at"),
-                        false,
-                    )
-                    .put("record", JSONObject(row.toString()))
-            }
         val groups =
             mapOf(
                 "history" to history,
-                "care" to careItems,
                 "photos" to photoItems,
                 "money" to documents + paymentItems,
             )

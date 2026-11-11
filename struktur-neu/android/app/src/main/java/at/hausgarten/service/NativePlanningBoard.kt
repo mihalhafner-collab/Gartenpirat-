@@ -1,8 +1,5 @@
 package at.hausgarten.service
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -14,13 +11,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.testTag
@@ -52,15 +47,11 @@ private class BoardEntry(val data: JSONObject) {
     val day = PlanningBoardRules.day(kind, record)
     val minute = start?.toLocalTime()?.toSecondOfDay()?.div(60)
     val duration = PlanningBoardRules.duration(kind, record)
-    val point = PlanningBoardRules.coordinates(if (kind == "visit") property else record)
-    val address =
-        if (kind == "visit") property.optString("address") else record.optString("location")
     val warning = weather.optString("severity") in setOf("critical", "difficult")
     val closed = record.optString("status") in setOf("completed", "cancelled", "superseded")
     val timeLabel: String
         get() {
-            val begin =
-                start?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: return "Uhrzeit offen"
+            val begin = start?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: return "Ohne Uhrzeit"
             val end =
                 if (kind == "visit") record.optString("window_end")
                 else
@@ -113,7 +104,13 @@ internal fun NativePlanningBoardScreen(
     var error by remember { mutableStateOf("") }
     var moving by remember { mutableStateOf("") }
     var checking by remember { mutableStateOf(false) }
+    var informCustomer by rememberSaveable { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    LaunchedEffect(anchor, customer) {
+        controller.route.args.put("date", anchor)
+        if (customer.isNotBlank()) controller.route.args.put("customer_id", customer)
+        else controller.route.args.remove("customer_id")
+    }
     val day = LocalDate.parse(anchor)
     val from = if (mode == "week") day.minusDays((day.dayOfWeek.value - 1).toLong()) else day
     val to = if (mode == "week") from.plusDays(6) else from
@@ -135,7 +132,6 @@ internal fun NativePlanningBoardScreen(
                 }
             }
     LaunchedEffect(request.toString(), changes, attempt) {
-        board = null
         error = ""
         try {
             savedDraft = controller.draft("planning:appointment:new") != null
@@ -167,6 +163,8 @@ internal fun NativePlanningBoardScreen(
                     minute,
                 )
                 error = ""
+                if (entry.record.optString("status") == "confirmed")
+                    informCustomer = entry.record.optString("customer_id")
                 attempt++
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -194,8 +192,8 @@ internal fun NativePlanningBoardScreen(
                 board == null -> "Wird geladen …"
                 query.isNotBlank() ->
                     "${board?.optInt("total")} Treffer · ${offset + if (entries.isEmpty()) 0 else 1}–${offset + entries.size}"
-                board?.optInt("total") == 1 -> "1 Einsatz"
-                else -> "${board?.optInt("total")} Einsätze"
+                board?.optInt("total") == 1 -> "1 Termin"
+                else -> "${board?.optInt("total")} Termine"
             },
             onFilters = { filters = !filters },
             onFocus = { filters = false },
@@ -208,6 +206,10 @@ internal fun NativePlanningBoardScreen(
                 if (!ime)
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if ((board?.optInt("legacy_visits_pending") ?: 0) > 0)
+                                NativeTextButton({ controller.navigate("visits") }) {
+                                    Text("Bestehende Termine prüfen")
+                                }
                             NativeDateField(
                                 "Datum",
                                 anchor,
@@ -221,7 +223,7 @@ internal fun NativePlanningBoardScreen(
                                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         anchor =
                                             day.minusDays(if (mode == "week") 7 else 1).toString()
@@ -229,14 +231,10 @@ internal fun NativePlanningBoardScreen(
                                     },
                                     Modifier.semantics { testTag = UiTags.PLANNING_PREVIOUS },
                                 ) {
-                                    Text("‹")
+                                    Text("Vorige")
                                 }
                                 for ((value, label) in
-                                    listOf(
-                                        "day" to "Tag",
-                                        "week" to "Woche",
-                                        "map" to "Karte",
-                                    )) FilterChip(
+                                    listOf("day" to "Tag", "week" to "Woche")) FilterChip(
                                     mode == value,
                                     {
                                         mode = value
@@ -246,7 +244,7 @@ internal fun NativePlanningBoardScreen(
                                     modifier =
                                         Modifier.semantics { testTag = UiTags.planningView(value) },
                                 )
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         anchor =
                                             day.plusDays(if (mode == "week") 7 else 1).toString()
@@ -254,11 +252,11 @@ internal fun NativePlanningBoardScreen(
                                     },
                                     Modifier.semantics { testTag = UiTags.PLANNING_NEXT },
                                 ) {
-                                    Text("›")
+                                    Text("Nächste")
                                 }
                             }
                             NativeActions {
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         anchor = LocalDate.now(PlanningBoardRules.zone).toString()
                                         offset = 0
@@ -267,7 +265,7 @@ internal fun NativePlanningBoardScreen(
                                 ) {
                                     Text("Heute")
                                 }
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         controller.navigate(
                                             "tour",
@@ -284,7 +282,7 @@ internal fun NativePlanningBoardScreen(
                 if (filters)
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(
+                            NativeTextButton(
                                 { chooseCustomer = true },
                                 Modifier.semantics { testTag = UiTags.PLANNING_CUSTOMER },
                             ) {
@@ -295,7 +293,7 @@ internal fun NativePlanningBoardScreen(
                                 )
                             }
                             if (customer.isNotBlank())
-                                TextButton(
+                                NativeTextButton(
                                     {
                                         customer = ""
                                         customerTitle = ""
@@ -330,21 +328,23 @@ internal fun NativePlanningBoardScreen(
                                 { onWeather(!weatherDetails) },
                                 label = { Text("Wetterdetails") },
                                 modifier =
-                                    Modifier.semantics { testTag = UiTags.PLANNING_WEATHER_DETAILS },
+                                    Modifier.semantics {
+                                        testTag = UiTags.PLANNING_WEATHER_DETAILS
+                                    },
                             )
-                            TextButton(
+                            NativeTextButton(
                                 { onNew(true, anchor, customer) },
                                 Modifier.semantics { testTag = UiTags.PLANNING_REPEAT },
                             ) {
                                 Text("Wiederholungen")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 { controller.open(PlanningConnectionActivity::class.java) },
                                 Modifier.semantics { testTag = UiTags.PLANNING_SETTINGS },
                             ) {
                                 Text("Kalender & Wetter")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 {
                                     controller.navigate(
                                         "visits",
@@ -359,7 +359,7 @@ internal fun NativePlanningBoardScreen(
                             ) {
                                 Text("Einsatzliste")
                             }
-                            TextButton(
+                            NativeTextButton(
                                 {
                                     checking = true
                                     scope.launch {
@@ -401,10 +401,19 @@ internal fun NativePlanningBoardScreen(
                             }
                         }
                     }
+                if (informCustomer.isNotBlank())
+                    item {
+                        NativeTextButton(
+                            { controller.navigate("customers", informCustomer, "detail") },
+                            colors = ButtonDefaults.textButtonColors(contentColor = NativeDue),
+                        ) {
+                            Text("Kunde informieren")
+                        }
+                    }
                 if (error.isNotBlank())
                     item {
                         NativeStatus(error, NativeStatusTone.Failed)
-                        TextButton(
+                        NativeTextButton(
                             { attempt++ },
                             Modifier.semantics { testTag = UiTags.PLANNING_RELOAD },
                         ) {
@@ -432,7 +441,6 @@ internal fun NativePlanningBoardScreen(
                         when {
                             ime || query.isNotBlank() ->
                                 PlanningBoardList(controller, entries, weatherDetails, ::open)
-                            mode == "map" -> PlanningBoardMap(controller, entries, ::open)
                             else ->
                                 PlanningBoardGrid(
                                     entries,
@@ -449,7 +457,7 @@ internal fun NativePlanningBoardScreen(
                 if (board?.optInt("total", 0) ?: 0 > 50)
                     item {
                         NativeActions {
-                            TextButton(
+                            NativeTextButton(
                                 { offset = (offset - 50).coerceAtLeast(0) },
                                 Modifier.semantics { testTag = UiTags.PLANNING_PAGE_PREVIOUS },
                                 enabled = offset > 0,
@@ -459,7 +467,7 @@ internal fun NativePlanningBoardScreen(
                             Text(
                                 "${offset + 1}–${offset + entries.size} von ${board?.optInt("total")}"
                             )
-                            TextButton(
+                            NativeTextButton(
                                 { offset += 50 },
                                 Modifier.semantics { testTag = UiTags.PLANNING_PAGE_NEXT },
                                 enabled = board?.optBoolean("has_more") == true,
@@ -471,15 +479,10 @@ internal fun NativePlanningBoardScreen(
             }
             if (!ime)
                 NativeActionBar(
-                    if (savedDraft) "Entwurf fortsetzen" else "Einsatz planen",
+                    if (savedDraft) "Entwurf fortsetzen" else "Termin planen",
                     { onNew(false, anchor, customer) },
                 )
         }
-        if (!ime)
-            NativeCreateButton(
-                controller,
-                Modifier.align(Alignment.BottomEnd).padding(16.dp).padding(bottom = 72.dp),
-            )
     }
     NativeRecordDialog(
         chooseCustomer,
@@ -598,24 +601,23 @@ private fun PlanningBoardGrid(
             from.plusDays(it.toLong())
         }
     val placed = mutableMapOf<String, Int>()
-    val lanes =
-        days.map { date ->
-            val ends = mutableListOf<Float>()
-            for (entry in
-                entries.filter { it.day == date && it.minute != null }.sortedBy { it.minute }) {
-                val start = requireNotNull(entry.minute).toFloat()
-                val index = ends.indexOfFirst { it <= start }.let { if (it < 0) ends.size else it }
-                val end =
-                    start +
-                        maxOf(
-                            (entry.duration ?: 30).toFloat(),
-                            with(density) { cardMinimum.toPx() } / minutePx,
-                        )
-                if (index == ends.size) ends.add(end) else ends[index] = end
-                placed[entry.key] = index
-            }
-            maxOf(1, ends.size)
+    val lanes = days.map { date ->
+        val ends = mutableListOf<Float>()
+        for (entry in
+            entries.filter { it.day == date && it.minute != null }.sortedBy { it.minute }) {
+            val start = requireNotNull(entry.minute).toFloat()
+            val index = ends.indexOfFirst { it <= start }.let { if (it < 0) ends.size else it }
+            val end =
+                start +
+                    maxOf(
+                        (entry.duration ?: 30).toFloat(),
+                        with(density) { cardMinimum.toPx() } / minutePx,
+                    )
+            if (index == ends.size) ends.add(end) else ends[index] = end
+            placed[entry.key] = index
         }
+        maxOf(1, ends.size)
+    }
     val dayStarts = days.indices.map { index -> lanes.take(index).sum() * lanePx }
     val totalWidth = laneWidth * lanes.sum()
     val horizontal = rememberScrollState()
@@ -626,7 +628,6 @@ private fun PlanningBoardGrid(
     val scroll = rememberScrollState(initial = with(density) { (hourHeight * 8).roundToPx() })
     val gridColor = MaterialTheme.colorScheme.outlineVariant
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Zum Verschieben lang drücken und ziehen.", style = MaterialTheme.typography.bodySmall)
         Column(
             Modifier.fillMaxWidth().horizontalScroll(horizontal).semantics {
                 testTag = UiTags.PLANNING_GRID
@@ -734,8 +735,7 @@ private fun PlanningBoardGrid(
                             colors =
                                 CardDefaults.cardColors(
                                     containerColor =
-                                        if (entry.warning)
-                                            MaterialTheme.colorScheme.tertiaryContainer
+                                        if (entry.warning) NativeDueContainer
                                         else MaterialTheme.colorScheme.surfaceContainer
                                 ),
                         ) {
@@ -784,108 +784,6 @@ private fun PlanningBoardGrid(
                 { onOpen(entry) },
                 Modifier.semantics { testTag = UiTags.planningEntry(entry.kind, entry.id) },
             )
-        }
-    }
-}
-
-@Composable
-private fun PlanningBoardMap(
-    controller: NativeAppController,
-    entries: List<BoardEntry>,
-    onOpen: (BoardEntry) -> Unit,
-) {
-    val known = entries.filter { it.point != null }
-    val groups = known.groupBy { requireNotNull(it.point) }
-    var selectedPoint by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-    val primary = MaterialTheme.colorScheme.primary
-    val gridColor = MaterialTheme.colorScheme.outlineVariant
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (known.isNotEmpty())
-            BoxWithConstraints(
-                Modifier.fillMaxWidth().height(300.dp).semantics { testTag = UiTags.PLANNING_MAP }
-            ) {
-                val minLat = known.minOf { requireNotNull(it.point).first }
-                val maxLat = known.maxOf { requireNotNull(it.point).first }
-                val minLon = known.minOf { requireNotNull(it.point).second }
-                val maxLon = known.maxOf { requireNotNull(it.point).second }
-                Canvas(Modifier.fillMaxSize()) {
-                    for (i in 1..3) {
-                        drawLine(
-                            gridColor,
-                            Offset(size.width * i / 4, 0f),
-                            Offset(size.width * i / 4, size.height),
-                        )
-                        drawLine(
-                            gridColor,
-                            Offset(0f, size.height * i / 4),
-                            Offset(size.width, size.height * i / 4),
-                        )
-                    }
-                }
-                for ((index, location) in groups.entries.withIndex()) {
-                    val point = location.key
-                    val entry = location.value.first()
-                    val x =
-                        if (maxLon == minLon) 0.5 else (point.second - minLon) / (maxLon - minLon)
-                    val y =
-                        if (maxLat == minLat) 0.5
-                        else 1 - (point.first - minLat) / (maxLat - minLat)
-                    FilledTonalButton(
-                        { selectedPoint = point },
-                        Modifier.offset(
-                                x = (maxWidth - 56.dp) * x.toFloat(),
-                                y = (maxHeight - 56.dp) * y.toFloat(),
-                            )
-                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                            .semantics {
-                                testTag = UiTags.planningPin(entry.kind, entry.id)
-                                contentDescription = location.value.joinToString(" · ") { it.title }
-                            },
-                        contentPadding = PaddingValues(4.dp),
-                        colors = ButtonDefaults.filledTonalButtonColors(contentColor = primary),
-                    ) {
-                        Text(
-                            if (location.value.size > 1) "${index + 1} · ${location.value.size}"
-                            else (index + 1).toString()
-                        )
-                    }
-                }
-            }
-        else Text("Mit einem Standort am Objekt erscheinen deine Einsätze auf der Karte.")
-        if (selectedPoint != null)
-            TextButton(
-                { selectedPoint = null },
-                Modifier.semantics { testTag = UiTags.PLANNING_MAP_ALL },
-            ) {
-                Text("Alle Einsätze anzeigen")
-            }
-        for (entry in entries.filter { selectedPoint == null || it.point == selectedPoint }) {
-            NativeInfoRow(
-                entry.title,
-                entry.timeLabel + " · " + entry.address,
-                { onOpen(entry) },
-                Modifier.semantics { testTag = UiTags.planningEntry(entry.kind, entry.id) },
-            )
-            if (entry.address.isNotBlank() || entry.point != null)
-                TextButton(
-                    {
-                        val target =
-                            entry.point?.let { "${it.first},${it.second}" } ?: entry.address
-                        try {
-                            controller.context.startActivity(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("geo:0,0?q=" + Uri.encode(target)),
-                                )
-                            )
-                        } catch (_: ActivityNotFoundException) {
-                            controller.message("Keine Karten-App verfügbar.")
-                        }
-                    },
-                    Modifier.semantics { testTag = UiTags.planningRoute(entry.kind, entry.id) },
-                ) {
-                    Text("Route")
-                }
         }
     }
 }

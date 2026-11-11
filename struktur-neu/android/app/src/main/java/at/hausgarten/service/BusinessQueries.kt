@@ -84,6 +84,16 @@ class BusinessQueries {
             return query.run(name, a, state, master, writer)
         }
 
+        private fun invoiceCandidates(logs: JSONArray?, state: JSONObject): JSONArray {
+            val lcr = AccountingRules.ids(state.optJSONArray("lcr_work_ids") ?: JSONArray())
+            return JSONArray().apply {
+                for (index in 0 until (logs?.length() ?: 0)) {
+                    val work = logs!!.getJSONObject(index)
+                    if (work.optString("id") !in lcr) put(work)
+                }
+            }
+        }
+
         private @JvmStatic @Throws(Exception::class) fun customersOrders(
             name: String,
             a: JSONObject,
@@ -206,7 +216,11 @@ class BusinessQueries {
                         if (a.optBoolean("group_by_billing_customer")) {
                             (data as JSONObject).put(
                                 "billing_groups",
-                                BillingRules.groups(matching, master),
+                                BillingRules.groups(
+                                    invoiceCandidates(matching, state),
+                                    master,
+                                    state.optJSONObject("settlement_ledger") ?: JSONObject(),
+                                ),
                             )
                         }
                     }
@@ -271,7 +285,9 @@ class BusinessQueries {
                             while (logs != null && i < logs.length()) {
                                 val row = logs.getJSONObject(i)
                                 hours += row.optDouble("hours", 0.0)
-                                if (row.optInt("billed", 0) == 0) {
+                                if (
+                                    row.optInt("billed", 0) == 0 && row.optBoolean("billable", true)
+                                ) {
                                     unbilled++
                                 }
                                 i++
@@ -287,7 +303,14 @@ class BusinessQueries {
                                 .put("work_records", (if (logs == null) 0 else logs.length()))
                                 .put("hours", Math.round(hours * 100) / 100.0)
                                 .put("marked_unbilled", unbilled)
-                                .put("billing_groups", BillingRules.groups(logs, master))
+                                .put(
+                                    "billing_groups",
+                                    BillingRules.groups(
+                                        invoiceCandidates(logs, state),
+                                        master,
+                                        state.optJSONObject("settlement_ledger") ?: JSONObject(),
+                                    ),
+                                )
                     }
                 }
                 "search_business_data" -> {

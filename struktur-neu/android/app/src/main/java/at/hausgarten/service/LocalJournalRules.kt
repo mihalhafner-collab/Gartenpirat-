@@ -125,6 +125,8 @@ internal class LocalJournalRules {
                             "custom_fields",
                             "billing_mode",
                             "default_billing_customer_id",
+                            "electronic_invoice_consent",
+                            "electronic_invoice_consent_date",
                         )
                     else
                         (if (kind == "order")

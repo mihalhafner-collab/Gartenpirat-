@@ -95,13 +95,16 @@ internal fun NativeInspectionBanner(result: PendingInspectionRules.Result, onRet
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 when (result.state) {
-                    "conflict" -> "Der Vorgang benötigt deine Prüfung."
-                    "removed" -> "Der gespeicherte Eintrag wurde später entfernt."
-                    else -> "Der Speicherstand ist noch offen."
+                    "conflict" -> "Konflikt prüfen"
+                    "removed" -> "Eintrag entfernt"
+                    else -> "Wird erneut geprüft"
                 }
             )
             if (result.state == "waiting")
-                TextButton(onRetry, Modifier.semantics { testTag = UiTags.INSPECTION_RETRY }) {
+                NativeTextButton(
+                    onRetry,
+                    Modifier.semantics { testTag = UiTags.INSPECTION_RETRY },
+                ) {
                     Text("Erneut laden")
                 }
         }
@@ -115,7 +118,7 @@ internal suspend fun NativeAppController.acknowledgeDeleteResult(
     original: JSONObject,
     proof: JSONObject,
 ): JSONObject {
-    require(tool in setOf("delete_entity", "purge_entity", "empty_trash", "delete_work_records"))
+    require(tool in setOf("delete_entity", "delete_work_records"))
     require(PendingInspectionRules.sameDeletionTarget(tool, initial, original))
     require(
         proof.optString("state") in setOf("confirmed", "content_removed") &&
@@ -144,10 +147,8 @@ internal fun NativeRestoreBanner(onReview: (() -> Unit)? = null) {
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(Modifier.padding(12.dp)) {
-            Text(
-                "Diese Angaben stammen aus einer Sicherung. Prüfe ihren Zusammenhang vor dem Speichern."
-            )
-            if (onReview != null) TextButton(onReview) { Text("Angaben ansehen") }
+            Text("Aus Sicherung wiederhergestellt")
+            if (onReview != null) NativeTextButton(onReview) { Text("Angaben ansehen") }
         }
     }
 }
@@ -197,8 +198,11 @@ internal fun NativeRestoreNotice(controller: NativeAppController) {
         contentColor = NativeAttentionContent,
     ) {
         Row(Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Die Sicherung ist wiederhergestellt.", Modifier.weight(1f))
-            TextButton({ dismiss(true) }, Modifier.semantics { testTag = UiTags.RESTORE_VIEW }) {
+            Text("Sicherung wiederhergestellt", Modifier.weight(1f))
+            NativeTextButton(
+                { dismiss(true) },
+                Modifier.semantics { testTag = UiTags.RESTORE_VIEW },
+            ) {
                 Text("Ansehen")
             }
             IconButton(
@@ -208,7 +212,7 @@ internal fun NativeRestoreNotice(controller: NativeAppController) {
                     contentDescription = "Hinweis schließen"
                 },
             ) {
-                Text("×")
+                NativeCloseIcon()
             }
         }
     }

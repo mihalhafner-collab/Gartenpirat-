@@ -55,46 +55,11 @@ class WorkApplicationService : OwnerCommand {
                     return repository.enqueue("worklog", p, request)
                 }
             }
-            "set_personal_paid" -> {
-                run {
-                    if (!"1".equals(repository.ownerValue("personal_paid_migrated", ""))) {
-                        throw PixelMcpWriteTools.Rejected(
-                            "DEVICE_MIGRATION_REQUIRED",
-                            "App einmal öffnen, damit vorhandene persönliche Markierungen verlustfrei übernommen werden.",
-                        )
-                    }
-                    var id: String = args.getString("work_record_id")
-                    PixelMcpWriteTools.find(all.getJSONArray("worklogs"), id)
-                    val ids: MutableSet<String> = LinkedHashSet()
-                    val old: JSONArray = JSONArray(repository.ownerValue("personal_paid", "[]"))
-                    run {
-                        var i: Int = 0
-                        while (i < old.length()) {
-                            ids.add(old.getString(i))
-                            i++
-                        }
-                    }
-                    if (args.getBoolean("paid")) {
-                        val (collection, record) = AccountingRules.canonical(all, "worklogs", id)
-                        SettlementSourceProtection.requireRouteChange(
-                            all,
-                            JSONObject(repository.ownerValue("settlement:v1", "{}")),
-                            collection,
-                            record.getString("id"),
-                            AccountingRules.LABOR,
-                        )
-                        ids.add(id)
-                    } else {
-                        ids.remove(id)
-                    }
-                    AccountingRules.requireConsistentChange(all, all, AccountingRules.ids(old), ids)
-                    repository.putOwnerValue("personal_paid", JSONArray(ids).toString())
-                    return JSONObject()
-                        .put("work_record_id", id)
-                        .put("paid", args.getBoolean("paid"))
-                        .put("scope", "device_only")
-                }
-            }
+            "set_personal_paid" ->
+                throw PixelMcpWriteTools.Rejected(
+                    "LEGACY_LABOR_RETIRED",
+                    "Historische Labor-Zuordnungen bleiben lesbar. L.C.R. ausdrücklich mit set_work_record_lcr an der Originalarbeit ändern.",
+                )
             else -> {
                 throw IllegalArgumentException("Eigentümerfunktion fehlt.")
             }
@@ -125,6 +90,15 @@ class WorkApplicationService : OwnerCommand {
             )
         }
         val route = args.getString("route").let { if (it == "open") "" else it }
+        require(
+            route != AccountingRules.LABOR &&
+                AccountingRules.orderRoute(record) != AccountingRules.LABOR &&
+                AccountingRules.works(master, collection, id).none {
+                    it.optString("id") in personal
+                }
+        ) {
+            "Historische Labor-Zuordnung bleibt erhalten. L.C.R. wird getrennt an der Originalarbeit geführt."
+        }
         require(route in setOf("", AccountingRules.BILLED, AccountingRules.LABOR)) {
             "Abrechnungsweg auswählen."
         }

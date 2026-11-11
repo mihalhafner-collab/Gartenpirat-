@@ -298,6 +298,13 @@ internal class McpErrors {
             error: Exception,
         ): Unit {
             val code = problem.optString("code")
+            if (error is RevierApplicationService.CanonicalAppointmentRequired) {
+                problem
+                    .put("visit_id", error.visitId)
+                    .put("appointment_id", error.appointmentId)
+                    .put("record_hash", error.currentRecordHash)
+                    .put("next_tool", "update_appointment")
+            }
             if (
                 (error is PixelMcpWriteTools.Rejected &&
                     !(Arrays.asList("REPLAY_MISMATCH", "REQUEST_EXPIRED").contains(code)))

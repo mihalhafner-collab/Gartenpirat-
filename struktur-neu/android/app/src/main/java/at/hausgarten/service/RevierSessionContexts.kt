@@ -16,7 +16,7 @@ class RevierSessionContexts {
             var result: JSONObject
             database
                 .rawQuery(
-                    "SELECT id,customer_id,order_id,state FROM work_sessions WHERE id=?",
+                    "SELECT id,customer_id,order_id,state,finalized_worklog_id FROM work_sessions WHERE id=?",
                     arrayOf(id),
                 )
                 .use { row ->
@@ -29,6 +29,7 @@ class RevierSessionContexts {
                             .put("customer_id", row.getString(1))
                             .put("order_id", row.getString(2))
                             .put("state", row.getString(3))
+                            .put("finalized_worklog_id", row.getString(4))
                 }
             database
                 .rawQuery(

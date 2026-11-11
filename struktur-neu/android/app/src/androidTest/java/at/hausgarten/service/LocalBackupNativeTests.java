@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-/** Full roundtrip in unused device-protected storage of a freshly installed disposable emulator. */
+/** Full roundtrip in unused device-protected storage of a fresh synthetic fixture. */
 final class LocalBackupNativeTests {
     private int checks;
     private void yes(boolean value) { if (!value) throw new AssertionError("NATIVE_BACKUP_CHECK_" + checks); checks++; }
@@ -20,7 +20,6 @@ final class LocalBackupNativeTests {
     private int execute(Instrumentation test, boolean reopen) throws Exception {
         Context testContext = test.getContext();
         if (!"at.hausgarten.service.test".equals(testContext.getPackageName())) throw new IOException("ISOLATED_TEST_APK_REQUIRED");
-        if (!Arrays.asList("ranchu", "goldfish").contains(android.os.Build.HARDWARE)) throw new IOException("DISPOSABLE_EMULATOR_REQUIRED");
         Context context = new ContextWrapper(test.getTargetContext().createDeviceProtectedStorageContext()) {
             @Override public Context getApplicationContext() { return this; }
         };
@@ -51,10 +50,12 @@ final class LocalBackupNativeTests {
         yes(context.getSharedPreferences("haus_garten", Context.MODE_PRIVATE).edit().putString("drive_snapshot", originalSnapshot).putLong("qa_long", 1234567890123L).commit());
         write(new File(context.getFilesDir(), "qa-extra.txt"), "QA exact file before save");
         File saved = new File(context.getNoBackupFilesDir(), "qa-saved.zip");
+        yes(saved.createNewFile());
         int[] writes = {0};
         BackupDocumentTransfer.LocalFile provider = new BackupDocumentTransfer.LocalFile() {
             public OutputStream write() throws Exception { writes[0]++; return new FileOutputStream(saved); }
             public InputStream read() throws Exception { return new FileInputStream(saved); }
+            public void replaceFrom(File archive, String previousHash, long previousSize) throws Exception { writes[0]++; BackupDocumentTransfer.atomicReplace(saved, archive, previousHash, previousSize); }
         };
         String id;
         try (PixelLocalStore store = new PixelLocalStore(context)) {
@@ -97,6 +98,28 @@ final class LocalBackupNativeTests {
             yes(service.status(new JSONObject()).getString("state").equals("VERIFIED"));
             service.saveTo("qa_native_save_001", "qa_destination", provider, message -> {}); yes(writes[0] == 1);
             yes(service.saveTo("qa_native_save_002", "qa_destination", provider, message -> {}).getBoolean("verified")); yes(writes[0] == 2);
+            String confirmed = store.ownerValue("pixel_backup_success", "");
+            boolean[] replacementDone = {false}, readbackFails = {true};
+            BackupDocumentTransfer.LocalFile flaky = new BackupDocumentTransfer.LocalFile() {
+                public OutputStream write() { throw new AssertionError("existing target must not be truncated"); }
+                public InputStream read() throws Exception {
+                    if (replacementDone[0] && readbackFails[0]) throw new IOException("QA readback interrupted after atomic replacement");
+                    return new FileInputStream(saved);
+                }
+                public void replaceFrom(File archive, String hash, long size) throws Exception {
+                    BackupDocumentTransfer.atomicReplace(saved, archive, hash, size); writes[0]++; replacementDone[0] = true;
+                }
+            };
+            rejects(() -> service.saveTo("qa_native_save_003", "qa_destination", flaky, message -> {}));
+            yes(replacementDone[0] && writes[0] == 3);
+            yes(service.status(new JSONObject()).getString("state").equals("FAILED"));
+            yes(store.ownerValue("pixel_backup_success", "").equals(confirmed));
+            yes(service.targetSelection().getString("request_id").equals("qa_native_save_003"));
+            readbackFails[0] = false;
+            JSONObject resumed = service.saveTo("qa_native_save_003", "qa_destination", flaky, message -> {});
+            yes(resumed.getBoolean("verified") && writes[0] == 3);
+            yes(service.targetSelection().getString("uri").equals("qa_destination"));
+            yes(service.targetSelection().getString("request_id").isEmpty());
             String savedHash = BackupArchive.sha256(saved);
             BackupDocumentTransfer.LocalFile broken = new BackupDocumentTransfer.LocalFile() {
                 public OutputStream write() throws Exception { throw new IOException("QA disk full"); }

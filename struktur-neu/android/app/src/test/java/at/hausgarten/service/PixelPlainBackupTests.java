@@ -171,10 +171,72 @@ public final class PixelPlainBackupTests {
         try{reject(()->BackupArchive.removeWorkDirectories(parent));yes(interrupted.isDirectory());}finally{Thread.interrupted();}
         yes(BackupArchive.removeWorkDirectories(parent)==0&&!new File(parent,"full-backup-work").exists());
     }
+    static void safeUpdateChecks(File root)throws Exception {
+        File directory=new File(root,"qa_safe_update");yes(directory.mkdir());
+        File data=new File(directory,"records.json"),photo=new File(directory,"photo.bin"),added=new File(directory,"added.bin");
+        File first=new File(directory,"first.zip"),next=new File(directory,"next.zip"),target=new File(directory,"chosen.zip");
+        Files.writeString(data.toPath(),"{\"works\":[{\"id\":\"qa_same\",\"note\":\"before\"},{\"id\":\"qa_removed\"}]}");
+        Files.writeString(photo.toPath(),"QA unchanged original photo bytes");
+        List<BackupArchive.Source> sources=new ArrayList<>();
+        sources.add(new BackupArchive.Source("records.json",data));sources.add(new BackupArchive.Source("files/photo.bin",photo));
+        try(OutputStream output=new FileOutputStream(first)){BackupArchive.writePlain(output,metadata().put("datasetFormat","pixel.snapshot.v2"),sources);}
+        JSONObject firstManifest=BackupArchive.verifyWritten(first,6);
+        yes(target.createNewFile());int[] writes={0};
+        BackupDocumentTransfer.LocalFile provider=new BackupDocumentTransfer.LocalFile(){
+            public OutputStream write()throws Exception{writes[0]++;return new FileOutputStream(target);}
+            public InputStream read()throws Exception{return new FileInputStream(target);}
+            public void replaceFrom(File archive,String previousHash,long previousSize)throws Exception{
+                writes[0]++;BackupDocumentTransfer.atomicReplace(target,archive,previousHash,previousSize);
+            }
+        };
+        String oldHash=BackupArchive.sha256(first);long oldSize=first.length();
+        BackupDocumentTransfer.exportLocal(first,oldHash,false,provider);yes(writes[0]==1);
+        String newer="{\"works\":[{\"id\":\"qa_same\",\"note\":\"changed\"},{\"id\":\"qa_new\"}]}";
+        Files.writeString(data.toPath(),newer);Files.writeString(added.toPath(),"QA additional photo");
+        sources.add(new BackupArchive.Source("files/added.bin",added));
+        try(OutputStream output=new FileOutputStream(next)){BackupArchive.writePlain(output,metadata().put("datasetFormat","pixel.snapshot.v2"),sources);}
+        JSONObject nextManifest=BackupArchive.verifyWritten(next,6);String newHash=BackupArchive.sha256(next);
+        yes(firstManifest.getJSONArray("files").getJSONObject(1).getString("sha256").equals(nextManifest.getJSONArray("files").getJSONObject(1).getString("sha256")));
+        BackupDocumentTransfer.LocalFile unsafe=new BackupDocumentTransfer.LocalFile(){
+            public OutputStream write(){throw new AssertionError("must not truncate existing ZIP");}
+            public InputStream read()throws Exception{return new FileInputStream(target);}
+        };
+        try{BackupDocumentTransfer.updateLocal(next,newHash,oldHash,oldSize,unsafe);throw new AssertionError("unsafe provider accepted");}
+        catch(IOException expected){yes(expected.getMessage().equals("BACKUP_SAFE_REPLACE_UNAVAILABLE"));}
+        yes(BackupArchive.sha256(target).equals(oldHash)&&writes[0]==1);
+        BackupDocumentTransfer.LocalFile interrupted=new BackupDocumentTransfer.LocalFile(){
+            public OutputStream write(){throw new AssertionError("must not truncate existing ZIP");}
+            public InputStream read()throws Exception{return new FileInputStream(target);}
+            public void replaceFrom(File archive,String hash,long size)throws Exception{throw new InterruptedIOException("QA interrupted before replacement");}
+        };
+        reject(()->BackupDocumentTransfer.updateLocal(next,newHash,oldHash,oldSize,interrupted));yes(BackupArchive.sha256(target).equals(oldHash));
+        BackupDocumentTransfer.updateLocal(next,newHash,oldHash,oldSize,provider);yes(writes[0]==2&&BackupArchive.sha256(target).equals(newHash));
+        try(BackupArchive.Verified restored=BackupArchive.verifyPlain(new FileInputStream(target),new File(directory,"restore"),1024*1024,6)){
+            yes(Files.readString(restored.file("records.json").toPath()).equals(newer));
+            yes(Files.readString(restored.file("files/photo.bin").toPath()).equals(Files.readString(photo.toPath())));
+            yes(Files.readString(restored.file("files/added.bin").toPath()).equals("QA additional photo"));
+        }
+        byte[] newBytes=Files.readAllBytes(target.toPath());
+        Files.writeString(target.toPath(),"QA externally changed file");byte[] changed=Files.readAllBytes(target.toPath());
+        try{BackupDocumentTransfer.updateLocal(first,oldHash,newHash,newBytes.length,provider);throw new AssertionError("changed target accepted");}
+        catch(IOException expected){yes(expected.getMessage().equals("BACKUP_TARGET_CHANGED"));}
+        yes(Arrays.equals(Files.readAllBytes(target.toPath()),changed)&&writes[0]==2);
+        Files.write(target.toPath(),newBytes);
+        boolean[] replaced={false};
+        BackupDocumentTransfer.LocalFile readbackFailure=new BackupDocumentTransfer.LocalFile(){
+            public OutputStream write(){throw new AssertionError("must not truncate existing ZIP");}
+            public InputStream read()throws Exception{if(replaced[0])throw new IOException("QA provider readback failed");return new FileInputStream(target);}
+            public void replaceFrom(File archive,String hash,long size)throws Exception{BackupDocumentTransfer.atomicReplace(target,archive,hash,size);replaced[0]=true;}
+        };
+        try{BackupDocumentTransfer.updateLocal(first,oldHash,newHash,newBytes.length,readbackFailure);throw new AssertionError("false success after readback failure");}
+        catch(IOException expected){yes(expected.getMessage().equals("BACKUP_LOCAL_READBACK_FAILED"));}
+        yes(BackupArchive.sha256(target).equals(oldHash));
+        for(File remaining:directory.listFiles())yes(!remaining.getName().startsWith(".hg-backup-"));
+    }
     public static void main(String[] args)throws Exception{
         diagnosticChecks();statusChecks();warningStatusChecks();
         File root=Files.createTempDirectory("qa_plain_backup_").toFile();try{
-            workCleanupChecks(root);archiveSafetyChecks(root);conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
+            safeUpdateChecks(root);workCleanupChecks(root);archiveSafetyChecks(root);conflictingRecordsRoundTrip(root);warningRoundTrip(root);interruptedRestore(root);
             File source=new File(root,"qa_database.sqlite"),zip=new File(root,"qa_backup.zip");byte[] bytes="QA local plaintext contents".getBytes("UTF-8");Files.write(source.toPath(),bytes);
             try(OutputStream out=new FileOutputStream(zip)){BackupArchive.writePlain(out,metadata(),Arrays.asList(new BackupArchive.Source("database.sqlite",source)));}
             try(ZipFile readable=new ZipFile(zip)){yes(readable.getEntry("data/database.sqlite")!=null&&readable.getEntry("manifest.json")!=null);}
@@ -188,11 +250,11 @@ public final class PixelPlainBackupTests {
             byte[] raw=Files.readAllBytes(zip.toPath());File truncated=new File(root,"qa_truncated.zip");Files.write(truncated.toPath(),Arrays.copyOf(raw,raw.length-7));reject(()->BackupArchive.verifyPlain(new FileInputStream(truncated),new File(root,"truncated"),1024*1024,6));
             File missing=new File(root,"qa_missing.zip");try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(missing))){out.putNextEntry(new ZipEntry("data/database.sqlite"));out.write(bytes);out.closeEntry();}reject(()->BackupArchive.verifyPlain(new FileInputStream(missing),new File(root,"missing"),1024*1024,6));
             reject(()->BackupArchive.verifyPlain(new FileInputStream(zip),new File(root,"space"),1,6));yes(Arrays.equals(bytes,Files.readAllBytes(source.toPath())));
-            File saved=new File(root,"qa_saved.zip");int[] writes={0};BackupDocumentTransfer.LocalFile destination=new BackupDocumentTransfer.LocalFile(){public OutputStream write()throws Exception{writes[0]++;return new FileOutputStream(saved);}public InputStream read()throws Exception{return new FileInputStream(saved);}};
+            File saved=new File(root,"qa_saved.zip");yes(saved.createNewFile());int[] writes={0};BackupDocumentTransfer.LocalFile destination=new BackupDocumentTransfer.LocalFile(){public OutputStream write()throws Exception{writes[0]++;return new FileOutputStream(saved);}public InputStream read()throws Exception{return new FileInputStream(saved);}};
             String expected=BackupArchive.sha256(zip);BackupDocumentTransfer.exportLocal(zip,expected,false,destination);yes(BackupArchive.sha256(saved).equals(expected)&&writes[0]==1);
             BackupDocumentTransfer.exportLocal(zip,expected,true,destination);yes(writes[0]==1);
             try(OutputStream output=new FileOutputStream(saved)){output.write(1);}reject(()->BackupDocumentTransfer.exportLocal(zip,expected,true,destination));yes(writes[0]==1);
-            BackupDocumentTransfer.exportLocal(zip,expected,false,destination);yes(writes[0]==2&&BackupArchive.sha256(saved).equals(expected));
+            reject(()->BackupDocumentTransfer.exportLocal(zip,expected,false,destination));yes(writes[0]==1&&saved.length()==1);
             reject(()->BackupDocumentTransfer.exportLocal(zip,expected,false,new BackupDocumentTransfer.LocalFile(){public OutputStream write()throws Exception{throw new IOException("QA storage full");}public InputStream read(){return null;}}));
             yes(BackupArchive.sha256(zip).equals(expected));
             File large=new File(root,"qa_large.bin"),largeZip=new File(root,"qa_large.zip");byte[] block=new byte[65536];new Random(27).nextBytes(block);try(OutputStream out=new FileOutputStream(large)){for(int i=0;i<768;i++)out.write(block);}
