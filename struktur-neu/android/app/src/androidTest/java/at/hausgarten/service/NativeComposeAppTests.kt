@@ -1226,7 +1226,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 "SETTLEMENT_CANCELLED_ANDROID_SHARE_NEITHER_CHANGES_ORIGINAL_NOR_BOOKS_PAYMENT_OR_ACCESS",
             )
             openContext("customers", "qa_settlement_recipient")
-            selectTab("Geld")
+            selectCustomerTab("Geld")
             reveal("E-Rechnung")
             click("E-Rechnung")
             waitUntil("SETTLEMENT_NATIVE_CONSENT_REVOKED") {
@@ -2041,7 +2041,7 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                 .map { it.getString("id") }
                 .toSet()
         openContext("customers", customer)
-        selectTab("Geld")
+        selectCustomerTab("Geld")
         reveal("Abrechnen")
         click("Abrechnen")
         shown("Bezeichnung")
@@ -10006,6 +10006,10 @@ class NativeComposeAppTests private constructor(private val test: Instrumentatio
                     .performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id),
                 "FILTER_DONE_$key",
             )
+            waitUntil("FILTER_IME_CLOSED_$key") { !keyboardVisible() }
+            settleUi()
+            // Restored app bars can move the edited filter below the visible viewport.
+            reveal(label)
             waitUntil("FILTER_DONE_PRESERVES_VALUE_$key") {
                 !keyboardVisible() && field(label)?.text?.toString()?.contains(value) == true
             }

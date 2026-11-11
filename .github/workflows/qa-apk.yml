@@ -744,6 +744,8 @@ jobs:
               assert result['uninstall_tested'] is False, result
               assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
               assert result['isolated_restore'] is sys.argv[1].endswith('_reopen'), result
+              for proof in ('restored_draft_values_and_creation_identity','restored_session_and_original_events','restored_session_review_marker'):
+                  assert result[proof] is sys.argv[1].endswith('_reopen'), result
               assert result['restore_cold_start_guard_retained'] is sys.argv[1].endswith('_reopen'), result
               for proof in ('media_restore_ui','restore_confirmation_cancel_no_activation','restore_confirmation_pending_restart'):
                   assert result[proof] is sys.argv[1].endswith('_reopen'), result

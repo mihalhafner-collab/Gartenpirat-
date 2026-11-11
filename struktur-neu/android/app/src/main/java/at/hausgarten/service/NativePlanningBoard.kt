@@ -206,7 +206,9 @@ internal fun NativePlanningBoardScreen(
                 if (!ime)
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if ((board?.optInt("legacy_visits_pending") ?: 0) > 0)
+                            if (
+                                query.isBlank() && (board?.optInt("legacy_visits_pending") ?: 0) > 0
+                            )
                                 NativeTextButton({ controller.navigate("visits") }) {
                                     Text("Bestehende Termine prüfen")
                                 }
@@ -219,62 +221,69 @@ internal fun NativePlanningBoardScreen(
                                 },
                                 required = true,
                             )
-                            Row(
-                                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                NativeTextButton(
-                                    {
-                                        anchor =
-                                            day.minusDays(if (mode == "week") 7 else 1).toString()
-                                        offset = 0
-                                    },
-                                    Modifier.semantics { testTag = UiTags.PLANNING_PREVIOUS },
+                            if (query.isBlank()) {
+                                Row(
+                                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
-                                    Text("Vorige")
+                                    NativeTextButton(
+                                        {
+                                            anchor =
+                                                day.minusDays(if (mode == "week") 7 else 1)
+                                                    .toString()
+                                            offset = 0
+                                        },
+                                        Modifier.semantics { testTag = UiTags.PLANNING_PREVIOUS },
+                                    ) {
+                                        Text("Vorige")
+                                    }
+                                    for ((value, label) in
+                                        listOf("day" to "Tag", "week" to "Woche")) FilterChip(
+                                        mode == value,
+                                        {
+                                            mode = value
+                                            offset = 0
+                                        },
+                                        label = { Text(label) },
+                                        modifier =
+                                            Modifier.semantics {
+                                                testTag = UiTags.planningView(value)
+                                            },
+                                    )
+                                    NativeTextButton(
+                                        {
+                                            anchor =
+                                                day.plusDays(if (mode == "week") 7 else 1)
+                                                    .toString()
+                                            offset = 0
+                                        },
+                                        Modifier.semantics { testTag = UiTags.PLANNING_NEXT },
+                                    ) {
+                                        Text("Nächste")
+                                    }
                                 }
-                                for ((value, label) in
-                                    listOf("day" to "Tag", "week" to "Woche")) FilterChip(
-                                    mode == value,
-                                    {
-                                        mode = value
-                                        offset = 0
-                                    },
-                                    label = { Text(label) },
-                                    modifier =
-                                        Modifier.semantics { testTag = UiTags.planningView(value) },
-                                )
-                                NativeTextButton(
-                                    {
-                                        anchor =
-                                            day.plusDays(if (mode == "week") 7 else 1).toString()
-                                        offset = 0
-                                    },
-                                    Modifier.semantics { testTag = UiTags.PLANNING_NEXT },
-                                ) {
-                                    Text("Nächste")
-                                }
-                            }
-                            NativeActions {
-                                NativeTextButton(
-                                    {
-                                        anchor = LocalDate.now(PlanningBoardRules.zone).toString()
-                                        offset = 0
-                                    },
-                                    Modifier.semantics { testTag = UiTags.PLANNING_TODAY },
-                                ) {
-                                    Text("Heute")
-                                }
-                                NativeTextButton(
-                                    {
-                                        controller.navigate(
-                                            "tour",
-                                            args = JSONObject().put("date", anchor),
-                                        )
-                                    },
-                                    Modifier.semantics { testTag = UiTags.PLANNING_TOUR },
-                                ) {
-                                    Text("Tour")
+                                NativeActions {
+                                    NativeTextButton(
+                                        {
+                                            anchor =
+                                                LocalDate.now(PlanningBoardRules.zone).toString()
+                                            offset = 0
+                                        },
+                                        Modifier.semantics { testTag = UiTags.PLANNING_TODAY },
+                                    ) {
+                                        Text("Heute")
+                                    }
+                                    NativeTextButton(
+                                        {
+                                            controller.navigate(
+                                                "tour",
+                                                args = JSONObject().put("date", anchor),
+                                            )
+                                        },
+                                        Modifier.semantics { testTag = UiTags.PLANNING_TOUR },
+                                    ) {
+                                        Text("Tour")
+                                    }
                                 }
                             }
                         }
@@ -477,7 +486,7 @@ internal fun NativePlanningBoardScreen(
                         }
                     }
             }
-            if (!ime)
+            if (!ime && query.isBlank())
                 NativeActionBar(
                     if (savedDraft) "Entwurf fortsetzen" else "Termin planen",
                     { onNew(false, anchor, customer) },

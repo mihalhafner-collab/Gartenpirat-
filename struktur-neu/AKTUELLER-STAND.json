@@ -56,25 +56,25 @@
   "current_test_candidate": {
     "version_name": "1.72.0",
     "version_code": 159,
-    "source_sha256": "d48f5f344c53845bc036530f18bcccad482dedb3eac5e131f17db453ca312c6f",
-    "status": "Eisbär 1.0.1 auf exakt nachgewiesener 158-Basis. Tatsächlicher logischer Sicherungsvergleich, UI/MCP-Erklärblatt, umbrechende Summen und gezielte Runtime-/Darstellungskorrekturen integriert. Aktuelle Release-/Test-APK, lintRelease und Datenschutz bestanden. Eigener vollständiger Kandidatenlauf und reale Pixel-Abnahme offen. Nicht verteilt oder installiert."
+    "source_sha256": "34a648cab75f87b548eda5637cc2198543a6eae3c37000d8dfaf8ca1f9ba0968",
+    "status": "Eisbär 1.0.1 auf exakt nachgewiesener 158-Basis. Kontaktaktionen im Suchdetail und bedienbare Planungssuchergebnisse korrigiert; Picker-Navigation, MCP-Umschlag, Segmentreiter- und Filter-Readbacktests berichtigt. Release-/Test-APK, Lint, Datenschutz und lokale Quellprüfungen bestanden. Voller neuer Kandidatenlauf steht aus. Nicht verteilt oder installiert."
   },
   "current_task": {
     "name": "Vollständiger Umbau nach Eisbär",
-    "status": "IN_PROGRESS — abschließende Konzept-/Laufzeitkorrekturen lokal gebaut und geprüft. Nächster Schritt vollständiger CI-Lauf bis grün, danach konkrete Nachweise und reale Pixel-Abnahme. Kein Eisbär-Abschluss.",
+    "status": "IN_PROGRESS — acht aktuelle native Fehlaufrufe gezielt bearbeitet. Release-/Test-APK, Lint und lokale Quellprüfungen bestanden; vollständiger neuer CI-Lauf bis grün und reale Pixel-Abnahme erforderlich. Kein Eisbär-Abschluss.",
     "completed": false,
     "owner_instruction": "Eisbär ist die einzig gültige Design- und Funktionsumfangsvorgabe. Der folgende Umbau ist erst abgeschlossen, wenn Eisbär vollständig umgesetzt und nachgewiesen ist.",
     "validation": {
       "governance": "Eisbär-Integrität und Vollständigkeit der offenen Abnahmen werden durch check_current.py/CI geprüft. Dies ist keine bestandene App-Abnahme.",
       "native_implementation": "IN_PROGRESS",
-      "eisbaer_runtime_tests": "Diagnose-Run 43037244345 auf eda9f491/source33880395: 40 von 46 Hauptaufrufen abgeschlossen, 6708 Checks; alle 6 MCP-Proofblöcke und echtes 158→159-Update mit Daten/Session/Drafts/Fotobytes erfolgreich. Sechs rote Aufrufe betreffen Provider-/Media-Handoffs, Hauptuhrprüfung und Consent-Testfixture. Korrekturen lokal integriert, noch nicht nativ ausgeführt.",
-      "source": "PASS aktueller Produktstand d48f5f34: check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow-YAML, 14 Shellblöcke und neun eingebettete Pythonblöcke gültig. Größter run-Block 20456 Zeichen, unter dem 21000-Zeichen-Limit. Eisbär-Originale unverändert.",
-      "local_jvm": "PASS 97 JVM-Tests ohne Fehler/Skip auf integriertem Sicherungsvergleichskern c53e02ea; Host-Suche p95=85.799014 ms bei unverändertem 300-ms-Limit. Anschließende UI-/Teststeuerungskorrekturen werden neu gebaut und im eigenen vollständigen CI-Lauf geprüft; keine Pixel-Leistungsbehauptung.",
-      "local_build": "PASS aktueller Produktstand d48f5f34: Release-APK, Test-APK, lintRelease und Artefakt-Datenschutz. Testfixture-Korrekturen abschließend mit Test-APK/Lint, Bauzeit 2 min 27 s bestätigt. Screenshot-Helfer nutzt öffentliche APIs und echten Frame-Commit. Frühere originalsignierte APKs sind intern und veraltet, nicht verteilt.",
-      "full_ci": "Run 43037244345: Build SUCCESS, Emulator FAILURE, Eisbär-Integrität SUCCESS; 40/46 Hauptaufrufe mit 6708 Checks. Aktueller Stand d48f5f34 benötigt eigenen vollständigen neuen Lauf; keine offene CI-Prüfung wird als Pixel-only ausgegeben."
+      "eisbaer_runtime_tests": "Run 43051214339 auf 47e537e/d48f5f34: 38/46 Hauptaufrufe abgeschlossen, 6492 Checks. Alle 6 MCP-Blöcke, Hauptuhr, responsive Summen, Erklärblatt und echtes 158→159-Update erfolgreich. Acht rote Aufrufe aus zwei Produkt-Zugangs-/Layoutfehlern sowie Picker-/Umschlag-/Tab-/Sichtbarkeits-Testfehlern gezielt bearbeitet; neue Ausführung ausstehend.",
+      "source": "PASS aktueller Produktstand 34a648ca: check_release_baseline.py und check_current.py mit 64 Python-Prüfungen; Workflow-YAML, 14 Shellblöcke und neun eingebettete Pythonblöcke gültig. Größter run-Block 20666 Zeichen unter dem 21000-Zeichen-Limit. Eisbär-Originale unverändert.",
+      "local_jvm": "PASS aktueller voriger CI-Quellstand 47e537e: 97 JVM-Tests ohne Fehler/Skip; CI-Host-Suche p95=46.317451 ms unter unverändertem 300-ms-Limit, synthetischer MemoryPort, keine Pixel-Leistungsbehauptung. Aktuelle UI-/Testkorrekturen erhalten eigenen vollen CI einschließlich JVM.",
+      "local_build": "PASS aktueller Produktstand 34a648ca: assembleRelease und Datenschutz in 3 min 23 s; lintRelease und assembleReleaseAndroidTest einschließlich echtem Controller-Draft und präziser Session-/Restoreprüfung in 4 min 43 s. Der originalsignierte 47e-Kandidat 869ad99f… ist wegen aktueller Produktkorrekturen veraltet, intern und nicht verteilt.",
+      "full_ci": "Run 43051214339: Build SUCCESS, Emulator FAILURE, Integrität SUCCESS; 38/46 abgeschlossene Hauptaufrufe. Rechte-Restaurationskette wegen Media-Abbruch unvollständig. Aktueller Stand 34a648ca benötigt eigenen vollständigen neuen Lauf; keine roten CI-Tests als Pixel-only ausgelagert."
     },
     "next": [
-      "Aktuellen Schlussbau abschließen, neue vollständige Quell-/Workflowprüfungen ausführen, eigene geprüfte Änderungen im bestehenden PR #27 committen/pushen und vollen CI-Lauf bis grün führen.",
+      "Geprüfte Änderungen im bestehenden PR #27 committen/pushen und vollständigen neuen CI-Lauf bis grün führen; dessen exakte APK intern originalsignieren und prüfen.",
       "Nach erfolgreichem exaktem Kandidatenlauf tatsächliche UI-/MCP-/Daten-/Migrationsnachweise in UMSETZUNG.json registrieren; Bilder und Grenzen konkret prüfen.",
       "Nach ausdrücklich beauftragter Installation: Originalidentität, Pixel-Bedienung, bestehende Verbindungen sowie tatsächlichen Sicherungsanbieter und bestätigte isolierte Wiederherstellung prüfen.",
       "Erst bei vollständig bestandenen Eisbär-Abnahmen check_eisbaer.py --completion und Abschluss."

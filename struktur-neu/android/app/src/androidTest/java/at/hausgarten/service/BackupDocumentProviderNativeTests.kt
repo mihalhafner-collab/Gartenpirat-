@@ -18,6 +18,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import java.io.File
 import java.io.IOException
 import java.util.Random
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 /** Real resolver, separate-UID local document provider and system DocumentsUI tests. */
@@ -392,26 +393,10 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         )
                         .getString("photo_id")
                 }
-                val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash("editor:worklog:new")
+                val draftName = "editor:worklog:new"
+                val draftKey = "native_form_draft:" + PixelMcpWriteTools.hash(draftName)
                 fun protectedState(includeBackupRecords: Boolean = true): String {
-                    val state = JSONObject()
-                    for (table in listOf("work_sessions", "work_session_events")) {
-                        val rows = org.json.JSONArray()
-                        store.readableDatabase
-                            .rawQuery("SELECT * FROM $table ORDER BY id", null)
-                            .use { cursor ->
-                                while (cursor.moveToNext()) {
-                                    val row = JSONObject()
-                                    for (column in 0 until cursor.columnCount) row.put(
-                                        cursor.getColumnName(column),
-                                        if (cursor.isNull(column)) JSONObject.NULL
-                                        else cursor.getString(column),
-                                    )
-                                    rows.put(row)
-                                }
-                            }
-                        state.put(table, rows)
-                    }
+                    val state = mediaTimeRows(store.readableDatabase)
                     val keys =
                         if (includeBackupRecords)
                             listOf(draftKey, "pixel_backup_last", "pixel_backup_success")
@@ -447,8 +432,17 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                                     .put("test_record", true),
                             )
                             .getString("entity_id")
+                    val draft =
+                        mediaSaveDraft(
+                            store,
+                            draftName,
+                            JSONObject()
+                                .put("customer_id", customer)
+                                .put("activity", "[TEST] QA offener Arbeitsentwurf")
+                                .put("hours", "0.75"),
+                        )
                     val session =
-                        call(
+                        data(
                                 "start_work",
                                 request("timer")
                                     .put("customer_id", customer)
@@ -459,18 +453,6 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         session.getString("state") == "RUNNING" &&
                             session.getString("id").isNotEmpty(),
                         "MEDIA_SYNTHETIC_SESSION_RUNNING",
-                    )
-                    store.putOwnerValue(
-                        draftKey,
-                        JSONObject()
-                            .put(
-                                "values",
-                                JSONObject()
-                                    .put("customer_id", customer)
-                                    .put("activity", "[TEST] QA offener Arbeitsentwurf")
-                                    .put("hours", "0.75"),
-                            )
-                            .toString(),
                     )
                     fun work(name: String) =
                         data(
@@ -553,6 +535,8 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                         .put("stage", "seeded")
                         .put("phase_pid", Process.myPid())
                         .put("customer", customer)
+                        .put("draft", draft)
+                        .put("session_id", session.getString("id"))
                         .put("retained_work", retainedWork)
                         .put("removed_work", removedWork)
                         .put("retained_photo", retainedPhoto)
@@ -871,6 +855,21 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                             protectedState(false) == beforePendingBusiness,
                         "MEDIA_PENDING_GRANT_LOSS_PRESERVES_ZIP_SESSION_AND_DRAFT",
                     )
+                    val restoreProof =
+                        JSONObject()
+                            .put("draft_key", draftKey)
+                            .put("draft", store.ownerValue(draftKey, ""))
+                            .put("time_rows", mediaTimeRows(store.readableDatabase))
+                    val sessionRows =
+                        restoreProof.getJSONObject("time_rows").getJSONArray("work_sessions")
+                    yes(
+                        restoreProof.getString("draft") == saved.getString("draft") &&
+                            sessionRows.length() == 1 &&
+                            sessionRows.getJSONObject(0).getString("id") ==
+                                saved.getString("session_id") &&
+                            sessionRows.getJSONObject(0).getString("state") == "RUNNING",
+                        "MEDIA_FINAL_SAVE_RETAINS_ORIGINAL_DRAFT_AND_REAL_SESSION",
+                    )
                     mediaRegrantPicker(selected, filename, pendingRequest)
                     val rebound = JSONObject(store.ownerValue("pixel_backup_success", ""))
                     yes(
@@ -922,6 +921,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                             .put("pid", android.os.Process.myPid())
                             .put("archive_sha256", BackupArchive.sha256(archive))
                             .put("source_hash", expected)
+                            .put("restore_proof", restoreProof)
                             .put("retained_work", retainedWork)
                             .put("removed_work", removedWork)
                             .put("retained_photo", retainedPhoto)
@@ -1008,6 +1008,9 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                 .put("uninstall_tested", false)
                 .put("new_process_readback", reopen)
                 .put("isolated_restore", reopen)
+                .put("restored_draft_values_and_creation_identity", reopen)
+                .put("restored_session_and_original_events", reopen)
+                .put("restored_session_review_marker", reopen)
                 .put("restore_cold_start_guard_retained", reopen)
                 .put("media_restore_ui", reopen)
                 .put("restore_confirmation_cancel_no_activation", reopen)
@@ -1673,6 +1676,64 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         }
     }
 
+    private fun mediaSaveDraft(store: PixelLocalStore, name: String, values: JSONObject): String {
+        val monitor = test.addMonitor(MainActivity::class.java.name, null, false)
+        var activity: MainActivity? = null
+        try {
+            context.startActivity(
+                Intent(context, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            )
+            val opened =
+                monitor.waitForActivityWithTimeout(20000) as? MainActivity
+                    ?: throw AssertionError("QA_PICKER_TIMEOUT_MEDIA_DRAFT_ACTIVITY_CREATED")
+            activity = opened
+            waitUntil("MEDIA_DRAFT_ACTIVITY_FOCUSED") {
+                !opened.isFinishing &&
+                    !opened.isDestroyed &&
+                    opened.hasWindowFocus() &&
+                    automation.rootInActiveWindow?.packageName?.toString() == context.packageName &&
+                    node("Heute") != null
+            }
+            val controller = NativeAppController(opened, store)
+            controller.saveDraft(name, JSONObject().put("values", values))
+            runBlocking { controller.flushDrafts() }
+            val raw = store.ownerValue("native_form_draft:" + PixelMcpWriteTools.hash(name), "")
+            val saved = JSONObject(raw)
+            yes(
+                saved.getString("_draft_key") == name &&
+                    PixelMcpWriteTools.hash(saved.getJSONObject("values")) ==
+                        PixelMcpWriteTools.hash(values) &&
+                    PixelMcpWriteTools.hash(saved.getJSONObject("_creation_identity")) ==
+                        PixelMcpWriteTools.hash(BackupDeviceGuard(context).current()),
+                "MEDIA_DRAFT_SAVED_BY_NATIVE_CONTROLLER_WITH_CURRENT_IDENTITY",
+            )
+            return raw
+        } finally {
+            test.removeMonitor(monitor)
+            activity?.let { value -> onMainBounded("media_draft_finish") { value.finish() } }
+        }
+    }
+
+    private fun mediaTimeRows(database: android.database.sqlite.SQLiteDatabase): JSONObject {
+        val state = JSONObject()
+        for (table in listOf("work_sessions", "work_session_events")) {
+            val rows = org.json.JSONArray()
+            database.rawQuery("SELECT * FROM $table ORDER BY id", null).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val row = JSONObject()
+                    for (column in 0 until cursor.columnCount) row.put(
+                        cursor.getColumnName(column),
+                        if (cursor.isNull(column)) JSONObject.NULL else cursor.getString(column),
+                    )
+                    rows.put(row)
+                }
+            }
+            state.put(table, rows)
+        }
+        return state
+    }
+
     private fun isolatedMediaRestore(uri: Uri, expected: JSONObject, token: String) {
         val root = File(context.cacheDir, "qa-media-restore-$token")
         yes(!root.exists() && root.mkdir(), "MEDIA_NEW_ISOLATED_RESTORE")
@@ -1681,8 +1742,10 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             val restore = BackupRestoreService(isolated)
             val preview = restore.preview("qa_media_preview_$token", uri)
             yes(preview.getString("phase") == "VALIDATED", "MEDIA_REAL_ZIP_PREVIEW")
+            val activationRequest = "qa_media_activate_$token"
+            val originalIdentity = BackupDeviceGuard(isolated).current()
             restore.requestActivation(
-                "qa_media_activate_$token",
+                activationRequest,
                 preview.getString("restore_id"),
                 preview.getString("preview_hash"),
                 true,
@@ -1757,6 +1820,82 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
                             "MEDIA_RESTORED_PHOTO_$id",
                         )
                     }
+                    val proof = expected.getJSONObject("restore_proof")
+                    val restoredDraft =
+                        requireNotNull(
+                            DatabaseBackupSnapshot.ownerValue(
+                                database,
+                                proof.getString("draft_key"),
+                                null,
+                            )
+                        )
+                    yes(
+                        restoredDraft == proof.getString("draft"),
+                        "MEDIA_RESTORED_EXACT_DRAFT_VALUES_AND_ORIGINAL_IDENTITY",
+                    )
+                    val activeIdentity = BackupDeviceGuard(isolated).current()
+                    val draftIdentity =
+                        JSONObject(restoredDraft).getJSONObject("_creation_identity")
+                    yes(
+                        activeIdentity.getString("installationId") ==
+                            originalIdentity.getString("installationId") &&
+                            activeIdentity.getString("restoreEpoch") !=
+                                originalIdentity.getString("restoreEpoch") &&
+                            activeIdentity.getString("lastRestoreRequest") == activationRequest &&
+                            (draftIdentity.getString("installationId") !=
+                                activeIdentity.getString("installationId") ||
+                                draftIdentity.getString("restoreEpoch") !=
+                                    activeIdentity.getString("restoreEpoch")),
+                        "MEDIA_RESTORED_DRAFT_ORIGINAL_IDENTITY_IS_NOT_CURRENT_AUTHORIZATION",
+                    )
+                    val beforeTime = proof.getJSONObject("time_rows")
+                    val afterTime = mediaTimeRows(database)
+                    val sessions = beforeTime.getJSONArray("work_sessions")
+                    yes(
+                        PixelMcpWriteTools.hash(afterTime.getJSONArray("work_sessions")) ==
+                            PixelMcpWriteTools.hash(sessions),
+                        "MEDIA_RESTORED_EXACT_REAL_SESSION_ROWS",
+                    )
+                    val sessionId = sessions.getJSONObject(0).getString("id")
+                    val reviewToken = PixelMcpWriteTools.hash("$activationRequest:$sessionId")
+                    val reviewId = "evt_restore_$reviewToken"
+                    val oldEvents = org.json.JSONArray()
+                    val allEvents = afterTime.getJSONArray("work_session_events")
+                    var review: JSONObject? = null
+                    for (index in 0 until allEvents.length()) {
+                        val event = allEvents.getJSONObject(index)
+                        if (event.getString("id") == reviewId) review = event
+                        else oldEvents.put(event)
+                    }
+                    yes(
+                        allEvents.length() ==
+                            beforeTime.getJSONArray("work_session_events").length() + 1 &&
+                            PixelMcpWriteTools.hash(oldEvents) ==
+                                PixelMcpWriteTools.hash(
+                                    beforeTime.getJSONArray("work_session_events")
+                                ),
+                        "MEDIA_RESTORED_EXACT_ORIGINAL_EVENT_IDENTITIES_AND_VALUES",
+                    )
+                    val restoredReview = requireNotNull(review)
+                    val reviewPayload = JSONObject(restoredReview.getString("payload"))
+                    yes(
+                        restoredReview.getString("session_id") == sessionId &&
+                            restoredReview.getString("event_type") == "TIME_REVIEW_REQUIRED" &&
+                            restoredReview.getString("request_id") ==
+                                "restore-review-$reviewToken" &&
+                            reviewPayload.length() == 2 &&
+                            reviewPayload.getString("reason") ==
+                                "RESTORED_SESSION_REVIEW_REQUIRED" &&
+                            reviewPayload.getBoolean("original_time_values_preserved"),
+                        "MEDIA_RESTORED_SESSION_REQUIRES_REVIEW_WITHOUT_NEW_WORK_BOOKING",
+                    )
+                    yes(
+                        runCatching {
+                            java.time.Instant.parse(restoredReview.getString("occurred_at"))
+                        }
+                            .isSuccess,
+                        "MEDIA_RESTORED_SESSION_REVIEW_EVENT_TIMESTAMP",
+                    )
                     yes(database.version == 7, "MEDIA_RESTORED_SCHEMA_7")
                 }
         } finally {
@@ -2290,19 +2429,40 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
         }
     }
 
-    private fun cancelPicker(code: String) {
+    private fun cancelPicker(code: String, activity: Activity) {
         yes(pickerVisible(), "PICKER_REQUIRED_FOR_CANCEL")
         fun keyboardVisible() =
             automation.windows.any {
                 it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_INPUT_METHOD
             }
-        // CREATE_DOCUMENT focuses its filename: the first Back may only close the IME.
-        if (keyboardVisible()) {
+        fun backupReturned() =
+            !activity.isFinishing &&
+                !activity.isDestroyed &&
+                activity.hasWindowFocus() &&
+                automation.rootInActiveWindow?.packageName?.toString() == context.packageName &&
+                node("Jetzt sichern") != null
+        val deadline = SystemClock.uptimeMillis() + 20000
+        fun remaining() = (deadline - SystemClock.uptimeMillis()).coerceAtLeast(1)
+        // Back can dismiss the IME or leave a directory before it actually cancels DocumentsUI.
+        repeat(6) { attempt ->
+            if (backupReturned()) return
+            waitUntil(code + "_PICKER_BEFORE_BACK", remaining()) { pickerVisible() }
+            val hadKeyboard = keyboardVisible()
+            val before = screenTexts()
+            if (SystemClock.uptimeMillis() >= deadline)
+                throw AssertionError("QA_PICKER_TIMEOUT_$code VISIBLE=" + screenTexts())
             back()
-            waitUntil(code + "_KEYBOARD_DISMISSED") { !keyboardVisible() || !pickerVisible() }
+            waitUntil(code + "_BACK_${attempt + 1}_STATE_CHANGED", remaining()) {
+                backupReturned() ||
+                    (pickerVisible() &&
+                        if (hadKeyboard) !keyboardVisible() else screenTexts() != before)
+            }
+            val state =
+                if (backupReturned()) "BACKUP_FOCUSED"
+                else if (hadKeyboard) "KEYBOARD_DISMISSED" else "PICKER_CHANGED"
+            step(code + "_BACK_${attempt + 1}_" + state)
         }
-        if (pickerVisible()) back()
-        waitUntil(code) { !pickerVisible() && node("Jetzt sichern") != null }
+        waitUntil(code, remaining()) { backupReturned() }
     }
 
     private fun pickerVisible(): Boolean =
@@ -2349,7 +2509,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             }
             click("Sicherungsdatei erneut wählen")
             waitUntil("EXISTING_BACKUP_PICKER_CANCEL") { pickerVisible() }
-            cancelPicker("EXISTING_BACKUP_CANCEL_RETURNED")
+            cancelPicker("EXISTING_BACKUP_CANCEL_RETURNED", requireNotNull(activity))
             val afterRegrant = Bundle()
             test.runOnMainSync {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), afterRegrant)
@@ -2362,7 +2522,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             )
             click("Anderen Speicherort wählen")
             waitUntil("CREATE_PICKER_CANCEL") { pickerVisible() }
-            cancelPicker("CREATE_CANCEL_RETURNED")
+            cancelPicker("CREATE_CANCEL_RETURNED", requireNotNull(activity))
             yes(stats().toString() == before, "CREATE_CANCEL_NO_PROVIDER_MUTATION")
             val state = Bundle()
             test.runOnMainSync {
@@ -2374,7 +2534,7 @@ class BackupDocumentProviderNativeTests private constructor(private val test: In
             )
             click("Sicherung wiederherstellen")
             waitUntil("OPEN_PICKER_CANCEL") { pickerVisible() }
-            cancelPicker("OPEN_CANCEL_RETURNED")
+            cancelPicker("OPEN_CANCEL_RETURNED", requireNotNull(activity))
             val canceled = Bundle()
             test.runOnMainSync {
                 test.callActivityOnSaveInstanceState(requireNotNull(activity), canceled)

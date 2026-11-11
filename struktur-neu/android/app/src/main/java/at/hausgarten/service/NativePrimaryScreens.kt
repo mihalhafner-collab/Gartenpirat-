@@ -668,7 +668,11 @@ private fun NativeBottomTools(controller: NativeAppController) {
                     },
             )
         }
-        if (route.section == "customers" && route.id.isNotBlank() && route.mode == "list")
+        if (
+            route.section == "customers" &&
+                route.id.isNotBlank() &&
+                (route.mode == "list" || route.mode == "detail")
+        )
             NativeCustomerContacts(controller, route.id)
         if (route.section == "customers" && route.id.isBlank() && route.mode == "list")
             NativeButton({ controller.navigate("customers", mode = "new") }) {
