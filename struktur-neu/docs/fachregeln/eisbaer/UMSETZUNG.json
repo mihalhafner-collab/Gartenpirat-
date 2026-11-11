@@ -7,7 +7,7 @@
   "overall_status": "IN_PROGRESS",
   "candidate": null,
   "created_at_utc": "2026-11-11T04:47:24.708547Z",
-  "status_note": "Native Eisbär-Umsetzung auf exakt nachgewiesener installierter 158-Quellbasis; Kandidat 1.72.0/159. Erster voller CI-Lauf 42978146746: Build PASS, 23/42 native Abläufe PASS. Suchschemafehler, instabile Oberflächenidentität, fehlende interne Annahmebestätigung und veraltete UI-/Tour-Testannahmen korrigiert. Lokal 64 Python-Prüfungen, 97 JVM-Tests, Lint und beide APKs PASS. Echte 158→159-Updateprüfung und breite öffentliche MCP-/UI-Matrix kompiliert; neuer vollständiger Lauf sowie physische Pixel-/Sicherungs-/Restore-Abnahme offen. Keine vollständige Abnahme behauptet.",
+  "status_note": "Native Eisbär-Umsetzung auf exakt nachgewiesener installierter 158-Quellbasis; Kandidat 1.72.0/159. UI-/MCP-, Datums-/Identitäts-, Zahlungs-/Gegenbuchungs-/Rückzahlungs-, Foto-Fehler-/Reentry-, echte APK-Update- und SAF-/Restore-Dialogprüfungen implementiert. Aktuelle lokale Quell-/Lint-/APK-Prüfungen bestanden. CI-Setupfehler der Zertifikatauswertung mit vorhandenem Parser und echter QA-Signierung behoben. Vollständiger aktueller Kandidatenlauf und physische Pixel-/Verbindungs-/Provider-Abnahme offen. Keine vollständige Abnahme behauptet.",
   "items": {
     "REQ-001": {
       "status": "NOT_STARTED",

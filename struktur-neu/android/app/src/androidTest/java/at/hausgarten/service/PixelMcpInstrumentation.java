@@ -62,6 +62,10 @@ public final class PixelMcpInstrumentation extends Instrumentation {
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());
                 finish(Activity.RESULT_OK,report);return;
             }
+            if(suite.equals("document_provider_media")||suite.equals("document_provider_media_reopen")){
+                JSONObject result=BackupDocumentProviderNativeTests.runMedia(this,suite.endsWith("_reopen"));
+                report.putString("result",result.put("suite",suite).toString());finish(Activity.RESULT_OK,report);return;
+            }
             if(suite.equals("document_provider")||suite.equals("document_provider_reopen")){
                 JSONObject result=BackupDocumentProviderNativeTests.run(this,suite.equals("document_provider_reopen"));
                 checks=result.getInt("checks");report.putString("result",result.put("suite",suite).toString());

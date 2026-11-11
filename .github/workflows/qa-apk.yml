@@ -198,14 +198,16 @@ jobs:
           if [ -f "$RUNNER_TEMP/baseline158-unsigned.apk" ]; then
             "$ALIGN" -f 4 "$RUNNER_TEMP/baseline158-unsigned.apk" "$RUNNER_TEMP/gp-baseline158.apk"
             "$SIGNER" sign --ks "$RUNNER_TEMP/gp-test.jks" --ks-pass pass:android --key-pass pass:android "$RUNNER_TEMP/gp-baseline158.apk"
-            "$SIGNER" verify --print-certs "$RUNNER_TEMP/gp-baseline158.apk" > outputs/qa-upgrade-baseline-certificate.txt
-            "$SIGNER" verify --print-certs "$RUNNER_TEMP/gp-app.apk" > outputs/qa-upgrade-candidate-certificate.txt
+            "$SIGNER" verify --verbose --print-certs "$RUNNER_TEMP/gp-baseline158.apk" > outputs/qa-upgrade-baseline-certificate.txt
+            "$SIGNER" verify --verbose --print-certs "$RUNNER_TEMP/gp-app.apk" > outputs/qa-upgrade-candidate-certificate.txt
             python3 - <<'PY'
-          import pathlib,re
+          import pathlib,sys
+          sys.path.insert(0,'tools')
+          from sign_original_apk import single_signer_certificate
           certificates=[]
           for kind in ('baseline','candidate'):
               value=pathlib.Path(f'outputs/qa-upgrade-{kind}-certificate.txt').read_text()
-              certificates.append(re.search(r'Signer #1 certificate SHA-256 digest: (\S+)',value).group(1))
+              certificates.append(single_signer_certificate(value))
           assert certificates[0]==certificates[1], 'Synthetic update must retain the same QA signer'
           PY
           fi
@@ -300,7 +302,7 @@ jobs:
           elif [ "$GRAPHICS_ONLY" = true ]; then
             suites=(native_graphics)
           else
-            suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen native_compose native_settlement native_settlement_reopen native_settlement_ui native_accounting native_accounting_reopen native_graphics)
+            suites=(local_backup local_backup_reopen native_data document_provider document_provider_reopen document_provider_media document_provider_media_reopen native_compose native_settlement native_settlement_reopen native_settlement_ui native_accounting native_accounting_reopen native_graphics)
           fi
           # Every UI journey gets a new process and a completely empty app sandbox.
           compose_journeys=(today_hub customer native_pickers pending_result_read_only usability work_photo_retention accessories timer today_older_work_commit notification customer_context office_opening search_keyboard back_gesture domain_search grouped_search list_actions planning_board property_timeline background_feedback list_viewports filter_keyboard surfaces large_text storage_settings camera_capture)
@@ -321,7 +323,7 @@ jobs:
               journey="${entry#*.}"
             fi
             # Reopen suites retain only their own preceding synthetic fixture.
-            if [[ "$entry" == *.* ]] || [[ "$suite" == native_settlement || "$suite" == native_settlement_ui || "$suite" == native_accounting ]]; then
+            if [[ "$entry" == *.* ]] || [[ "$suite" == document_provider_media || "$suite" == native_settlement || "$suite" == native_settlement_ui || "$suite" == native_accounting ]]; then
               test "$("$ADB" -s emulator-5580 shell getprop ro.build.version.sdk | tr -d '\r')" = 35
               test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
               test "$("$ADB" -s emulator-5580 shell pm clear at.hausgarten.service | tr -d '\r')" = Success
@@ -363,7 +365,7 @@ jobs:
               assert result['local_storage_cleanup'] is True and result['local_delete_without_cloud_guards'] is True, result
               assert result['actual_coroutine_flow'] is True and result['main_thread_disk_violations']==0, result
               mcp=result['eisbaer_mcp']
-              for proof in ('empty_appointment_roundtrip','canonical_update_roundtrip','legacy_adoption_roundtrip','search_filters_original_readback','lcr_delete_references','synthetic_only','real_pixel_mcp_adapter'):
+              for proof in ('empty_appointment_roundtrip','canonical_update_roundtrip','legacy_adoption_roundtrip','search_filters_original_readback','lcr_delete_references','independent_similar_sources','synthetic_only','real_pixel_mcp_adapter'):
                   assert mcp[proof] is True, result
               assert set(mcp['removed_care_tools']) == {'list_care_plans','create_care_plan','update_care_plan','generate_care_visits'}, result
               catalog=result['eisbaer_catalog_mcp']
@@ -382,13 +384,17 @@ jobs:
               for proof in ('real_pixel_mcp_adapter','original_photo_bytes','write_replay_and_stale_conflict','backup_device_handoff_only','synthetic_only'):
                   assert media[proof] is True, result
               assert media['physical_backup_acceptance'] is False, result
-              for proof in (mcp,catalog,planning,offers,media):
+              revier=result['eisbaer_revier_mcp']
+              for proof in ('public_adapter_and_real_sqlite','synthetic_only','inquiry_acceptance_inspection_roundtrip','work_alias_and_tour_move_roundtrip','property_update_list_and_permanent_purge','legacy_material_consumption_alias','legacy_originals_preserved'):
+                  assert revier[proof] is True, result
+              assert revier['calendar_provider_success_claimed'] is False, result
+              for proof in (mcp,catalog,planning,offers,media,revier):
                   assert proof['executed_tools'] and len(proof['executed_tools'])==len(set(proof['executed_tools'])), result
               assert result['performance_claim'] is False and result['plans'], result
               for plan in result['plans'].values():
                   assert 'USING INDEX ix_native_read_' in str(plan) and 'TEMP B-TREE' not in str(plan), result
           elif sys.argv[1]=='native_settlement_ui':
-              for proof in ('real_main_activity','invoice_completion_and_historical_labor_readback','exact_amounts','filters_and_navigation','font_scale_200_percent','draft_recreation'):
+              for proof in ('real_main_activity','invoice_completion_and_historical_labor_readback','exact_amounts','filters_and_navigation','font_scale_200_percent','draft_recreation','native_storno_and_offer_acceptance_readback','native_payment_lifecycle_readback','native_offer_share_chooser'):
                   assert result[proof] is True, result
               assert result['physical_pixel_tested'] is False, result
           elif sys.argv[1].startswith('native_settlement'):
@@ -415,6 +421,20 @@ jobs:
               assert result['journey'] == sys.argv[3] and result['independent_fresh_fixture'] is True, result
               assert result['real_main_activity'] is True and result['native_compose_ui'] is True, result
               assert result['drive_account_tested'] is False and result['physical_pixel_tested'] is False, result
+          elif sys.argv[1].startswith('document_provider_media'):
+              for proof in ('real_external_storage_provider','actual_saf_grant','same_target_atomic_replace'):
+                  assert result[proof] is True, result
+              assert result['new_process_readback'] is sys.argv[1].endswith('_reopen'), result
+              assert result['isolated_restore'] is sys.argv[1].endswith('_reopen'), result
+              assert result['restore_cold_start_guard_retained'] is sys.argv[1].endswith('_reopen'), result
+              for proof in ('media_restore_ui','restore_confirmation_cancel_no_activation','restore_confirmation_pending_restart'):
+                  assert result[proof] is sys.argv[1].endswith('_reopen'), result
+              assert result['media_restore_ui_screenshots']==([
+                  'qa-native-backup-restore-confirm.png',
+                  'qa-native-backup-restore-cancelled.png',
+                  'qa-native-backup-restore-pending.png',
+              ] if sys.argv[1].endswith('_reopen') else []), result
+              assert result['physical_pixel_tested'] is False, result
           else:
               assert sys.argv[1] in ('document_provider','document_provider_reopen'), result
               assert result['real_document_provider_tested'] is True and result['separate_uid_local_provider_tested'] is True, result

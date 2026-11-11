@@ -128,6 +128,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
     }
 
     private var checks = 0
+    private val executedMcpTools = linkedSetOf<String>()
 
     private fun yes(condition: Boolean, code: String) {
         if (!condition) throw AssertionError("QA_NATIVE_SETTLEMENT_$code")
@@ -149,6 +150,8 @@ internal class NativeSettlementNativeTests private constructor(private val test:
     private fun result(reopen: Boolean) =
         JSONObject()
             .put("checks", checks)
+            .put("executed_mcp_tools", JSONArray(executedMcpTools.toList()))
+            .put("real_pixel_mcp_adapter", executedMcpTools.isNotEmpty())
             .put("synthetic_only", true)
             .put("productive_data_read", false)
             .put("new_process_readback", reopen)
@@ -157,6 +160,20 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             .put("native_pdf_verified", true)
             .put("real_main_activity", false)
             .put("physical_pixel_tested", false)
+
+    private fun mcp(
+        context: Context,
+        store: PixelLocalStore,
+        tool: String,
+        args: JSONObject = JSONObject(),
+    ): JSONObject {
+        val response =
+            PixelMcpReadTools(store.readSource(), store, PixelOwnerAccess(context, store))
+                .call(tool, args)
+        yes(response.optBoolean("ok"), "PUBLIC_MCP_OK_$tool")
+        executedMcpTools.add(tool)
+        return response.getJSONObject("data")
+    }
 
     private fun call(
         repository: LocalOwnerRepository,
@@ -338,18 +355,74 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                         "prepared",
                     "RESTORED_RESERVATION_REMAINS_PENDING",
                 )
-                call(
-                    repository,
-                    "review_restored_sources",
+                val beforeReview =
+                    mcp(
+                        context,
+                        store,
+                        "get_settlement",
+                        JSONObject().put("settlement_id", pendingId),
+                    )
+                yes(
+                    beforeReview.getBoolean("requires_restore_review"),
+                    "PUBLIC_MCP_ACTUAL_RESTORE_REQUIRES_REVIEW",
+                )
+                // This tool's public schema has no expected_record_hash. The unchanged record hash
+                // and current restore guard are checked before and after the explicit review.
+                val reviewArgs =
                     JSONObject()
+                        .put("request_id", "qa_native_settlement_public_restored_review")
                         .put("settlement_id", pendingId)
                         .put("sources", pending.getJSONArray("sources"))
                         .put(
                             "evidence",
                             "Synthetischer aktueller Abgleich: reservierte Nummer nur für diesen unveränderten Vorgang, noch nicht abgeschlossen; keine verlorenen späteren Belege.",
                         )
-                        .put("confirmed", true),
-                    "qa_native_settlement_restored_review",
+                        .put("confirmed", true)
+                yes(
+                    mcp(context, store, "review_restored_sources", reviewArgs)
+                        .getBoolean("reviewed"),
+                    "PUBLIC_MCP_ACTUAL_RESTORE_REVIEW_WRITTEN",
+                )
+                val reviewedLedger = store.ownerValue(SettlementRules.KEY, "{}")
+                yes(
+                    mcp(context, store, "review_restored_sources", reviewArgs)
+                        .getBoolean("replayed") &&
+                        store.ownerValue(SettlementRules.KEY, "{}") == reviewedLedger,
+                    "PUBLIC_MCP_RESTORE_REVIEW_REPLAY_ADDS_NO_DUPLICATE_EVIDENCE",
+                )
+                val reviewConflict = runCatching {
+                    mcp(
+                        context,
+                        store,
+                        "review_restored_sources",
+                        JSONObject(reviewArgs.toString())
+                            .put(
+                                "evidence",
+                                "Synthetisch geänderter Nachweis mit derselben Anfragekennung",
+                            ),
+                    )
+                }
+                    .exceptionOrNull()
+                yes(
+                    reviewConflict is PixelMcpWriteTools.Rejected &&
+                        reviewConflict.code == "REPLAY_MISMATCH" &&
+                        store.ownerValue(SettlementRules.KEY, "{}") == reviewedLedger,
+                    "PUBLIC_MCP_RESTORE_REVIEW_REQUEST_CONFLICT_PRESERVES_EVIDENCE",
+                )
+                val afterReview =
+                    mcp(
+                        context,
+                        store,
+                        "get_settlement",
+                        JSONObject().put("settlement_id", pendingId),
+                    )
+                yes(
+                    !afterReview.getBoolean("requires_restore_review") &&
+                        afterReview.getString("record_hash") ==
+                            beforeReview.getString("record_hash") &&
+                        afterReview.getJSONObject("record").getString("invoice_number") ==
+                            pending.getString("invoice_number"),
+                    "PUBLIC_MCP_RESTORE_REVIEW_READBACK_UNBLOCKS_SAME_UNALTERED_RESERVATION",
                 )
                 complete(repository, pendingId, "qa_native_settlement_restored_complete")
                 yes(
@@ -388,6 +461,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             return result(true).put("native_backup_roundtrip", true).put("restore_guard", true)
         }
         manualWorkAndSharedRecipient(context)
+        publicDraftAndReservationMcp(context)
         val backup = File(context.noBackupFilesDir, "qa-settlement.zip")
         val marker = JSONObject().put("token", token)
         PixelLocalStore(context).use { store ->
@@ -473,8 +547,16 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 "personal_paid",
                 JSONArray(marks).put("qa_settlement_old_unbound").toString(),
             )
-            val queries = NativeOwnerQueries(context, store, repository)
-            val fullExport = queries.query("export_settlements", JSONObject())!!
+            val ledgerBeforeExport = store.ownerValue(SettlementRules.KEY, "{}")
+            val fullExport = mcp(context, store, "export_settlements")
+            val repeatedExport = mcp(context, store, "export_settlements")
+            val stableExport = JSONObject(fullExport.toString()).apply { remove("exported_at") }
+            repeatedExport.remove("exported_at")
+            yes(
+                hash(stableExport) == hash(repeatedExport) &&
+                    store.ownerValue(SettlementRules.KEY, "{}") == ledgerBeforeExport,
+                "PUBLIC_MCP_EXPORT_READ_REPEAT_PRESERVES_ORIGINALS_AND_LEDGER",
+            )
             yes(
                 !fullExport.getBoolean("filtered") &&
                     fullExport.getJSONObject("overview").getLong("total_minor") == 110000L,
@@ -504,7 +586,7 @@ internal class NativeSettlementNativeTests private constructor(private val test:
                 "MISSING_DRAFT_SOURCE_REMAINS_REVIEWABLE",
             )
             val filteredExport =
-                queries.query("export_settlements", JSONObject().put("route", "labor"))!!
+                mcp(context, store, "export_settlements", JSONObject().put("route", "labor"))
             yes(
                 filteredExport.getBoolean("filtered") &&
                     filteredExport.getJSONObject("overview").getLong("total_minor") == 20000L,
@@ -639,6 +721,154 @@ internal class NativeSettlementNativeTests private constructor(private val test:
             .put("parallel_reservations", true)
             .put("pdf_failure_resume", true)
             .put("payment_correction", true)
+    }
+
+    private fun publicDraftAndReservationMcp(parent: Context) {
+        val root = File(parent.noBackupFilesDir, "qa-finance-public-drafts")
+        yes(!root.exists() && root.mkdir(), "PUBLIC_MCP_NEW_ISOLATED_DRAFT_ROOT")
+        val context = FixtureContext(parent, root, "qa_finance_public_drafts")
+        try {
+            PixelLocalStore(context).use { store ->
+                store.putOwnerValue("snapshot", fixture().toString())
+                store.putOwnerValue("personal_paid_migrated", "1")
+                store.putOwnerValue("personal_paid", "[]")
+                val originalSources = hash(PixelMcpReadTools.effective(store.getState()))
+                fun request(id: String) = JSONObject().put("request_id", "qa_public_finance_$id")
+                fun call(tool: String, args: JSONObject = JSONObject()) =
+                    mcp(context, store, tool, args)
+                fun current(id: String) =
+                    call("get_settlement", JSONObject().put("settlement_id", id))
+                fun create(source: String, id: String) =
+                    call(
+                            "save_settlement_draft",
+                            request(id).put("draft", draft("billed", "10", source)),
+                        )
+                        .getString("settlement_id")
+                fun rejectedMutation(tool: String, args: JSONObject, code: String) {
+                    val prior = store.ownerValue(SettlementRules.KEY, "{}")
+                    val failure = runCatching { call(tool, args) }.exceptionOrNull()
+                    yes(
+                        failure is IllegalArgumentException &&
+                            store.ownerValue(SettlementRules.KEY, "{}") == prior,
+                        "PUBLIC_MCP_REJECTED_${tool}_$code",
+                    )
+                }
+                val deleted = create("qa_settlement_invoice", "delete_draft")
+                val firstVersion = current(deleted)
+                val changedDraft =
+                    draft("billed", "10", "qa_settlement_invoice")
+                        .put("title", "[TEST] Bewusst überarbeiteter Entwurf")
+                call(
+                    "save_settlement_draft",
+                    request("edit_before_delete")
+                        .put("settlement_id", deleted)
+                        .put("expected_record_hash", firstVersion.getString("record_hash"))
+                        .put("draft", changedDraft),
+                )
+                val deletion =
+                    request("delete")
+                        .put("settlement_id", deleted)
+                        .put("confirmed", true)
+                        .put("expected_record_hash", firstVersion.getString("record_hash"))
+                rejectedMutation("delete_settlement_draft", deletion, "STALE_HASH")
+                deletion
+                    .put("request_id", "qa_public_finance_delete_current")
+                    .put("expected_record_hash", current(deleted).getString("record_hash"))
+                yes(
+                    call("delete_settlement_draft", deletion).getBoolean("deleted"),
+                    "PUBLIC_MCP_DRAFT_DELETED",
+                )
+                val afterDeletion = store.ownerValue(SettlementRules.KEY, "{}")
+                yes(
+                    call("delete_settlement_draft", deletion).getBoolean("replayed") &&
+                        store.ownerValue(SettlementRules.KEY, "{}") == afterDeletion,
+                    "PUBLIC_MCP_DRAFT_DELETE_REPLAY_HAS_NO_SECOND_EFFECT",
+                )
+                yes(
+                    SettlementRules.rows(call("list_settlements").getJSONArray("records")).none {
+                        it.getString("id") == deleted
+                    } &&
+                        runCatching { current(deleted) }.exceptionOrNull() is
+                            IllegalArgumentException,
+                    "PUBLIC_MCP_DELETED_DRAFT_ABSENT_FROM_LIST_AND_DIRECT_READ",
+                )
+                val pending = create("qa_settlement_race", "abandon_draft")
+                val review = current(pending)
+                call(
+                    "prepare_settlement",
+                    request("prepare_abandon")
+                        .put("settlement_id", pending)
+                        .put("expected_review_hash", review.getString("review_hash"))
+                        .put("confirmed", true)
+                        .put("domestic_eur_confirmed", true)
+                        .put("issuer_details_confirmed", true)
+                        .put("electronic_delivery_accepted", true),
+                )
+                val prepared = current(pending)
+                val reservedNumber = prepared.getJSONObject("record").getString("invoice_number")
+                val reservedCounters =
+                    JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))
+                        .getJSONObject("series_counters")
+                        .toString()
+                rejectedMutation(
+                    "delete_settlement_draft",
+                    request("delete_prepared_denied")
+                        .put("settlement_id", pending)
+                        .put("expected_record_hash", prepared.getString("record_hash"))
+                        .put("confirmed", true),
+                    "PREPARED_PROTECTED",
+                )
+                val abandon =
+                    request("abandon")
+                        .put("settlement_id", pending)
+                        .put("expected_record_hash", prepared.getString("record_hash"))
+                        .put(
+                            "reason",
+                            "[TEST] Bewusst aufgegebene noch nicht ausgestellte Vorbereitung",
+                        )
+                        .put("confirmed", true)
+                rejectedMutation(
+                    "abandon_prepared_settlement",
+                    JSONObject(abandon.toString())
+                        .put("request_id", "qa_public_finance_abandon_stale")
+                        .put("expected_record_hash", review.getString("record_hash")),
+                    "STALE_HASH",
+                )
+                call("abandon_prepared_settlement", abandon)
+                val abandoned = current(pending).getJSONObject("record")
+                yes(
+                    abandoned.getString("status") == "abandoned" &&
+                        abandoned.getString("invoice_number") == reservedNumber &&
+                        abandoned.getString("abandon_reason") == abandon.getString("reason") &&
+                        !abandoned.has("pdf") &&
+                        JSONObject(store.ownerValue(SettlementRules.KEY, "{}"))
+                            .getJSONObject("series_counters")
+                            .toString() == reservedCounters &&
+                        call(
+                                "get_lcr_work_records",
+                                JSONObject().put("work_record_id", "qa_settlement_race"),
+                            )
+                            .getJSONArray("records")
+                            .getJSONObject(0)
+                            .getBoolean("lcr_mutable"),
+                    "PUBLIC_MCP_ABANDON_READBACK_PRESERVES_NUMBER_RELEASES_SOURCE_WITHOUT_ISSUED_PDF",
+                )
+                val afterAbandon = store.ownerValue(SettlementRules.KEY, "{}")
+                yes(
+                    call("abandon_prepared_settlement", abandon).getBoolean("replayed") &&
+                        store.ownerValue(SettlementRules.KEY, "{}") == afterAbandon,
+                    "PUBLIC_MCP_ABANDON_REPLAY_HAS_NO_SECOND_EFFECT",
+                )
+                yes(
+                    hash(PixelMcpReadTools.effective(store.getState())) == originalSources &&
+                        SettlementRules.rows(JSONObject(afterAbandon).optJSONArray("payments"))
+                            .isEmpty(),
+                    "PUBLIC_MCP_DELETE_AND_ABANDON_PRESERVE_ORIGINAL_WORK_AND_NEVER_BOOK_PAYMENT",
+                )
+            }
+        } finally {
+            yes(root.deleteRecursively(), "PUBLIC_MCP_ISOLATED_DRAFT_FIXTURE_REMOVED")
+        }
     }
 
     private fun manualWorkAndSharedRecipient(parent: Context) {

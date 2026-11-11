@@ -130,11 +130,19 @@ internal class NativeAppController(private val activity: MainActivity, val store
             return
         }
         messages.value = ""
-        val next = NativeRoute(section, id, mode, JSONObject(args.toString()), route.area)
+        val context = JSONObject(args.toString())
+        // Explicit editor entries get fresh screen state. Their persisted drafts still resume
+        // unfinished requests; completed/discarded editors must not restore a closed UI state.
+        if (
+            (section == "photos" && mode == "import") ||
+                (section in setOf("appointments", "planning") && mode in setOf("new", "edit"))
+        )
+            context.put("_editor_entry", UUID.randomUUID().toString())
+        val next = NativeRoute(section, id, mode, context, route.area)
         if (sameScreen(route, next)) {
             if (
                 section != "action" &&
-                    args.length() > 0 &&
+                    context.length() > 0 &&
                     PixelMcpWriteTools.canonical(route.args) !=
                         PixelMcpWriteTools.canonical(next.args)
             )
@@ -148,7 +156,7 @@ internal class NativeAppController(private val activity: MainActivity, val store
             while (history.size > previous + 1) history.removeLast()
             val remembered = history.removeLast()
             route =
-                if (section != "action" && args.length() > 0)
+                if (section != "action" && context.length() > 0)
                     remembered.copy(args = next.args, stateArgs = next.stateArgs)
                 else remembered
         } else {

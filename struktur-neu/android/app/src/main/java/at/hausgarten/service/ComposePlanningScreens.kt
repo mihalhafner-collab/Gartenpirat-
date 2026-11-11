@@ -162,7 +162,7 @@ internal fun NativePlanningScreen(section: String, id: String, controller: Nativ
                     if (routeEditorOpened && controller.route.mode in setOf("new", "edit"))
                         controller.finishAction()
                     controller.message(
-                        "Einsatz gespeichert.",
+                        "Termin gespeichert.",
                         if (savedId.isNotBlank()) NativeRoute("appointments", savedId, "detail")
                         else null,
                     )

@@ -723,6 +723,8 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                 val offersMcp = eisbaerOffersMcpProof(owner)
                 phase = "eisbaer_media_backup_mcp"
                 val mediaBackupMcp = eisbaerMediaBackupMcpProof(owner)
+                phase = "eisbaer_revier_mcp"
+                val revierMcp = eisbaerRevierMcpProof(owner)
                 phase = "office_baseline"
                 val office = officeReadMeasurements(context, store, data)
                 phase = "local_storage_cleanup"
@@ -757,6 +759,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     .put("eisbaer_planning_time_mcp", planningTimeMcp)
                     .put("eisbaer_offers_mcp", offersMcp)
                     .put("eisbaer_media_backup_mcp", mediaBackupMcp)
+                    .put("eisbaer_revier_mcp", revierMcp)
             }
         }
     }
@@ -1999,6 +2002,74 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     ) == PixelMcpWriteTools.hash(keptOriginal),
                     "EISBAER_LCR_DELETE_KEEPS_OTHER_ORIGINAL_UNCHANGED",
                 )
+                phase = "eisbaer_mcp_independent_similar_sources"
+                val independentDay = "2027-05-24"
+                val sameTitle = "QA Eisbär zwei unabhängige Termine"
+                val independentAppointmentArgs =
+                    request("independent_appointment")
+                        .put("customer_id", "qa_customer_1")
+                        .put("title", sameTitle)
+                        .put("date", independentDay)
+                val independentAppointmentId =
+                    call("create_appointment", independentAppointmentArgs)
+                        .getString("appointment_id")
+                val independentVisitArgs =
+                    request("independent_visit")
+                        .put("property_id", propertyId)
+                        .put("title", sameTitle)
+                        .put("date", independentDay)
+                        .put("planned_minutes", 45)
+                val independentVisitId =
+                    call("plan_visit", independentVisitArgs).getString("visit_id")
+                yes(
+                    call("create_appointment", independentAppointmentArgs).getBoolean("replayed") &&
+                        call("plan_visit", independentVisitArgs).getBoolean("replayed"),
+                    "EISBAER_INDEPENDENT_SIMILAR_SOURCE_CREATES_REPLAY",
+                )
+                val expectedIndependentSources =
+                    setOf(
+                        "appointments" to independentAppointmentId,
+                        "visits" to independentVisitId,
+                    )
+                fun exactIndependentSources(rows: JSONArray): Boolean =
+                    rows.length() == 2 &&
+                        SettlementRules.rows(rows)
+                            .map {
+                                it.getString("source_collection") to it.getString("source_id")
+                            }
+                            .toSet() == expectedIndependentSources
+                yes(
+                    exactIndependentSources(board(independentDay).getJSONArray("items")) &&
+                        exactIndependentSources(
+                            call("get_revier_overview", JSONObject().put("date", independentDay))
+                                .getJSONArray("planned_visits")
+                        ) &&
+                        exactIndependentSources(
+                            call("get_day_tour", JSONObject().put("date", independentDay))
+                                .getJSONArray("stops")
+                        ),
+                    "EISBAER_INDEPENDENT_SAME_TITLE_DATE_CUSTOMER_PRESERVE_TWO_SOURCE_PAIRS",
+                )
+                val independentAppointment =
+                    appointment(independentAppointmentId).getJSONObject("appointment")
+                val independentVisit =
+                    call("get_visit", JSONObject().put("visit_id", independentVisitId))
+                        .getJSONObject("record")
+                yes(
+                    independentAppointmentId != independentVisitId &&
+                        independentAppointment.getString("id") == independentAppointmentId &&
+                        independentVisit.getString("id") == independentVisitId &&
+                        listOf(independentAppointment, independentVisit).all {
+                            it.getString("title") == sameTitle &&
+                                it.getString("date") == independentDay &&
+                                it.getString("customer_id") == "qa_customer_1"
+                        } &&
+                        independentAppointment.optString("visit_id").isBlank() &&
+                        independentVisit.optString("appointment_id").isBlank() &&
+                        originalRows().length() == 3 &&
+                        call("list_visits").getInt("total") == 3,
+                    "EISBAER_INDEPENDENT_SIMILAR_ORIGINALS_REREAD_WITHOUT_LINK_OR_DUPLICATE",
+                )
                 return@use JSONObject()
                     .put("executed_tools", JSONArray(executed.toList()))
                     .put("empty_appointment_roundtrip", true)
@@ -2007,6 +2078,7 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
                     .put("legacy_adoption_roundtrip", true)
                     .put("search_filters_original_readback", true)
                     .put("lcr_delete_references", true)
+                    .put("independent_similar_sources", true)
                     .put("synthetic_only", true)
                     .put("real_pixel_mcp_adapter", true)
             }
@@ -3682,6 +3754,805 @@ class NativeDataAccessNativeTests private constructor(private val test: Instrume
             context.clearPreferences()
             yes(root.deleteRecursively(), "CATALOG_MCP_ISOLATED_ROOT_REMOVED")
         }
+    }
+
+    private fun eisbaerRevierMcpProof(owner: Context): JSONObject {
+        val beforeChecks = checks
+        val token = UUID.randomUUID().toString().replace("-", "")
+        val root = File(owner.cacheDir, "qa-eisbaer-revier-$token")
+        yes(!root.exists() && root.mkdir(), "EISBAER_REVIER_NEW_ROOT")
+        val context = FixtureContext(owner, root, "qa_eisbaer_revier_$token")
+        val executed = linkedSetOf<String>()
+        val positive = linkedSetOf<String>()
+        val transitions = linkedSetOf<String>()
+        val report: JSONObject
+        try {
+            report =
+                PixelLocalStore(context).use { store ->
+                    val fixture = SyntheticBusinessData.profile("minimal")
+                    store.putOwnerValue("snapshot", fixture.toString())
+                    val tools =
+                        PixelMcpReadTools(
+                            store.readSource(),
+                            store,
+                            PixelOwnerAccess(context, store),
+                        )
+                    fun call(name: String, args: JSONObject = JSONObject()): JSONObject {
+                        executed.add(name)
+                        val result = tools.call(name, args)
+                        yes(result.optBoolean("ok"), "EISBAER_REVIER_PUBLIC_OK_$name")
+                        positive.add(name)
+                        return result.getJSONObject("data")
+                    }
+                    fun rejected(name: String, args: JSONObject, code: String): JSONObject {
+                        executed.add(name)
+                        try {
+                            tools.call(name, args)
+                        } catch (failure: Exception) {
+                            val error = McpErrors.rpc(failure).getJSONObject("error")
+                            yes(
+                                error.getString("code") == code,
+                                "EISBAER_REVIER_REJECT_${name}_$code",
+                            )
+                            transitions.add(name)
+                            return error
+                        }
+                        throw AssertionError("QA_NATIVE_DATA_EISBAER_REVIER_EXPECTED_${name}_$code")
+                    }
+                    fun request(id: String) =
+                        JSONObject().put("request_id", "qa_eisbaer_revier_$id")
+                    fun master() = PixelMcpReadTools.effective(store.getState())
+                    fun ids(rows: JSONArray) = SettlementRules.rows(rows).map { it.getString("id") }
+                    fun property(id: String) =
+                        call("get_property", JSONObject().put("property_id", id))
+                            .getJSONObject("record")
+
+                    phase = "eisbaer_revier_protected_fixture"
+                    val protectedProperty =
+                        call(
+                                "create_property",
+                                request("protected_property")
+                                    .put("customer_id", "qa_customer_1")
+                                    .put("name", "[TEST] QA bestehender Originalbezug"),
+                            )
+                            .getJSONObject("record")
+                    // Arrange an older synthetic original before the write/read workflows under
+                    // test.
+                    // Its file bytes are not part of this proof; the relationship protection is
+                    // real.
+                    fixture
+                        .getJSONArray("worklogs")
+                        .getJSONObject(0)
+                        .put("property_id", protectedProperty.getString("id"))
+                    fixture
+                        .getJSONArray("invoices")
+                        .put(
+                            JSONObject()
+                                .put("id", "qa_revier_historic_invoice")
+                                .put("invoice_number", "QA-HIST-001")
+                                .put("status", "issued")
+                                .put("customer_id", "qa_customer_1")
+                                .put("property_id", protectedProperty.getString("id"))
+                                .put("gross_total", "42.00")
+                                .put("issued_at", "2026-10-01T10:00:00Z")
+                                .put("test_record", true)
+                        )
+                    store.putOwnerValue("snapshot", fixture.toString())
+                    fun legacyOriginals(): String {
+                        val state = master()
+                        return PixelMcpWriteTools.hash(
+                            JSONObject()
+                                .put(
+                                    "work",
+                                    SnapshotReadSupport.find(
+                                        state.getJSONArray("worklogs"),
+                                        "qa_work_1",
+                                    ),
+                                )
+                                .put(
+                                    "order",
+                                    SnapshotReadSupport.find(
+                                        state.getJSONArray("orders"),
+                                        "qa_order_1",
+                                    ),
+                                )
+                                .put(
+                                    "customer",
+                                    SnapshotReadSupport.find(
+                                        state.getJSONArray("customers"),
+                                        "qa_customer_1",
+                                    ),
+                                )
+                                .put("invoices", state.getJSONArray("invoices"))
+                        )
+                    }
+                    val beforeLegacy = legacyOriginals()
+                    val baselineWorks = ids(master().getJSONArray("worklogs")).toSet()
+                    val publicProperty =
+                        call(
+                                "create_property",
+                                request("editable_property")
+                                    .put("customer_id", "qa_customer_1")
+                                    .put("name", "[TEST] QA MCP Objekt vor Änderung"),
+                            )
+                            .getJSONObject("record")
+                    val propertyId = publicProperty.getString("id")
+                    val propertyChange =
+                        request("update_property")
+                            .put("property_id", propertyId)
+                            .put("expected_record_hash", publicProperty.getString("record_hash"))
+                            .put(
+                                "updates",
+                                JSONObject()
+                                    .put("name", "[TEST] QA MCP Objekt geändert")
+                                    .put("access_notes", "[TEST] QA bewusste Zutrittsangabe"),
+                            )
+                    call("update_property", propertyChange)
+                    yes(
+                        call("update_property", propertyChange).getBoolean("replayed"),
+                        "EISBAER_REVIER_PROPERTY_UPDATE_REPLAY",
+                    )
+                    val updatedProperty = property(propertyId)
+                    yes(
+                        updatedProperty.getString("id") == propertyId &&
+                            updatedProperty.getString("name") == "[TEST] QA MCP Objekt geändert" &&
+                            updatedProperty.getString("access_notes") ==
+                                "[TEST] QA bewusste Zutrittsangabe",
+                        "EISBAER_REVIER_PROPERTY_SAME_ORIGINAL_REREAD",
+                    )
+                    rejected(
+                        "update_property",
+                        JSONObject(propertyChange.toString())
+                            .put("request_id", "qa_eisbaer_revier_update_property_stale"),
+                        "WRITE_CONFLICT",
+                    )
+                    val listedProperties =
+                        call(
+                            "list_properties",
+                            JSONObject()
+                                .put("customer_id", "qa_customer_1")
+                                .put("query", "MCP Objekt geändert"),
+                        )
+                    yes(
+                        listedProperties.getInt("total") == 1 &&
+                            listedProperties
+                                .getJSONArray("items")
+                                .getJSONObject(0)
+                                .getString("id") == propertyId,
+                        "EISBAER_REVIER_LIST_PROPERTIES_PUBLIC_FILTER",
+                    )
+
+                    phase = "eisbaer_mcp_inquiry_direct_acceptance"
+                    fun inquiryMaster() = PixelMcpReadTools.effective(store.getState())
+                    val inquiryBaseline = inquiryMaster()
+                    val inquiryBaselineIds =
+                        listOf("customers", "orders", "worklogs", "invoices", "offers", "photos")
+                            .associateWith { group ->
+                                SettlementRules.rows(inquiryBaseline.optJSONArray(group))
+                                    .map { it.getString("id") }
+                                    .toSet()
+                            }
+                    fun inquiryExistingOriginals(): JSONObject {
+                        val current = inquiryMaster()
+                        return JSONObject().apply {
+                            for ((group, ids) in inquiryBaselineIds) {
+                                val byId =
+                                    SettlementRules.rows(current.optJSONArray(group)).associateBy {
+                                        it.getString("id")
+                                    }
+                                put(
+                                    group,
+                                    JSONArray(
+                                        ids.sorted().map { id ->
+                                            requireNotNull(byId[id]) {
+                                                "An original $group record disappeared"
+                                            }
+                                        }
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                    val inquiryOriginalHash = PixelMcpWriteTools.hash(inquiryExistingOriginals())
+                    val inquiryInitialOrders =
+                        SettlementRules.rows(inquiryBaseline.optJSONArray("orders"))
+                            .map { it.getString("id") }
+                            .toSet()
+                    val inquiryInitialAppointments =
+                        SettlementRules.rows(inquiryBaseline.optJSONArray("appointments"))
+                            .map { it.getString("id") }
+                            .toSet()
+                    val inquiryInitialWorks =
+                        PixelMcpWriteTools.hash(inquiryBaseline.getJSONArray("worklogs"))
+                    val inquiryInitialInvoices =
+                        PixelMcpWriteTools.hash(inquiryBaseline.getJSONArray("invoices"))
+                    val inquiryInitialLedger = store.ownerValue(SettlementRules.KEY, "{}")
+                    val inquiryRecipientCreation =
+                        call(
+                            "create_customer",
+                            request("inquiry_recipient")
+                                .put("name", "[TEST] QA MCP Anfrage Rechnungsempfänger"),
+                        )
+                    val inquiryRecipientId = inquiryRecipientCreation.getString("entity_id")
+                    val inquiryRecipient =
+                        call("get_customer", JSONObject().put("customer_id", inquiryRecipientId))
+                    yes(
+                        inquiryRecipient.getString("id") == inquiryRecipientId &&
+                            inquiryRecipientId != "qa_customer_1",
+                        "EISBAER_INQUIRY_REAL_DISTINCT_RECIPIENT_REREAD",
+                    )
+                    val inquiryDirectCreateArgs =
+                        request("inquiry_direct_create")
+                            .put("customer_id", "qa_customer_1")
+                            .put("title", "[TEST] QA MCP ausdrücklich angenommene Anfrage")
+                            .put("concern", "[TEST] QA tatsächlicher Kundenwunsch")
+                    val inquiryDirectCreated =
+                        call("create_inquiry", inquiryDirectCreateArgs).getJSONObject("record")
+                    val inquiryDirectInquiryId = inquiryDirectCreated.getString("id")
+                    yes(
+                        call("create_inquiry", inquiryDirectCreateArgs).getBoolean("replayed"),
+                        "EISBAER_INQUIRY_CREATE_REPLAY",
+                    )
+                    val inquiryDirectFresh =
+                        call("get_inquiry", JSONObject().put("inquiry_id", inquiryDirectInquiryId))
+                            .getJSONObject("record")
+                    yes(
+                        inquiryDirectFresh.getString("status") == "new" &&
+                            inquiryDirectFresh.optString("order_id").isBlank() &&
+                            SettlementRules.rows(inquiryMaster().getJSONArray("orders"))
+                                .map { it.getString("id") }
+                                .toSet() == inquiryInitialOrders,
+                        "EISBAER_INQUIRY_CREATE_AND_READ_DO_NOT_ACCEPT",
+                    )
+                    val inquiryDirectAcceptArgs =
+                        request("inquiry_direct_accept")
+                            .put("inquiry_id", inquiryDirectInquiryId)
+                            .put(
+                                "expected_record_hash",
+                                inquiryDirectFresh.getString("record_hash"),
+                            )
+                            .put("accepted_at", "2027-05-18T07:00:00Z")
+                            .put("evidence", "[TEST] QA bewusst dokumentierte mündliche Zusage")
+                            .put("billing_customer_id", inquiryRecipientId)
+                            .put("confirmed", true)
+                    rejected(
+                        "accept_inquiry_direct",
+                        JSONObject(inquiryDirectAcceptArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_accept_unconfirmed")
+                            .put("confirmed", false),
+                        "CONFIRMATION_REQUIRED",
+                    )
+                    rejected(
+                        "accept_inquiry_direct",
+                        JSONObject(inquiryDirectAcceptArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_accept_stale_before")
+                            .put("expected_record_hash", "0".repeat(64)),
+                        "WRITE_CONFLICT",
+                    )
+                    yes(
+                        call("get_inquiry", JSONObject().put("inquiry_id", inquiryDirectInquiryId))
+                            .getJSONObject("record")
+                            .getString("record_hash") ==
+                            inquiryDirectFresh.getString("record_hash") &&
+                            SettlementRules.rows(inquiryMaster().getJSONArray("orders"))
+                                .map { it.getString("id") }
+                                .toSet() == inquiryInitialOrders,
+                        "EISBAER_INQUIRY_FAILED_ACCEPTANCE_DOES_NOT_CREATE_ORDER",
+                    )
+                    val inquiryDirectAccepted =
+                        call("accept_inquiry_direct", inquiryDirectAcceptArgs)
+                    val inquiryDirectOrderId = inquiryDirectAccepted.getString("order_id")
+                    yes(
+                        !inquiryDirectAccepted.getBoolean("invoice_created") &&
+                            call("accept_inquiry_direct", inquiryDirectAcceptArgs)
+                                .getBoolean("replayed"),
+                        "EISBAER_INQUIRY_ACCEPTS_ONCE_WITHOUT_INVOICE",
+                    )
+                    val inquiryAcceptedInquiry =
+                        call("get_inquiry", JSONObject().put("inquiry_id", inquiryDirectInquiryId))
+                            .getJSONObject("record")
+                    val inquiryDirectOrder =
+                        call("get_order", JSONObject().put("order_id", inquiryDirectOrderId))
+                    yes(
+                        inquiryAcceptedInquiry.getString("status") == "accepted" &&
+                            inquiryAcceptedInquiry.getString("order_id") == inquiryDirectOrderId &&
+                            inquiryAcceptedInquiry.getString("acceptance_source") == "direct" &&
+                            inquiryAcceptedInquiry.getString("acceptance_evidence") ==
+                                inquiryDirectAcceptArgs.getString("evidence"),
+                        "EISBAER_INQUIRY_ACCEPTANCE_EVIDENCE_AND_ORDER_REREAD",
+                    )
+                    yes(
+                        inquiryDirectOrder.getString("id") == inquiryDirectOrderId &&
+                            inquiryDirectOrder.getString("customer_id") == "qa_customer_1" &&
+                            inquiryDirectOrder.getString("billing_customer_id") ==
+                                inquiryRecipientId &&
+                            inquiryDirectOrder.getString("title") ==
+                                inquiryDirectFresh.getString("title"),
+                        "EISBAER_INQUIRY_ORDER_KEEPS_EXACT_CUSTOMER_AND_RECIPIENT",
+                    )
+                    rejected(
+                        "accept_inquiry_direct",
+                        JSONObject(inquiryDirectAcceptArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_accept_stale_after"),
+                        "WRITE_CONFLICT",
+                    )
+                    rejected(
+                        "accept_inquiry_direct",
+                        JSONObject(inquiryDirectAcceptArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_accept_again")
+                            .put(
+                                "expected_record_hash",
+                                inquiryAcceptedInquiry.getString("record_hash"),
+                            ),
+                        "ORDER_ALREADY_LINKED",
+                    )
+                    yes(
+                        SettlementRules.rows(inquiryMaster().getJSONArray("orders"))
+                            .map { it.getString("id") }
+                            .toSet() == inquiryInitialOrders + inquiryDirectOrderId,
+                        "EISBAER_INQUIRY_ONE_EXPLICIT_ORDER_NO_DUPLICATE",
+                    )
+
+                    phase = "eisbaer_mcp_inquiry_inspection"
+                    val inquiryInspectionCreateArgs =
+                        request("inquiry_inspection_create")
+                            .put("customer_id", "qa_customer_1")
+                            .put("title", "[TEST] QA MCP echte Besichtigungsplanung")
+                    val inquiryInspectionInquiryId =
+                        call("create_inquiry", inquiryInspectionCreateArgs)
+                            .getJSONObject("record")
+                            .getString("id")
+                    val inquiryInspectionFresh =
+                        call(
+                                "get_inquiry",
+                                JSONObject().put("inquiry_id", inquiryInspectionInquiryId),
+                            )
+                            .getJSONObject("record")
+                    val inquiryInspectionArgs =
+                        request("inquiry_inspection_first")
+                            .put("inquiry_id", inquiryInspectionInquiryId)
+                            .put(
+                                "expected_record_hash",
+                                inquiryInspectionFresh.getString("record_hash"),
+                            )
+                            .put("starts_at", "2027-06-02T08:00:00Z")
+                            .put("ends_at", "2027-06-02T09:00:00Z")
+                            .put("timezone", "Europe/Vienna")
+                            .put("notes", "[TEST] QA Besichtigung bewusst geplant")
+                    rejected(
+                        "plan_inquiry_inspection",
+                        JSONObject(inquiryInspectionArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_inspection_stale_before")
+                            .put("expected_record_hash", "0".repeat(64)),
+                        "WRITE_CONFLICT",
+                    )
+                    val inquiryInspectionPlanned =
+                        call("plan_inquiry_inspection", inquiryInspectionArgs)
+                    val inquiryInspectionAppointmentId =
+                        inquiryInspectionPlanned.getString("appointment_id")
+                    yes(
+                        call("plan_inquiry_inspection", inquiryInspectionArgs)
+                            .getBoolean("replayed") &&
+                            inquiryInspectionPlanned.getString("external_calendar_status") ==
+                                "unknown",
+                        "EISBAER_INQUIRY_INSPECTION_REPLAY_NO_EXTERNAL_CONFIRMATION",
+                    )
+                    val inquiryInspectionAppointment =
+                        call(
+                            "get_appointment",
+                            JSONObject().put("appointment_id", inquiryInspectionAppointmentId),
+                        )
+                    val inquiryInspectionOriginal =
+                        inquiryInspectionAppointment.getJSONObject("appointment")
+                    val inquiryInspectionLinked =
+                        call(
+                                "get_inquiry",
+                                JSONObject().put("inquiry_id", inquiryInspectionInquiryId),
+                            )
+                            .getJSONObject("record")
+                    yes(
+                        inquiryInspectionOriginal.getString("id") ==
+                            inquiryInspectionAppointmentId &&
+                            inquiryInspectionOriginal.getString("customer_id") == "qa_customer_1" &&
+                            inquiryInspectionOriginal.getString("purpose") == "inspection" &&
+                            inquiryInspectionOriginal.getString("weather_profile") ==
+                                "inspection" &&
+                            inquiryInspectionOriginal.getString("starts_at") ==
+                                "2027-06-02T08:00:00Z" &&
+                            inquiryInspectionOriginal.getString("ends_at") ==
+                                "2027-06-02T09:00:00Z",
+                        "EISBAER_INQUIRY_INSPECTION_ACTUAL_APPOINTMENT_REREAD",
+                    )
+                    yes(
+                        inquiryInspectionLinked.getString("status") == "inspection_planned" &&
+                            inquiryInspectionLinked.getString("inspection_appointment_id") ==
+                                inquiryInspectionAppointmentId,
+                        "EISBAER_INQUIRY_INSPECTION_STABLE_LINK_REREAD",
+                    )
+                    rejected(
+                        "plan_inquiry_inspection",
+                        JSONObject(inquiryInspectionArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_inspection_stale_after"),
+                        "WRITE_CONFLICT",
+                    )
+                    rejected(
+                        "plan_inquiry_inspection",
+                        JSONObject(inquiryInspectionArgs.toString())
+                            .put("starts_at", "2027-06-02T08:30:00Z"),
+                        "REPLAY_MISMATCH",
+                    )
+                    rejected(
+                        "plan_inquiry_inspection",
+                        JSONObject(inquiryInspectionArgs.toString())
+                            .put("request_id", "qa_eisbaer_inquiry_inspection_requires_mode")
+                            .put(
+                                "expected_record_hash",
+                                inquiryInspectionLinked.getString("record_hash"),
+                            ),
+                        "INSPECTION_ACTION_REQUIRED",
+                    )
+                    val inquiryRescheduleArgs =
+                        request("inquiry_inspection_reschedule")
+                            .put("inquiry_id", inquiryInspectionInquiryId)
+                            .put(
+                                "expected_record_hash",
+                                inquiryInspectionLinked.getString("record_hash"),
+                            )
+                            .put("mode", "reschedule")
+                            .put(
+                                "expected_appointment_hash",
+                                inquiryInspectionAppointment.getString("record_hash"),
+                            )
+                            .put("starts_at", "2027-06-03T08:00:00Z")
+                            .put("ends_at", "2027-06-03T09:00:00Z")
+                            .put("timezone", "Europe/Vienna")
+                    rejected(
+                        "plan_inquiry_inspection",
+                        JSONObject(inquiryRescheduleArgs.toString())
+                            .put(
+                                "request_id",
+                                "qa_eisbaer_inquiry_inspection_bad_appointment_proof",
+                            )
+                            .put("expected_appointment_hash", "0".repeat(64)),
+                        "WRITE_CONFLICT",
+                    )
+                    yes(
+                        call(
+                                "get_appointment",
+                                JSONObject().put("appointment_id", inquiryInspectionAppointmentId),
+                            )
+                            .getString("record_hash") ==
+                            inquiryInspectionAppointment.getString("record_hash") &&
+                            call(
+                                    "get_inquiry",
+                                    JSONObject().put("inquiry_id", inquiryInspectionInquiryId),
+                                )
+                                .getJSONObject("record")
+                                .getString("record_hash") ==
+                                inquiryInspectionLinked.getString("record_hash"),
+                        "EISBAER_INQUIRY_INSPECTION_BAD_PROOF_PRESERVES_BOTH_ORIGINALS",
+                    )
+                    yes(
+                        call("plan_inquiry_inspection", inquiryRescheduleArgs)
+                            .getString("appointment_id") == inquiryInspectionAppointmentId &&
+                            call("plan_inquiry_inspection", inquiryRescheduleArgs)
+                                .getBoolean("replayed"),
+                        "EISBAER_INQUIRY_INSPECTION_RESCHEDULE_SAME_ID_REPLAY",
+                    )
+                    val inquiryRescheduled =
+                        call(
+                                "get_appointment",
+                                JSONObject().put("appointment_id", inquiryInspectionAppointmentId),
+                            )
+                            .getJSONObject("appointment")
+                    yes(
+                        inquiryRescheduled.getString("starts_at") == "2027-06-03T08:00:00Z" &&
+                            inquiryRescheduled.getString("ends_at") == "2027-06-03T09:00:00Z" &&
+                            call(
+                                    "get_inquiry",
+                                    JSONObject().put("inquiry_id", inquiryInspectionInquiryId),
+                                )
+                                .getJSONObject("record")
+                                .getString("inspection_appointment_id") ==
+                                inquiryInspectionAppointmentId,
+                        "EISBAER_INQUIRY_INSPECTION_RESCHEDULE_ACTUAL_REREAD",
+                    )
+                    yes(
+                        SettlementRules.rows(inquiryMaster().getJSONArray("appointments"))
+                            .map { it.getString("id") }
+                            .toSet() == inquiryInitialAppointments + inquiryInspectionAppointmentId,
+                        "EISBAER_INQUIRY_INSPECTION_EXACTLY_ONE_APPOINTMENT",
+                    )
+                    yes(
+                        PixelMcpWriteTools.hash(inquiryMaster().getJSONArray("worklogs")) ==
+                            inquiryInitialWorks &&
+                            PixelMcpWriteTools.hash(inquiryMaster().getJSONArray("invoices")) ==
+                                inquiryInitialInvoices &&
+                            PixelMcpWriteTools.hash(inquiryExistingOriginals()) ==
+                                inquiryOriginalHash &&
+                            store.ownerValue(SettlementRules.KEY, "{}") == inquiryInitialLedger,
+                        "EISBAER_INQUIRY_ALL_PREEXISTING_ORIGINALS_UNCHANGED_NO_WORK_OR_INVOICE",
+                    )
+
+                    val inquiryListing =
+                        call(
+                            "list_inquiries",
+                            JSONObject().put("customer_id", "qa_customer_1").put("query", "QA MCP"),
+                        )
+                    yes(
+                        inquiryListing.getInt("total") == 2 &&
+                            ids(inquiryListing.getJSONArray("items")).toSet() ==
+                                setOf(inquiryDirectInquiryId, inquiryInspectionInquiryId),
+                        "EISBAER_REVIER_LIST_INQUIRIES_PUBLIC_CUSTOMER_QUERY",
+                    )
+                    val acceptedListing =
+                        call(
+                            "list_inquiries",
+                            JSONObject()
+                                .put("customer_id", "qa_customer_1")
+                                .put("status", "accepted"),
+                        )
+                    yes(
+                        ids(acceptedListing.getJSONArray("items")) ==
+                            listOf(inquiryDirectInquiryId),
+                        "EISBAER_REVIER_LIST_INQUIRIES_PUBLIC_STATUS",
+                    )
+
+                    phase = "eisbaer_revier_legacy_work_alias"
+                    val workArgs =
+                        request("legacy_work_create")
+                            .put("order_id", "qa_order_1")
+                            .put("work_date", "2027-06-22")
+                            .put("activity", "[TEST] QA öffentlicher alter Arbeitsname")
+                            .put("hours", 1.25)
+                    val workCreated = call("create_work_record", workArgs)
+                    val workId = workCreated.getString("work_record_id")
+                    yes(
+                        call("create_work_record", workArgs).getBoolean("replayed"),
+                        "EISBAER_REVIER_CREATE_WORK_ALIAS_REPLAY",
+                    )
+                    val aliasWork =
+                        call("get_work_record", JSONObject().put("work_record_id", workId))
+                    yes(
+                        aliasWork.getString("id") == workId &&
+                            aliasWork.getString("customer_id") == "qa_customer_1" &&
+                            aliasWork.getString("order_id") == "qa_order_1" &&
+                            kotlin.math.abs(aliasWork.getDouble("hours") - 1.25) < 0.0000001 &&
+                            ids(master().getJSONArray("worklogs")).toSet() ==
+                                baselineWorks + workId,
+                        "EISBAER_REVIER_CREATE_WORK_ALIAS_ORIGINAL_REREAD_ONCE",
+                    )
+                    rejected(
+                        "create_work_record",
+                        JSONObject(workArgs.toString())
+                            .put("activity", "[TEST] QA anderer Inhalt unter gleicher Kennung"),
+                        "REPLAY_MISMATCH",
+                    )
+
+                    phase = "eisbaer_revier_tour_move_alias"
+                    val tourDay = "2027-06-22"
+                    fun visit(suffix: String): String =
+                        call(
+                                "plan_visit",
+                                request("tour_visit_$suffix")
+                                    .put("property_id", propertyId)
+                                    .put("title", "[TEST] QA MCP Tourstopp $suffix")
+                                    .put("date", tourDay)
+                                    .put("planned_minutes", 30),
+                            )
+                            .getString("visit_id")
+                    val firstVisit = visit("a")
+                    val secondVisit = visit("b")
+                    val firstProof =
+                        call("get_visit", JSONObject().put("visit_id", firstVisit))
+                            .getString("record_hash")
+                    val secondProof =
+                        call("get_visit", JSONObject().put("visit_id", secondVisit))
+                            .getString("record_hash")
+                    val tourBefore = call("get_day_tour", JSONObject().put("date", tourDay))
+                    call(
+                        "set_day_tour",
+                        request("initial_tour")
+                            .put("date", tourDay)
+                            .put("visit_ids", JSONArray().put(firstVisit).put(secondVisit))
+                            .put("expected_record_hash", tourBefore.getString("record_hash")),
+                    )
+                    val ordered = call("get_day_tour", JSONObject().put("date", tourDay))
+                    val moveArgs =
+                        request("move_tour")
+                            .put("date", tourDay)
+                            .put("visit_id", secondVisit)
+                            .put("direction", "up")
+                            .put("expected_record_hash", ordered.getString("record_hash"))
+                    call("move_tour_stop", moveArgs)
+                    yes(
+                        call("move_tour_stop", moveArgs).getBoolean("replayed"),
+                        "EISBAER_REVIER_MOVE_TOUR_REPLAY",
+                    )
+                    rejected(
+                        "move_tour_stop",
+                        JSONObject(moveArgs.toString())
+                            .put("request_id", "qa_eisbaer_revier_move_tour_stale"),
+                        "WRITE_CONFLICT",
+                    )
+                    val moved = call("get_day_tour", JSONObject().put("date", tourDay))
+                    val movedIds = moved.getJSONObject("tour").getJSONArray("visit_ids")
+                    yes(
+                        (0 until movedIds.length()).map(movedIds::getString) ==
+                            listOf(secondVisit, firstVisit) &&
+                            ids(moved.getJSONArray("stops")) == listOf(secondVisit, firstVisit),
+                        "EISBAER_REVIER_MOVE_TOUR_PUBLIC_ORDER_REREAD",
+                    )
+                    yes(
+                        call("get_visit", JSONObject().put("visit_id", firstVisit))
+                            .getString("record_hash") == firstProof &&
+                            call("get_visit", JSONObject().put("visit_id", secondVisit))
+                                .getString("record_hash") == secondProof &&
+                            ids(master().getJSONArray("worklogs")).toSet() ==
+                                baselineWorks + workId,
+                        "EISBAER_REVIER_TOUR_MOVE_KEEPS_ORIGINALS_AND_CREATES_NO_WORK",
+                    )
+
+                    phase = "eisbaer_revier_material_legacy_alias"
+                    val material =
+                        call(
+                                "save_material",
+                                request("alias_material")
+                                    .put("name", "[TEST] QA Verbrauchsmaterial")
+                                    .put("unit", "Sack")
+                                    .put("billing_price_minor", 250),
+                            )
+                            .getJSONObject("record")
+                    val materialId = material.getString("id")
+                    val movementArgs =
+                        request("legacy_material_consume")
+                            .put("material_id", materialId)
+                            .put("worklog_id", workId)
+                            .put("quantity_decimal", "2")
+                            .put("kind", "consume")
+                            .put("expected_record_hash", material.getString("record_hash"))
+                    val consumed =
+                        call("record_material_movement", movementArgs).getJSONObject("movement")
+                    yes(
+                        call("record_material_movement", movementArgs).getBoolean("replayed"),
+                        "EISBAER_REVIER_MATERIAL_ALIAS_REPLAY",
+                    )
+                    val rereadMaterial =
+                        SettlementRules.rows(call("list_materials").getJSONArray("items")).single {
+                            it.getString("id") == materialId
+                        }
+                    yes(
+                        rereadMaterial.getInt("history_total") == 1 &&
+                            rereadMaterial
+                                .getJSONArray("movements")
+                                .getJSONObject(0)
+                                .getString("id") == consumed.getString("id") &&
+                            consumed.getString("worklog_id") == workId &&
+                            consumed.getString("quantity_decimal") == "2" &&
+                            !rereadMaterial.has("stock_decimal"),
+                        "EISBAER_REVIER_MATERIAL_ALIAS_READS_ONE_REAL_CONSUMPTION",
+                    )
+                    rejected(
+                        "record_material_movement",
+                        JSONObject(movementArgs.toString()).put("quantity_decimal", "3"),
+                        "REPLAY_MISMATCH",
+                    )
+                    rejected(
+                        "record_material_movement",
+                        JSONObject(movementArgs.toString())
+                            .put("request_id", "qa_eisbaer_revier_material_stale")
+                            .put("expected_record_hash", "0".repeat(64)),
+                        "WRITE_CONFLICT",
+                    )
+                    rejected(
+                        "record_material_movement",
+                        JSONObject(movementArgs.toString())
+                            .put("request_id", "qa_eisbaer_revier_retired_inventory")
+                            .put("kind", "receive"),
+                        "INVALID_INPUT",
+                    )
+                    yes(
+                        SettlementRules.rows(call("list_materials").getJSONArray("items"))
+                            .single { it.getString("id") == materialId }
+                            .getInt("history_total") == 1,
+                        "EISBAER_REVIER_MATERIAL_ALIAS_REJECTIONS_DO_NOT_ADD_MOVEMENTS",
+                    )
+
+                    phase = "eisbaer_revier_permanent_purge"
+                    // Revier's contract previews the exact original with get_property +
+                    // record_hash;
+                    // preview_delete is intentionally a separate contract for core entities only.
+                    val disposable =
+                        call(
+                                "create_property",
+                                request("purge_disposable")
+                                    .put("customer_id", "qa_customer_1")
+                                    .put("name", "[TEST] QA ausschließlich löschbares Testobjekt"),
+                            )
+                            .getJSONObject("record")
+                    val disposableId = disposable.getString("id")
+                    val purgePreview = property(disposableId)
+                    val purgeArgs =
+                        request("permanent_purge")
+                            .put("entity", "property")
+                            .put("entity_id", disposableId)
+                            .put("expected_record_hash", purgePreview.getString("record_hash"))
+                            .put("confirmed", true)
+                            .put("reason", "[TEST] QA eigenes unverbundenes Testobjekt entfernen")
+                    rejected(
+                        "purge_revier_entity",
+                        JSONObject(purgeArgs.toString())
+                            .put("request_id", "qa_eisbaer_revier_purge_not_confirmed")
+                            .put("confirmed", false),
+                        "CONFIRMATION_REQUIRED",
+                    )
+                    rejected(
+                        "purge_revier_entity",
+                        JSONObject(purgeArgs.toString())
+                            .put("request_id", "qa_eisbaer_revier_purge_stale")
+                            .put("expected_record_hash", "0".repeat(64)),
+                        "WRITE_CONFLICT",
+                    )
+                    yes(
+                        property(disposableId).getString("record_hash") ==
+                            purgePreview.getString("record_hash"),
+                        "EISBAER_REVIER_PURGE_REJECTIONS_KEEP_ORIGINAL",
+                    )
+                    yes(
+                        call("purge_revier_entity", purgeArgs).getBoolean("purged"),
+                        "EISBAER_REVIER_PERMANENT_PURGE_ACTUALLY_APPLIED",
+                    )
+                    yes(
+                        call("purge_revier_entity", purgeArgs).getBoolean("replayed"),
+                        "EISBAER_REVIER_PURGE_REPLAY",
+                    )
+                    rejected(
+                        "get_property",
+                        JSONObject().put("property_id", disposableId),
+                        "ENTITY_DELETED",
+                    )
+                    val survivingProperties = call("list_properties").getJSONArray("items")
+                    yes(
+                        disposableId !in ids(survivingProperties) &&
+                            propertyId in ids(survivingProperties) &&
+                            protectedProperty.getString("id") in ids(survivingProperties),
+                        "EISBAER_REVIER_PURGE_NO_RESURRECTION_OR_COLLATERAL_DELETE",
+                    )
+                    val protectedPreview = property(protectedProperty.getString("id"))
+                    rejected(
+                        "purge_revier_entity",
+                        request("purge_protected_original")
+                            .put("entity", "property")
+                            .put("entity_id", protectedProperty.getString("id"))
+                            .put("expected_record_hash", protectedPreview.getString("record_hash"))
+                            .put("confirmed", true),
+                        "DEPENDENCY_EXISTS",
+                    )
+                    yes(
+                        legacyOriginals() == beforeLegacy &&
+                            property(protectedProperty.getString("id")).getString("record_hash") ==
+                                protectedPreview.getString("record_hash"),
+                        "EISBAER_REVIER_PURGE_PROTECTS_HISTORICAL_ORIGINALS",
+                    )
+
+                    JSONObject()
+                        .put("executed_tools", JSONArray(executed.sorted()))
+                        .put("positive_tools", JSONArray(positive.sorted()))
+                        .put("transition_tools", JSONArray(transitions.sorted()))
+                        .put("public_adapter_and_real_sqlite", true)
+                        .put("synthetic_only", true)
+                        .put("inquiry_acceptance_inspection_roundtrip", true)
+                        .put("work_alias_and_tour_move_roundtrip", true)
+                        .put("property_update_list_and_permanent_purge", true)
+                        .put("legacy_material_consumption_alias", true)
+                        .put("legacy_originals_preserved", true)
+                        .put("calendar_provider_success_claimed", false)
+                }
+        } finally {
+            context.clearPreferences()
+            yes(root.deleteRecursively(), "EISBAER_REVIER_ROOT_REMOVED")
+        }
+        return report.put("checks", checks - beforeChecks)
     }
 
     private fun localStorageCleanup(owner: Context) {

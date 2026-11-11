@@ -557,7 +557,6 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
             "customers" to "Kunden",
             "accounting" to "Abrechnung",
         )
-    val large = LocalDensity.current.fontScale > 1.3f
     val colors = MaterialTheme.colorScheme
     if (rail) {
         Surface(color = colors.surface) {
@@ -574,11 +573,11 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                     label = {
                         Text(
                             label,
-                            maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            softWrap = true,
                         )
                     },
-                    alwaysShowLabel = !large,
+                    alwaysShowLabel = true,
                     modifier =
                         Modifier.fillMaxWidth().semantics {
                             role = Role.Button
@@ -606,11 +605,11 @@ private fun NativeMainNavigation(controller: NativeAppController, rail: Boolean 
                 label = {
                     Text(
                         label,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        softWrap = true,
                     )
                 },
-                alwaysShowLabel = !large,
+                alwaysShowLabel = true,
                 modifier =
                     Modifier.semantics {
                         role = Role.Button
@@ -742,40 +741,95 @@ internal fun NativeCreateButton(
     val scope = rememberCoroutineScope()
     SmallFloatingActionButton(
         {
+            val startingRoute = controller.route
+            val startingArgs = JSONObject(contextArgs.toString())
             scope.launch {
-                controller.createArgs =
-                    JSONObject().apply {
-                        for (key in
-                            listOf(
-                                "customer_id",
-                                "property_id",
-                                "order_id",
-                                "visit_id",
-                                "worklog_id",
-                                "inquiry_id",
-                            )) if (contextArgs.optString(key).isNotBlank())
-                            put(key, contextArgs.getString(key))
-                        if (
-                            controller.route.section == "customers" &&
-                                controller.route.id.isNotBlank()
-                        )
-                            put("customer_id", controller.route.id)
-                        if (
-                            controller.route.section == "properties" &&
-                                controller.route.id.isNotBlank()
-                        ) {
-                            put("property_id", controller.route.id)
-                            val property =
-                                controller.store
-                                    .nativeData()
-                                    .detail("properties", controller.route.id)
-                            property
-                                ?.optString("customer_id")
-                                ?.takeIf { it.isNotBlank() }
-                                ?.let { put("customer_id", it) }
+                try {
+                    controller.createArgs =
+                        JSONObject().apply {
+                            for (key in
+                                listOf(
+                                    "customer_id",
+                                    "billing_customer_id",
+                                    "date",
+                                    "property_id",
+                                    "order_id",
+                                    "visit_id",
+                                    "worklog_id",
+                                    "inquiry_id",
+                                )) if (startingArgs.optString(key).isNotBlank())
+                                put(key, startingArgs.getString(key))
+                            if (
+                                !has("date") &&
+                                    startingRoute.section in
+                                        setOf(
+                                            "planning",
+                                            "appointments",
+                                            "weather",
+                                            "visits",
+                                            "tour",
+                                        )
+                            )
+                                startingArgs
+                                    .optString("date_from")
+                                    .takeIf { it.isNotBlank() }
+                                    ?.let { put("date", it) }
+                            if (
+                                startingRoute.section == "customers" &&
+                                    startingRoute.id.isNotBlank()
+                            )
+                                put("customer_id", startingRoute.id)
+                            if (
+                                startingRoute.section == "properties" &&
+                                    startingRoute.id.isNotBlank()
+                            ) {
+                                put("property_id", startingRoute.id)
+                                val property =
+                                    controller.store
+                                        .nativeData()
+                                        .detail("properties", startingRoute.id)
+                                property
+                                    ?.optString("customer_id")
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?.let { put("customer_id", it) }
+                            }
+                            val sourceKey =
+                                when (startingRoute.section) {
+                                    "orders" -> "order_id"
+                                    "worklogs" -> "worklog_id"
+                                    "inquiries" -> "inquiry_id"
+                                    "visits" -> "visit_id"
+                                    else -> ""
+                                }
+                            if (sourceKey.isNotEmpty() && startingRoute.id.isNotBlank()) {
+                                val original =
+                                    controller.store
+                                        .nativeData()
+                                        .detail(startingRoute.section, startingRoute.id)
+                                if (original != null) {
+                                    put(sourceKey, startingRoute.id)
+                                    for (key in
+                                        listOf(
+                                            "customer_id",
+                                            "billing_customer_id",
+                                            "property_id",
+                                            "order_id",
+                                        )) original
+                                        .optString(key)
+                                        .takeIf { it.isNotBlank() }
+                                        ?.let { put(key, it) }
+                                }
+                            }
                         }
-                    }
-                controller.createOpen = true
+                    if (controller.route !== startingRoute) return@launch
+                    controller.createOpen = true
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    controller.message(
+                        nativeActionError(failure, "Der Kontext konnte nicht geladen werden.")
+                    )
+                }
             }
         },
         modifier.semantics {
