@@ -213,45 +213,8 @@ jobs:
           fi
           mkdir -p outputs
           (cd "$RUNNER_TEMP" && sha256sum gp-app.apk gp-test.apk) | tee outputs/qa-test-package-identity.txt
-      - name: Run native SQLite, Compose, document picker, provider and new-process checks
-        timeout-minutes: 85
-        env:
-          GRAPHICS_ONLY: ${{ inputs.graphics_only }}
-          ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
-          SETTLEMENT_ONLY: ${{ inputs.settlement_only }}
-          SETTLEMENT_UI_ONLY: ${{ inputs.settlement_ui_only }}
-          CANDIDATE_GIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Prepare native permission handoff script
         run: |
-          set -euo pipefail
-          sudo chmod 666 /dev/kvm
-          export ANDROID_USER_HOME="$RUNNER_TEMP/gp-android"
-          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
-          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
-          mkdir -p "$ANDROID_AVD_HOME"
-          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -p "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd" -k 'system-images;android-35;google_apis;x86_64'
-          # The Google APIs image defaults to a 6-GB data partition. Bound the
-          # disposable synthetic database/media volume to fit the hosted runner.
-          python3 - "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd/config.ini" <<'PYAVD'
-          import pathlib,sys
-          path=pathlib.Path(sys.argv[1])
-          settings={'disk.dataPartition.size':'3072M','hw.camera.back':'emulated','hw.camera.front':'emulated'}
-          lines=[line for line in path.read_text().splitlines() if line.partition('=')[0].strip() not in settings]
-          path.write_text('\n'.join(lines+[key+'='+value for key,value in settings.items()])+'\n')
-          print('AVD data partition: 3072M; one normalized setting')
-          PYAVD
-          df -h "$ANDROID_AVD_HOME"
-          test -f "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.ini"
-          "$ANDROID_HOME/emulator/emulator" -list-avds
-          "$ANDROID_HOME/emulator/emulator" -avd Gartenpirat_Backup_QA -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
-          ADB="$ANDROID_HOME/platform-tools/adb"
-          timeout 180 "$ADB" -s emulator-5580 wait-for-device
-          for attempt in $(seq 1 120); do
-            if [ "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
-            sleep 2
-          done
-          test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
-          test "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1
-          mkdir -p outputs
           cat > "$RUNNER_TEMP/qa-provider-handoff.py" <<'PY_HANDOFF'
           import json, os, pathlib, re, subprocess, sys, time, xml.etree.ElementTree as ET
 
@@ -501,6 +464,45 @@ jobs:
               else:
                   run_suite(command)
           PY_HANDOFF
+      - name: Run native SQLite, Compose, document picker, provider and new-process checks
+        timeout-minutes: 85
+        env:
+          GRAPHICS_ONLY: ${{ inputs.graphics_only }}
+          ACCOUNTING_ONLY: ${{ inputs.accounting_only }}
+          SETTLEMENT_ONLY: ${{ inputs.settlement_only }}
+          SETTLEMENT_UI_ONLY: ${{ inputs.settlement_ui_only }}
+          CANDIDATE_GIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          sudo chmod 666 /dev/kvm
+          export ANDROID_USER_HOME="$RUNNER_TEMP/gp-android"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n Gartenpirat_Backup_QA -p "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd" -k 'system-images;android-35;google_apis;x86_64'
+          # The Google APIs image defaults to a 6-GB data partition. Bound the
+          # disposable synthetic database/media volume to fit the hosted runner.
+          python3 - "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.avd/config.ini" <<'PYAVD'
+          import pathlib,sys
+          path=pathlib.Path(sys.argv[1])
+          settings={'disk.dataPartition.size':'3072M','hw.camera.back':'emulated','hw.camera.front':'emulated'}
+          lines=[line for line in path.read_text().splitlines() if line.partition('=')[0].strip() not in settings]
+          path.write_text('\n'.join(lines+[key+'='+value for key,value in settings.items()])+'\n')
+          print('AVD data partition: 3072M; one normalized setting')
+          PYAVD
+          df -h "$ANDROID_AVD_HOME"
+          test -f "$ANDROID_AVD_HOME/Gartenpirat_Backup_QA.ini"
+          "$ANDROID_HOME/emulator/emulator" -list-avds
+          "$ANDROID_HOME/emulator/emulator" -avd Gartenpirat_Backup_QA -port 5580 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/emulator.log" 2>&1 &
+          ADB="$ANDROID_HOME/platform-tools/adb"
+          timeout 180 "$ADB" -s emulator-5580 wait-for-device
+          for attempt in $(seq 1 120); do
+            if [ "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; then break; fi
+            sleep 2
+          done
+          test "$("$ADB" -s emulator-5580 shell getprop ro.kernel.qemu | tr -d '\r')" = 1
+          test "$("$ADB" -s emulator-5580 shell getprop sys.boot_completed | tr -d '\r')" = 1
+          mkdir -p outputs
           python3 "$RUNNER_TEMP/qa-provider-handoff.py" --setup-display
           upgrade_failures=0
           if [ -f "$RUNNER_TEMP/gp-baseline158.apk" ]; then
