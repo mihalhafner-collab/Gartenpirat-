@@ -44,7 +44,7 @@ den Nutzen kurz als Vorschlag nennen; umgesetzt wird erst nach Freigabe.
 - Steuerstatus nie aus Umsätzen ableiten oder selbst ändern. Keine sevDesk- oder
   Bankanbindung. Originale, Abschlüsse und Zahlungen vor Löschen schützen.
 - Laufende Zeiterfassung und Geschäftsdaten nie nebenbei ändern oder löschen; Tests ausgenommen.
-- Subagenten nur auf ausdrücklichen Auftrag.
+- Subagenten sinnvoll und effizient einsetzen
 
 ## ChatGPT-Anbindung (Pixel-MCP)
 
